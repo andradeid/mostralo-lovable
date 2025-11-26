@@ -29,6 +29,9 @@ import Checkout from "./pages/Checkout";
 import Support from "./pages/Support";
 import UsersDemo from "./pages/UsersDemo";
 import NotFound from "./pages/NotFound";
+import ServerError from "./pages/ServerError";
+import Maintenance from "./pages/Maintenance";
+import Offline from "./pages/Offline";
 import UsersPage from "./pages/admin/UsersPage";
 import SubscribersPage from "./pages/admin/SubscribersPage";
 import SubscriptionPage from "./pages/admin/SubscriptionPage";
@@ -327,6 +330,12 @@ const App = () => (
             <Route path="/termos" element={<TermsOfUse />} />
             <Route path="/privacidade" element={<Privacy />} />
             <Route path="/suporte" element={<Support />} />
+            
+            {/* Error Pages */}
+            <Route path="/500" element={<ServerError />} />
+            <Route path="/503" element={<Maintenance />} />
+            <Route path="/offline" element={<Offline />} />
+            
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

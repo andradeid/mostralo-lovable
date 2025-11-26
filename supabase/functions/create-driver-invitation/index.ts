@@ -188,7 +188,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('❌ Erro geral:', error);
     return new Response(
-      JSON.stringify({ error: error.message || 'Erro ao criar convite' }),
+      JSON.stringify({ error: (error as Error).message || 'Erro ao criar convite' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

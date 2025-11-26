@@ -152,7 +152,7 @@ const PlansPage = () => {
           name: formData.name,
           description: formData.description,
           price: formData.price,
-          billing_cycle: formData.billing_cycle,
+          billing_cycle: formData.billing_cycle as 'monthly' | 'quarterly' | 'biannual' | 'annual',
           max_products: formData.max_products,
           max_categories: formData.max_categories,
           status: formData.status,

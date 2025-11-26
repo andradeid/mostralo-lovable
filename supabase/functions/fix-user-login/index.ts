@@ -218,7 +218,6 @@ serve(async (req) => {
       id: targetUser.id.substring(0, 8) + "***",
       email: targetUser.email,
       emailConfirmed: targetUser.email_confirmed_at ? true : false,
-      banned: targetUser.banned_until ? true : false,
       createdAt: targetUser.created_at,
     });
 
@@ -270,12 +269,6 @@ serve(async (req) => {
       }
       updates.password = newPassword;
       fixes.push("Senha resetada");
-    }
-
-    // 3. Remover banimento se existir
-    if (targetUser.banned_until) {
-      updates.ban_duration = "none";
-      fixes.push("Banimento removido");
     }
 
     // Aplicar correções

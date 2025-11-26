@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { formatPhone } from '@/lib/utils';
 
 interface CreateDriverDialogProps {
   open: boolean;
@@ -22,6 +23,11 @@ export function CreateDriverDialog({ open, onOpenChange, storeId, onSuccess }: C
     phone: '',
     password: ''
   });
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhone(e.target.value);
+    setFormData({ ...formData, phone: formatted });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,9 +134,11 @@ export function CreateDriverDialog({ open, onOpenChange, storeId, onSuccess }: C
             <Label htmlFor="phone">Telefone</Label>
             <Input
               id="phone"
+              type="tel"
               value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              onChange={handlePhoneChange}
               placeholder="(11) 99999-9999"
+              maxLength={15}
             />
           </div>
 

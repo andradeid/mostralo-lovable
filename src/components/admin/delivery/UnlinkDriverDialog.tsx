@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 import { Loader2, UserMinus } from 'lucide-react';
@@ -29,6 +29,14 @@ export function UnlinkDriverDialog({ open, onOpenChange, driver, storeId, onSucc
 
     setActiveDeliveries(count || 0);
   };
+
+  // Verificar entregas ativas ao abrir o dialog
+  useEffect(() => {
+    if (open) {
+      setActiveDeliveries(null);
+      checkActiveDeliveries();
+    }
+  }, [open, driver.id, storeId]);
 
   const handleUnlink = async () => {
     setLoading(true);
@@ -79,11 +87,6 @@ export function UnlinkDriverDialog({ open, onOpenChange, driver, storeId, onSucc
       setLoading(false);
     }
   };
-
-  // Verificar ao abrir
-  if (open && activeDeliveries === null) {
-    checkActiveDeliveries();
-  }
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>

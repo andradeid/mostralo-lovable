@@ -92,6 +92,12 @@ const AttendantsPage = () => {
 
   const fetchAttendants = async () => {
     setLoading(true);
+    console.log('🔍 AttendantsPage: Iniciando busca de atendentes', {
+      userRole,
+      profileId: profile?.id,
+      profileEmail: profile?.email
+    });
+
     try {
       // Buscar user_roles com role = 'attendant'
       let rolesQuery = supabase
@@ -110,15 +116,24 @@ const AttendantsPage = () => {
 
       // Store admin só vê atendentes da sua loja
       if (userRole === 'store_admin' && profile?.id) {
-        const { data: userStore } = await supabase
+        console.log('👤 AttendantsPage: Buscando loja do store_admin');
+        const { data: userStore, error: storeError } = await supabase
           .from('stores')
-          .select('id')
+          .select('id, name')
           .eq('owner_id', profile.id)
           .single();
 
+        console.log('🏪 AttendantsPage: Resultado da busca de loja:', { 
+          userStore, 
+          storeError,
+          ownerId: profile.id 
+        });
+
         if (userStore) {
+          console.log('✅ AttendantsPage: Filtrando por store_id:', userStore.id);
           rolesQuery = rolesQuery.eq('store_id', userStore.id);
         } else {
+          console.warn('⚠️ AttendantsPage: Store admin sem loja associada');
           setAttendants([]);
           setLoading(false);
           return;
@@ -126,21 +141,35 @@ const AttendantsPage = () => {
       }
 
       const { data: roles, error: rolesError } = await rolesQuery;
+      
+      console.log('📊 AttendantsPage: Resultado da query de roles:', {
+        rolesCount: roles?.length || 0,
+        roles,
+        rolesError
+      });
 
       if (rolesError) throw rolesError;
 
       if (!roles || roles.length === 0) {
+        console.log('📭 AttendantsPage: Nenhum atendente encontrado');
         setAttendants([]);
         setLoading(false);
         return;
       }
 
+      console.log('👥 AttendantsPage: Buscando profiles dos atendentes');
       // Buscar profiles dos atendentes
       const userIds = roles.map(r => r.user_id);
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('id, email, full_name, created_at')
         .in('id', userIds);
+
+      console.log('📊 AttendantsPage: Profiles encontrados:', {
+        profilesCount: profiles?.length || 0,
+        profiles,
+        profilesError
+      });
 
       if (profilesError) throw profilesError;
 
@@ -157,6 +186,7 @@ const AttendantsPage = () => {
         };
       });
 
+      console.log('✅ AttendantsPage: Atendentes processados:', attendantsData);
       setAttendants(attendantsData);
     } catch (error: any) {
       console.error('Erro ao buscar atendentes:', error);

@@ -3,7 +3,10 @@ const RUNTIME_CACHE = 'mostralo-runtime';
 const IMAGE_CACHE = 'mostralo-images';
 const FONT_CACHE = 'mostralo-fonts';
 
-// Assets críticos para cache imediato
+// Workbox manifest injection point (necessário para vite-plugin-pwa)
+const PRECACHE_MANIFEST = self.__WB_MANIFEST || [];
+
+// Assets críticos adicionais para cache imediato
 const CRITICAL_ASSETS = [
   '/',
   '/index.html',
@@ -18,7 +21,13 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('[SW] Cache aberto, adicionando assets críticos');
-        return cache.addAll(CRITICAL_ASSETS);
+        // Cachear assets do Workbox manifest
+        const precacheUrls = PRECACHE_MANIFEST.map(entry => 
+          typeof entry === 'string' ? entry : entry.url
+        );
+        // Combinar com assets críticos adicionais
+        const allAssets = [...new Set([...precacheUrls, ...CRITICAL_ASSETS])];
+        return cache.addAll(allAssets);
       })
       .then(() => self.skipWaiting())
   );

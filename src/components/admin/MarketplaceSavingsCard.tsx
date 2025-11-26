@@ -75,6 +75,23 @@ export function MarketplaceSavingsCard({ variant = 'default', className = '' }: 
     return null;
   }
 
+  // Inline variant to match other KPI cards in the stats row
+  if (variant === 'inline') {
+    return (
+      <Card className="p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-muted-foreground">Economia vs Marketplace</p>
+            <p className="text-3xl font-bold text-emerald-600">
+              {formatCurrency(totalRevenue === 0 ? 0 : animatedSavings)}
+            </p>
+          </div>
+          <TrendingDown className="h-12 w-12 text-emerald-500 opacity-20" />
+        </div>
+      </Card>
+    );
+  }
+
   if (totalRevenue === 0) {
     return (
       <Card className={`border-2 border-dashed border-muted ${className}`}>
@@ -86,23 +103,6 @@ export function MarketplaceSavingsCard({ variant = 'default', className = '' }: 
             </p>
           </div>
         </CardContent>
-      </Card>
-    );
-  }
-
-  // Inline variant to match other KPI cards in the stats row
-  if (variant === 'inline') {
-    return (
-      <Card className="p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">Economia vs Marketplace</p>
-            <p className="text-3xl font-bold text-emerald-600">
-              {formatCurrency(animatedSavings)}
-            </p>
-          </div>
-          <TrendingDown className="h-12 w-12 text-emerald-500 opacity-20" />
-        </div>
       </Card>
     );
   }

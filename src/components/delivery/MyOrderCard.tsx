@@ -282,13 +282,6 @@ export function MyOrderCard({ assignment, onUpdate, driverEarningsConfig }: MyOr
           <span className="truncate">{getFirstName(order.customer_name)}</span>
         </div>
 
-        {/* Debug: Verificar endereço do cliente */}
-        {console.log('🔍 MyOrderCard: Verificando endereço do cliente:', {
-          hasCustomerAddress: !!order.customer_address,
-          customerAddress: order.customer_address,
-          orderId: order.id
-        })}
-
         {/* Localização da Loja - Sempre visível se configurada */}
         {storeLocation && (storeLocation.address || (storeLocation.latitude && storeLocation.longitude)) ? (
           <div className="p-3 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg space-y-2">

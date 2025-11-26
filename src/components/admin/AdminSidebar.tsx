@@ -257,7 +257,7 @@ export function AdminSidebar() {
       userRole,
       hasActiveSubscription,
       loadingConfig,
-      approvalStatus: profile?.approval_status
+      approvalStatus: profile?.approval_status ?? 'unknown'
     });
 
     // Menu para Atendente

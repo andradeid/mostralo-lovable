@@ -78,7 +78,7 @@ export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
   if (
     profile?.user_type === 'store_admin' && 
     location.pathname !== '/dashboard/subscription' &&
-    (profile.approval_status === 'pending' || profile.approval_status === 'rejected')
+    (profile?.approval_status === 'pending' || profile?.approval_status === 'rejected')
   ) {
     return <Navigate to="/dashboard/subscription" replace />;
   }

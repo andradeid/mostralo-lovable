@@ -2,6 +2,21 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+interface Coupon {
+  id: string;
+  code: string;
+  status: 'active' | 'inactive' | 'expired';
+  start_date: string | null;
+  end_date: string | null;
+  max_uses: number | null;
+  used_count: number;
+  applies_to: 'all' | 'specific_plans';
+  plan_ids: string[] | null;
+  discount_type: 'percentage' | 'fixed';
+  discount_value: number;
+  max_uses_per_user: number;
+}
+
 interface CouponValidationResult {
   isValid: boolean;
   coupon: any | null;
@@ -24,11 +39,11 @@ export const useCouponValidation = () => {
 
     try {
       // Buscar cupom pelo código
-      const { data: coupon, error: couponError } = await supabase
+      const { data: coupon, error: couponError } = await (supabase as any)
         .from('coupons')
         .select('*')
         .eq('code', code.toUpperCase())
-        .single();
+        .single() as { data: Coupon | null; error: any };
 
       if (couponError || !coupon) {
         return {
@@ -99,11 +114,11 @@ export const useCouponValidation = () => {
 
       // Verificar uso por usuário (se tiver userId)
       if (userId) {
-        const { data: usages, error: usageError } = await supabase
+        const { data: usages, error: usageError } = await (supabase as any)
           .from('coupon_usages')
           .select('id')
           .eq('coupon_id', coupon.id)
-          .eq('user_id', userId);
+          .eq('user_id', userId) as { data: any[] | null; error: any };
 
         if (usageError) {
           console.error('Erro ao verificar uso do cupom:', usageError);
@@ -164,7 +179,7 @@ export const useCouponValidation = () => {
     finalPrice: number
   ): Promise<boolean> => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('coupon_usages')
         .insert([
           {
@@ -177,7 +192,7 @@ export const useCouponValidation = () => {
             ip_address: null, // Pode ser obtido via API
             user_agent: navigator.userAgent
           }
-        ]);
+        ]) as { error: any };
 
       if (error) {
         console.error('Erro ao registrar uso do cupom:', error);

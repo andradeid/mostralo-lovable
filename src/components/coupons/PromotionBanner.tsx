@@ -38,11 +38,20 @@ export const PromotionBanner = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchPromotionData();
   }, []);
+
+  // Ativar animação após carregar os dados
+  useEffect(() => {
+    if (coupon) {
+      const timer = setTimeout(() => setIsVisible(true), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [coupon]);
 
   // Calcular tempo restante
   useEffect(() => {
@@ -144,46 +153,60 @@ export const PromotionBanner = () => {
 
   return (
     <div className="w-full">
-      <div className="relative overflow-hidden rounded-xl shadow-xl">
-        <div className="grid md:grid-cols-2 min-h-[200px]">
+      <div className={`relative overflow-hidden rounded-xl shadow-xl transition-all duration-500 ${
+        isVisible ? 'animate-fade-in-up' : 'opacity-0 translate-y-5'
+      }`}>
+        <div className="grid md:grid-cols-2">
           {/* Left Side - Orange/Red Gradient */}
-          <div className="bg-gradient-to-br from-orange-500 to-red-500 dark:from-orange-600 dark:to-red-600 p-4 md:p-6 flex flex-col justify-center">
-            <div className="space-y-2">
+          <div className="bg-gradient-to-br from-orange-500 to-red-500 dark:from-orange-600 dark:to-red-600 p-3 md:p-4 flex flex-col justify-center">
+            <div className="space-y-1.5">
               {/* Icon */}
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-white/20 rounded-full">
-                <Ticket className="w-6 h-6 text-white" />
+              <div className={`inline-flex items-center justify-center w-10 h-10 bg-white/20 rounded-full transition-all duration-500 ${
+                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
+              }`} style={{ transitionDelay: '100ms' }}>
+                <Ticket className="w-5 h-5 text-white" />
               </div>
 
               {/* Badge */}
-              <Badge className="bg-yellow-400 text-yellow-900 hover:bg-yellow-400 font-bold text-xs inline-flex w-fit">
+              <Badge className={`bg-yellow-400 text-yellow-900 hover:bg-yellow-400 font-bold text-xs inline-flex w-fit transition-all duration-500 ${
+                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
+              }`} style={{ transitionDelay: '200ms' }}>
                 {coupon.promotion_label || 'OFERTA LIMITADA'}
               </Badge>
 
               {/* Title */}
-              <h2 className="text-xl md:text-2xl font-black text-white leading-tight">
+              <h2 className={`text-xl md:text-2xl font-black text-white leading-tight transition-all duration-500 ${
+                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
+              }`} style={{ transitionDelay: '300ms' }}>
                 {coupon.name}
               </h2>
 
               {/* Description */}
               {coupon.description && (
-                <p className="text-sm text-white/90">
+                <p className={`text-sm text-white/90 transition-all duration-500 ${
+                  isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
+                }`} style={{ transitionDelay: '350ms' }}>
                   {coupon.description}
                 </p>
               )}
 
               {/* Discount */}
-              <div className="flex items-baseline gap-2">
+              <div className={`flex items-baseline gap-2 transition-all duration-500 ${
+                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
+              }`} style={{ transitionDelay: '400ms' }}>
                 <span className="text-3xl md:text-4xl font-black text-white">
                   {coupon.discount_type === 'percentage' 
                     ? `${coupon.discount_value}%`
                     : formatPrice(coupon.discount_value)
                   }
                 </span>
-                <span className="text-2xl font-black text-white">OFF</span>
+                <span className="text-xl md:text-2xl font-black text-white">OFF</span>
               </div>
 
               {/* Coupon Code */}
-              <div className="flex items-center gap-2 bg-white/20 backdrop-blur rounded-lg px-3 py-2 w-fit">
+              <div className={`flex items-center gap-2 bg-white/20 backdrop-blur rounded-lg px-2 py-1.5 w-fit transition-all duration-500 ${
+                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
+              }`} style={{ transitionDelay: '450ms' }}>
                 <span className="text-xs text-white font-medium">Código:</span>
                 <code className="text-sm font-bold text-white">{coupon.code}</code>
                 <Button 
@@ -197,12 +220,14 @@ export const PromotionBanner = () => {
               </div>
 
               {/* Prices */}
-              {lowestPlan && (
-                <div className="flex items-center gap-2 text-white text-sm">
+              {lowestPlan && discountedPrice > 0 && (
+                <div className={`flex items-center gap-2 text-white text-sm transition-all duration-500 ${
+                  isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
+                }`} style={{ transitionDelay: '500ms' }}>
                   <span className="line-through opacity-70">
                     {formatPrice(lowestPlan.price)}
                   </span>
-                  <span className="text-lg font-bold">
+                  <span className="text-base md:text-lg font-bold">
                     {formatPrice(discountedPrice)}
                   </span>
                   {savings > 0 && (
@@ -217,15 +242,19 @@ export const PromotionBanner = () => {
 
           {/* Right Side - Pink Gradient */}
           {coupon.show_countdown && coupon.end_date && (
-            <div className="bg-gradient-to-br from-pink-500 to-pink-600 dark:from-pink-600 dark:to-pink-700 p-4 md:p-6 flex flex-col items-center justify-center text-white">
-              <div className="space-y-3 w-full">
+            <div className="bg-gradient-to-br from-pink-500 to-pink-600 dark:from-pink-600 dark:to-pink-700 p-3 md:p-4 flex flex-col items-center justify-center text-white">
+              <div className="space-y-2.5 w-full">
                 {/* Countdown Title */}
-                <p className="text-center text-sm font-semibold">
+                <p className={`text-center text-sm font-semibold transition-all duration-500 ${
+                  isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
+                }`} style={{ transitionDelay: '550ms' }}>
                   Termina em:
                 </p>
 
                 {/* Countdown Timer */}
-                <div className="flex items-center justify-center gap-1">
+                <div className={`flex items-center justify-center gap-1 transition-all duration-500 ${
+                  isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
+                }`} style={{ transitionDelay: '600ms' }}>
                   <div className="flex flex-col items-center">
                     <div className="text-2xl md:text-3xl font-bold tabular-nums">
                       {String(timeLeft?.days || 0).padStart(2, '0')}
@@ -272,7 +301,10 @@ export const PromotionBanner = () => {
                 {/* CTA Button */}
                 <Button 
                   size="default" 
-                  className="w-full bg-white text-orange-600 hover:bg-white/90 font-bold text-sm shadow-lg h-10"
+                  className={`w-full bg-white text-orange-600 hover:bg-white/90 font-bold text-sm shadow-lg h-9 transition-all duration-500 ${
+                    isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
+                  }`}
+                  style={{ transitionDelay: '700ms' }}
                   onClick={() => {
                     const plansSection = document.getElementById('plans');
                     if (plansSection) {

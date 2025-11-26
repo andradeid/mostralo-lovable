@@ -2619,6 +2619,12 @@ export type Database = {
         Returns: Database["public"]["Enums"]["user_type"]
       }
       get_next_order_number: { Args: { store_uuid: string }; Returns: string }
+      get_user_store_ids_direct: {
+        Args: { check_user_id: string }
+        Returns: {
+          store_id: string
+        }[]
+      }
       has_pending_approval: {
         Args: { check_user_id: string }
         Returns: boolean
@@ -2658,6 +2664,10 @@ export type Database = {
         Args: { driver_user_id: string }
         Returns: boolean
       }
+      is_attendant_of_store_direct: {
+        Args: { check_store_id: string; check_user_id: string }
+        Returns: boolean
+      }
       is_customer_self: { Args: { _customer_id: string }; Returns: boolean }
       is_delivery_driver: {
         Args: { _store_id: string; _user_id: string }
@@ -2669,6 +2679,10 @@ export type Database = {
       }
       is_store_admin_of_attendant: {
         Args: { attendant_user_id: string }
+        Returns: boolean
+      }
+      is_store_owner_direct: {
+        Args: { check_store_id: string; check_user_id: string }
         Returns: boolean
       }
       is_store_owner_of_customer: {

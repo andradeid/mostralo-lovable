@@ -716,7 +716,10 @@ const OrdersPage = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {/* Economia como primeiro card */}
+        <MarketplaceSavingsCard variant="inline" />
+        
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -746,11 +749,6 @@ const OrdersPage = () => {
             <TrendingUp className="h-12 w-12 text-blue-500 opacity-20" />
           </div>
         </Card>
-      </div>
-
-      {/* Card de Economia de Marketplace */}
-      <div className="mb-6">
-        <MarketplaceSavingsCard variant="compact" />
       </div>
 
       {/* Filters */}

@@ -4,7 +4,14 @@ const IMAGE_CACHE = 'mostralo-images';
 const FONT_CACHE = 'mostralo-fonts';
 
 // Workbox manifest injection point (necessário para vite-plugin-pwa)
-const PRECACHE_MANIFEST = self.__WB_MANIFEST || [];
+// ✅ Proteção contra erro no Safari/iPhones onde __WB_MANIFEST pode não existir
+let PRECACHE_MANIFEST = [];
+try {
+  PRECACHE_MANIFEST = self.__WB_MANIFEST || [];
+} catch (e) {
+  console.warn('[SW] Manifest não disponível:', e);
+  PRECACHE_MANIFEST = [];
+}
 
 // Assets críticos adicionais para cache imediato
 const CRITICAL_ASSETS = [

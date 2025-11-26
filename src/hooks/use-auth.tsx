@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { safeLocalStorage } from '@/lib/safeStorage';
 
 interface Profile {
   id: string;
@@ -224,12 +225,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         'sb-noshwvwpjtnvndokbfjx-auth-token-code-verifier',
       ];
       
-      // Limpar todas as chaves que começam com 'customer_'
-      Object.keys(localStorage).forEach(key => {
-        if (key.startsWith('customer_') || supabaseKeys.includes(key)) {
-          localStorage.removeItem(key);
+      // Limpar todas as chaves que começam com 'customer_' usando safeLocalStorage
+      try {
+        const len = safeLocalStorage.length;
+        for (let i = 0; i < len; i++) {
+          const key = safeLocalStorage.key(i);
+          if (key && (key.startsWith('customer_') || supabaseKeys.includes(key))) {
+            safeLocalStorage.removeItem(key);
+          }
         }
-      });
+      } catch (error) {
+        console.warn('Erro ao limpar localStorage:', error);
+      }
       
       // 3. Aguardar um pouco para garantir limpeza
       await new Promise(resolve => setTimeout(resolve, 200));
@@ -301,14 +308,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const currentUserRole = userRole;
     console.log('📝 UserRole atual antes de limpar:', currentUserRole);
     
-    // 1) Limpar dados do cliente do localStorage (se houver)
+    // 1) Limpar dados do cliente do localStorage (se houver) usando safeLocalStorage
     try {
-      const keys = Object.keys(localStorage);
-      keys.forEach(key => {
-        if (key.startsWith('customer_')) {
-          localStorage.removeItem(key);
+      const len = safeLocalStorage.length;
+      for (let i = 0; i < len; i++) {
+        const key = safeLocalStorage.key(i);
+        if (key && key.startsWith('customer_')) {
+          safeLocalStorage.removeItem(key);
         }
-      });
+      }
       console.log('🧹 Dados de cliente removidos do localStorage');
     } catch (error) {
       console.error('Erro ao limpar dados do cliente:', error);
@@ -344,17 +352,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         'legal-consent',
       ]);
 
-      // Limpar TODAS as chaves relacionadas ao Supabase e cliente
-      for (const key of Object.keys(localStorage)) {
-        if (
-          key.startsWith('sb-') ||                 // tokens Supabase
-          key.includes('supabase') ||              // qualquer chave ligada ao supabase
-          key.startsWith('customer_') ||           // dados de cliente por loja
-          extraKeys.has(key)
-        ) {
-          localStorage.removeItem(key);
-          console.log('🗑️ Removido do localStorage:', key);
+      // Limpar TODAS as chaves relacionadas ao Supabase e cliente usando safeLocalStorage
+      try {
+        const len = safeLocalStorage.length;
+        for (let i = 0; i < len; i++) {
+          const key = safeLocalStorage.key(i);
+          if (key && (
+            key.startsWith('sb-') ||                 // tokens Supabase
+            key.includes('supabase') ||              // qualquer chave ligada ao supabase
+            key.startsWith('customer_') ||           // dados de cliente por loja
+            extraKeys.has(key)
+          )) {
+            safeLocalStorage.removeItem(key);
+            console.log('🗑️ Removido do localStorage:', key);
+          }
         }
+      } catch (error) {
+        console.warn('Erro ao limpar localStorage completo:', error);
       }
 
       console.log('✅ Limpeza completa concluída');
@@ -476,7 +490,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (e) {
       console.error('❌ Erro no signOut', e);
-      localStorage.clear();
+      safeLocalStorage.clear();
       window.location.replace(redirectTo || '/auth');
     }
   };

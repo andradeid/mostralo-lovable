@@ -40,11 +40,8 @@ WHERE NOT EXISTS (
 )
 ON CONFLICT (user_id, role, store_id) DO NOTHING;
 
--- 4️⃣ Atualizar user_type no profile se necessário
-UPDATE profiles
-SET user_type = 'attendant'
-WHERE id = '29a2ac8d-232b-4761-a0ba-bc49db8cf33e'
-  AND (user_type IS NULL OR user_type != 'attendant');
+-- 4️⃣ REMOVIDO - user_type não suporta 'attendant'
+-- A role é gerenciada apenas na tabela user_roles
 
 -- 5️⃣ Verificar correção final
 SELECT 

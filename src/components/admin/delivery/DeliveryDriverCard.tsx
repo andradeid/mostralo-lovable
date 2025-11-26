@@ -6,9 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Bike, Package, TrendingUp, MoreVertical, Edit, Trash2, DollarSign, Clock, AlertTriangle, Settings } from 'lucide-react';
+import { Bike, Package, TrendingUp, MoreVertical, Edit, UserMinus, DollarSign, Clock, AlertTriangle, Settings } from 'lucide-react';
 import { EditDriverDialog } from './EditDriverDialog';
-import { DeleteDriverDialog } from './DeleteDriverDialog';
+import { UnlinkDriverDialog } from './UnlinkDriverDialog';
 import { DriverEarningsConfigDialog } from './DriverEarningsConfigDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency } from '@/utils/driverEarnings';
@@ -46,7 +46,7 @@ interface DeliveryDriverCardProps {
 export function DeliveryDriverCard({ driver, stats, onUpdate, isOnline = false, storeId }: DeliveryDriverCardProps) {
   const navigate = useNavigate();
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showUnlinkDialog, setShowUnlinkDialog] = useState(false);
   const [showEarningsDialog, setShowEarningsDialog] = useState(false);
   const [earningsConfig, setEarningsConfig] = useState<EarningsConfig | null>(null);
 
@@ -137,11 +137,11 @@ export function DeliveryDriverCard({ driver, stats, onUpdate, isOnline = false, 
                   Editar
                 </DropdownMenuItem>
                 <DropdownMenuItem 
-                  onClick={() => setShowDeleteDialog(true)}
-                  className="text-destructive"
+                  onClick={() => setShowUnlinkDialog(true)}
+                  className="text-amber-600"
                 >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Excluir
+                  <UserMinus className="w-4 h-4 mr-2" />
+                  Desvincular da Loja
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -212,10 +212,11 @@ export function DeliveryDriverCard({ driver, stats, onUpdate, isOnline = false, 
       onSuccess={onUpdate}
     />
 
-    <DeleteDriverDialog
-      open={showDeleteDialog}
-      onOpenChange={setShowDeleteDialog}
+    <UnlinkDriverDialog
+      open={showUnlinkDialog}
+      onOpenChange={setShowUnlinkDialog}
       driver={driver}
+      storeId={storeId}
       onSuccess={onUpdate}
     />
 

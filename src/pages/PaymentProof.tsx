@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface PaymentConfig {
   pix_key?: string;
-  pix_key_type?: 'cpf' | 'cnpj' | 'email' | 'phone' | 'random';
+  pix_key_type?: string;
   pix_name?: string;
   payment_instructions?: string;
 }
@@ -76,20 +76,20 @@ const PaymentProof = () => {
   const fetchApproval = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('payment_approvals')
         .select('*')
         .eq('user_id', user?.id)
         .eq('status', 'pending')
-        .single();
+        .maybeSingle() as { data: PaymentApproval | null; error: any };
 
       if (error && error.code !== 'PGRST116') throw error;
       
       if (data) {
-        setApproval(data);
+        setApproval(data as PaymentApproval);
         // Se já tem comprovante, mostrar preview
-        if (data.payment_proof_url) {
-          setPreviewUrl(data.payment_proof_url);
+        if ((data as any).payment_proof_url) {
+          setPreviewUrl((data as any).payment_proof_url);
         }
       } else {
         // Se não tem aprovação pendente, redirecionar
@@ -173,7 +173,7 @@ const PaymentProof = () => {
         .getPublicUrl(fileName);
 
       // 3. Atualizar registro de aprovação
-      const { error: updateError } = await supabase
+      const { error: updateError } = await (supabase as any)
         .from('payment_approvals')
         .update({
           payment_proof_url: urlData.publicUrl,

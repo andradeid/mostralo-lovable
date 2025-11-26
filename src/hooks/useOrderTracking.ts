@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Database } from '@/integrations/supabase/types';
+import { REALTIME_SUBSCRIBE_STATES } from '@supabase/supabase-js';
 
 type Order = Database['public']['Tables']['orders']['Row'] & {
   order_items?: Database['public']['Tables']['order_items']['Row'][];
@@ -50,7 +51,7 @@ export const useOrderTracking = (orderId: string) => {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [subscriptionStatus, setSubscriptionStatus] = useState<'SUBSCRIBED' | 'CHANNEL_ERROR' | 'TIMED_OUT' | null>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<REALTIME_SUBSCRIBE_STATES | null>(null);
   
   // Ref para armazenar última versão do pedido (para polling)
   const orderRef = useRef<Order | null>(null);

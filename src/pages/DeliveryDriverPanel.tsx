@@ -190,7 +190,9 @@ export default function DeliveryDriverPanel() {
               if (currentSoundEnabled) {
                 playNewOrderSound();
               }
-              sendNotification('Novo pedido disponível!', `Pedido #${newOrder.order_number} - ${newOrder.customer_name}`);
+              sendNotification('Novo pedido disponível!', {
+                body: `Pedido #${newOrder.order_number} - ${newOrder.customer_name}`
+              });
             } else {
               console.log('⚠️ Entregador offline - não mostrando alerta');
             }
@@ -268,7 +270,9 @@ export default function DeliveryDriverPanel() {
                 if (currentSoundEnabled) {
                   playNewOrderSound();
                 }
-                sendNotification('Novo pedido disponível!', `Pedido #${updatedOrder.order_number} - ${updatedOrder.customer_name}`);
+                sendNotification('Novo pedido disponível!', {
+                  body: `Pedido #${updatedOrder.order_number} - ${updatedOrder.customer_name}`
+                });
               }
             }
           }
@@ -565,7 +569,7 @@ export default function DeliveryDriverPanel() {
       if (orderError) throw orderError;
       
       // 2. Atualizar assignment.status para 'delivered' (controle interno)
-      const { data: updatedAssignment } = await supabase
+      const { data: updatedAssignment, error: updateError } = await supabase
         .from('delivery_assignments')
         .update({ 
           status: 'delivered',
@@ -575,12 +579,12 @@ export default function DeliveryDriverPanel() {
         .select('*, orders(*)')
         .single();
 
-      if (updatedAssignment?.error) throw updatedAssignment.error;
+      if (updateError) throw updateError;
 
       // Mover para finalizados
       setMyAssignments(prev => prev.filter(a => a.id !== assignmentId));
       if (updatedAssignment) {
-        setCompletedAssignments(prev => [updatedAssignment, ...prev]);
+        setCompletedAssignments(prev => [updatedAssignment as any, ...prev]);
       }
       
       await fetchTodayStats(profile!.id);

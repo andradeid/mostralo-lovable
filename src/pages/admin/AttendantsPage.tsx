@@ -105,7 +105,7 @@ const AttendantsPage = () => {
             name
           )
         `)
-        .eq('role', 'attendant')
+        .eq('role', 'attendant' as any)
         .order('created_at', { ascending: false });
 
       // Store admin só vê atendentes da sua loja
@@ -273,7 +273,7 @@ const AttendantsPage = () => {
           .from('user_roles')
           .update({ store_id: formData.store_id })
           .eq('user_id', selectedAttendant.id)
-          .eq('role', 'attendant')
+          .eq('role', 'attendant' as any)
           .select();
 
         console.log('📊 Resultado da atualização de role:', { roleData, roleError });
@@ -309,7 +309,7 @@ const AttendantsPage = () => {
         .from('user_roles')
         .delete()
         .eq('user_id', selectedAttendant.id)
-        .eq('role', 'attendant');
+        .eq('role', 'attendant' as any);
 
       if (roleError) throw roleError;
 

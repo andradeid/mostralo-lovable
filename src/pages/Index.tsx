@@ -62,8 +62,8 @@ interface Plan {
   price: number;
   billing_cycle: string;
   status: string;
-  is_popular: boolean;
-  features: Record<string, boolean>;
+  is_popular?: boolean;
+  features: any;
   promotion_active?: boolean;
   discount_price?: number | null;
   discount_percentage?: number | null;

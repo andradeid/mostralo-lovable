@@ -3,6 +3,7 @@ import App from './App.tsx'
 import './index.css'
 
 // Registro do Service Worker para PWA e cache offline
+// ✅ Com fallback seguro para Safari/iPhones
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
@@ -32,7 +33,9 @@ if ('serviceWorker' in navigator) {
         });
       })
       .catch((error) => {
-        console.error('[PWA] Erro ao registrar Service Worker:', error);
+        console.warn('[PWA] Service Worker não disponível:', error);
+        // ✅ App continua funcionando normalmente sem SW
+        // Útil para Safari modo privado ou iPhones mais antigos
       });
   });
 }

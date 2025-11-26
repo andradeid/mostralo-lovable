@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { safeLocalStorage } from '@/lib/safeStorage';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -217,22 +218,22 @@ const Store = () => {
   useEffect(() => {
     const loadCustomerProfile = () => {
       if (store?.id) {
-        // Migrar dados antigos para o novo formato
-        const oldCustomerData = localStorage.getItem('customer_data');
-        const oldProfile = localStorage.getItem(`customerProfile_${store.id}`);
-        const currentCustomer = localStorage.getItem(`customer_${store.id}`);
+        // Migrar dados antigos para o novo formato usando safeLocalStorage
+        const oldCustomerData = safeLocalStorage.getItem('customer_data');
+        const oldProfile = safeLocalStorage.getItem(`customerProfile_${store.id}`);
+        const currentCustomer = safeLocalStorage.getItem(`customer_${store.id}`);
         
         // Se não existe customer_${storeId}, migrar de customer_data ou customerProfile
         if (!currentCustomer) {
           if (oldCustomerData) {
-            localStorage.setItem(`customer_${store.id}`, oldCustomerData);
+            safeLocalStorage.setItem(`customer_${store.id}`, oldCustomerData);
           } else if (oldProfile) {
-            localStorage.setItem(`customer_${store.id}`, oldProfile);
+            safeLocalStorage.setItem(`customer_${store.id}`, oldProfile);
           }
         }
         
         // Carregar perfil salvo do localStorage com a nova chave
-        const savedProfile = localStorage.getItem(`customer_${store.id}`);
+        const savedProfile = safeLocalStorage.getItem(`customer_${store.id}`);
         if (savedProfile) {
           try {
             const profile = JSON.parse(savedProfile);
@@ -306,8 +307,8 @@ const Store = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('auth') === 'true' && store?.id) {
-      // Verificar se já está logado
-      const savedProfile = localStorage.getItem(`customer_${store.id}`);
+      // Verificar se já está logado usando safeLocalStorage
+      const savedProfile = safeLocalStorage.getItem(`customer_${store.id}`);
       
       supabase.auth.getSession().then(({ data }) => {
         if (!data.session || !savedProfile) {

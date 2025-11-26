@@ -89,7 +89,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         verified: false,
-        error: error.message || 'Erro ao verificar domínio'
+        error: (error as Error).message || 'Erro ao verificar domínio'
       }),
       { 
         status: 500, 

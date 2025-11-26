@@ -74,12 +74,14 @@ serve(async (req) => {
 
       if (!existingInvoice) {
         // Criar nova invoice com o valor correto do plano
+        const planPrice = Array.isArray(store.plans) ? store.plans[0]?.price : (store.plans as any)?.price;
+        
         const { error: insertError } = await supabaseClient
           .from('subscription_invoices')
           .insert({
             store_id: store.id,
             plan_id: store.plan_id,
-            amount: Number(store.plans.price), // Garantir que é número
+            amount: Number(planPrice || 0), // Garantir que é número
             due_date: store.subscription_expires_at,
             payment_status: 'pending'
           });
@@ -113,7 +115,7 @@ serve(async (req) => {
     console.error('Error in generate-monthly-invoices:', error);
     return new Response(
       JSON.stringify({ 
-        error: error.message,
+        error: (error as Error).message,
         success: false 
       }),
       { 

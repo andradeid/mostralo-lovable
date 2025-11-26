@@ -377,10 +377,12 @@ export default function SubscriptionPaymentsManagementPage() {
       const billingCycle = invoice.plans?.billing_cycle || 'monthly';
       if (billingCycle === 'monthly') {
         newExpirationDate.setMonth(newExpirationDate.getMonth() + 1);
-      } else if (billingCycle === 'yearly') {
+      } else if (billingCycle === 'annual') {
         newExpirationDate.setFullYear(newExpirationDate.getFullYear() + 1);
       } else if (billingCycle === 'quarterly') {
         newExpirationDate.setMonth(newExpirationDate.getMonth() + 3);
+      } else if (billingCycle === 'biannual') {
+        newExpirationDate.setMonth(newExpirationDate.getMonth() + 6);
       }
 
       // 4. Atualizar fatura

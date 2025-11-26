@@ -8,7 +8,7 @@ interface Profile {
   full_name?: string;
   user_type: 'master_admin' | 'store_admin';
   avatar_url?: string;
-  approval_status?: 'pending' | 'approved' | 'rejected';
+  approval_status?: string | null;
 }
 
 interface AuthContextType {

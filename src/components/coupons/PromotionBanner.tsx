@@ -158,82 +158,75 @@ export const PromotionBanner = () => {
       }`}>
         <div className="grid md:grid-cols-2">
           {/* Left Side - Orange/Red Gradient */}
-          <div className="bg-gradient-to-br from-orange-500 to-red-500 dark:from-orange-600 dark:to-red-600 p-3 md:p-4 flex flex-col justify-center">
-            <div className="space-y-1.5">
+          <div className="bg-gradient-to-br from-orange-500 to-red-500 dark:from-orange-600 dark:to-red-600 p-4 md:p-6 flex flex-col items-center justify-center text-center">
+            <div className="space-y-3 flex flex-col items-center">
               {/* Icon */}
-              <div className={`inline-flex items-center justify-center w-10 h-10 bg-white/20 rounded-full transition-all duration-500 ${
+              <div className={`inline-flex items-center justify-center w-12 h-12 bg-white/20 rounded-full transition-all duration-500 ${
                 isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
               }`} style={{ transitionDelay: '100ms' }}>
-                <Ticket className="w-5 h-5 text-white" />
+                <Ticket className="w-6 h-6 text-white" />
               </div>
 
               {/* Badge */}
-              <Badge className={`bg-yellow-400 text-yellow-900 hover:bg-yellow-400 font-bold text-xs inline-flex w-fit transition-all duration-500 ${
+              <Badge className={`bg-yellow-400 text-yellow-900 hover:bg-yellow-400 font-bold text-xs transition-all duration-500 ${
                 isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
               }`} style={{ transitionDelay: '200ms' }}>
                 {coupon.promotion_label || 'OFERTA LIMITADA'}
               </Badge>
 
-              {/* Title */}
-              <h2 className={`text-xl md:text-2xl font-black text-white leading-tight transition-all duration-500 ${
+              {/* Main Discount - Hero */}
+              <h2 className={`text-3xl md:text-4xl font-black text-white drop-shadow-lg transition-all duration-500 ${
                 isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
               }`} style={{ transitionDelay: '300ms' }}>
-                {coupon.name}
+                {coupon.discount_type === 'percentage' 
+                  ? `${coupon.discount_value}% OFF`
+                  : `${formatPrice(coupon.discount_value)} OFF`
+                }
               </h2>
 
               {/* Description */}
               {coupon.description && (
-                <p className={`text-sm text-white/90 transition-all duration-500 ${
+                <p className={`text-sm text-white/80 font-medium max-w-xs transition-all duration-500 ${
                   isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
                 }`} style={{ transitionDelay: '350ms' }}>
                   {coupon.description}
                 </p>
               )}
 
-              {/* Discount */}
-              <div className={`flex items-baseline gap-2 transition-all duration-500 ${
+              {/* Coupon Code - Compact */}
+              <div className={`inline-flex items-center gap-2 bg-white/20 backdrop-blur rounded-full px-4 py-2 border border-white/30 transition-all duration-500 ${
                 isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
               }`} style={{ transitionDelay: '400ms' }}>
-                <span className="text-3xl md:text-4xl font-black text-white">
-                  {coupon.discount_type === 'percentage' 
-                    ? `${coupon.discount_value}%`
-                    : formatPrice(coupon.discount_value)
-                  }
-                </span>
-                <span className="text-xl md:text-2xl font-black text-white">OFF</span>
-              </div>
-
-              {/* Coupon Code */}
-              <div className={`flex items-center gap-2 bg-white/20 backdrop-blur rounded-lg px-2 py-1.5 w-fit transition-all duration-500 ${
-                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
-              }`} style={{ transitionDelay: '450ms' }}>
-                <span className="text-xs text-white font-medium">Código:</span>
-                <code className="text-sm font-bold text-white">{coupon.code}</code>
+                <code className="text-sm font-mono font-bold text-white tracking-wider">
+                  {coupon.code}
+                </code>
                 <Button 
                   onClick={copyCode} 
                   size="sm" 
                   variant="ghost"
-                  className="h-6 px-2 text-xs hover:bg-white/20 text-white font-semibold"
+                  className="h-6 w-6 p-0 hover:bg-white/20 text-white transition-all hover:scale-110"
                 >
-                  Copiar
+                  📋
                 </Button>
               </div>
 
               {/* Prices */}
               {lowestPlan && discountedPrice > 0 && (
-                <div className={`flex items-center gap-2 text-white text-sm transition-all duration-500 ${
+                <div className={`flex flex-col items-center gap-1 text-white transition-all duration-500 ${
                   isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
-                }`} style={{ transitionDelay: '500ms' }}>
-                  <span className="line-through opacity-70">
-                    {formatPrice(lowestPlan.price)}
-                  </span>
-                  <span className="text-base md:text-lg font-bold">
-                    {formatPrice(discountedPrice)}
-                  </span>
-                  {savings > 0 && (
-                    <span className="text-xs opacity-90">
-                      (economize {formatPrice(savings)})
+                }`} style={{ transitionDelay: '450ms' }}>
+                  <div className="flex items-center gap-2">
+                    <span className="text-base line-through opacity-70">
+                      {formatPrice(lowestPlan.price)}
                     </span>
+                    <span className="text-xl md:text-2xl font-black text-yellow-300 drop-shadow-lg">
+                      {formatPrice(discountedPrice)}
+                    </span>
+                  </div>
+                  {savings > 0 && (
+                    <p className="text-xs opacity-90">
+                      Economize <span className="font-bold text-yellow-300">{formatPrice(savings)}</span>
+                    </p>
                   )}
                 </div>
               )}

@@ -233,6 +233,190 @@ export type Database = {
           },
         ]
       }
+      coupon_usage: {
+        Row: {
+          coupon_id: string
+          discount_amount: number
+          final_price: number
+          id: string
+          ip_address: unknown
+          original_price: number
+          store_id: string | null
+          used_at: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          coupon_id: string
+          discount_amount: number
+          final_price: number
+          id?: string
+          ip_address?: unknown
+          original_price: number
+          store_id?: string | null
+          used_at?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          coupon_id?: string
+          discount_amount?: number
+          final_price?: number
+          id?: string
+          ip_address?: unknown
+          original_price?: number
+          store_id?: string | null
+          used_at?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_usage_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "discount_coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_usage_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_usage_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupon_usages: {
+        Row: {
+          coupon_id: string
+          customer_id: string | null
+          discount_applied: number
+          final_price: number
+          id: string
+          ip_address: string | null
+          original_price: number
+          used_at: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          coupon_id: string
+          customer_id?: string | null
+          discount_applied: number
+          final_price: number
+          id?: string
+          ip_address?: string | null
+          original_price: number
+          used_at?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          coupon_id?: string
+          customer_id?: string | null
+          discount_applied?: number
+          final_price?: number
+          id?: string
+          ip_address?: string | null
+          original_price?: number
+          used_at?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_usages_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_usages_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupons: {
+        Row: {
+          applies_to: string
+          code: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          discount_type: string
+          discount_value: number
+          end_date: string | null
+          id: string
+          is_public: boolean | null
+          max_uses: number | null
+          max_uses_per_user: number | null
+          name: string
+          plan_ids: string[] | null
+          promotion_label: string | null
+          show_countdown: boolean | null
+          start_date: string | null
+          status: string
+          updated_at: string | null
+          used_count: number | null
+        }
+        Insert: {
+          applies_to: string
+          code: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          discount_type: string
+          discount_value: number
+          end_date?: string | null
+          id?: string
+          is_public?: boolean | null
+          max_uses?: number | null
+          max_uses_per_user?: number | null
+          name: string
+          plan_ids?: string[] | null
+          promotion_label?: string | null
+          show_countdown?: boolean | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string | null
+          used_count?: number | null
+        }
+        Update: {
+          applies_to?: string
+          code?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          end_date?: string | null
+          id?: string
+          is_public?: boolean | null
+          max_uses?: number | null
+          max_uses_per_user?: number | null
+          name?: string
+          plan_ids?: string[] | null
+          promotion_label?: string | null
+          show_countdown?: boolean | null
+          start_date?: string | null
+          status?: string
+          updated_at?: string | null
+          used_count?: number | null
+        }
+        Relationships: []
+      }
       customer_stores: {
         Row: {
           created_at: string | null
@@ -428,6 +612,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      discount_coupons: {
+        Row: {
+          applicable_plans: string[] | null
+          code: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          discount_type: string
+          discount_value: number
+          id: string
+          is_public: boolean | null
+          status: string | null
+          updated_at: string | null
+          usage_count: number | null
+          usage_limit: number | null
+          valid_from: string
+          valid_until: string
+        }
+        Insert: {
+          applicable_plans?: string[] | null
+          code: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          discount_type: string
+          discount_value: number
+          id?: string
+          is_public?: boolean | null
+          status?: string | null
+          updated_at?: string | null
+          usage_count?: number | null
+          usage_limit?: number | null
+          valid_from: string
+          valid_until: string
+        }
+        Update: {
+          applicable_plans?: string[] | null
+          code?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          is_public?: boolean | null
+          status?: string | null
+          updated_at?: string | null
+          usage_count?: number | null
+          usage_limit?: number | null
+          valid_from?: string
+          valid_until?: string
+        }
+        Relationships: []
       }
       driver_earnings: {
         Row: {
@@ -971,6 +1209,100 @@ export type Database = {
           },
         ]
       }
+      payment_approvals: {
+        Row: {
+          address: Json | null
+          admin_notes: string | null
+          approved_at: string | null
+          approved_by: string | null
+          company_document: string | null
+          company_name: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          notes: string | null
+          payment_amount: number
+          payment_method: string
+          payment_proof_url: string | null
+          phone: string | null
+          pix_key: string | null
+          plan_id: string | null
+          rejection_reason: string | null
+          status: string
+          store_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          address?: Json | null
+          admin_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          company_document?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          payment_amount: number
+          payment_method?: string
+          payment_proof_url?: string | null
+          phone?: string | null
+          pix_key?: string | null
+          plan_id?: string | null
+          rejection_reason?: string | null
+          status?: string
+          store_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          address?: Json | null
+          admin_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          company_document?: string | null
+          company_name?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          payment_amount?: number
+          payment_method?: string
+          payment_proof_url?: string | null
+          phone?: string | null
+          pix_key?: string | null
+          plan_id?: string | null
+          rejection_reason?: string | null
+          status?: string
+          store_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_approvals_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_approvals_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_approvals_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_requests: {
         Row: {
           created_at: string
@@ -1066,41 +1398,62 @@ export type Database = {
       }
       plans: {
         Row: {
-          billing_cycle: string
+          billing_cycle: Database["public"]["Enums"]["billing_cycle_type"]
           created_at: string
           description: string | null
+          discount_percentage: number | null
+          discount_price: number | null
           features: Json | null
           id: string
+          is_popular: boolean | null
           max_categories: number | null
           max_products: number | null
           name: string
           price: number
+          promotion_active: boolean | null
+          promotion_end_date: string | null
+          promotion_label: string | null
+          promotion_start_date: string | null
           status: Database["public"]["Enums"]["plan_status"]
           updated_at: string
         }
         Insert: {
-          billing_cycle?: string
+          billing_cycle?: Database["public"]["Enums"]["billing_cycle_type"]
           created_at?: string
           description?: string | null
+          discount_percentage?: number | null
+          discount_price?: number | null
           features?: Json | null
           id?: string
+          is_popular?: boolean | null
           max_categories?: number | null
           max_products?: number | null
           name: string
           price: number
+          promotion_active?: boolean | null
+          promotion_end_date?: string | null
+          promotion_label?: string | null
+          promotion_start_date?: string | null
           status?: Database["public"]["Enums"]["plan_status"]
           updated_at?: string
         }
         Update: {
-          billing_cycle?: string
+          billing_cycle?: Database["public"]["Enums"]["billing_cycle_type"]
           created_at?: string
           description?: string | null
+          discount_percentage?: number | null
+          discount_price?: number | null
           features?: Json | null
           id?: string
+          is_popular?: boolean | null
           max_categories?: number | null
           max_products?: number | null
           name?: string
           price?: number
+          promotion_active?: boolean | null
+          promotion_end_date?: string | null
+          promotion_label?: string | null
+          promotion_start_date?: string | null
           status?: Database["public"]["Enums"]["plan_status"]
           updated_at?: string
         }
@@ -1316,6 +1669,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          approval_status: string | null
           avatar_url: string | null
           blocked_at: string | null
           blocked_by: string | null
@@ -1334,6 +1688,7 @@ export type Database = {
           user_type: Database["public"]["Enums"]["user_type"] | null
         }
         Insert: {
+          approval_status?: string | null
           avatar_url?: string | null
           blocked_at?: string | null
           blocked_by?: string | null
@@ -1352,6 +1707,7 @@ export type Database = {
           user_type?: Database["public"]["Enums"]["user_type"] | null
         }
         Update: {
+          approval_status?: string | null
           avatar_url?: string | null
           blocked_at?: string | null
           blocked_by?: string | null
@@ -2250,6 +2606,10 @@ export type Database = {
       }
     }
     Functions: {
+      approve_payment: {
+        Args: { admin_user_id: string; approval_id: string }
+        Returns: boolean
+      }
       generate_product_slug: {
         Args: { input_store_id: string; product_name: string }
         Returns: string
@@ -2259,6 +2619,10 @@ export type Database = {
         Returns: Database["public"]["Enums"]["user_type"]
       }
       get_next_order_number: { Args: { store_uuid: string }; Returns: string }
+      has_pending_approval: {
+        Args: { check_user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2278,6 +2642,22 @@ export type Database = {
         Args: { promotion_id_param: string }
         Returns: undefined
       }
+      is_attendant_for_customer_store: {
+        Args: { customer_store_id: string }
+        Returns: boolean
+      }
+      is_attendant_for_order_store: {
+        Args: { order_store_id: string }
+        Returns: boolean
+      }
+      is_attendant_for_store: {
+        Args: { store_id_param: string }
+        Returns: boolean
+      }
+      is_attendant_of_driver_store: {
+        Args: { driver_user_id: string }
+        Returns: boolean
+      }
       is_customer_self: { Args: { _customer_id: string }; Returns: boolean }
       is_delivery_driver: {
         Args: { _store_id: string; _user_id: string }
@@ -2285,6 +2665,10 @@ export type Database = {
       }
       is_driver_of_customer_orders: {
         Args: { driver_user_id: string }
+        Returns: boolean
+      }
+      is_store_admin_of_attendant: {
+        Args: { attendant_user_id: string }
         Returns: boolean
       }
       is_store_owner_of_customer: {
@@ -2296,13 +2680,25 @@ export type Database = {
         Returns: boolean
       }
       is_user_active: { Args: { _user_id: string }; Returns: boolean }
+      is_user_approved: { Args: { check_user_id: string }; Returns: boolean }
       log_admin_action: {
         Args: { p_action: string; p_details?: Json; p_target_user_id: string }
         Returns: undefined
       }
+      reject_payment: {
+        Args: { admin_user_id: string; approval_id: string; reason?: string }
+        Returns: boolean
+      }
+      update_expired_coupons: { Args: never; Returns: undefined }
     }
     Enums: {
-      app_role: "master_admin" | "store_admin" | "customer" | "delivery_driver"
+      app_role:
+        | "master_admin"
+        | "store_admin"
+        | "customer"
+        | "delivery_driver"
+        | "attendant"
+      billing_cycle_type: "monthly" | "quarterly" | "biannual" | "annual"
       delivery_type: "delivery" | "pickup"
       order_status:
         | "entrada"
@@ -2458,7 +2854,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["master_admin", "store_admin", "customer", "delivery_driver"],
+      app_role: [
+        "master_admin",
+        "store_admin",
+        "customer",
+        "delivery_driver",
+        "attendant",
+      ],
+      billing_cycle_type: ["monthly", "quarterly", "biannual", "annual"],
       delivery_type: ["delivery", "pickup"],
       order_status: [
         "entrada",

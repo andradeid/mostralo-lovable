@@ -123,11 +123,11 @@ export default function SubscriptionPaymentsManagementPage() {
     setLoadingApprovals(true);
     try {
       // Query sem joins - buscar dados separadamente
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('payment_approvals')
         .select('*')
         .eq('status', 'pending')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }) as { data: any[] | null; error: any };
 
       if (error) {
         console.error('❌ Erro na query de aprovações:', error);
@@ -145,7 +145,7 @@ export default function SubscriptionPaymentsManagementPage() {
 
       // Buscar dados relacionados manualmente
       const enrichedData = await Promise.all(
-        data.map(async (approval) => {
+        data.map(async (approval: any) => {
           // Buscar profile
           const { data: profile } = await supabase
             .from('profiles')
@@ -177,7 +177,7 @@ export default function SubscriptionPaymentsManagementPage() {
       );
 
       console.log('✅ Dados enriquecidos:', enrichedData);
-      setPendingApprovals(enrichedData);
+      setPendingApprovals(enrichedData as any);
     } catch (error: any) {
       console.error('❌ ERRO ao buscar aprovações:', error);
       toast.error('Erro ao carregar novos assinantes');
@@ -192,7 +192,7 @@ export default function SubscriptionPaymentsManagementPage() {
     setProcessingApproval(true);
     try {
       // 1. Aprovar via RPC (atualiza approval_status, ativa loja, etc)
-      const { error: approvalError } = await supabase.rpc('approve_payment', {
+      const { error: approvalError } = await (supabase as any).rpc('approve_payment', {
         approval_id: selectedApproval.id,
         admin_user_id: user.id
       });
@@ -209,9 +209,9 @@ export default function SubscriptionPaymentsManagementPage() {
           due_date: new Date().toISOString(),
           paid_at: new Date().toISOString(),
           payment_status: 'paid',
-          payment_method: selectedApproval.payment_method || 'pix',
-          payment_proof_url: selectedApproval.payment_proof_url,
-          pix_key: selectedApproval.pix_key,
+          payment_method: (selectedApproval as any).payment_method || 'pix',
+          payment_proof_url: (selectedApproval as any).payment_proof_url,
+          pix_key: (selectedApproval as any).pix_key,
           notes: 'Pagamento inicial aprovado pelo admin',
           approved_at: new Date().toISOString(),
         });
@@ -247,7 +247,7 @@ export default function SubscriptionPaymentsManagementPage() {
 
     setProcessingApproval(true);
     try {
-      const { error } = await supabase.rpc('reject_payment', {
+      const { error } = await (supabase as any).rpc('reject_payment', {
         approval_id: selectedApproval.id,
         admin_user_id: user.id,
         reason: rejectionReason.trim()

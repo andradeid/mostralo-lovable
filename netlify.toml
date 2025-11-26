@@ -19,6 +19,7 @@
     X-Content-Type-Options = "nosniff"
     X-Frame-Options = "DENY"
     X-XSS-Protection = "1; mode=block"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://noshwvwpjtnvndokbfjx.supabase.co wss://noshwvwpjtnvndokbfjx.supabase.co https://www.google-analytics.com https://api.mapbox.com https://*.supabase.co wss://*.supabase.co; frame-src 'self' https://www.google.com; worker-src 'self' blob:;"
     # Compressão otimizada
     Content-Encoding = "br, gzip"
     Vary = "Accept-Encoding"

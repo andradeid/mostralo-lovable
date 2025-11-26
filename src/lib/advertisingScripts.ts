@@ -21,30 +21,20 @@ export const initializeFacebookPixel = () => {
     console.warn('⚠️ Facebook Pixel ID não configurado. Configure VITE_FACEBOOK_PIXEL_ID no .env');
     return;
   }
+
+  // Verificar se o DOM está pronto
+  if (!document.body) {
+    console.warn('⚠️ DOM não está pronto para Facebook Pixel');
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeFacebookPixel);
+    }
+    return;
+  }
   
   // Descomente as linhas abaixo quando tiver o Pixel ID configurado
   /*
   // Carregar o script do Facebook Pixel
-  (function(f: any, b: Document, e: string, v: string, n?: any, t?: any, s?: any) {
-    if (f.fbq) return;
-    n = f.fbq = function() {
-      n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
-    };
-    if (!f._fbq) f._fbq = n;
-    n.push = n;
-    n.loaded = true;
-    n.version = '2.0';
-    n.queue = [];
-    t = b.createElement(e) as HTMLScriptElement;
-    t.async = true;
-    t.src = v;
-    s = b.getElementsByTagName(e)[0];
-    s?.parentNode?.insertBefore(t, s);
-  })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
-
-  // Inicializar o Pixel
-  (window as any).fbq('init', pixelId);
-  (window as any).fbq('track', 'PageView');
+...
   
   console.log('✅ Facebook Pixel inicializado com sucesso');
   */
@@ -63,22 +53,20 @@ export const initializeGoogleAds = () => {
     console.warn('⚠️ Google Ads ID não configurado. Configure VITE_GOOGLE_ADS_ID no .env');
     return;
   }
+
+  // Verificar se o DOM está pronto
+  if (!document.body) {
+    console.warn('⚠️ DOM não está pronto para Google Ads');
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeGoogleAds);
+    }
+    return;
+  }
   
   // Descomente as linhas abaixo quando tiver o Ads ID configurado
   /*
   // Carregar o script do Google Ads
-  const script = document.createElement('script');
-  script.async = true;
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${adsId}`;
-  document.head.appendChild(script);
-
-  // Configurar o dataLayer
-  (window as any).dataLayer = (window as any).dataLayer || [];
-  function gtag(...args: any[]) {
-    (window as any).dataLayer.push(args);
-  }
-  gtag('js', new Date());
-  gtag('config', adsId);
+...
   
   console.log('✅ Google Ads inicializado com sucesso');
   */

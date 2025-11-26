@@ -20,6 +20,15 @@ declare const window: ChatwootWindow;
  * Inicializa o widget Chatwoot
  */
 export const initializeChatwoot = () => {
+  // Verificar se o DOM está pronto
+  if (!document.body) {
+    console.warn('⚠️ DOM não está pronto. Aguardando...');
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeChatwoot);
+    }
+    return;
+  }
+
   // Verificar se já foi carregado
   if (window.chatwootSDK) {
     console.log('ℹ️ Chatwoot já está carregado');
@@ -45,9 +54,18 @@ export const initializeChatwoot = () => {
     }
   };
 
-  // Adicionar script ao DOM
-  const firstScript = document.getElementsByTagName('script')[0];
-  firstScript.parentNode?.insertBefore(script, firstScript);
+  // Adicionar script ao DOM de forma segura
+  try {
+    const firstScript = document.getElementsByTagName('script')[0];
+    if (firstScript?.parentNode) {
+      firstScript.parentNode.insertBefore(script, firstScript);
+    } else {
+      document.head.appendChild(script);
+    }
+  } catch (error) {
+    console.error('❌ Erro ao adicionar script Chatwoot:', error);
+    document.head.appendChild(script);
+  }
 };
 
 /**

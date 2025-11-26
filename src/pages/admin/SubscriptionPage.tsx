@@ -83,21 +83,21 @@ export default function SubscriptionPage() {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('payment_approvals')
         .select('*')
         .eq('user_id', user.id)
         .in('status', ['pending', 'rejected'])
         .order('created_at', { ascending: false })
         .limit(1)
-        .maybeSingle();
+        .maybeSingle() as { data: any | null; error: any };
 
       if (error && error.code !== 'PGRST116') {
         console.error('Erro ao buscar aprovação:', error);
         return;
       }
 
-      setPaymentApproval(data);
+      setPaymentApproval(data as any);
     } catch (error) {
       console.error('Erro ao buscar aprovação:', error);
     }
@@ -107,18 +107,18 @@ export default function SubscriptionPage() {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('payment_approvals')
         .select('*')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }) as { data: any[] | null; error: any };
 
       if (error && error.code !== 'PGRST116') {
         console.error('Erro ao buscar histórico de aprovações:', error);
         return;
       }
 
-      setAllPaymentApprovals(data || []);
+      setAllPaymentApprovals((data || []) as any);
     } catch (error) {
       console.error('Erro ao buscar histórico de aprovações:', error);
     }

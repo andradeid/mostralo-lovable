@@ -95,13 +95,13 @@ const AdminCouponsPage = () => {
 
   const fetchCoupons = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('coupons')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }) as { data: any[] | null; error: any };
 
       if (error) throw error;
-      setCoupons(data || []);
+      setCoupons((data || []) as any);
     } catch (error) {
       console.error('Erro ao buscar cupons:', error);
       toast({
@@ -182,7 +182,7 @@ const AdminCouponsPage = () => {
       };
 
       if (selectedCoupon) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('coupons')
           .update(data)
           .eq('id', selectedCoupon.id);
@@ -190,7 +190,7 @@ const AdminCouponsPage = () => {
         if (error) throw error;
         toast({ title: 'Sucesso', description: 'Cupom atualizado!' });
       } else {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('coupons')
           .insert([data]);
 
@@ -216,7 +216,7 @@ const AdminCouponsPage = () => {
     if (!confirm('Tem certeza que deseja excluir este cupom?')) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('coupons')
         .delete()
         .eq('id', id);

@@ -66,7 +66,7 @@ const CouponsPage = () => {
     valid_until: '',
     usage_limit: null as number | null,
     is_public: false,
-    status: 'active' as 'active' | 'inactive'
+    status: 'active' as 'active' | 'inactive' | 'expired'
   });
 
   useEffect(() => {
@@ -75,13 +75,13 @@ const CouponsPage = () => {
 
   const fetchCoupons = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('discount_coupons')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }) as { data: any[] | null; error: any };
 
       if (error) throw error;
-      setCoupons(data || []);
+      setCoupons((data || []) as any);
     } catch (error) {
       console.error('Erro ao buscar cupons:', error);
       toast({
@@ -141,7 +141,7 @@ const CouponsPage = () => {
 
       if (editingCoupon) {
         // Update
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('discount_coupons')
           .update({
             code: formData.code.toUpperCase(),
@@ -167,7 +167,7 @@ const CouponsPage = () => {
         // Create
         const { data: { user } } = await supabase.auth.getUser();
         
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('discount_coupons')
           .insert({
             code: formData.code.toUpperCase(),
@@ -208,7 +208,7 @@ const CouponsPage = () => {
     if (!confirm('Tem certeza que deseja excluir este cupom?')) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('discount_coupons')
         .delete()
         .eq('id', couponId);
@@ -392,13 +392,13 @@ const CouponsPage = () => {
                               size="sm"
                               onClick={() => copyCouponCode(coupon.code)}
                             >
-                              <Copy className="w-3 h-3" />
-                            </Button>
-                            {coupon.is_public ? (
-                              <Eye className="w-4 h-4 text-green-600" title="Público" />
-                            ) : (
-                              <EyeOff className="w-4 h-4 text-gray-400" title="Privado" />
-                            )}
+                            <Copy className="w-3 h-3" />
+                          </Button>
+                          {coupon.is_public ? (
+                            <Eye className="w-4 h-4 text-green-600" />
+                          ) : (
+                            <EyeOff className="w-4 h-4 text-gray-400" />
+                          )}
                           </div>
                           {coupon.description && (
                             <p className="text-xs text-muted-foreground mt-1">

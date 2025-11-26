@@ -122,7 +122,7 @@ const ProductsPage = () => {
           description: 'Produtos que não foram categorizados',
           display_order: -1,
           is_active: true,
-          store_id: storeData.id,
+          store_id: validatedStoreId,
           products: uncategorizedProducts
         });
       }

@@ -16,6 +16,8 @@ interface Coupon {
   promotion_label: string;
   show_countdown: boolean;
   status: string;
+  start_date?: string | null;
+  is_public?: boolean;
 }
 
 interface Plan {
@@ -71,7 +73,7 @@ export const PromotionBanner = () => {
   const fetchPromotionData = async () => {
     try {
       // Buscar cupom público ativo
-      const { data: couponData, error: couponError } = await supabase
+      const { data: couponData, error: couponError } = await (supabase as any)
         .from('coupons')
         .select('*')
         .eq('is_public', true)
@@ -80,12 +82,12 @@ export const PromotionBanner = () => {
         .or(`end_date.is.null,end_date.gt.${new Date().toISOString()}`)
         .order('created_at', { ascending: false })
         .limit(1)
-        .maybeSingle();
+        .maybeSingle() as { data: Coupon | null; error: any };
 
       if (couponError) throw couponError;
 
       if (couponData) {
-        setCoupon(couponData);
+        setCoupon(couponData as Coupon);
 
         // Buscar planos se necessário
         const { data: plansData } = await supabase

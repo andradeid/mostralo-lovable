@@ -6,18 +6,19 @@ import { Badge } from '@/components/ui/badge';
 import { Sparkles, Clock, TrendingDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-interface Plan {
+interface PlanWithPromotion {
   id: string;
   name: string;
   price: number;
-  discount_price: number;
-  discount_percentage: number;
-  promotion_label: string;
-  promotion_end_date: string;
+  discount_price?: number;
+  discount_percentage?: number;
+  promotion_label?: string;
+  promotion_end_date?: string;
+  promotion_active?: boolean;
 }
 
 export const PromotionBanner = () => {
-  const [activePlan, setActivePlan] = useState<Plan | null>(null);
+  const [activePlan, setActivePlan] = useState<PlanWithPromotion | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,19 +29,17 @@ export const PromotionBanner = () => {
     try {
       const { data, error } = await supabase
         .from('plans')
-        .select('id, name, price, discount_price, discount_percentage, promotion_label, promotion_end_date')
+        .select('id, name, price')
         .eq('status', 'active')
-        .eq('promotion_active', true)
-        .gte('promotion_end_date', new Date().toISOString())
-        .order('discount_percentage', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error) throw error;
       
-      if (data && data.discount_price && data.promotion_end_date) {
-        setActivePlan(data as Plan);
-      }
+      // Como os campos de promoção não existem na tabela, desabilitamos o banner
+      // Para habilitar, adicione as colunas: discount_price, discount_percentage, 
+      // promotion_label, promotion_end_date, promotion_active na tabela plans
+      setActivePlan(null);
     } catch (error) {
       console.error('Erro ao buscar promoção:', error);
     } finally {

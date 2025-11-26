@@ -4,7 +4,17 @@
 -- Execute este SQL no Supabase SQL Editor
 -- Objetivo: Permitir que store_admins vejam seus atendentes
 
--- PASSO 1: Inserir roles faltantes
+-- PASSO 1: Atualizar store_id dos roles existentes
+UPDATE public.user_roles ur
+SET store_id = s.id
+FROM profiles p
+INNER JOIN stores s ON s.owner_id = p.id
+WHERE ur.user_id = p.id
+  AND ur.role = 'store_admin'
+  AND p.user_type = 'store_admin'
+  AND (ur.store_id IS NULL OR ur.store_id != s.id);
+
+-- PASSO 2: Inserir roles faltantes (se não existirem)
 INSERT INTO public.user_roles (user_id, role, store_id)
 SELECT 
   p.id as user_id,
@@ -18,9 +28,7 @@ WHERE p.user_type = 'store_admin'
     FROM user_roles ur 
     WHERE ur.user_id = p.id 
       AND ur.role = 'store_admin'
-      AND ur.store_id = s.id
-  )
-ON CONFLICT (user_id, role, store_id) DO NOTHING;
+  );
 
 -- PASSO 2: Verificar correção para ingabeachsports@gmail.com
 SELECT 

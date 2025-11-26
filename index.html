@@ -8,9 +8,21 @@
     <meta name="keywords" content="cardápio digital, menu digital, restaurante digital, gestão restaurante, pedidos online, WhatsApp Business, delivery, cardápio QR code" />
     <meta name="author" content="Mostralo" />
     
-    <!-- Fontes Modernas -->
+    <!-- DNS Prefetch para otimizar conexões -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="dns-prefetch" href="https://rqbhgjxelqcsjiqbpmzl.supabase.co">
+    
+    <!-- Preconnect para recursos críticos -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Preload para recursos críticos -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap"></noscript>
+    <link rel="preload" href="/favicon.png" as="image" type="image/png">
+    
+    <!-- Fallback para fontes -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
     
     <link rel="icon" href="/favicon.png" type="image/png">
@@ -37,6 +49,11 @@
     <meta property="twitter:title" content="Mostralo - Cardápios Digitais para Restaurantes" />
     <meta property="twitter:description" content="Transforme seu negócio com cardápios digitais inteligentes. Gestão completa, WhatsApp Business e muito mais." />
     <meta property="twitter:image" content="/favicon.png" />
+    
+    <!-- Prefetch para rotas comuns (melhorar navegação) -->
+    <link rel="prefetch" href="/dashboard">
+    <link rel="prefetch" href="/admin/products">
+    <link rel="prefetch" href="/admin/orders">
   </head>
 
   <body>

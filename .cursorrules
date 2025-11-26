@@ -1,0 +1,413 @@
+---
+description: Regras completas do projeto Mostralo
+globs: 
+alwaysApply: true
+---
+
+# 🎯 REGRAS COMPLETAS DO PROJETO MOSTRALO
+
+## 📋 Princípios Fundamentais
+
+### Comunicação e Comportamento
+- **SEMPRE responda em português brasileiro (pt-BR)**
+- Vá direto ao ponto, sem elogios desnecessários como "ótima pergunta" ou "excelente ideia"
+- Seja factual, objetivo e preciso em todas as respostas
+- Adapte a resposta ao contexto: perguntas simples = respostas concisas, perguntas complexas = respostas detalhadas
+- **NUNCA** assuma conhecimento que não foi fornecido
+- Pergunte esclarecimentos quando necessário (máximo 1 pergunta por resposta)
+
+### Qualidade de Código
+- Escreva código limpo, simples e legível
+- Implemente funcionalidades da forma mais simples possível
+- Mantenha arquivos pequenos e focados (<200 linhas para componentes)
+- Use nomes claros e consistentes
+- Pense profundamente antes de codificar (2-3 parágrafos de raciocínio)
+- **SEMPRE** escreva código simples, limpo e modular
+- Use linguagem clara e fácil de entender, escreva em frases curtas
+
+## 🛠️ Stack Tecnológica
+
+### Frontend
+- **React 18.3.1** com **TypeScript 5.8.3**
+- **Vite 5.4.19** como build tool
+- **Tailwind CSS 3.4.17** + **Shadcn/ui** completo
+- **Radix UI** (todos os componentes)
+- **TanStack Query 5.83.0** para data fetching
+- **React Router DOM v6** para roteamento
+- **React Hook Form 7.61.1** + **Zod 4.1.12** para formulários
+- **Supabase JS 2.55.0** para backend
+- **Mapbox GL 3.15.0** + **Turf.js 7.2.0** para mapas
+- **Recharts** para gráficos
+- **Date-fns** para manipulação de datas
+- **Sonner** para toasts
+- **React Beautiful DnD** para drag and drop
+- **Next-themes** para dark/light theme
+- **Lucide React** para ícones
+
+### Backend
+- **Supabase** (PostgreSQL + Auth + Storage + Edge Functions)
+- Cliente Supabase conectado diretamente à produção (URL hardcoded)
+
+## 📐 Estrutura de Arquivos
+
+### Limites de Linhas por Arquivo
+- **Componentes React**: 200 linhas (máximo)
+- **Funções utilitárias**: 100 linhas
+- **Arquivos de configuração**: 150 linhas
+- **Hooks customizados**: 100 linhas
+- **Serviços/APIs**: 250 linhas
+- **Tipos/Interfaces**: 150 linhas
+
+### Quando um arquivo exceder o limite:
+1. Refatorar em componentes menores
+2. Extrair lógica para hooks ou utilitários
+3. Dividir em múltiplos arquivos relacionados
+4. Criar subpastas quando necessário
+
+### Estrutura de Pastas Obrigatória
+```
+src/
+├── components/          # Componentes reutilizáveis
+│   ├── ui/             # Componentes base Shadcn/ui
+│   ├── admin/          # Componentes do painel admin
+│   ├── delivery/       # Componentes para entregadores
+│   └── checkout/       # Componentes de checkout
+├── pages/              # Páginas/rotas
+│   ├── admin/          # Páginas do painel admin
+│   ├── delivery/       # Páginas para entregadores
+│   └── cliente/        # Páginas para clientes
+├── hooks/              # Hooks customizados
+├── contexts/           # Context API (Auth, Cart, etc.)
+├── utils/              # Funções utilitárias
+├── types/              # Definições TypeScript
+├── lib/                # Bibliotecas e configurações
+├── integrations/       # Integrações (Supabase, etc.)
+└── config/             # Configurações da aplicação
+```
+
+## 🔷 TypeScript
+
+### Regras Críticas
+- **Tipagem total e explícita** - Nenhum `any`, nenhuma inferência implícita
+- **Use TypeScript para TUDO** - 100% dos arquivos
+- **Prefira interfaces sobre types** para formas de objeto
+- **Evite enums** - use literal types ou maps
+- **Compatibilidade total** com ESLint e TypeScript - nenhum erro, nenhum warning
+- **Código limpo e validado** antes de finalizar
+
+### Convenções de Nomenclatura
+- **Booleans**: Use verbos auxiliares (`isLoading`, `hasError`, `shouldRender`)
+- **Componentes**: PascalCase (`UserProfile.tsx`)
+- **Utilitários**: camelCase (`formatDate.ts`)
+- **Constantes**: UPPER_SNAKE_CASE (`API_URLS.ts`)
+- **Hooks**: camelCase com "use" (`useUserData.ts`)
+- **Diretórios**: lowercase com dashes (`components/auth-wizard`)
+
+## ⚛️ React
+
+### Componentes
+- **SEMPRE use componentes funcionais** - nunca classes
+- **Use `function` keyword** para componentes, não `const`
+- **Prefira named exports** para componentes
+- **Estrutura de arquivo**: Componente exportado, subcomponentes, helpers, conteúdo estático, tipos
+- **Minimize `use client`** - use apenas quando necessário para Web APIs
+- **Evite `useEffect` e `setState`** - prefira derived state e memoization
+- **Use React Server Components** quando possível
+
+### JSX e Renderização
+- Use JSX declarativo
+- Evite chaves desnecessárias em condicionais
+- Use sintaxe concisa para statements simples: `if (condition) doSomething()`
+- Coloque conteúdo estático e interfaces no final do arquivo
+- Use variáveis de conteúdo para conteúdo estático fora de funções de render
+
+### Hooks e Estado
+- **Custom hooks**: máximo 100 linhas
+- **Prefira Context API** para estado global compartilhado
+- **Use TanStack Query** para data fetching e cache
+- **Minimize re-renders** com `useMemo` e `useCallback` quando apropriado
+
+## 🎨 Estilização
+
+### Tailwind CSS
+- Use **Tailwind CSS** para estilização (Utility First)
+- Use **Class Variance Authority (CVA)** para variantes de componentes
+- **Mobile-first** para design responsivo
+- Use **CSS vars** para temas (light/dark)
+- Cores primárias: orange (#F97316)
+
+### Componentes UI
+- Use **Shadcn/ui** e **Radix UI** para componentes base
+- Mantenha consistência visual entre componentes
+- Use **Lucide React** para ícones
+
+## 🗄️ Supabase
+
+### Banco de Dados
+- **35 tabelas** no schema public
+- Use **Row Level Security (RLS)** para controle de acesso
+- **SEMPRE** verifique RLS policies antes de queries
+- Use **migrations** para mudanças no schema
+- **NUNCA** faça alterações diretas no banco sem migration
+
+### Autenticação
+- Use **Supabase Auth** para autenticação
+- **Roles**: `master_admin`, `store_admin`, `delivery_driver`, `customer`, `attendant`
+- Use **user_roles** table para gerenciar permissões
+- **SEMPRE** verifique permissões antes de operações sensíveis
+
+### Edge Functions
+- Use **Edge Functions** para operações sensíveis (criação de usuários, etc.)
+- **SEMPRE** inclua tratamento de CORS
+- Use **service role key** para operações administrativas
+- **SEMPRE** valide autenticação antes de processar
+- Retorne mensagens de erro detalhadas (code, message, details, hint)
+
+### Queries
+- **Otimize queries** - busque apenas dados necessários
+- Use **select específico** - não use `select('*')`
+- **SEMPRE** trate erros de query
+- Use **real-time subscriptions** quando apropriado
+
+## 🚫 O Que NUNCA Fazer
+
+### Código
+- ❌ **NUNCA** use `any` em TypeScript
+- ❌ **NUNCA** crie arquivos > 200 linhas sem refatorar
+- ❌ **NUNCA** duplique código - verifique se já existe funcionalidade similar
+- ❌ **NUNCA** crie estrutura de pastas sem ser solicitado
+- ❌ **NUNCA** use bibliotecas de terceiros sem pedido explícito
+- ❌ **NUNCA** inclua exemplos, placeholders, mock data ou comentários desnecessários
+- ❌ **NUNCA** adicione animações, estilos ou funcionalidades "sugeridas"
+- ❌ **NUNCA** adivinhe intenções - siga o pedido ao pé da letra
+- ❌ **NUNCA** use classes em React
+- ❌ **NUNCA** crie arquivos temporários (temp.js, backup.js)
+- ❌ **NUNCA** use `console.log` em produção - use sistema de logs apropriado
+
+### Arquivos Desnecessários
+- ❌ Arquivos de exemplo não utilizados
+- ❌ Duplicatas (component.jsx e component.tsx)
+- ❌ Configs redundantes
+- ❌ Componentes genéricos demais (Container.jsx, Wrapper.jsx)
+- ❌ Utilitários de uma linha (criar arquivo só para uma função simples)
+
+### Decisões
+- ❌ **NUNCA** crie algo porque "acha que é melhor" ou "vai ajudar"
+- ❌ **NUNCA** tome decisões criativas sem solicitação
+- ❌ **NUNCA** sobrescreva arquivo .env sem primeiro perguntar e confirmar
+- ❌ **NUNCA** simule dados para dev ou prod - apenas para testes
+
+## ✅ O Que SEMPRE Fazer
+
+### Código
+- ✅ **SEMPRE** use TypeScript com tipagem completa
+- ✅ **SEMPRE** valide código com ESLint e TypeScript antes de finalizar
+- ✅ **SEMPRE** trate erros e edge cases
+- ✅ **SEMPRE** use early returns para evitar nesting profundo
+- ✅ **SEMPRE** use guard clauses para precondições
+- ✅ **SEMPRE** implemente loading e error states
+- ✅ **SEMPRE** use semantic HTML
+- ✅ **SEMPRE** escreva código funcional e completo - nada de placeholders
+- ✅ **SEMPRE** verifique se funcionalidade similar já existe antes de criar nova
+
+### Comentários
+- ✅ **SEMPRE** adicione comentários úteis e explicativos
+- ✅ **NUNCA** delete comentários antigos - a menos que estejam obviamente errados/obsoletos
+- ✅ **SEMPRE** escreva código bem documentado
+- ✅ **SEMPRE** documente mudanças e raciocínio NOS COMENTÁRIOS
+- ✅ Use linguagem clara e fácil de entender nos comentários
+
+### Estrutura
+- ✅ **SEMPRE** crie componente quando será reutilizado em 2+ lugares
+- ✅ **SEMPRE** crie arquivo quando lógica tem mais de 50 linhas
+- ✅ **SEMPRE** crie arquivo quando funcionalidade tem responsabilidade única clara
+- ✅ **SEMPRE** siga a estrutura de pastas obrigatória
+
+## 🔍 Debugging e Resolução de Problemas
+
+### Processo de Debug
+1. **NÃO PULE PARA CONCLUSÕES!** Considere múltiplas causas possíveis antes de decidir
+2. **Explique o problema** em português claro
+3. **Faça mudanças mínimas necessárias** - mude o menor número de linhas possível
+4. **Em caso de erros estranhos**, peça ao usuário para fazer busca web (Perplexity) para informações atualizadas
+5. **Analise múltiplas causas** possíveis
+6. **Reduza para as mais prováveis** (1-2 causas)
+7. **Adicione logs** para validar suposições
+8. **Reflita profundamente** sobre o problema antes de implementar correção
+
+### Tratamento de Erros
+- **Priorize tratamento de erros** e edge cases
+- **Trate erros no início** das funções
+- **Use early returns** para condições de erro
+- **Coloque happy path por último** na função
+- **Evite else desnecessários** - use padrão if-return
+- **Use guard clauses** para precondições e estados inválidos
+- **Implemente logging apropriado** e mensagens de erro amigáveis
+- **Considere usar tipos de erro customizados** para consistência
+
+## 📝 Formatação e Estilo
+
+### Código
+- Use **`function` keyword** para funções puras
+- **Omita ponto e vírgula** (semicolons)
+- Use **sintaxe concisa** para statements simples
+- **Evite chaves desnecessárias** em condicionais simples
+- Use **lowercase com dashes** para diretórios
+- Use **PascalCase** para componentes
+- Use **camelCase** para funções e variáveis
+
+### Respostas
+- **Perguntas simples**: Respostas concisas (1-2 frases)
+- **Perguntas complexas**: Respostas detalhadas e completas
+- **Conversas técnicas**: Use terminologia apropriada
+- **Evite elogios desnecessários** ao início das respostas
+- **Seja direto** sobre limitações (1-2 frases máximo)
+
+## 🧪 Testes e Validação
+
+### Processo de Build
+- **Verifique cada nova feature** dizendo ao usuário como testar
+- **NÃO escreva código complicado e confuso** - opte pela abordagem simples e modular
+- **Quando não tiver certeza**, peça ao usuário para fazer busca web
+- **Teste após cada mudança significativa**
+
+### Validação
+- Use **Zod** para validação de schemas
+- Use **React Hook Form** com Zod para formulários
+- **SEMPRE** valide dados antes de enviar ao backend
+- **SEMPRE** valide respostas do backend
+
+## 🚀 Performance
+
+### Otimizações
+- **Otimize imagens**: WebP format, size data, lazy loading
+- **Use dynamic loading** para componentes não críticos
+- **Minimize re-renders** com memoização apropriada
+- **Use code splitting** quando apropriado
+- **Otimize queries** - busque apenas dados necessários
+
+### Limites de Context
+- **Prompt máximo**: 2000 tokens por interação
+- **Arquivos no contexto**: máximo 5 arquivos simultaneamente
+- **Quebrar grandes refatorações** em chunks menores
+- **Usar @workspace** com parcimônia
+
+## 🎯 Padrões Específicos do Projeto
+
+### Autenticação
+- Use **AuthContext** para gerenciar autenticação
+- **Roles**: `master_admin`, `store_admin`, `delivery_driver`, `customer`, `attendant`
+- **SEMPRE** verifique role antes de operações sensíveis
+- Use **ProtectedRoute** para rotas protegidas (50+ rotas)
+- **Impersonation**: timeout de segurança de 10s, limpa localStorage no logout
+
+### Carrinho
+- Use **CartContext** para gerenciar carrinho
+- Métodos: `addItem`, `removeItem`, `updateQuantity`, `clearCart`, `getTotalPrice`, `getTotalItems`
+
+### Rotas
+- **Públicas**: `/`, `/loja/:slug`, `/loja/:slug/promocoes`, `/loja/:storeSlug/produto/:productSlug`
+- **Admin protegidas**: `/dashboard/*` (20+ rotas, acesso `store_admin`/`master_admin`)
+- **Delivery protegidas**: `/delivery-*` (5 rotas, acesso `delivery_driver`)
+- **Cliente**: `/cliente/:storeSlug`, `/painel-cliente/:storeSlug`, `/checkout`, `/pedido/:orderId`
+
+### Layouts
+- **AdminLayout** para dashboards
+- **DeliveryDriverLayout** para entregadores
+- **ThemeController** com `useRouteTheme` para temas por rota
+
+## 📚 Documentação
+
+### Comentários
+- **SEMPRE** adicione comentários úteis e explicativos
+- Use **JSDoc** para funções e componentes quando apropriado
+- **Documente mudanças** e raciocínio nos comentários
+- Use **linguagem clara** e fácil de entender
+
+### Código
+- **Código auto-documentado** através de nomes descritivos
+- **Separação de concerns**: UI/Logic/Data
+- **Componentização modular**
+
+## 🔒 Segurança
+
+### Supabase
+- **SEMPRE** use RLS policies
+- **SEMPRE** valide autenticação em Edge Functions
+- **SEMPRE** verifique permissões antes de operações sensíveis
+- **NUNCA** exponha service role key no frontend
+- Use **Edge Functions** para operações administrativas
+
+### Dados
+- **NUNCA** simule dados para dev ou prod
+- **SEMPRE** valide dados do usuário
+- **SEMPRE** sanitize inputs antes de processar
+
+## 🎨 Design e UX
+
+### Temas
+- **Dark/Light theme** com CSS vars customizadas
+- **Cores primárias**: orange (#F97316)
+- **Animações customizadas**: pulse-alert, shimmer, blink-border, shake, screen-flash
+- **Utilidades**: line-clamp, scrollbar-hide, hover-scale
+
+### Acessibilidade
+- **SEMPRE** use semantic HTML
+- **SEMPRE** implemente navegação por teclado
+- **SEMPRE** use ARIA labels e roles apropriados
+- **SEMPRE** garanta contraste de cores adequado
+
+## 📦 Dependências e Gerenciamento
+
+### Package Manager
+- **Bun** como gerenciador de pacotes padrão
+- **Scripts**: `dev`, `build`, `build:dev`, `lint`, `preview`
+
+### Vite Config
+- **Server port**: 8080
+- **React SWC** para compilação rápida
+- **PWA plugin** com registerType autoUpdate
+- **Cache de assets** e runtime caching para JS e Supabase
+
+## 🚨 Regras de Prioridade
+
+### Máxima Prioridade (Inviolável)
+1. **TypeScript com tipagem completa** - NUNCA use `any`
+2. **Arquivos < 200 linhas** - refatore quando exceder
+3. **Código funcional e completo** - nada de placeholders
+4. **Seguir pedido ao pé da letra** - não inventar funcionalidades
+5. **Responder sempre em pt-BR**
+
+### Alta Prioridade
+1. **Tratamento de erros** completo
+2. **Validação de dados** com Zod
+3. **RLS policies** no Supabase
+4. **Código limpo e legível**
+5. **Comentários explicativos**
+
+### Média Prioridade
+1. **Performance** otimizações
+2. **Acessibilidade** features
+3. **Documentação** detalhada
+4. **Testes** quando apropriado
+
+## ✅ Checklist Antes de Finalizar
+
+- [ ] Código está 100% tipado (sem `any`)
+- [ ] Nenhum erro de ESLint ou TypeScript
+- [ ] Arquivos não excedem limite de linhas
+- [ ] Tratamento de erros implementado
+- [ ] Comentários explicativos adicionados
+- [ ] Código segue padrões do projeto
+- [ ] Funcionalidade testada (se aplicável)
+- [ ] Resposta em português brasileiro
+
+## 🎯 Resumo Mental
+
+**"Não crio nada além do que me foi explicitamente pedido. Não invento. Não decido. Apenas obedeço. Código limpo, tipado, modular e funcional. Sempre em português brasileiro."**
+
+---
+
+**Lembre-se**: A qualidade está na **clareza, precisão e utilidade**, não na quantidade de palavras ou formatação elaborada.
+
+

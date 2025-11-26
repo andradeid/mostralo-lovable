@@ -1,0 +1,389 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Regras Completas de Performance para Cursor IDE
+
+## 📏 Limites de Linhas por Arquivo
+
+### Limites Máximos Recomendados:
+- **Componentes React/Vue**: 200 linhas
+- **Funções utilitárias**: 100 linhas
+- **Arquivos de configuração**: 150 linhas
+- **Testes**: 300 linhas
+- **Tipos/Interfaces**: 150 linhas
+- **Serviços/APIs**: 250 linhas
+- **Hooks customizados**: 100 linhas
+
+### Ações quando exceder limites:
+1. **Refatorar em componentes menores**
+2. **Extrair lógica para hooks ou utilitários**
+3. **Dividir em múltiplos arquivos relacionados**
+4. **Criar subpastas quando necessário**
+
+## 🗂️ Estrutura de Pastas Obrigatória
+
+### Frontend (React/Next.js):
+```
+src/
+├── components/
+│   ├── ui/           # Componentes base (Button, Input, etc.)
+│   ├── forms/        # Formulários específicos
+│   └── layout/       # Header, Footer, Sidebar
+├── pages/ ou app/    # Páginas/rotas
+├── hooks/            # Hooks customizados
+├── utils/            # Funções utilitárias
+├── services/         # Chamadas API
+├── types/            # Definições TypeScript
+├── constants/        # Constantes da aplicação
+└── styles/           # Estilos globais
+```
+
+### Backend (Node.js/Express):
+```
+src/
+├── controllers/      # Controladores de rotas
+├── services/         # Lógica de negócio
+├── models/           # Modelos de dados
+├── middleware/       # Middlewares
+├── routes/           # Definição de rotas
+├── utils/            # Funções utilitárias
+├── config/           # Configurações
+└── types/            # Tipos TypeScript
+```
+
+## ⛔ Arquivos Desnecessários - NÃO CRIAR
+
+### Evitar sempre:
+- ❌ **Arquivos de exemplo não utilizados** (sample.js, test.js vazios)
+- ❌ **Duplicatas** (component.jsx e component.tsx)
+- ❌ **Arquivos temporários** (temp.js, backup.js)
+- ❌ **Configs redundantes** (múltiplos .env para mesmo ambiente)
+- ❌ **Componentes genéricos demais** (Container.jsx, Wrapper.jsx)
+- ❌ **Utilitários de uma linha** (criar arquivo só para `export const sum = (a,b) => a+b`)
+
+### Quando NÃO criar novo arquivo:
+- Se a funcionalidade cabe em menos de 20 linhas
+- Se será usada em apenas um local
+- Se já existe funcionalidade similar
+
+## ✅ Regras de Criação de Arquivos
+
+### SEMPRE criar quando:
+1. **Componente** será reutilizado em 2+ lugares
+2. **Lógica** tem mais de 50 linhas
+3. **Funcionalidade** tem responsabilidade única clara
+4. **Teste** para cada componente/função principal
+
+### Nomenclatura obrigatória:
+- **Componentes**: PascalCase (UserProfile.tsx)
+- **Utilitários**: camelCase (formatDate.ts)
+- **Constantes**: UPPER_SNAKE_CASE (API_URLS.ts)
+- **Hooks**: camelCase com "use" (useUserData.ts)
+
+## 🧹 Manutenção Automática
+
+### Regras de limpeza semanal:
+1. **Remover imports não utilizados**
+2. **Deletar arquivos sem referências**
+3. **Consolidar funções similares**
+4. **Revisar TODOs e FIXMEs**
+
+### Comandos úteis:
+```bash
+# Encontrar arquivos não utilizados
+npx unimported
+
+# Remover imports desnecessários
+npx eslint --fix
+
+# Analisar tamanho dos arquivos
+find src -name "*.ts" -o -name "*.tsx" | xargs wc -l | sort -n
+```
+
+## 📋 Checklist antes de commit
+
+- [ ] Nenhum arquivo excede o limite de linhas
+- [ ] Todos os imports estão sendo usados
+- [ ] Nomes de arquivo seguem convenção
+- [ ] Não há arquivos temporários
+- [ ] Estrutura de pastas está correta
+- [ ] Funcionalidades similares estão agrupadas
+
+## 🚨 Alertas Automáticos
+
+Configure no seu `.cursorrules` ou `eslint.config.js`:
+
+```javascript
+// Alerta para arquivos muito grandes
+"max-lines": ["error", {
+  "max": 200,
+  "skipBlankLines": true,
+  "skipComments": true
+}],
+
+// Alerta para funções muito grandes
+"max-lines-per-function": ["error", {
+  "max": 50,
+  "skipBlankLines": true,
+  "skipComments": true
+}]
+```
+
+## 🎯 Princípios Fundamentais
+
+1. **Um arquivo, uma responsabilidade**
+2. **Reutilização antes de duplicação**
+3. **Clareza sobre brevidade**
+4. **Consistência em nomenclatura**
+5. **Manutenibilidade acima de tudo**
+
+## 🚀 Regras de Performance do Cursor IDE
+
+### Performance de Indexação
+```json
+// .vscode/settings.json
+{
+  "cursor.ai.indexing.maxFileSize": 1000000,
+  "cursor.ai.indexing.excludePatterns": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/.git/**",
+    "**/coverage/**",
+    "**/*.log",
+    "**/tmp/**"
+  ],
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/build/**": true,
+    "**/.git/**": true
+  }
+}
+```
+
+### Estrutura de .gitignore para Performance
+```gitignore
+# Performance crítica - nunca commitar
+node_modules/
+dist/
+build/
+.next/
+.nuxt/
+coverage/
+.cache/
+.parcel-cache/
+.vite/
+
+# Logs que prejudicam indexação
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+
+# Arquivos temporários
+.tmp/
+tmp/
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
+```
+
+### Limites de Context Window
+- **Prompt máximo**: 2000 tokens por interação
+- **Arquivos no contexto**: máximo 5 arquivos simultaneamente
+- **Quebrar grandes refatorações** em chunks menores
+- **Usar @workspace** com parcimônia
+
+### Estratégias de Memory Management
+```javascript
+// Cursor Rules para gerenciamento de memória
+{
+  "cursor.ai.context.maxTokens": 8000,
+  "cursor.ai.context.prioritize": "current-file",
+  "cursor.ai.completion.maxSuggestions": 3,
+  "cursor.ai.codebase.indexing": "selective"
+}
+```
+
+## ⚡ Otimizações de Workspace
+
+### Configuração de TypeScript para Performance
+```json
+// tsconfig.json otimizado
+{
+  "compilerOptions": {
+    "incremental": true,
+    "composite": true,
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "coverage"
+  ]
+}
+```
+
+### ESLint Performance Rules
+```javascript
+// eslint.config.js
+export default {
+  ignorePatterns: [
+    'dist/',
+    'build/',
+    'node_modules/',
+    '*.min.js'
+  ],
+  rules: {
+    // Performance crítica
+    "no-unused-vars": "error",
+    "no-unreachable": "error",
+    "no-constant-condition": "error",
+    
+    // Limites que ajudam o Cursor
+    "max-depth": ["error", 4],
+    "max-params": ["error", 5],
+    "complexity": ["error", 10]
+  }
+}
+```
+
+## 🎯 Regras de Prompt Engineering
+
+### Prompts Eficientes
+```markdown
+❌ MAU: "Faça um componente completo com todas as funcionalidades"
+✅ BOM: "Crie componente Button com props: variant, size, onClick"
+
+❌ MAU: "Refatore todo o projeto"  
+✅ BOM: "Extraia lógica de autenticação do UserProfile.tsx para hook"
+
+❌ MAU: "Explique todo o código"
+✅ BOM: "Explique a função validateUser (linhas 45-60)"
+```
+
+### Uso Estratégico de @ Symbols
+- **@workspace**: Apenas para contexto geral (máximo 1x por sessão)
+- **@file**: Para arquivos específicos (máximo 3 por prompt)
+- **@code**: Para trechos específicos de código
+- **@docs**: Apenas quando necessário (consome muito contexto)
+
+## 🔧 Configurações Avançadas
+
+### .cursorrules Otimizado
+```yaml
+# Performance Rules
+max_context_files: 5
+preferred_response_length: "concise"
+code_style: "consistent_with_project"
+
+# Exclude from AI context
+exclude_patterns:
+  - "**/*.min.js"
+  - "**/*.bundle.js"
+  - "**/vendor/**"
+  - "**/.vscode/**"
+  - "**/coverage/**"
+
+# Priority files for context
+priority_files:
+  - "src/**/*.tsx"
+  - "src/**/*.ts"
+  - "*.config.js"
+  - "package.json"
+```
+
+### Configuração de Extensions
+```json
+// Extensões que melhoram performance
+{
+  "recommendations": [
+    "ms-vscode.vscode-typescript-next",
+    "bradlc.vscode-tailwindcss",
+    "esbenp.prettier-vscode"
+  ],
+  "unwantedRecommendations": [
+    // Extensões que conflitam com Cursor
+    "ms-vscode.vscode-copilot",
+    "tabnine.tabnine-vscode"
+  ]
+}
+```
+
+## 📊 Monitoramento de Performance
+
+### Métricas Importantes
+- **Tempo de indexação**: < 30 segundos
+- **Resposta do autocomplete**: < 1 segundo  
+- **Tamanho do workspace**: < 500MB
+- **Arquivos indexados**: < 5000 arquivos
+
+### Comandos de Diagnóstico
+```bash
+# Verificar tamanho do projeto
+du -sh . && find . -type f | wc -l
+
+# Limpar cache do Cursor
+rm -rf ~/.cursor/cache/
+
+# Verificar arquivos grandes
+find . -type f -size +1M -not -path "./node_modules/*"
+```
+
+## 🚨 Red Flags de Performance
+
+### Evitar Absolutamente:
+- ❌ **Arquivos > 2MB** no workspace
+- ❌ **Pastas com +1000 arquivos**
+- ❌ **Imports circulares** 
+- ❌ **Logs extensos** commitados
+- ❌ **Múltiplos package.json** desnecessários
+- ❌ **Dependências não utilizadas**
+
+### Sinais de Problema:
+- Cursor trava por +10 segundos
+- Autocompletar demora +3 segundos
+- Chat retorna "context too large"
+- Indexação nunca termina
+
+## 🔄 Rotina Semanal de Otimização
+
+### Segunda-feira:
+- Limpar cache do Cursor
+- Verificar tamanho do workspace
+- Remover logs antigos
+
+### Quarta-feira:
+- Auditar dependências (`npm audit`)
+- Limpar node_modules desnecessários
+- Verificar .gitignore
+
+### Sexta-feira:
+- Rodar `npm run lint --fix`
+- Verificar arquivos grandes
+- Backup de configurações
+
+## 💡 Dicas Avançadas
+
+### Para Projetos Grandes (>50 arquivos):
+1. **Use workspaces** separados por feature
+2. **Configure múltiplos .cursorrules** por pasta
+3. **Limite contexto** a uma feature por vez
+4. **Use tags** para organizar prompts
+
+### Para Melhor Context Awareness:
+```javascript
+// Adicione comentários estratégicos
+/**
+ * @cursor This component handles user authentication
+ * @dependencies: useAuth, UserService
+ * @related: LoginForm.tsx, AuthProvider.tsx
+ */
+
+```

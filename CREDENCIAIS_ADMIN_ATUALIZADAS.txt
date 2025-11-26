@@ -1,0 +1,58 @@
+========================================
+  CREDENCIAIS SUPER ADMIN - MOSTRALO
+  (ATUALIZADAS)
+========================================
+
+Email:    marcos@setupdigital.com.br
+Senha:    rA6HERzPkGUcyKgS
+
+Data de Atualização: 25/11/2025 02:22:47 UTC
+Status: ✅ ATIVO
+
+========================================
+  O QUE MUDOU
+========================================
+
+ANTES:
+  Email: admin@mostralo.com
+  Senha: rA6HERzPkGUcyKgS
+
+AGORA:
+  Email: marcos@setupdigital.com.br
+  Senha: rA6HERzPkGUcyKgS (mesma senha)
+
+========================================
+  INSTRUÇÕES DE LOGIN
+========================================
+
+1. Acesse o sistema Mostralo
+2. Clique em "Login" ou "Entrar"
+3. Use as NOVAS credenciais:
+
+   Email:    marcos@setupdigital.com.br
+   Senha:    rA6HERzPkGUcyKgS
+
+4. Acesse o painel de administração
+
+========================================
+  IMPORTANTE
+========================================
+
+⚠️ O EMAIL ANTIGO NÃO FUNCIONA MAIS!
+   - admin@mostralo.com ❌ NÃO FUNCIONA
+   - marcos@setupdigital.com.br ✅ USAR ESTE
+
+⚠️ A SENHA CONTINUA A MESMA:
+   - rA6HERzPkGUcyKgS
+
+========================================
+  SEGURANÇA
+========================================
+
+- Guarde este arquivo em local seguro
+- Não compartilhe com terceiros
+- Delete após anotar as credenciais
+- Considere mudar a senha após primeiro login
+
+========================================
+

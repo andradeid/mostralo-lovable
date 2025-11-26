@@ -1,0 +1,41 @@
+========================================
+  CREDENCIAIS SUPER ADMIN - MOSTRALO
+========================================
+
+Email:    admin@mostralo.com
+Senha:    rA6HERzPkGUcyKgS
+
+Data de Atualização: 25/11/2025 02:19:23 UTC
+Status: ✅ ATIVO
+
+========================================
+  INSTRUÇÕES DE LOGIN
+========================================
+
+1. Acesse o sistema Mostralo
+2. Clique em "Login" ou "Entrar"
+3. Use as credenciais acima
+4. Acesse o painel de administração
+
+========================================
+  SEGURANÇA
+========================================
+
+⚠️ IMPORTANTE:
+- Guarde este arquivo em local seguro
+- Não compartilhe a senha com terceiros
+- Considere mudar a senha após o primeiro login
+- Delete este arquivo após anotar as credenciais
+
+========================================
+  SUPORTE
+========================================
+
+Em caso de problemas com login:
+1. Verifique se está usando o email correto
+2. Copie e cole a senha (evita erros de digitação)
+3. Limpe cache do navegador (Ctrl+Shift+Delete)
+4. Tente em aba anônima
+
+========================================
+

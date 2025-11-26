@@ -1,0 +1,49 @@
+project_id = "noshwvwpjtnvndokbfjx"
+
+[functions.get-mapbox-token]
+verify_jwt = true
+
+[functions.verify-domain]
+verify_jwt = true
+
+[functions.customer-auth]
+verify_jwt = false
+
+[functions.store-info-json]
+verify_jwt = false
+
+[functions.create-delivery-driver]
+verify_jwt = true
+
+[functions.generate-monthly-invoices]
+verify_jwt = true
+
+[functions.customer-account-manager]
+verify_jwt = true
+
+[functions.reset-customer-password]
+verify_jwt = true
+
+[functions.driver-self-register]
+verify_jwt = false
+
+[functions.create-driver-invitation]
+verify_jwt = true
+
+[functions.accept-driver-invitation]
+verify_jwt = true
+
+[functions.list-available-drivers]
+verify_jwt = true
+
+[functions.generate-store-invite-link]
+verify_jwt = true
+
+[functions.update-driver-profile]
+verify_jwt = true
+
+[functions.admin-reset-password]
+verify_jwt = true
+
+[functions.create-attendant]
+verify_jwt = true

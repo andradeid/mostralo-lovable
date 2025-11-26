@@ -18,6 +18,7 @@ import { NotificationPermissionDialog } from '@/components/delivery/Notification
 import { useNotificationPermission } from '@/hooks/useNotificationPermission';
 import { CollapsibleSection } from '@/components/delivery/CollapsibleSection';
 import { Separator } from '@/components/ui/separator';
+import { DriverNotificationBanner } from '@/components/delivery/DriverNotificationBanner';
 
 interface Order {
   id: string;
@@ -629,6 +630,7 @@ export default function DeliveryDriverPanel() {
   return (
     <div className="container mx-auto p-4 md:p-6 max-w-7xl overflow-x-hidden">
       <PWAInstallPrompt />
+      <DriverNotificationBanner />
       
       <NotificationPermissionDialog
         open={showPermissionDialog}

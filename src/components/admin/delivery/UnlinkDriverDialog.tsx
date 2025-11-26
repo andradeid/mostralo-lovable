@@ -53,6 +53,22 @@ export function UnlinkDriverDialog({ open, onOpenChange, driver, storeId, onSucc
 
       if (error) throw error;
 
+      // Buscar nome da loja para incluir na notificação
+      const { data: store } = await supabase
+        .from('stores')
+        .select('name')
+        .eq('id', storeId)
+        .single();
+
+      // Inserir notificação discreta para o entregador
+      await supabase.from('driver_notifications').insert({
+        driver_id: driver.id,
+        type: 'unlinked',
+        title: 'Vínculo Encerrado',
+        message: 'Agradecemos pela parceria e desejamos sucesso!',
+        store_name: store?.name || 'a loja'
+      });
+
       toast.success('Entregador desvinculado da loja com sucesso!');
       onSuccess();
       onOpenChange(false);

@@ -911,6 +911,54 @@ export type Database = {
           },
         ]
       }
+      driver_notifications: {
+        Row: {
+          created_at: string | null
+          driver_id: string
+          id: string
+          message: string
+          read_at: string | null
+          store_name: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string | null
+          driver_id: string
+          id?: string
+          message: string
+          read_at?: string | null
+          store_name?: string | null
+          title: string
+          type?: string
+        }
+        Update: {
+          created_at?: string | null
+          driver_id?: string
+          id?: string
+          message?: string
+          read_at?: string | null
+          store_name?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_notifications_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_notifications_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "unified_users_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       driver_payment_info: {
         Row: {
           account_holder_name: string

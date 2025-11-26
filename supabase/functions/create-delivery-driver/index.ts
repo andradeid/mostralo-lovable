@@ -132,7 +132,8 @@ Deno.serve(async (req) => {
       email_confirm: true, // Auto-confirm email
       user_metadata: {
         full_name,
-        phone: phone || null
+        phone: phone || null,
+        role_type: 'delivery_driver'
       }
     });
 

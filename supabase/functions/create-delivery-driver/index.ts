@@ -110,6 +110,21 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Check if email already exists
+    const { data: existingUser } = await supabase.auth.admin.listUsers();
+    const emailExists = existingUser?.users?.some(u => u.email?.toLowerCase() === email.toLowerCase());
+    
+    if (emailExists) {
+      console.error('Email already exists:', email);
+      return new Response(
+        JSON.stringify({ error: 'Este email já está cadastrado no sistema. Use outro email.' }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
     // Create the delivery driver user using admin API
     const { data: newUser, error: createUserError } = await supabase.auth.admin.createUser({
       email,

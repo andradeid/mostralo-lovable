@@ -32,11 +32,31 @@ self.addEventListener('install', (event) => {
         const precacheUrls = PRECACHE_MANIFEST.map(entry => 
           typeof entry === 'string' ? entry : entry.url
         );
-        // Combinar com assets críticos adicionais
-        const allAssets = [...new Set([...precacheUrls, ...CRITICAL_ASSETS])];
-        return cache.addAll(allAssets);
+        
+        // Normalizar URLs para pathname (remover domínio se existir)
+        const normalizeUrl = (url) => {
+          try {
+            const urlObj = new URL(url, self.location.origin);
+            return urlObj.pathname;
+          } catch {
+            return url;
+          }
+        };
+        
+        // Combinar e remover duplicatas baseado no pathname
+        const allUrls = [...precacheUrls, ...CRITICAL_ASSETS];
+        const uniqueUrls = [...new Set(allUrls.map(normalizeUrl))];
+        
+        console.log('[SW] Adicionando', uniqueUrls.length, 'assets únicos ao cache');
+        return cache.addAll(uniqueUrls);
       })
-      .then(() => self.skipWaiting())
+      .then(() => {
+        console.log('[SW] Instalação concluída');
+        return self.skipWaiting();
+      })
+      .catch((error) => {
+        console.warn('[SW] Erro na instalação:', error);
+      })
   );
 });
 

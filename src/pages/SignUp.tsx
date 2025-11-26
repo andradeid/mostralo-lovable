@@ -478,7 +478,7 @@ const SignUp = () => {
       const selectedPlan = plans.find(p => p.id === formData.planId);
 
       // 7. Criar registro de aprovação de pagamento
-      const { error: approvalError } = await supabase
+      const { error: approvalError } = await (supabase as any)
         .from('payment_approvals')
         .insert({
           user_id: userId,

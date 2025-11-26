@@ -77,7 +77,7 @@ export function useStoreAccess(): StoreAccess {
           // Atendentes: buscar store_id direto da user_roles
           console.log('🔍 useStoreAccess: Buscando loja do atendente', user.id);
           
-          const { data: roleData, error: roleError } = await supabase
+          const { data: roleData, error: roleError } = await (supabase as any)
             .from('user_roles')
             .select('store_id, stores(name)')
             .eq('user_id', user.id)

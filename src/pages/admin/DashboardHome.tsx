@@ -27,6 +27,11 @@ import {
 import { NavLink } from 'react-router-dom';
 import { MarketplaceSavingsCard } from '@/components/admin/MarketplaceSavingsCard';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
+import { MasterAdminKPIs } from '@/components/admin/dashboard/MasterAdminKPIs';
+import { GrowthProjections } from '@/components/admin/dashboard/GrowthProjections';
+import { RecentActivityReal } from '@/components/admin/dashboard/RecentActivityReal';
+import { PendingActions } from '@/components/admin/dashboard/PendingActions';
+import { StoreHealthIndicators } from '@/components/admin/dashboard/StoreHealthIndicators';
 
 interface DashboardStats {
   totalUsers: number;
@@ -279,147 +284,68 @@ const DashboardHome = () => {
     );
   }
 
-  // Dashboard para Master Admin
+  // Dashboard Executivo para Master Admin
   if (profile?.user_type === 'master_admin' && stats) {
-    const statCards = [
-      {
-        title: 'Total de Usuários',
-        value: stats.totalUsers,
-        description: 'Usuários registrados no sistema',
-        icon: Users,
-        trend: '+12% este mês'
-      },
-      {
-        title: 'Total de Lojas',
-        value: stats.totalStores,
-        description: 'Lojas cadastradas na plataforma',
-        icon: Store,
-        trend: '+8% este mês'
-      },
-      {
-        title: 'Lojas Ativas',
-        value: stats.activeStores,
-        description: 'Lojas em funcionamento',
-        icon: TrendingUp,
-        trend: `${stats.totalStores > 0 ? ((stats.activeStores / stats.totalStores) * 100).toFixed(1) : 0}% do total`
-      },
-      {
-        title: 'Planos Disponíveis',
-        value: stats.totalPlans,
-        description: 'Planos de assinatura ativos',
-        icon: Package,
-        trend: 'Atualizados'
-      }
-    ];
-
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <h1 className="text-3xl font-bold">Dashboard Executivo</h1>
           <p className="text-muted-foreground">
-            Visão geral do sistema Mostralo - Plataforma de cardápios digitais
+            Visão estratégica do negócio • Métricas financeiras e crescimento
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {statCards.map((card, index) => (
-            <Card key={index}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {card.title}
-                </CardTitle>
-                <card.icon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{card.value}</div>
-                <p className="text-xs text-muted-foreground">
-                  {card.description}
-                </p>
-                <p className="text-xs text-green-600 mt-1">
-                  {card.trend}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {/* KPIs Financeiros */}
+        <MasterAdminKPIs />
 
+        {/* Projeções e Valuation */}
+        <GrowthProjections />
+
+        {/* Alertas e Atividades */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Atividade Recente */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Calendar className="w-5 h-5 mr-2" />
-                Atividade Recente
-              </CardTitle>
-              <CardDescription>Últimas atividades no sistema</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Nova loja cadastrada</p>
-                    <p className="text-xs text-muted-foreground">Pizzaria do João - há 2 horas</p>
-                  </div>
-                  <Badge variant="outline">Nova</Badge>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Usuário registrado</p>
-                    <p className="text-xs text-muted-foreground">admin@mostralo.com - há 3 horas</p>
-                  </div>
-                  <Badge variant="outline">Usuário</Badge>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Plano atualizado</p>
-                    <p className="text-xs text-muted-foreground">Sistema configurado - há 1 dia</p>
-                  </div>
-                  <Badge variant="outline">Sistema</Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Ações Rápidas */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Package className="w-5 h-5 mr-2" />
-                Ações Rápidas
-              </CardTitle>
-              <CardDescription>Funcionalidades mais utilizadas</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <NavLink to="/dashboard/users">
-                <Button variant="outline" className="w-full justify-start">
-                  <Users className="w-4 h-4 mr-2" />
-                  Gerenciar Usuários
-                </Button>
-              </NavLink>
-              <NavLink to="/dashboard/stores">
-                <Button variant="outline" className="w-full justify-start">
-                  <Store className="w-4 h-4 mr-2" />
-                  Nova Loja
-                </Button>
-              </NavLink>
-              <NavLink to="/dashboard/plans">
-                <Button variant="outline" className="w-full justify-start">
-                  <Package className="w-4 h-4 mr-2" />
-                  Configurar Planos
-                </Button>
-              </NavLink>
-              <NavLink to="/dashboard/reports">
-                <Button variant="outline" className="w-full justify-start">
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                  Ver Relatórios
-                </Button>
-              </NavLink>
-            </CardContent>
-          </Card>
+          <PendingActions />
+          <RecentActivityReal />
         </div>
+
+        {/* Saúde das Lojas */}
+        <StoreHealthIndicators />
+
+        {/* Ações Rápidas */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Package className="w-5 h-5 mr-2" />
+              Ações Rápidas
+            </CardTitle>
+            <CardDescription>Funcionalidades mais utilizadas</CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <NavLink to="/dashboard/users">
+              <Button variant="outline" className="w-full justify-start">
+                <Users className="w-4 h-4 mr-2" />
+                Usuários
+              </Button>
+            </NavLink>
+            <NavLink to="/dashboard/stores">
+              <Button variant="outline" className="w-full justify-start">
+                <Store className="w-4 h-4 mr-2" />
+                Lojas
+              </Button>
+            </NavLink>
+            <NavLink to="/dashboard/plans">
+              <Button variant="outline" className="w-full justify-start">
+                <Package className="w-4 h-4 mr-2" />
+                Planos
+              </Button>
+            </NavLink>
+            <NavLink to="/dashboard/reports">
+              <Button variant="outline" className="w-full justify-start">
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Relatórios
+              </Button>
+            </NavLink>
+          </CardContent>
+        </Card>
       </div>
     );
   }

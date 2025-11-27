@@ -115,9 +115,9 @@ export default function IframePage() {
   }
 
   return (
-    <div className="-m-6 h-[calc(100vh-4rem)]">
+    <div className="fixed inset-0 flex flex-col">
       {/* Header compacto com botão para nova aba */}
-      <div className="h-12 bg-card border-b px-4 flex items-center justify-between">
+      <div className="h-12 bg-card border-b px-4 flex items-center justify-between shrink-0">
         <h1 className="font-semibold text-base truncate">{menu.title}</h1>
         <Button 
           size="sm" 
@@ -133,7 +133,7 @@ export default function IframePage() {
       {/* Iframe em tela cheia */}
       <iframe
         src={menu.iframe_url}
-        className="w-full h-[calc(100%-3rem)] border-0"
+        className="w-full flex-1 border-0"
         title={menu.title}
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
         allowFullScreen

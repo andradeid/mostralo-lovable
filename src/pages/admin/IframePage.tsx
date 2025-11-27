@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import type { Database } from "@/integrations/supabase/types";
 
 interface CustomMenu {
@@ -118,7 +119,10 @@ export default function IframePage() {
     <div className="fixed inset-0 flex flex-col">
       {/* Header compacto com botão para nova aba */}
       <div className="h-12 bg-card border-b px-4 flex items-center justify-between shrink-0">
-        <h1 className="font-semibold text-base truncate">{menu.title}</h1>
+        <div className="flex items-center gap-3">
+          <SidebarTrigger />
+          <h1 className="font-semibold text-base truncate">{menu.title}</h1>
+        </div>
         <Button 
           size="sm" 
           variant="outline"

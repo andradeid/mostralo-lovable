@@ -3,7 +3,8 @@ import { useParams, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { AlertCircle } from "lucide-react";
+import { ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { Database } from "@/integrations/supabase/types";
 
 interface CustomMenu {
@@ -89,29 +90,29 @@ export default function IframePage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)]">
-      <div className="bg-card border-b px-6 py-4">
-        <h1 className="text-2xl font-bold">{menu.title}</h1>
+    <div className="-m-6 h-[calc(100vh-4rem)]">
+      {/* Header compacto com botão para nova aba */}
+      <div className="h-12 bg-card border-b px-4 flex items-center justify-between">
+        <h1 className="font-semibold text-base truncate">{menu.title}</h1>
+        <Button 
+          size="sm" 
+          variant="outline"
+          onClick={() => window.open(menu.iframe_url, '_blank')}
+          className="shrink-0"
+        >
+          <ExternalLink className="h-4 w-4 mr-2" />
+          Abrir em nova aba
+        </Button>
       </div>
-      <div className="flex-1 relative">
-        <iframe
-          src={menu.iframe_url}
-          className="w-full h-full border-0"
-          title={menu.title}
-          sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
-          onError={() => {
-            toast({
-              title: "Erro ao carregar iframe",
-              description: "Verifique se a URL está correta e permite incorporação",
-              variant: "destructive",
-            });
-          }}
-        />
-      </div>
-      <div className="bg-muted/30 border-t px-6 py-2 text-xs text-muted-foreground flex items-center gap-2">
-        <AlertCircle className="h-3 w-3" />
-        Conteúdo externo fornecido por: {new URL(menu.iframe_url).hostname}
-      </div>
+      
+      {/* Iframe em tela cheia */}
+      <iframe
+        src={menu.iframe_url}
+        className="w-full h-[calc(100%-3rem)] border-0"
+        title={menu.title}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+        allowFullScreen
+      />
     </div>
   );
 }

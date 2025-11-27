@@ -435,6 +435,7 @@ const UsersPage = () => {
                     <SelectItem value="master_admin">Master Admin</SelectItem>
                     <SelectItem value="store_admin">Dono de Loja</SelectItem>
                     <SelectItem value="delivery_driver">Entregador</SelectItem>
+                    <SelectItem value="customer">Cliente</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

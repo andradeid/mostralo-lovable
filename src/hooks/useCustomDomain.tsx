@@ -25,6 +25,8 @@ export function useCustomDomain(): CustomDomainResult {
         'mostralo.me',
         'mostralo.app',
         'mostralo.com.br',
+        'lovable.app',
+        'lovable.dev',
       ];
 
       // Verificar se é um domínio interno

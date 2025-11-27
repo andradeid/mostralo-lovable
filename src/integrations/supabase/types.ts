@@ -301,6 +301,36 @@ export type Database = {
           },
         ]
       }
+      bible_verses: {
+        Row: {
+          book: string
+          category: string
+          created_at: string
+          id: string
+          is_active: boolean
+          reference: string
+          verse_text: string
+        }
+        Insert: {
+          book: string
+          category: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          reference: string
+          verse_text: string
+        }
+        Update: {
+          book?: string
+          category?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          reference?: string
+          verse_text?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -690,6 +720,86 @@ export type Database = {
           total_orders?: number | null
           total_spent?: number | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      daily_task_completions: {
+        Row: {
+          admin_id: string
+          completed_at: string | null
+          completed_quantity: number
+          created_at: string
+          date: string
+          id: string
+          notes: string | null
+          task_id: string
+        }
+        Insert: {
+          admin_id: string
+          completed_at?: string | null
+          completed_quantity?: number
+          created_at?: string
+          date?: string
+          id?: string
+          notes?: string | null
+          task_id: string
+        }
+        Update: {
+          admin_id?: string
+          completed_at?: string | null
+          completed_quantity?: number
+          created_at?: string
+          date?: string
+          id?: string
+          notes?: string | null
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_task_completions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "daily_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_tasks: {
+        Row: {
+          admin_id: string
+          category: string
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          target_quantity: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          admin_id: string
+          category: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          target_quantity?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          admin_id?: string
+          category?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          target_quantity?: number
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }

@@ -73,6 +73,7 @@ import AvailableDriversPage from './pages/admin/AvailableDriversPage';
 import AttendantsPage from './pages/admin/AttendantsPage';
 import IntegrationsPage from './pages/admin/IntegrationsPage';
 import IframePage from './pages/admin/IframePage';
+import GoalsPage from './pages/admin/GoalsPage';
 
 const queryClient = new QueryClient();
 
@@ -112,6 +113,11 @@ const App = () => (
             <Route path="/dashboard" element={
               <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
                 <AdminLayout><DashboardHome /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/metas" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout><GoalsPage /></AdminLayout>
               </ProtectedRoute>
             } />
             <Route path="/dashboard/stores" element={

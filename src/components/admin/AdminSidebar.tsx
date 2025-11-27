@@ -26,7 +26,8 @@ import {
   Receipt,
   Printer,
   Ticket,
-  ExternalLink
+  ExternalLink,
+  Target
 } from "lucide-react";
 
 import {
@@ -318,6 +319,7 @@ export function AdminSidebar() {
     if (profile?.user_type === 'master_admin') {
       return [
         { title: 'Dashboard', url: '/dashboard', icon: Home, group: 'Principal' },
+        { title: 'Metas', url: '/dashboard/metas', icon: Target, group: 'Principal' },
         { title: 'Assinantes', url: '/dashboard/subscribers', icon: CreditCard, group: 'Gerenciamento' },
         { title: 'Lojas', url: '/dashboard/stores', icon: Store, group: 'Gerenciamento' },
         { title: 'Usuários', url: '/dashboard/users', icon: Users, group: 'Gerenciamento' },

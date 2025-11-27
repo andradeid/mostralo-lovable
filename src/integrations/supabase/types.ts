@@ -95,6 +95,39 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_achievements: {
+        Row: {
+          achievement_description: string
+          achievement_name: string
+          achievement_type: string
+          admin_id: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          unlocked_at: string
+        }
+        Insert: {
+          achievement_description: string
+          achievement_name: string
+          achievement_type: string
+          admin_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          unlocked_at?: string
+        }
+        Update: {
+          achievement_description?: string
+          achievement_name?: string
+          achievement_type?: string
+          admin_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          unlocked_at?: string
+        }
+        Relationships: []
+      }
       admin_audit_log: {
         Row: {
           action: string
@@ -127,6 +160,89 @@ export type Database = {
           user_agent?: string | null
         }
         Relationships: []
+      }
+      admin_goals: {
+        Row: {
+          admin_id: string
+          created_at: string
+          goal_type: string
+          id: string
+          is_active: boolean
+          started_at: string
+          target_mrr: number
+          target_stores_per_month: number
+          updated_at: string
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          goal_type: string
+          id?: string
+          is_active?: boolean
+          started_at?: string
+          target_mrr: number
+          target_stores_per_month: number
+          updated_at?: string
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          goal_type?: string
+          id?: string
+          is_active?: boolean
+          started_at?: string
+          target_mrr?: number
+          target_stores_per_month?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      admin_goals_progress: {
+        Row: {
+          admin_id: string
+          created_at: string
+          current_mrr: number
+          date: string
+          goal_id: string
+          id: string
+          is_goal_met: boolean
+          new_stores_count: number
+          progress_percentage: number
+          target_mrr: number
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          current_mrr?: number
+          date: string
+          goal_id: string
+          id?: string
+          is_goal_met?: boolean
+          new_stores_count?: number
+          progress_percentage?: number
+          target_mrr?: number
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          current_mrr?: number
+          date?: string
+          goal_id?: string
+          id?: string
+          is_goal_met?: boolean
+          new_stores_count?: number
+          progress_percentage?: number
+          target_mrr?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_goals_progress_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "admin_goals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       banners: {
         Row: {

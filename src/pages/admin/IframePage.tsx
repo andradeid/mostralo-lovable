@@ -27,7 +27,11 @@ export default function IframePage() {
   }, [id, profile]);
 
   const loadMenu = async () => {
-    if (!id || !profile?.id) return;
+    if (!id || !profile?.id) {
+      setLoading(false);
+      setError(true);
+      return;
+    }
 
     try {
       // Get store_id first
@@ -37,9 +41,17 @@ export default function IframePage() {
         .eq("owner_id", profile.id)
         .single();
 
-      if (storeError) throw storeError;
-      if (!storeData) {
+      if (storeError) {
+        console.error("Erro ao buscar loja:", storeError);
         setError(true);
+        setLoading(false);
+        return;
+      }
+      
+      if (!storeData) {
+        console.error("Loja não encontrada");
+        setError(true);
+        setLoading(false);
         return;
       }
 
@@ -52,24 +64,37 @@ export default function IframePage() {
         .eq("is_active", true)
         .single();
 
-      if (menuError) throw menuError;
+      if (menuError) {
+        console.error("Erro ao buscar menu:", menuError);
+        setError(true);
+        toast({
+          title: "Erro",
+          description: "Erro ao carregar menu personalizado",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+      
       if (!menuData) {
+        console.error("Menu não encontrado ou inativo");
         setError(true);
         toast({
           title: "Erro",
           description: "Menu não encontrado ou inativo",
           variant: "destructive",
         });
+        setLoading(false);
         return;
       }
 
       setMenu(menuData as unknown as CustomMenu);
     } catch (error: any) {
-      console.error("Erro ao carregar menu:", error);
+      console.error("Erro crítico ao carregar menu:", error);
       setError(true);
       toast({
         title: "Erro",
-        description: error.message,
+        description: error?.message || "Erro desconhecido ao carregar menu",
         variant: "destructive",
       });
     } finally {

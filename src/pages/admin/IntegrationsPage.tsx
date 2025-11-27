@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import type { Database } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -87,13 +88,13 @@ export default function IntegrationsPage() {
 
       // Load custom menus
       const { data: menusData, error: menusError } = await supabase
-        .from("custom_menus")
+        .from("custom_menus" as any)
         .select("*")
         .eq("store_id", storeData.id)
         .order("sort_order", { ascending: true });
 
       if (menusError) throw menusError;
-      setMenus(menusData || []);
+      setMenus((menusData || []) as unknown as CustomMenu[]);
     } catch (error: any) {
       console.error("Erro ao carregar menus:", error);
       toast({
@@ -113,7 +114,7 @@ export default function IntegrationsPage() {
       if (selectedMenu) {
         // Update
         const { error } = await supabase
-          .from("custom_menus")
+          .from("custom_menus" as any)
           .update({
             title: formData.title,
             iframe_url: formData.iframe_url,
@@ -129,7 +130,7 @@ export default function IntegrationsPage() {
         });
       } else {
         // Insert
-        const { error } = await supabase.from("custom_menus").insert({
+        const { error } = await supabase.from("custom_menus" as any).insert({
           store_id: storeId,
           title: formData.title,
           iframe_url: formData.iframe_url,
@@ -163,7 +164,7 @@ export default function IntegrationsPage() {
 
     try {
       const { error } = await supabase
-        .from("custom_menus")
+        .from("custom_menus" as any)
         .delete()
         .eq("id", selectedMenu.id);
 
@@ -190,7 +191,7 @@ export default function IntegrationsPage() {
   const handleToggleActive = async (menu: CustomMenu) => {
     try {
       const { error } = await supabase
-        .from("custom_menus")
+        .from("custom_menus" as any)
         .update({ is_active: !menu.is_active })
         .eq("id", menu.id);
 

@@ -71,6 +71,8 @@ import DriverRegister from './pages/DriverRegister';
 import AcceptInvitation from './pages/AcceptInvitation';
 import AvailableDriversPage from './pages/admin/AvailableDriversPage';
 import AttendantsPage from './pages/admin/AttendantsPage';
+import IntegrationsPage from './pages/admin/IntegrationsPage';
+import IframePage from './pages/admin/IframePage';
 
 const queryClient = new QueryClient();
 
@@ -265,6 +267,16 @@ const App = () => (
             <Route path="/dashboard/attendants" element={
               <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
                 <AdminLayout><AttendantsPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/integrations" element={
+              <ProtectedRoute allowedRoles={['store_admin']}>
+                <AdminLayout><IntegrationsPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/iframe/:id" element={
+              <ProtectedRoute allowedRoles={['store_admin']}>
+                <AdminLayout><IframePage /></AdminLayout>
               </ProtectedRoute>
             } />
             <Route path="/dashboard/my-store" element={

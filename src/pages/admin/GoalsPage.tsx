@@ -6,8 +6,10 @@ import { StreakCounter } from '@/components/admin/goals/StreakCounter';
 import { GoalSelector } from '@/components/admin/goals/GoalSelector';
 import { ProjectedRewards } from '@/components/admin/goals/ProjectedRewards';
 import { AchievementsGrid } from '@/components/admin/goals/AchievementsGrid';
+import { DailyTasksChecklist } from '@/components/admin/goals/DailyTasksChecklist';
 import { useAdminGoals } from '@/hooks/useAdminGoals';
 import { Loader2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function GoalsPage() {
   const { 
@@ -20,7 +22,6 @@ export default function GoalsPage() {
     currentMonthProgress 
   } = useAdminGoals();
 
-  // Buscar dados gerais para cálculos
   const { data: dashboardData } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: async () => {
@@ -69,72 +70,78 @@ export default function GoalsPage() {
   return (
     <div className="space-y-6 p-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2">🎯 Sistema de Metas</h1>
+        <h1 className="text-3xl font-bold mb-2">🎯 Sistema de Metas e Disciplina</h1>
         <p className="text-muted-foreground">
-          Defina suas metas, acompanhe seu progresso e conquiste seus objetivos!
+          Defina suas metas, controle sua disciplina diária e conquiste seus objetivos!
         </p>
       </div>
 
-      {!activeGoal ? (
-        // Seletor de Meta (primeira vez)
-        <div className="space-y-6">
-          <DailyMotivationBanner progress={0} streak={0} />
-          <GoalSelector
-            avgPlanPrice={dashboardData?.avgPlanPrice || 349}
-            onSelectGoal={handleSelectGoal}
-            isLoading={isSettingGoal}
-          />
-        </div>
-      ) : (
-        // Dashboard de Metas Ativas
-        <div className="space-y-6">
-          {/* Banner Motivacional */}
-          <DailyMotivationBanner 
-            progress={currentMonthProgress.percentage} 
-            streak={streak} 
-          />
+      <Tabs defaultValue="disciplina" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="disciplina">📋 Disciplina Diária</TabsTrigger>
+          <TabsTrigger value="metas">🎯 Metas Mensais</TabsTrigger>
+        </TabsList>
 
-          {/* Grid Principal */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <GoalProgressCard
-                goalType={activeGoal.goal_type}
-                targetStoresPerMonth={activeGoal.target_stores_per_month}
-                currentStores={currentMonthProgress.totalStores || 0}
-                targetStores={currentMonthProgress.targetStores || activeGoal.target_stores_per_month}
-                progressPercentage={currentMonthProgress.percentage}
-                daysInMonth={daysInMonth}
-                currentDay={currentDay}
+        <TabsContent value="disciplina" className="space-y-6 mt-6">
+          <DailyTasksChecklist />
+        </TabsContent>
+
+        <TabsContent value="metas" className="space-y-6 mt-6">
+          {!activeGoal ? (
+            <div className="space-y-6">
+              <DailyMotivationBanner progress={0} streak={0} />
+              <GoalSelector
+                avgPlanPrice={dashboardData?.avgPlanPrice || 349}
+                onSelectGoal={handleSelectGoal}
+                isLoading={isSettingGoal}
               />
             </div>
-            
-            <div>
-              <StreakCounter streak={streak} />
+          ) : (
+            <div className="space-y-6">
+              <DailyMotivationBanner 
+                progress={currentMonthProgress.percentage} 
+                streak={streak} 
+              />
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  <GoalProgressCard
+                    goalType={activeGoal.goal_type}
+                    targetStoresPerMonth={activeGoal.target_stores_per_month}
+                    currentStores={currentMonthProgress.totalStores || 0}
+                    targetStores={currentMonthProgress.targetStores || activeGoal.target_stores_per_month}
+                    progressPercentage={currentMonthProgress.percentage}
+                    daysInMonth={daysInMonth}
+                    currentDay={currentDay}
+                  />
+                </div>
+                
+                <div>
+                  <StreakCounter streak={streak} />
+                </div>
+              </div>
+
+              <ProjectedRewards
+                targetStoresPerMonth={activeGoal.target_stores_per_month}
+                avgPlanPrice={dashboardData?.avgPlanPrice || 349}
+                currentActiveStores={dashboardData?.currentActiveStores || 0}
+              />
+
+              <AchievementsGrid 
+                unlockedAchievements={achievements || []} 
+              />
+
+              <div className="mt-8">
+                <GoalSelector
+                  avgPlanPrice={dashboardData?.avgPlanPrice || 349}
+                  onSelectGoal={handleSelectGoal}
+                  isLoading={isSettingGoal}
+                />
+              </div>
             </div>
-          </div>
-
-          {/* Projeção de Recompensas */}
-          <ProjectedRewards
-            targetStoresPerMonth={activeGoal.target_stores_per_month}
-            avgPlanPrice={dashboardData?.avgPlanPrice || 349}
-            currentActiveStores={dashboardData?.currentActiveStores || 0}
-          />
-
-          {/* Conquistas */}
-          <AchievementsGrid 
-            unlockedAchievements={achievements || []} 
-          />
-
-          {/* Opção de Mudar Meta */}
-          <div className="mt-8">
-            <GoalSelector
-              avgPlanPrice={dashboardData?.avgPlanPrice || 349}
-              onSelectGoal={handleSelectGoal}
-              isLoading={isSettingGoal}
-            />
-          </div>
-        </div>
-      )}
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

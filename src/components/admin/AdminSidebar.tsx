@@ -27,7 +27,8 @@ import {
   Printer,
   Ticket,
   ExternalLink,
-  Target
+  Target,
+  Bot
 } from "lucide-react";
 
 import {
@@ -320,6 +321,7 @@ export function AdminSidebar() {
       return [
         { title: 'Dashboard', url: '/dashboard', icon: Home, group: 'Principal' },
         { title: 'Metas', url: '/dashboard/metas', icon: Target, group: 'Principal' },
+        { title: 'Prompts de Vendas', url: '/dashboard/sales-prompts', icon: Bot, group: 'Vendas' },
         { title: 'Assinantes', url: '/dashboard/subscribers', icon: CreditCard, group: 'Gerenciamento' },
         { title: 'Lojas', url: '/dashboard/stores', icon: Store, group: 'Gerenciamento' },
         { title: 'Usuários', url: '/dashboard/users', icon: Users, group: 'Gerenciamento' },

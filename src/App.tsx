@@ -74,6 +74,7 @@ import AttendantsPage from './pages/admin/AttendantsPage';
 import IntegrationsPage from './pages/admin/IntegrationsPage';
 import IframePage from './pages/admin/IframePage';
 import GoalsPage from './pages/admin/GoalsPage';
+import SalesPromptsPage from './pages/admin/SalesPromptsPage';
 
 const queryClient = new QueryClient();
 
@@ -118,6 +119,13 @@ const App = () => (
             <Route path="/dashboard/metas" element={
               <ProtectedRoute allowedRoles={['master_admin']}>
                 <AdminLayout><GoalsPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/sales-prompts" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Prompts de Vendas">
+                  <SalesPromptsPage />
+                </AdminLayout>
               </ProtectedRoute>
             } />
             <Route path="/dashboard/stores" element={

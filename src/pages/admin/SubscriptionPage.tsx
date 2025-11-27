@@ -53,6 +53,18 @@ interface PaymentApproval {
   payment_proof_url: string | null;
   created_at: string;
   rejection_reason: string | null;
+  notes: string | null;
+}
+
+interface Plan {
+  id: string;
+  name: string;
+  price: number;
+  billing_cycle: string;
+  description: string | null;
+  features: any;
+  discount_price: number | null;
+  promotion_active: boolean | null;
 }
 
 export default function SubscriptionPage() {
@@ -70,6 +82,10 @@ export default function SubscriptionPage() {
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [paymentApproval, setPaymentApproval] = useState<PaymentApproval | null>(null);
+  const [availablePlans, setAvailablePlans] = useState<Plan[]>([]);
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [showRenewalDialog, setShowRenewalDialog] = useState(false);
+  const [renewalUploading, setRenewalUploading] = useState(false);
 
   useEffect(() => {
     fetchPaymentApproval();
@@ -77,6 +93,7 @@ export default function SubscriptionPage() {
     fetchSubscriptionData();
     fetchInvoices();
     fetchPaymentConfig();
+    fetchAvailablePlans();
   }, [user]);
 
   const fetchPaymentApproval = async () => {
@@ -201,6 +218,18 @@ export default function SubscriptionPage() {
     }
   };
 
+  const fetchAvailablePlans = async () => {
+    const { data } = await supabase
+      .from('plans')
+      .select('*')
+      .eq('status', 'active')
+      .order('price', { ascending: true });
+
+    if (data) {
+      setAvailablePlans(data);
+    }
+  };
+
   const handlePayClick = (invoice: Invoice) => {
     setSelectedInvoice(invoice);
     setShowPaymentDialog(true);
@@ -287,28 +316,102 @@ export default function SubscriptionPage() {
     return <Badge>{status}</Badge>;
   };
 
+  const handleSelectPlanForRenewal = (plan: Plan) => {
+    setSelectedPlan(plan);
+    setShowRenewalDialog(true);
+  };
+
+  const handleRenewalFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || !event.target.files[0] || !selectedPlan || !user) return;
+
+    setRenewalUploading(true);
+
+    const { data: store } = await supabase
+      .from('stores')
+      .select('id')
+      .eq('owner_id', user.id)
+      .single();
+
+    if (!store) {
+      toast.error("Erro ao identificar loja");
+      setRenewalUploading(false);
+      return;
+    }
+
+    const file = event.target.files[0];
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${store.id}/renewal-${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('payment-proofs')
+      .upload(fileName, file);
+
+    if (uploadError) {
+      toast.error("Erro ao fazer upload do comprovante");
+      setRenewalUploading(false);
+      return;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('payment-proofs')
+      .getPublicUrl(fileName);
+
+    const finalPrice = selectedPlan.promotion_active && selectedPlan.discount_price 
+      ? selectedPlan.discount_price 
+      : selectedPlan.price;
+
+    const { error: insertError } = await supabase
+      .from('payment_approvals')
+      .insert({
+        user_id: user.id,
+        store_id: store.id,
+        plan_id: selectedPlan.id,
+        payment_amount: finalPrice,
+        payment_method: 'pix',
+        payment_proof_url: publicUrl,
+        status: 'pending',
+        notes: 'Renovação de assinatura',
+      });
+
+    if (insertError) {
+      toast.error("Erro ao enviar comprovante");
+      setRenewalUploading(false);
+      return;
+    }
+
+    toast.success("Comprovante enviado! Aguardando aprovação do administrador.");
+    setShowRenewalDialog(false);
+    setSelectedPlan(null);
+    setRenewalUploading(false);
+    fetchPaymentApproval();
+    fetchAllPaymentApprovals();
+  };
+
   const getSubscriptionStatus = () => {
-    if (!subscription?.subscriptionExpiresAt) return { badge: <Badge>Sem Plano</Badge>, text: '' };
+    if (!subscription?.subscriptionExpiresAt) return { badge: <Badge>Sem Plano</Badge>, text: '', isExpired: false };
     
     const daysUntil = Math.ceil((new Date(subscription.subscriptionExpiresAt).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
     
     if (subscription.storeStatus === 'inactive' || daysUntil < 0) {
       return { 
         badge: <Badge variant="destructive">❌ Expirado</Badge>, 
-        text: 'Sua assinatura expirou. Regularize o pagamento para continuar usando o sistema.' 
+        text: 'Sua assinatura expirou. Regularize o pagamento para continuar usando o sistema.',
+        isExpired: true
       };
     }
     
     if (daysUntil <= 7) {
       return { 
         badge: <Badge variant="secondary" className="bg-yellow-500">⚠️ Próximo ao Vencimento</Badge>, 
-        text: `Sua assinatura vence em ${daysUntil} dia${daysUntil > 1 ? 's' : ''}. Não se esqueça de renovar!` 
+        text: `Sua assinatura vence em ${daysUntil} dia${daysUntil > 1 ? 's' : ''}. Não se esqueça de renovar!`,
+        isExpired: false
       };
     }
     
     return { 
       badge: <Badge variant="default" className="bg-green-500">✅ Ativo</Badge>, 
-      text: 'Sua assinatura está ativa e em dia.' 
+      text: 'Sua assinatura está ativa e em dia.',
+      isExpired: false
     };
   };
 
@@ -317,6 +420,7 @@ export default function SubscriptionPage() {
   }
 
   const status = getSubscriptionStatus();
+  const hasPendingRenewal = paymentApproval?.status === 'pending' && paymentApproval?.notes === 'Renovação de assinatura';
 
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-6">
@@ -325,8 +429,49 @@ export default function SubscriptionPage() {
         <p className="text-muted-foreground">Gerencie sua assinatura e pagamentos</p>
       </div>
 
-      {/* Alert de Status de Aprovação */}
-      {paymentApproval?.status === 'pending' && (
+      {/* Alert de Assinatura Expirada */}
+      {status.isExpired && !hasPendingRenewal && (
+        <Alert className="border-red-500/50 bg-red-500/5">
+          <AlertCircle className="h-4 w-4 text-red-500" />
+          <AlertDescription>
+            <div className="space-y-2">
+              <p className="font-semibold text-red-700 dark:text-red-400">
+                ❌ Assinatura Expirada
+              </p>
+              <p className="text-sm text-red-600 dark:text-red-300">
+                Sua assinatura expirou em {subscription?.subscriptionExpiresAt 
+                  ? format(new Date(subscription.subscriptionExpiresAt), "dd/MM/yyyy", { locale: ptBR })
+                  : '-'
+                }. Renove agora para continuar usando o sistema.
+              </p>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Alert de Renovação Pendente */}
+      {hasPendingRenewal && (
+        <Alert className="border-yellow-500/50 bg-yellow-500/5">
+          <Clock className="h-4 w-4 text-yellow-500" />
+          <AlertDescription>
+            <div className="space-y-2">
+              <p className="font-semibold text-yellow-700 dark:text-yellow-400">
+                ⏳ Renovação em Análise
+              </p>
+              <p className="text-sm text-yellow-600 dark:text-yellow-300">
+                Seu comprovante de renovação foi enviado e está sendo analisado pelo administrador. 
+                Assim que aprovado, sua assinatura será reativada automaticamente.
+              </p>
+              <p className="text-xs text-muted-foreground mt-2">
+                Enviado em: {format(new Date(paymentApproval.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+              </p>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Alert de Status de Aprovação (Cadastro Inicial) */}
+      {paymentApproval?.status === 'pending' && !hasPendingRenewal && (
         <Alert className="border-yellow-500/50 bg-yellow-500/5">
           <Clock className="h-4 w-4 text-yellow-500" />
           <AlertDescription>
@@ -392,6 +537,68 @@ export default function SubscriptionPage() {
             </div>
           </AlertDescription>
         </Alert>
+      )}
+
+      {/* Seção de Renovação - Planos Disponíveis */}
+      {status.isExpired && !hasPendingRenewal && (
+        <Card className="border-primary/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Renovar Assinatura
+            </CardTitle>
+            <CardDescription>
+              Escolha um plano para renovar sua assinatura e continuar usando o sistema
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {availablePlans.map((plan) => {
+                const finalPrice = plan.promotion_active && plan.discount_price 
+                  ? plan.discount_price 
+                  : plan.price;
+                const hasDiscount = plan.promotion_active && plan.discount_price;
+
+                return (
+                  <Card key={plan.id} className="relative overflow-hidden">
+                    {hasDiscount && (
+                      <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 text-xs font-bold">
+                        PROMOÇÃO
+                      </div>
+                    )}
+                    <CardHeader>
+                      <CardTitle className="text-xl">{plan.name}</CardTitle>
+                      <CardDescription className="line-clamp-2">
+                        {plan.description}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        {hasDiscount && (
+                          <p className="text-sm text-muted-foreground line-through">
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plan.price)}
+                          </p>
+                        )}
+                        <p className="text-2xl font-bold text-primary">
+                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(finalPrice)}
+                          <span className="text-sm font-normal text-muted-foreground">
+                            /{plan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
+                          </span>
+                        </p>
+                      </div>
+                      <Button 
+                        className="w-full" 
+                        onClick={() => handleSelectPlanForRenewal(plan)}
+                      >
+                        Selecionar Plano
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Card Principal - Informações da Assinatura */}
@@ -704,6 +911,107 @@ export default function SubscriptionPage() {
                 alt="Comprovante de pagamento" 
                 className="max-w-full h-auto rounded-lg"
               />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Renovação */}
+      <Dialog open={showRenewalDialog} onOpenChange={setShowRenewalDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Renovar Assinatura</DialogTitle>
+            <DialogDescription>
+              {selectedPlan && (
+                <>
+                  Plano {selectedPlan.name} - {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+                    selectedPlan.promotion_active && selectedPlan.discount_price 
+                      ? selectedPlan.discount_price 
+                      : selectedPlan.price
+                  )}/{selectedPlan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {paymentConfig && (
+              <>
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="text-sm">
+                    Realize o pagamento via PIX e envie o comprovante para análise
+                  </AlertDescription>
+                </Alert>
+
+                <div className="p-4 bg-muted rounded-lg space-y-3">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Chave PIX</Label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Input 
+                        value={paymentConfig.pix_key} 
+                        readOnly 
+                        className="flex-1 font-mono"
+                      />
+                      <Button 
+                        size="icon" 
+                        variant="outline"
+                        onClick={handleCopyPix}
+                      >
+                        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Tipo</Label>
+                    <p className="font-medium mt-1 capitalize">{paymentConfig.pix_key_type === 'phone' ? 'Telefone' : paymentConfig.pix_key_type}</p>
+                  </div>
+
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Titular da Conta</Label>
+                    <p className="font-medium mt-1">{paymentConfig.account_holder_name}</p>
+                  </div>
+
+                  {selectedPlan && (
+                    <div className="pt-2 border-t">
+                      <Label className="text-xs text-muted-foreground">Valor a Pagar</Label>
+                      <p className="text-2xl font-bold text-primary mt-1">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+                          selectedPlan.promotion_active && selectedPlan.discount_price 
+                            ? selectedPlan.discount_price 
+                            : selectedPlan.price
+                        )}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Anexar Comprovante de Pagamento</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={handleRenewalFileUpload}
+                      disabled={renewalUploading}
+                      className="cursor-pointer"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Formatos aceitos: Imagens e PDF (máx. 5MB)
+                  </p>
+                </div>
+
+                {renewalUploading && (
+                  <div className="text-center text-sm text-muted-foreground">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                      Enviando comprovante...
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </DialogContent>

@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { CartProvider } from "@/contexts/CartContext";
 import { ThemeProvider } from "next-themes";
 import { useRouteTheme } from "@/hooks/useRouteTheme";
+import { CustomDomainRouter } from "@/components/CustomDomainRouter";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { DeliveryDriverLayout } from "@/components/delivery/DeliveryDriverLayout";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -94,6 +95,7 @@ const App = () => (
               }}
             >
               <ThemeController />
+              <CustomDomainRouter>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
@@ -341,6 +343,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </CustomDomainRouter>
         </BrowserRouter>
       </TooltipProvider>
     </CartProvider>

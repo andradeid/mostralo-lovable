@@ -32,7 +32,9 @@ import {
   ShoppingCart,
   UserX,
   Key,
-  Wrench
+  Wrench,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -60,6 +62,8 @@ const UsersPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'blocked' | 'deleted'>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   
   const [editUser, setEditUser] = useState<UnifiedUser | null>(null);
   const [blockUser, setBlockUser] = useState<UnifiedUser | null>(null);
@@ -71,6 +75,10 @@ const UsersPage = () => {
   useEffect(() => {
     fetchUsers();
   }, [statusFilter]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, typeFilter, itemsPerPage]);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -302,6 +310,15 @@ const UsersPage = () => {
     return matchesSearch && matchesType;
   });
 
+  // Paginação
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const paginatedUsers = filteredUsers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+  const startIndex = filteredUsers.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
+  const endIndex = Math.min(currentPage * itemsPerPage, filteredUsers.length);
+
   const statsCards = [
     {
       title: 'Total de Usuários',
@@ -391,7 +408,7 @@ const UsersPage = () => {
               />
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Status</label>
                 <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
@@ -421,6 +438,20 @@ const UsersPage = () => {
                   </SelectContent>
                 </Select>
               </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Exibir</label>
+                <Select value={String(itemsPerPage)} onValueChange={(value) => setItemsPerPage(Number(value))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10 por página</SelectItem>
+                    <SelectItem value="20">20 por página</SelectItem>
+                    <SelectItem value="50">50 por página</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -431,7 +462,10 @@ const UsersPage = () => {
         <CardHeader>
           <CardTitle>Lista de Usuários ({filteredUsers.length})</CardTitle>
           <CardDescription>
-            Usuários encontrados com os filtros aplicados
+            {filteredUsers.length > 0 
+              ? `Mostrando ${startIndex}-${endIndex} de ${filteredUsers.length} usuários`
+              : 'Nenhum usuário encontrado'
+            }
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -445,7 +479,7 @@ const UsersPage = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {filteredUsers.map((user) => {
+              {paginatedUsers.map((user) => {
                 const userTypeInfo = getUserTypeInfo(user);
                 const TypeIcon = userTypeInfo.icon;
 
@@ -571,6 +605,65 @@ const UsersPage = () => {
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {/* Controles de Paginação */}
+          {filteredUsers.length > 0 && totalPages > 1 && (
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-6 pt-4 border-t">
+              <p className="text-sm text-muted-foreground">
+                Página {currentPage} de {totalPages}
+              </p>
+              
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Anterior
+                </Button>
+                
+                {/* Números de página */}
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={currentPage === pageNum ? "default" : "outline"}
+                        size="sm"
+                        className="w-9 h-9 p-0"
+                        onClick={() => setCurrentPage(pageNum)}
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                </div>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Próximo
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>

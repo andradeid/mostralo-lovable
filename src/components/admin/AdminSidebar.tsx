@@ -262,7 +262,10 @@ export function AdminSidebar() {
   // Buscar menus personalizados para store_admin
   useEffect(() => {
     const fetchCustomMenus = async () => {
-      if (profile?.user_type !== 'store_admin' || !validatedStoreId) return;
+      if (profile?.user_type !== 'store_admin' || !validatedStoreId) {
+        setCustomMenus([]);
+        return;
+      }
 
       try {
         const { data, error } = await supabase
@@ -272,10 +275,16 @@ export function AdminSidebar() {
           .eq('is_active', true)
           .order('sort_order', { ascending: true });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Erro ao buscar menus personalizados:', error);
+          setCustomMenus([]);
+          return;
+        }
+        
         setCustomMenus((data || []) as any);
       } catch (error) {
-        console.error('Erro ao buscar menus personalizados:', error);
+        console.error('Erro crítico ao buscar menus personalizados:', error);
+        setCustomMenus([]);
       }
     };
 

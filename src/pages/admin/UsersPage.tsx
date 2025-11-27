@@ -276,7 +276,6 @@ const UsersPage = () => {
   };
 
   const filteredUsers = users.filter(user => {
-    // FILTRO 1: Excluir clientes puros (não devem aparecer no painel admin)
     const hasDeliveryDriver = user.roles?.some(r => r.role === 'delivery_driver');
     const hasCustomer = user.roles?.some(r => r.role === 'customer');
     const isMasterAdmin = user.user_type === 'master_admin';
@@ -285,8 +284,9 @@ const UsersPage = () => {
     // Se é APENAS cliente (não é admin, não é dono de loja, não é entregador)
     const isOnlyCustomer = hasCustomer && !isMasterAdmin && !isStoreOwner && !hasDeliveryDriver;
     
-    if (isOnlyCustomer) {
-      return false; // NÃO mostrar clientes nesta página
+    // Só excluir clientes SE o filtro NÃO for "customer"
+    if (isOnlyCustomer && typeFilter !== 'customer') {
+      return false; // Não mostrar clientes quando filtro não é específico para eles
     }
 
     // FILTRO 2: Busca por texto
@@ -303,7 +303,8 @@ const UsersPage = () => {
       } else if (typeFilter === 'delivery_driver') {
         matchesType = user.roles?.some(r => r.role === 'delivery_driver') || false;
       } else if (typeFilter === 'customer') {
-        matchesType = user.roles?.some(r => r.role === 'customer') || false;
+        // Cliente: deve ter role 'customer' e ser "apenas cliente"
+        matchesType = isOnlyCustomer;
       }
     }
     

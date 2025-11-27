@@ -5,7 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { SidebarTrigger } from "@/components/ui/sidebar";
+import { useSidebar } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 import type { Database } from "@/integrations/supabase/types";
 
 interface CustomMenu {
@@ -19,9 +20,12 @@ export default function IframePage() {
   const { id } = useParams<{ id: string }>();
   const { profile } = useAuth();
   const { toast } = useToast();
+  const { state, isMobile } = useSidebar();
   const [menu, setMenu] = useState<CustomMenu | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  
+  const isExpanded = state === "expanded";
 
   useEffect(() => {
     loadMenu();
@@ -116,13 +120,15 @@ export default function IframePage() {
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col">
+    <div 
+      className={cn(
+        "fixed top-16 right-0 bottom-0 flex flex-col transition-all duration-200",
+        isMobile ? "left-0" : isExpanded ? "left-64" : "left-14"
+      )}
+    >
       {/* Header compacto com botão para nova aba */}
       <div className="h-12 bg-card border-b px-4 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-3">
-          <SidebarTrigger />
-          <h1 className="font-semibold text-base truncate">{menu.title}</h1>
-        </div>
+        <h1 className="font-semibold text-base truncate">{menu.title}</h1>
         <Button 
           size="sm" 
           variant="outline"

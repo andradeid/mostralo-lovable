@@ -27,6 +27,11 @@ export function useCustomDomain(): CustomDomainResult {
         'mostralo.com.br',
         'lovable.app',
         'lovable.dev',
+        'lovableproject.com',
+        'gptengineer.run',
+        'webcontainer.io',
+        'stackblitz.io',
+        'codesandbox.io',
       ];
 
       // Verificar se é um domínio interno

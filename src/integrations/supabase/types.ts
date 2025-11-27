@@ -417,6 +417,54 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_menus: {
+        Row: {
+          created_at: string
+          id: string
+          iframe_url: string
+          is_active: boolean
+          sort_order: number
+          store_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          iframe_url: string
+          is_active?: boolean
+          sort_order?: number
+          store_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          iframe_url?: string
+          is_active?: boolean
+          sort_order?: number
+          store_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_menus_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "custom_menus_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customer_stores: {
         Row: {
           created_at: string | null

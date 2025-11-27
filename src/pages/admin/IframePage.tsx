@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { AlertCircle } from "lucide-react";
+import type { Database } from "@/integrations/supabase/types";
 
 interface CustomMenu {
   id: string;
@@ -43,7 +44,7 @@ export default function IframePage() {
 
       // Get menu
       const { data: menuData, error: menuError } = await supabase
-        .from("custom_menus")
+        .from("custom_menus" as any)
         .select("*")
         .eq("id", id)
         .eq("store_id", storeData.id)
@@ -61,7 +62,7 @@ export default function IframePage() {
         return;
       }
 
-      setMenu(menuData);
+      setMenu(menuData as unknown as CustomMenu);
     } catch (error: any) {
       console.error("Erro ao carregar menu:", error);
       setError(true);

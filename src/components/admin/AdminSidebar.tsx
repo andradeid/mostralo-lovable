@@ -25,7 +25,8 @@ import {
   Tag,
   Receipt,
   Printer,
-  Ticket
+  Ticket,
+  ExternalLink
 } from "lucide-react";
 
 import {
@@ -64,6 +65,13 @@ export function AdminSidebar() {
     expiresAt: string | null;
     status: 'active' | 'expiring' | 'expired';
   } | null>(null);
+  const [customMenus, setCustomMenus] = useState<Array<{
+    id: string;
+    title: string;
+    iframe_url: string;
+    sort_order: number;
+    is_active: boolean;
+  }>>([]);
 
   // Log inicial do componente
   console.log('🚀 AdminSidebar: Componente renderizado', {
@@ -251,6 +259,29 @@ export function AdminSidebar() {
     });
   }, [hasActiveSubscription, loadingConfig, storeConfig, planInfo, profile]);
 
+  // Buscar menus personalizados para store_admin
+  useEffect(() => {
+    const fetchCustomMenus = async () => {
+      if (profile?.user_type !== 'store_admin' || !validatedStoreId) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('custom_menus' as any)
+          .select('*')
+          .eq('store_id', validatedStoreId)
+          .eq('is_active', true)
+          .order('sort_order', { ascending: true });
+
+        if (error) throw error;
+        setCustomMenus((data || []) as any);
+      } catch (error) {
+        console.error('Erro ao buscar menus personalizados:', error);
+      }
+    };
+
+    fetchCustomMenus();
+  }, [profile, validatedStoreId]);
+
   const getNavigationItems = () => {
     console.log('📋 AdminSidebar: getNavigationItems chamado', {
       profileType: profile?.user_type,
@@ -363,7 +394,16 @@ export function AdminSidebar() {
         { title: 'Atendentes', url: '/dashboard/attendants', icon: Users, group: 'Gerenciamento' },
         { title: 'Configurar Impressão', url: '/dashboard/print-config', icon: Printer, group: 'Configurações' },
         { title: 'Minha Assinatura', url: '/dashboard/subscription', icon: CreditCard, group: 'Conta' },
-        { title: 'Perfil', url: '/dashboard/profile', icon: User, group: 'Conta' }
+        { title: 'Perfil', url: '/dashboard/profile', icon: User, group: 'Conta' },
+        // Integrações - menu fixo para gerenciar
+        { title: 'Gerenciar Integrações', url: '/dashboard/integrations', icon: ExternalLink, group: 'Integrações' },
+        // Menus personalizados dinâmicos
+        ...customMenus.map(menu => ({
+          title: menu.title,
+          url: `/dashboard/iframe/${menu.id}`,
+          icon: ExternalLink,
+          group: 'Integrações'
+        }))
       ];
     }
   };

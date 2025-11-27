@@ -215,11 +215,11 @@ export function CustomDomainConfig({
               <Card className="bg-muted/50">
                 <CardContent className="pt-6 space-y-4">
                   <div>
-                    <h4 className="font-semibold mb-2">📋 Como Configurar o DNS</h4>
+                    <h4 className="font-semibold mb-2">📋 Como Configurar Seu Domínio Personalizado</h4>
                     <ol className="space-y-2 text-sm text-muted-foreground list-decimal list-inside">
-                      <li>Acesse o painel do seu provedor de domínio (Registro.br, GoDaddy, Hostinger, etc)</li>
-                      <li>Localize a seção de "Gerenciamento DNS" ou "DNS Records"</li>
-                      <li>Configure os seguintes registros:</li>
+                      <li>Acesse o painel DNS do seu provedor de domínio (Registro.br, GoDaddy, Hostinger, Cloudflare, etc.)</li>
+                      <li>Localize a seção de "Gerenciamento DNS", "DNS Records" ou "Zona DNS"</li>
+                      <li>Adicione os seguintes registros DNS:</li>
                     </ol>
                   </div>
 
@@ -230,7 +230,7 @@ export function CustomDomainConfig({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => copyToClipboard("185.158.133.1")}
+                        onClick={() => copyToClipboard("217.216.48.254")}
                       >
                         <Copy className="w-3 h-3" />
                       </Button>
@@ -246,19 +246,19 @@ export function CustomDomainConfig({
                       </div>
                       <div>
                         <p className="text-muted-foreground">Valor:</p>
-                        <p className="font-mono">185.158.133.1</p>
+                        <p className="font-mono">217.216.48.254</p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Registro CNAME */}
+                  {/* Registro A para www */}
                   <div className="space-y-2 p-3 bg-background rounded-lg border">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-sm">Registro CNAME (www)</span>
+                      <span className="font-semibold text-sm">Registro A (www)</span>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => copyToClipboard("mostralo.app")}
+                        onClick={() => copyToClipboard("217.216.48.254")}
                       >
                         <Copy className="w-3 h-3" />
                       </Button>
@@ -266,7 +266,7 @@ export function CustomDomainConfig({
                     <div className="grid grid-cols-3 gap-2 text-xs">
                       <div>
                         <p className="text-muted-foreground">Tipo:</p>
-                        <p className="font-mono">CNAME</p>
+                        <p className="font-mono">A</p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Nome:</p>
@@ -274,7 +274,7 @@ export function CustomDomainConfig({
                       </div>
                       <div>
                         <p className="text-muted-foreground">Valor:</p>
-                        <p className="font-mono">mostralo.app</p>
+                        <p className="font-mono">217.216.48.254</p>
                       </div>
                     </div>
                   </div>

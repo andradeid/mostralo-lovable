@@ -52,11 +52,11 @@ serve(async (req) => {
 
     try {
       // Verificar registros DNS
-      // Verificar registro A (deve apontar para 185.158.133.1)
+      // Verificar registro A (deve apontar para 217.216.48.254)
       const aRecords = await Deno.resolveDns(domain, "A");
       console.log('📋 Registros A encontrados:', aRecords);
       
-      const hasCorrectARecord = aRecords.some((record: string) => record === "185.158.133.1");
+      const hasCorrectARecord = aRecords.some((record: string) => record === "217.216.48.254");
       
       if (hasCorrectARecord) {
         isConfigured = true;
@@ -64,7 +64,7 @@ serve(async (req) => {
         console.log('✅ Domínio verificado com sucesso');
       } else {
         console.log('⚠️ Registro A não aponta para o IP correto');
-        message = 'Registro A não aponta para 185.158.133.1. Verifique sua configuração DNS.';
+        message = 'Registro A não aponta para 217.216.48.254. Verifique sua configuração DNS.';
       }
     } catch (dnsError) {
       console.log('⚠️ Erro ao verificar DNS:', dnsError);

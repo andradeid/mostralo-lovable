@@ -69,7 +69,7 @@ serve(async (req) => {
       }
 
       // Criar usuário de autenticação
-      const tempEmail = `cliente_${normalizedPhone}@temp.mostralo.com`;
+      const tempEmail = `cliente_${normalizedPhone}@mostralo.me`;
       
       const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
         email: tempEmail,
@@ -77,7 +77,8 @@ serve(async (req) => {
         email_confirm: true,
         user_metadata: {
           full_name: name,
-          phone: normalizedPhone
+          phone: normalizedPhone,
+          role_type: 'customer'
         }
       });
 
@@ -219,7 +220,7 @@ serve(async (req) => {
       }
       
       // Criar usuário de autenticação para cliente existente
-      const tempEmail = `cliente_${normalizedPhone}@temp.mostralo.com`;
+      const tempEmail = `cliente_${normalizedPhone}@mostralo.me`;
       
       console.log('Creating auth user for existing customer:', { customerId: customer.id, phone: normalizedPhone?.substring(0, 4) + '***' });
       
@@ -229,7 +230,8 @@ serve(async (req) => {
         email_confirm: true,
         user_metadata: {
           full_name: customer.name,
-          phone: normalizedPhone
+          phone: normalizedPhone,
+          role_type: 'customer'
         }
       });
 
@@ -282,7 +284,7 @@ serve(async (req) => {
     }
     
     // Fazer login
-    const tempEmailLogin = `cliente_${normalizedPhone}@temp.mostralo.com`;
+    const tempEmailLogin = `cliente_${normalizedPhone}@mostralo.me`;
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email: tempEmailLogin,
       password: password

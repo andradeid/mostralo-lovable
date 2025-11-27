@@ -18,7 +18,7 @@ const registerSchema = z.object({
   phone: z.string().regex(/^\d{10,11}$/, 'Telefone deve ter 10 ou 11 dígitos'),
   password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
   confirmPassword: z.string(),
-  email: z.string().trim().email('E-mail inválido').optional().or(z.literal('')),
+  email: z.string().trim().min(1, 'E-mail é obrigatório').email('E-mail inválido'),
   address: z.string().trim().min(1, 'Endereço é obrigatório').max(500, 'Endereço deve ter no máximo 500 caracteres'),
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
@@ -392,7 +392,7 @@ export function CustomerAuthDialog({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="register-email">E-mail</Label>
+                  <Label htmlFor="register-email">E-mail *</Label>
                   <Input
                     id="register-email"
                     type="email"
@@ -400,6 +400,7 @@ export function CustomerAuthDialog({
                     value={registerEmail}
                     onChange={(e) => setRegisterEmail(e.target.value)}
                     maxLength={255}
+                    required
                   />
                 </div>
 

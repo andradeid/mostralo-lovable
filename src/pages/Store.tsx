@@ -355,6 +355,21 @@ const Store = () => {
 
       if (storeError || !storeData) {
         console.error('Erro ao buscar loja:', storeError);
+        
+        // Verificar se a loja existe mas está bloqueada (assinatura expirada)
+        const { data: blockedStore } = await supabase
+          .from('stores')
+          .select('id, name, subscription_expires_at')
+          .eq('slug', slug)
+          .maybeSingle();
+        
+        if (blockedStore) {
+          // Loja existe mas está indisponível - redirecionar
+          navigate('/loja-indisponivel');
+          return;
+        }
+        
+        // Loja realmente não existe - mostrar 404
         toast({
           title: 'Loja não encontrada',
           description: 'Esta loja não existe ou não está mais ativa.',

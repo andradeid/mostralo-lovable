@@ -32,6 +32,7 @@ import NotFound from "./pages/NotFound";
 import ServerError from "./pages/ServerError";
 import Maintenance from "./pages/Maintenance";
 import Offline from "./pages/Offline";
+import StoreUnavailable from "./pages/StoreUnavailable";
 import UsersPage from "./pages/admin/UsersPage";
 import SubscribersPage from "./pages/admin/SubscribersPage";
 import SubscriptionPage from "./pages/admin/SubscriptionPage";
@@ -335,6 +336,7 @@ const App = () => (
             <Route path="/500" element={<ServerError />} />
             <Route path="/503" element={<Maintenance />} />
             <Route path="/offline" element={<Offline />} />
+            <Route path="/loja-indisponivel" element={<StoreUnavailable />} />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

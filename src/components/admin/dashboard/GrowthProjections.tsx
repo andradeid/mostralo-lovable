@@ -75,10 +75,13 @@ export function GrowthProjections() {
   };
 
   const calculateProjection = (newStoresPerMonth: number, months: number = 12) => {
+    const totalNewStores = newStoresPerMonth * months;
+    const totalStores = data.currentActiveStores + totalNewStores;
     const monthlyIncrease = newStoresPerMonth * data.avgPlanPrice;
     const projectedMRR = data.currentMRR + (monthlyIncrease * months);
     const projectedARR = projectedMRR * 12;
-    return { projectedMRR, projectedARR };
+    const avgMonthlyFee = totalStores > 0 ? projectedMRR / totalStores : 0;
+    return { projectedMRR, projectedARR, avgMonthlyFee, totalStores };
   };
 
   const scenarios = [
@@ -131,7 +134,7 @@ export function GrowthProjections() {
         </CardHeader>
         <CardContent className="space-y-4">
           {scenarios.map((scenario) => {
-            const { projectedMRR, projectedARR } = calculateProjection(scenario.newStoresPerMonth);
+            const { projectedMRR, projectedARR, avgMonthlyFee, totalStores } = calculateProjection(scenario.newStoresPerMonth);
             const totalNewStores = scenario.newStoresPerMonth * 12;
             
             return (
@@ -149,22 +152,28 @@ export function GrowthProjections() {
                   </Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">{scenario.description}</p>
-                <div className="grid grid-cols-2 gap-4 mt-3 pt-3 border-t">
+                <div className="grid grid-cols-3 gap-4 mt-3 pt-3 border-t">
                   <div>
                     <p className="text-xs text-muted-foreground">MRR em 12 meses</p>
                     <p className="text-lg font-bold text-green-600">
-                      R$ {projectedMRR.toFixed(2)}
+                      R$ {projectedMRR.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">ARR em 12 meses</p>
                     <p className="text-lg font-bold text-blue-600">
-                      R$ {projectedARR.toFixed(2)}
+                      R$ {projectedARR.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Mensalidade Média</p>
+                    <p className="text-lg font-bold text-orange-600">
+                      R$ {avgMonthlyFee.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
                 </div>
                 <div className="text-xs text-muted-foreground pt-2 border-t">
-                  Total: {data.currentActiveStores + totalNewStores} lojas ativas
+                  Total: {totalStores} lojas ativas
                   ({data.currentActiveStores} atuais + {totalNewStores} novas)
                 </div>
               </div>

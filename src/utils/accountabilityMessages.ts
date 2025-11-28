@@ -49,11 +49,21 @@ export const getAccountabilityMessage = (
     }
     
     // 70-99% - Quase lá
+    if (progressPercentage < 100) {
+      return {
+        title: "🚀 QUASE NO TOPO!",
+        message: `${completedTasks}/${totalTasks}! Só mais ${remainingTasks} e você DOMINA o dia!\n\n${verse.text} — ${verse.reference}`,
+        tone: "encouragement",
+        emoji: "🚀"
+      };
+    }
+    
+    // 100% - MANHÃ - Celebração
     return {
-      title: "🚀 QUASE NO TOPO!",
-      message: `${completedTasks}/${totalTasks}! Só mais ${remainingTasks} e você DOMINA o dia!\n\n${verse.text} — ${verse.reference}`,
-      tone: "encouragement",
-      emoji: "🚀"
+      title: "🏆 MANHÃ PERFEITA!",
+      message: `100% DAS TAREFAS DA MANHÃ!\n\n${verse.text} — ${verse.reference}\n\nVocê DOMINOU o dia antes do almoço! CAMPEÃO!`,
+      tone: "celebration",
+      emoji: "🏆"
     };
   }
   
@@ -90,12 +100,22 @@ export const getAccountabilityMessage = (
     }
     
     // 80-99%
-    return {
-      title: "⭐ FALTA MUITO POUCO!",
-      message: `${completedTasks}/${totalTasks}! Você está ARRASANDO!\n\n${verse.text} — ${verse.reference}\n\nFinaliza agora!`,
+    if (progressPercentage < 100) {
+      return {
+        title: "⭐ FALTA MUITO POUCO!",
+        message: `${completedTasks}/${totalTasks}! Você está ARRASANDO!\n\n${verse.text} — ${verse.reference}\n\nFinaliza agora!`,
         tone: "encouragement",
         emoji: "⭐"
       };
+    }
+    
+    // 100% - TARDE - Celebração
+    return {
+      title: "🎉 MISSÃO CUMPRIDA!",
+      message: `100% COMPLETO! VOCÊ É UM MONSTRO!\n\n${verse.text} — ${verse.reference}\n\nHoje você provou que é IMBATÍVEL!`,
+      tone: "celebration",
+      emoji: "🎉"
+    };
   }
   
   // NOITE (18h-23h)

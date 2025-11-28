@@ -42,6 +42,7 @@ export function MasterAdminKPIs() {
           plan_id,
           created_at,
           subscription_expires_at,
+          custom_monthly_price,
           plans:plan_id (
             price,
             billing_cycle
@@ -54,23 +55,28 @@ export function MasterAdminKPIs() {
         return;
       }
 
-      // Calcular MRR (mensalizar todos os planos)
+      // Calcular MRR (mensalizar todos os planos considerando preços customizados)
       let mrr = 0;
       activeStores.forEach(store => {
-        const plan = (store as any).plans;
+        const storeData = store as any;
+        const plan = storeData.plans;
+        
         if (plan) {
-          const price = Number(plan.price);
+          // Usar preço customizado se existir, senão usar preço do plano
+          const effectivePrice = storeData.custom_monthly_price 
+            ? Number(storeData.custom_monthly_price)
+            : Number(plan.price);
           const cycle = plan.billing_cycle;
           
           // Converter para mensal
           if (cycle === 'monthly') {
-            mrr += price;
+            mrr += effectivePrice;
           } else if (cycle === 'quarterly') {
-            mrr += price / 3;
+            mrr += effectivePrice / 3;
           } else if (cycle === 'biannual') {
-            mrr += price / 6;
+            mrr += effectivePrice / 6;
           } else if (cycle === 'annual') {
-            mrr += price / 12;
+            mrr += effectivePrice / 12;
           }
         }
       });
@@ -97,6 +103,7 @@ export function MasterAdminKPIs() {
           id,
           status,
           plan_id,
+          custom_monthly_price,
           plans:plan_id (
             price,
             billing_cycle
@@ -107,19 +114,22 @@ export function MasterAdminKPIs() {
 
       let lastMonthMrr = 0;
       lastMonthStores?.forEach(store => {
-        const plan = (store as any).plans;
+        const storeData = store as any;
+        const plan = storeData.plans;
         if (plan) {
-          const price = Number(plan.price);
+          const effectivePrice = storeData.custom_monthly_price 
+            ? Number(storeData.custom_monthly_price)
+            : Number(plan.price);
           const cycle = plan.billing_cycle;
           
           if (cycle === 'monthly') {
-            lastMonthMrr += price;
+            lastMonthMrr += effectivePrice;
           } else if (cycle === 'quarterly') {
-            lastMonthMrr += price / 3;
+            lastMonthMrr += effectivePrice / 3;
           } else if (cycle === 'biannual') {
-            lastMonthMrr += price / 6;
+            lastMonthMrr += effectivePrice / 6;
           } else if (cycle === 'annual') {
-            lastMonthMrr += price / 12;
+            lastMonthMrr += effectivePrice / 12;
           }
         }
       });

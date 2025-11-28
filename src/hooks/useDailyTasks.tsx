@@ -121,6 +121,7 @@ export const useDailyTasks = (date?: Date) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['task-completions', targetDate] });
+      queryClient.invalidateQueries({ queryKey: ['discipline-calendar'] });
     },
     onError: (error) => {
       toast.error('Erro ao atualizar tarefa: ' + error.message);

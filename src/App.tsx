@@ -85,6 +85,8 @@ import SalespersonDashboard from "./pages/salesperson/SalespersonDashboard";
 import SalespersonMyLink from "./pages/salesperson/SalespersonMyLink";
 import SalespersonContract from "./pages/salesperson/SalespersonContract";
 import SalespersonProfile from "./pages/salesperson/SalespersonProfile";
+import { SalespersonLayout } from "./components/salesperson/SalespersonLayout";
+import ProspectingGuidePage from "./pages/admin/ProspectingGuidePage";
 
 const queryClient = new QueryClient();
 
@@ -135,6 +137,13 @@ const App = () => (
               <ProtectedRoute allowedRoles={['master_admin']}>
                 <AdminLayout pageTitle="Prompts de Vendas">
                   <SalesPromptsPage />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/prospecting" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Guia de Prospecção">
+                  <ProspectingGuidePage />
                 </AdminLayout>
               </ProtectedRoute>
             } />
@@ -385,7 +394,9 @@ const App = () => (
             path="/vendedor"
             element={
               <ProtectedRoute allowedRoles={["salesperson"]}>
-                <SalespersonDashboard />
+                <SalespersonLayout>
+                  <SalespersonDashboard />
+                </SalespersonLayout>
               </ProtectedRoute>
             }
           />
@@ -393,7 +404,29 @@ const App = () => (
             path="/vendedor/link"
             element={
               <ProtectedRoute allowedRoles={["salesperson"]}>
-                <SalespersonMyLink />
+                <SalespersonLayout>
+                  <SalespersonMyLink />
+                </SalespersonLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendedor/prompts"
+            element={
+              <ProtectedRoute allowedRoles={["salesperson"]}>
+                <SalespersonLayout>
+                  <SalesPromptsPage />
+                </SalespersonLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendedor/prospeccao"
+            element={
+              <ProtectedRoute allowedRoles={["salesperson"]}>
+                <SalespersonLayout>
+                  <ProspectingGuidePage />
+                </SalespersonLayout>
               </ProtectedRoute>
             }
           />
@@ -401,7 +434,9 @@ const App = () => (
             path="/vendedor/contrato"
             element={
               <ProtectedRoute allowedRoles={["salesperson"]}>
-                <SalespersonContract />
+                <SalespersonLayout>
+                  <SalespersonContract />
+                </SalespersonLayout>
               </ProtectedRoute>
             }
           />
@@ -409,7 +444,9 @@ const App = () => (
             path="/vendedor/perfil"
             element={
               <ProtectedRoute allowedRoles={["salesperson"]}>
-                <SalespersonProfile />
+                <SalespersonLayout>
+                  <SalespersonProfile />
+                </SalespersonLayout>
               </ProtectedRoute>
             }
           />

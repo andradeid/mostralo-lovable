@@ -35,6 +35,10 @@ const ECONOMY_FEATURES = [
     description: 'Você constrói sua base de clientes fiéis ao seu negócio.',
   },
   {
+    title: 'Marketing Digital Incluso',
+    description: '1 perfil de rede social com agendamento ilimitado de posts incluído em todos os planos. Valor de mercado: R$ 800-2.000/mês.',
+  },
+  {
     title: 'Relatórios com IA',
     description: 'Inteligência artificial que ajuda a tomar decisões melhores.',
   },
@@ -62,6 +66,14 @@ const TECHNICAL_FEATURES = {
     'Cálculo automático de frete',
     'Rastreamento em tempo real',
     'Múltiplas zonas de entrega',
+  ],
+  'Marketing Digital (ÚNICO COM ISSO!)': [
+    '1 Perfil de Rede Social',
+    'Agendamento Ilimitado de Posts',
+    'IA para Criar Legendas',
+    'Relatórios de Performance',
+    'Análise de Concorrentes',
+    'Integração Facebook/Google Ads',
   ],
   'Sua Marca': [
     'Domínio personalizado',
@@ -99,7 +111,11 @@ const FAQ = [
   },
   {
     question: 'É caro para começar?',
-    answer: 'Compare: no iFood você paga 25% de CADA pedido para sempre. No Mostralo você paga um valor fixo por mês. Se você fatura R$ 10.000/mês, paga R$ 2.500 ao iFood. No Mostralo seria R$ 297 fixo.',
+    answer: 'Compare: no iFood você paga 25% de CADA pedido para sempre. No Mostralo você paga um valor fixo por mês. Se você fatura R$ 10.000/mês, paga R$ 2.500 ao iFood. No Mostralo seria R$ 397,90 fixo + Marketing Digital incluso (valor de mercado R$ 800-2.000/mês).',
+  },
+  {
+    question: 'Marketing digital está incluso em todos os planos?',
+    answer: 'Sim! Todos os planos incluem 1 perfil de rede social com agendamento ilimitado de posts. Você pode agendar quantos posts quiser, usar IA para criar legendas, analisar concorrentes e integrar com Facebook/Google Ads. Perfis adicionais podem ser negociados.',
   },
   {
     question: 'E se eu não tiver clientes no começo?',
@@ -137,11 +153,13 @@ function calculateSavings(monthlyRevenue: number, planPrice: number) {
   const ifoodFee = monthlyRevenue * 0.25;
   const monthlySavings = ifoodFee - planPrice;
   const annualSavings = monthlySavings * 12;
+  const marketingValue = 1200; // Valor médio mensal de marketing digital (R$ 800-2000)
 
   return {
     ifoodFee,
     monthlySavings,
     annualSavings,
+    totalSavingsWithMarketing: monthlySavings + marketingValue,
   };
 }
 
@@ -249,20 +267,27 @@ function generateTestimonialsSection(): string {
 }
 
 function generateCalculatorSection(type: PromptType): string {
-  const example = calculateSavings(10000, 297);
+  const example = calculateSavings(10000, 397.90);
   
   let section = '\n## CALCULADORA DE ECONOMIA\n\n';
   section += '**Fórmula**: (faturamento × 0.25) - valor_plano = economia mensal\n\n';
   section += `**Exemplo Prático**:\n`;
   section += `- Faturamento: R$ 10.000/mês\n`;
   section += `- Taxa iFood (25%): ${formatCurrency(example.ifoodFee)}/mês\n`;
-  section += `- Mostralo: R$ 297/mês\n`;
-  section += `- **Economia**: ${formatCurrency(example.monthlySavings)}/mês ou ${formatCurrency(example.annualSavings)}/ano\n\n`;
+  section += `- Mostralo: R$ 397,90/mês\n`;
+  section += `- **Economia em taxas**: ${formatCurrency(example.monthlySavings)}/mês ou ${formatCurrency(example.annualSavings)}/ano\n`;
+  section += `- **+ Marketing Digital Incluso**: R$ 1.200/mês (valor de mercado)\n`;
+  section += `- **🔥 ECONOMIA TOTAL**: ${formatCurrency(example.totalSavingsWithMarketing)}/mês\n\n`;
 
   section += '**O que fazer com essa economia:**\n';
   SAVINGS_INVESTMENT_IDEAS.forEach(idea => {
     section += `- ${idea}\n`;
   });
+
+  section += '\n**🚨 DIFERENCIAL ÚNICO: Marketing Digital Incluso**\n';
+  section += 'Concorrentes (Anota AI, Goomer, Cardápio Web) não incluem marketing.\n';
+  section += 'Você teria que pagar R$ 800-2.000/mês por fora para uma agência.\n';
+  section += 'No Mostralo, já vem junto: 1 perfil + posts ilimitados + IA + análises.\n';
 
   return section;
 }
@@ -450,7 +475,7 @@ export function calculateEconomyDemo(monthlyRevenue: number): {
   dailySavings: number;
 } {
   const ifoodFee = monthlyRevenue * 0.25;
-  const mostraloFee = 297;
+  const mostraloFee = 397.90;
   const monthlySavings = ifoodFee - mostraloFee;
   const annualSavings = monthlySavings * 12;
   const dailySavings = monthlySavings / 30;
@@ -463,3 +488,11 @@ export function calculateEconomyDemo(monthlyRevenue: number): {
     dailySavings,
   };
 }
+
+// Comparativo com concorrentes
+export const COMPETITOR_COMPARISON = [
+  { name: 'Anota AI', price: 399, hasMarketing: false, hasFee: false },
+  { name: 'Goomer', price: 299, hasMarketing: false, hasFee: false },
+  { name: 'Cardápio Web', price: 397, hasMarketing: false, hasFee: false },
+  { name: 'Mostralo', price: 397.90, hasMarketing: true, hasFee: false },
+];

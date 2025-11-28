@@ -1549,6 +1549,7 @@ export type Database = {
           phone: string | null
           pix_key: string | null
           plan_id: string | null
+          referred_by_salesperson_id: string | null
           rejection_reason: string | null
           status: string
           store_id: string | null
@@ -1572,6 +1573,7 @@ export type Database = {
           phone?: string | null
           pix_key?: string | null
           plan_id?: string | null
+          referred_by_salesperson_id?: string | null
           rejection_reason?: string | null
           status?: string
           store_id?: string | null
@@ -1595,6 +1597,7 @@ export type Database = {
           phone?: string | null
           pix_key?: string | null
           plan_id?: string | null
+          referred_by_salesperson_id?: string | null
           rejection_reason?: string | null
           status?: string
           store_id?: string | null
@@ -1607,6 +1610,13 @@ export type Database = {
             columns: ["plan_id"]
             isOneToOne: false
             referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_approvals_referred_by_salesperson_id_fkey"
+            columns: ["referred_by_salesperson_id"]
+            isOneToOne: false
+            referencedRelation: "salespeople"
             referencedColumns: ["id"]
           },
           {
@@ -2292,6 +2302,460 @@ export type Database = {
           },
           {
             foreignKeyName: "promotions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      salespeople: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          cnae_codes: string[]
+          cnpj: string
+          cnpj_validated: boolean | null
+          cnpj_validated_at: string | null
+          cnpj_validation_data: Json | null
+          company_name: string
+          company_trade_name: string | null
+          contract_accepted_at: string | null
+          created_at: string | null
+          email: string
+          full_name: string
+          id: string
+          phone: string
+          pix_key: string | null
+          pix_key_type: string | null
+          referral_code: string
+          rejection_reason: string | null
+          status: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          cnae_codes?: string[]
+          cnpj: string
+          cnpj_validated?: boolean | null
+          cnpj_validated_at?: string | null
+          cnpj_validation_data?: Json | null
+          company_name: string
+          company_trade_name?: string | null
+          contract_accepted_at?: string | null
+          created_at?: string | null
+          email: string
+          full_name: string
+          id?: string
+          phone: string
+          pix_key?: string | null
+          pix_key_type?: string | null
+          referral_code: string
+          rejection_reason?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          cnae_codes?: string[]
+          cnpj?: string
+          cnpj_validated?: boolean | null
+          cnpj_validated_at?: string | null
+          cnpj_validation_data?: Json | null
+          company_name?: string
+          company_trade_name?: string | null
+          contract_accepted_at?: string | null
+          created_at?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          phone?: string
+          pix_key?: string | null
+          pix_key_type?: string | null
+          referral_code?: string
+          rejection_reason?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      salesperson_bonus_achievements: {
+        Row: {
+          achieved_at: string
+          achieved_in_month: number
+          bonus_amount: number
+          bonus_tier_id: string
+          created_at: string | null
+          id: string
+          payout_id: string | null
+          quarter: number
+          sales_count: number
+          salesperson_id: string
+          status: string
+          year: number
+        }
+        Insert: {
+          achieved_at?: string
+          achieved_in_month: number
+          bonus_amount: number
+          bonus_tier_id: string
+          created_at?: string | null
+          id?: string
+          payout_id?: string | null
+          quarter: number
+          sales_count: number
+          salesperson_id: string
+          status?: string
+          year: number
+        }
+        Update: {
+          achieved_at?: string
+          achieved_in_month?: number
+          bonus_amount?: number
+          bonus_tier_id?: string
+          created_at?: string | null
+          id?: string
+          payout_id?: string | null
+          quarter?: number
+          sales_count?: number
+          salesperson_id?: string
+          status?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salesperson_bonus_achievements_bonus_tier_id_fkey"
+            columns: ["bonus_tier_id"]
+            isOneToOne: false
+            referencedRelation: "salesperson_bonus_tiers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "salesperson_bonus_achievements_payout_id_fkey"
+            columns: ["payout_id"]
+            isOneToOne: false
+            referencedRelation: "salesperson_payouts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "salesperson_bonus_achievements_salesperson_id_fkey"
+            columns: ["salesperson_id"]
+            isOneToOne: false
+            referencedRelation: "salespeople"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      salesperson_bonus_tiers: {
+        Row: {
+          bonus_amount: number
+          created_at: string | null
+          cycle_type: string
+          id: string
+          is_active: boolean | null
+          is_cumulative: boolean | null
+          min_sales: number
+          tier_name: string
+          tier_order: number
+          updated_at: string | null
+        }
+        Insert: {
+          bonus_amount: number
+          created_at?: string | null
+          cycle_type?: string
+          id?: string
+          is_active?: boolean | null
+          is_cumulative?: boolean | null
+          min_sales: number
+          tier_name: string
+          tier_order: number
+          updated_at?: string | null
+        }
+        Update: {
+          bonus_amount?: number
+          created_at?: string | null
+          cycle_type?: string
+          id?: string
+          is_active?: boolean | null
+          is_cumulative?: boolean | null
+          min_sales?: number
+          tier_name?: string
+          tier_order?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      salesperson_commission_configs: {
+        Row: {
+          applies_to: string
+          commission_type: string
+          commission_value: number
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          max_commission: number | null
+          min_plan_value: number | null
+          salesperson_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          applies_to?: string
+          commission_type: string
+          commission_value: number
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_commission?: number | null
+          min_plan_value?: number | null
+          salesperson_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          applies_to?: string
+          commission_type?: string
+          commission_value?: number
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_commission?: number | null
+          min_plan_value?: number | null
+          salesperson_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salesperson_commission_configs_salesperson_id_fkey"
+            columns: ["salesperson_id"]
+            isOneToOne: false
+            referencedRelation: "salespeople"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      salesperson_contracts: {
+        Row: {
+          accepted_at: string
+          bonus_terms: Json | null
+          cnae_requirements: string[] | null
+          commission_terms: Json
+          contract_text: string
+          created_at: string | null
+          id: string
+          ip_address: string | null
+          salesperson_id: string
+          user_agent: string | null
+          version: string
+        }
+        Insert: {
+          accepted_at?: string
+          bonus_terms?: Json | null
+          cnae_requirements?: string[] | null
+          commission_terms: Json
+          contract_text: string
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          salesperson_id: string
+          user_agent?: string | null
+          version: string
+        }
+        Update: {
+          accepted_at?: string
+          bonus_terms?: Json | null
+          cnae_requirements?: string[] | null
+          commission_terms?: Json
+          contract_text?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          salesperson_id?: string
+          user_agent?: string | null
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salesperson_contracts_salesperson_id_fkey"
+            columns: ["salesperson_id"]
+            isOneToOne: false
+            referencedRelation: "salespeople"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      salesperson_payouts: {
+        Row: {
+          bonus_total: number
+          commission_total: number
+          created_at: string | null
+          cycle_month: number
+          cycle_year: number
+          grand_total: number
+          id: string
+          invoice_number: string | null
+          invoice_url: string | null
+          notes: string | null
+          paid_at: string | null
+          payment_proof_url: string | null
+          payment_reference: string | null
+          pix_key: string | null
+          pix_key_type: string | null
+          rejection_reason: string | null
+          requested_at: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          salesperson_id: string
+          status: string
+          total_sales: number
+          updated_at: string | null
+        }
+        Insert: {
+          bonus_total?: number
+          commission_total: number
+          created_at?: string | null
+          cycle_month: number
+          cycle_year: number
+          grand_total: number
+          id?: string
+          invoice_number?: string | null
+          invoice_url?: string | null
+          notes?: string | null
+          paid_at?: string | null
+          payment_proof_url?: string | null
+          payment_reference?: string | null
+          pix_key?: string | null
+          pix_key_type?: string | null
+          rejection_reason?: string | null
+          requested_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          salesperson_id: string
+          status?: string
+          total_sales: number
+          updated_at?: string | null
+        }
+        Update: {
+          bonus_total?: number
+          commission_total?: number
+          created_at?: string | null
+          cycle_month?: number
+          cycle_year?: number
+          grand_total?: number
+          id?: string
+          invoice_number?: string | null
+          invoice_url?: string | null
+          notes?: string | null
+          paid_at?: string | null
+          payment_proof_url?: string | null
+          payment_reference?: string | null
+          pix_key?: string | null
+          pix_key_type?: string | null
+          rejection_reason?: string | null
+          requested_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          salesperson_id?: string
+          status?: string
+          total_sales?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salesperson_payouts_salesperson_id_fkey"
+            columns: ["salesperson_id"]
+            isOneToOne: false
+            referencedRelation: "salespeople"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      salesperson_sales: {
+        Row: {
+          commission_amount: number
+          commission_type: string
+          created_at: string | null
+          customer_user_id: string
+          id: string
+          payment_approval_id: string | null
+          payment_cycle_month: number
+          payment_cycle_year: number
+          plan_id: string
+          quarter: number
+          sale_amount: number
+          sale_date: string
+          salesperson_id: string
+          status: string
+          store_id: string
+        }
+        Insert: {
+          commission_amount: number
+          commission_type: string
+          created_at?: string | null
+          customer_user_id: string
+          id?: string
+          payment_approval_id?: string | null
+          payment_cycle_month: number
+          payment_cycle_year: number
+          plan_id: string
+          quarter: number
+          sale_amount: number
+          sale_date: string
+          salesperson_id: string
+          status?: string
+          store_id: string
+        }
+        Update: {
+          commission_amount?: number
+          commission_type?: string
+          created_at?: string | null
+          customer_user_id?: string
+          id?: string
+          payment_approval_id?: string | null
+          payment_cycle_month?: number
+          payment_cycle_year?: number
+          plan_id?: string
+          quarter?: number
+          sale_amount?: number
+          sale_date?: string
+          salesperson_id?: string
+          status?: string
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salesperson_sales_payment_approval_id_fkey"
+            columns: ["payment_approval_id"]
+            isOneToOne: true
+            referencedRelation: "payment_approvals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "salesperson_sales_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "salesperson_sales_salesperson_id_fkey"
+            columns: ["salesperson_id"]
+            isOneToOne: false
+            referencedRelation: "salespeople"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "salesperson_sales_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "salesperson_sales_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
@@ -3034,6 +3498,7 @@ export type Database = {
         | "customer"
         | "delivery_driver"
         | "attendant"
+        | "salesperson"
       billing_cycle_type: "monthly" | "quarterly" | "biannual" | "annual"
       delivery_type: "delivery" | "pickup"
       order_status:
@@ -3196,6 +3661,7 @@ export const Constants = {
         "customer",
         "delivery_driver",
         "attendant",
+        "salesperson",
       ],
       billing_cycle_type: ["monthly", "quarterly", "biannual", "annual"],
       delivery_type: ["delivery", "pickup"],

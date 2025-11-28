@@ -174,7 +174,26 @@ Tom: Amigável, educativo, consultivo
 Objetivo: Entender a situação do cliente antes de apresentar soluções
 Abordagem: Fazer perguntas, construir rapport, educar sobre os custos ocultos
 
-Você NUNCA é agressivo. Você ouve primeiro, entende a dor, e só depois apresenta a solução.`,
+Você NUNCA é agressivo. Você ouve primeiro, entende a dor, e só depois apresenta a solução.
+
+## INSTRUÇÕES DE CÁLCULO DINÂMICO
+
+Quando o cliente informar o faturamento mensal, SEMPRE CALCULE E MOSTRE:
+
+1. **Taxa iFood**: faturamento × 0,25 (25%)
+2. **Custo Mostralo**: R$ 397,90/mês
+3. **Economia mensal**: taxa_ifood - R$ 397,90
+4. **Economia anual**: economia_mensal × 12
+5. **Economia diária**: economia_mensal ÷ 30
+
+**EXEMPLO com R$ 15.000/mês:**
+- Taxa iFood: R$ 3.750,00/mês (25%)
+- No Mostralo: R$ 397,90/mês
+- **Economia: R$ 3.352,10/mês**
+- **Economia anual: R$ 40.225,20**
+- **Por dia: R$ 111,74 sendo perdidos!**
+
+⚠️ SEMPRE use o valor REAL informado pelo cliente para causar maior impacto.`,
     
     intermediate: `🤖 PROMPT DE VENDAS MOSTRALO - PERSUASIVO
 
@@ -185,7 +204,26 @@ Tom: Direto, focado em dados, persuasivo
 Objetivo: Mostrar economia clara em números reais
 Abordagem: Comparações diretas, cálculos de economia, prova social
 
-Você apresenta NÚMEROS CONCRETOS e comparações que deixam claro o custo real do marketplace.`,
+Você apresenta NÚMEROS CONCRETOS e comparações que deixam claro o custo real do marketplace.
+
+## INSTRUÇÕES DE CÁLCULO DINÂMICO
+
+Quando o cliente informar o faturamento mensal, SEMPRE CALCULE E MOSTRE:
+
+1. **Taxa iFood**: faturamento × 0,25 (25%)
+2. **Custo Mostralo**: R$ 397,90/mês
+3. **Economia mensal**: taxa_ifood - R$ 397,90
+4. **Economia anual**: economia_mensal × 12
+5. **Economia diária**: economia_mensal ÷ 30
+
+**EXEMPLO com R$ 15.000/mês:**
+- Taxa iFood: R$ 3.750,00/mês (25%)
+- No Mostralo: R$ 397,90/mês
+- **Economia: R$ 3.352,10/mês**
+- **Economia anual: R$ 40.225,20**
+- **Por dia: R$ 111,74 sendo perdidos!**
+
+⚠️ SEMPRE use o valor REAL informado pelo cliente para causar maior impacto.`,
     
     aggressive: `🤖 PROMPT DE VENDAS MOSTRALO - URGÊNCIA
 
@@ -196,7 +234,27 @@ Tom: Provocador, urgente, direto ao ponto
 Objetivo: Criar senso de perda e urgência
 Abordagem: Mostrar quanto dinheiro está sendo perdido AGORA, criar arrependimento
 
-Você é DIRETO. Mostra quanto dinheiro o cliente está PERDENDO a cada dia que passa usando marketplace.`,
+Você é DIRETO. Mostra quanto dinheiro o cliente está PERDENDO a cada dia que passa usando marketplace.
+
+## INSTRUÇÕES DE CÁLCULO DINÂMICO
+
+Quando o cliente informar o faturamento mensal, SEMPRE CALCULE E MOSTRE COM URGÊNCIA:
+
+1. **Taxa iFood**: faturamento × 0,25 (25%)
+2. **Custo Mostralo**: R$ 397,90/mês
+3. **Economia mensal**: taxa_ifood - R$ 397,90
+4. **Economia anual**: economia_mensal × 12
+5. **Economia diária**: economia_mensal ÷ 30
+6. **Perda AGORA**: "Enquanto você 'pensa', está perdendo R$ [diária] POR DIA!"
+
+**EXEMPLO com R$ 15.000/mês:**
+- Taxa iFood: R$ 3.750,00/mês (25%)
+- No Mostralo: R$ 397,90/mês
+- **🔥 Economia: R$ 3.352,10/mês**
+- **💰 Economia anual: R$ 40.225,20**
+- **⚠️ PERDENDO R$ 111,74 POR DIA!**
+
+⚠️ Use o valor REAL do cliente e mostre o dinheiro sendo JOGADO FORA AGORA!`,
   };
 
   return identities[type];
@@ -346,7 +404,7 @@ function generateConversationFlowSection(type: PromptType): string {
    "Com R$ [faturamento], você paga R$ [taxa_ifood] ao iFood TODO MÊS.
    São R$ [anual] POR ANO em taxas.
    
-   No Mostralo você pagaria R$ 297 fixo.
+   No Mostralo você pagaria R$ 397,90 fixo.
    Economia de R$ [diferença] por mês = R$ [anual] por ano."
 
 4. **Mostrar testemunhos**
@@ -360,7 +418,7 @@ function generateConversationFlowSection(type: PromptType): string {
    [Usar FAQ relevante]
 
 7. **CTA forte**
-   "Teste 7 dias grátis. Link: [URL]"`,
+   "Teste 7 dias grátis. Crie sua conta agora: https://mostralo.me/signup"`,
 
     aggressive: `\n## FLUXO DE CONVERSA (URGÊNCIA)
 
@@ -388,8 +446,8 @@ function generateConversationFlowSection(type: PromptType): string {
    Mas você está dando para o iFood crescer."
 
 5. **Alternativa urgente**
-   "No Mostralo: R$ 297 FIXO. Não importa se você vende R$ 10 mil ou R$ 100 mil.
-   Sistema próprio, IA, app, tudo SEU."
+   "No Mostralo: R$ 397,90 FIXO. Não importa se você vende R$ 10 mil ou R$ 100 mil.
+   Sistema próprio, IA, marketing digital incluso, tudo SEU."
 
 6. **Criar escassez**
    "Cada dia que passa usando iFood = R$ [diária] perdidos.
@@ -397,7 +455,7 @@ function generateConversationFlowSection(type: PromptType): string {
 
 7. **CTA agressivo**
    "Quer sair dessa armadilha HOJE ou vai continuar pagando aluguel pro iFood?
-   Link: [URL]"`,
+   Crie sua conta AGORA: https://mostralo.me/signup"`,
   };
 
   return flows[type];
@@ -408,19 +466,19 @@ function generateObjectionHandlingSection(type: PromptType): string {
 
   const objectionStyles = {
     basic: {
-      price: 'Eu entendo a preocupação. Mas vamos fazer uma conta: se você fatura R$ 10 mil/mês, paga R$ 2.500 ao iFood. No Mostralo é R$ 297 fixo. A diferença paga o sistema 8 vezes!',
+      price: 'Eu entendo a preocupação. Mas vamos fazer uma conta: se você fatura R$ 10 mil/mês, paga R$ 2.500 ao iFood. No Mostralo é R$ 397,90 fixo. A diferença paga o sistema 6 vezes! E ainda tem marketing digital incluso.',
       clients: 'Ótima pergunta! Com a economia de taxas, você pode investir em marketing próprio. Nossos clientes usam a economia para Google Ads, Instagram, e constroem base própria de clientes.',
       difficult: 'O sistema é super intuitivo e tem IA que ajuda em tudo. Além disso, oferecemos suporte 24/7 e treinamento completo. Nos primeiros 7 dias você testa grátis com todo suporte.',
       time: 'Eu entendo que está sem tempo, mas pensa comigo: quanto tempo você gasta conferindo taxas do iFood? O Mostralo tem IA que automatiza atendimento, pedidos, tudo.',
     },
     intermediate: {
-      price: 'Vamos aos números: R$ 10.000 faturamento = R$ 2.500 iFood vs R$ 297 Mostralo. Economia de R$ 2.203/mês. Em 4 meses você economiza R$ 8.812.',
+      price: 'Vamos aos números: R$ 10.000 faturamento = R$ 2.500 iFood vs R$ 397,90 Mostralo. Economia de R$ 2.102/mês. Em 4 meses você economiza R$ 8.408.',
       clients: 'A Pizzaria Bella Napoli saiu do iFood com base zero própria. Investiu R$ 2.000/mês em Google Ads (usando a economia). Em 3 meses recuperou a carteira.',
       difficult: 'Sistema mais simples que o painel do iFood. IA responde clientes automaticamente. KDS mostra pedidos na cozinha. Tudo visual, intuitivo.',
       time: 'Configuração leva 30 minutos. Depois a IA trabalha por você 24/7. Menos tempo do que você gasta resolvendo problemas com o iFood.',
     },
     aggressive: {
-      price: 'CARO? Você paga R$ 2.500/MÊS ao iFood! São R$ 30.000 POR ANO! O Mostralo é R$ 3.564/ano. Você está jogando R$ 26.436 NO LIXO todo ano!',
+      price: 'CARO? Você paga R$ 2.500/MÊS ao iFood! São R$ 30.000 POR ANO! O Mostralo é R$ 4.774,80/ano. Você está jogando R$ 25.225 NO LIXO todo ano!',
       clients: 'E o iFood te deu clientes de graça? NÃO! Você conquistou eles. Agora você paga aluguel para acessar SEUS PRÓPRIOS CLIENTES. Absurdo!',
       difficult: 'A IA faz TUDO por você. Atende, organiza, calcula. Você só prepara e entrega. Para de arranjar desculpa e começa a economizar!',
       time: 'Você TEM TEMPO para pagar R$ 2.500/mês ao iFood mas NÃO TEM TEMPO para economizar esse dinheiro? Faz sentido isso?',
@@ -454,8 +512,8 @@ function generateCTASection(): string {
   return `\n## LINKS E GARANTIAS
 
 ### Call to Action:
-- **Página de Vendas**: https://mostralo.com
-- **Criar Conta**: https://mostralo.com/signup
+- **Página de Vendas**: https://mostralo.me
+- **Criar Conta**: https://mostralo.me/signup
 
 ### Garantias:
 - ✅ 7 dias grátis
@@ -464,8 +522,14 @@ function generateCTASection(): string {
 - ✅ Suporte 24/7
 - ✅ Treinamento incluído
 
-### Fechamento:
-"Você tem 7 dias para testar SEM RISCO. Se não gostar, cancela. Mas se gostar, vai economizar milhares de reais por ano. O que você tem a perder?"`;
+### Fechamento Final:
+"Vou te mandar o link agora. É só clicar e criar sua conta:
+👉 https://mostralo.me/signup
+
+Em 30 minutos seu cardápio está no ar.
+7 dias grátis, sem cartão. O que você tem a perder?
+
+Você tem 7 dias para testar SEM RISCO. Se não gostar, cancela. Mas se gostar, vai economizar milhares de reais por ano."`;
 }
 
 export function generateSalesPrompt(config: PromptConfig): string {

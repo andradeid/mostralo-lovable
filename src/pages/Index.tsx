@@ -80,6 +80,18 @@ const Index = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // 🎯 Capturar código de referência do vendedor
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const refCode = params.get('ref');
+    
+    if (refCode) {
+      localStorage.setItem('mostralo_referral_code', refCode);
+      localStorage.setItem('mostralo_referral_timestamp', Date.now().toString());
+      console.log('✅ Código de referência capturado:', refCode);
+    }
+  }, []);
+
   // 🔒 PROTEÇÃO: Cliente NUNCA deve ver dashboard - apenas lojistas
   useEffect(() => {
     if (authLoading) return; // Aguardar carregamento

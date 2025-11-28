@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +22,18 @@ export default function SejaVendedor() {
   const [simulatedSales, setSimulatedSales] = useState(15);
   const avgCommission = 50;
   const monthlyEarnings = simulatedSales * avgCommission;
+
+  // 🎯 Capturar código de referência do vendedor
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const refCode = params.get('ref');
+    
+    if (refCode) {
+      localStorage.setItem('mostralo_referral_code', refCode);
+      localStorage.setItem('mostralo_referral_timestamp', Date.now().toString());
+      console.log('✅ Código de referência capturado:', refCode);
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from '@/hooks/use-toast';
 import { usePageSEO } from '@/hooks/useSEO';
-import { Loader2, Store, ArrowLeft, Check, Info } from 'lucide-react';
+import { Loader2, Store, ArrowLeft, Check, Info, Gift } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -57,6 +57,9 @@ const SignUp = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
+  const [referredBySalespersonId, setReferredBySalespersonId] = useState<string | null>(null);
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [salespersonName, setSalespersonName] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -76,6 +79,44 @@ const SignUp = () => {
     zipCode: '',
     planId: '',
   });
+
+  // 🎯 Validar código de referência
+  useEffect(() => {
+    const validateReferral = async () => {
+      // Prioridade: URL > localStorage
+      const params = new URLSearchParams(window.location.search);
+      let code = params.get('ref');
+      
+      if (!code) {
+        code = localStorage.getItem('mostralo_referral_code');
+      }
+      
+      if (code) {
+        setReferralCode(code);
+        
+        try {
+          const { data, error } = await supabase
+            .from('salespeople')
+            .select('id, full_name')
+            .eq('referral_code', code)
+            .eq('status', 'active')
+            .single();
+          
+          if (data && !error) {
+            setReferredBySalespersonId(data.id);
+            setSalespersonName(data.full_name);
+            console.log('✅ Vendedor encontrado:', data.full_name);
+          } else {
+            console.warn('⚠️ Código de referência inválido ou vendedor inativo');
+          }
+        } catch (error) {
+          console.error('Erro ao validar código de referência:', error);
+        }
+      }
+    };
+    
+    validateReferral();
+  }, []);
 
   useEffect(() => {
     fetchPlans();
@@ -499,11 +540,16 @@ const SignUp = () => {
             zipCode: formData.zipCode,
           },
           expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 dias
+          referred_by_salesperson_id: referredBySalespersonId, // 🎯 Salvar referência do vendedor
         });
 
       if (approvalError) throw approvalError;
 
       // 8. Redirecionar para página de comprovante
+      // 🧹 Limpar código de referência após cadastro bem-sucedido
+      localStorage.removeItem('mostralo_referral_code');
+      localStorage.removeItem('mostralo_referral_timestamp');
+      
       toast({
         title: 'Conta criada com sucesso! 🎉',
         description: 'Agora faça o upload do comprovante de pagamento.',
@@ -778,6 +824,18 @@ const SignUp = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/20 via-background to-secondary/20 px-4 py-8">
+      {/* 🎁 Feedback Visual de Indicação */}
+      {referralCode && referredBySalespersonId && salespersonName && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-md w-full px-4">
+          <Alert className="bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800">
+            <Gift className="h-4 w-4 text-green-600 dark:text-green-400" />
+            <AlertDescription className="text-green-800 dark:text-green-300">
+              ✨ Você foi indicado por <strong>{salespersonName}</strong>! Seu cadastro está vinculado a um parceiro Mostralo.
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
+      
       <div className="w-full max-w-2xl space-y-4">
         {/* Header */}
         <div className="text-center space-y-2">

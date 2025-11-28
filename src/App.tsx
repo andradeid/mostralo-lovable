@@ -30,7 +30,6 @@ import Checkout from "./pages/Checkout";
 import Support from "./pages/Support";
 import UsersDemo from "./pages/UsersDemo";
 import SejaVendedor from "./pages/SejaVendedor";
-import CadastroVendedor from "./pages/CadastroVendedor";
 import CadastroVendedorSucesso from "./pages/CadastroVendedorSucesso";
 import NotFound from "./pages/NotFound";
 import ServerError from "./pages/ServerError";
@@ -81,6 +80,10 @@ import SalesPromptsPage from './pages/admin/SalesPromptsPage';
 import SalespeopleListPage from './pages/admin/SalespeopleListPage';
 import SalespersonDetailPage from './pages/admin/SalespersonDetailPage';
 import SalespersonCommissionsPage from './pages/admin/SalespersonCommissionsPage';
+import SalespersonDashboard from "./pages/salesperson/SalespersonDashboard";
+import SalespersonMyLink from "./pages/salesperson/SalespersonMyLink";
+import SalespersonContract from "./pages/salesperson/SalespersonContract";
+import SalespersonProfile from "./pages/salesperson/SalespersonProfile";
 
 const queryClient = new QueryClient();
 
@@ -375,7 +378,42 @@ const App = () => (
           <Route path="/painel-cliente/:storeSlug" element={<CustomerPanel />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/pedido/:orderId" element={<OrderTracking />} />
-            <Route path="/painel-cliente/:storeSlug/perfil" element={
+          
+          {/* Salesperson Routes */}
+          <Route
+            path="/vendedor"
+            element={
+              <ProtectedRoute allowedRoles={["salesperson"]}>
+                <SalespersonDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendedor/link"
+            element={
+              <ProtectedRoute allowedRoles={["salesperson"]}>
+                <SalespersonMyLink />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendedor/contrato"
+            element={
+              <ProtectedRoute allowedRoles={["salesperson"]}>
+                <SalespersonContract />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendedor/perfil"
+            element={
+              <ProtectedRoute allowedRoles={["salesperson"]}>
+                <SalespersonProfile />
+              </ProtectedRoute>
+            }
+          />
+          
+          <Route path="/painel-cliente/:storeSlug/perfil" element={
               <ProtectedRoute allowedRoles={['customer']}>
                 <CustomerProfile />
               </ProtectedRoute>

@@ -62,3 +62,6 @@ verify_jwt = true
 
 [functions.reject-salesperson]
 verify_jwt = true
+
+[functions.accept-salesperson-contract]
+verify_jwt = true

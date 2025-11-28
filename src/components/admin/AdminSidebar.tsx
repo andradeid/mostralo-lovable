@@ -28,7 +28,8 @@ import {
   Ticket,
   ExternalLink,
   Target,
-  Bot
+  Bot,
+  MessageSquare
 } from "lucide-react";
 
 import {
@@ -321,10 +322,12 @@ export function AdminSidebar() {
       return [
         { title: 'Dashboard', url: '/dashboard', icon: Home, group: 'Principal' },
         { title: 'Metas', url: '/dashboard/metas', icon: Target, group: 'Principal' },
-        { title: 'Prompts de Vendas', url: '/dashboard/sales-prompts', icon: Bot, group: 'Vendas' },
+        { title: 'Vendedores', url: '/dashboard/salespeople', icon: Users, group: 'Vendedores' },
+        { title: 'Configurar Bônus', url: '/dashboard/salespeople/commissions', icon: DollarSign, group: 'Vendedores' },
+        { title: 'Prompts de Vendas', url: '/dashboard/sales-prompts', icon: MessageSquare, group: 'Vendedores' },
         { title: 'Assinantes', url: '/dashboard/subscribers', icon: CreditCard, group: 'Gerenciamento' },
         { title: 'Lojas', url: '/dashboard/stores', icon: Store, group: 'Gerenciamento' },
-        { title: 'Usuários', url: '/dashboard/users', icon: Users, group: 'Gerenciamento' },
+        { title: 'Usuários', url: '/dashboard/users', icon: UserCircle, group: 'Gerenciamento' },
         { title: 'Módulos', url: '/dashboard/modules', icon: Package, group: 'Sistema' },
         { title: 'Pagamentos Assinaturas', url: '/dashboard/subscription-payments', icon: Receipt, group: 'Financeiro' },
         { title: 'Planos', url: '/dashboard/plans', icon: CreditCard, group: 'Financeiro' },

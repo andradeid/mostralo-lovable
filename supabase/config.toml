@@ -56,3 +56,9 @@ verify_jwt = false
 
 [functions.salesperson-self-register]
 verify_jwt = false
+
+[functions.approve-salesperson]
+verify_jwt = true
+
+[functions.reject-salesperson]
+verify_jwt = true

@@ -57,30 +57,49 @@ export const DailyDisciplineCalendar = () => {
   });
 
   // Calcular estatísticas
-  const last30Days = disciplineData.length;
   const perfect100Days = disciplineData.filter(d => d.is100Percent).length;
-  const consistencyRate = last30Days > 0 ? (perfect100Days / last30Days) * 100 : 0;
+  const consistencyRate = (perfect100Days / 30) * 100;
 
-  // Gerar últimos 30 dias
-  const getLast30Days = () => {
-    const days = [];
+  // Agrupar últimos 30 dias por mês
+  const getMonthsWithDays = () => {
+    interface DayData {
+      date: string;
+      dayOfMonth: number;
+      is100Percent: boolean;
+      isToday: boolean;
+    }
+    
+    const months: { month: string; year: number; days: DayData[] }[] = [];
+    
     for (let i = 29; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
       const dateString = date.toISOString().split('T')[0];
-      const dayData = disciplineData.find(d => d.date === dateString);
+      const monthName = date.toLocaleDateString('pt-BR', { month: 'long' });
+      const year = date.getFullYear();
+      const monthKey = `${monthName}-${year}`;
       
-      days.push({
+      // Encontrar ou criar o mês
+      let monthGroup = months.find(m => `${m.month}-${m.year}` === monthKey);
+      if (!monthGroup) {
+        monthGroup = { month: monthName, year, days: [] };
+        months.push(monthGroup);
+      }
+      
+      // Adicionar dia ao grupo
+      const dayData = disciplineData.find(d => d.date === dateString);
+      monthGroup.days.push({
         date: dateString,
         dayOfMonth: date.getDate(),
         is100Percent: dayData?.is100Percent || false,
         isToday: i === 0
       });
     }
-    return days;
+    
+    return months;
   };
 
-  const days = getLast30Days();
+  const months = getMonthsWithDays();
 
   return (
     <Card>
@@ -108,23 +127,35 @@ export const DailyDisciplineCalendar = () => {
             </div>
           </div>
 
-          {/* Grid de dias */}
-          <div className="grid grid-cols-10 gap-2">
-            {days.map((day, index) => (
-              <div
-                key={day.date}
-                className={`
-                  aspect-square rounded-md flex items-center justify-center text-xs font-medium
-                  transition-all duration-200 hover:scale-110
-                  ${day.is100Percent 
-                    ? 'bg-green-500 text-white shadow-lg shadow-green-500/30' 
-                    : 'bg-muted text-muted-foreground'
-                  }
-                  ${day.isToday ? 'ring-2 ring-primary ring-offset-2' : ''}
-                `}
-                title={`${day.date}${day.is100Percent ? ' - 100% Completo' : ''}`}
-              >
-                {day.dayOfMonth}
+          {/* Grid de dias com indicação de mês */}
+          <div className="space-y-4">
+            {months.map((monthGroup) => (
+              <div key={`${monthGroup.month}-${monthGroup.year}`}>
+                {/* Label do mês */}
+                <div className="text-sm font-medium text-muted-foreground mb-2 capitalize">
+                  {monthGroup.month} {monthGroup.year}
+                </div>
+                
+                {/* Grid de dias desse mês */}
+                <div className="grid grid-cols-10 gap-2">
+                  {monthGroup.days.map((day) => (
+                    <div
+                      key={day.date}
+                      className={`
+                        aspect-square rounded-md flex items-center justify-center text-xs font-medium
+                        transition-all duration-200 hover:scale-110
+                        ${day.is100Percent 
+                          ? 'bg-green-500 text-white shadow-lg shadow-green-500/30' 
+                          : 'bg-muted text-muted-foreground'
+                        }
+                        ${day.isToday ? 'ring-2 ring-primary ring-offset-2' : ''}
+                      `}
+                      title={`${day.date}${day.is100Percent ? ' - 100% Completo' : ''}`}
+                    >
+                      {day.dayOfMonth}
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
           </div>

@@ -1,4 +1,4 @@
-import { Home, Link2, FileText, User, LogOut } from "lucide-react";
+import { Home, Link2, FileText, User, LogOut, MessageSquare, Target } from "lucide-react";
 import { useLocation, Link } from "react-router-dom";
 import {
   Sidebar,
@@ -22,6 +22,8 @@ export function SalespersonSidebar({ onSignOut }: SalespersonSidebarProps) {
   const menuItems = [
     { icon: Home, title: "Dashboard", path: "/vendedor" },
     { icon: Link2, title: "Meu Link", path: "/vendedor/link" },
+    { icon: MessageSquare, title: "Prompts de IA", path: "/vendedor/prompts" },
+    { icon: Target, title: "Prospecção", path: "/vendedor/prospeccao" },
     { icon: FileText, title: "Contrato", path: "/vendedor/contrato" },
     { icon: User, title: "Perfil", path: "/vendedor/perfil" },
   ];

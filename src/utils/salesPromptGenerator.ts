@@ -203,22 +203,39 @@ Você é DIRETO. Mostra quanto dinheiro o cliente está PERDENDO a cada dia que 
 }
 
 function generatePlansSection(plans: Plan[]): string {
-  const activePlans = plans.filter(p => p.status === 'active');
+  let section = '\n## PLANOS DISPONÍVEIS NO MOSTRALO (Dados Atualizados)\n\n';
   
-  let section = '\n## DADOS DO SISTEMA (ATUALIZADOS AUTOMATICAMENTE)\n\n### Planos Disponíveis:\n';
-  
-  activePlans.forEach(plan => {
-    const price = formatCurrency(plan.price);
-    const cycle = plan.billing_cycle === 'monthly' ? '/mês' : '/ano';
-    const features = Array.isArray(plan.features) ? (plan.features as string[]).slice(0, 3).join(', ') : '';
+  plans.forEach(plan => {
+    // Verificar se tem promoção ativa
+    const hasPromotion = plan.promotion_active && plan.discount_price;
+    const displayPrice = hasPromotion ? plan.discount_price! : plan.price;
     
-    section += `\n**${plan.name}**: ${price}${cycle}\n`;
-    if (features) {
-      section += `- ${features}\n`;
+    section += `### ${plan.name}`;
+    if (plan.is_popular) {
+      section += ' ⭐ (MAIS ESCOLHIDO)';
     }
-    if (plan.promotion_active && plan.discount_price) {
-      section += `- 🔥 PROMOÇÃO: De ${price} por ${formatCurrency(plan.discount_price)}${cycle}\n`;
+    section += '\n\n';
+    
+    // Preço com ou sem desconto
+    if (hasPromotion) {
+      section += `**Preço:** ~~${formatCurrency(plan.price)}~~ → **${formatCurrency(displayPrice)}/mês**`;
+      if (plan.discount_percentage) {
+        section += ` 🔥 **${plan.discount_percentage}% OFF!**`;
+      }
+      section += '\n';
+    } else {
+      section += `**Preço:** ${formatCurrency(displayPrice)}/mês\n`;
     }
+    
+    section += `${plan.description}\n\n`;
+    
+    if (Array.isArray(plan.features)) {
+      section += '**Recursos inclusos:**\n';
+      (plan.features as string[]).forEach(feature => {
+        section += `✅ ${feature}\n`;
+      });
+    }
+    section += '\n';
   });
 
   return section;

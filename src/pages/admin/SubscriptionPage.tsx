@@ -23,6 +23,10 @@ interface SubscriptionInfo {
   subscriptionExpiresAt: string | null;
   storeStatus: string;
   createdAt: string;
+  customMonthlyPrice: number | null;
+  discountReason: string | null;
+  actualPrice: number;
+  currentPlanId: string | null;
 }
 
 interface Invoice {
@@ -151,6 +155,8 @@ export default function SubscriptionPage() {
         status,
         created_at,
         plan_id,
+        custom_monthly_price,
+        discount_reason,
         plans:plan_id (
           name,
           price,
@@ -162,14 +168,21 @@ export default function SubscriptionPage() {
 
     if (store) {
       const plan = (store as any).plans;
+      const planPrice = Number(plan?.price ?? 0);
+      const customPrice = store.custom_monthly_price ? Number(store.custom_monthly_price) : null;
+      const actualPrice = customPrice ?? planPrice;
       
       setSubscription({
         planName: plan?.name ?? 'Sem Plano',
-        planPrice: Number(plan?.price ?? 0),
+        planPrice: planPrice,
         billingCycle: plan?.billing_cycle ?? 'monthly',
         subscriptionExpiresAt: store.subscription_expires_at,
         storeStatus: store.status,
         createdAt: store.created_at,
+        customMonthlyPrice: customPrice,
+        discountReason: store.discount_reason,
+        actualPrice: actualPrice,
+        currentPlanId: store.plan_id,
       });
     } else {
       setSubscription({
@@ -179,6 +192,10 @@ export default function SubscriptionPage() {
         subscriptionExpiresAt: null,
         storeStatus: 'inactive',
         createdAt: new Date().toISOString(),
+        customMonthlyPrice: null,
+        discountReason: null,
+        actualPrice: 0,
+        currentPlanId: null,
       });
     }
     setLoading(false);
@@ -356,9 +373,10 @@ export default function SubscriptionPage() {
       .from('payment-proofs')
       .getPublicUrl(fileName);
 
-    const finalPrice = selectedPlan.promotion_active && selectedPlan.discount_price 
-      ? selectedPlan.discount_price 
-      : selectedPlan.price;
+    const finalPrice = subscription?.customMonthlyPrice 
+      ?? (selectedPlan.promotion_active && selectedPlan.discount_price 
+        ? selectedPlan.discount_price 
+        : selectedPlan.price);
 
     const { error: insertError } = await supabase
       .from('payment_approvals')
@@ -548,55 +566,175 @@ export default function SubscriptionPage() {
               Renovar Assinatura
             </CardTitle>
             <CardDescription>
-              Escolha um plano para renovar sua assinatura e continuar usando o sistema
+              {subscription?.customMonthlyPrice 
+                ? 'Renove sua assinatura mantendo seu desconto especial'
+                : 'Escolha um plano para renovar sua assinatura e continuar usando o sistema'
+              }
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {availablePlans.map((plan) => {
-                const finalPrice = plan.promotion_active && plan.discount_price 
-                  ? plan.discount_price 
-                  : plan.price;
-                const hasDiscount = plan.promotion_active && plan.discount_price;
+            {/* Se tem desconto personalizado, mostrar apenas o plano atual com destaque */}
+            {subscription?.customMonthlyPrice && subscription.currentPlanId ? (
+              <div className="space-y-4">
+                <Card className="relative overflow-hidden border-primary bg-primary/5">
+                  <div className="absolute top-0 right-0 bg-gradient-to-l from-primary to-primary/80 text-primary-foreground px-4 py-1.5 text-xs font-bold rounded-bl-lg">
+                    🎁 SEU PLANO ESPECIAL
+                  </div>
+                  {availablePlans.filter(p => p.id === subscription.currentPlanId).map((plan) => {
+                    const discountPercent = Math.round(((subscription.planPrice - subscription.actualPrice) / subscription.planPrice) * 100);
+                    
+                    return (
+                      <div key={plan.id}>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                          <CardDescription className="text-base">
+                            {plan.description}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="p-4 bg-background/60 rounded-lg space-y-3 border">
+                            <div>
+                              <p className="text-sm text-muted-foreground">Preço normal do plano</p>
+                              <p className="text-lg line-through text-muted-foreground">
+                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.planPrice)}
+                              </p>
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <p className="text-sm font-medium">SEU PREÇO PERSONALIZADO</p>
+                                <Badge className="bg-green-500 text-white">
+                                  -{discountPercent}% OFF
+                                </Badge>
+                              </div>
+                              <p className="text-3xl font-bold text-primary">
+                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.actualPrice)}
+                                <span className="text-base font-normal text-muted-foreground">
+                                  /{plan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
+                                </span>
+                              </p>
+                            </div>
+                            {subscription.discountReason && (
+                              <div className="pt-2 border-t">
+                                <p className="text-xs text-muted-foreground">Motivo do desconto</p>
+                                <p className="text-sm font-medium">{subscription.discountReason}</p>
+                              </div>
+                            )}
+                          </div>
+                          <Button 
+                            className="w-full" 
+                            size="lg"
+                            onClick={() => handleSelectPlanForRenewal(plan)}
+                          >
+                            Renovar com Meu Desconto Especial
+                          </Button>
+                        </CardContent>
+                      </div>
+                    );
+                  })}
+                </Card>
 
-                return (
-                  <Card key={plan.id} className="relative overflow-hidden">
-                    {hasDiscount && (
-                      <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 text-xs font-bold">
-                        PROMOÇÃO
-                      </div>
-                    )}
-                    <CardHeader>
-                      <CardTitle className="text-xl">{plan.name}</CardTitle>
-                      <CardDescription className="line-clamp-2">
-                        {plan.description}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div>
-                        {hasDiscount && (
-                          <p className="text-sm text-muted-foreground line-through">
-                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plan.price)}
+                {/* Opção de ver outros planos */}
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Ou escolha um plano diferente (você perderá seu desconto atual)
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {availablePlans.filter(p => p.id !== subscription.currentPlanId).map((plan) => {
+                      const finalPrice = plan.promotion_active && plan.discount_price 
+                        ? plan.discount_price 
+                        : plan.price;
+                      const hasDiscount = plan.promotion_active && plan.discount_price;
+
+                      return (
+                        <Card key={plan.id} className="relative overflow-hidden opacity-75 hover:opacity-100 transition-opacity">
+                          {hasDiscount && (
+                            <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 text-xs font-bold">
+                              PROMOÇÃO
+                            </div>
+                          )}
+                          <CardHeader>
+                            <CardTitle className="text-lg">{plan.name}</CardTitle>
+                            <CardDescription className="line-clamp-2 text-xs">
+                              {plan.description}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            <div>
+                              {hasDiscount && (
+                                <p className="text-xs text-muted-foreground line-through">
+                                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plan.price)}
+                                </p>
+                              )}
+                              <p className="text-xl font-bold text-primary">
+                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(finalPrice)}
+                                <span className="text-xs font-normal text-muted-foreground">
+                                  /{plan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
+                                </span>
+                              </p>
+                            </div>
+                            <Button 
+                              className="w-full" 
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleSelectPlanForRenewal(plan)}
+                            >
+                              Selecionar Este Plano
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Comportamento normal: mostrar todos os planos */
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {availablePlans.map((plan) => {
+                  const finalPrice = plan.promotion_active && plan.discount_price 
+                    ? plan.discount_price 
+                    : plan.price;
+                  const hasDiscount = plan.promotion_active && plan.discount_price;
+
+                  return (
+                    <Card key={plan.id} className="relative overflow-hidden">
+                      {hasDiscount && (
+                        <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 text-xs font-bold">
+                          PROMOÇÃO
+                        </div>
+                      )}
+                      <CardHeader>
+                        <CardTitle className="text-xl">{plan.name}</CardTitle>
+                        <CardDescription className="line-clamp-2">
+                          {plan.description}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div>
+                          {hasDiscount && (
+                            <p className="text-sm text-muted-foreground line-through">
+                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plan.price)}
+                            </p>
+                          )}
+                          <p className="text-2xl font-bold text-primary">
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(finalPrice)}
+                            <span className="text-sm font-normal text-muted-foreground">
+                              /{plan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
+                            </span>
                           </p>
-                        )}
-                        <p className="text-2xl font-bold text-primary">
-                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(finalPrice)}
-                          <span className="text-sm font-normal text-muted-foreground">
-                            /{plan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
-                          </span>
-                        </p>
-                      </div>
-                      <Button 
-                        className="w-full" 
-                        onClick={() => handleSelectPlanForRenewal(plan)}
-                      >
-                        Selecionar Plano
-                      </Button>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+                        </div>
+                        <Button 
+                          className="w-full" 
+                          onClick={() => handleSelectPlanForRenewal(plan)}
+                        >
+                          Selecionar Plano
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -627,14 +765,38 @@ export default function SubscriptionPage() {
               </div>
               <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50">
                 <DollarSign className="h-8 w-8 text-primary" />
-                <div>
+                <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Valor</p>
-                  <p className="text-lg font-bold">
-                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription?.planPrice ?? 0)}
-                    <span className="text-sm font-normal text-muted-foreground">
-                      /{subscription?.billingCycle === 'monthly' ? 'mês' : 'ano'}
-                    </span>
-                  </p>
+                  {subscription?.customMonthlyPrice ? (
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs line-through text-muted-foreground">
+                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.planPrice)}
+                        </p>
+                        <Badge className="bg-green-500 text-white text-[10px] px-1.5 py-0">
+                          -{Math.round(((subscription.planPrice - subscription.actualPrice) / subscription.planPrice) * 100)}%
+                        </Badge>
+                      </div>
+                      <p className="text-lg font-bold text-green-600 dark:text-green-400">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.actualPrice)}
+                        <span className="text-sm font-normal text-muted-foreground">
+                          /{subscription.billingCycle === 'monthly' ? 'mês' : 'ano'}
+                        </span>
+                      </p>
+                      {subscription.discountReason && (
+                        <p className="text-xs text-muted-foreground italic">
+                          {subscription.discountReason}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-lg font-bold">
+                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription?.planPrice ?? 0)}
+                      <span className="text-sm font-normal text-muted-foreground">
+                        /{subscription?.billingCycle === 'monthly' ? 'mês' : 'ano'}
+                      </span>
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50">
@@ -924,11 +1086,30 @@ export default function SubscriptionPage() {
             <DialogDescription>
               {selectedPlan && (
                 <>
-                  Plano {selectedPlan.name} - {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
-                    selectedPlan.promotion_active && selectedPlan.discount_price 
-                      ? selectedPlan.discount_price 
-                      : selectedPlan.price
-                  )}/{selectedPlan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
+                  {subscription?.customMonthlyPrice && selectedPlan.id === subscription.currentPlanId ? (
+                    <div className="space-y-1 mt-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm line-through text-muted-foreground">
+                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedPlan.price)}
+                        </span>
+                        <Badge className="bg-green-500 text-white text-xs">
+                          -{Math.round(((subscription.planPrice - subscription.actualPrice) / subscription.planPrice) * 100)}% OFF
+                        </Badge>
+                      </div>
+                      <p className="text-base font-semibold text-green-600 dark:text-green-400">
+                        Plano {selectedPlan.name} - SEU PREÇO: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.actualPrice)}
+                        /{selectedPlan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      Plano {selectedPlan.name} - {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+                        selectedPlan.promotion_active && selectedPlan.discount_price 
+                          ? selectedPlan.discount_price 
+                          : selectedPlan.price
+                      )}/{selectedPlan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
+                    </>
+                  )}
                 </>
               )}
             </DialogDescription>
@@ -976,13 +1157,29 @@ export default function SubscriptionPage() {
                   {selectedPlan && (
                     <div className="pt-2 border-t">
                       <Label className="text-xs text-muted-foreground">Valor a Pagar</Label>
-                      <p className="text-2xl font-bold text-primary mt-1">
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
-                          selectedPlan.promotion_active && selectedPlan.discount_price 
-                            ? selectedPlan.discount_price 
-                            : selectedPlan.price
-                        )}
-                      </p>
+                      {subscription?.customMonthlyPrice && selectedPlan.id === subscription.currentPlanId ? (
+                        <div className="space-y-1 mt-1">
+                          <p className="text-sm line-through text-muted-foreground">
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedPlan.price)}
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.actualPrice)}
+                            </p>
+                            <Badge className="bg-green-500 text-white">
+                              Desconto Aplicado
+                            </Badge>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-2xl font-bold text-primary mt-1">
+                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+                            selectedPlan.promotion_active && selectedPlan.discount_price 
+                              ? selectedPlan.discount_price 
+                              : selectedPlan.price
+                          )}
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>

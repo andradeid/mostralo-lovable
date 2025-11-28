@@ -78,6 +78,9 @@ import IntegrationsPage from './pages/admin/IntegrationsPage';
 import IframePage from './pages/admin/IframePage';
 import GoalsPage from './pages/admin/GoalsPage';
 import SalesPromptsPage from './pages/admin/SalesPromptsPage';
+import SalespeopleListPage from './pages/admin/SalespeopleListPage';
+import SalespersonDetailPage from './pages/admin/SalespersonDetailPage';
+import SalespersonCommissionsPage from './pages/admin/SalespersonCommissionsPage';
 
 const queryClient = new QueryClient();
 
@@ -129,6 +132,21 @@ const App = () => (
                 <AdminLayout pageTitle="Prompts de Vendas">
                   <SalesPromptsPage />
                 </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/salespeople" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout><SalespeopleListPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/salespeople/:id" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout><SalespersonDetailPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/salespeople/commissions" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout><SalespersonCommissionsPage /></AdminLayout>
               </ProtectedRoute>
             } />
             <Route path="/dashboard/stores" element={

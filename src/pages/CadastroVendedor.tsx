@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { validatePixKey, formatPixKey, type PixKeyType } from "@/utils/pixValidation";
 import {
   User,
   Building2,
@@ -64,6 +65,33 @@ export default function CadastroVendedor() {
     pix_key_type: "cpf",
     acceptedTerms: false,
   });
+
+  // Função para formatar telefone
+  const formatPhone = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    const limited = numbers.slice(0, 11);
+    
+    if (limited.length <= 10) {
+      return limited
+        .replace(/^(\d{2})(\d)/, '($1) $2')
+        .replace(/(\d{4})(\d)/, '$1-$2');
+    } else {
+      return limited
+        .replace(/^(\d{2})(\d)/, '($1) $2')
+        .replace(/(\d{5})(\d)/, '$1-$2');
+    }
+  };
+
+  // Validar email
+  const isValidEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  // Validar chave PIX
+  const isValidPixKey = () => {
+    if (!formData.pix_key) return false;
+    return validatePixKey(formData.pix_key, formData.pix_key_type as PixKeyType);
+  };
 
   const handleValidateCNPJ = async () => {
     if (!formData.cnpj) {
@@ -156,7 +184,9 @@ export default function CadastroVendedor() {
     return (
       formData.full_name &&
       formData.email &&
+      isValidEmail(formData.email) &&
       formData.phone &&
+      formData.phone.replace(/\D/g, '').length >= 10 &&
       formData.password &&
       formData.password === formData.confirmPassword &&
       formData.password.length >= 6
@@ -241,17 +271,26 @@ export default function CadastroVendedor() {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="joao@email.com"
+                    className={formData.email && !isValidEmail(formData.email) ? 'border-destructive' : ''}
                   />
+                  {formData.email && !isValidEmail(formData.email) && (
+                    <p className="text-sm text-destructive mt-1">Email inválido</p>
+                  )}
                 </div>
 
                 <div>
                   <Label htmlFor="phone">Telefone *</Label>
                   <Input
                     id="phone"
+                    type="tel"
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, phone: formatPhone(e.target.value) })}
                     placeholder="(11) 99999-9999"
+                    maxLength={15}
                   />
+                  {formData.phone && formData.phone.replace(/\D/g, '').length < 10 && (
+                    <p className="text-sm text-destructive mt-1">Telefone deve ter 10 ou 11 dígitos</p>
+                  )}
                 </div>
               </div>
 
@@ -413,9 +452,35 @@ export default function CadastroVendedor() {
                 <Input
                   id="pix_key"
                   value={formData.pix_key}
-                  onChange={(e) => setFormData({ ...formData, pix_key: e.target.value })}
-                  placeholder="Digite sua chave PIX"
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // Aplica formatação automática se for telefone, CPF ou CNPJ
+                    if (['phone', 'cpf', 'cnpj'].includes(formData.pix_key_type)) {
+                      setFormData({ ...formData, pix_key: formatPixKey(value, formData.pix_key_type as PixKeyType) });
+                    } else {
+                      setFormData({ ...formData, pix_key: value });
+                    }
+                  }}
+                  placeholder={
+                    formData.pix_key_type === 'cpf' ? '000.000.000-00' :
+                    formData.pix_key_type === 'cnpj' ? '00.000.000/0000-00' :
+                    formData.pix_key_type === 'email' ? 'seuemail@exemplo.com' :
+                    formData.pix_key_type === 'phone' ? '(11) 99999-9999' :
+                    'Chave aleatória UUID'
+                  }
+                  className={formData.pix_key && !isValidPixKey() ? 'border-destructive' : ''}
                 />
+                {formData.pix_key && !isValidPixKey() && (
+                  <p className="text-sm text-destructive mt-1">
+                    Chave PIX inválida para o tipo selecionado
+                  </p>
+                )}
+                {formData.pix_key && isValidPixKey() && (
+                  <p className="text-sm text-green-600 mt-1 flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3" />
+                    Chave PIX válida
+                  </p>
+                )}
               </div>
 
               <Alert>
@@ -453,7 +518,7 @@ export default function CadastroVendedor() {
                 </Button>
                 <Button
                   onClick={handleSubmit}
-                  disabled={loading || !formData.acceptedTerms || !formData.pix_key}
+                  disabled={loading || !formData.acceptedTerms || !formData.pix_key || !isValidPixKey()}
                   className="flex-1"
                 >
                   {loading ? (

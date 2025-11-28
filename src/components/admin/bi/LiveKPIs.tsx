@@ -31,14 +31,15 @@ export function LiveKPIs() {
         .select('*', { count: 'exact', head: true })
         .eq('status', 'active');
 
-      // MRR atual (soma dos planos das lojas ativas)
+      // MRR atual (soma dos planos das lojas ativas com preços customizados)
       const { data: storesWithPlans } = await supabase
         .from('stores')
-        .select('plan_id, plans:plan_id(price)')
+        .select('plan_id, custom_monthly_price, plans:plan_id(price)')
         .eq('status', 'active');
 
       const currentMRR = storesWithPlans?.reduce((sum, store: any) => {
-        return sum + (store.plans?.price || 0);
+        const effectivePrice = store.custom_monthly_price || store.plans?.price || 0;
+        return sum + Number(effectivePrice);
       }, 0) || 0;
 
       const projectedARR = currentMRR * 12;

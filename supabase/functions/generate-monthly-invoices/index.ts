@@ -27,6 +27,7 @@ serve(async (req) => {
         id,
         plan_id,
         subscription_expires_at,
+        custom_monthly_price,
         plans (
           price,
           billing_cycle
@@ -73,15 +74,18 @@ serve(async (req) => {
         .single();
 
       if (!existingInvoice) {
-        // Criar nova invoice com o valor correto do plano
+        // Criar nova invoice com o valor efetivo (customizado ou do plano)
         const planPrice = Array.isArray(store.plans) ? store.plans[0]?.price : (store.plans as any)?.price;
+        const effectiveAmount = store.custom_monthly_price 
+          ? Number(store.custom_monthly_price) 
+          : Number(planPrice || 0);
         
         const { error: insertError } = await supabaseClient
           .from('subscription_invoices')
           .insert({
             store_id: store.id,
             plan_id: store.plan_id,
-            amount: Number(planPrice || 0), // Garantir que é número
+            amount: effectiveAmount, // Usar preço efetivo
             due_date: store.subscription_expires_at,
             payment_status: 'pending'
           });

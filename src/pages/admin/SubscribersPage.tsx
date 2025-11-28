@@ -48,6 +48,8 @@ interface Subscriber {
   plan_price?: number | null;
   plan_billing_cycle?: string | null;
   subscription_expires_at?: string | null;
+  custom_monthly_price?: number | null;
+  discount_reason?: string | null;
 }
 
 const SubscribersPage = () => {
@@ -92,6 +94,8 @@ const SubscribersPage = () => {
           created_at,
           plan_id,
           subscription_expires_at,
+          custom_monthly_price,
+          discount_reason,
           owner:profiles!stores_owner_id_fkey (
             id,
             email,
@@ -130,6 +134,8 @@ const SubscribersPage = () => {
           plan_price: store.plans?.price,
           plan_billing_cycle: store.plans?.billing_cycle,
           subscription_expires_at: store.subscription_expires_at,
+          custom_monthly_price: store.custom_monthly_price,
+          discount_reason: store.discount_reason,
         })) || [];
 
       setSubscribers(transformedData);
@@ -209,8 +215,9 @@ const SubscribersPage = () => {
   const noPlanSubscribers = subscribers.filter(s => !s.plan_id);
 
   const monthlyRevenue = activeSubscribers.reduce((acc, sub) => {
-    if (sub.plan_price && sub.plan_billing_cycle === 'monthly') {
-      return acc + Number(sub.plan_price);
+    const effectivePrice = sub.custom_monthly_price || sub.plan_price || 0;
+    if (sub.plan_billing_cycle === 'monthly') {
+      return acc + Number(effectivePrice);
     }
     return acc;
   }, 0);
@@ -431,11 +438,25 @@ const SubscribersPage = () => {
                         </div>
 
                         {subscriber.plan_price && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium">Valor:</span>
-                            <span className="text-sm font-semibold">
-                              R$ {Number(subscriber.plan_price).toFixed(2)}/{subscriber.plan_billing_cycle === 'monthly' ? 'mês' : 'ano'}
-                            </span>
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium">Valor:</span>
+                              <div className="flex items-center gap-2">
+                                {subscriber.custom_monthly_price && (
+                                  <Badge variant="outline" className="bg-green-50 text-green-700 text-xs border-green-200">
+                                    🏷️ -{Math.round((1 - subscriber.custom_monthly_price / subscriber.plan_price) * 100)}%
+                                  </Badge>
+                                )}
+                                <span className="text-sm font-semibold">
+                                  R$ {Number(subscriber.custom_monthly_price || subscriber.plan_price).toFixed(2)}/{subscriber.plan_billing_cycle === 'monthly' ? 'mês' : 'ano'}
+                                </span>
+                              </div>
+                            </div>
+                            {subscriber.custom_monthly_price && (
+                              <div className="text-xs text-muted-foreground line-through text-right">
+                                Original: R$ {Number(subscriber.plan_price).toFixed(2)}/mês
+                              </div>
+                            )}
                           </div>
                         )}
 

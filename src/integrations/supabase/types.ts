@@ -2957,9 +2957,13 @@ export type Database = {
           custom_domain: string | null
           custom_domain_requested_at: string | null
           custom_domain_verified: boolean | null
+          custom_monthly_price: number | null
           delivery_config: Json | null
           delivery_fee: number | null
           description: string | null
+          discount_applied_at: string | null
+          discount_applied_by: string | null
+          discount_reason: string | null
           facebook: string | null
           google_maps_link: string | null
           id: string
@@ -3002,9 +3006,13 @@ export type Database = {
           custom_domain?: string | null
           custom_domain_requested_at?: string | null
           custom_domain_verified?: boolean | null
+          custom_monthly_price?: number | null
           delivery_config?: Json | null
           delivery_fee?: number | null
           description?: string | null
+          discount_applied_at?: string | null
+          discount_applied_by?: string | null
+          discount_reason?: string | null
           facebook?: string | null
           google_maps_link?: string | null
           id?: string
@@ -3047,9 +3055,13 @@ export type Database = {
           custom_domain?: string | null
           custom_domain_requested_at?: string | null
           custom_domain_verified?: boolean | null
+          custom_monthly_price?: number | null
           delivery_config?: Json | null
           delivery_fee?: number | null
           description?: string | null
+          discount_applied_at?: string | null
+          discount_applied_by?: string | null
+          discount_reason?: string | null
           facebook?: string | null
           google_maps_link?: string | null
           id?: string
@@ -3080,6 +3092,20 @@ export type Database = {
           whatsapp?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "stores_discount_applied_by_fkey"
+            columns: ["discount_applied_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stores_discount_applied_by_fkey"
+            columns: ["discount_applied_by"]
+            isOneToOne: false
+            referencedRelation: "unified_users_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "stores_owner_id_fkey"
             columns: ["owner_id"]

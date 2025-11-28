@@ -366,7 +366,6 @@ const App = () => (
             } />
             <Route path="/users-demo" element={<UsersDemo />} />
             <Route path="/seja-vendedor" element={<SejaVendedor />} />
-            <Route path="/cadastro-vendedor" element={<CadastroVendedor />} />
             <Route path="/cadastro-vendedor/sucesso" element={<CadastroVendedorSucesso />} />
             <Route path="/cadastro-entregador" element={<DriverRegister />} />
             <Route path="/aceitar-convite/:token" element={<AcceptInvitation />} />

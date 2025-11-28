@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface ProtectedRouteProps {
   children: ReactNode;
-  allowedRoles: ('delivery_driver' | 'store_admin' | 'master_admin' | 'customer' | 'attendant')[];
+  allowedRoles: ('delivery_driver' | 'store_admin' | 'master_admin' | 'customer' | 'attendant' | 'salesperson')[];
   redirectTo?: string;
 }
 

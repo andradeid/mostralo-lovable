@@ -5,7 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Copy, Phone, MessageSquare, Instagram, Target, Shield, CheckCircle, TrendingUp, Loader2 } from 'lucide-react';
+import { Copy, Phone, MessageSquare, Instagram, Target, Shield, CheckCircle, TrendingUp, Loader2, RefreshCw } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -31,6 +32,7 @@ export default function ProspectingGuidePage() {
 
       if (error) throw error;
       setPlans(data || []);
+      toast.success('Dados atualizados!');
     } catch (error) {
       console.error('Erro ao buscar planos:', error);
       toast.error('Erro ao carregar planos');
@@ -70,11 +72,28 @@ export default function ProspectingGuidePage() {
 
   return (
     <div className="container mx-auto p-6 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold mb-2">📋 Guia Completo de Prospecção</h1>
-        <p className="text-muted-foreground">
-          Tudo que você precisa para prospectar, qualificar e fechar vendas com confiança.
-        </p>
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">📋 Guia Completo de Prospecção</h1>
+          <p className="text-muted-foreground">
+            Tudo que você precisa para prospectar, qualificar e fechar vendas com confiança.
+          </p>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          <p className="text-xs text-muted-foreground">
+            Atualizado: {new Date().toLocaleTimeString('pt-BR')}
+          </p>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={fetchPlans}
+            disabled={loading}
+          >
+            <RefreshCw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />
+            Atualizar
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="como-prospectar" className="w-full">
@@ -449,10 +468,108 @@ Em 1 ano, são R$ [DIFERENÇA × 12] no seu bolso!"`}
                   <CheckCircle className="h-4 w-4 text-primary mt-0.5" />
                   <span>Análise dos seus concorrentes</span>
                 </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="h-4 w-4 text-primary mt-0.5" />
+                  <span className="font-medium">Isso normalmente custa R$ 800-2.000/mês numa agência!</span>
+                </li>
               </ul>
-              <p className="text-sm text-muted-foreground italic pt-2">
-                💡 Isso normalmente custa R$ 800-2.000/mês numa agência. No Mostralo, já está no pacote!
-              </p>
+              
+              <Button 
+                variant="outline"
+                className="w-full"
+                onClick={() => copyToClipboard(
+                  `E o melhor: diferente de TODOS os concorrentes (Anota AI, Goomer, Cardápio Web), no Mostralo você tem MARKETING DIGITAL INCLUSO!\n\n✅ 1 perfil de rede social\n✅ Posts ILIMITADOS\n✅ IA que cria legendas\n✅ Análise dos seus concorrentes\n✅ Integração Facebook/Google Ads\n\nIsso normalmente custa R$ 800-2.000/mês numa agência. No Mostralo, já está no pacote!`,
+                  'Diferencial de Marketing'
+                )}
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Copiar Script de Marketing
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* NOVO: Card de Planos Disponíveis */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                💼 Planos Disponíveis para Apresentar
+                <Button variant="ghost" size="sm" onClick={fetchPlans}>
+                  <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
+                </Button>
+              </CardTitle>
+              <CardDescription>
+                Dados atualizados em tempo real do sistema
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {plans.map((plan) => {
+                  const hasPromotion = plan.promotion_active && plan.discount_price;
+                  const displayPrice = hasPromotion ? plan.discount_price : plan.price;
+                  
+                  return (
+                    <div key={plan.id} className="p-4 rounded-lg border bg-muted/30">
+                      {/* Header do plano */}
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <h4 className="font-bold text-lg">{plan.name}</h4>
+                          <p className="text-sm text-muted-foreground">{plan.description}</p>
+                        </div>
+                        <div className="text-right">
+                          {hasPromotion ? (
+                            <>
+                              <p className="text-sm line-through text-muted-foreground">
+                                De {formatCurrency(plan.price)}
+                              </p>
+                              <p className="text-2xl font-bold text-green-600">
+                                {formatCurrency(displayPrice!)}/mês
+                              </p>
+                              {plan.discount_percentage && (
+                                <Badge variant="destructive" className="mt-1">
+                                  🔥 {plan.discount_percentage}% OFF
+                                </Badge>
+                              )}
+                            </>
+                          ) : (
+                            <p className="text-2xl font-bold">{formatCurrency(plan.price)}/mês</p>
+                          )}
+                          {plan.is_popular && (
+                            <Badge className="mt-1">⭐ Mais Escolhido</Badge>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Features do plano */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-3">
+                        {(Array.isArray(plan.features) ? plan.features as string[] : []).map((feature, i) => (
+                          <div key={i} className="flex items-center gap-1 text-sm">
+                            <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                            <span>{feature}</span>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* Botão copiar pitch do plano */}
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="mt-3 w-full"
+                        onClick={() => {
+                          const price = hasPromotion ? displayPrice! : plan.price;
+                          const priceText = hasPromotion 
+                            ? `De ${formatCurrency(plan.price)} por ${formatCurrency(price)}/mês (${plan.discount_percentage}% OFF! 🔥)` 
+                            : `${formatCurrency(price)}/mês`;
+                          const pitch = `✨ Plano ${plan.name}\n${priceText}\n\n${plan.description}\n\nInclui:\n${(Array.isArray(plan.features) ? plan.features as string[] : []).map(f => `✅ ${f}`).join('\n')}`;
+                          copyToClipboard(pitch, `Pitch do ${plan.name}`);
+                        }}
+                      >
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copiar Pitch do {plan.name}
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

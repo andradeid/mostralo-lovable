@@ -116,7 +116,7 @@ const Index = () => {
   });
 
   const marketplaceFeePercentage = 25;
-  const mostraloPlan = 297;
+  const mostraloPlan = 397.90;
   
   const marketplaceFeeMonthly = monthlyRevenue * (marketplaceFeePercentage / 100);
   const marketplaceFeeYearly = marketplaceFeeMonthly * 12;
@@ -175,7 +175,7 @@ const Index = () => {
     {
       icon: DollarSign,
       title: '0% de Taxa por Pedido',
-      description: 'Apenas R$ 297/mês fixo. Não importa se você fizer 10 ou 1000 pedidos.',
+      description: 'Apenas R$ 397,90/mês fixo. Não importa se você fizer 10 ou 1000 pedidos.',
       highlight: true
     },
     {
@@ -266,7 +266,19 @@ const Index = () => {
     },
     {
       question: 'E se eu tiver poucos pedidos no começo?',
-      answer: 'Você paga apenas R$ 297/mês fixo. Se fizer 10 pedidos ou 1000, o custo é o mesmo. No iFood, com apenas 20 pedidos de R$ 50, você já paga R$ 250 de taxa. No Mostralo, R$ 297 fixo independente do volume.'
+      answer: 'Você paga apenas R$ 397,90/mês fixo. Se fizer 10 pedidos ou 1000, o custo é o mesmo. No iFood, com apenas 20 pedidos de R$ 50, você já paga R$ 250 de taxa. No Mostralo, R$ 397,90 fixo independente do volume.'
+    },
+    {
+      question: 'O marketing digital realmente está incluso no preço?',
+      answer: 'Sim! Todos os planos incluem gestão completa de redes sociais com 1 perfil, agendamento ilimitado de posts, IA para criar legendas profissionais, relatórios de performance e análise de concorrentes. Isso sozinho vale R$ 800-2.000/mês em agências.'
+    },
+    {
+      question: 'Quantos perfis de redes sociais posso ter?',
+      answer: '1 perfil de rede social está incluso em todos os planos com posts ilimitados. Você escolhe: Instagram, Facebook, TikTok, LinkedIn ou Google Meu Negócio. Precisa de mais perfis? Entre em contato com nosso comercial para condições especiais.'
+    },
+    {
+      question: 'Preciso entender de marketing para usar?',
+      answer: 'Não! Nossa IA cria legendas profissionais automaticamente, sugere os melhores horários para postar e até analisa o que seus concorrentes estão fazendo. Você só precisa aprovar e agendar. É tão simples quanto usar o Instagram.'
     },
     {
       question: 'Preciso ter conhecimento técnico?',
@@ -393,6 +405,12 @@ const Index = () => {
               Calculadora
             </a>
             <a 
+              href="#marketing-digital" 
+              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+            >
+              Marketing Digital
+            </a>
+            <a 
               href="#integracao-ia" 
               className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
             >
@@ -449,6 +467,13 @@ const Index = () => {
                 Calculadora
               </a>
               <a 
+                href="#marketing-digital" 
+                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Marketing Digital
+              </a>
+              <a 
                 href="#integracao-ia" 
                 className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors py-2"
                 onClick={() => setMobileMenuOpen(false)}
@@ -492,6 +517,25 @@ const Index = () => {
               <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
                 Sistema completo com <strong>0% de taxa por pedido</strong>. Todos os clientes e dados são 100% seus.
               </p>
+
+              {/* Novo destaque Marketing Digital */}
+              <div className="mt-6 p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 rounded-2xl border-2 border-blue-200 dark:border-blue-800 max-w-3xl mx-auto">
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <Sparkles className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  <h3 className="text-xl md:text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    E o marketing?
+                  </h3>
+                </div>
+                <p className="text-lg md:text-xl font-semibold text-foreground">
+                  Nós fazemos a gestão pra você.
+                </p>
+                <p className="text-sm md:text-base text-muted-foreground mt-2">
+                  Gestão completa de redes sociais INCLUSA em todos os planos. Tudo em um único lugar para crescer o SEU negócio.
+                </p>
+                <Badge className="mt-4 bg-green-600 hover:bg-green-700 text-white">
+                  🔥 Único com Marketing Digital Incluso
+                </Badge>
+              </div>
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
@@ -716,6 +760,10 @@ const Index = () => {
                     <p className="text-muted-foreground">
                       Isso é dinheiro que fica NO SEU BOLSO, não no bolso do marketplace
                     </p>
+                    <p className="text-sm text-green-600 dark:text-green-400 font-semibold mt-3 flex items-center justify-center gap-2">
+                      <Sparkles className="w-4 h-4" />
+                      + Marketing Digital INCLUSO (valor de R$ 800-2.000/mês)
+                    </p>
                   </div>
                 </Card>
 
@@ -798,6 +846,240 @@ const Index = () => {
                 </div>
               </div>
             </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Nova Seção: E O MARKETING DIGITAL? */}
+      <section id="marketing-digital" className="py-12 md:py-20 lg:py-32 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20">
+        <div className="container px-4 md:px-6">
+          <div className="text-center mb-12">
+            <Badge className="mb-4 text-base px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+              <Sparkles className="w-4 h-4 mr-2" />
+              Marketing Digital Incluso
+            </Badge>
+            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
+              E O MARKETING DIGITAL?
+            </h2>
+            <p className="text-2xl md:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-4">
+              Nós fazemos a gestão pra você.
+            </p>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Tudo em um único lugar para crescer o <strong>SEU</strong> negócio, não o do iFood.
+            </p>
+          </div>
+
+          {/* Grid de Features de Marketing */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto mb-12">
+            <Card className="p-6 bg-white/80 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800 hover:shadow-xl transition-shadow">
+              <Clock className="h-12 w-12 text-blue-600 dark:text-blue-400 mb-4" />
+              <h3 className="text-xl font-bold mb-2">Agendamento Ilimitado de Posts</h3>
+              <p className="text-muted-foreground">
+                Programe seus posts com antecedência. Nunca mais se preocupe em postar todo dia.
+              </p>
+            </Card>
+
+            <Card className="p-6 bg-white/80 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800 hover:shadow-xl transition-shadow">
+              <Smartphone className="h-12 w-12 text-blue-600 dark:text-blue-400 mb-4" />
+              <h3 className="text-xl font-bold mb-2">Todas as Redes Sociais</h3>
+              <p className="text-muted-foreground">
+                Instagram, Facebook, TikTok, LinkedIn, Google Meu Negócio. Tudo em um painel só.
+              </p>
+            </Card>
+
+            <Card className="p-6 bg-white/80 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800 hover:shadow-xl transition-shadow">
+              <Bot className="h-12 w-12 text-blue-600 dark:text-blue-400 mb-4" />
+              <h3 className="text-xl font-bold mb-2">IA para Criar Legendas Profissionais</h3>
+              <p className="text-muted-foreground">
+                Nossa IA escreve legendas envolventes que convertem. Você só aprova e agenda.
+              </p>
+            </Card>
+
+            <Card className="p-6 bg-white/80 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800 hover:shadow-xl transition-shadow">
+              <BarChart3 className="h-12 w-12 text-blue-600 dark:text-blue-400 mb-4" />
+              <h3 className="text-xl font-bold mb-2">Relatórios de Performance</h3>
+              <p className="text-muted-foreground">
+                Veja o que está funcionando. Alcance, engajamento, cliques. Dados reais.
+              </p>
+            </Card>
+
+            <Card className="p-6 bg-white/80 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800 hover:shadow-xl transition-shadow">
+              <Target className="h-12 w-12 text-blue-600 dark:text-blue-400 mb-4" />
+              <h3 className="text-xl font-bold mb-2">Análise de Concorrentes</h3>
+              <p className="text-muted-foreground">
+                Veja o que seus concorrentes estão fazendo e fique sempre um passo à frente.
+              </p>
+            </Card>
+
+            <Card className="p-6 bg-white/80 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800 hover:shadow-xl transition-shadow">
+              <Zap className="h-12 w-12 text-blue-600 dark:text-blue-400 mb-4" />
+              <h3 className="text-xl font-bold mb-2">Integração com Facebook/Google Ads</h3>
+              <p className="text-muted-foreground">
+                Conecte suas campanhas pagas e gerencie tudo em um único painel.
+              </p>
+            </Card>
+          </div>
+
+          {/* Card de Destaque: INCLUSO EM TODOS OS PLANOS */}
+          <Card className="p-8 bg-gradient-to-br from-green-500/20 to-green-600/20 border-green-500/30 shadow-xl max-w-3xl mx-auto">
+            <div className="text-center space-y-4">
+              <Badge className="bg-green-600 text-white text-lg px-6 py-2">
+                <Gift className="w-5 h-5 mr-2" />
+                INCLUSO EM TODOS OS PLANOS
+              </Badge>
+              <h3 className="text-2xl md:text-3xl font-bold">
+                Marketing Digital Completo
+              </h3>
+              <div className="grid md:grid-cols-2 gap-4 text-left">
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
+                  <div>
+                    <p className="font-semibold">1 Perfil de Rede Social</p>
+                    <p className="text-sm text-muted-foreground">Escolha Instagram, Facebook, TikTok, etc.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
+                  <div>
+                    <p className="font-semibold">Posts Ilimitados</p>
+                    <p className="text-sm text-muted-foreground">Agende quantos quiser, sem limite</p>
+                  </div>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground italic">
+                💡 Precisa de mais perfis? Fale com nosso comercial para condições especiais.
+              </p>
+            </div>
+          </Card>
+        </div>
+      </section>
+
+      {/* Nova Seção: Comparativo com Concorrentes */}
+      <section className="py-12 md:py-20 lg:py-32 bg-gradient-to-br from-gray-50 to-slate-50 dark:from-gray-950/20 dark:to-slate-950/20">
+        <div className="container px-4 md:px-6">
+          <div className="text-center mb-12">
+            <Badge className="mb-4 text-base px-4 py-2">
+              <Target className="w-4 h-4 mr-2" />
+              Comparativo Real
+            </Badge>
+            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
+              Mostralo vs Concorrentes
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Por que pagar R$ 800-2.000/mês em agência de marketing quando você pode ter TUDO INCLUSO?
+            </p>
+          </div>
+
+          {/* Tabela Comparativa */}
+          <div className="max-w-6xl mx-auto overflow-x-auto">
+            <div className="min-w-[800px] bg-white dark:bg-slate-950 rounded-xl border shadow-xl overflow-hidden">
+              {/* Header */}
+              <div className="grid grid-cols-5 bg-muted/50">
+                <div className="p-4 font-semibold border-r">Recurso</div>
+                <div className="p-4 text-center font-semibold border-r">Anota AI</div>
+                <div className="p-4 text-center font-semibold border-r">Goomer</div>
+                <div className="p-4 text-center font-semibold border-r">Cardápio Web</div>
+                <div className="p-4 text-center font-semibold bg-primary/10">
+                  <div className="flex items-center justify-center gap-2">
+                    <Store className="w-5 h-5 text-primary" />
+                    <span className="text-primary">MOSTRALO</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Preço */}
+              <div className="grid grid-cols-5 border-t">
+                <div className="p-4 font-medium border-r">Preço inicial</div>
+                <div className="p-4 text-center border-r">R$ 399+</div>
+                <div className="p-4 text-center border-r">R$ 299+</div>
+                <div className="p-4 text-center border-r">R$ 397+</div>
+                <div className="p-4 text-center bg-green-50 dark:bg-green-950/20 font-bold text-green-600">
+                  R$ 397,90
+                </div>
+              </div>
+
+              {/* Taxa por pedido */}
+              <div className="grid grid-cols-5 border-t bg-muted/20">
+                <div className="p-4 font-medium border-r">Taxa por pedido</div>
+                <div className="p-4 text-center border-r">Sim</div>
+                <div className="p-4 text-center border-r">Sim</div>
+                <div className="p-4 text-center border-r">Não</div>
+                <div className="p-4 text-center bg-green-50 dark:bg-green-950/20 font-bold text-green-600">
+                  0%
+                </div>
+              </div>
+
+              {/* Marketing Digital */}
+              <div className="grid grid-cols-5 border-t">
+                <div className="p-4 font-medium border-r flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  Marketing Digital
+                </div>
+                <div className="p-4 text-center border-r text-destructive">❌</div>
+                <div className="p-4 text-center border-r text-destructive">❌</div>
+                <div className="p-4 text-center border-r text-destructive">❌</div>
+                <div className="p-4 text-center bg-green-50 dark:bg-green-950/20">
+                  <Badge className="bg-green-600">✅ INCLUSO</Badge>
+                </div>
+              </div>
+
+              {/* IA WhatsApp */}
+              <div className="grid grid-cols-5 border-t bg-muted/20">
+                <div className="p-4 font-medium border-r">IA WhatsApp 24/7</div>
+                <div className="p-4 text-center border-r text-green-600">✅</div>
+                <div className="p-4 text-center border-r text-destructive">❌</div>
+                <div className="p-4 text-center border-r text-destructive">❌</div>
+                <div className="p-4 text-center bg-green-50 dark:bg-green-950/20 text-green-600 font-bold">
+                  ✅
+                </div>
+              </div>
+
+              {/* App Entregadores */}
+              <div className="grid grid-cols-5 border-t">
+                <div className="p-4 font-medium border-r">App para Entregadores</div>
+                <div className="p-4 text-center border-r text-destructive">❌</div>
+                <div className="p-4 text-center border-r text-destructive">❌</div>
+                <div className="p-4 text-center border-r text-destructive">❌</div>
+                <div className="p-4 text-center bg-green-50 dark:bg-green-950/20 text-green-600 font-bold">
+                  ✅
+                </div>
+              </div>
+
+              {/* Agendamento Posts */}
+              <div className="grid grid-cols-5 border-t bg-muted/20">
+                <div className="p-4 font-medium border-r">Agendamento de Posts</div>
+                <div className="p-4 text-center border-r text-destructive">❌</div>
+                <div className="p-4 text-center border-r text-destructive">❌</div>
+                <div className="p-4 text-center border-r text-destructive">❌</div>
+                <div className="p-4 text-center bg-green-50 dark:bg-green-950/20">
+                  <Badge className="bg-green-600">Ilimitado</Badge>
+                </div>
+              </div>
+
+              {/* Análise Concorrentes */}
+              <div className="grid grid-cols-5 border-t">
+                <div className="p-4 font-medium border-r">Análise de Concorrentes</div>
+                <div className="p-4 text-center border-r text-destructive">❌</div>
+                <div className="p-4 text-center border-r text-destructive">❌</div>
+                <div className="p-4 text-center border-r text-destructive">❌</div>
+                <div className="p-4 text-center bg-green-50 dark:bg-green-950/20 text-green-600 font-bold">
+                  ✅
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* CTA */}
+          <div className="text-center mt-12">
+            <p className="text-xl font-bold mb-6 text-primary">
+              🚀 Único no Brasil: Delivery + Marketing em uma só plataforma
+            </p>
+            <Link to="/signup">
+              <Button size="lg" className="text-lg h-14 px-8 shadow-lg hover:shadow-xl">
+                <Sparkles className="mr-2 h-5 w-5" />
+                Experimentar Grátis por 7 Dias
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
@@ -1232,6 +1514,14 @@ const Index = () => {
                     <CardTitle className="text-2xl">{plan.name}</CardTitle>
                     <CardDescription>{plan.description || 'Plano ideal para seu negócio'}</CardDescription>
                     
+                    {/* Badge Marketing Digital Incluso */}
+                    <div className="mt-3">
+                      <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                        <Sparkles className="w-3 h-3 mr-1" />
+                        Marketing Digital Incluso
+                      </Badge>
+                    </div>
+                    
                     {/* Exibir promoção se ativa */}
                     {plan.promotion_active && plan.discount_price && plan.discount_percentage ? (
                       <div className="mt-4 space-y-2">
@@ -1296,6 +1586,11 @@ const Index = () => {
               </span>
             </h2>
             <p className="text-xl md:text-2xl opacity-90">
+              Operação completa + Marketing Digital em um só lugar.
+            </p>
+            <p className="text-lg md:text-xl opacity-90">
+              Pare de pagar separado por ferramentas que competem com você.
+              <br />
               Junte-se a <strong>mais de 5.000 restaurantes</strong> que pararam de financiar marketplaces e começaram a construir seus próprios impérios.
             </p>
             

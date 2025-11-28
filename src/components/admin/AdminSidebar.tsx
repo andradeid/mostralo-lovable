@@ -29,7 +29,8 @@ import {
   ExternalLink,
   Target,
   Bot,
-  MessageSquare
+  MessageSquare,
+  TrendingUp
 } from "lucide-react";
 
 import {
@@ -321,6 +322,7 @@ export function AdminSidebar() {
     if (profile?.user_type === 'master_admin') {
       return [
         { title: 'Dashboard', url: '/dashboard', icon: Home, group: 'Principal' },
+        { title: 'Inteligência de Negócios', url: '/dashboard/business-intelligence', icon: TrendingUp, group: 'Principal' },
         { title: 'Metas', url: '/dashboard/metas', icon: Target, group: 'Principal' },
         { title: 'Vendedores', url: '/dashboard/salespeople', icon: Users, group: 'Vendedores' },
         { title: 'Configurar Bônus', url: '/dashboard/salespeople/commissions', icon: DollarSign, group: 'Vendedores' },

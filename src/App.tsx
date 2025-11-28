@@ -87,6 +87,7 @@ import SalespersonContract from "./pages/salesperson/SalespersonContract";
 import SalespersonProfile from "./pages/salesperson/SalespersonProfile";
 import { SalespersonLayout } from "./components/salesperson/SalespersonLayout";
 import ProspectingGuidePage from "./pages/admin/ProspectingGuidePage";
+import BusinessIntelligencePage from "./pages/admin/BusinessIntelligencePage";
 
 const queryClient = new QueryClient();
 
@@ -144,6 +145,13 @@ const App = () => (
               <ProtectedRoute allowedRoles={['master_admin']}>
                 <AdminLayout pageTitle="Guia de Prospecção">
                   <ProspectingGuidePage />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/business-intelligence" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Inteligência de Negócios">
+                  <BusinessIntelligencePage />
                 </AdminLayout>
               </ProtectedRoute>
             } />

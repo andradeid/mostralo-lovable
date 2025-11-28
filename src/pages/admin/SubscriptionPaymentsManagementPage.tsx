@@ -42,6 +42,9 @@ interface Invoice {
 interface Store {
   id: string;
   name: string;
+  custom_monthly_price: number | null;
+  discount_reason: string | null;
+  plan_id: string | null;
 }
 
 interface Plan {
@@ -96,8 +99,12 @@ export default function SubscriptionPaymentsManagementPage() {
     plan_id: "",
     amount: "",
     due_date: "",
-    notes: ""
+    notes: "",
+    discount_reason: ""
   });
+  const [useCustomPrice, setUseCustomPrice] = useState(false);
+  const [originalPlanPrice, setOriginalPlanPrice] = useState<number>(0);
+  const [selectedStoreData, setSelectedStoreData] = useState<Store | null>(null);
 
   // Estados para aprovações de novos assinantes
   const [pendingApprovals, setPendingApprovals] = useState<PaymentApproval[]>([]);
@@ -293,11 +300,11 @@ export default function SubscriptionPaymentsManagementPage() {
   const fetchStores = async () => {
     const { data } = await supabase
       .from('stores')
-      .select('id, name')
+      .select('id, name, custom_monthly_price, discount_reason, plan_id')
       .order('name');
     
     if (data) {
-      setStores(data);
+      setStores(data as Store[]);
     }
   };
 
@@ -525,8 +532,12 @@ export default function SubscriptionPaymentsManagementPage() {
       plan_id: "",
       amount: "",
       due_date: "",
-      notes: ""
+      notes: "",
+      discount_reason: ""
     });
+    setUseCustomPrice(false);
+    setOriginalPlanPrice(0);
+    setSelectedStoreData(null);
   };
 
   const openCreateDialog = () => {
@@ -541,7 +552,8 @@ export default function SubscriptionPaymentsManagementPage() {
       plan_id: invoice.plan_id,
       amount: invoice.amount.toString(),
       due_date: format(new Date(invoice.due_date), "yyyy-MM-dd"),
-      notes: invoice.notes || ""
+      notes: invoice.notes || "",
+      discount_reason: ""
     });
     setShowEditDialog(true);
   };
@@ -1003,7 +1015,39 @@ export default function SubscriptionPaymentsManagementPage() {
           <div className="space-y-4">
             <div>
               <Label htmlFor="store">Loja *</Label>
-              <Select value={formData.store_id} onValueChange={(value) => setFormData({...formData, store_id: value})}>
+              <Select 
+                value={formData.store_id} 
+                onValueChange={(value) => {
+                  const store = stores.find(s => s.id === value);
+                  setSelectedStoreData(store || null);
+                  
+                  // Se a loja tem custom_monthly_price, carregar automaticamente
+                  if (store?.custom_monthly_price) {
+                    setUseCustomPrice(true);
+                    setFormData({
+                      ...formData, 
+                      store_id: value,
+                      amount: store.custom_monthly_price.toString(),
+                      discount_reason: store.discount_reason || ""
+                    });
+                    
+                    // Buscar preço original do plano da loja
+                    if (store.plan_id) {
+                      const plan = plans.find(p => p.id === store.plan_id);
+                      if (plan) {
+                        setOriginalPlanPrice(plan.price);
+                        if (!formData.plan_id) {
+                          setFormData(prev => ({...prev, plan_id: store.plan_id!}));
+                        }
+                      }
+                    }
+                  } else {
+                    setUseCustomPrice(false);
+                    setFormData({...formData, store_id: value, discount_reason: ""});
+                    setOriginalPlanPrice(0);
+                  }
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione uma loja" />
                 </SelectTrigger>
@@ -1020,11 +1064,23 @@ export default function SubscriptionPaymentsManagementPage() {
                 value={formData.plan_id} 
                 onValueChange={(value) => {
                   const plan = plans.find(p => p.id === value);
-                  setFormData({
-                    ...formData, 
-                    plan_id: value,
-                    amount: plan ? plan.price.toString() : formData.amount
-                  });
+                  if (plan) {
+                    setOriginalPlanPrice(plan.price);
+                    
+                    // Se não está usando preço personalizado, usar preço do plano
+                    if (!useCustomPrice) {
+                      setFormData({
+                        ...formData, 
+                        plan_id: value,
+                        amount: plan.price.toString()
+                      });
+                    } else {
+                      setFormData({
+                        ...formData, 
+                        plan_id: value
+                      });
+                    }
+                  }
                 }}
               >
                 <SelectTrigger>
@@ -1039,17 +1095,100 @@ export default function SubscriptionPaymentsManagementPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label htmlFor="amount">Valor *</Label>
-              <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                value={formData.amount}
-                onChange={(e) => setFormData({...formData, amount: e.target.value})}
-                placeholder="0.00"
-              />
-            </div>
+
+            {/* Seção de Preço Personalizado */}
+            {formData.plan_id && originalPlanPrice > 0 && (
+              <Card className="border-orange-500/50 bg-orange-500/5">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    💰 Preço Personalizado (Opcional)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-background rounded-lg">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Preço do plano</p>
+                      <p className="text-lg font-bold">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(originalPlanPrice)}
+                      </p>
+                    </div>
+                    {useCustomPrice && formData.amount && (
+                      <div className="text-right">
+                        <p className="text-sm text-muted-foreground">Desconto</p>
+                        <Badge variant="secondary" className="bg-green-500 text-white">
+                          -{Math.round(((originalPlanPrice - Number(formData.amount)) / originalPlanPrice) * 100)}%
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="use-custom-price"
+                      checked={useCustomPrice}
+                      onChange={(e) => {
+                        setUseCustomPrice(e.target.checked);
+                        if (!e.target.checked) {
+                          setFormData({
+                            ...formData, 
+                            amount: originalPlanPrice.toString(),
+                            discount_reason: ""
+                          });
+                        }
+                      }}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor="use-custom-price" className="text-sm font-medium cursor-pointer">
+                      Aplicar preço personalizado com desconto
+                    </Label>
+                  </div>
+
+                  {useCustomPrice && (
+                    <>
+                      <div>
+                        <Label htmlFor="custom-amount">Valor Personalizado *</Label>
+                        <Input
+                          id="custom-amount"
+                          type="number"
+                          step="0.01"
+                          value={formData.amount}
+                          onChange={(e) => setFormData({...formData, amount: e.target.value})}
+                          placeholder="0.00"
+                          className="font-bold text-lg"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="discount-reason">Motivo do Desconto</Label>
+                        <Textarea
+                          id="discount-reason"
+                          value={formData.discount_reason}
+                          onChange={(e) => setFormData({...formData, discount_reason: e.target.value})}
+                          placeholder="Ex: Cliente antigo, promoção especial, parceria..."
+                          rows={2}
+                        />
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {!useCustomPrice && formData.plan_id && (
+              <div>
+                <Label htmlFor="amount">Valor *</Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  step="0.01"
+                  value={formData.amount}
+                  onChange={(e) => setFormData({...formData, amount: e.target.value})}
+                  placeholder="0.00"
+                  disabled
+                />
+              </div>
+            )}
             <div>
               <Label htmlFor="due_date">Data de Vencimento *</Label>
               <Input

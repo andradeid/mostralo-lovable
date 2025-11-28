@@ -47,6 +47,62 @@ Deno.serve(async (req) => {
       );
     }
 
+    // CNPJs de teste para desenvolvimento (não consulta Receita Federal)
+    const TEST_CNPJS: Record<string, any> = {
+      '11111111000111': {
+        cnpj: '11111111000111',
+        razao_social: 'EMPRESA TESTE LTDA',
+        nome_fantasia: 'Empresa Teste',
+        cnae_fiscal: 7319002,
+        cnaes_secundarios: [
+          { codigo: 7319099, descricao: 'Outras atividades de publicidade' }
+        ],
+        situacao_cadastral: 'ATIVA',
+        uf: 'SP',
+        municipio: 'São Paulo'
+      },
+      '00000000000191': {
+        cnpj: '00000000000191',
+        razao_social: 'DESENVOLVEDOR MOSTRALO MEI',
+        nome_fantasia: 'Dev Mostralo',
+        cnae_fiscal: 4619200,
+        cnaes_secundarios: [],
+        situacao_cadastral: 'ATIVA',
+        uf: 'DF',
+        municipio: 'Brasília'
+      }
+    };
+
+    // Verificar se é CNPJ de teste
+    if (TEST_CNPJS[cnpjLimpo]) {
+      console.log('🧪 Usando CNPJ de teste:', cnpjLimpo);
+      const testData = TEST_CNPJS[cnpjLimpo];
+      
+      const cnaePrincipal = testData.cnae_fiscal.toString().padStart(7, '0');
+      const cnaesSecundarios = testData.cnaes_secundarios?.map((c: any) => 
+        c.codigo.toString().padStart(7, '0')
+      ) || [];
+      
+      return new Response(
+        JSON.stringify({
+          valid: true,
+          data: {
+            cnpj: cnpjLimpo,
+            razao_social: testData.razao_social,
+            nome_fantasia: testData.nome_fantasia,
+            cnae_fiscal: cnaePrincipal,
+            cnaes_secundarios: cnaesSecundarios,
+            situacao_cadastral: testData.situacao_cadastral,
+            uf: testData.uf,
+            municipio: testData.municipio,
+          },
+          cnaes_encontrados: [cnaePrincipal, ...cnaesSecundarios],
+          is_test: true
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     console.log(`Validando CNPJ: ${cnpjLimpo}`);
 
     // Consultar BrasilAPI

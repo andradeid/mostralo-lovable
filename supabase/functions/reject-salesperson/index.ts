@@ -76,8 +76,6 @@ Deno.serve(async (req) => {
       .update({
         status: 'rejected',
         rejection_reason: reason,
-        rejected_at: new Date().toISOString(),
-        rejected_by: user.id,
       })
       .eq('id', salesperson_id);
 

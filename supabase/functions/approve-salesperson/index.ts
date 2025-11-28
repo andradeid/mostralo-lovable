@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
     // Buscar vendedor
     const { data: salesperson, error: salesError } = await supabaseClient
       .from('salespeople')
-      .select('auth_user_id, status')
+      .select('user_id, status')
       .eq('id', salesperson_id)
       .single();
 
@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
     );
 
     const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
-      salesperson.auth_user_id,
+      salesperson.user_id,
       { ban_duration: 'none' }
     );
 

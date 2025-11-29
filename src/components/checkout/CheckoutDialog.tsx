@@ -678,6 +678,10 @@ export const CheckoutDialog = ({
         duration: 2000
       });
 
+      // CORREÇÃO: Navigate ANTES de fechar dialog (evitar race condition)
+      navigate(`/pedido/${order.id}`);
+
+      // Depois: limpar carrinho e fechar dialog
       clearCart();
       onOpenChange(false);
       
@@ -694,9 +698,6 @@ export const CheckoutDialog = ({
       setPromotionCode("");
       setAutoPromotionChecked(false);
       setCurrentStep(0);
-
-      // Redirect to tracking page
-      navigate(`/pedido/${order.id}`);
     } catch (error) {
       console.error('Error creating order:', error);
       toast.error('Erro ao realizar pedido. Tente novamente.');

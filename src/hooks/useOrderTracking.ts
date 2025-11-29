@@ -211,7 +211,7 @@ export const useOrderTracking = (orderId: string) => {
           .from('orders')
           .select('status, delivery_type, completed_at, updated_at')
           .eq('id', orderId)
-          .single()
+          .maybeSingle()
           .then(({ data, error }) => {
             if (error) {
               console.warn('⚠️ Erro no polling:', error);

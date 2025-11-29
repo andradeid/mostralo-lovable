@@ -53,13 +53,18 @@ export const useOrderTracking = (orderId: string) => {
   const [error, setError] = useState<string | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<REALTIME_SUBSCRIBE_STATES | null>(null);
   
-  // Ref para armazenar última versão do pedido (para polling)
+  // Refs para armazenar última versão do pedido e loading (para polling)
   const orderRef = useRef<Order | null>(null);
+  const loadingRef = useRef<boolean>(true);
   
-  // Atualizar ref sempre que order mudar
+  // Atualizar refs sempre que mudarem
   useEffect(() => {
     orderRef.current = order;
   }, [order]);
+  
+  useEffect(() => {
+    loadingRef.current = loading;
+  }, [loading]);
 
   const showStatusNotification = (newStatus: OrderStatus) => {
     const config = statusConfig[newStatus];
@@ -190,10 +195,17 @@ export const useOrderTracking = (orderId: string) => {
     // Fallback: Polling periódico SIMPLES (sempre ativo a cada 3 segundos)
     // Isso garante atualização mesmo se realtime falhar
     const pollingInterval = setInterval(() => {
-      // Usar ref para pegar a versão mais recente do pedido
+      // Usar refs para pegar versões mais recentes (evitar closure bug)
       const currentOrder = orderRef.current;
+      const isLoading = loadingRef.current;
       
-      if (currentOrder && !loading) {
+      console.log('🔄 Polling backup executando:', {
+        hasOrder: !!currentOrder,
+        isLoading,
+        subscriptionStatus
+      });
+      
+      if (currentOrder && !isLoading) {
         // Buscar apenas status e updated_at (leve)
         supabase
           .from('orders')
@@ -201,7 +213,10 @@ export const useOrderTracking = (orderId: string) => {
           .eq('id', orderId)
           .single()
           .then(({ data, error }) => {
-            if (error) return;
+            if (error) {
+              console.warn('⚠️ Erro no polling:', error);
+              return;
+            }
             
             if (data && currentOrder) {
               // Comparar com a versão atual (usando ref)
@@ -209,9 +224,11 @@ export const useOrderTracking = (orderId: string) => {
               const timeChanged = data.updated_at !== currentOrder.updated_at;
               
               if (statusChanged || timeChanged) {
-                console.log('🔄 Mudança detectada via polling:', {
+                console.log('✅ Mudança detectada via polling:', {
                   oldStatus: currentOrder.status,
-                  newStatus: data.status
+                  newStatus: data.status,
+                  oldUpdated: currentOrder.updated_at,
+                  newUpdated: data.updated_at
                 });
                 
                 // Recarregar pedido completo
@@ -220,9 +237,15 @@ export const useOrderTracking = (orderId: string) => {
                 if (statusChanged && data.status) {
                   showStatusNotification(data.status);
                 }
+              } else {
+                console.log('ℹ️ Polling: sem mudanças detectadas');
               }
             }
           });
+      } else {
+        console.log('⏸️ Polling bloqueado:', {
+          reason: !currentOrder ? 'sem pedido' : 'loading ativo'
+        });
       }
     }, 3000); // A cada 3 segundos (mais frequente)
 

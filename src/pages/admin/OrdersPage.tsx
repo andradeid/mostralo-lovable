@@ -48,6 +48,7 @@ const OrdersPage = () => {
   const [pendingOrders, setPendingOrders] = useState<Order[]>([]);
   const [alertOrder, setAlertOrder] = useState<Order | null>(null);
   const [audioUnlocked, setAudioUnlocked] = useState(false);
+  const [audioBlocked, setAudioBlocked] = useState(false);
   
   const [shownAlertIds, setShownAlertIds] = useState<Set<string>>(new Set());
   const [viewedOrderIds, setViewedOrderIds] = useState<Set<string>>(new Set());
@@ -109,7 +110,17 @@ const OrdersPage = () => {
   // Effect para gerenciar som em loop sem duplicação
   useEffect(() => {
     if (pendingOrders.length > 0 && soundEnabled) {
-      playOrderAlertLoop(selectedSound);
+      playOrderAlertLoop(selectedSound).then(success => {
+        if (!success) {
+          setAudioBlocked(true);
+          toast.error('🔇 Som bloqueado pelo navegador!', {
+            description: 'Clique no botão "Ativar Som" para receber alertas sonoros',
+            duration: 10000,
+          });
+        } else {
+          setAudioBlocked(false);
+        }
+      });
     } else {
       stopOrderAlertLoop();
     }
@@ -183,7 +194,11 @@ const OrdersPage = () => {
               
               // Tocar som em loop se som estiver ativado
         if (soundEnabled) {
-          playOrderAlertLoop(selectedSound);
+          playOrderAlertLoop(selectedSound).then(success => {
+            if (!success) {
+              setAudioBlocked(true);
+            }
+          });
         }
               
               // Enviar browser notification (funciona em segundo plano!)
@@ -229,7 +244,11 @@ const OrdersPage = () => {
               
               // Tocar som em loop se som estiver ativado
               if (soundEnabled) {
-                playOrderAlertLoop(selectedSound);
+                playOrderAlertLoop(selectedSound).then(success => {
+                  if (!success) {
+                    setAudioBlocked(true);
+                  }
+                });
               }
               
               toast.info('Pedido voltou para Entrada!', {
@@ -365,6 +384,8 @@ const OrdersPage = () => {
   const handleTestSound = async () => {
     const success = await playNewOrderSound(selectedSound);
     if (success) {
+      setAudioUnlocked(true);
+      setAudioBlocked(false);
       toast.success('Som de notificação tocado! 🔊');
     } else {
       toast.error('Não foi possível tocar o som', {
@@ -391,9 +412,15 @@ const OrdersPage = () => {
     const success = await playNewOrderSound(selectedSound);
     if (success) {
       setAudioUnlocked(true);
+      setAudioBlocked(false);
       toast.success('Som desbloqueado! 🔊', {
         description: 'Agora você receberá alertas sonoros'
       });
+      
+      // Reativar loop se houver pedidos pendentes
+      if (pendingOrders.length > 0 && soundEnabled) {
+        playOrderAlertLoop(selectedSound);
+      }
     }
   };
 
@@ -744,6 +771,33 @@ const OrdersPage = () => {
           </div>
         )}
       </div>
+
+      {/* Banner de Alerta de Som Bloqueado */}
+      {soundEnabled && audioBlocked && (
+        <Card className="bg-orange-500/10 border-orange-500/50">
+          <div className="p-4 flex items-center justify-between gap-4 flex-col sm:flex-row">
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <AlertCircle className="h-6 w-6 text-orange-500 flex-shrink-0" />
+              <div>
+                <h3 className="font-semibold text-orange-700 dark:text-orange-400">
+                  ⚠️ Som de Notificação Bloqueado
+                </h3>
+                <p className="text-sm text-orange-600 dark:text-orange-300">
+                  Clique no botão ao lado para ativar o som e receber alertas de novos pedidos
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={unlockAudio}
+              size="lg"
+              className="bg-orange-500 hover:bg-orange-600 text-white flex-shrink-0 w-full sm:w-auto"
+            >
+              <Volume2 className="h-5 w-5 mr-2" />
+              Ativar Som
+            </Button>
+          </div>
+        </Card>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

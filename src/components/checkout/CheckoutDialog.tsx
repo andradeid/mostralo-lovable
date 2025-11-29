@@ -678,12 +678,13 @@ export const CheckoutDialog = ({
         duration: 2000
       });
 
-      // CORREÇÃO: Navigate ANTES de fechar dialog (evitar race condition)
-      navigate(`/pedido/${order.id}`);
-
-      // Depois: limpar carrinho e fechar dialog
+      // Limpar carrinho e fechar dialog primeiro
       clearCart();
       onOpenChange(false);
+
+      // CORREÇÃO DEFINITIVA: Usar window.location para garantir navegação
+      // (navigate do React Router pode falhar com lazy-loaded components)
+      window.location.href = `/pedido/${order.id}`;
       
       // Reset form
       setCustomerName("");

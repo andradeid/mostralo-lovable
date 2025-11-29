@@ -50,6 +50,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useStoreAccess } from "@/hooks/useStoreAccess";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useNewOrders } from "@/contexts/NewOrdersContext";
 
 export function AdminSidebar() {
   const { state } = useSidebar();
@@ -57,6 +58,7 @@ export function AdminSidebar() {
   const { signOut, profile, userRole } = useAuth();
   const { storeId: validatedStoreId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
   const { toast } = useToast();
+  const { pendingOrdersCount } = useNewOrders();
   
   const collapsed = state === "collapsed";
   const currentPath = location.pathname;
@@ -526,7 +528,20 @@ export function AdminSidebar() {
                         className={getNavClassName(item.url)}
                       >
                         <item.icon className="w-4 h-4" />
-                        {!collapsed && <span className="ml-3">{item.title}</span>}
+                        {!collapsed && (
+                          <span className="ml-3 flex items-center gap-2 flex-1">
+                            {item.title}
+                            {/* Badge de novos pedidos */}
+                            {item.url === '/dashboard/orders' && pendingOrdersCount > 0 && (
+                              <Badge 
+                                variant="destructive" 
+                                className="ml-auto animate-pulse bg-red-600 text-white text-xs px-2 py-0.5"
+                              >
+                                {pendingOrdersCount === 1 ? '1 NOVO' : `${pendingOrdersCount} NOVOS`}
+                              </Badge>
+                            )}
+                          </span>
+                        )}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

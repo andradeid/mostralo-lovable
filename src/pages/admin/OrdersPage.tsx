@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { DragDropContext, Draggable, DropResult } from "react-beautiful-dnd";
 import { supabase } from "@/integrations/supabase/client";
+import { useNotificationPermission } from '@/hooks/useNotificationPermission';
+import { NotificationPermissionDialog } from '@/components/delivery/NotificationPermissionDialog';
 import { Database } from "@/integrations/supabase/types";
 import { KanbanColumn } from "@/components/admin/orders/KanbanColumn";
 import { OrderCard } from "@/components/admin/orders/OrderCard";
@@ -58,6 +60,15 @@ const OrdersPage = () => {
   // Estados para impressão em lote
   const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
   const [isPrintingBatch, setIsPrintingBatch] = useState(false);
+
+  // Hook para browser notifications
+  const { 
+    showPermissionDialog, 
+    setShowPermissionDialog,
+    requestPermission,
+    sendNotification,
+    permission
+  } = useNotificationPermission();
 
   useEffect(() => {
     localStorage.setItem('orderSoundEnabled', String(soundEnabled));
@@ -174,6 +185,13 @@ const OrdersPage = () => {
         if (soundEnabled) {
           playOrderAlertLoop(selectedSound);
         }
+              
+              // Enviar browser notification (funciona em segundo plano!)
+              sendNotification('🔔 Novo Pedido!', {
+                body: `Pedido ${newOrder.order_number} - ${newOrder.customer_name}`,
+                icon: '/favicon.png',
+                badge: '/favicon.png'
+              });
               
               toast.success('Novo pedido recebido!', {
                 description: `Pedido ${newOrder.order_number} - ${newOrder.customer_name}`
@@ -636,6 +654,18 @@ const OrdersPage = () => {
             </Button>
           )}
           
+          {permission !== 'granted' && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPermissionDialog(true)}
+              className="gap-2"
+            >
+              <Bell className="h-4 w-4" />
+              Ativar Notificações
+            </Button>
+          )}
+          
           <SoundSelector />
           
           <Button
@@ -987,6 +1017,13 @@ const OrdersPage = () => {
         open={!!alertOrder}
         onAccept={handleAcceptOrder}
         onViewDetails={handleViewOrderDetails}
+      />
+
+      {/* Notification Permission Dialog */}
+      <NotificationPermissionDialog
+        open={showPermissionDialog}
+        onOpenChange={setShowPermissionDialog}
+        onRequestPermission={requestPermission}
       />
     </div>
   );

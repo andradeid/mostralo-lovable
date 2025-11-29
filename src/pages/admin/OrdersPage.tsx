@@ -47,7 +47,10 @@ const OrdersPage = () => {
   });
   const [pendingOrders, setPendingOrders] = useState<Order[]>([]);
   const [alertOrder, setAlertOrder] = useState<Order | null>(null);
-  const [audioUnlocked, setAudioUnlocked] = useState(false);
+  const [audioUnlocked, setAudioUnlocked] = useState<boolean>(() => {
+    // Verificar se já foi desbloqueado nesta sessão
+    return sessionStorage.getItem('audioUnlocked') === 'true';
+  });
   const [audioBlocked, setAudioBlocked] = useState(false);
   
   const [shownAlertIds, setShownAlertIds] = useState<Set<string>>(new Set());
@@ -106,6 +109,61 @@ const OrdersPage = () => {
       };
     }
   }, [storeId, storeAccessLoading, hasAccess]);
+
+  // Verificar contexto de áudio ao carregar
+  useEffect(() => {
+    const checkAudioContext = async () => {
+      if (sessionStorage.getItem('audioUnlocked') === 'true') {
+        // Tentar tocar um som silencioso para verificar
+        try {
+          const audio = new Audio('/sounds/bell-1.mp3');
+          audio.volume = 0.01; // Volume quase inaudível
+          await audio.play();
+          audio.pause();
+          audio.currentTime = 0;
+          setAudioUnlocked(true);
+          setAudioBlocked(false);
+        } catch {
+          // Áudio bloqueado, precisa de interação
+          sessionStorage.removeItem('audioUnlocked');
+          setAudioUnlocked(false);
+        }
+      }
+    };
+    
+    checkAudioContext();
+  }, []);
+
+  // Auto-desbloquear com qualquer interação do usuário
+  useEffect(() => {
+    if (audioUnlocked || !soundEnabled) return;
+
+    const handleInteraction = async () => {
+      try {
+        const audio = new Audio('/sounds/bell-1.mp3');
+        audio.volume = 0.01;
+        await audio.play();
+        audio.pause();
+        setAudioUnlocked(true);
+        sessionStorage.setItem('audioUnlocked', 'true');
+        setAudioBlocked(false);
+        
+        // Remover listeners após sucesso
+        document.removeEventListener('click', handleInteraction);
+        document.removeEventListener('keydown', handleInteraction);
+      } catch {
+        // Ignorar falhas silenciosas
+      }
+    };
+
+    document.addEventListener('click', handleInteraction, { once: true });
+    document.addEventListener('keydown', handleInteraction, { once: true });
+
+    return () => {
+      document.removeEventListener('click', handleInteraction);
+      document.removeEventListener('keydown', handleInteraction);
+    };
+  }, [audioUnlocked, soundEnabled]);
 
   // Effect para gerenciar som em loop sem duplicação
   useEffect(() => {
@@ -412,6 +470,7 @@ const OrdersPage = () => {
     const success = await playNewOrderSound(selectedSound);
     if (success) {
       setAudioUnlocked(true);
+      sessionStorage.setItem('audioUnlocked', 'true'); // Persistir estado
       setAudioBlocked(false);
       toast.success('Som desbloqueado! 🔊', {
         description: 'Agora você receberá alertas sonoros'

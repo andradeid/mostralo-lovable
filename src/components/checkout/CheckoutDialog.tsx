@@ -678,27 +678,13 @@ export const CheckoutDialog = ({
         duration: 2000
       });
 
-      // Limpar carrinho e fechar dialog primeiro
-      clearCart();
-      onOpenChange(false);
+      // NAVEGAÇÃO IMEDIATA - ANTES de qualquer operação que cause re-render
+      // Limpar localStorage do carrinho manualmente (evita setState do clearCart)
+      localStorage.removeItem(`cart_${storeId}`);
 
-      // CORREÇÃO DEFINITIVA: Usar window.location para garantir navegação
-      // (navigate do React Router pode falhar com lazy-loaded components)
+      // Redireciona imediatamente - página vai recarregar
       window.location.href = `/pedido/${order.id}`;
-      
-      // Reset form
-      setCustomerName("");
-      setCustomerPhone("");
-      setCustomerEmail("");
-      setCustomerAddress("");
-      setLatitude(null);
-      setLongitude(null);
-      setNotes("");
-      setAppliedPromotion(null);
-      setPromotionDiscount(0);
-      setPromotionCode("");
-      setAutoPromotionChecked(false);
-      setCurrentStep(0);
+      return; // Interrompe execução - código abaixo não executa
     } catch (error) {
       console.error('Error creating order:', error);
       toast.error('Erro ao realizar pedido. Tente novamente.');

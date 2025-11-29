@@ -283,10 +283,23 @@ serve(async (req) => {
       console.log('Auth user created and linked to customer:', customer.id);
     }
     
-    // Fazer login
-    const tempEmailLogin = `cliente_${normalizedPhone}@mostralo.me`;
+    // Buscar o email real do auth.users usando o auth_user_id
+    const { data: authUser, error: authUserError } = await supabase.auth.admin.getUserById(customer.auth_user_id);
+    
+    if (authUserError || !authUser?.user?.email) {
+      console.error('Failed to fetch auth user email:', authUserError);
+      return new Response(
+        JSON.stringify({ error: 'Erro ao buscar dados de autenticação. Tente novamente.' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    const userEmail = authUser.user.email;
+    console.log('Using email for login:', userEmail?.substring(0, 10) + '***');
+    
+    // Fazer login com o email real do banco
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-      email: tempEmailLogin,
+      email: userEmail,
       password: password
     });
     

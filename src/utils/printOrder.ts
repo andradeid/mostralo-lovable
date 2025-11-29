@@ -65,6 +65,29 @@ interface PrintConfig {
   };
 }
 
+/**
+ * Retorna o separador apropriado entre vias baseado no tipo de impressora
+ */
+function getCutLineSeparator(printType: string): string {
+  // Para impressoras térmicas, usar linha de corte visual
+  if (printType === 'thermal_58mm' || printType === 'thermal_80mm') {
+    return `
+      <div style="
+        margin: 20px 0;
+        padding: 15px 0;
+        border-top: 2px dashed #000;
+        border-bottom: 2px dashed #000;
+        text-align: center;
+        page-break-inside: avoid;
+      ">
+        <span style="font-size: 16px; font-weight: bold;">✂️ ─────── CORTE AQUI ─────── ✂️</span>
+      </div>
+    `;
+  }
+  // Para A4, usar page-break tradicional
+  return '<div style="page-break-before: always;"></div>';
+}
+
 function shouldHideCustomerPhone(documentType: string): boolean {
   return documentType === 'delivery';
 }
@@ -185,7 +208,7 @@ export async function printOrder(
     let combinedHTML = '';
     viasToprint.forEach((via, index) => {
       if (index > 0) {
-        combinedHTML += '<div style="page-break-before: always;"></div>';
+        combinedHTML += getCutLineSeparator(config.print_type);
       }
       combinedHTML += generatePrintHTML(order, items || [], addons || [], config, storeName, via);
     });
@@ -217,12 +240,12 @@ export async function printOrder(
   }
 }
 
-export function executePrint(htmlContents: string[]) {
+export function executePrint(htmlContents: string[], printType: string = 'thermal_80mm') {
   try {
     let combinedHTML = '';
     htmlContents.forEach((html, index) => {
       if (index > 0) {
-        combinedHTML += '<div style="page-break-before: always;"></div>';
+        combinedHTML += getCutLineSeparator(printType);
       }
       combinedHTML += html;
     });

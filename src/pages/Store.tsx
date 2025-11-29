@@ -741,6 +741,7 @@ const Store = () => {
       sessionStorage.setItem('checkoutPrimaryColor', primaryColor);
       sessionStorage.setItem('checkoutSecondaryColor', secondaryColor);
       sessionStorage.setItem('checkoutStoreName', store?.name || '');
+      sessionStorage.setItem('checkoutStoreSlug', slug || '');
       
       navigate('/checkout');
     }

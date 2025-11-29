@@ -27,17 +27,22 @@ interface Order {
 export default function CustomerPanel() {
   const { storeSlug } = useParams();
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [customerName, setCustomerName] = useState('');
 
   useEffect(() => {
-    loadCustomerData();
-  }, [user]);
+    if (!authLoading) {
+      loadCustomerData();
+    }
+  }, [user, authLoading]);
 
   const loadCustomerData = async () => {
+    // Só verificar user quando auth terminou de carregar
+    if (authLoading) return;
+    
     if (!user) {
       navigate(`/cliente/${storeSlug}`);
       return;
@@ -112,7 +117,7 @@ export default function CustomerPanel() {
     }
   };
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />

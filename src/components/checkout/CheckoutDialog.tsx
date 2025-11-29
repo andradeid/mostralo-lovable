@@ -678,13 +678,31 @@ export const CheckoutDialog = ({
         duration: 2000
       });
 
-      // NAVEGAÇÃO IMEDIATA - ANTES de qualquer operação que cause re-render
-      // Limpar localStorage do carrinho manualmente (evita setState do clearCart)
+      // Limpar carrinho do localStorage
       localStorage.removeItem(`cart_${storeId}`);
 
-      // Redireciona imediatamente - página vai recarregar
-      window.location.href = `/pedido/${order.id}`;
-      return; // Interrompe execução - código abaixo não executa
+      // URL de destino
+      const targetUrl = `/pedido/${order.id}`;
+
+      // NAVEGAÇÃO COM MÚLTIPLOS FALLBACKS
+      // Método 1: replace - mais confiável (não adiciona histórico)
+      window.location.replace(targetUrl);
+
+      // Método 2: Backup com delay curto
+      setTimeout(() => {
+        if (window.location.pathname !== `/pedido/${order.id}`) {
+          window.location.href = targetUrl;
+        }
+      }, 100);
+
+      // Método 3: Backup final
+      setTimeout(() => {
+        if (window.location.pathname !== `/pedido/${order.id}`) {
+          window.location.assign(targetUrl);
+        }
+      }, 500);
+
+      return; // Interrompe execução
     } catch (error) {
       console.error('Error creating order:', error);
       toast.error('Erro ao realizar pedido. Tente novamente.');

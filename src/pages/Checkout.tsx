@@ -45,6 +45,7 @@ export default function Checkout() {
   const [primaryColor, setPrimaryColor] = useState("#8B5CF6");
   const [secondaryColor, setSecondaryColor] = useState("#D946EF");
   const [storeName, setStoreName] = useState("");
+  const [storeSlug, setStoreSlug] = useState("");
   
   // Dados do checkout - Delivery Step
   const [deliveryType, setDeliveryType] = useState<DeliveryType>("delivery");
@@ -124,6 +125,7 @@ export default function Checkout() {
       const checkoutPrimaryColor = sessionStorage.getItem("checkoutPrimaryColor");
       const checkoutSecondaryColor = sessionStorage.getItem("checkoutSecondaryColor");
       const checkoutStoreName = sessionStorage.getItem("checkoutStoreName");
+      const checkoutStoreSlug = sessionStorage.getItem("checkoutStoreSlug");
       
       if (!checkoutStoreId) {
         toast.error("Dados do checkout não encontrados");
@@ -136,6 +138,7 @@ export default function Checkout() {
       setPrimaryColor(checkoutPrimaryColor || "#8B5CF6");
       setSecondaryColor(checkoutSecondaryColor || "#D946EF");
       setStoreName(checkoutStoreName || "");
+      setStoreSlug(checkoutStoreSlug || "");
       
       // Carregar configurações de pagamento da loja
       try {
@@ -404,9 +407,16 @@ export default function Checkout() {
       sessionStorage.removeItem('checkoutPrimaryColor');
       sessionStorage.removeItem('checkoutSecondaryColor');
       sessionStorage.removeItem('checkoutStoreName');
+      sessionStorage.removeItem('checkoutStoreSlug');
       
       toast.success('Pedido realizado com sucesso!');
-      navigate(`/pedido/${order.id}`);
+      
+      // Redirecionar para o painel do cliente
+      if (storeSlug) {
+        window.location.href = `/painel-cliente/${storeSlug}`;
+      } else {
+        window.location.href = '/';
+      }
     } catch (error) {
       console.error('Erro ao criar pedido:', error);
       toast.error('Erro ao criar pedido. Tente novamente.');

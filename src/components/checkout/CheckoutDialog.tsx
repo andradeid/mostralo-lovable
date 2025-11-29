@@ -681,8 +681,8 @@ export const CheckoutDialog = ({
       // Limpar carrinho do localStorage
       localStorage.removeItem(`cart_${storeId}`);
 
-      // Navegação imediata e síncrona
-      const targetUrl = `/pedido/${order.id}`;
+      // Navegação imediata e síncrona - redireciona para lista de pedidos
+      const targetUrl = `/painel-cliente/${storeSlug}`;
       
       // Limpar carrinho
       clearCart();

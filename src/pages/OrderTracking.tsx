@@ -97,11 +97,24 @@ export default function OrderTracking() {
       <main className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
         {/* Confirmação do Pedido */}
         <Card className="p-6 text-center space-y-2">
-          <div className="text-4xl mb-2">🎉</div>
+          <div className="text-4xl mb-2">
+            {order.status === 'entrada' ? '🔔' : order.status === 'cancelado' ? '❌' : '🎉'}
+          </div>
           <h1 className="text-2xl font-bold text-foreground">
             Pedido #{order.order_number}
           </h1>
-          <p className="text-lg text-primary font-semibold">Confirmado!</p>
+          {order.status === 'entrada' ? (
+            <>
+              <p className="text-lg text-yellow-600 font-semibold">Aguardando aceitação</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Seu pedido foi recebido e está aguardando confirmação da loja
+              </p>
+            </>
+          ) : order.status === 'cancelado' ? (
+            <p className="text-lg text-red-600 font-semibold">Cancelado</p>
+          ) : (
+            <p className="text-lg text-primary font-semibold">Confirmado!</p>
+          )}
           <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
             <span className="inline-block w-2 h-2 rounded-full bg-primary animate-pulse"></span>
             {elapsedTime}

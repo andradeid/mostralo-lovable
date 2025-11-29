@@ -57,7 +57,7 @@ export const OrderStatusTimeline = ({
           status: 'entrada',
           label: 'Pedido Recebido',
           icon: '📥',
-          description: 'Seu pedido foi confirmado'
+          description: 'Aguardando aceitação da loja'
         },
         {
           status: 'em_preparo',
@@ -83,7 +83,7 @@ export const OrderStatusTimeline = ({
           status: 'entrada',
           label: 'Pedido Recebido',
           icon: '📥',
-          description: 'Seu pedido foi confirmado'
+          description: 'Aguardando aceitação da loja'
         },
         {
           status: 'em_preparo',

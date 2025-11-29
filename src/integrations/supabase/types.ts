@@ -1796,11 +1796,13 @@ export type Database = {
           auto_print_on_accept: boolean | null
           created_at: string
           custom_texts: Json
+          cut_method: string | null
           document_type: string
           id: string
           is_active: boolean | null
           print_copies: Json | null
           print_type: string
+          qz_tray_printer: string | null
           sections: Json
           store_id: string
           styles: Json
@@ -1810,11 +1812,13 @@ export type Database = {
           auto_print_on_accept?: boolean | null
           created_at?: string
           custom_texts?: Json
+          cut_method?: string | null
           document_type: string
           id?: string
           is_active?: boolean | null
           print_copies?: Json | null
           print_type: string
+          qz_tray_printer?: string | null
           sections?: Json
           store_id: string
           styles?: Json
@@ -1824,11 +1828,13 @@ export type Database = {
           auto_print_on_accept?: boolean | null
           created_at?: string
           custom_texts?: Json
+          cut_method?: string | null
           document_type?: string
           id?: string
           is_active?: boolean | null
           print_copies?: Json | null
           print_type?: string
+          qz_tray_printer?: string | null
           sections?: Json
           store_id?: string
           styles?: Json

@@ -89,8 +89,16 @@ export const OrderCard = ({ order, onClick, isDragging, isViewed, onPrint, isSel
     }
   };
 
-  const handleConfirmPrint = () => {
-    executePrint(previewHtmls);
+  const handleConfirmPrint = async () => {
+    // Buscar configuração para saber o print_type
+    const { data: storeConfig } = await supabase
+      .from('print_configurations')
+      .select('print_type')
+      .eq('store_id', order.store_id)
+      .eq('is_active', true)
+      .maybeSingle();
+    
+    executePrint(previewHtmls, storeConfig?.print_type || 'thermal_80mm');
     if (onPrint) onPrint();
   };
 

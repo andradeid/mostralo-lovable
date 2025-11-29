@@ -13,6 +13,9 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
+import { CutMethodSelector } from "@/components/admin/print/CutMethodSelector";
+import { QZTraySetup } from "@/components/admin/print/QZTraySetup";
+import { useState as useStateLocal } from "react";
 
 export default function PrintConfigPage() {
   const { toast } = useToast();
@@ -21,6 +24,9 @@ export default function PrintConfigPage() {
   const [storeId, setStoreId] = useState<string>("");
   const [storeName, setStoreName] = useState<string>("Minha Loja");
   const [autoPrint, setAutoPrint] = useState(false);
+  const [cutMethod, setCutMethod] = useState<'driver' | 'visual' | 'qz_tray'>('visual');
+  const [qzPrinter, setQzPrinter] = useState<string>('');
+  const [showQZConfig, setShowQZConfig] = useStateLocal(false);
   
   const [config, setConfig] = useState<Partial<PrintConfiguration>>({
     document_type: "complete",
@@ -118,6 +124,8 @@ export default function PrintConfigPage() {
           updated_at: data.updated_at,
         });
         setAutoPrint((data as any).auto_print_on_accept || false);
+        setCutMethod((data as any).cut_method || 'visual');
+        setQzPrinter((data as any).qz_tray_printer || '');
       }
     } catch (error: any) {
       console.error('Erro ao carregar configuração:', error);
@@ -148,6 +156,8 @@ export default function PrintConfigPage() {
         print_copies: config.print_copies as any,
         is_active: config.is_active ?? true,
         auto_print_on_accept: autoPrint,
+        cut_method: cutMethod,
+        qz_tray_printer: qzPrinter,
       };
 
       const { error } = await supabase
@@ -370,6 +380,21 @@ export default function PrintConfigPage() {
             )}
           </div>
         </Card>
+
+        {/* Método de Corte */}
+        <CutMethodSelector
+          value={cutMethod}
+          onChange={setCutMethod}
+          onConfigureQZ={() => setShowQZConfig(!showQZConfig)}
+        />
+
+        {/* QZ Tray Setup (condicional) */}
+        {cutMethod === 'qz_tray' && showQZConfig && (
+          <QZTraySetup
+            selectedPrinter={qzPrinter}
+            onPrinterSelect={setQzPrinter}
+          />
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <PrintConfigForm

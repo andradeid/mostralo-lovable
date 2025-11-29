@@ -681,33 +681,26 @@ export const CheckoutDialog = ({
       // Limpar carrinho do localStorage
       localStorage.removeItem(`cart_${storeId}`);
 
-      // URL de destino
+      // ✅ NAVEGAÇÃO DEFINITIVA - usar setTimeout(0) para executar após fila de eventos React
       const targetUrl = `/pedido/${order.id}`;
-
-      // NAVEGAÇÃO COM MÚLTIPLOS FALLBACKS
-      // Método 1: replace - mais confiável (não adiciona histórico)
-      window.location.replace(targetUrl);
-
-      // Método 2: Backup com delay curto
+      
       setTimeout(() => {
-        if (window.location.pathname !== `/pedido/${order.id}`) {
-          window.location.href = targetUrl;
-        }
-      }, 100);
-
-      // Método 3: Backup final
-      setTimeout(() => {
-        if (window.location.pathname !== `/pedido/${order.id}`) {
-          window.location.assign(targetUrl);
-        }
-      }, 500);
-
-      return; // Interrompe execução
-    } catch (error) {
+        window.location.replace(targetUrl);
+      }, 0);
+      
+      // Lançar erro intencional para impedir finally de executar e causar re-render
+      throw { __navigation__: true };
+    } catch (error: any) {
+      // Ignorar erro de navegação intencional
+      if (error?.__navigation__) return;
+      
       console.error('Error creating order:', error);
       toast.error('Erro ao realizar pedido. Tente novamente.');
     } finally {
-      setIsLoading(false);
+      // Só atualizar loading se não estivermos navegando
+      if (!window.location.pathname.includes('/pedido/')) {
+        setIsLoading(false);
+      }
     }
   };
 

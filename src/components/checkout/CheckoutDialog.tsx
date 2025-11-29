@@ -681,26 +681,23 @@ export const CheckoutDialog = ({
       // Limpar carrinho do localStorage
       localStorage.removeItem(`cart_${storeId}`);
 
-      // ✅ NAVEGAÇÃO DEFINITIVA - usar setTimeout(0) para executar após fila de eventos React
+      // Navegação imediata e síncrona
       const targetUrl = `/pedido/${order.id}`;
       
-      setTimeout(() => {
-        window.location.replace(targetUrl);
-      }, 0);
+      // Limpar carrinho
+      clearCart();
       
-      // Lançar erro intencional para impedir finally de executar e causar re-render
-      throw { __navigation__: true };
+      // Fechar dialog
+      onOpenChange(false);
+      
+      // Navegar imediatamente (síncrono)
+      window.location.href = targetUrl;
+      
+      return;
     } catch (error: any) {
-      // Ignorar erro de navegação intencional
-      if (error?.__navigation__) return;
-      
       console.error('Error creating order:', error);
       toast.error('Erro ao realizar pedido. Tente novamente.');
-    } finally {
-      // Só atualizar loading se não estivermos navegando
-      if (!window.location.pathname.includes('/pedido/')) {
-        setIsLoading(false);
-      }
+      setIsLoading(false);
     }
   };
 

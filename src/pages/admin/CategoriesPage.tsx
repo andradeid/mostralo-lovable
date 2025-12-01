@@ -10,6 +10,16 @@ import { usePageSEO } from '@/hooks/useSEO';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Grid, Plus, Search, Edit, Trash2, Package, ArrowUp, ArrowDown } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface CategoryData {
   id: string;
@@ -20,6 +30,7 @@ interface CategoryData {
   store_id: string;
   created_at: string;
   updated_at: string;
+  products_count: number;
 }
 
 const CategoriesPage = () => {
@@ -33,6 +44,9 @@ const CategoriesPage = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFormOpen, setCategoryFormOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<CategoryData | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<CategoryData | null>(null);
   const { user } = useAuth();
   const { storeId: validatedStoreId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
   const { toast } = useToast();
@@ -43,7 +57,7 @@ const CategoriesPage = () => {
     try {
       const { data, error } = await supabase
         .from('categories')
-        .select('*')
+        .select('*, products(count)')
         .eq('store_id', validatedStoreId)
         .order('display_order', { ascending: true });
 
@@ -57,7 +71,12 @@ const CategoriesPage = () => {
         return;
       }
 
-      setCategories(data || []);
+      const categoriesWithCount = data?.map(cat => ({
+        ...cat,
+        products_count: (cat.products as any)?.[0]?.count || 0
+      })) || [];
+      
+      setCategories(categoriesWithCount);
     } catch (error) {
       console.error('Erro ao buscar categorias:', error);
       toast({
@@ -142,6 +161,44 @@ const CategoriesPage = () => {
         variant: 'destructive'
       });
     }
+  };
+
+  const handleDeleteCategory = async () => {
+    if (!categoryToDelete) return;
+
+    // Verificar se tem produtos vinculados
+    if (categoryToDelete.products_count > 0) {
+      toast({
+        title: 'Atenção',
+        description: `Esta categoria possui ${categoryToDelete.products_count} produto(s). Mova-os para outra categoria primeiro.`,
+        variant: 'destructive'
+      });
+      setDeleteDialogOpen(false);
+      return;
+    }
+
+    const { error } = await supabase
+      .from('categories')
+      .delete()
+      .eq('id', categoryToDelete.id);
+
+    if (error) {
+      console.error('Erro ao excluir categoria:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao excluir categoria.',
+        variant: 'destructive'
+      });
+    } else {
+      toast({
+        title: 'Sucesso',
+        description: 'Categoria excluída com sucesso!'
+      });
+      fetchCategories();
+    }
+
+    setDeleteDialogOpen(false);
+    setCategoryToDelete(null);
   };
 
   useEffect(() => {
@@ -294,6 +351,10 @@ const CategoriesPage = () => {
                           <Badge variant={category.is_active ? 'default' : 'secondary'}>
                             {category.is_active ? 'Ativa' : 'Inativa'}
                           </Badge>
+                          <Badge variant="outline">
+                            <Package className="w-3 h-3 mr-1" />
+                            {category.products_count} produto{category.products_count !== 1 ? 's' : ''}
+                          </Badge>
                         </div>
                         {category.description && (
                           <p className="text-sm text-muted-foreground">
@@ -307,15 +368,27 @@ const CategoriesPage = () => {
                     </div>
                     
                     <div className="flex items-center space-x-2">
-                      <Button size="sm" variant="outline">
-                        <Package className="w-4 h-4 mr-2" />
-                        Produtos
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => {
+                          setEditingCategory(category);
+                          setCategoryFormOpen(true);
+                        }}
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        Editar
                       </Button>
-                      <Button size="sm" variant="outline">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <Trash2 className="w-4 h-4" />
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => {
+                          setCategoryToDelete(category);
+                          setDeleteDialogOpen(true);
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Excluir
                       </Button>
                     </div>
                   </div>
@@ -326,11 +399,37 @@ const CategoriesPage = () => {
         </CardContent>
       </Card>
 
-      <CategoryForm
-        open={categoryFormOpen}
-        onOpenChange={setCategoryFormOpen}
-        onSuccess={fetchCategories}
-      />
+              <CategoryForm
+                open={categoryFormOpen}
+                onOpenChange={(open) => {
+                  setCategoryFormOpen(open);
+                  if (!open) setEditingCategory(null);
+                }}
+                onSuccess={fetchCategories}
+                category={editingCategory}
+              />
+
+              <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Excluir Categoria</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Tem certeza que deseja excluir a categoria "{categoryToDelete?.name}"?
+                      {categoryToDelete && categoryToDelete.products_count > 0 && (
+                        <span className="block mt-2 text-destructive font-semibold">
+                          ⚠️ Esta categoria possui {categoryToDelete.products_count} produto(s) vinculado(s).
+                        </span>
+                      )}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteCategory} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Excluir
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
     </div>
   );
 };

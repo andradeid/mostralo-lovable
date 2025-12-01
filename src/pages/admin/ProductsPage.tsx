@@ -12,7 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 import { usePageSEO } from '@/hooks/useSEO';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Package, Plus, Search, Edit, Trash2, Grid, ArrowUp, ArrowDown, GripVertical, AlertCircle } from 'lucide-react';
+import { Loader2, Package, Plus, Search, Edit, Trash2, Grid, ArrowUp, ArrowDown, GripVertical, AlertCircle, ArrowDownAZ } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 
@@ -58,6 +59,7 @@ const ProductsPage = () => {
   const [categories, setCategories] = useState<CategoryData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortMode, setSortMode] = useState<'manual' | 'alphabetical'>('manual');
   const [categoryFormOpen, setCategoryFormOpen] = useState(false);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [showEditForm, setShowEditForm] = useState(false);
@@ -388,10 +390,17 @@ const ProductsPage = () => {
 
   const filteredCategories = categories.map(category => ({
     ...category,
-    products: category.products.filter(product =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))
-    )
+    products: category.products
+      .filter(product =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))
+      )
+      .sort((a, b) => {
+        if (sortMode === 'alphabetical') {
+          return a.name.localeCompare(b.name, 'pt-BR');
+        }
+        return a.display_order - b.display_order;
+      })
   })).filter(category => 
     searchTerm === '' || 
     category.products.length > 0 || 
@@ -496,7 +505,7 @@ const ProductsPage = () => {
         ))}
       </div>
 
-      {/* Busca */}
+      {/* Busca e Ordenação */}
       <div className="flex items-center space-x-2">
         <div className="relative flex-1">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -507,6 +516,25 @@ const ProductsPage = () => {
             className="pl-8"
           />
         </div>
+        <Select value={sortMode} onValueChange={(v) => setSortMode(v as 'manual' | 'alphabetical')}>
+          <SelectTrigger className="w-[220px]">
+            <SelectValue placeholder="Ordenar por..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="manual">
+              <div className="flex items-center gap-2">
+                <GripVertical className="w-4 h-4" />
+                Ordem Manual
+              </div>
+            </SelectItem>
+            <SelectItem value="alphabetical">
+              <div className="flex items-center gap-2">
+                <ArrowDownAZ className="w-4 h-4" />
+                Ordem Alfabética (A-Z)
+              </div>
+            </SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Lista de Produtos por Categoria */}
@@ -660,16 +688,18 @@ const ProductsPage = () => {
                                           : ''
                                       }`}
                                     >
-                                      <CardContent className="p-4">
+                                       <CardContent className="p-4">
                                         <div className="flex items-center space-x-4">
-                                          {/* Handle de drag */}
-                                          <div 
-                                            {...provided.dragHandleProps}
-                                            className="flex flex-col items-center space-y-1 cursor-grab active:cursor-grabbing"
-                                          >
-                                            <GripVertical className="w-5 h-5 text-muted-foreground hover:text-primary transition-colors" />
-                                            <span className="text-xs text-muted-foreground">#{product.display_order}</span>
-                                          </div>
+                                          {/* Handle de drag - apenas em modo manual */}
+                                          {sortMode === 'manual' && (
+                                            <div 
+                                              {...provided.dragHandleProps}
+                                              className="flex flex-col items-center space-y-1 cursor-grab active:cursor-grabbing"
+                                            >
+                                              <GripVertical className="w-5 h-5 text-muted-foreground hover:text-primary transition-colors" />
+                                              <span className="text-xs text-muted-foreground">#{product.display_order}</span>
+                                            </div>
+                                          )}
 
                                           <div className="w-16 h-16 bg-muted rounded-lg overflow-hidden flex-shrink-0">
                                             {product.image_url ? (

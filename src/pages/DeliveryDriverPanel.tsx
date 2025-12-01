@@ -702,11 +702,11 @@ export default function DeliveryDriverPanel() {
         <CollapsibleSection
           title="Minhas Entregas em Andamento"
           icon={<Package className="h-5 w-5" />}
-          count={myAssignments.filter((a) => 
-            a.orders && 
-            a.orders.status !== "concluido" && 
-            (a.orders.status === 'aguarda_retirada' || a.orders.status === 'em_transito')
-          ).length}
+              count={myAssignments.filter((a) => 
+                a.orders && 
+                a.orders.status !== "concluido" && 
+                (a.orders.status === 'em_preparo' || a.orders.status === 'aguarda_retirada' || a.orders.status === 'em_transito')
+              ).length}
           colorScheme="blue"
           defaultOpen={true}
           storageKey="section-active"

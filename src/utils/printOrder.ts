@@ -559,7 +559,7 @@ function generatePrintHTML(
   <div class="section footer-section" style="border-top: 2px solid #000; margin-top: 15px; padding-top: 10px;">
     <div class="text-center" style="font-size: 85%; color: #666;">
       <p style="margin: 3px 0;">Sistema de pedidos online</p>
-      <p style="margin: 3px 0; font-weight: bold; color: #000;">MOSTRALO - www.mostralo.app</p>
+      <p style="margin: 3px 0; font-weight: bold; color: #000;">MOSTRALO - ${window.location.host}</p>
     </div>
   </div>
 `;

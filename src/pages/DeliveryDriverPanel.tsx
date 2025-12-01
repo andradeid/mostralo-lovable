@@ -401,21 +401,27 @@ export default function DeliveryDriverPanel() {
       setAvailableOrders(orders || []);
 
       // ✅ STATUS MESTRE: Buscar pedidos baseado em orders.status (mestre do lojista)
-      // Buscar pedidos que foram atribuídos a este entregador e estão em andamento
+      // Buscar TODOS os assignments do entregador (sem filtro de status na query)
       const { data: allAssignments, error: assignmentsError } = await supabase
         .from('delivery_assignments')
         .select('*, orders!inner(*)')
         .eq('delivery_driver_id', profile.id)
-        .in('orders.status', ['em_preparo', 'aguarda_retirada', 'em_transito'])
         .order('assigned_at', { ascending: false });
       
       if (assignmentsError) {
         console.error('❌ Erro ao buscar assignments:', assignmentsError);
       }
       
-      console.log('📦 Assignments encontrados:', allAssignments?.length || 0);
+      // ✅ Filtrar em JavaScript - funciona para em_preparo, aguarda_retirada, em_transito
+      const validStatuses = ['em_preparo', 'aguarda_retirada', 'em_transito'];
+      const assignments = (allAssignments || []).filter((a: any) => 
+        a.orders && validStatuses.includes(a.orders.status)
+      );
       
-      const assignments = allAssignments || [];
+      console.log('📦 Assignments encontrados:', assignments.length, assignments.map((a: any) => ({
+        order: a.orders?.order_number,
+        status: a.orders?.status
+      })));
 
       setMyAssignments(assignments || []);
 

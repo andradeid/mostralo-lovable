@@ -244,11 +244,11 @@ export function MyOrderCard({ assignment, onUpdate, driverEarningsConfig }: MyOr
       case 'entrada':
         return <Badge variant="default" className="bg-blue-500">Pedido Recebido</Badge>;
       case 'em_preparo':
-        return <Badge variant="default" className="bg-orange-500">Em Preparo</Badge>;
+        return <Badge variant="default" className="bg-orange-500 animate-pulse">⏳ Em Preparo - Aguarde</Badge>;
       case 'aguarda_retirada':
-        return <Badge variant="secondary" className="bg-yellow-500">Aguardando Retirada</Badge>;
+        return <Badge variant="secondary" className="bg-yellow-500">✅ Pronto para Retirada</Badge>;
       case 'em_transito':
-        return <Badge variant="secondary" className="bg-blue-500">Em Trânsito</Badge>;
+        return <Badge variant="secondary" className="bg-blue-500">🚗 Em Trânsito</Badge>;
       case 'concluido':
         return <Badge className="bg-green-600">Entregue</Badge>;
       case 'cancelado':
@@ -384,7 +384,17 @@ export function MyOrderCard({ assignment, onUpdate, driverEarningsConfig }: MyOr
           </Button>
 
 
-          {/* ✅ STATUS MESTRE: Mostrar botão "Retirado" quando lojista colocar "aguarda_retirada" */}
+          {/* ✅ STATUS MESTRE: Mostrar botão "Retirado" apenas quando pronto para retirada */}
+          {order.status === 'em_preparo' && (
+            <Button 
+              disabled
+              className="w-full gap-2 opacity-60 cursor-not-allowed"
+            >
+              <Package className="w-4 h-4" />
+              Aguardando Preparo da Loja...
+            </Button>
+          )}
+          
           {order.status === 'aguarda_retirada' && (
             <Button 
               onClick={handleMarkAsPickedUp} 

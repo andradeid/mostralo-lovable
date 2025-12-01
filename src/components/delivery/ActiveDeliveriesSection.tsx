@@ -54,7 +54,7 @@ export function ActiveDeliveriesSection({
     (assignment) => assignment.orders !== null && 
     assignment.orders.status !== 'concluido' && 
     assignment.orders.status !== 'cancelado' &&
-    (assignment.orders.status === 'aguarda_retirada' || assignment.orders.status === 'em_transito')
+    (assignment.orders.status === 'em_preparo' || assignment.orders.status === 'aguarda_retirada' || assignment.orders.status === 'em_transito')
   );
 
   if (activeAssignments.length === 0) {

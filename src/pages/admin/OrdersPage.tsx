@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { DragDropContext, Draggable, DropResult } from "react-beautiful-dnd";
 import { supabase } from "@/integrations/supabase/client";
 import { useNotificationPermission } from '@/hooks/useNotificationPermission';
@@ -9,7 +10,6 @@ import { OrderCard } from "@/components/admin/orders/OrderCard";
 import { OrderDetailDialog } from "@/components/admin/orders/OrderDetailDialog";
 import { OrderFilters } from "@/components/admin/orders/OrderFilters";
 import { CreateOrderDialog } from "@/components/admin/orders/CreateOrderDialog";
-import { NewOrderAlertDialog } from "@/components/admin/orders/NewOrderAlertDialog";
 import { toast } from "sonner";
 import { Inbox, ChefHat, Package, Truck, DollarSign, ShoppingBag, TrendingUp, Bell, Volume2, VolumeX, Plus, AlertCircle, CheckCircle2, Printer, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -32,6 +32,7 @@ type DeliveryType = Database['public']['Enums']['delivery_type'];
 const OrdersPage = () => {
   // Hook de segurança - valida acesso à loja
   const { storeId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -46,14 +47,12 @@ const OrdersPage = () => {
     return saved !== 'false'; // padrão é true
   });
   const [pendingOrders, setPendingOrders] = useState<Order[]>([]);
-  const [alertOrder, setAlertOrder] = useState<Order | null>(null);
   const [audioUnlocked, setAudioUnlocked] = useState<boolean>(() => {
     // Verificar se já foi desbloqueado nesta sessão
     return sessionStorage.getItem('audioUnlocked') === 'true';
   });
   const [audioBlocked, setAudioBlocked] = useState(false);
   
-  const [shownAlertIds, setShownAlertIds] = useState<Set<string>>(new Set());
   const [viewedOrderIds, setViewedOrderIds] = useState<Set<string>>(new Set());
   const [selectedSound, setSelectedSound] = useState<NotificationSound>(getSelectedSound());
   
@@ -109,6 +108,20 @@ const OrdersPage = () => {
       };
     }
   }, [storeId, storeAccessLoading, hasAccess]);
+
+  // Verificar query parameter e abrir modal automaticamente
+  useEffect(() => {
+    const orderId = searchParams.get('order');
+    if (orderId && orders.length > 0) {
+      const order = orders.find(o => o.id === orderId);
+      if (order) {
+        setSelectedOrder(order);
+        setDetailDialogOpen(true);
+        // Limpar query parameter
+        setSearchParams({});
+      }
+    }
+  }, [searchParams, orders, setSearchParams]);
 
   // Verificar contexto de áudio ao carregar
   useEffect(() => {
@@ -211,13 +224,6 @@ const OrdersPage = () => {
       if (entranceOrders.length > 0) {
         setPendingOrders(entranceOrders);
         
-        // Mostrar popup apenas para pedidos não visualizados ainda
-        const unshownOrders = entranceOrders.filter(o => !shownAlertIds.has(o.id));
-        if (unshownOrders.length > 0) {
-          setAlertOrder(unshownOrders[0]);
-          setShownAlertIds(prev => new Set(prev).add(unshownOrders[0].id));
-        }
-        
         if (soundEnabled) {
           playOrderAlertLoop(selectedSound);
         }
@@ -245,19 +251,17 @@ const OrdersPage = () => {
             setOrders((prev) => [newOrder, ...prev]);
             
             // Se for pedido na entrada, adicionar à fila de alertas
-            if (newOrder.status === 'entrada' && !shownAlertIds.has(newOrder.id)) {
+            if (newOrder.status === 'entrada') {
               setPendingOrders((prev) => [...prev, newOrder]);
-              setAlertOrder(newOrder);
-              setShownAlertIds(prev => new Set(prev).add(newOrder.id));
               
               // Tocar som em loop se som estiver ativado
-        if (soundEnabled) {
-          playOrderAlertLoop(selectedSound).then(success => {
-            if (!success) {
-              setAudioBlocked(true);
-            }
-          });
-        }
+              if (soundEnabled) {
+                playOrderAlertLoop(selectedSound).then(success => {
+                  if (!success) {
+                    setAudioBlocked(true);
+                  }
+                });
+              }
               
               // Enviar browser notification (funciona em segundo plano!)
               sendNotification('🔔 Novo Pedido!', {
@@ -291,15 +295,6 @@ const OrdersPage = () => {
                 return [...prev, updatedOrder];
               });
               
-              // Se não há alerta ativo, definir este como o alerta
-              setAlertOrder((current) => {
-                if (!current) {
-                  setShownAlertIds(prev => new Set(prev).add(updatedOrder.id));
-                  return updatedOrder;
-                }
-                return current;
-              });
-              
               // Tocar som em loop se som estiver ativado
               if (soundEnabled) {
                 playOrderAlertLoop(selectedSound).then(success => {
@@ -316,17 +311,6 @@ const OrdersPage = () => {
             // Se o pedido saiu do status "entrada", remover da fila de alertas
             else if (updatedOrder.status !== 'entrada') {
               setPendingOrders((prev) => prev.filter(o => o.id !== updatedOrder.id));
-              
-              // Se era o pedido atual do alerta, passar para o próximo ou fechar
-              if (alertOrder?.id === updatedOrder.id) {
-                const remaining = pendingOrders.filter(o => o.id !== updatedOrder.id);
-                if (remaining.length > 0) {
-                  setAlertOrder(remaining[0]);
-                } else {
-                  setAlertOrder(null);
-                  stopOrderAlertLoop();
-                }
-              }
             }
           }
         }
@@ -399,15 +383,8 @@ const OrdersPage = () => {
     // Atualizar fila de alertas imediatamente para evitar loop persistente
     if (order.status === 'entrada' && newStatus !== 'entrada') {
       setPendingOrders((prev) => prev.filter((o) => o.id !== order.id));
-      if (alertOrder?.id === order.id) {
-        const remaining = pendingOrders.filter((o) => o.id !== order.id);
-        setAlertOrder(remaining.length > 0 ? remaining[0] : null);
-      }
     } else if (order.status !== 'entrada' && newStatus === 'entrada') {
       setPendingOrders((prev) => (prev.some((o) => o.id === order.id) ? prev : [...prev, { ...order, status: newStatus } as Order]));
-      if (!alertOrder) {
-        setAlertOrder({ ...order, status: newStatus } as Order);
-      }
     }
 
     // Atualizar no banco
@@ -502,16 +479,9 @@ const OrdersPage = () => {
 
     toast.success('Pedido aceito e movido para Em Preparo!');
     
-    // Remover da fila e passar para o próximo
+    // Remover da fila
     const remaining = pendingOrders.filter(o => o.id !== orderId);
     setPendingOrders(remaining);
-    
-    if (remaining.length > 0) {
-      setAlertOrder(remaining[0]);
-    } else {
-      setAlertOrder(null);
-      stopOrderAlertLoop();
-    }
     
     // Verificar se deve imprimir automaticamente
     const order = orders.find(o => o.id === orderId);
@@ -548,15 +518,6 @@ const OrdersPage = () => {
     
     // Remover da fila de alertas
     setPendingOrders((prev) => prev.filter(o => o.id !== order.id));
-    
-    // Passar para o próximo alerta
-    const remaining = pendingOrders.filter(o => o.id !== order.id);
-    if (remaining.length > 0) {
-      setAlertOrder(remaining[0]);
-    } else {
-      setAlertOrder(null);
-      stopOrderAlertLoop();
-    }
   };
 
   const getFilteredOrders = () => {
@@ -1122,14 +1083,6 @@ const OrdersPage = () => {
         open={createOrderDialogOpen}
         onOpenChange={setCreateOrderDialogOpen}
         onSuccess={fetchOrders}
-      />
-
-      {/* New Order Alert Dialog */}
-      <NewOrderAlertDialog
-        order={alertOrder}
-        open={!!alertOrder}
-        onAccept={handleAcceptOrder}
-        onViewDetails={handleViewOrderDetails}
       />
 
       {/* Notification Permission Dialog */}

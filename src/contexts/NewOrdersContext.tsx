@@ -11,8 +11,10 @@ interface Order {
   order_number: string;
   customer_name: string;
   customer_phone: string;
+  customer_address: string | null;
   total: number;
   status: string;
+  delivery_type: string;
   created_at: string;
 }
 
@@ -49,7 +51,7 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
     const fetchPendingOrders = async () => {
       const { data, error } = await supabase
         .from('orders')
-        .select('id, order_number, customer_name, customer_phone, total, status, created_at')
+        .select('id, order_number, customer_name, customer_phone, customer_address, total, status, delivery_type, created_at')
         .eq('store_id', storeId)
         .eq('status', 'entrada')
         .order('created_at', { ascending: false });

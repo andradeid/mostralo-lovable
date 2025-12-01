@@ -168,14 +168,26 @@ export default function SubscriptionPage() {
 
     if (store) {
       const plan = (store as any).plans;
-      const planPrice = Number(plan?.price ?? 0);
+      
+      // ✅ Se o plano vinculado retornar null (plano inativo), buscar diretamente pelo plan_id
+      let planData = plan;
+      if (!plan && store.plan_id) {
+        const { data: directPlan } = await supabase
+          .from('plans')
+          .select('name, price, billing_cycle')
+          .eq('id', store.plan_id)
+          .single();
+        planData = directPlan;
+      }
+      
+      const planPrice = Number(planData?.price ?? 0);
       const customPrice = store.custom_monthly_price ? Number(store.custom_monthly_price) : null;
       const actualPrice = customPrice ?? planPrice;
       
       setSubscription({
-        planName: plan?.name ?? 'Sem Plano',
+        planName: planData?.name ?? 'Sem Plano',
         planPrice: planPrice,
-        billingCycle: plan?.billing_cycle ?? 'monthly',
+        billingCycle: planData?.billing_cycle ?? 'monthly',
         subscriptionExpiresAt: store.subscription_expires_at,
         storeStatus: store.status,
         createdAt: store.created_at,
@@ -406,7 +418,7 @@ export default function SubscriptionPage() {
   };
 
   const getSubscriptionStatus = () => {
-    if (!subscription?.subscriptionExpiresAt) return { badge: <Badge>Sem Plano</Badge>, text: '', isExpired: false };
+    if (!subscription?.subscriptionExpiresAt) return { badge: <Badge>Sem Plano</Badge>, text: '', isExpired: false, isExpiring: false };
     
     const daysUntil = Math.ceil((new Date(subscription.subscriptionExpiresAt).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
     
@@ -414,7 +426,8 @@ export default function SubscriptionPage() {
       return { 
         badge: <Badge variant="destructive">❌ Expirado</Badge>, 
         text: 'Sua assinatura expirou. Regularize o pagamento para continuar usando o sistema.',
-        isExpired: true
+        isExpired: true,
+        isExpiring: false
       };
     }
     
@@ -422,14 +435,16 @@ export default function SubscriptionPage() {
       return { 
         badge: <Badge variant="secondary" className="bg-yellow-500">⚠️ Próximo ao Vencimento</Badge>, 
         text: `Sua assinatura vence em ${daysUntil} dia${daysUntil > 1 ? 's' : ''}. Não se esqueça de renovar!`,
-        isExpired: false
+        isExpired: false,
+        isExpiring: true // ✅ Flag para mostrar opções de renovação
       };
     }
     
     return { 
       badge: <Badge variant="default" className="bg-green-500">✅ Ativo</Badge>, 
       text: 'Sua assinatura está ativa e em dia.',
-      isExpired: false
+      isExpired: false,
+      isExpiring: false
     };
   };
 
@@ -558,18 +573,23 @@ export default function SubscriptionPage() {
       )}
 
       {/* Seção de Renovação - Planos Disponíveis */}
-      {status.isExpired && !hasPendingRenewal && (
+      {(status.isExpired || status.isExpiring) && !hasPendingRenewal && (
         <Card className="border-primary/50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CreditCard className="h-5 w-5" />
-              Renovar Assinatura
+              {status.isExpired ? 'Renovar Assinatura' : 'Renovar ou Trocar de Plano'}
             </CardTitle>
             <CardDescription>
-              {subscription?.customMonthlyPrice 
-                ? 'Renove sua assinatura mantendo seu desconto especial'
-                : 'Escolha um plano para renovar sua assinatura e continuar usando o sistema'
-              }
+              {status.isExpired ? (
+                subscription?.customMonthlyPrice 
+                  ? 'Renove sua assinatura mantendo seu desconto especial'
+                  : 'Escolha um plano para renovar sua assinatura e continuar usando o sistema'
+              ) : (
+                subscription?.customMonthlyPrice
+                  ? 'Sua assinatura está próxima ao vencimento. Renove agora mantendo seu desconto especial!'
+                  : 'Sua assinatura está próxima ao vencimento. Renove ou escolha um novo plano!'
+              )}
             </CardDescription>
           </CardHeader>
           <CardContent>

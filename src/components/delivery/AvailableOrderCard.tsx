@@ -71,9 +71,17 @@ export function AvailableOrderCard({ order, onAccept, driverEarnings }: Availabl
       </CardHeader>
 
       <CardContent className="space-y-3">
-        <div className="flex items-start gap-2 text-sm">
-          <MapPin className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
-          <span className="text-muted-foreground">{order.customer_address || 'Endereço não informado'}</span>
+        {/* 📍 DESTINO - Endereço do Cliente em DESTAQUE */}
+        <div className="p-4 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 border-2 border-blue-400 dark:border-blue-500 rounded-lg space-y-2 shadow-md">
+          <div className="flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-white shrink-0" />
+            <span className="text-sm font-bold text-white">
+              📍 DESTINO
+            </span>
+          </div>
+          <p className="text-sm font-medium text-white leading-relaxed">
+            {order.customer_address || 'Endereço não informado'}
+          </p>
         </div>
 
         <div className="flex items-center gap-2 text-sm">
@@ -81,9 +89,14 @@ export function AvailableOrderCard({ order, onAccept, driverEarnings }: Availabl
           <span className="text-muted-foreground font-mono">{maskPhone(order.customer_phone)}</span>
         </div>
 
-        <div className="flex items-center gap-2 text-sm">
-          <DollarSign className="w-4 h-4 text-muted-foreground" />
-          <span className="font-semibold text-green-600">{formatCurrency(driverEarnings ?? order.delivery_fee ?? order.total)}</span>
+        <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
+          <div className="flex items-center gap-2">
+            <DollarSign className="w-5 h-5 text-green-600" />
+            <span className="text-sm text-muted-foreground">Você ganha:</span>
+          </div>
+          <span className="font-bold text-lg text-green-600">
+            {formatCurrency(driverEarnings ?? order.delivery_fee ?? order.total)}
+          </span>
         </div>
 
         {order.notes && (

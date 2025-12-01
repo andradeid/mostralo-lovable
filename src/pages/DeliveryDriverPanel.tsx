@@ -408,9 +408,13 @@ export default function DeliveryDriverPanel() {
         .eq('delivery_driver_id', profile.id)
         .order('assigned_at', { ascending: false });
       
-      // Filtrar apenas pedidos com status 'aguarda_retirada' ou 'em_transito' (status mestre)
+      // Filtrar pedidos atribuídos a este entregador e em andamento (status mestre)
       const assignments = (allAssignments || []).filter((a: any) => 
-        a.orders && (a.orders.status === 'aguarda_retirada' || a.orders.status === 'em_transito')
+        a.orders && (
+          a.orders.status === 'em_preparo' ||
+          a.orders.status === 'aguarda_retirada' || 
+          a.orders.status === 'em_transito'
+        )
       );
 
       setMyAssignments(assignments || []);

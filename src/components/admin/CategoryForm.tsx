@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,6 +30,15 @@ export const CategoryForm = ({ open, onOpenChange, onSuccess, category }: Catego
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+
+  // Sincronizar estados quando o dialog abre ou a categoria muda
+  useEffect(() => {
+    if (open) {
+      setName(category?.name || '');
+      setDescription(category?.description || '');
+      setIsActive(category?.is_active ?? true);
+    }
+  }, [open, category]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

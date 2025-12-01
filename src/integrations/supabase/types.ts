@@ -3495,6 +3495,10 @@ export type Database = {
         Args: { driver_user_id: string }
         Returns: boolean
       }
+      is_product_variant_from_active_store: {
+        Args: { variant_product_id: string }
+        Returns: boolean
+      }
       is_store_admin_of_attendant: {
         Args: { attendant_user_id: string }
         Returns: boolean

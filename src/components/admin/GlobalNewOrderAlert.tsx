@@ -16,7 +16,8 @@ export function GlobalNewOrderAlert() {
   const navigate = useNavigate();
   const [currentOrder, setCurrentOrder] = useState<typeof pendingOrders[0] | null>(null);
   const [isAccepting, setIsAccepting] = useState(false);
-  const timer = currentOrder ? useOrderTimer(currentOrder.created_at) : null;
+  // ✅ Hook chamado sempre para respeitar Rules of Hooks
+  const timer = useOrderTimer(currentOrder?.created_at || new Date().toISOString());
 
   // Mostrar o primeiro pedido pendente
   useEffect(() => {

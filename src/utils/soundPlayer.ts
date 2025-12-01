@@ -34,10 +34,18 @@ let lastPlayAt = 0;
 let currentAudio: HTMLAudioElement | null = null;
 let loopingAudio: HTMLAudioElement | null = null;
 
+// Detectar se está rodando no Electron
+const isElectron = () => {
+  return typeof window !== 'undefined' && (window as any).electron?.isElectron === true;
+};
+
+// Detectar se está rodando no Capacitor
+const isCapacitor = () => {
+  return typeof window !== 'undefined' && (window as any).Capacitor !== undefined;
+};
+
 export const playNewOrderSound = async (soundType?: NotificationSound): Promise<boolean> => {
   try {
-    if (typeof Audio === 'undefined') return false;
-
     const now = Date.now();
     if (now - lastPlayAt < 1500) {
       // Evita tocar sons múltiplos em sequência muito rápida
@@ -46,6 +54,30 @@ export const playNewOrderSound = async (soundType?: NotificationSound): Promise<
 
     const sound = soundType || getSelectedSound();
     const soundPath = soundFiles[sound];
+
+    // ELECTRON: Usar API nativa sem bloqueio de autoplay
+    if (isElectron()) {
+      const electron = (window as any).electron;
+      electron.playSound(soundPath);
+      lastPlayAt = now;
+      return true;
+    }
+
+    // CAPACITOR: Usar vibração nativa
+    if (isCapacitor()) {
+      // @ts-ignore - Capacitor será instalado quando usuário compilar
+      const { Haptics } = window.Capacitor?.Plugins || {};
+      
+      if (Haptics) {
+        try {
+          await Haptics.impact({ style: 'Heavy' });
+        } catch {}
+      }
+      // Continuar com playback normal abaixo
+    }
+
+    // WEB: Comportamento padrão com proteção de autoplay
+    if (typeof Audio === 'undefined') return false;
 
     // Parar áudio anterior, se houver
     if (currentAudio) {

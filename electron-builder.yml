@@ -1,0 +1,38 @@
+appId: com.mostralo.app
+productName: Mostralo
+copyright: Copyright © 2025 Mostralo
+directories:
+  buildResources: build
+  output: dist-electron
+files:
+  - dist/**/*
+  - electron/**/*
+  - package.json
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: build/icon.ico
+  artifactName: ${productName}-Setup-${version}.${ext}
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Mostralo
+  installerIcon: build/icon.ico
+  uninstallerIcon: build/icon.ico
+  installerHeaderIcon: build/icon.ico
+mac:
+  target:
+    - dmg
+    - zip
+  icon: build/icon.icns
+  category: public.app-category.business
+linux:
+  target:
+    - AppImage
+    - deb
+  icon: build/icon.png
+  category: Office

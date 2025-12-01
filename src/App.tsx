@@ -88,6 +88,7 @@ import SalespersonProfile from "./pages/salesperson/SalespersonProfile";
 import { SalespersonLayout } from "./components/salesperson/SalespersonLayout";
 import ProspectingGuidePage from "./pages/admin/ProspectingGuidePage";
 import BusinessIntelligencePage from "./pages/admin/BusinessIntelligencePage";
+import CompileAppsGuidePage from "./pages/admin/CompileAppsGuidePage";
 
 const queryClient = new QueryClient();
 
@@ -145,6 +146,13 @@ const App = () => (
               <ProtectedRoute allowedRoles={['master_admin']}>
                 <AdminLayout pageTitle="Guia de Prospecção">
                   <ProspectingGuidePage />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/compile-apps" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Compilar Apps">
+                  <CompileAppsGuidePage />
                 </AdminLayout>
               </ProtectedRoute>
             } />

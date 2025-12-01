@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { playOrderAlertLoop, stopOrderAlertLoop, getSelectedSound } from '@/utils/soundPlayer';
 import { useNotificationPermission } from '@/hooks/useNotificationPermission';
+import { sendNativeNotification } from '@/utils/nativeNotifications';
 
 interface Order {
   id: string;
@@ -92,7 +93,16 @@ export function NewOrdersProvider({ children }: { children: ReactNode }) {
               playOrderAlertLoop(getSelectedSound());
             }
 
-            // Enviar notificação do browser
+            // Enviar notificação nativa (funciona em Electron, Capacitor e Web)
+            (async () => {
+              await sendNativeNotification({
+                title: `🔔 Novo Pedido! - ${newOrder.order_number}`,
+                body: `${newOrder.customer_name} - R$ ${newOrder.total.toFixed(2)}`,
+                sound: true,
+              });
+            })();
+
+            // Fallback para notificação web padrão (useNotificationPermission)
             if (permission === 'granted') {
               sendNotification(`🔔 Novo Pedido! - ${newOrder.order_number}`, {
                 body: `${newOrder.customer_name} - R$ ${newOrder.total.toFixed(2)}`,

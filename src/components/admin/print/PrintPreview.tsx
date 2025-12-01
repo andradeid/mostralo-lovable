@@ -300,7 +300,7 @@ function PreviewContent({
         <div className="border-t-2 border-black mt-4 pt-3">
           <div style={{ textAlign: 'center' }} className="text-xs text-muted-foreground">
             <div className="mb-1">Sistema de pedidos online</div>
-            <div className="font-bold text-black">MOSTRALO - www.mostralo.app</div>
+            <div className="font-bold text-black">MOSTRALO - {window.location.host}</div>
           </div>
         </div>
       </div>

@@ -388,6 +388,41 @@ const ProductsPage = () => {
     }
   };
 
+  const applyAlphabeticalOrderToCategory = async (categoryId: string) => {
+    const category = categories.find(c => c.id === categoryId);
+    if (!category) return;
+
+    // Ordenar produtos alfabeticamente (pt-BR para acentuação correta)
+    const sortedProducts = [...category.products].sort((a, b) => 
+      a.name.localeCompare(b.name, 'pt-BR')
+    );
+
+    try {
+      // Atualizar display_order no banco de dados
+      for (let i = 0; i < sortedProducts.length; i++) {
+        await supabase
+          .from('products')
+          .update({ display_order: i })
+          .eq('id', sortedProducts[i].id);
+      }
+
+      toast({
+        title: 'Sucesso',
+        description: `Produtos de "${category.name}" ordenados de A-Z!`,
+      });
+
+      // Recarregar dados
+      await fetchCategoriesAndProducts();
+    } catch (error) {
+      console.error('Erro ao ordenar produtos:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao ordenar produtos.',
+        variant: 'destructive'
+      });
+    }
+  };
+
   const filteredCategories = categories.map(category => ({
     ...category,
     products: category.products
@@ -613,10 +648,21 @@ const ProductsPage = () => {
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center space-x-4 mr-4">
+                        <div className="flex items-center space-x-2 mr-4">
                           <Badge variant="outline">
                             {category.products.length} produto{category.products.length !== 1 ? 's' : ''}
                           </Badge>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              applyAlphabeticalOrderToCategory(category.id);
+                            }}
+                            title="Ordenar produtos de A-Z"
+                          >
+                            <ArrowDownAZ className="w-4 h-4" />
+                          </Button>
                           <Button
                             size="sm"
                             onClick={(e) => {

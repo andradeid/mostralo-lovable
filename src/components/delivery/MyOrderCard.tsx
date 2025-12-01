@@ -277,18 +277,51 @@ export function MyOrderCard({ assignment, onUpdate, driverEarningsConfig }: MyOr
       </CardHeader>
 
       <CardContent className="space-y-3">
-        <div className="flex items-center gap-2 text-sm">
-          <User className="h-4 w-4 text-muted-foreground" />
-          <span className="truncate">{getFirstName(order.customer_name)}</span>
+        {/* 📍 DESTINO - Localização do Cliente em DESTAQUE NO TOPO */}
+        <div className="p-4 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 border-2 border-blue-400 dark:border-blue-500 rounded-lg space-y-2 shadow-md">
+          <div className="flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-white shrink-0" />
+            <span className="text-sm font-bold text-white">
+              📍 DESTINO - ENTREGAR AQUI
+            </span>
+          </div>
+          {order.customer_address ? (
+            <>
+              <p className="text-sm font-medium text-white leading-relaxed">{order.customer_address}</p>
+              {/* Mostrar botões de navegação sempre visíveis para o destino */}
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <Button 
+                  onClick={openGoogleMapsToCustomer} 
+                  variant="secondary" 
+                  size="sm"
+                  className="h-9 text-sm gap-2 bg-white hover:bg-blue-50 text-blue-600 font-semibold"
+                >
+                  <Navigation className="w-4 h-4" />
+                  Maps
+                </Button>
+                <Button 
+                  onClick={openWazeToCustomer} 
+                  variant="secondary" 
+                  size="sm"
+                  className="h-9 text-sm gap-2 bg-white hover:bg-blue-50 text-blue-600 font-semibold"
+                >
+                  <Navigation className="w-4 h-4" />
+                  Waze
+                </Button>
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-white/90">Endereço não informado</p>
+          )}
         </div>
 
-        {/* Localização da Loja - Sempre visível se configurada */}
-        {storeLocation && (storeLocation.address || (storeLocation.latitude && storeLocation.longitude)) ? (
+        {/* 🏪 Localização da Loja - Menor e menos destacada */}
+        {storeLocation && (storeLocation.address || (storeLocation.latitude && storeLocation.longitude)) && (order.status === 'aguarda_retirada' || order.status === 'em_preparo') ? (
           <div className="p-3 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg space-y-2">
             <div className="flex items-center gap-2">
               <Building2 className="w-4 h-4 text-orange-600 dark:text-orange-400 shrink-0" />
               <span className="text-xs font-semibold text-orange-700 dark:text-orange-300">
-                📍 Localização da Loja
+                🏪 Retirar na Loja
               </span>
             </div>
             {storeLocation.name && (
@@ -299,71 +332,28 @@ export function MyOrderCard({ assignment, onUpdate, driverEarningsConfig }: MyOr
             ) : storeLocation.latitude && storeLocation.longitude ? (
               <p className="text-xs text-muted-foreground">Coordenadas: {storeLocation.latitude.toFixed(6)}, {storeLocation.longitude.toFixed(6)}</p>
             ) : null}
-            {/* Mostrar botões de navegação para loja quando status for 'aguarda_retirada' ou 'em_preparo' */}
-            {(order.status === 'aguarda_retirada' || order.status === 'em_preparo') && (
-              <div className="grid grid-cols-2 gap-1.5 pt-1">
-                <Button 
-                  onClick={openGoogleMapsToStore}
-                  variant="outline" 
-                  size="sm"
-                  className="h-7 text-xs gap-1"
-                >
-                  <Navigation className="w-3 h-3" />
-                  Maps
-                </Button>
-                <Button 
-                  onClick={openWazeToStore}
-                  variant="outline" 
-                  size="sm"
-                  className="h-7 text-xs gap-1"
-                >
-                  <Navigation className="w-3 h-3" />
-                  Waze
-                </Button>
-              </div>
-            )}
+            <div className="grid grid-cols-2 gap-1.5 pt-1">
+              <Button 
+                onClick={openGoogleMapsToStore}
+                variant="outline" 
+                size="sm"
+                className="h-7 text-xs gap-1"
+              >
+                <Navigation className="w-3 h-3" />
+                Maps
+              </Button>
+              <Button 
+                onClick={openWazeToStore}
+                variant="outline" 
+                size="sm"
+                className="h-7 text-xs gap-1"
+              >
+                <Navigation className="w-3 h-3" />
+                Waze
+              </Button>
+            </div>
           </div>
         ) : null}
-
-        {/* Localização do Cliente - Sempre visível */}
-        <div className="p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg space-y-2">
-          <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
-            <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">
-              🏠 Localização do Cliente
-            </span>
-          </div>
-          {order.customer_address ? (
-            <>
-              <p className="text-xs text-muted-foreground">{truncateAddress(order.customer_address, 45)}</p>
-              {/* Mostrar botões de navegação para cliente quando status for 'em_transito' */}
-              {order.status === 'em_transito' && (
-                <div className="grid grid-cols-2 gap-1.5 pt-1">
-                  <Button 
-                    onClick={openGoogleMapsToCustomer} 
-                    variant="outline" 
-                    size="sm"
-                    className="h-7 text-xs gap-1"
-                  >
-                    <Navigation className="w-3 h-3" />
-                    Maps
-                  </Button>
-                  <Button 
-                    onClick={openWazeToCustomer} 
-                    variant="outline" 
-                    size="sm"
-                    className="h-7 text-xs gap-1"
-                  >
-                    <Navigation className="w-3 h-3" />
-                    Waze
-                  </Button>
-                </div>
-              )}
-            </>
-          ) : (
-            <p className="text-xs text-muted-foreground">Endereço não informado</p>
-          )}
-        </div>
 
         <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
           <div className="flex items-center gap-2">

@@ -22,7 +22,6 @@ import ProductPage from "./pages/ProductPage";
 import StoreXML from "./pages/StoreXML";
 import GoogleShoppingFeed from "./pages/GoogleShoppingFeed";
 import MetaCommerceFeed from "./pages/MetaCommerceFeed";
-import ProductFeedsGuidePage from "./pages/admin/ProductFeedsGuidePage";
 import CustomerAuth from "./pages/CustomerAuth";
 import CustomerPanel from "./pages/CustomerPanel";
 import CustomerProfile from "./pages/CustomerProfile";
@@ -354,11 +353,6 @@ const App = () => (
             <Route path="/dashboard/print-config" element={
               <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
                 <AdminLayout><PrintConfigPage /></AdminLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/dashboard/product-feeds" element={
-              <ProtectedRoute allowedRoles={['store_admin']}>
-                <AdminLayout pageTitle="Feeds de Produtos"><ProductFeedsGuidePage /></AdminLayout>
               </ProtectedRoute>
             } />
 

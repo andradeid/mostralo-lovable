@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CustomDomainConfig } from "../CustomDomainConfig";
 import { Button } from "@/components/ui/button";
-import { Copy, ExternalLink, Info } from "lucide-react";
+import { Copy, ExternalLink, Info, ShoppingCart, Instagram } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -29,6 +29,8 @@ export function GeneralStep({ formData, updateFormData }: GeneralStepProps) {
   const { toast } = useToast();
   const xmlApiUrl = `${window.location.origin}/loja/${formData.slug}/info.xml`;
   const jsonApiUrl = `https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/store-info-json?slug=${formData.slug}`;
+  const googleShoppingFeedUrl = `${window.location.origin}/loja/${formData.slug}/feed.xml`;
+  const metaCommerceFeedUrl = `${window.location.origin}/loja/${formData.slug}/feed.csv`;
 
   const handleCopyUrl = (url: string) => {
     navigator.clipboard.writeText(url);
@@ -520,6 +522,159 @@ print(store_data)`}
                   Os dados são atualizados no máximo a cada 5 minutos no servidor.
                 </AlertDescription>
               </Alert>
+            </div>
+          </div>
+        </div>
+
+        {/* Feeds de Produtos para E-commerce */}
+        <div className="mt-6 pt-6 border-t">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Label className="text-base font-semibold">🛒 Feeds de Produtos para E-commerce</Label>
+            </div>
+            
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertDescription className="text-sm">
+                URLs de feeds para sincronizar seus produtos com Google Shopping, Instagram Shopping e Facebook Shop. 
+                Os feeds são atualizados automaticamente quando você altera produtos.
+              </AlertDescription>
+            </Alert>
+
+            {/* Google Shopping Feed */}
+            <div className="space-y-2 p-4 border rounded-lg bg-blue-50 dark:bg-blue-950">
+              <div className="flex items-center gap-2">
+                <ShoppingCart className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <Label className="text-sm font-semibold text-blue-700 dark:text-blue-300">
+                  Google Shopping (XML)
+                </Label>
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={googleShoppingFeedUrl}
+                  readOnly
+                  className="font-mono text-xs bg-white dark:bg-gray-900"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleCopyUrl(googleShoppingFeedUrl)}
+                  title="Copiar URL"
+                >
+                  <Copy className="w-4 h-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleOpenUrl(googleShoppingFeedUrl)}
+                  title="Abrir Feed"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-blue-700 dark:text-blue-300">
+                Feed XML no formato Google Merchant Center para anúncios no Google Shopping.
+              </p>
+            </div>
+
+            {/* Instagram/Meta Feed */}
+            <div className="space-y-2 p-4 border rounded-lg bg-pink-50 dark:bg-pink-950">
+              <div className="flex items-center gap-2">
+                <Instagram className="w-5 h-5 text-pink-600 dark:text-pink-400" />
+                <Label className="text-sm font-semibold text-pink-700 dark:text-pink-300">
+                  Instagram / Meta Commerce (CSV)
+                </Label>
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={metaCommerceFeedUrl}
+                  readOnly
+                  className="font-mono text-xs bg-white dark:bg-gray-900"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleCopyUrl(metaCommerceFeedUrl)}
+                  title="Copiar URL"
+                >
+                  <Copy className="w-4 h-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleOpenUrl(metaCommerceFeedUrl)}
+                  title="Abrir Feed"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-pink-700 dark:text-pink-300">
+                Feed CSV para Instagram Shopping, Facebook Shop e Meta Commerce Manager.
+              </p>
+            </div>
+
+            {/* Guia de Configuração */}
+            <div className="space-y-3">
+              <Label className="text-sm font-semibold">📖 Guia de Configuração</Label>
+              
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="google-merchant">
+                  <AccordionTrigger className="text-sm">
+                    <div className="flex items-center gap-2">
+                      <ShoppingCart className="w-4 h-4 text-blue-500" />
+                      <span className="font-semibold">Google Merchant Center</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="space-y-2">
+                    <div className="text-xs space-y-2 p-3 bg-muted rounded">
+                      <p className="font-semibold">Passo a passo:</p>
+                      <ol className="list-decimal ml-4 space-y-1">
+                        <li>Acesse <a href="https://merchants.google.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">merchants.google.com</a></li>
+                        <li>Vá em <strong>Produtos → Feeds → Adicionar feed principal</strong></li>
+                        <li>Selecione <strong>"Busca programada"</strong> e cole a URL do feed XML</li>
+                        <li>Configure atualização <strong>diária</strong> para sincronizar preços</li>
+                        <li>Aguarde a validação do Google (pode levar algumas horas)</li>
+                      </ol>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="meta-commerce">
+                  <AccordionTrigger className="text-sm">
+                    <div className="flex items-center gap-2">
+                      <Instagram className="w-4 h-4 text-pink-500" />
+                      <span className="font-semibold">Instagram / Facebook Shop</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="space-y-2">
+                    <div className="text-xs space-y-2 p-3 bg-muted rounded">
+                      <p className="font-semibold">Passo a passo:</p>
+                      <ol className="list-decimal ml-4 space-y-1">
+                        <li>Acesse <a href="https://business.facebook.com/commerce" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">business.facebook.com/commerce</a></li>
+                        <li>Clique em <strong>"Criar Catálogo"</strong> e selecione a categoria</li>
+                        <li>Vá em <strong>Fontes de dados → Feed de dados → Feed agendado</strong></li>
+                        <li>Cole a URL do feed CSV e configure atualização diária</li>
+                        <li>Vincule ao <strong>Instagram Business</strong> nas configurações do catálogo</li>
+                      </ol>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
+
+            {/* Requisitos */}
+            <div className="text-xs text-muted-foreground bg-muted p-3 rounded-md">
+              <strong>✅ Requisitos para aprovação:</strong>
+              <ul className="list-disc ml-4 mt-1 space-y-0.5">
+                <li>Imagens de produtos com mínimo 100x100px</li>
+                <li>Preços sempre atualizados</li>
+                <li>Descrições claras e sem caracteres especiais</li>
+                <li>Produtos indisponíveis aparecem como "out_of_stock" automaticamente</li>
+              </ul>
             </div>
           </div>
         </div>

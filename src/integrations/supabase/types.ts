@@ -951,6 +951,7 @@ export type Database = {
           driver_id: string
           earnings_amount: number
           id: string
+          minimum_amount: number | null
           order_id: string
           paid_at: string | null
           payment_receipt_url: string | null
@@ -971,6 +972,7 @@ export type Database = {
           driver_id: string
           earnings_amount: number
           id?: string
+          minimum_amount?: number | null
           order_id: string
           paid_at?: string | null
           payment_receipt_url?: string | null
@@ -991,6 +993,7 @@ export type Database = {
           driver_id?: string
           earnings_amount?: number
           id?: string
+          minimum_amount?: number | null
           order_id?: string
           paid_at?: string | null
           payment_receipt_url?: string | null
@@ -1041,6 +1044,7 @@ export type Database = {
           fixed_amount: number | null
           id: string
           is_active: boolean | null
+          minimum_amount: number | null
           payment_type: Database["public"]["Enums"]["payment_type"]
           store_id: string
           updated_at: string | null
@@ -1052,6 +1056,7 @@ export type Database = {
           fixed_amount?: number | null
           id?: string
           is_active?: boolean | null
+          minimum_amount?: number | null
           payment_type?: Database["public"]["Enums"]["payment_type"]
           store_id: string
           updated_at?: string | null
@@ -1063,6 +1068,7 @@ export type Database = {
           fixed_amount?: number | null
           id?: string
           is_active?: boolean | null
+          minimum_amount?: number | null
           payment_type?: Database["public"]["Enums"]["payment_type"]
           store_id?: string
           updated_at?: string | null
@@ -3546,7 +3552,7 @@ export type Database = {
         | "cancelado"
       payment_method: "pix" | "card" | "cash"
       payment_status: "pending" | "paid" | "cancelled"
-      payment_type: "fixed" | "commission"
+      payment_type: "fixed" | "commission" | "minimum_guaranteed"
       plan_status: "active" | "inactive"
       popup_frequency_type: "once_browser" | "once_session" | "custom_count"
       promotion_scope:
@@ -3711,7 +3717,7 @@ export const Constants = {
       ],
       payment_method: ["pix", "card", "cash"],
       payment_status: ["pending", "paid", "cancelled"],
-      payment_type: ["fixed", "commission"],
+      payment_type: ["fixed", "commission", "minimum_guaranteed"],
       plan_status: ["active", "inactive"],
       popup_frequency_type: ["once_browser", "once_session", "custom_count"],
       promotion_scope: [

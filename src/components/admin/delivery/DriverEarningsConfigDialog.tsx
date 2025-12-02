@@ -7,8 +7,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Slider } from '@/components/ui/slider';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { DollarSign, Percent } from 'lucide-react';
-import { formatCurrency, calculateDriverEarnings } from '@/utils/driverEarnings';
+import { DollarSign, Percent, Shield } from 'lucide-react';
+import { formatCurrency, calculateDriverEarnings, PaymentType } from '@/utils/driverEarnings';
 
 interface DriverEarningsConfigDialogProps {
   open: boolean;
@@ -26,9 +26,10 @@ export function DriverEarningsConfigDialog({
   driver,
   storeId,
 }: DriverEarningsConfigDialogProps) {
-  const [paymentType, setPaymentType] = useState<'fixed' | 'commission'>('fixed');
+  const [paymentType, setPaymentType] = useState<PaymentType>('fixed');
   const [fixedAmount, setFixedAmount] = useState('5.00');
   const [commissionPercentage, setCommissionPercentage] = useState([80]);
+  const [minimumAmount, setMinimumAmount] = useState('7.00');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -50,9 +51,10 @@ export function DriverEarningsConfigDialog({
       if (error && error.code !== 'PGRST116') throw error;
 
       if (data) {
-        setPaymentType(data.payment_type);
+        setPaymentType(data.payment_type as PaymentType);
         if (data.fixed_amount) setFixedAmount(data.fixed_amount.toString());
         if (data.commission_percentage) setCommissionPercentage([data.commission_percentage]);
+        if (data.minimum_amount) setMinimumAmount(data.minimum_amount.toString());
       }
     } catch (error) {
       console.error('Error loading config:', error);
@@ -68,6 +70,7 @@ export function DriverEarningsConfigDialog({
         payment_type: paymentType,
         fixed_amount: paymentType === 'fixed' ? parseFloat(fixedAmount) : null,
         commission_percentage: paymentType === 'commission' ? commissionPercentage[0] : null,
+        minimum_amount: paymentType === 'minimum_guaranteed' ? parseFloat(minimumAmount) : null,
         is_active: true,
       };
 
@@ -89,11 +92,13 @@ export function DriverEarningsConfigDialog({
     }
   };
 
+  // Exemplos de cálculo
   const exampleDeliveryFee = 10;
   const exampleEarnings = calculateDriverEarnings(exampleDeliveryFee, {
     payment_type: paymentType,
     fixed_amount: parseFloat(fixedAmount),
     commission_percentage: commissionPercentage[0],
+    minimum_amount: parseFloat(minimumAmount),
   });
   const storeFee = exampleDeliveryFee - exampleEarnings;
 
@@ -107,7 +112,8 @@ export function DriverEarningsConfigDialog({
         <div className="space-y-6 py-4">
           <div className="space-y-3">
             <Label>Como você quer pagar este entregador?</Label>
-            <RadioGroup value={paymentType} onValueChange={(value: any) => setPaymentType(value)}>
+            <RadioGroup value={paymentType} onValueChange={(value: PaymentType) => setPaymentType(value)}>
+              {/* Opção Valor Fixo */}
               <div className="flex items-center space-x-2 rounded-lg border p-4">
                 <RadioGroupItem value="fixed" id="fixed" />
                 <Label htmlFor="fixed" className="flex-1 cursor-pointer">
@@ -115,6 +121,9 @@ export function DriverEarningsConfigDialog({
                     <DollarSign className="w-4 h-4 text-primary" />
                     <span className="font-medium">Valor Fixo por Entrega</span>
                   </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Sempre o mesmo valor, independente da taxa
+                  </p>
                 </Label>
               </div>
 
@@ -134,13 +143,55 @@ export function DriverEarningsConfigDialog({
                 </div>
               )}
 
+              {/* Opção Mínimo Garantido */}
+              <div className="flex items-center space-x-2 rounded-lg border p-4 border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/20">
+                <RadioGroupItem value="minimum_guaranteed" id="minimum_guaranteed" />
+                <Label htmlFor="minimum_guaranteed" className="flex-1 cursor-pointer">
+                  <div className="flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-green-600" />
+                    <span className="font-medium">Mínimo Garantido</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Paga o maior valor entre a taxa e o mínimo
+                  </p>
+                </Label>
+              </div>
+
+              {paymentType === 'minimum_guaranteed' && (
+                <div className="ml-6 mt-2 space-y-3">
+                  <div>
+                    <Label htmlFor="minimum-amount" className="text-sm">Valor mínimo garantido</Label>
+                    <Input
+                      id="minimum-amount"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={minimumAmount}
+                      onChange={(e) => setMinimumAmount(e.target.value)}
+                      placeholder="7.00"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div className="rounded-md bg-green-100 dark:bg-green-900/30 p-3 text-xs space-y-1">
+                    <p className="font-medium text-green-800 dark:text-green-200">📊 Exemplos:</p>
+                    <p className="text-green-700 dark:text-green-300">• Taxa R$ 5 → Recebe {formatCurrency(parseFloat(minimumAmount) || 7)} (mínimo)</p>
+                    <p className="text-green-700 dark:text-green-300">• Taxa R$ {minimumAmount || 7} → Recebe {formatCurrency(parseFloat(minimumAmount) || 7)} (igual)</p>
+                    <p className="text-green-700 dark:text-green-300">• Taxa R$ 20 → Recebe R$ 20,00 (taxa real)</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Opção Comissão */}
               <div className="flex items-center space-x-2 rounded-lg border p-4">
                 <RadioGroupItem value="commission" id="commission" />
                 <Label htmlFor="commission" className="flex-1 cursor-pointer">
                   <div className="flex items-center gap-2">
                     <Percent className="w-4 h-4 text-primary" />
-                    <span className="font-medium">Comissão sobre Taxa de Entrega</span>
+                    <span className="font-medium">Comissão sobre Taxa</span>
                   </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Percentual da taxa de entrega
+                  </p>
                 </Label>
               </div>
 
@@ -166,23 +217,26 @@ export function DriverEarningsConfigDialog({
             </RadioGroup>
           </div>
 
-          <div className="rounded-lg border bg-muted/50 p-4 space-y-2">
-            <p className="text-sm font-medium">Exemplo de cálculo:</p>
-            <div className="space-y-1 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Taxa do pedido:</span>
-                <span className="font-medium">{formatCurrency(exampleDeliveryFee)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Entregador recebe:</span>
-                <span className="font-medium text-green-600">{formatCurrency(exampleEarnings)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Loja fica com:</span>
-                <span className="font-medium text-blue-600">{formatCurrency(storeFee)}</span>
+          {/* Exemplo de cálculo para fixed e commission */}
+          {paymentType !== 'minimum_guaranteed' && (
+            <div className="rounded-lg border bg-muted/50 p-4 space-y-2">
+              <p className="text-sm font-medium">Exemplo de cálculo:</p>
+              <div className="space-y-1 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Taxa do pedido:</span>
+                  <span className="font-medium">{formatCurrency(exampleDeliveryFee)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Entregador recebe:</span>
+                  <span className="font-medium text-green-600">{formatCurrency(exampleEarnings)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Loja fica com:</span>
+                  <span className="font-medium text-blue-600">{formatCurrency(storeFee)}</span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         <div className="flex gap-2 justify-end">

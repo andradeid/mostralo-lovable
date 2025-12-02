@@ -8,8 +8,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
-import { formatCurrency } from '@/utils/driverEarnings';
+import { Loader2, DollarSign, Percent, Shield } from 'lucide-react';
+import { formatCurrency, PaymentType } from '@/utils/driverEarnings';
 
 interface RenegotiationDialogProps {
   open: boolean;
@@ -18,9 +18,10 @@ interface RenegotiationDialogProps {
   driverName: string;
   storeId: string;
   currentConfig?: {
-    payment_type: 'fixed' | 'commission';
+    payment_type: PaymentType;
     fixed_amount?: number;
     commission_percentage?: number;
+    minimum_amount?: number;
   };
   onSuccess: () => void;
 }
@@ -34,9 +35,10 @@ export function RenegotiationDialog({
   currentConfig,
   onSuccess,
 }: RenegotiationDialogProps) {
-  const [paymentType, setPaymentType] = useState<'fixed' | 'commission'>(currentConfig?.payment_type || 'fixed');
+  const [paymentType, setPaymentType] = useState<PaymentType>(currentConfig?.payment_type || 'fixed');
   const [fixedAmount, setFixedAmount] = useState('');
   const [commissionPercentage, setCommissionPercentage] = useState('');
+  const [minimumAmount, setMinimumAmount] = useState('');
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -47,6 +49,8 @@ export function RenegotiationDialog({
         setFixedAmount(String(currentConfig.fixed_amount));
       } else if (currentConfig.payment_type === 'commission' && currentConfig.commission_percentage) {
         setCommissionPercentage(String(currentConfig.commission_percentage));
+      } else if (currentConfig.payment_type === 'minimum_guaranteed' && currentConfig.minimum_amount) {
+        setMinimumAmount(String(currentConfig.minimum_amount));
       }
     }
   }, [currentConfig]);
@@ -60,6 +64,10 @@ export function RenegotiationDialog({
       toast.error('Informe a porcentagem de comissão');
       return;
     }
+    if (paymentType === 'minimum_guaranteed' && !minimumAmount) {
+      toast.error('Informe o valor mínimo garantido');
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -71,6 +79,7 @@ export function RenegotiationDialog({
           proposed_payment_type: paymentType,
           proposed_fixed_amount: paymentType === 'fixed' ? parseFloat(fixedAmount) : null,
           proposed_commission_percentage: paymentType === 'commission' ? parseFloat(commissionPercentage) : null,
+          proposed_minimum_amount: paymentType === 'minimum_guaranteed' ? parseFloat(minimumAmount) : null,
           invitation_message: message.trim() || 'Proposta de renegociação de valores',
         },
       });
@@ -85,6 +94,20 @@ export function RenegotiationDialog({
       toast.error(error.message || 'Erro ao enviar proposta');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const getCurrentConfigLabel = () => {
+    if (!currentConfig) return null;
+    switch (currentConfig.payment_type) {
+      case 'fixed':
+        return formatCurrency(currentConfig.fixed_amount || 0);
+      case 'commission':
+        return `${currentConfig.commission_percentage}%`;
+      case 'minimum_guaranteed':
+        return `Mín. ${formatCurrency(currentConfig.minimum_amount || 0)}`;
+      default:
+        return null;
     }
   };
 
@@ -103,9 +126,7 @@ export function RenegotiationDialog({
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Valores atuais:</span>
               <Badge variant="outline">
-                {currentConfig.payment_type === 'fixed'
-                  ? formatCurrency(currentConfig.fixed_amount || 0)
-                  : `${currentConfig.commission_percentage}%`}
+                {getCurrentConfigLabel()}
               </Badge>
             </div>
           </div>
@@ -114,23 +135,32 @@ export function RenegotiationDialog({
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label>Tipo de Pagamento</Label>
-            <RadioGroup value={paymentType} onValueChange={(v) => setPaymentType(v as 'fixed' | 'commission')}>
+            <RadioGroup value={paymentType} onValueChange={(v) => setPaymentType(v as PaymentType)}>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="fixed" id="fixed" />
-                <Label htmlFor="fixed" className="font-normal cursor-pointer">
+                <Label htmlFor="fixed" className="font-normal cursor-pointer flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-muted-foreground" />
                   Taxa Fixa por Entrega
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
+                <RadioGroupItem value="minimum_guaranteed" id="minimum_guaranteed" />
+                <Label htmlFor="minimum_guaranteed" className="font-normal cursor-pointer flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-green-600" />
+                  Mínimo Garantido
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
                 <RadioGroupItem value="commission" id="commission" />
-                <Label htmlFor="commission" className="font-normal cursor-pointer">
+                <Label htmlFor="commission" className="font-normal cursor-pointer flex items-center gap-2">
+                  <Percent className="w-4 h-4 text-muted-foreground" />
                   Comissão Percentual
                 </Label>
               </div>
             </RadioGroup>
           </div>
 
-          {paymentType === 'fixed' ? (
+          {paymentType === 'fixed' && (
             <div className="space-y-2">
               <Label htmlFor="fixed-amount">Valor Fixo (R$)</Label>
               <Input
@@ -143,7 +173,27 @@ export function RenegotiationDialog({
                 onChange={(e) => setFixedAmount(e.target.value)}
               />
             </div>
-          ) : (
+          )}
+
+          {paymentType === 'minimum_guaranteed' && (
+            <div className="space-y-2">
+              <Label htmlFor="minimum-amount">Valor Mínimo Garantido (R$)</Label>
+              <Input
+                id="minimum-amount"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="Ex: 7.00"
+                value={minimumAmount}
+                onChange={(e) => setMinimumAmount(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                O entregador recebe o maior valor entre a taxa e o mínimo
+              </p>
+            </div>
+          )}
+
+          {paymentType === 'commission' && (
             <div className="space-y-2">
               <Label htmlFor="commission">Porcentagem (%)</Label>
               <Input

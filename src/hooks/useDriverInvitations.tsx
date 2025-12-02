@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './use-auth';
+import { PaymentType } from '@/utils/driverEarnings';
 
 interface DriverInvitation {
   id: string;
@@ -9,13 +10,15 @@ interface DriverInvitation {
   token: string;
   status: string;
   expires_at: string;
-  proposed_payment_type: 'fixed' | 'commission';
+  proposed_payment_type: PaymentType;
   proposed_fixed_amount?: number;
   proposed_commission_percentage?: number;
+  proposed_minimum_amount?: number;
   invitation_message?: string;
-  counter_offer_payment_type?: 'fixed' | 'commission';
+  counter_offer_payment_type?: PaymentType;
   counter_offer_fixed_amount?: number;
   counter_offer_commission_percentage?: number;
+  counter_offer_minimum_amount?: number;
   counter_offer_message?: string;
   counter_offer_at?: string;
   created_at: string;

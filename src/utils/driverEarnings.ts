@@ -1,9 +1,10 @@
-export type PaymentType = 'fixed' | 'commission';
+export type PaymentType = 'fixed' | 'commission' | 'minimum_guaranteed';
 
 export interface EarningsConfig {
   payment_type: PaymentType;
   fixed_amount?: number;
   commission_percentage?: number;
+  minimum_amount?: number;
 }
 
 export function calculateDriverEarnings(
@@ -16,6 +17,13 @@ export function calculateDriverEarnings(
     return config.fixed_amount || deliveryFee;
   }
   
+  if (config.payment_type === 'minimum_guaranteed') {
+    // Se taxa < mínimo, paga mínimo; senão paga taxa real
+    const minimum = config.minimum_amount || 0;
+    return Math.max(deliveryFee, minimum);
+  }
+  
+  // commission
   const percentage = config.commission_percentage || 100;
   return deliveryFee * (percentage / 100);
 }

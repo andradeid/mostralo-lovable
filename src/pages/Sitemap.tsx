@@ -11,7 +11,7 @@ export default function Sitemap() {
 
   useEffect(() => {
     const generateSitemap = async () => {
-      const baseUrl = 'https://mostralo.com.br';
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://mostralo.com.br';
       const today = new Date().toISOString().split('T')[0];
 
       // Buscar lojas ativas com assinatura válida

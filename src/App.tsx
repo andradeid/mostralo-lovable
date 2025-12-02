@@ -39,6 +39,7 @@ import ServerError from "./pages/ServerError";
 import Maintenance from "./pages/Maintenance";
 import Offline from "./pages/Offline";
 import StoreUnavailable from "./pages/StoreUnavailable";
+import Sitemap from "./pages/Sitemap";
 import UsersPage from "./pages/admin/UsersPage";
 import SubscribersPage from "./pages/admin/SubscribersPage";
 import SubscriptionPage from "./pages/admin/SubscriptionPage";
@@ -118,6 +119,7 @@ const App = () => (
               <CustomDomainRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/sitemap.xml" element={<Sitemap />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/payment-proof" element={

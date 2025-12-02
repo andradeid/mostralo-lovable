@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatCurrency } from "@/utils/driverEarnings";
+import { formatCurrency, PaymentType } from "@/utils/driverEarnings";
 import { format, subDays, startOfMonth, startOfYear } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
@@ -31,7 +31,7 @@ interface Earning {
   order_id: string;
   delivery_fee: number;
   earnings_amount: number;
-  payment_type: 'fixed' | 'commission';
+  payment_type: PaymentType;
   payment_status: string;
   paid_at?: string;
   payment_reference?: string;

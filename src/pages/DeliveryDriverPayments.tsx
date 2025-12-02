@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Clock, CheckCircle2, DollarSign, Download, Loader2, Receipt, FileImage, Send, Store, XCircle, AlertCircle, ChevronDown, ChevronUp, ChevronsDownUp, ChevronsUpDown, Eye } from 'lucide-react';
 import { toast } from 'sonner';
-import { formatCurrency } from '@/utils/driverEarnings';
+import { formatCurrency, PaymentType } from '@/utils/driverEarnings';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { PaymentReceiptDialog } from '@/components/admin/delivery/PaymentReceiptDialog';
@@ -28,7 +28,7 @@ interface Earning {
   order_id: string;
   delivery_fee: number;
   earnings_amount: number;
-  payment_type: 'fixed' | 'commission';
+  payment_type: PaymentType;
   payment_status: string;
   paid_at?: string;
   payment_reference?: string;

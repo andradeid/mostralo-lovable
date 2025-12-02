@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { PaymentType } from '@/utils/driverEarnings';
 
 interface EarningsSummary {
   pending: number;
@@ -14,8 +15,9 @@ interface Earning {
   order_id: string;
   delivery_fee: number;
   earnings_amount: number;
-  payment_type: 'fixed' | 'commission';
+  payment_type: PaymentType;
   commission_percentage?: number;
+  minimum_amount?: number;
   payment_status: string;
   paid_at?: string;
   payment_reference?: string;

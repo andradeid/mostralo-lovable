@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +22,7 @@ import {
 import { ConfirmPaymentDialog } from "@/components/admin/delivery/ConfirmPaymentDialog";
 import { PaymentReceiptDialog } from "@/components/admin/delivery/PaymentReceiptDialog";
 import { PaymentRequestsCard } from "@/components/admin/delivery/PaymentRequestsCard";
+import { DriverPendingSummaryCard } from "@/components/admin/delivery/DriverPendingSummaryCard";
 import { usePaymentRequests } from "@/hooks/usePaymentRequests";
 import { toast } from "sonner";
 
@@ -62,8 +63,14 @@ export default function DeliveryDriverFinancials() {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [driverPaymentInfo, setDriverPaymentInfo] = useState<any>(null);
   const [selectedReceiptEarningId, setSelectedReceiptEarningId] = useState<string | null>(null);
+  const [cardPaymentData, setCardPaymentData] = useState<{
+    earningIds: string[];
+    totalAmount: number;
+    driverName: string;
+    driverId: string;
+  } | null>(null);
 
-  const { 
+  const {
     requests: paymentRequests,
     loading: requestsLoading,
     pendingCount,
@@ -275,6 +282,39 @@ export default function DeliveryDriverFinancials() {
   const selectedDriverName = earnings.find(e => selectedEarnings.has(e.id))?.driver_name || '';
   const selectedDriverId = earnings.find(e => selectedEarnings.has(e.id))?.driver_id || '';
 
+  // Agrupar entregas pendentes por entregador
+  const pendingByDriver = useMemo(() => {
+    const grouped = earnings
+      .filter(e => e.payment_status === 'pending')
+      .reduce((acc, earning) => {
+        if (!acc[earning.driver_id]) {
+          acc[earning.driver_id] = {
+            driverId: earning.driver_id,
+            driverName: earning.driver_name || 'N/A',
+            avatarUrl: drivers.find(d => d.id === earning.driver_id)?.avatar_url,
+            totalAmount: 0,
+            earningIds: [] as string[],
+            count: 0
+          };
+        }
+        acc[earning.driver_id].totalAmount += parseFloat(earning.earnings_amount.toString());
+        acc[earning.driver_id].earningIds.push(earning.id);
+        acc[earning.driver_id].count++;
+        return acc;
+      }, {} as Record<string, { driverId: string; driverName: string; avatarUrl?: string; totalAmount: number; earningIds: string[]; count: number }>);
+    
+    return Object.values(grouped);
+  }, [earnings, drivers]);
+
+  const handleCardPayClick = (driver: typeof pendingByDriver[0]) => {
+    setCardPaymentData({
+      earningIds: driver.earningIds,
+      totalAmount: driver.totalAmount,
+      driverName: driver.driverName,
+      driverId: driver.driverId
+    });
+  };
+
   return (
     <>
       <div className="space-y-6">
@@ -326,6 +366,29 @@ export default function DeliveryDriverFinancials() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Cards de Resumo por Entregador */}
+        {pendingByDriver.length > 0 && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              💵 Pagamentos Pendentes por Entregador
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {pendingByDriver.map(driver => (
+                <DriverPendingSummaryCard
+                  key={driver.driverId}
+                  driverName={driver.driverName}
+                  driverId={driver.driverId}
+                  avatarUrl={driver.avatarUrl}
+                  pendingCount={driver.count}
+                  totalAmount={driver.totalAmount}
+                  earningIds={driver.earningIds}
+                  onPayClick={() => handleCardPayClick(driver)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Filtros */}
         <Card>
@@ -512,6 +575,20 @@ export default function DeliveryDriverFinancials() {
         onSuccess={() => {
           fetchEarnings();
           setSelectedEarnings(new Set());
+        }}
+      />
+
+      {/* Dialog para pagamento via card */}
+      <ConfirmPaymentDialog
+        open={cardPaymentData !== null}
+        onOpenChange={(open) => !open && setCardPaymentData(null)}
+        earningIds={cardPaymentData?.earningIds || []}
+        totalAmount={cardPaymentData?.totalAmount || 0}
+        driverName={cardPaymentData?.driverName || ''}
+        driverId={cardPaymentData?.driverId || ''}
+        onSuccess={() => {
+          fetchEarnings();
+          setCardPaymentData(null);
         }}
       />
 

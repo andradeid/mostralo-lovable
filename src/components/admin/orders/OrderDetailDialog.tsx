@@ -252,14 +252,26 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
       .update(updateData)
       .eq('id', order.id);
 
-    setIsLoading(false);
-
     if (error) {
+      setIsLoading(false);
       toast.error('Erro ao atualizar status do pedido');
       console.error(error);
       return;
     }
 
+    // Se finalizando pedido com entregador atribuído, atualizar delivery_assignments
+    // O trigger do banco criará automaticamente o registro em driver_earnings
+    if (newStatus === 'concluido' && order.assigned_driver_id) {
+      await supabase
+        .from('delivery_assignments')
+        .update({ 
+          status: 'delivered',
+          delivered_at: new Date().toISOString()
+        })
+        .eq('order_id', order.id);
+    }
+
+    setIsLoading(false);
     toast.success('Status atualizado com sucesso!');
     setSelectedStatus(newStatus);
     onStatusChange();

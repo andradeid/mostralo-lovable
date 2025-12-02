@@ -20,6 +20,9 @@ import Store from "./pages/Store";
 import StorePromotions from "./pages/StorePromotions";
 import ProductPage from "./pages/ProductPage";
 import StoreXML from "./pages/StoreXML";
+import GoogleShoppingFeed from "./pages/GoogleShoppingFeed";
+import MetaCommerceFeed from "./pages/MetaCommerceFeed";
+import ProductFeedsGuidePage from "./pages/admin/ProductFeedsGuidePage";
 import CustomerAuth from "./pages/CustomerAuth";
 import CustomerPanel from "./pages/CustomerPanel";
 import CustomerProfile from "./pages/CustomerProfile";
@@ -353,6 +356,11 @@ const App = () => (
                 <AdminLayout><PrintConfigPage /></AdminLayout>
               </ProtectedRoute>
             } />
+            <Route path="/dashboard/product-feeds" element={
+              <ProtectedRoute allowedRoles={['store_admin']}>
+                <AdminLayout pageTitle="Feeds de Produtos"><ProductFeedsGuidePage /></AdminLayout>
+              </ProtectedRoute>
+            } />
 
             {/* Rotas do Entregador - Protegidas para delivery_driver */}
             <Route path="/delivery-panel" element={
@@ -399,6 +407,8 @@ const App = () => (
             <Route path="/loja/:slug" element={<Store />} />
             <Route path="/loja/:slug/promocoes" element={<StorePromotions />} />
             <Route path="/loja/:slug/info.xml" element={<StoreXML />} />
+            <Route path="/loja/:slug/feed.xml" element={<GoogleShoppingFeed />} />
+            <Route path="/loja/:slug/feed.csv" element={<MetaCommerceFeed />} />
             <Route path="/loja/:storeSlug/produto/:productSlug" element={<ProductPage />} />
           <Route path="/cliente/:storeSlug" element={<CustomerAuth />} />
           <Route path="/painel-cliente/:storeSlug" element={<CustomerPanel />} />

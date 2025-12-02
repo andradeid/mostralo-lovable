@@ -261,7 +261,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
 
     // Se finalizando pedido com entregador atribuído, atualizar delivery_assignments
     // O trigger do banco criará automaticamente o registro em driver_earnings
-    if (newStatus === 'concluido' && order.assigned_driver_id) {
+    if (newStatus === 'concluido' && assignedDriverId) {
       await supabase
         .from('delivery_assignments')
         .update({ 

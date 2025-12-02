@@ -417,7 +417,6 @@ export function AdminSidebar() {
         { title: 'Financeiro - Entregadores', url: '/dashboard/entregadores/financeiro', icon: DollarSign, group: 'Entregadores' },
         { title: 'Atendentes', url: '/dashboard/attendants', icon: Users, group: 'Gerenciamento' },
         { title: 'Configurar Impressão', url: '/dashboard/print-config', icon: Printer, group: 'Configurações' },
-        { title: 'Feeds de Produtos', url: '/dashboard/product-feeds', icon: Rss, group: 'Configurações' },
         { title: 'Minha Assinatura', url: '/dashboard/subscription', icon: CreditCard, group: 'Conta' },
         { title: 'Perfil', url: '/dashboard/profile', icon: User, group: 'Conta' },
         // Integrações - menu fixo para gerenciar

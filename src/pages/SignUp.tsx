@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from '@/hooks/use-toast';
 import { usePageSEO } from '@/hooks/useSEO';
-import { Loader2, Store, ArrowLeft, Check, Info, Gift } from 'lucide-react';
+import { Loader2, Store, ArrowLeft, Check, Info, Gift, Search, Building2, MapPin, Phone } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -60,6 +60,20 @@ const SignUp = () => {
   const [referredBySalespersonId, setReferredBySalespersonId] = useState<string | null>(null);
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const [salespersonName, setSalespersonName] = useState<string | null>(null);
+  const [cnpjLoading, setCnpjLoading] = useState(false);
+  const [cnpjValidated, setCnpjValidated] = useState(false);
+  const [cnpjData, setCnpjData] = useState<{
+    razao_social: string;
+    nome_fantasia: string;
+    municipio: string;
+    uf: string;
+    logradouro: string;
+    numero: string;
+    complemento: string;
+    bairro: string;
+    cep: string;
+    ddd_telefone_1: string;
+  } | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -225,6 +239,9 @@ const SignUp = () => {
     else if (field === 'companyDocument') {
       const formatted = formatDocument(value);
       setFormData(prev => ({ ...prev, [field]: formatted }));
+      // Reset validação quando documento muda
+      setCnpjValidated(false);
+      setCnpjData(null);
     }
     // Aplica máscara de CEP se o campo for zipCode
     else if (field === 'zipCode') {
@@ -235,6 +252,77 @@ const SignUp = () => {
       setFormData(prev => ({ ...prev, [field]: value }));
     }
   };
+
+  // Função para buscar dados do CNPJ via BrasilAPI
+  const handleSearchCNPJ = async () => {
+    const documentNumbers = formData.companyDocument.replace(/\D/g, '');
+    
+    if (documentNumbers.length !== 14) {
+      toast({
+        title: 'CNPJ incompleto',
+        description: 'Digite os 14 dígitos do CNPJ para buscar os dados.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setCnpjLoading(true);
+    
+    try {
+      const response = await supabase.functions.invoke('validate-cnpj', {
+        body: { cnpj: documentNumbers }
+      });
+
+      if (response.error) throw response.error;
+      
+      const result = response.data;
+      
+      if (!result.valid) {
+        toast({
+          title: 'CNPJ não encontrado',
+          description: result.error || 'Não foi possível validar este CNPJ.',
+          variant: 'destructive',
+        });
+        setCnpjValidated(false);
+        return;
+      }
+
+      const data = result.data;
+      setCnpjData(data);
+      setCnpjValidated(true);
+      
+      // Auto-preencher campos
+      setFormData(prev => ({
+        ...prev,
+        companyName: data.razao_social || prev.companyName,
+        phone: data.ddd_telefone_1 ? formatPhone(data.ddd_telefone_1) : prev.phone,
+        street: data.logradouro || prev.street,
+        number: data.numero || prev.number,
+        complement: data.complemento || prev.complement,
+        city: data.municipio || prev.city,
+        state: data.uf || prev.state,
+        zipCode: data.cep ? formatCEP(data.cep) : prev.zipCode,
+      }));
+      
+      toast({
+        title: '✅ Dados da empresa carregados!',
+        description: 'Os campos foram preenchidos automaticamente. Você pode editá-los se necessário.',
+      });
+      
+    } catch (error: unknown) {
+      console.error('Erro ao buscar CNPJ:', error);
+      toast({
+        title: 'Erro ao buscar CNPJ',
+        description: 'Não foi possível consultar os dados. Tente novamente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setCnpjLoading(false);
+    }
+  };
+
+  // Verifica se é CNPJ (14 dígitos)
+  const isCNPJ = formData.companyDocument.replace(/\D/g, '').length === 14;
 
   // Função para validar CPF
   const validateCPF = (cpf: string) => {
@@ -650,6 +738,83 @@ const SignUp = () => {
                 required
               />
             </div>
+            
+            {/* Campo CNPJ/CPF com botão de busca */}
+            <div className="space-y-2">
+              <Label htmlFor="companyDocument">CNPJ ou CPF *</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="companyDocument"
+                  value={formData.companyDocument}
+                  onChange={(e) => updateFormData('companyDocument', e.target.value)}
+                  placeholder="CPF: 000.000.000-00 ou CNPJ: 00.000.000/0000-00"
+                  maxLength={18}
+                  required
+                  className={cnpjValidated ? 'border-green-500 bg-green-50 dark:bg-green-950/20' : ''}
+                />
+                {isCNPJ && !cnpjValidated && (
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={handleSearchCNPJ}
+                    disabled={cnpjLoading}
+                    className="shrink-0"
+                  >
+                    {cnpjLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Search className="h-4 w-4 mr-1" />
+                        Buscar
+                      </>
+                    )}
+                  </Button>
+                )}
+                {cnpjValidated && (
+                  <div className="flex items-center text-green-600">
+                    <Check className="h-5 w-5" />
+                  </div>
+                )}
+              </div>
+              {isCNPJ && !cnpjValidated && (
+                <p className="text-xs text-muted-foreground">
+                  💡 Clique em "Buscar" para preencher automaticamente os dados da empresa
+                </p>
+              )}
+            </div>
+
+            {/* Card com dados da empresa quando validado */}
+            {cnpjValidated && cnpjData && (
+              <Alert className="bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-900">
+                <Building2 className="h-4 w-4 text-green-600" />
+                <AlertDescription className="text-green-800 dark:text-green-300">
+                  <div className="font-semibold">{cnpjData.razao_social}</div>
+                  {cnpjData.nome_fantasia && cnpjData.nome_fantasia !== cnpjData.razao_social && (
+                    <div className="text-sm opacity-80">Nome Fantasia: {cnpjData.nome_fantasia}</div>
+                  )}
+                  <div className="text-sm mt-1 flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />
+                    {cnpjData.municipio}/{cnpjData.uf}
+                  </div>
+                  <p className="text-xs mt-2 opacity-70">
+                    ✏️ Os campos foram preenchidos automaticamente. Você pode editá-los se necessário.
+                  </p>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="companyName">Nome da Empresa *</Label>
+              <Input
+                id="companyName"
+                value={formData.companyName}
+                onChange={(e) => updateFormData('companyName', e.target.value)}
+                placeholder="Nome do seu restaurante"
+                required
+                className={cnpjValidated && formData.companyName ? 'border-green-500/50' : ''}
+              />
+            </div>
+            
             <div className="space-y-2">
               <Label htmlFor="phone">Telefone *</Label>
               <Input
@@ -660,27 +825,7 @@ const SignUp = () => {
                 placeholder="(00) 00000-0000"
                 maxLength={15}
                 required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="companyName">Nome da Empresa *</Label>
-              <Input
-                id="companyName"
-                value={formData.companyName}
-                onChange={(e) => updateFormData('companyName', e.target.value)}
-                placeholder="Nome do seu restaurante"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="companyDocument">CNPJ ou CPF *</Label>
-              <Input
-                id="companyDocument"
-                value={formData.companyDocument}
-                onChange={(e) => updateFormData('companyDocument', e.target.value)}
-                placeholder="CPF: 000.000.000-00 ou CNPJ: 00.000.000/0000-00"
-                maxLength={18}
-                required
+                className={cnpjValidated && formData.phone ? 'border-green-500/50' : ''}
               />
             </div>
           </div>
@@ -689,6 +834,14 @@ const SignUp = () => {
       case 3:
         return (
           <div className="space-y-4">
+            {cnpjValidated && (
+              <Alert className="bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-900">
+                <MapPin className="h-4 w-4 text-green-600" />
+                <AlertDescription className="text-green-800 dark:text-green-300 text-sm">
+                  Endereço preenchido automaticamente via CNPJ. Você pode editar se necessário.
+                </AlertDescription>
+              </Alert>
+            )}
             <div className="grid grid-cols-3 gap-4">
               <div className="col-span-2 space-y-2">
                 <Label htmlFor="street">Rua *</Label>
@@ -698,6 +851,7 @@ const SignUp = () => {
                   onChange={(e) => updateFormData('street', e.target.value)}
                   placeholder="Nome da rua"
                   required
+                  className={cnpjValidated && formData.street ? 'border-green-500/50' : ''}
                 />
               </div>
               <div className="space-y-2">
@@ -708,6 +862,7 @@ const SignUp = () => {
                   onChange={(e) => updateFormData('number', e.target.value)}
                   placeholder="123"
                   required
+                  className={cnpjValidated && formData.number ? 'border-green-500/50' : ''}
                 />
               </div>
             </div>
@@ -718,6 +873,7 @@ const SignUp = () => {
                 value={formData.complement}
                 onChange={(e) => updateFormData('complement', e.target.value)}
                 placeholder="Apto, sala, etc (opcional)"
+                className={cnpjValidated && formData.complement ? 'border-green-500/50' : ''}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -729,6 +885,7 @@ const SignUp = () => {
                   onChange={(e) => updateFormData('city', e.target.value)}
                   placeholder="Sua cidade"
                   required
+                  className={cnpjValidated && formData.city ? 'border-green-500/50' : ''}
                 />
               </div>
               <div className="space-y-2">
@@ -740,6 +897,7 @@ const SignUp = () => {
                   placeholder="UF"
                   maxLength={2}
                   required
+                  className={cnpjValidated && formData.state ? 'border-green-500/50' : ''}
                 />
               </div>
             </div>
@@ -753,6 +911,7 @@ const SignUp = () => {
                 placeholder="00000-000"
                 maxLength={9}
                 required
+                className={cnpjValidated && formData.zipCode ? 'border-green-500/50' : ''}
               />
             </div>
           </div>

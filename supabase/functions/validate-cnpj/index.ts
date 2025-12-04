@@ -10,6 +10,14 @@ interface CNPJResponse {
   data_situacao_cadastral: string;
   uf: string;
   municipio: string;
+  logradouro: string;
+  numero: string;
+  complemento: string;
+  bairro: string;
+  cep: string;
+  ddd_telefone_1: string;
+  ddd_telefone_2: string;
+  email: string;
 }
 
 // CNAEs aceitos para vendedores/afiliados
@@ -59,7 +67,15 @@ Deno.serve(async (req) => {
         ],
         situacao_cadastral: 'ATIVA',
         uf: 'SP',
-        municipio: 'São Paulo'
+        municipio: 'São Paulo',
+        logradouro: 'Avenida Paulista',
+        numero: '1000',
+        complemento: 'Sala 101',
+        bairro: 'Bela Vista',
+        cep: '01310100',
+        ddd_telefone_1: '1140028922',
+        ddd_telefone_2: '',
+        email: 'contato@empresateste.com.br'
       },
       '00000000000191': {
         cnpj: '00000000000191',
@@ -69,7 +85,15 @@ Deno.serve(async (req) => {
         cnaes_secundarios: [],
         situacao_cadastral: 'ATIVA',
         uf: 'DF',
-        municipio: 'Brasília'
+        municipio: 'Brasília',
+        logradouro: 'SQN 308 Bloco A',
+        numero: '50',
+        complemento: 'Apt 302',
+        bairro: 'Asa Norte',
+        cep: '70747010',
+        ddd_telefone_1: '6199999999',
+        ddd_telefone_2: '',
+        email: 'dev@mostralo.com'
       }
     };
 
@@ -95,6 +119,14 @@ Deno.serve(async (req) => {
             situacao_cadastral: testData.situacao_cadastral,
             uf: testData.uf,
             municipio: testData.municipio,
+            logradouro: testData.logradouro,
+            numero: testData.numero,
+            complemento: testData.complemento,
+            bairro: testData.bairro,
+            cep: testData.cep,
+            ddd_telefone_1: testData.ddd_telefone_1,
+            ddd_telefone_2: testData.ddd_telefone_2,
+            email: testData.email,
           },
           cnaes_encontrados: [cnaePrincipal, ...cnaesSecundarios],
           is_test: true
@@ -187,6 +219,14 @@ Deno.serve(async (req) => {
           situacao_cadastral: data.situacao_cadastral,
           uf: data.uf,
           municipio: data.municipio,
+          logradouro: data.logradouro,
+          numero: data.numero,
+          complemento: data.complemento,
+          bairro: data.bairro,
+          cep: data.cep,
+          ddd_telefone_1: data.ddd_telefone_1,
+          ddd_telefone_2: data.ddd_telefone_2,
+          email: data.email,
         },
         cnaes_encontrados: todosCnaes,
       }),

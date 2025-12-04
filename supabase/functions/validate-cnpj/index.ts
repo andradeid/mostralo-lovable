@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { cnpj } = await req.json();
+    const { cnpj, skip_cnae_validation = false } = await req.json();
 
     if (!cnpj) {
       return new Response(
@@ -166,8 +166,11 @@ Deno.serve(async (req) => {
     console.log(`Situação: ${data.situacao_cadastral}`);
     console.log(`CNAE principal: ${data.cnae_fiscal}`);
 
-    // Verificar situação cadastral
-    if (data.situacao_cadastral !== 'ATIVA') {
+    // Verificar situação cadastral (aceitar "ATIVA" ou código 2)
+    const situacao = String(data.situacao_cadastral).toUpperCase();
+    const situacaoAtiva = situacao === 'ATIVA' || situacao === '2';
+    
+    if (!situacaoAtiva) {
       return new Response(
         JSON.stringify({
           valid: false,
@@ -186,25 +189,28 @@ Deno.serve(async (req) => {
     
     const todosCnaes = [cnaePrincipal, ...cnaesSecundarios];
 
-    const cnaeValido = CNAES_ACEITOS.some(cnaeAceito => {
-      // Verificar primeiros 4 dígitos (classe)
-      const classeAceita = cnaeAceito.substring(0, 4);
-      return todosCnaes.some(cnae => cnae.startsWith(classeAceita));
-    });
+    // Validar CNAE apenas se skip_cnae_validation for false (para vendedores/afiliados)
+    if (!skip_cnae_validation) {
+      const cnaeValido = CNAES_ACEITOS.some(cnaeAceito => {
+        // Verificar primeiros 4 dígitos (classe)
+        const classeAceita = cnaeAceito.substring(0, 4);
+        return todosCnaes.some(cnae => cnae.startsWith(classeAceita));
+      });
 
-    if (!cnaeValido) {
-      return new Response(
-        JSON.stringify({
-          valid: false,
-          error: 'CNPJ não possui CNAE compatível. CNAEs aceitos: Promoção de vendas, Publicidade, Representantes comerciais, Agências de publicidade',
-          data,
-          cnaes_encontrados: todosCnaes,
-        }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      if (!cnaeValido) {
+        return new Response(
+          JSON.stringify({
+            valid: false,
+            error: 'CNPJ não possui CNAE compatível. CNAEs aceitos: Promoção de vendas, Publicidade, Representantes comerciais, Agências de publicidade',
+            data,
+            cnaes_encontrados: todosCnaes,
+          }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
-    // CNPJ válido e CNAE compatível
+    // CNPJ válido
     console.log('✅ CNPJ válido e CNAE compatível');
 
     return new Response(

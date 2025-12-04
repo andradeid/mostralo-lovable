@@ -270,7 +270,7 @@ const SignUp = () => {
     
     try {
       const response = await supabase.functions.invoke('validate-cnpj', {
-        body: { cnpj: documentNumbers }
+        body: { cnpj: documentNumbers, skip_cnae_validation: true }
       });
 
       if (response.error) throw response.error;

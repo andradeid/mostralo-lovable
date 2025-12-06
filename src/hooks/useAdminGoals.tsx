@@ -73,6 +73,26 @@ export const useAdminGoals = () => {
     }
   });
 
+  // Buscar contagem de lojas ativas criadas no mês atual
+  const { data: monthlyStoresCount, isLoading: loadingMonthlyStores } = useQuery({
+    queryKey: ['admin-monthly-stores-count'],
+    queryFn: async () => {
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).toISOString();
+      
+      const { count, error } = await supabase
+        .from('stores')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'active')
+        .gte('created_at', startOfMonth)
+        .lte('created_at', endOfMonth);
+        
+      if (error) throw error;
+      return count || 0;
+    }
+  });
+
   // Buscar conquistas
   const { data: achievements, isLoading: loadingAchievements } = useQuery({
     queryKey: ['admin-achievements'],
@@ -151,34 +171,24 @@ export const useAdminGoals = () => {
     return streak;
   };
 
-  // Calcular progresso do mês atual
+  // Calcular progresso do mês atual (usando contagem real de lojas)
   const getCurrentMonthProgress = () => {
-    if (!progress || !activeGoal) return { percentage: 0, metToday: false };
+    if (!activeGoal) return { percentage: 0, metToday: false, totalStores: 0, targetStores: 0 };
 
-    const today = new Date();
-    const currentMonth = today.getMonth();
-    const currentYear = today.getFullYear();
-
-    const monthProgress = progress.filter(p => {
-      const date = new Date(p.date);
-      return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
-    });
-
-    if (monthProgress.length === 0) return { percentage: 0, metToday: false };
-
-    const totalStores = monthProgress.reduce((sum, p) => sum + p.new_stores_count, 0);
-    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const totalStores = monthlyStoresCount || 0;
     const targetStores = activeGoal.target_stores_per_month;
     const percentage = (totalStores / targetStores) * 100;
 
-    const todayProgress = monthProgress.find(p => {
-      const date = new Date(p.date);
-      return date.toDateString() === today.toDateString();
-    });
+    // Verificar se a meta de hoje foi atingida (baseado no progresso diário esperado)
+    const today = new Date();
+    const currentDay = today.getDate();
+    const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+    const expectedStores = Math.floor((targetStores / daysInMonth) * currentDay);
+    const metToday = totalStores >= expectedStores;
 
     return {
       percentage: Math.min(percentage, 100),
-      metToday: todayProgress?.is_goal_met || false,
+      metToday,
       totalStores,
       targetStores
     };
@@ -188,7 +198,7 @@ export const useAdminGoals = () => {
     activeGoal,
     progress,
     achievements,
-    isLoading: loadingGoal || loadingProgress || loadingAchievements,
+    isLoading: loadingGoal || loadingProgress || loadingAchievements || loadingMonthlyStores,
     setGoal: setGoalMutation.mutate,
     isSettingGoal: setGoalMutation.isPending,
     streak: calculateStreak(),

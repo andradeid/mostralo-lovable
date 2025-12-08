@@ -32,8 +32,8 @@ export function ModuleGate({
 }: ModuleGateProps) {
   const { hasModule, loading } = useStoreModules(storeId);
 
-  // Enquanto carrega, mostra o conteúdo (evita flash)
-  if (loading) {
+  // Enquanto carrega OU não tem storeId, mostra o conteúdo (evita flash de bloqueio)
+  if (loading || !storeId) {
     return <>{children}</>;
   }
 

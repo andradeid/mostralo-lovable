@@ -99,11 +99,19 @@ export function useStoreModules(storeId: string | null): UseStoreModulesReturn {
 
   // Verifica se a loja tem acesso a um módulo específico
   const hasModule = useCallback((moduleKey: string): boolean => {
+    // Se não tem storeId ou ainda está carregando, permitir acesso (evita flash de bloqueio)
+    if (!storeId || loading) return true;
+    
+    // Se a lista de módulos está vazia mas temos storeId, ainda está carregando
+    if (modules.length === 0) return true;
+    
     const module = modules.find(m => m.key === moduleKey);
-    // Se o módulo não existe ou está bloqueado, retorna false
-    if (!module) return true; // Módulo não existe = liberado por padrão
+    // Se o módulo não existe na lista, permitir (módulo não cadastrado = liberado por padrão)
+    if (!module) return true;
+    
+    // Retornar true se NÃO está bloqueado
     return !module.isBlocked;
-  }, [modules]);
+  }, [modules, storeId, loading]);
 
   // Bloquear módulo para a loja
   const blockModule = useCallback(async (moduleId: string, reason?: string): Promise<boolean> => {

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
+import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { format, startOfMonth, endOfMonth, startOfDay, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -9,10 +10,12 @@ import { ScheduledOrdersCalendar } from '@/components/admin/scheduled-orders/Sch
 import { ScheduledOrdersList } from '@/components/admin/scheduled-orders/ScheduledOrdersList';
 import { ScheduledOrdersStats } from '@/components/admin/scheduled-orders/ScheduledOrdersStats';
 import { ScheduledOrdersFilters } from '@/components/admin/scheduled-orders/ScheduledOrdersFilters';
+import { ModuleGate } from '@/components/admin/ModuleGate';
 
 export default function ScheduledOrdersPage() {
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { storeId: validatedStoreId } = useStoreAccess();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [allOrders, setAllOrders] = useState<any[]>([]); // Pedidos do mês
   const [allScheduledOrders, setAllScheduledOrders] = useState<any[]>([]); // TODOS os pedidos agendados futuros
@@ -184,6 +187,7 @@ export default function ScheduledOrdersPage() {
   }
 
   return (
+    <ModuleGate moduleKey="scheduled_orders" storeId={validatedStoreId}>
     <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
       <div className="max-w-[1800px] mx-auto space-y-6">
         {/* Header */}
@@ -227,5 +231,6 @@ export default function ScheduledOrdersPage() {
         </div>
       </div>
     </div>
+    </ModuleGate>
   );
 }

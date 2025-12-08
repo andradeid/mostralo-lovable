@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
+import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +13,7 @@ import { CreateDriverDialog } from '@/components/admin/delivery/CreateDriverDial
 import { DeliveryDriverCardWithPresence } from '@/components/admin/delivery/DeliveryDriverCardWithPresence';
 import { GenerateInviteLinkDialog } from '@/components/admin/delivery/GenerateInviteLinkDialog';
 import { ReviewCounterOfferDialog } from '@/components/admin/delivery/ReviewCounterOfferDialog';
+import { ModuleGate } from '@/components/admin/ModuleGate';
 
 interface DeliveryDriver {
   id: string;
@@ -31,6 +33,7 @@ interface DriverStats {
 
 export default function DeliveryDriversPage() {
   const { profile, signOut } = useAuth();
+  const { storeId: validatedStoreId } = useStoreAccess();
   const [drivers, setDrivers] = useState<DeliveryDriver[]>([]);
   const [stats, setStats] = useState<Record<string, DriverStats>>({});
   const [loading, setLoading] = useState(true);
@@ -251,6 +254,7 @@ export default function DeliveryDriversPage() {
   }
 
   return (
+    <ModuleGate moduleKey="delivery_drivers" storeId={validatedStoreId}>
     <div className="container mx-auto p-6 max-w-7xl">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div>
@@ -410,5 +414,6 @@ export default function DeliveryDriversPage() {
         />
       )}
     </div>
+    </ModuleGate>
   );
 }

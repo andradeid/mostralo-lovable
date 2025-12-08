@@ -16,9 +16,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { CutMethodSelector } from "@/components/admin/print/CutMethodSelector";
 import { QZTraySetup } from "@/components/admin/print/QZTraySetup";
 import { useState as useStateLocal } from "react";
+import { ModuleGate } from "@/components/admin/ModuleGate";
+import { useStoreAccess } from "@/hooks/useStoreAccess";
 
 export default function PrintConfigPage() {
   const { toast } = useToast();
+  const { storeId: validatedStoreId } = useStoreAccess();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [storeId, setStoreId] = useState<string>("");
@@ -225,6 +228,7 @@ export default function PrintConfigPage() {
   };
 
   return (
+    <ModuleGate moduleKey="printing" storeId={validatedStoreId}>
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -409,5 +413,6 @@ export default function PrintConfigPage() {
         </div>
       </div>
     </div>
+    </ModuleGate>
   );
 }

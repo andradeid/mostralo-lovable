@@ -53,6 +53,7 @@ import { useStoreAccess } from "@/hooks/useStoreAccess";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNewOrders } from "@/contexts/NewOrdersContext";
+import { useStoreModules } from "@/hooks/useStoreModules";
 
 export function AdminSidebar() {
   const { state } = useSidebar();
@@ -61,10 +62,10 @@ export function AdminSidebar() {
   const { storeId: validatedStoreId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
   const { toast } = useToast();
   const { pendingOrdersCount } = useNewOrders();
+  const { hasModule, loading: modulesLoading } = useStoreModules(validatedStoreId);
   
   const collapsed = state === "collapsed";
   const currentPath = location.pathname;
-  
   const [storeConfig, setStoreConfig] = useState<any>(null);
   const [loadingConfig, setLoadingConfig] = useState(true);
   const [hasActiveSubscription, setHasActiveSubscription] = useState<boolean | null>(null);
@@ -393,42 +394,72 @@ export function AdminSidebar() {
       const scheduledOrdersEnabled = 
         storeConfig?.delivery_config?.scheduled_orders?.enabled === true;
 
-      return [
+      // Construir menu baseado nos módulos disponíveis
+      const menuItems: Array<{ title: string; url: string; icon: any; group: string }> = [
         { title: 'Dashboard', url: '/dashboard', icon: Home, group: 'Principal' },
         { title: 'Pedidos', url: '/dashboard/orders', icon: ShoppingCart, group: 'Vendas' },
-        // CONDICIONAL: Só aparece se pedidos agendados estiverem habilitados
-        ...(scheduledOrdersEnabled ? [{
+      ];
+
+      // Pedidos Agendados - verifica config E módulo
+      if (scheduledOrdersEnabled && hasModule('scheduled_orders')) {
+        menuItems.push({
           title: 'Pedidos Agendados',
           url: '/dashboard/scheduled-orders',
           icon: Calendar,
           group: 'Vendas'
-        }] : []),
-        { title: 'Clientes', url: '/dashboard/customers', icon: UserCircle, group: 'Vendas' },
-        { title: 'Relatórios', url: '/dashboard/reports', icon: BarChart3, group: 'Vendas' },
+        });
+      }
+
+      menuItems.push({ title: 'Clientes', url: '/dashboard/customers', icon: UserCircle, group: 'Vendas' });
+
+      // Relatórios - verifica módulo
+      if (hasModule('reports')) {
+        menuItems.push({ title: 'Relatórios', url: '/dashboard/reports', icon: BarChart3, group: 'Vendas' });
+      }
+
+      menuItems.push(
         { title: 'Minha Loja', url: '/dashboard/my-store', icon: Store, group: 'Loja' },
         { title: 'Produtos', url: '/dashboard/products', icon: Package, group: 'Loja' },
         { title: 'Categorias', url: '/dashboard/categories', icon: Grid, group: 'Loja' },
         { title: 'Adicionais', url: '/dashboard/addons', icon: Plus, group: 'Loja' },
         { title: 'Categorias de Adicionais', url: '/dashboard/addon-categories', icon: Grid3X3, group: 'Loja' },
-        { title: 'Banners', url: '/dashboard/banners', icon: Image, group: 'Loja' },
-        { title: 'Promoções', url: '/dashboard/promotions', icon: Tag, group: 'Vendas' },
-        { title: 'Entregadores', url: '/dashboard/delivery-drivers', icon: Bike, group: 'Entregadores' },
-        { title: 'Entregadores Disponíveis', url: '/dashboard/entregadores-disponiveis', icon: UserCircle, group: 'Entregadores' },
-        { title: 'Financeiro - Entregadores', url: '/dashboard/entregadores/financeiro', icon: DollarSign, group: 'Entregadores' },
-        { title: 'Atendentes', url: '/dashboard/attendants', icon: Users, group: 'Gerenciamento' },
-        { title: 'Configurar Impressão', url: '/dashboard/print-config', icon: Printer, group: 'Configurações' },
+        { title: 'Banners', url: '/dashboard/banners', icon: Image, group: 'Loja' }
+      );
+
+      // Promoções - verifica módulo
+      if (hasModule('promotions')) {
+        menuItems.push({ title: 'Promoções', url: '/dashboard/promotions', icon: Tag, group: 'Vendas' });
+      }
+
+      // Entregadores - verifica módulo
+      if (hasModule('delivery_drivers')) {
+        menuItems.push(
+          { title: 'Entregadores', url: '/dashboard/delivery-drivers', icon: Bike, group: 'Entregadores' },
+          { title: 'Entregadores Disponíveis', url: '/dashboard/entregadores-disponiveis', icon: UserCircle, group: 'Entregadores' },
+          { title: 'Financeiro - Entregadores', url: '/dashboard/entregadores/financeiro', icon: DollarSign, group: 'Entregadores' }
+        );
+      }
+
+      menuItems.push({ title: 'Atendentes', url: '/dashboard/attendants', icon: Users, group: 'Gerenciamento' });
+
+      // Impressão - verifica módulo
+      if (hasModule('printing')) {
+        menuItems.push({ title: 'Configurar Impressão', url: '/dashboard/print-config', icon: Printer, group: 'Configurações' });
+      }
+
+      menuItems.push(
         { title: 'Minha Assinatura', url: '/dashboard/subscription', icon: CreditCard, group: 'Conta' },
         { title: 'Perfil', url: '/dashboard/profile', icon: User, group: 'Conta' },
-        // Integrações - menu fixo para gerenciar
         { title: 'Gerenciar Integrações', url: '/dashboard/integrations', icon: ExternalLink, group: 'Integrações' },
-        // Menus personalizados dinâmicos
         ...customMenus.map(menu => ({
           title: menu.title,
           url: `/dashboard/iframe/${menu.id}`,
           icon: ExternalLink,
           group: 'Integrações'
         }))
-      ];
+      );
+
+      return menuItems;
     }
   };
 

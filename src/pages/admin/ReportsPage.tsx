@@ -9,16 +9,20 @@ import { TopProducts } from '@/components/admin/reports/TopProducts';
 import { CustomersAnalysis } from '@/components/admin/reports/CustomersAnalysis';
 import { BarChart3, TrendingUp, Package, Users, ShoppingCart } from 'lucide-react';
 import { subDays } from 'date-fns';
+import { ModuleGate } from '@/components/admin/ModuleGate';
+import { useStoreAccess } from '@/hooks/useStoreAccess';
 
 import { DateRange } from '@/components/admin/reports/types';
 
 export default function ReportsPage() {
+  const { storeId } = useStoreAccess();
   const [dateRange, setDateRange] = useState<DateRange>({ 
     from: subDays(new Date(), 30), 
     to: new Date() 
   });
   
   return (
+    <ModuleGate moduleKey="reports" storeId={storeId}>
     <div className="space-y-6 p-4 md:p-6">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
@@ -77,5 +81,6 @@ export default function ReportsPage() {
         </TabsContent>
       </Tabs>
     </div>
+    </ModuleGate>
   );
 }

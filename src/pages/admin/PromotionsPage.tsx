@@ -33,9 +33,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { ModuleGate } from '@/components/admin/ModuleGate';
+import { useStoreAccess } from '@/hooks/useStoreAccess';
 
 export default function PromotionsPage() {
   const navigate = useNavigate();
+  const { storeId: validatedStoreId } = useStoreAccess();
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -163,6 +166,7 @@ export default function PromotionsPage() {
   }
 
   return (
+    <ModuleGate moduleKey="promotions" storeId={validatedStoreId}>
     <div className="space-y-6 p-4 md:p-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -287,5 +291,6 @@ export default function PromotionsPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </ModuleGate>
   );
 }

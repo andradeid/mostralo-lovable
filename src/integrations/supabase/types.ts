@@ -3394,6 +3394,7 @@ export type Database = {
         Row: {
           accept_outside_delivery_zone: boolean | null
           created_at: string | null
+          custom_scripts: Json | null
           delivery_button_text: string | null
           delivery_times: Json | null
           delivery_zones: Json | null
@@ -3404,6 +3405,36 @@ export type Database = {
           secondary_color: string | null
           store_id: string | null
           updated_at: string | null
+        }
+        Insert: {
+          accept_outside_delivery_zone?: boolean | null
+          created_at?: string | null
+          custom_scripts?: Json | null
+          delivery_button_text?: string | null
+          delivery_times?: Json | null
+          delivery_zones?: Json | null
+          pickup_button_text?: string | null
+          primary_color?: string | null
+          product_display_layout?: string | null
+          qr_code_enabled?: boolean | null
+          secondary_color?: string | null
+          store_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          accept_outside_delivery_zone?: boolean | null
+          created_at?: string | null
+          custom_scripts?: Json | null
+          delivery_button_text?: string | null
+          delivery_times?: Json | null
+          delivery_zones?: Json | null
+          pickup_button_text?: string | null
+          primary_color?: string | null
+          product_display_layout?: string | null
+          qr_code_enabled?: boolean | null
+          secondary_color?: string | null
+          store_id?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {

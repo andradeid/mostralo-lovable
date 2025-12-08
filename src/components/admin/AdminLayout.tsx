@@ -8,8 +8,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { Navigate, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useImpersonation } from "@/hooks/useImpersonation";
-import { useEffect } from "react";
-import { initializeChatwoot, removeChatwoot } from "@/lib/chatwootWidget";
 import { NewOrdersProvider } from "@/contexts/NewOrdersContext";
 
 interface AdminLayoutProps {
@@ -21,17 +19,6 @@ export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
   const { user, profile, loading, userRole } = useAuth();
   const { isImpersonating } = useImpersonation();
   const location = useLocation();
-
-  // Inicializar Chatwoot para suporte
-  useEffect(() => {
-    if (user && (userRole === 'master_admin' || userRole === 'store_admin' || userRole === 'attendant')) {
-      initializeChatwoot();
-    }
-    
-    return () => {
-      removeChatwoot();
-    };
-  }, [user, userRole]);
 
   if (loading) {
     return (

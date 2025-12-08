@@ -349,10 +349,13 @@ export function AdminSidebar() {
       // VERIFICAÇÃO: Se usuário está pendente/rejeitado ou sem assinatura ativa
       const isApprovalPending = profile?.approval_status === 'pending' || profile?.approval_status === 'rejected';
       
-      // Se ainda está carregando, não bloquear o menu
-      if (loadingConfig) {
-        console.log('⏳ AdminSidebar: Ainda carregando - mostrando menu temporário');
-        // Retornar menu completo enquanto carrega (evita flash de menu vazio)
+      // Se ainda está carregando configurações OU módulos, mostrar menu temporário
+      if (loadingConfig || modulesLoading) {
+        console.log('⏳ AdminSidebar: Ainda carregando - mostrando menu temporário', {
+          loadingConfig,
+          modulesLoading
+        });
+        // Retornar menu mínimo enquanto carrega (evita flash de menu vazio)
         return [
           { title: 'Dashboard', url: '/dashboard', icon: Home, group: 'Principal' },
           { title: 'Minha Assinatura', url: '/dashboard/subscription', icon: CreditCard, group: 'Conta' }

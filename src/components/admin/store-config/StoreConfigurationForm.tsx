@@ -116,6 +116,10 @@ interface FormData {
   website: string;
   google_analytics_id: string;
   facebook_pixel_id: string;
+  // Custom Scripts
+  head_scripts: string;
+  body_start_scripts: string;
+  body_end_scripts: string;
   
   // User
   responsible_name: string;
@@ -236,6 +240,10 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
       website: store.website || '',
       google_analytics_id: (store.configuration?.google_analytics_id || store.store_configurations?.google_analytics_id || ''),
       facebook_pixel_id: (store.configuration?.facebook_pixel_id || store.store_configurations?.facebook_pixel_id || ''),
+      // Custom Scripts
+      head_scripts: (store.configuration?.custom_scripts?.head_scripts || store.store_configurations?.custom_scripts?.head_scripts || ''),
+      body_start_scripts: (store.configuration?.custom_scripts?.body_start_scripts || store.store_configurations?.custom_scripts?.body_start_scripts || ''),
+      body_end_scripts: (store.configuration?.custom_scripts?.body_end_scripts || store.store_configurations?.custom_scripts?.body_end_scripts || ''),
       
       // User
       responsible_name: store.responsible_name || '',
@@ -455,6 +463,11 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
         facebook_pixel_id: formData.facebook_pixel_id,
         delivery_button_text: formData.delivery_button_text,
         pickup_button_text: formData.pickup_button_text,
+        custom_scripts: {
+          head_scripts: formData.head_scripts || '',
+          body_start_scripts: formData.body_start_scripts || '',
+          body_end_scripts: formData.body_end_scripts || '',
+        },
       };
 
       console.log('🔧 Atualizando configurações', { configData });

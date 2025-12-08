@@ -2821,6 +2821,7 @@ export type Database = {
         Row: {
           accept_outside_delivery_zone: boolean | null
           created_at: string
+          custom_scripts: Json | null
           delivery_button_text: string | null
           delivery_times: Json | null
           delivery_zones: Json | null
@@ -2844,6 +2845,7 @@ export type Database = {
         Insert: {
           accept_outside_delivery_zone?: boolean | null
           created_at?: string
+          custom_scripts?: Json | null
           delivery_button_text?: string | null
           delivery_times?: Json | null
           delivery_zones?: Json | null
@@ -2867,6 +2869,7 @@ export type Database = {
         Update: {
           accept_outside_delivery_zone?: boolean | null
           created_at?: string
+          custom_scripts?: Json | null
           delivery_button_text?: string | null
           delivery_times?: Json | null
           delivery_zones?: Json | null

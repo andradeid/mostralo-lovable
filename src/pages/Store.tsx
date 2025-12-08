@@ -46,6 +46,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/use-auth';
 import { useCart } from '@/contexts/CartContext';
 import { useSEO } from '@/hooks/useSEO';
+import { useCustomScripts } from '@/hooks/useCustomScripts';
 import { DashboardFooter } from '@/components/admin/DashboardFooter';
 import { FloatingCartButton } from '@/components/checkout/FloatingCartButton';
 import { Badge } from '@/components/ui/badge';
@@ -75,6 +76,11 @@ interface Store {
     primary_color?: string;
     secondary_color?: string;
     product_display_layout?: string;
+    custom_scripts?: {
+      head_scripts?: string;
+      body_start_scripts?: string;
+      body_end_scripts?: string;
+    };
   };
 }
 
@@ -142,6 +148,9 @@ const Store = () => {
 
   // Hook para gerenciar SEO dinâmico
   useSEO(store, slug);
+
+  // Hook para injetar scripts personalizados
+  useCustomScripts(store?.configuration?.custom_scripts, store?.id);
 
   // Hook para verificar status da loja (pausado, agendamentos, etc)
   const storeStatus = useStoreStatus(businessHours, deliveryConfig);

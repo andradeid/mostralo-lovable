@@ -14,6 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 interface OrdersAnalysisProps {
   dateRange: DateRange;
+  storeId: string | null;
 }
 
 const statusColors: Record<string, string> = {
@@ -34,21 +35,26 @@ const statusLabels: Record<string, string> = {
   cancelado: 'Cancelado',
 };
 
-export function OrdersAnalysis({ dateRange }: OrdersAnalysisProps) {
+export function OrdersAnalysis({ dateRange, storeId }: OrdersAnalysisProps) {
   const [statusData, setStatusData] = useState<any[]>([]);
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    fetchOrdersData();
-  }, [dateRange]);
+    if (storeId) {
+      fetchOrdersData();
+    }
+  }, [dateRange, storeId]);
   
   const fetchOrdersData = async () => {
+    if (!storeId) return;
     setLoading(true);
     try {
+      // FILTRADO POR STORE_ID
       const { data: orders } = await supabase
         .from('orders')
         .select('*')
+        .eq('store_id', storeId)
         .gte('created_at', dateRange.from.toISOString())
         .lte('created_at', dateRange.to.toISOString())
         .order('created_at', { ascending: false });

@@ -33,7 +33,7 @@ export default function ReportsPage() {
       </div>
       
       {/* KPIs no topo */}
-      <SalesKPICards dateRange={dateRange} />
+      <SalesKPICards dateRange={dateRange} storeId={storeId} />
       
       {/* Tabs para organizar conteúdo */}
       <Tabs defaultValue="sales" className="space-y-4">
@@ -61,23 +61,23 @@ export default function ReportsPage() {
         </TabsList>
         
         <TabsContent value="sales">
-          <SalesChart dateRange={dateRange} />
+          <SalesChart dateRange={dateRange} storeId={storeId} />
         </TabsContent>
         
         <TabsContent value="orders">
-          <OrdersAnalysis dateRange={dateRange} />
+          <OrdersAnalysis dateRange={dateRange} storeId={storeId} />
         </TabsContent>
         
         <TabsContent value="trends">
-          <SalesTrends dateRange={dateRange} />
+          <SalesTrends dateRange={dateRange} storeId={storeId} />
         </TabsContent>
         
         <TabsContent value="products">
-          <TopProducts dateRange={dateRange} />
+          <TopProducts dateRange={dateRange} storeId={storeId} />
         </TabsContent>
         
         <TabsContent value="customers">
-          <CustomersAnalysis dateRange={dateRange} />
+          <CustomersAnalysis dateRange={dateRange} storeId={storeId} />
         </TabsContent>
       </Tabs>
     </div>

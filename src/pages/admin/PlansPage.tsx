@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -51,6 +52,9 @@ const PlansPage = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [saving, setSaving] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [planToDelete, setPlanToDelete] = useState<Plan | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const { toast } = useToast();
 
   // Form states
@@ -188,6 +192,44 @@ const PlansPage = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleDeletePlan = async () => {
+    if (!planToDelete) return;
+
+    try {
+      setDeleting(true);
+      
+      const { error } = await supabase
+        .from('plans')
+        .delete()
+        .eq('id', planToDelete.id);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Sucesso',
+        description: 'Plano excluído com sucesso!',
+      });
+
+      setDeleteDialogOpen(false);
+      setPlanToDelete(null);
+      fetchPlans();
+    } catch (error) {
+      console.error('Erro ao excluir plano:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível excluir o plano.',
+        variant: 'destructive'
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const confirmDeletePlan = (plan: Plan) => {
+    setPlanToDelete(plan);
+    setDeleteDialogOpen(true);
   };
 
   const formatPrice = (price: number) => {
@@ -408,7 +450,12 @@ const PlansPage = () => {
                     <Edit className="w-3 h-3 mr-1" />
                     Editar
                   </Button>
-                  <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    onClick={() => confirmDeletePlan(plan)}
+                  >
                     <Trash2 className="w-3 h-3" />
                   </Button>
                 </div>
@@ -824,6 +871,36 @@ const PlansPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Plano</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o plano <strong>"{planToDelete?.name}"</strong>?
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeletePlan}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deleting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Excluindo...
+                </>
+              ) : (
+                'Excluir'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

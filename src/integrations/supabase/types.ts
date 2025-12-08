@@ -1279,6 +1279,7 @@ export type Database = {
           icon: string | null
           id: string
           is_active: boolean | null
+          key: string | null
           name: string
         }
         Insert: {
@@ -1287,6 +1288,7 @@ export type Database = {
           icon?: string | null
           id?: string
           is_active?: boolean | null
+          key?: string | null
           name: string
         }
         Update: {
@@ -1295,6 +1297,7 @@ export type Database = {
           icon?: string | null
           id?: string
           is_active?: boolean | null
+          key?: string | null
           name?: string
         }
         Relationships: []
@@ -2948,6 +2951,64 @@ export type Database = {
           },
           {
             foreignKeyName: "store_invite_links_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_modules: {
+        Row: {
+          blocked_at: string | null
+          blocked_by: string | null
+          blocked_reason: string | null
+          created_at: string
+          id: string
+          is_enabled: boolean
+          module_id: string
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          blocked_at?: string | null
+          blocked_by?: string | null
+          blocked_reason?: string | null
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          module_id: string
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          blocked_at?: string | null
+          blocked_by?: string | null
+          blocked_reason?: string | null
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          module_id?: string
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_modules_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_modules_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_modules_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"

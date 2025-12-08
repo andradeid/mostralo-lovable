@@ -99,11 +99,18 @@ export function useStoreModules(storeId: string | null): UseStoreModulesReturn {
 
   // Verifica se a loja tem acesso a um módulo específico
   const hasModule = useCallback((moduleKey: string): boolean => {
-    // Se não tem storeId ou ainda está carregando, permitir acesso (evita flash de bloqueio)
-    if (!storeId || loading) return true;
+    // Se não tem storeId, permitir acesso (não há contexto de loja)
+    if (!storeId) return true;
     
-    // Se a lista de módulos está vazia mas temos storeId, ainda está carregando
-    if (modules.length === 0) return true;
+    // Se ainda está carregando, permitir acesso temporariamente (evita flash de bloqueio)
+    if (loading) return true;
+    
+    // ⚠️ SEGURANÇA: Se a lista está vazia E não está carregando = erro de conexão
+    // Comportamento seguro: BLOQUEAR acesso quando há erro
+    if (modules.length === 0 && !loading) {
+      console.warn('⚠️ useStoreModules: Módulos não carregados - bloqueando acesso por segurança');
+      return false;
+    }
     
     const module = modules.find(m => m.key === moduleKey);
     // Se o módulo não existe na lista, permitir (módulo não cadastrado = liberado por padrão)

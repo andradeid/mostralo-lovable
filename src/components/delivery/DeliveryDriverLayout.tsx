@@ -9,7 +9,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Bell } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { initializeChatwoot, removeChatwoot } from '@/lib/chatwootWidget';
 import { InvitationsDialog } from '@/components/delivery/InvitationsDialog';
 import { DeliveryDriverSidebar } from '@/components/delivery/DeliveryDriverSidebar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
@@ -90,12 +89,17 @@ export function DeliveryDriverLayout({ children, onOnlineStatusChange }: Deliver
     };
   }, [profile, isOnline]);
 
-  // Inicializar Chatwoot para suporte
+  // Escutar evento global de mudança de status
   useEffect(() => {
-    initializeChatwoot();
-    
+    const handleOnlineStatusChange = (event: CustomEvent<{ isOnline: boolean }>) => {
+      console.log('📱 DeliveryDriverLayout: received global online status change', event.detail);
+      setIsOnline(event.detail.isOnline);
+    };
+
+    window.addEventListener('onlineStatusChange', handleOnlineStatusChange as EventListener);
+
     return () => {
-      removeChatwoot();
+      window.removeEventListener('onlineStatusChange', handleOnlineStatusChange as EventListener);
     };
   }, []);
 

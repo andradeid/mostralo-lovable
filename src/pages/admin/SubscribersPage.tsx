@@ -9,6 +9,7 @@ import { SubscriberEditDialog } from '@/components/admin/SubscriberEditDialog';
 import { CreateStoreOwnerDialog } from '@/components/admin/CreateStoreOwnerDialog';
 import { UserBlockDialog } from '@/components/admin/UserBlockDialog';
 import { UserDeleteDialog } from '@/components/admin/UserDeleteDialog';
+import { StoreModulesDialog } from '@/components/admin/StoreModulesDialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
@@ -27,7 +28,8 @@ import {
   AlertCircle,
   DollarSign,
   TrendingUp,
-  Plus
+  Plus,
+  Package
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -65,6 +67,7 @@ const SubscribersPage = () => {
   const [deleteUser, setDeleteUser] = useState<any>(null);
   const [plans, setPlans] = useState<any[]>([]);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [modulesStore, setModulesStore] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     fetchSubscribers();
@@ -515,8 +518,18 @@ const SubscribersPage = () => {
                               <ExternalLink className="h-4 w-4 mr-2" />
                               Ver Loja
                             </DropdownMenuItem>
-                            
+
                             <DropdownMenuItem 
+                              onClick={() => setModulesStore({ 
+                                id: subscriber.store_id, 
+                                name: subscriber.store_name 
+                              })}
+                            >
+                              <Package className="h-4 w-4 mr-2" />
+                              Módulos
+                            </DropdownMenuItem>
+                            
+                            <DropdownMenuItem
                               onClick={() => setBlockUser({
                                 id: subscriber.id,
                                 full_name: subscriber.full_name,
@@ -595,6 +608,15 @@ const SubscribersPage = () => {
         onOpenChange={setCreateDialogOpen}
         onSuccess={fetchSubscribers}
       />
+
+      {modulesStore && (
+        <StoreModulesDialog
+          open={!!modulesStore}
+          onOpenChange={(open) => !open && setModulesStore(null)}
+          storeId={modulesStore.id}
+          storeName={modulesStore.name}
+        />
+      )}
     </div>
   );
 };

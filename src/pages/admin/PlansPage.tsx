@@ -200,6 +200,25 @@ const PlansPage = () => {
     try {
       setDeleting(true);
       
+      // Verificar se existem lojas usando este plano
+      const { count, error: countError } = await supabase
+        .from('stores')
+        .select('*', { count: 'exact', head: true })
+        .eq('plan_id', planToDelete.id);
+
+      if (countError) throw countError;
+
+      if (count && count > 0) {
+        toast({
+          title: 'Não é possível excluir',
+          description: `Este plano está sendo usado por ${count} loja(s). Mude o plano das lojas antes de excluir.`,
+          variant: 'destructive'
+        });
+        setDeleteDialogOpen(false);
+        setPlanToDelete(null);
+        return;
+      }
+      
       const { error } = await supabase
         .from('plans')
         .delete()
@@ -215,13 +234,23 @@ const PlansPage = () => {
       setDeleteDialogOpen(false);
       setPlanToDelete(null);
       fetchPlans();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao excluir plano:', error);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível excluir o plano.',
-        variant: 'destructive'
-      });
+      
+      // Tratamento específico para erro de foreign key
+      if (error?.code === '23503') {
+        toast({
+          title: 'Não é possível excluir',
+          description: 'Este plano está vinculado a lojas. Mude o plano das lojas antes de excluir.',
+          variant: 'destructive'
+        });
+      } else {
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível excluir o plano.',
+          variant: 'destructive'
+        });
+      }
     } finally {
       setDeleting(false);
     }

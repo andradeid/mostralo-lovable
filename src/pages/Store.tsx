@@ -403,12 +403,14 @@ const Store = () => {
       ]);
 
       // Processar dados da configuração
+      const rawConfig = configResult.data;
       const processedStore: Store = {
         ...storeData,
-        configuration: configResult.data || {
-          primary_color: '#3B82F6',
-          secondary_color: '#10B981',
-          product_display_layout: 'grid'
+        configuration: {
+          primary_color: rawConfig?.primary_color || '#3B82F6',
+          secondary_color: rawConfig?.secondary_color || '#10B981',
+          product_display_layout: rawConfig?.product_display_layout || 'grid',
+          custom_scripts: rawConfig?.custom_scripts as { head_scripts?: string; body_start_scripts?: string; body_end_scripts?: string; } | undefined
         }
       };
       

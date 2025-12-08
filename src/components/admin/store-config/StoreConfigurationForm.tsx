@@ -520,7 +520,7 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
       case 'delivery':
         return <DeliveryStep formData={formData} updateFormData={updateFormData} onSave={handleSave} storeId={store.id} />;
       case 'contact':
-        return <ContactStep formData={formData} updateFormData={updateFormData} />;
+        return <ContactStep formData={formData} updateFormData={updateFormData} storeId={store.id} />;
       case 'user':
         return <UserStep formData={formData} updateFormData={updateFormData} />;
       default:
@@ -640,7 +640,7 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
 
             {/* Contact Tab */}
             <TabsContent value="contact" className="space-y-4 mt-6">
-              <ContactStep formData={formData} updateFormData={updateFormData} />
+              <ContactStep formData={formData} updateFormData={updateFormData} storeId={store.id} />
               <div className="flex justify-end gap-2 pt-4 border-t">
                 <Button 
                   onClick={() => handleSaveSection('contact')}

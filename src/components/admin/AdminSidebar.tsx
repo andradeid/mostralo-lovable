@@ -333,6 +333,7 @@ export function AdminSidebar() {
         { title: 'Configurar Bônus', url: '/dashboard/salespeople/commissions', icon: DollarSign, group: 'Vendedores' },
         { title: 'Prompts de Vendas', url: '/dashboard/sales-prompts', icon: MessageSquare, group: 'Vendedores' },
         { title: 'Guia de Prospecção', url: '/dashboard/prospecting', icon: Target, group: 'Vendedores' },
+        { title: 'Guia de Cadastro', url: '/dashboard/onboarding-guide', icon: FileText, group: 'Vendedores' },
         { title: 'Assinantes', url: '/dashboard/subscribers', icon: CreditCard, group: 'Gerenciamento' },
         { title: 'Lojas', url: '/dashboard/stores', icon: Store, group: 'Gerenciamento' },
         { title: 'Usuários', url: '/dashboard/users', icon: UserCircle, group: 'Gerenciamento' },

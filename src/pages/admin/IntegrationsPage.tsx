@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { Database } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
+import { ModuleGate } from "@/components/admin/ModuleGate";
+import { useStoreAccess } from "@/hooks/useStoreAccess";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -47,6 +49,7 @@ interface CustomMenu {
 export default function IntegrationsPage() {
   const { profile } = useAuth();
   const { toast } = useToast();
+  const { storeId: validatedStoreId } = useStoreAccess();
   const [menus, setMenus] = useState<CustomMenu[]>([]);
   const [loading, setLoading] = useState(true);
   const [storeId, setStoreId] = useState<string | null>(null);
@@ -242,6 +245,7 @@ export default function IntegrationsPage() {
   }
 
   return (
+    <ModuleGate moduleKey="integrations" storeId={validatedStoreId}>
     <div className="container mx-auto p-6 max-w-6xl">
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -396,5 +400,6 @@ export default function IntegrationsPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </ModuleGate>
   );
 }

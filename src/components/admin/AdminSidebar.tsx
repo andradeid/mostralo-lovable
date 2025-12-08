@@ -452,15 +452,21 @@ export function AdminSidebar() {
 
       menuItems.push(
         { title: 'Minha Assinatura', url: '/dashboard/subscription', icon: CreditCard, group: 'Conta' },
-        { title: 'Perfil', url: '/dashboard/profile', icon: User, group: 'Conta' },
-        { title: 'Gerenciar Integrações', url: '/dashboard/integrations', icon: ExternalLink, group: 'Integrações' },
-        ...customMenus.map(menu => ({
-          title: menu.title,
-          url: `/dashboard/iframe/${menu.id}`,
-          icon: ExternalLink,
-          group: 'Integrações'
-        }))
+        { title: 'Perfil', url: '/dashboard/profile', icon: User, group: 'Conta' }
       );
+
+      // Integrações - verifica módulo
+      if (hasModule('integrations')) {
+        menuItems.push(
+          { title: 'Gerenciar Integrações', url: '/dashboard/integrations', icon: ExternalLink, group: 'Integrações' },
+          ...customMenus.map(menu => ({
+            title: menu.title,
+            url: `/dashboard/iframe/${menu.id}`,
+            icon: ExternalLink,
+            group: 'Integrações'
+          }))
+        );
+      }
 
       return menuItems;
     }

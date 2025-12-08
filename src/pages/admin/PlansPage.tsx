@@ -38,6 +38,7 @@ interface Plan {
   features: any;
   created_at: string;
   updated_at: string;
+  stores_count?: number;
 }
 
 const PlansPage = () => {
@@ -85,13 +86,37 @@ const PlansPage = () => {
 
   const fetchPlans = async () => {
     try {
-      const { data, error } = await supabase
+      // Buscar planos
+      const { data: plansData, error: plansError } = await supabase
         .from('plans')
         .select('*')
         .order('price', { ascending: true });
 
-      if (error) throw error;
-      setPlans(data || []);
+      if (plansError) throw plansError;
+
+      // Buscar contagem de lojas por plano
+      const { data: storesData, error: storesError } = await supabase
+        .from('stores')
+        .select('plan_id')
+        .not('plan_id', 'is', null);
+
+      if (storesError) throw storesError;
+
+      // Contar lojas por plano
+      const countMap = (storesData || []).reduce((acc, store) => {
+        if (store.plan_id) {
+          acc[store.plan_id] = (acc[store.plan_id] || 0) + 1;
+        }
+        return acc;
+      }, {} as Record<string, number>);
+
+      // Adicionar contagem aos planos
+      const plansWithCount = (plansData || []).map(plan => ({
+        ...plan,
+        stores_count: countMap[plan.id] || 0
+      }));
+
+      setPlans(plansWithCount);
     } catch (error) {
       console.error('Erro ao buscar planos:', error);
       toast({
@@ -418,6 +443,13 @@ const PlansPage = () => {
                   <p className="text-sm text-muted-foreground">
                     {getBillingCycleLabel(plan.billing_cycle)} - {getBillingCycleDays(plan.billing_cycle)} dias
                   </p>
+                </div>
+                {/* Contagem de lojas */}
+                <div className="flex items-center gap-2 pt-2 text-muted-foreground">
+                  <Users className="h-4 w-4" />
+                  <span className="text-sm font-medium">
+                    {plan.stores_count || 0} {plan.stores_count === 1 ? 'loja' : 'lojas'}
+                  </span>
                 </div>
               </CardHeader>
 

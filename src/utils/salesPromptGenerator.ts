@@ -532,6 +532,70 @@ Em 30 minutos seu cardápio está no ar.
 Você tem 7 dias para testar SEM RISCO. Se não gostar, cancela. Mas se gostar, vai economizar milhares de reais por ano."`;
 }
 
+function generateOnboardingQuestionsSection(): string {
+  return `\n## PERGUNTAS PARA COLETA DE DADOS (ONBOARDING)
+
+⚠️ **IMPORTANTE**: Só colete esses dados APÓS confirmar que o cliente quer fechar!
+
+Quando o cliente decidir assinar, colete TODOS os dados abaixo:
+
+### 📧 Dados de Login:
+"Qual o melhor email para criar sua conta? Esse será seu login."
+"Quer que eu gere uma senha temporária ou prefere escolher uma?"
+(Mínimo 6 caracteres)
+
+### 👤 Dados Pessoais:
+"Qual o nome completo do responsável pela loja?"
+"Qual o WhatsApp para contato?" (Formato: 11 99999-9999)
+
+### 🏪 Dados da Empresa:
+"Qual o nome da sua empresa/loja? Isso vai aparecer no cardápio."
+"Você tem CNPJ? Se tiver, me passa que eu busco os dados automaticamente!"
+💡 Com CNPJ, preenchemos endereço e outros dados automaticamente.
+(CPF também aceito se não tiver CNPJ)
+
+### 📍 Endereço:
+"Qual o endereço completo da loja?"
+- Rua e número
+- Complemento (se houver)
+- Bairro
+- Cidade e Estado
+- CEP
+
+### ✨ Plano Escolhido:
+"Qual plano você escolheu?"
+(Confirmar: Essencial, Profissional ou Empresarial)
+
+---
+
+### 📱 TEMPLATE PARA WHATSAPP (copie e envie):
+
+"Ótimo! Para criar sua conta, preciso de algumas informações:
+
+📧 Email para login:
+👤 Nome completo:
+📱 WhatsApp:
+🏪 Nome da loja:
+📄 CPF ou CNPJ:
+📍 Endereço completo: (Rua, número, complemento, cidade, estado, CEP)
+✨ Plano escolhido:
+
+Me manda esses dados que eu já crio sua conta! 🚀"
+
+---
+
+### ✅ CHECKLIST ANTES DE CRIAR A CONTA:
+[ ] Email válido coletado
+[ ] Senha definida (mín. 6 caracteres)
+[ ] Nome completo do responsável
+[ ] Telefone/WhatsApp
+[ ] Nome da loja
+[ ] CPF ou CNPJ
+[ ] Endereço completo com CEP
+[ ] Plano confirmado
+[ ] Forma de pagamento definida (PIX)`;
+}
+
 export function generateSalesPrompt(config: PromptConfig): string {
   const { type, plans } = config;
 
@@ -544,6 +608,7 @@ export function generateSalesPrompt(config: PromptConfig): string {
   prompt += generateConversationFlowSection(type);
   prompt += generateObjectionHandlingSection(type);
   prompt += generateCTASection();
+  prompt += generateOnboardingQuestionsSection();
 
   return prompt;
 }

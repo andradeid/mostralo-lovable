@@ -92,6 +92,7 @@ import { SalespersonLayout } from "./components/salesperson/SalespersonLayout";
 import ProspectingGuidePage from "./pages/admin/ProspectingGuidePage";
 import BusinessIntelligencePage from "./pages/admin/BusinessIntelligencePage";
 import CompileAppsGuidePage from "./pages/admin/CompileAppsGuidePage";
+import OnboardingGuidePage from "./pages/salesperson/OnboardingGuidePage";
 
 const queryClient = new QueryClient();
 
@@ -157,6 +158,13 @@ const App = () => (
               <ProtectedRoute allowedRoles={['master_admin']}>
                 <AdminLayout pageTitle="Compilar Apps">
                   <CompileAppsGuidePage />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/onboarding-guide" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Guia de Cadastro">
+                  <OnboardingGuidePage />
                 </AdminLayout>
               </ProtectedRoute>
             } />
@@ -448,6 +456,16 @@ const App = () => (
               <ProtectedRoute allowedRoles={["salesperson"]}>
                 <SalespersonLayout>
                   <ProspectingGuidePage />
+                </SalespersonLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendedor/onboarding"
+            element={
+              <ProtectedRoute allowedRoles={["salesperson"]}>
+                <SalespersonLayout>
+                  <OnboardingGuidePage />
                 </SalespersonLayout>
               </ProtectedRoute>
             }

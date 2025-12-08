@@ -392,8 +392,8 @@ const PlansPage = () => {
             <Card key={plan.id} className="relative overflow-hidden">
               {/* Popular Badge */}
               {isPopular && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                  <Badge className="bg-primary text-white shadow-lg px-4 py-1 text-xs font-semibold">
+                <div className="absolute top-2 left-1/2 -translate-x-1/2">
+                  <Badge className="bg-primary text-white shadow-lg px-4 py-1 text-xs font-semibold whitespace-nowrap">
                     ⭐ Mais Popular
                   </Badge>
                 </div>

@@ -425,9 +425,13 @@ export function AdminSidebar() {
         { title: 'Produtos', url: '/dashboard/products', icon: Package, group: 'Loja' },
         { title: 'Categorias', url: '/dashboard/categories', icon: Grid, group: 'Loja' },
         { title: 'Adicionais', url: '/dashboard/addons', icon: Plus, group: 'Loja' },
-        { title: 'Categorias de Adicionais', url: '/dashboard/addon-categories', icon: Grid3X3, group: 'Loja' },
-        { title: 'Banners', url: '/dashboard/banners', icon: Image, group: 'Loja' }
+        { title: 'Categorias de Adicionais', url: '/dashboard/addon-categories', icon: Grid3X3, group: 'Loja' }
       );
+
+      // Banners - verifica módulo
+      if (hasModule('banners')) {
+        menuItems.push({ title: 'Banners', url: '/dashboard/banners', icon: Image, group: 'Loja' });
+      }
 
       // Promoções - verifica módulo
       if (hasModule('promotions')) {
@@ -443,7 +447,10 @@ export function AdminSidebar() {
         );
       }
 
-      menuItems.push({ title: 'Atendentes', url: '/dashboard/attendants', icon: Users, group: 'Gerenciamento' });
+      // Atendentes - verifica módulo
+      if (hasModule('attendants')) {
+        menuItems.push({ title: 'Atendentes', url: '/dashboard/attendants', icon: Users, group: 'Gerenciamento' });
+      }
 
       // Impressão - verifica módulo
       if (hasModule('printing')) {

@@ -10,28 +10,34 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 interface SalesTrendsProps {
   dateRange: DateRange;
+  storeId: string | null;
 }
 
 const dayNames = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
-export function SalesTrends({ dateRange }: SalesTrendsProps) {
+export function SalesTrends({ dateRange, storeId }: SalesTrendsProps) {
   const [dayData, setDayData] = useState<any[]>([]);
   const [deliveryData, setDeliveryData] = useState<any[]>([]);
   const [paymentData, setPaymentData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    fetchTrendsData();
-  }, [dateRange]);
+    if (storeId) {
+      fetchTrendsData();
+    }
+  }, [dateRange, storeId]);
   
   const fetchTrendsData = async () => {
+    if (!storeId) return;
     setLoading(true);
     try {
+      // FILTRADO POR STORE_ID
       const { data: orders } = await supabase
         .from('orders')
         .select('*')
+        .eq('store_id', storeId)
         .gte('created_at', dateRange.from.toISOString())
         .lte('created_at', dateRange.to.toISOString())
         .eq('status', 'concluido');

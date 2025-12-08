@@ -10,22 +10,28 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 interface SalesChartProps {
   dateRange: DateRange;
+  storeId: string | null;
 }
 
-export function SalesChart({ dateRange }: SalesChartProps) {
+export function SalesChart({ dateRange, storeId }: SalesChartProps) {
   const [chartData, setChartData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    fetchChartData();
-  }, [dateRange]);
+    if (storeId) {
+      fetchChartData();
+    }
+  }, [dateRange, storeId]);
   
   const fetchChartData = async () => {
+    if (!storeId) return;
     setLoading(true);
     try {
+      // FILTRADO POR STORE_ID
       const { data: orders } = await supabase
         .from('orders')
         .select('created_at, total, status')
+        .eq('store_id', storeId)
         .gte('created_at', dateRange.from.toISOString())
         .lte('created_at', dateRange.to.toISOString())
         .order('created_at', { ascending: true });

@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 interface SalesKPICardsProps {
   dateRange: DateRange;
+  storeId: string | null;
 }
 
 interface KPIData {
@@ -26,7 +27,7 @@ interface KPIData {
   };
 }
 
-export function SalesKPICards({ dateRange }: SalesKPICardsProps) {
+export function SalesKPICards({ dateRange, storeId }: SalesKPICardsProps) {
   const [kpis, setKpis] = useState<KPIData>({
     totalSales: 0,
     totalOrders: 0,
@@ -39,16 +40,20 @@ export function SalesKPICards({ dateRange }: SalesKPICardsProps) {
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    fetchKPIs();
-  }, [dateRange]);
+    if (storeId) {
+      fetchKPIs();
+    }
+  }, [dateRange, storeId]);
   
   const fetchKPIs = async () => {
+    if (!storeId) return;
     setLoading(true);
     try {
-      // Buscar orders no período atual
+      // Buscar orders no período atual - FILTRADO POR STORE_ID
       const { data: orders } = await supabase
         .from('orders')
         .select('*')
+        .eq('store_id', storeId)
         .gte('created_at', dateRange.from.toISOString())
         .lte('created_at', dateRange.to.toISOString());
       
@@ -83,9 +88,11 @@ export function SalesKPICards({ dateRange }: SalesKPICardsProps) {
       const previousFrom = new Date(dateRange.from);
       previousFrom.setDate(previousFrom.getDate() - daysDiff);
       
+      // Buscar orders do período anterior - FILTRADO POR STORE_ID
       const { data: previousOrders } = await supabase
         .from('orders')
         .select('*')
+        .eq('store_id', storeId)
         .gte('created_at', previousFrom.toISOString())
         .lt('created_at', dateRange.from.toISOString());
       

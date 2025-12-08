@@ -13,11 +13,12 @@ import { Users, UserCheck, UserPlus, UserX, Crown } from 'lucide-react';
 
 interface CustomersAnalysisProps {
   dateRange: DateRange;
+  storeId: string | null;
 }
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
 
-export function CustomersAnalysis({ dateRange }: CustomersAnalysisProps) {
+export function CustomersAnalysis({ dateRange, storeId }: CustomersAnalysisProps) {
   const [kpis, setKpis] = useState({
     total: 0,
     active: 0,
@@ -29,21 +30,28 @@ export function CustomersAnalysis({ dateRange }: CustomersAnalysisProps) {
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    fetchCustomersData();
-  }, [dateRange]);
+    if (storeId) {
+      fetchCustomersData();
+    }
+  }, [dateRange, storeId]);
   
   const fetchCustomersData = async () => {
+    if (!storeId) return;
     setLoading(true);
     try {
-      // Buscar todos os clientes
-      const { data: customers } = await supabase
-        .from('customers')
-        .select('*');
+      // Buscar clientes vinculados a esta loja através de customer_stores
+      const { data: customerStoreLinks } = await supabase
+        .from('customer_stores')
+        .select('customer_id, customers(*)')
+        .eq('store_id', storeId);
       
-      // Buscar pedidos no período
+      const customers = customerStoreLinks?.map(link => link.customers).filter(Boolean) || [];
+      
+      // Buscar pedidos no período - FILTRADO POR STORE_ID
       const { data: orders } = await supabase
         .from('orders')
         .select('*')
+        .eq('store_id', storeId)
         .gte('created_at', dateRange.from.toISOString())
         .lte('created_at', dateRange.to.toISOString())
         .eq('status', 'concluido');

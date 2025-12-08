@@ -11,19 +11,24 @@ import { Trophy, TrendingUp } from 'lucide-react';
 
 interface TopProductsProps {
   dateRange: DateRange;
+  storeId: string | null;
 }
 
-export function TopProducts({ dateRange }: TopProductsProps) {
+export function TopProducts({ dateRange, storeId }: TopProductsProps) {
   const [topProducts, setTopProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    fetchTopProducts();
-  }, [dateRange]);
+    if (storeId) {
+      fetchTopProducts();
+    }
+  }, [dateRange, storeId]);
   
   const fetchTopProducts = async () => {
+    if (!storeId) return;
     setLoading(true);
     try {
+      // FILTRADO POR STORE_ID
       const { data: orderItems } = await supabase
         .from('order_items')
         .select(`
@@ -33,6 +38,7 @@ export function TopProducts({ dateRange }: TopProductsProps) {
           subtotal,
           order:orders!inner(store_id, status, created_at)
         `)
+        .eq('order.store_id', storeId)
         .eq('order.status', 'concluido')
         .gte('order.created_at', dateRange.from.toISOString())
         .lte('order.created_at', dateRange.to.toISOString());

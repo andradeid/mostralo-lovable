@@ -66,6 +66,11 @@ function generatePreviewHTML(store: StoreData, baseUrl: string): string {
   
   <title>${store.name} - Mostralo</title>
   
+  <!-- Favicon fixo do Mostralo -->
+  <link rel="icon" href="${baseUrl}/mostralo-icon.png" type="image/png">
+  <link rel="shortcut icon" href="${baseUrl}/mostralo-icon.png">
+  <link rel="apple-touch-icon" href="${baseUrl}/mostralo-icon.png">
+  
   <!-- Redirect para usuários reais -->
   <meta http-equiv="refresh" content="0;url=${storeUrl}" />
   

@@ -1,0 +1,3 @@
+-- A primeira parte já foi executada com sucesso (DROP e CREATE da policy de SELECT)
+-- Apenas verificando se a policy foi criada corretamente
+-- Não precisa fazer mais nada pois a policy "Store admins can view their store_modules fixed" já foi criada

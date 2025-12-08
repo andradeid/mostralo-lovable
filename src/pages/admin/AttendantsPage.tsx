@@ -25,6 +25,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { usePageSEO } from '@/hooks/useSEO';
+import { ModuleGate } from '@/components/admin/ModuleGate';
+import { useStoreAccess } from '@/hooks/useStoreAccess';
 
 interface Attendant {
   id: string;
@@ -42,6 +44,7 @@ interface Store {
 
 const AttendantsPage = () => {
   const { profile, userRole } = useAuth();
+  const { storeId: validatedStoreId } = useStoreAccess();
   const [attendants, setAttendants] = useState<Attendant[]>([]);
   const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
@@ -360,6 +363,7 @@ const AttendantsPage = () => {
   );
 
   return (
+    <ModuleGate moduleKey="attendants" storeId={validatedStoreId}>
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -643,6 +647,7 @@ const AttendantsPage = () => {
         </DialogContent>
       </Dialog>
     </div>
+    </ModuleGate>
   );
 };
 

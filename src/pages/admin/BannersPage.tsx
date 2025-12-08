@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, Edit, Trash2, Eye, EyeOff, Search, Image as ImageIcon } from "lucide-react";
+import { ModuleGate } from '@/components/admin/ModuleGate';
+import { useStoreAccess } from '@/hooks/useStoreAccess';
 
 interface Banner {
   id: string;
@@ -42,6 +44,7 @@ export default function BannersPage() {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { toast } = useToast();
+  const { storeId: validatedStoreId } = useStoreAccess();
   
   const [banners, setBanners] = useState<Banner[]>([]);
   const [stores, setStores] = useState<Store[]>([]);
@@ -175,6 +178,7 @@ export default function BannersPage() {
   }
 
   return (
+    <ModuleGate moduleKey="banners" storeId={validatedStoreId}>
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -363,5 +367,6 @@ export default function BannersPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </ModuleGate>
   );
 }

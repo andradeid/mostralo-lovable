@@ -49,6 +49,8 @@ interface Category {
     price: number;
     isOnOffer?: boolean;
     offerPrice?: number;
+    imageUrl?: string;
+    hasAddons?: boolean;
   }>;
 }
 
@@ -136,13 +138,21 @@ export default function StoreMarketingPage() {
 
       setStoreData(storeDataFormatted);
 
-      // Buscar categorias e produtos
+      // Buscar categorias e produtos com imagens
       const { data: categoriesData } = await supabase
         .from('categories')
-        .select(`id, name, products (id, name, description, price, is_on_offer, offer_price, is_available)`)
+        .select(`id, name, products (id, name, description, price, is_on_offer, offer_price, is_available, image_url)`)
         .eq('store_id', storeId)
         .eq('is_active', true)
         .order('display_order', { ascending: true });
+
+      // Buscar quais produtos têm adicionais
+      const { data: productAddonsData } = await supabase
+        .from('product_addons')
+        .select('product_id')
+        .eq('product_id', storeId);
+      
+      const productsWithAddons = new Set((productAddonsData || []).map(pa => pa.product_id));
 
       const formattedCategories: Category[] = (categoriesData || [])
         .filter(cat => cat.products && cat.products.length > 0)
@@ -158,6 +168,8 @@ export default function StoreMarketingPage() {
               price: p.price,
               isOnOffer: p.is_on_offer || false,
               offerPrice: p.offer_price || undefined,
+              imageUrl: p.image_url || undefined,
+              hasAddons: productsWithAddons.has(p.id),
             })),
         }));
 
@@ -300,7 +312,11 @@ export default function StoreMarketingPage() {
             </TabsList>
 
             <div className="flex justify-center mb-6">
-              <DownloadButtons targetRef={getCurrentRef()} filename={getFilename()} />
+              <DownloadButtons 
+                targetRef={getCurrentRef()} 
+                filename={getFilename()} 
+                paperSize={selectedTab === 'flyer' ? 'A5' : 'A4'}
+              />
             </div>
 
             <div className="border rounded-lg bg-muted/30 overflow-auto max-h-[700px]">

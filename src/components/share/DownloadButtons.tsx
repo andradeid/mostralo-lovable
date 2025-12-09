@@ -5,6 +5,7 @@ import { toast } from "@/hooks/use-toast";
 interface DownloadButtonsProps {
   targetRef: React.RefObject<HTMLDivElement>;
   filename: string;
+  paperSize?: 'A4' | 'A5';
   onPrint?: () => void;
 }
 
@@ -147,7 +148,11 @@ const generatePng = async (element: HTMLElement, scale: number = 2): Promise<str
   });
 };
 
-export function DownloadButtons({ targetRef, filename, onPrint }: DownloadButtonsProps) {
+export function DownloadButtons({ targetRef, filename, paperSize = 'A4', onPrint }: DownloadButtonsProps) {
+  const isA5 = paperSize === 'A5';
+  const pageWidth = isA5 ? '148mm' : '210mm';
+  const pageHeight = isA5 ? '210mm' : '297mm';
+  const scale = isA5 ? 0.7 : 1;
   
   // Download como PNG em alta qualidade
   const handleDownloadPng = async () => {
@@ -188,8 +193,8 @@ export function DownloadButtons({ targetRef, filename, onPrint }: DownloadButton
     }
   };
 
-  // Prévia em formato A5
-  const handlePreviewA5 = () => {
+  // Prévia do material
+  const handlePreview = () => {
     if (!targetRef.current) {
       toast({
         title: "Erro",
@@ -202,7 +207,9 @@ export function DownloadButtons({ targetRef, filename, onPrint }: DownloadButton
     const clonedElement = cloneWithComputedStyles(targetRef.current);
     clonedElement.style.boxShadow = 'none';
 
-    const previewWindow = window.open('', '_blank', 'width=620,height=880');
+    const windowWidth = isA5 ? 620 : 900;
+    const windowHeight = isA5 ? 880 : 1000;
+    const previewWindow = window.open('', '_blank', `width=${windowWidth},height=${windowHeight}`);
     if (!previewWindow) {
       toast({
         title: "Erro",
@@ -212,11 +219,16 @@ export function DownloadButtons({ targetRef, filename, onPrint }: DownloadButton
       return;
     }
 
+    const sizeLabel = isA5 ? 'A5' : 'A4';
+    const sizeInfo = isA5 ? '148mm × 210mm' : '210mm × 297mm';
+    const contentScale = isA5 ? 0.7 : 0.85;
+    const printScale = isA5 ? 0.65 : 0.75;
+
     previewWindow.document.write(`
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Prévia A5 - ${filename}</title>
+        <title>Prévia ${sizeLabel} - ${filename}</title>
         <meta charset="UTF-8">
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -230,20 +242,20 @@ export function DownloadButtons({ targetRef, filename, onPrint }: DownloadButton
             background: #e5e5e5;
             font-family: Arial, sans-serif;
           }
-          .a5-container {
-            width: 148mm;
-            height: 210mm;
+          .page-container {
+            width: ${pageWidth};
+            min-height: ${pageHeight};
             background: white;
             box-shadow: 0 4px 20px rgba(0,0,0,0.2);
             overflow: hidden;
             display: flex;
             align-items: flex-start;
             justify-content: center;
-            padding-top: 10mm;
+            padding-top: 5mm;
             border-radius: 4px;
           }
           .content {
-            transform: scale(0.7);
+            transform: scale(${contentScale});
             transform-origin: top center;
           }
           .header {
@@ -274,7 +286,7 @@ export function DownloadButtons({ targetRef, filename, onPrint }: DownloadButton
           .print-btn:hover { background: #ea580c; }
           img { max-width: 100%; height: auto; }
           @page { 
-            size: A5 portrait; 
+            size: ${sizeLabel} portrait; 
             margin: 5mm; 
           }
           @media print {
@@ -285,14 +297,16 @@ export function DownloadButtons({ targetRef, filename, onPrint }: DownloadButton
               -webkit-print-color-adjust: exact; 
             }
             .header { display: none; }
-            .a5-container { 
+            .page-container { 
               box-shadow: none; 
               width: 100%;
               height: auto;
               border-radius: 0;
+              padding-top: 0;
             }
             .content {
-              transform: scale(0.65);
+              transform: scale(${printScale});
+              transform-origin: top center;
             }
           }
         </style>
@@ -300,12 +314,12 @@ export function DownloadButtons({ targetRef, filename, onPrint }: DownloadButton
       <body>
         <div class="header">
           <div>
-            <h1>Prévia A5 - ${filename}</h1>
-            <span>Tamanho: 148mm × 210mm</span>
+            <h1>Prévia ${sizeLabel} - ${filename}</h1>
+            <span>Tamanho: ${sizeInfo}</span>
           </div>
-          <button class="print-btn" onclick="window.print()">🖨️ Imprimir A5</button>
+          <button class="print-btn" onclick="window.print()">🖨️ Imprimir ${sizeLabel}</button>
         </div>
-        <div class="a5-container">
+        <div class="page-container">
           <div class="content">
             ${clonedElement.outerHTML}
           </div>
@@ -369,7 +383,7 @@ export function DownloadButtons({ targetRef, filename, onPrint }: DownloadButton
             height: auto;
           }
           @page { 
-            size: A5 portrait; 
+            size: ${paperSize} portrait; 
             margin: 5mm; 
           }
           @media print {
@@ -426,8 +440,8 @@ export function DownloadButtons({ targetRef, filename, onPrint }: DownloadButton
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Button onClick={handlePreviewA5} variant="outline" className="gap-2">
-        <Eye className="h-4 w-4" />Prévia A5
+      <Button onClick={handlePreview} variant="outline" className="gap-2">
+        <Eye className="h-4 w-4" />Prévia {paperSize}
       </Button>
       <Button onClick={handlePrint} variant="default" className="gap-2">
         <Printer className="h-4 w-4" />Imprimir / PDF

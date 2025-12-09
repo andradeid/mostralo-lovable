@@ -198,6 +198,15 @@ export function SharePageContent({
               </TabsTrigger>
             </TabsList>
 
+            {/* Botões de Download - logo após tabs */}
+            <div className="flex justify-center gap-4 no-print">
+              <DownloadButtons
+                targetRef={getCurrentRef()}
+                filename={getFilename()}
+                paperSize={getPaperSize()}
+              />
+            </div>
+
             <TabsContent value="flyer" className="print-area">
               <div ref={flyerRef}>
                 <FlyerTemplate
@@ -254,15 +263,6 @@ export function SharePageContent({
               </div>
             </TabsContent>
           </Tabs>
-
-          {/* Botões de Download */}
-          <div className="flex justify-center gap-4 mt-6 no-print">
-            <DownloadButtons
-              targetRef={getCurrentRef()}
-              filename={getFilename()}
-              paperSize={getPaperSize()}
-            />
-          </div>
         </CardContent>
       </Card>
 

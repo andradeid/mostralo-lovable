@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, QrCode, FileText, CreditCard, Grid3X3, Tag, MessageSquare, Lock } from 'lucide-react';
+import { Loader2, QrCode, FileText, CreditCard, Grid3X3, Tag, MessageSquare, Lock, Image, Smartphone, Square } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
@@ -15,6 +15,9 @@ import { StoreMiniQR } from '@/components/store-marketing/StoreMiniQR';
 import { StoreCoupon } from '@/components/store-marketing/StoreCoupon';
 import { StoreWhatsAppSticker } from '@/components/store-marketing/StoreWhatsAppSticker';
 import { StoreMenuTemplate } from '@/components/store-marketing/StoreMenuTemplate';
+import { StoreSocialBanner } from '@/components/store-marketing/StoreSocialBanner';
+import { StoreInstagramStory } from '@/components/store-marketing/StoreInstagramStory';
+import { StoreInstagramPost } from '@/components/store-marketing/StoreInstagramPost';
 
 interface StoreData {
   name: string;
@@ -76,6 +79,9 @@ export default function StoreMarketingPage() {
   const couponRef = useRef<HTMLDivElement>(null);
   const whatsappRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const socialBannerRef = useRef<HTMLDivElement>(null);
+  const instagramStoryRef = useRef<HTMLDivElement>(null);
+  const instagramPostRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (storeId && !storeAccessLoading) {
@@ -191,6 +197,9 @@ export default function StoreMarketingPage() {
       case 'coupon': return couponRef;
       case 'whatsapp': return whatsappRef;
       case 'menu': return menuRef;
+      case 'social-banner': return socialBannerRef;
+      case 'instagram-story': return instagramStoryRef;
+      case 'instagram-post': return instagramPostRef;
       default: return flyerRef;
     }
   };
@@ -285,19 +294,25 @@ export default function StoreMarketingPage() {
               <TabsTrigger value="mini-qr" className="flex-1 min-w-[80px] gap-1"><Grid3X3 className="h-4 w-4" />Mini QR</TabsTrigger>
               {promotions.length > 0 && <TabsTrigger value="coupon" className="flex-1 min-w-[80px] gap-1"><Tag className="h-4 w-4" />Cupom</TabsTrigger>}
               <TabsTrigger value="whatsapp" className="flex-1 min-w-[80px] gap-1"><MessageSquare className="h-4 w-4" />WhatsApp</TabsTrigger>
+              <TabsTrigger value="social-banner" className="flex-1 min-w-[80px] gap-1"><Image className="h-4 w-4" />Banner</TabsTrigger>
+              <TabsTrigger value="instagram-story" className="flex-1 min-w-[80px] gap-1"><Smartphone className="h-4 w-4" />Story</TabsTrigger>
+              <TabsTrigger value="instagram-post" className="flex-1 min-w-[80px] gap-1"><Square className="h-4 w-4" />Post</TabsTrigger>
             </TabsList>
 
             <div className="flex justify-center mb-6">
               <DownloadButtons targetRef={getCurrentRef()} filename={getFilename()} />
             </div>
 
-            <div className="border rounded-lg bg-muted/30 overflow-auto max-h-[600px]">
+            <div className="border rounded-lg bg-muted/30 overflow-auto max-h-[700px]">
               <TabsContent value="flyer" className="m-0"><StoreFlyer ref={flyerRef} storeData={storeData} /></TabsContent>
               <TabsContent value="menu" className="m-0"><StoreMenuTemplate ref={menuRef} storeData={storeData} categories={categories} /></TabsContent>
               <TabsContent value="card" className="m-0"><StoreBusinessCard ref={cardRef} storeData={storeData} /></TabsContent>
               <TabsContent value="mini-qr" className="m-0"><StoreMiniQR ref={miniQrRef} storeData={storeData} /></TabsContent>
               {promotions.length > 0 && <TabsContent value="coupon" className="m-0"><StoreCoupon ref={couponRef} storeData={storeData} promotion={promotions[0]} /></TabsContent>}
               <TabsContent value="whatsapp" className="m-0"><StoreWhatsAppSticker ref={whatsappRef} storeData={storeData} /></TabsContent>
+              <TabsContent value="social-banner" className="m-0"><StoreSocialBanner ref={socialBannerRef} storeData={storeData} /></TabsContent>
+              <TabsContent value="instagram-story" className="m-0"><StoreInstagramStory ref={instagramStoryRef} storeData={storeData} /></TabsContent>
+              <TabsContent value="instagram-post" className="m-0"><StoreInstagramPost ref={instagramPostRef} storeData={storeData} /></TabsContent>
             </div>
           </Tabs>
         </CardContent>

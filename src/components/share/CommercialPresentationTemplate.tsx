@@ -45,8 +45,9 @@ export function CommercialPresentationTemplate({
         <div className="absolute bottom-[-150px] left-[-150px] w-[400px] h-[400px] rounded-full bg-white/5" />
         
         {/* Logo */}
-        <div className="text-6xl font-bold mb-8 relative z-10">
-          🍕 Mostralo
+        <div className="flex items-center gap-4 mb-8 relative z-10">
+          <img src="/mostralo-icon.png" alt="Mostralo" className="w-20 h-20 rounded-xl shadow-lg" />
+          <span className="text-5xl font-bold text-white">Mostralo</span>
         </div>
         
         {/* Título Principal */}

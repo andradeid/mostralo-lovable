@@ -20,6 +20,65 @@ interface Message {
 
 type Step = 'name' | 'email' | 'phone' | 'company' | 'city' | 'ifood' | 'complete';
 
+const STORAGE_KEY = 'mostralo_lead_form_progress';
+const EXPIRATION_HOURS = 24;
+
+interface SavedProgress {
+  step: Step;
+  data: {
+    name: string;
+    email: string;
+    phone: string;
+    company_name: string;
+    city: string;
+    uses_ifood: boolean;
+  };
+  msgs: Message[];
+  timestamp: number;
+}
+
+const saveProgress = (data: Omit<SavedProgress, 'timestamp'>) => {
+  try {
+    const item: SavedProgress = {
+      ...data,
+      timestamp: Date.now()
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(item));
+  } catch (e) {
+    console.error('Erro ao salvar progresso:', e);
+  }
+};
+
+const loadProgress = (): SavedProgress | null => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return null;
+    
+    const parsed: SavedProgress = JSON.parse(saved);
+    const now = Date.now();
+    const expirationMs = EXPIRATION_HOURS * 60 * 60 * 1000;
+    
+    if (now - parsed.timestamp > expirationMs) {
+      localStorage.removeItem(STORAGE_KEY);
+      return null;
+    }
+    
+    return parsed;
+  } catch (e) {
+    console.error('Erro ao carregar progresso:', e);
+    localStorage.removeItem(STORAGE_KEY);
+    return null;
+  }
+};
+
+const clearProgress = () => {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch (e) {
+    console.error('Erro ao limpar progresso:', e);
+  }
+};
+
 const STEPS_CONFIG: Record<Step, { question: string; placeholder?: string; inputType?: string }> = {
   name: {
     question: '👋 Olá! Que bom que você quer conhecer o Mostralo!\n\nComo posso te chamar?',
@@ -100,15 +159,34 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
     setMessages(prev => [...prev, newMessage]);
   };
 
-  // Inicializar com primeira mensagem
+  // Inicializar: carregar progresso ou mostrar primeira mensagem
   useEffect(() => {
-    setIsTyping(true);
-    const timer = setTimeout(() => {
-      setIsTyping(false);
-      addBotMessage(STEPS_CONFIG.name.question);
-    }, 1000);
-    return () => clearTimeout(timer);
+    const saved = loadProgress();
+    
+    if (saved && saved.step !== 'complete') {
+      setCurrentStep(saved.step);
+      setLeadData(saved.data);
+      setMessages(saved.msgs);
+    } else {
+      setIsTyping(true);
+      const timer = setTimeout(() => {
+        setIsTyping(false);
+        addBotMessage(STEPS_CONFIG.name.question);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
   }, []);
+
+  // Salvar progresso automaticamente
+  useEffect(() => {
+    if (messages.length > 0 && currentStep !== 'complete') {
+      saveProgress({
+        step: currentStep,
+        data: leadData,
+        msgs: messages
+      });
+    }
+  }, [currentStep, leadData, messages]);
 
   // Auto-scroll usando scrollIntoView
   useEffect(() => {
@@ -245,6 +323,9 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
         utm_content: urlParams.get('utm_content'),
         user_agent: navigator.userAgent
       });
+      
+      // Limpar progresso salvo após envio bem-sucedido
+      clearProgress();
     } catch (error) {
       console.error('Erro ao salvar lead:', error);
     } finally {

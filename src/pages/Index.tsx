@@ -12,6 +12,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { useCountUp } from '@/hooks/useCountUp';
 import WhatsAppMockup from '@/components/WhatsAppMockup';
 import { PromotionBanner } from '@/components/coupons/PromotionBanner';
+import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
 import { 
   Store, 
   TrendingDown,
@@ -1773,6 +1774,9 @@ const Index = () => {
       <CookieBanner />
       {/* PrivacyConsent renderizado mas com trigger oculto - acionado pelo botão no rodapé */}
       <PrivacyConsent />
+      
+      {/* Botão WhatsApp para captura de leads */}
+      <WhatsAppLeadButton />
     </div>
   );
 };

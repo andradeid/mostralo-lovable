@@ -93,6 +93,8 @@ import ProspectingGuidePage from "./pages/admin/ProspectingGuidePage";
 import BusinessIntelligencePage from "./pages/admin/BusinessIntelligencePage";
 import CompileAppsGuidePage from "./pages/admin/CompileAppsGuidePage";
 import OnboardingGuidePage from "./pages/salesperson/OnboardingGuidePage";
+import LeadsManagementPage from "./pages/admin/LeadsManagementPage";
+import SalespersonLeadsPage from "./pages/salesperson/SalespersonLeadsPage";
 
 const queryClient = new QueryClient();
 

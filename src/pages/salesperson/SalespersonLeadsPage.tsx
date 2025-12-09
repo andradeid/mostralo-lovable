@@ -11,6 +11,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
+import { LeadQualificationGuide } from '@/components/leads/LeadQualificationGuide';
+import { LeadRemindersAlert } from '@/components/leads/LeadRemindersAlert';
+import { StaleLeadBadge, getRowClassName } from '@/components/leads/StaleLeadBadge';
 import { 
   Users, 
   TrendingUp, 
@@ -44,6 +47,7 @@ interface Lead {
   notes: string | null;
   source: string;
   created_at: string;
+  updated_at: string;
   contacted_at: string | null;
   converted_at: string | null;
 }
@@ -241,8 +245,22 @@ export default function SalespersonLeadsPage() {
     link.click();
   };
 
+  const handleLeadClick = (leadId: string) => {
+    const lead = leads.find(l => l.id === leadId);
+    if (lead) {
+      setSelectedLead(lead);
+      setLeadNotes(lead.notes || '');
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {/* Guia de Qualificação */}
+      <LeadQualificationGuide />
+
+      {/* Alertas de Leads Parados */}
+      <LeadRemindersAlert onLeadClick={handleLeadClick} salespersonId={salespersonId || undefined} />
+
       {/* Estatísticas */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
@@ -364,10 +382,13 @@ export default function SalespersonLeadsPage() {
                     </TableRow>
                   ) : (
                     filteredLeads.map((lead) => (
-                      <TableRow key={lead.id}>
+                      <TableRow key={lead.id} className={getRowClassName(lead.updated_at, lead.status)}>
                         <TableCell>
                           <div>
-                            <p className="font-medium">{lead.name}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium">{lead.name}</p>
+                              <StaleLeadBadge updatedAt={lead.updated_at} status={lead.status} />
+                            </div>
                             <p className="text-sm text-muted-foreground flex items-center gap-1">
                               <MapPin className="w-3 h-3" />
                               {lead.city}

@@ -349,8 +349,19 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
     const whatsappNumber = data?.support_whatsapp || '5561994009368';
     const messageTemplate = data?.support_whatsapp_message || 'Olá! Sou {nome} e gostaria de saber mais sobre o Mostralo!';
     
-    // Substituir placeholder pelo nome real do lead
-    const finalMessage = messageTemplate.replace(/{nome}/gi, leadData.name);
+    // Formatar telefone para exibição
+    const formattedPhone = leadData.phone.length === 11 
+      ? `(${leadData.phone.slice(0,2)}) ${leadData.phone.slice(2,7)}-${leadData.phone.slice(7)}`
+      : leadData.phone;
+    
+    // Substituir TODOS os placeholders
+    const finalMessage = messageTemplate
+      .replace(/{nome}/gi, leadData.name)
+      .replace(/{email}/gi, leadData.email)
+      .replace(/{telefone}/gi, formattedPhone)
+      .replace(/{empresa}/gi, leadData.company_name)
+      .replace(/{cidade}/gi, leadData.city)
+      .replace(/{ifood}/gi, leadData.uses_ifood ? 'Sim' : 'Não');
     
     onComplete(whatsappNumber, finalMessage);
   };

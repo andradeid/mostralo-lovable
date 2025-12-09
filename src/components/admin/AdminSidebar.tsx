@@ -32,7 +32,8 @@ import {
   MessageSquare,
   TrendingUp,
   Smartphone,
-  Rss
+  Rss,
+  QrCode
 } from "lucide-react";
 
 import {
@@ -329,6 +330,7 @@ export function AdminSidebar() {
         { title: 'Dashboard', url: '/dashboard', icon: Home, group: 'Principal' },
         { title: 'Inteligência de Negócios', url: '/dashboard/business-intelligence', icon: TrendingUp, group: 'Principal' },
         { title: 'Metas', url: '/dashboard/metas', icon: Target, group: 'Principal' },
+        { title: 'Material de Divulgação', url: '/dashboard/material-divulgacao', icon: QrCode, group: 'Prospecção' },
         { title: 'Vendedores', url: '/dashboard/salespeople', icon: Users, group: 'Vendedores' },
         { title: 'Leads', url: '/dashboard/leads', icon: UserCircle, group: 'Vendedores' },
         { title: 'Configurar Bônus', url: '/dashboard/salespeople/commissions', icon: DollarSign, group: 'Vendedores' },

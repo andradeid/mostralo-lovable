@@ -3414,6 +3414,7 @@ export type Database = {
           pix_key: string
           pix_key_type: string
           support_whatsapp: string | null
+          support_whatsapp_message: string | null
           updated_at: string | null
         }
         Insert: {
@@ -3430,6 +3431,7 @@ export type Database = {
           pix_key: string
           pix_key_type: string
           support_whatsapp?: string | null
+          support_whatsapp_message?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -3446,6 +3448,7 @@ export type Database = {
           pix_key?: string
           pix_key_type?: string
           support_whatsapp?: string | null
+          support_whatsapp_message?: string | null
           updated_at?: string | null
         }
         Relationships: []

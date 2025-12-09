@@ -6,18 +6,13 @@ import { LeadChatForm } from './LeadChatForm';
 export function WhatsAppLeadButton() {
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleComplete = (whatsappNumber: string, leadName: string) => {
+  const handleComplete = (whatsappNumber: string, message: string) => {
     // Limpar referral após conversão
     localStorage.removeItem('mostralo_referral_code');
     localStorage.removeItem('mostralo_referral_timestamp');
     
-    // Formatar mensagem
-    const message = encodeURIComponent(
-      `Olá! Sou ${leadName} e gostaria de saber mais sobre o Mostralo!`
-    );
-    
-    // Abrir WhatsApp
-    window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
+    // Abrir WhatsApp com mensagem personalizada
+    window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
     setIsOpen(false);
   };
 

@@ -65,6 +65,7 @@ export default function LeadsManagementPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [supportWhatsapp, setSupportWhatsapp] = useState('');
+  const [whatsappMessage, setWhatsappMessage] = useState('Olá! Sou {nome} e gostaria de saber mais sobre o Mostralo!');
   const [savingWhatsapp, setSavingWhatsapp] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [leadNotes, setLeadNotes] = useState('');
@@ -131,12 +132,15 @@ export default function LeadsManagementPage() {
     try {
       const { data } = await supabase
         .from('subscription_payment_config')
-        .select('support_whatsapp')
+        .select('support_whatsapp, support_whatsapp_message')
         .limit(1)
         .single();
       
       if (data?.support_whatsapp) {
         setSupportWhatsapp(data.support_whatsapp);
+      }
+      if (data?.support_whatsapp_message) {
+        setWhatsappMessage(data.support_whatsapp_message);
       }
     } catch (error) {
       console.error('Erro ao buscar config:', error);
@@ -148,26 +152,36 @@ export default function LeadsManagementPage() {
     try {
       const { error } = await supabase
         .from('subscription_payment_config')
-        .update({ support_whatsapp: supportWhatsapp.replace(/\D/g, '') })
+        .update({ 
+          support_whatsapp: supportWhatsapp.replace(/\D/g, ''),
+          support_whatsapp_message: whatsappMessage
+        })
         .eq('id', (await supabase.from('subscription_payment_config').select('id').limit(1).single()).data?.id);
 
       if (error) throw error;
 
       toast({
         title: 'Sucesso',
-        description: 'Número de WhatsApp atualizado!'
+        description: 'Configurações de WhatsApp atualizadas!'
       });
     } catch (error) {
       console.error('Erro ao salvar:', error);
       toast({
         title: 'Erro',
-        description: 'Não foi possível salvar o número.',
+        description: 'Não foi possível salvar as configurações.',
         variant: 'destructive'
       });
     } finally {
       setSavingWhatsapp(false);
     }
   };
+
+  const MESSAGE_TEMPLATES = [
+    'Olá! Meu nome é {nome} e tenho interesse em conhecer a plataforma Mostralo!',
+    'Oi! Aqui é {nome}, vim do site e quero tirar algumas dúvidas sobre o sistema.',
+    'Olá, sou {nome} e gostaria de agendar uma demonstração do Mostralo!',
+    'E aí! {nome} aqui. Vi o Mostralo e quero saber como funciona!'
+  ];
 
   const handleUpdateLeadStatus = async (leadId: string, newStatus: string) => {
     try {
@@ -286,24 +300,61 @@ export default function LeadsManagementPage() {
             Este número receberá os leads após preencherem o formulário.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <Input
-                placeholder="5511999999999"
-                value={supportWhatsapp}
-                onChange={(e) => setSupportWhatsapp(e.target.value)}
-              />
-            </div>
-            <Button onClick={handleSaveWhatsapp} disabled={savingWhatsapp}>
-              {savingWhatsapp ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4 mr-2" />
-              )}
-              Salvar
-            </Button>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="whatsapp-number" className="text-sm font-medium mb-2 block">
+              Número do WhatsApp
+            </Label>
+            <Input
+              id="whatsapp-number"
+              placeholder="5511999999999"
+              value={supportWhatsapp}
+              onChange={(e) => setSupportWhatsapp(e.target.value)}
+            />
           </div>
+
+          <div>
+            <Label htmlFor="whatsapp-message" className="text-sm font-medium mb-2 block">
+              Mensagem Personalizada
+            </Label>
+            <p className="text-xs text-muted-foreground mb-2">
+              Use <code className="bg-muted px-1 rounded">{'{nome}'}</code> para incluir o nome do lead automaticamente
+            </p>
+            <Textarea
+              id="whatsapp-message"
+              placeholder="Digite a mensagem..."
+              value={whatsappMessage}
+              onChange={(e) => setWhatsappMessage(e.target.value)}
+              rows={3}
+            />
+          </div>
+
+          <div className="bg-muted/50 rounded-lg p-3">
+            <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+              💡 Modelos de mensagens (clique para usar):
+            </p>
+            <div className="space-y-2">
+              {MESSAGE_TEMPLATES.map((template, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => setWhatsappMessage(template)}
+                  className="w-full text-left text-xs p-2 rounded bg-background hover:bg-primary/10 transition-colors border border-transparent hover:border-primary/20"
+                >
+                  "{template}"
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <Button onClick={handleSaveWhatsapp} disabled={savingWhatsapp} className="w-full sm:w-auto">
+            {savingWhatsapp ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4 mr-2" />
+            )}
+            Salvar Configurações
+          </Button>
         </CardContent>
       </Card>
 

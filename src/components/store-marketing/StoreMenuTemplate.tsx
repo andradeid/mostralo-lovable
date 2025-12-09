@@ -7,6 +7,8 @@ interface Product {
   price: number;
   isOnOffer?: boolean;
   offerPrice?: number;
+  imageUrl?: string;
+  hasAddons?: boolean;
 }
 
 interface Category {
@@ -99,35 +101,57 @@ export const StoreMenuTemplate = forwardRef<HTMLDivElement, StoreMenuTemplatePro
               
               <div className="space-y-2">
                 {category.products.slice(0, 10).map((product) => (
-                  <div key={product.id} className="flex justify-between items-start">
-                    <div className="flex-1 pr-4">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-900">{product.name}</span>
+                  <div key={product.id} className="flex items-start gap-2">
+                    {/* Foto do Produto */}
+                    {product.imageUrl ? (
+                      <img 
+                        src={product.imageUrl} 
+                        alt={product.name}
+                        className="w-10 h-10 rounded object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <div 
+                        className="w-10 h-10 rounded flex-shrink-0 flex items-center justify-center text-white text-xs"
+                        style={{ backgroundColor: `${primaryColor}40` }}
+                      >
+                        🍽️
+                      </div>
+                    )}
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1 flex-wrap">
+                        <span className="font-medium text-gray-900 text-sm">{product.name}</span>
                         {product.isOnOffer && (
                           <span 
-                            className="text-xs px-1.5 py-0.5 rounded text-white"
+                            className="text-[10px] px-1 py-0.5 rounded text-white"
                             style={{ backgroundColor: primaryColor }}
                           >
                             PROMO
                           </span>
                         )}
+                        {product.hasAddons && (
+                          <span className="text-[10px] px-1 py-0.5 rounded bg-gray-200 text-gray-600">
+                            ⚙️ Personalizável
+                          </span>
+                        )}
                       </div>
                       {product.description && (
-                        <p className="text-xs text-gray-500 line-clamp-1">{product.description}</p>
+                        <p className="text-[10px] text-gray-500 line-clamp-1">{product.description}</p>
                       )}
                     </div>
-                    <div className="text-right whitespace-nowrap">
+                    
+                    <div className="text-right whitespace-nowrap flex-shrink-0">
                       {product.isOnOffer && product.offerPrice ? (
-                        <>
-                          <span className="text-xs text-gray-400 line-through mr-1">
+                        <div className="flex flex-col">
+                          <span className="text-[10px] text-gray-400 line-through">
                             {formatPrice(product.price)}
                           </span>
-                          <span className="font-bold" style={{ color: primaryColor }}>
+                          <span className="font-bold text-sm" style={{ color: primaryColor }}>
                             {formatPrice(product.offerPrice)}
                           </span>
-                        </>
+                        </div>
                       ) : (
-                        <span className="font-bold text-gray-900">{formatPrice(product.price)}</span>
+                        <span className="font-bold text-sm text-gray-900">{formatPrice(product.price)}</span>
                       )}
                     </div>
                   </div>

@@ -39,111 +39,104 @@ export const StoreFlyer = forwardRef<HTMLDivElement, StoreFlyerProps>(
     return (
       <div 
         ref={ref}
-        className="w-[210mm] min-h-[297mm] bg-white p-8 mx-auto shadow-lg print:shadow-none"
+        className="w-[148mm] min-h-[210mm] bg-white p-6 mx-auto shadow-lg print:shadow-none"
         style={{ fontFamily: 'Arial, sans-serif' }}
       >
         {/* Header */}
-        <div className="text-center mb-6 pb-6 border-b-4" style={{ borderColor: primaryColor }}>
+        <div className="text-center mb-4 pb-4 border-b-4" style={{ borderColor: primaryColor }}>
           {storeData.logoUrl && (
             <img 
               src={storeData.logoUrl} 
               alt={storeData.name}
-              className="w-24 h-24 mx-auto mb-4 object-contain rounded-lg"
+              className="w-20 h-20 mx-auto mb-3 object-contain rounded-lg"
             />
           )}
-          <h1 className="text-4xl font-bold mb-2" style={{ color: primaryColor }}>
+          <h1 className="text-3xl font-bold mb-1" style={{ color: primaryColor }}>
             {storeData.name}
           </h1>
           {storeData.description && (
-            <p className="text-lg text-gray-600 italic">"{storeData.description}"</p>
+            <p className="text-base text-gray-600 italic">"{storeData.description}"</p>
           )}
         </div>
 
         {/* Main Content */}
-        <div className="flex gap-8 mb-8">
+        <div className="flex gap-4 mb-4">
           {/* Left Side - Info */}
           <div className="flex-1">
-            <h2 className="text-2xl font-bold mb-4" style={{ color: primaryColor }}>
+            <h2 className="text-lg font-bold mb-2" style={{ color: primaryColor }}>
               📍 Localização
             </h2>
-            <p className="text-lg text-gray-700 mb-6">
+            <p className="text-sm text-gray-700 mb-3">
               {storeData.address}
               {storeData.city && ` - ${storeData.city}`}
               {storeData.state && `/${storeData.state}`}
             </p>
 
-            <h2 className="text-2xl font-bold mb-4" style={{ color: primaryColor }}>
+            <h2 className="text-lg font-bold mb-2" style={{ color: primaryColor }}>
               📞 Contato
             </h2>
-            <div className="space-y-2 text-lg text-gray-700">
-              {storeData.phone && <p>📞 Telefone: {storeData.phone}</p>}
-              {storeData.whatsapp && <p>📱 WhatsApp: {storeData.whatsapp}</p>}
-              {storeData.instagram && <p>📸 Instagram: @{storeData.instagram.replace('@', '')}</p>}
+            <div className="space-y-1 text-sm text-gray-700">
+              {storeData.phone && <p>📞 {storeData.phone}</p>}
+              {storeData.whatsapp && <p>📱 {storeData.whatsapp}</p>}
+              {storeData.instagram && <p>📸 @{storeData.instagram.replace('@', '')}</p>}
             </div>
           </div>
 
           {/* Right Side - QR Code */}
           <div className="text-center">
-            <div className="bg-gray-50 p-6 rounded-2xl border-4" style={{ borderColor: primaryColor }}>
-              <img src={qrCodeUrl} alt="QR Code" className="w-48 h-48 mx-auto mb-4" />
-              <p className="text-xl font-bold" style={{ color: primaryColor }}>
+            <div className="bg-gray-50 p-4 rounded-xl border-2" style={{ borderColor: primaryColor }}>
+              <img src={qrCodeUrl} alt="QR Code" className="w-32 h-32 mx-auto mb-2" />
+              <p className="text-base font-bold" style={{ color: primaryColor }}>
                 📱 PEÇA ONLINE!
               </p>
-              <p className="text-sm text-gray-600 mt-2">
-                Escaneie o QR Code<br />e acesse nosso cardápio digital
+              <p className="text-xs text-gray-600 mt-1">
+                Escaneie o QR Code
               </p>
             </div>
           </div>
         </div>
 
         {/* Benefits */}
-        <div className="bg-gray-50 rounded-2xl p-6 mb-8">
-          <h2 className="text-2xl font-bold mb-4 text-center" style={{ color: primaryColor }}>
+        <div className="bg-gray-50 rounded-xl p-4 mb-4">
+          <h2 className="text-lg font-bold mb-3 text-center" style={{ color: primaryColor }}>
             ✨ Por que escolher a gente?
           </h2>
-          <div className="grid grid-cols-2 gap-4 text-lg">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">🚀</span>
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <div className="flex items-center gap-1">
+              <span className="text-lg">🚀</span>
               <span>Entrega Rápida</span>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">⭐</span>
+            <div className="flex items-center gap-1">
+              <span className="text-lg">⭐</span>
               <span>Qualidade Premium</span>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">💰</span>
+            <div className="flex items-center gap-1">
+              <span className="text-lg">💰</span>
               <span>Preços Justos</span>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">🎁</span>
+            <div className="flex items-center gap-1">
+              <span className="text-lg">🎁</span>
               <span>Promoções Exclusivas</span>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="border-t-4 pt-6" style={{ borderColor: primaryColor }}>
+        <div className="border-t-2 pt-3" style={{ borderColor: primaryColor }}>
           <div className="flex justify-between items-center text-gray-700">
-            <div>
+            <div className="text-sm">
               {paymentMethods.length > 0 && (
-                <p className="text-lg">
-                  💳 Aceitamos: <strong>{paymentMethods.join(' • ')}</strong>
-                </p>
+                <p>💳 <strong>{paymentMethods.join(' • ')}</strong></p>
               )}
               {storeData.deliveryFee !== undefined && (
-                <p className="text-lg">
-                  🛵 Taxa de Entrega: <strong>R$ {storeData.deliveryFee.toFixed(2)}</strong>
-                </p>
+                <p>🛵 Taxa: <strong>R$ {storeData.deliveryFee.toFixed(2)}</strong></p>
               )}
               {storeData.minOrderValue !== undefined && storeData.minOrderValue > 0 && (
-                <p className="text-lg">
-                  📦 Pedido Mínimo: <strong>R$ {storeData.minOrderValue.toFixed(2)}</strong>
-                </p>
+                <p>📦 Mínimo: <strong>R$ {storeData.minOrderValue.toFixed(2)}</strong></p>
               )}
             </div>
-            <div className="text-right text-sm text-gray-500">
-              <p>Feito com ❤️ por</p>
-              <p className="font-bold">Mostralo</p>
+            <div className="text-right text-xs text-gray-400">
+              <p>Feito com ❤️ por <strong>Mostralo</strong></p>
             </div>
           </div>
         </div>

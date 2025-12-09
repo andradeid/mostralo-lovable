@@ -72,8 +72,8 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
     city: '',
     uses_ifood: false
   });
-  const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const getCurrentTime = () => {
     return new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -110,10 +110,10 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
     return () => clearTimeout(timer);
   }, []);
 
-  // Auto-scroll
+  // Auto-scroll usando scrollIntoView
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, isTyping]);
 
@@ -300,7 +300,6 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
 
       {/* Messages */}
       <ScrollArea 
-        ref={scrollRef} 
         className="flex-1 p-4"
         style={{ 
           backgroundImage: 'url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAMAAAAp4XiDAAAAUVBMVEWFhYWDg4N3d3dtbW17e3t1dXWBgYGHh4d5eXlzc3Oeli9NAAAACXBIWXMAAAsSAAALEgHS3X78AAAAQklEQVRIx+3PQQ0AIAzA0I1Q4N/NReBTEbIWq6IBAAAAAAAAAAAAADCS6ql0vZhUIm0ZAQAAAAAAAAAAAADR3wBL7gL1wgAAAABJRU5ErkJggg==")',
@@ -342,6 +341,9 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
               </div>
             </div>
           )}
+          
+          {/* Âncora para auto-scroll */}
+          <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
 

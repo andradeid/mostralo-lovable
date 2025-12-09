@@ -55,20 +55,20 @@ export function SalesInstagramStory({
       />
 
       {/* Topo - Logo */}
-      <div className="relative z-10 pt-24">
+      <div className="relative z-10 pt-24 flex flex-col items-center">
         <div 
-          className="rounded-full flex items-center justify-center shadow-2xl"
+          className="rounded-2xl flex items-center justify-center shadow-2xl overflow-hidden"
           style={{
-            width: '180px',
-            height: '180px',
+            width: '160px',
+            height: '160px',
             background: 'white'
           }}
         >
-          <span style={{ fontSize: '80px' }}>🍕</span>
+          <img src="/mostralo-icon.png" alt="Mostralo" style={{ width: '140px', height: '140px' }} />
         </div>
         <p 
-          className="text-center font-bold text-white mt-4"
-          style={{ fontSize: '48px' }}
+          className="text-center font-bold text-white mt-6"
+          style={{ fontSize: '56px' }}
         >
           Mostralo
         </p>

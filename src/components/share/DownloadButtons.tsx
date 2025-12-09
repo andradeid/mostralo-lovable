@@ -16,6 +16,11 @@ const cloneWithComputedStyles = (element: HTMLElement): HTMLElement => {
     if (source instanceof HTMLElement && target instanceof HTMLElement) {
       const computedStyle = window.getComputedStyle(source);
       
+      // PRIMEIRO: Preservar estilos inline originais (gradientes, etc.)
+      if (source.style.cssText) {
+        target.style.cssText = source.style.cssText;
+      }
+      
       // Lista de propriedades CSS importantes para preservar
       const cssProperties = [
         'display', 'flex-direction', 'flex-wrap', 'justify-content', 'align-items', 'align-content',
@@ -37,8 +42,11 @@ const cloneWithComputedStyles = (element: HTMLElement): HTMLElement => {
       
       cssProperties.forEach(prop => {
         const value = computedStyle.getPropertyValue(prop);
+        // Só aplicar se não existir no style inline original
         if (value && value !== 'none' && value !== 'normal' && value !== 'auto') {
-          target.style.setProperty(prop, value);
+          if (!target.style.getPropertyValue(prop)) {
+            target.style.setProperty(prop, value);
+          }
         }
       });
     }
@@ -129,29 +137,29 @@ export function DownloadButtons({ targetRef, filename, onPrint }: DownloadButton
           
           const tryPrint = () => {
             window.print();
-            window.close();
+            // NÃO fechar automaticamente - deixar usuário decidir
           };
           
           if (totalImages === 0) {
-            setTimeout(tryPrint, 100);
+            setTimeout(tryPrint, 500);
           } else {
             images.forEach(img => {
               if (img.complete) {
                 loadedCount++;
-                if (loadedCount === totalImages) tryPrint();
+                if (loadedCount === totalImages) setTimeout(tryPrint, 300);
               } else {
                 img.onload = () => {
                   loadedCount++;
-                  if (loadedCount === totalImages) tryPrint();
+                  if (loadedCount === totalImages) setTimeout(tryPrint, 300);
                 };
                 img.onerror = () => {
                   loadedCount++;
-                  if (loadedCount === totalImages) tryPrint();
+                  if (loadedCount === totalImages) setTimeout(tryPrint, 300);
                 };
               }
             });
-            // Fallback timeout
-            setTimeout(tryPrint, 2000);
+            // Fallback timeout aumentado para 3 segundos
+            setTimeout(tryPrint, 3000);
           }
         </script>
       </body>

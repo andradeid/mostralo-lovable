@@ -357,6 +357,11 @@ const App = () => (
                 <AdminLayout><IframePage /></AdminLayout>
               </ProtectedRoute>
             } />
+            <Route path="/dashboard/leads" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Gestão de Leads"><LeadsManagementPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
             <Route path="/dashboard/my-store" element={
               <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
                 <AdminLayout><MyStorePage /></AdminLayout>
@@ -498,6 +503,16 @@ const App = () => (
                 <CustomerProfile />
               </ProtectedRoute>
             } />
+          <Route
+            path="/vendedor/leads"
+            element={
+              <ProtectedRoute allowedRoles={["salesperson"]}>
+                <SalespersonLayout>
+                  <SalespersonLeadsPage />
+                </SalespersonLayout>
+              </ProtectedRoute>
+            }
+          />
             <Route path="/termos" element={<TermsOfUse />} />
             <Route path="/privacidade" element={<Privacy />} />
             <Route path="/suporte" element={<Support />} />

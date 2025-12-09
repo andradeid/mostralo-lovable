@@ -1272,6 +1272,104 @@ export type Database = {
         }
         Relationships: []
       }
+      leads: {
+        Row: {
+          business_type: string | null
+          city: string
+          company_name: string
+          company_phone: string | null
+          contacted_at: string | null
+          converted_at: string | null
+          created_at: string | null
+          email: string
+          id: string
+          ip_address: string | null
+          landing_page: string | null
+          monthly_revenue: string | null
+          name: string
+          notes: string | null
+          phone: string
+          referral_code: string | null
+          salesperson_id: string | null
+          source: string | null
+          state: string | null
+          status: string | null
+          updated_at: string | null
+          user_agent: string | null
+          uses_ifood: boolean | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          business_type?: string | null
+          city: string
+          company_name: string
+          company_phone?: string | null
+          contacted_at?: string | null
+          converted_at?: string | null
+          created_at?: string | null
+          email: string
+          id?: string
+          ip_address?: string | null
+          landing_page?: string | null
+          monthly_revenue?: string | null
+          name: string
+          notes?: string | null
+          phone: string
+          referral_code?: string | null
+          salesperson_id?: string | null
+          source?: string | null
+          state?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_agent?: string | null
+          uses_ifood?: boolean | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          business_type?: string | null
+          city?: string
+          company_name?: string
+          company_phone?: string | null
+          contacted_at?: string | null
+          converted_at?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          ip_address?: string | null
+          landing_page?: string | null
+          monthly_revenue?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string
+          referral_code?: string | null
+          salesperson_id?: string | null
+          source?: string | null
+          state?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_agent?: string | null
+          uses_ifood?: boolean | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_salesperson_id_fkey"
+            columns: ["salesperson_id"]
+            isOneToOne: false
+            referencedRelation: "salespeople"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       modules: {
         Row: {
           created_at: string
@@ -3315,6 +3413,7 @@ export type Database = {
           payment_instructions: string | null
           pix_key: string
           pix_key_type: string
+          support_whatsapp: string | null
           updated_at: string | null
         }
         Insert: {
@@ -3330,6 +3429,7 @@ export type Database = {
           payment_instructions?: string | null
           pix_key: string
           pix_key_type: string
+          support_whatsapp?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -3345,6 +3445,7 @@ export type Database = {
           payment_instructions?: string | null
           pix_key?: string
           pix_key_type?: string
+          support_whatsapp?: string | null
           updated_at?: string | null
         }
         Relationships: []

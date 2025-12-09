@@ -330,6 +330,7 @@ export function AdminSidebar() {
         { title: 'Inteligência de Negócios', url: '/dashboard/business-intelligence', icon: TrendingUp, group: 'Principal' },
         { title: 'Metas', url: '/dashboard/metas', icon: Target, group: 'Principal' },
         { title: 'Vendedores', url: '/dashboard/salespeople', icon: Users, group: 'Vendedores' },
+        { title: 'Leads', url: '/dashboard/leads', icon: UserCircle, group: 'Vendedores' },
         { title: 'Configurar Bônus', url: '/dashboard/salespeople/commissions', icon: DollarSign, group: 'Vendedores' },
         { title: 'Prompts de Vendas', url: '/dashboard/sales-prompts', icon: MessageSquare, group: 'Vendedores' },
         { title: 'Guia de Prospecção', url: '/dashboard/prospecting', icon: Target, group: 'Vendedores' },

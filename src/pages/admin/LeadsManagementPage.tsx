@@ -177,10 +177,10 @@ export default function LeadsManagementPage() {
   };
 
   const MESSAGE_TEMPLATES = [
-    'Olá! Meu nome é {nome} e tenho interesse em conhecer a plataforma Mostralo!',
-    'Oi! Aqui é {nome}, vim do site e quero tirar algumas dúvidas sobre o sistema.',
-    'Olá, sou {nome} e gostaria de agendar uma demonstração do Mostralo!',
-    'E aí! {nome} aqui. Vi o Mostralo e quero saber como funciona!'
+    'Olá! Sou {nome} da {empresa} em {cidade}. Tenho interesse em conhecer o Mostralo!',
+    'Oi! Aqui é {nome}, da empresa {empresa}. Vim pelo site e quero tirar dúvidas sobre o sistema.',
+    'Olá, sou {nome}! Minha empresa é a {empresa} e {ifood} usamos iFood. Quero saber mais!',
+    'E aí! {nome} aqui, de {cidade}. Minha empresa: {empresa}. Quero conhecer o Mostralo!'
   ];
 
   const handleUpdateLeadStatus = async (leadId: string, newStatus: string) => {
@@ -318,8 +318,28 @@ export default function LeadsManagementPage() {
               Mensagem Personalizada
             </Label>
             <p className="text-xs text-muted-foreground mb-2">
-              Use <code className="bg-muted px-1 rounded">{'{nome}'}</code> para incluir o nome do lead automaticamente
+              Use os campos abaixo para personalizar. Serão substituídos automaticamente:
             </p>
+            <div className="flex flex-wrap gap-2 mb-3">
+              <Badge variant="outline" className="cursor-pointer hover:bg-primary/10" onClick={() => setWhatsappMessage(prev => prev + '{nome}')}>
+                {'{nome}'}
+              </Badge>
+              <Badge variant="outline" className="cursor-pointer hover:bg-primary/10" onClick={() => setWhatsappMessage(prev => prev + '{email}')}>
+                {'{email}'}
+              </Badge>
+              <Badge variant="outline" className="cursor-pointer hover:bg-primary/10" onClick={() => setWhatsappMessage(prev => prev + '{telefone}')}>
+                {'{telefone}'}
+              </Badge>
+              <Badge variant="outline" className="cursor-pointer hover:bg-primary/10" onClick={() => setWhatsappMessage(prev => prev + '{empresa}')}>
+                {'{empresa}'}
+              </Badge>
+              <Badge variant="outline" className="cursor-pointer hover:bg-primary/10" onClick={() => setWhatsappMessage(prev => prev + '{cidade}')}>
+                {'{cidade}'}
+              </Badge>
+              <Badge variant="outline" className="cursor-pointer hover:bg-primary/10" onClick={() => setWhatsappMessage(prev => prev + '{ifood}')}>
+                {'{ifood}'}
+              </Badge>
+            </div>
             <Textarea
               id="whatsapp-message"
               placeholder="Digite a mensagem..."

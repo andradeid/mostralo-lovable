@@ -437,6 +437,11 @@ export function AdminSidebar() {
         menuItems.push({ title: 'Banners', url: '/dashboard/banners', icon: Image, group: 'Loja' });
       }
 
+      // Material de Marketing - verifica módulo
+      if (hasModule('marketing_material')) {
+        menuItems.push({ title: 'Material de Marketing', url: '/dashboard/marketing-material', icon: QrCode, group: 'Marketing' });
+      }
+
       // Promoções - verifica módulo
       if (hasModule('promotions')) {
         menuItems.push({ title: 'Promoções', url: '/dashboard/promotions', icon: Tag, group: 'Vendas' });

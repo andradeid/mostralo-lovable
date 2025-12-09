@@ -223,10 +223,10 @@ export function DownloadButtons({ targetRef, filename, onPrint }: DownloadButton
           body { 
             display: flex; 
             justify-content: center; 
-            align-items: center;
+            align-items: flex-start;
             min-height: 100vh;
             margin: 0;
-            padding: 20px;
+            padding: 60px 20px 20px;
             background: #e5e5e5;
             font-family: Arial, sans-serif;
           }
@@ -237,13 +237,14 @@ export function DownloadButtons({ targetRef, filename, onPrint }: DownloadButton
             box-shadow: 0 4px 20px rgba(0,0,0,0.2);
             overflow: hidden;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
+            padding-top: 10mm;
             border-radius: 4px;
           }
           .content {
             transform: scale(0.7);
-            transform-origin: center center;
+            transform-origin: top center;
           }
           .header {
             position: fixed;

@@ -8,6 +8,55 @@ interface DownloadButtonsProps {
   onPrint?: () => void;
 }
 
+// Função para clonar elemento com estilos computados inline
+const cloneWithComputedStyles = (element: HTMLElement): HTMLElement => {
+  const clone = element.cloneNode(true) as HTMLElement;
+  
+  const copyComputedStyles = (source: Element, target: Element) => {
+    if (source instanceof HTMLElement && target instanceof HTMLElement) {
+      const computedStyle = window.getComputedStyle(source);
+      
+      // Lista de propriedades CSS importantes para preservar
+      const cssProperties = [
+        'display', 'flex-direction', 'flex-wrap', 'justify-content', 'align-items', 'align-content',
+        'gap', 'row-gap', 'column-gap',
+        'grid-template-columns', 'grid-template-rows', 'grid-gap',
+        'position', 'top', 'right', 'bottom', 'left', 'z-index',
+        'width', 'height', 'min-width', 'min-height', 'max-width', 'max-height',
+        'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
+        'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+        'border', 'border-width', 'border-style', 'border-color', 'border-radius',
+        'border-top-left-radius', 'border-top-right-radius', 'border-bottom-left-radius', 'border-bottom-right-radius',
+        'background', 'background-color', 'background-image', 'background-size', 'background-position',
+        'color', 'font-family', 'font-size', 'font-weight', 'font-style',
+        'line-height', 'letter-spacing', 'text-align', 'text-decoration', 'text-transform',
+        'box-shadow', 'opacity', 'overflow', 'white-space', 'word-break',
+        'object-fit', 'object-position', 'aspect-ratio',
+        'transform', 'filter'
+      ];
+      
+      cssProperties.forEach(prop => {
+        const value = computedStyle.getPropertyValue(prop);
+        if (value && value !== 'none' && value !== 'normal' && value !== 'auto') {
+          target.style.setProperty(prop, value);
+        }
+      });
+    }
+    
+    // Recursivamente copiar estilos dos filhos
+    const sourceChildren = source.children;
+    const targetChildren = target.children;
+    for (let i = 0; i < sourceChildren.length; i++) {
+      if (sourceChildren[i] && targetChildren[i]) {
+        copyComputedStyles(sourceChildren[i], targetChildren[i]);
+      }
+    }
+  };
+  
+  copyComputedStyles(element, clone);
+  return clone;
+};
+
 export function DownloadButtons({ targetRef, filename, onPrint }: DownloadButtonsProps) {
   const handlePrint = () => {
     if (onPrint) {
@@ -20,8 +69,9 @@ export function DownloadButtons({ targetRef, filename, onPrint }: DownloadButton
       return;
     }
 
-    // Clonar conteúdo do template
-    const printContent = targetRef.current.outerHTML;
+    // Clonar elemento com estilos computados inline
+    const clonedElement = cloneWithComputedStyles(targetRef.current);
+    const printContent = clonedElement.outerHTML;
 
     // Criar nova janela de impressão
     const printWindow = window.open('', '_blank', 'width=800,height=600');
@@ -34,7 +84,7 @@ export function DownloadButtons({ targetRef, filename, onPrint }: DownloadButton
       return;
     }
 
-    // Escrever HTML com estilos
+    // Escrever HTML com estilos inline já aplicados
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
@@ -54,6 +104,11 @@ export function DownloadButtons({ targetRef, filename, onPrint }: DownloadButton
             min-height: 100vh;
             padding: 20px;
             font-family: Arial, sans-serif;
+            background: white;
+          }
+          img {
+            max-width: 100%;
+            height: auto;
           }
           @media print {
             body { 
@@ -63,16 +118,41 @@ export function DownloadButtons({ targetRef, filename, onPrint }: DownloadButton
             }
           }
         </style>
-        <script src="https://cdn.tailwindcss.com"></script>
       </head>
       <body>
         ${printContent}
         <script>
-          // Aguardar carregamento do Tailwind e imagens
-          setTimeout(() => {
+          // Aguardar carregamento das imagens antes de imprimir
+          const images = document.querySelectorAll('img');
+          let loadedCount = 0;
+          const totalImages = images.length;
+          
+          const tryPrint = () => {
             window.print();
             window.close();
-          }, 500);
+          };
+          
+          if (totalImages === 0) {
+            setTimeout(tryPrint, 100);
+          } else {
+            images.forEach(img => {
+              if (img.complete) {
+                loadedCount++;
+                if (loadedCount === totalImages) tryPrint();
+              } else {
+                img.onload = () => {
+                  loadedCount++;
+                  if (loadedCount === totalImages) tryPrint();
+                };
+                img.onerror = () => {
+                  loadedCount++;
+                  if (loadedCount === totalImages) tryPrint();
+                };
+              }
+            });
+            // Fallback timeout
+            setTimeout(tryPrint, 2000);
+          }
         </script>
       </body>
       </html>

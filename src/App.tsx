@@ -97,6 +97,7 @@ import OnboardingGuidePage from "./pages/salesperson/OnboardingGuidePage";
 import LeadsManagementPage from "./pages/admin/LeadsManagementPage";
 import SalespersonLeadsPage from "./pages/salesperson/SalespersonLeadsPage";
 import AdminSharePage from "./pages/admin/AdminSharePage";
+import StoreMarketingPage from "./pages/admin/StoreMarketingPage";
 
 const queryClient = new QueryClient();
 
@@ -357,6 +358,11 @@ const App = () => (
             <Route path="/dashboard/iframe/:id" element={
               <ProtectedRoute allowedRoles={['store_admin']}>
                 <AdminLayout><IframePage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/marketing-material" element={
+              <ProtectedRoute allowedRoles={['store_admin']}>
+                <AdminLayout pageTitle="Material de Marketing"><StoreMarketingPage /></AdminLayout>
               </ProtectedRoute>
             } />
             <Route path="/dashboard/leads" element={

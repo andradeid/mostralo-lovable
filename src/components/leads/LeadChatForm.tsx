@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Send, Check, CheckCheck, Loader2 } from 'lucide-react';
 
 interface LeadChatFormProps {
-  onComplete: (whatsappNumber: string, leadName: string) => void;
+  onComplete: (whatsappNumber: string, message: string) => void;
   onClose: () => void;
 }
 
@@ -339,15 +339,20 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
   };
 
   const handleOpenWhatsApp = async () => {
-    // Buscar número de WhatsApp configurado
+    // Buscar número e mensagem de WhatsApp configurados
     const { data } = await supabase
       .from('subscription_payment_config')
-      .select('support_whatsapp')
+      .select('support_whatsapp, support_whatsapp_message')
       .limit(1)
       .single();
     
     const whatsappNumber = data?.support_whatsapp || '5561994009368';
-    onComplete(whatsappNumber, leadData.name);
+    const messageTemplate = data?.support_whatsapp_message || 'Olá! Sou {nome} e gostaria de saber mais sobre o Mostralo!';
+    
+    // Substituir placeholder pelo nome real do lead
+    const finalMessage = messageTemplate.replace(/{nome}/gi, leadData.name);
+    
+    onComplete(whatsappNumber, finalMessage);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

@@ -3466,6 +3466,7 @@ export type Database = {
           enable_manual_approval: boolean | null
           id: string
           is_active: boolean | null
+          master_referral_code: string | null
           payment_instructions: string | null
           pix_key: string
           pix_key_type: string
@@ -3483,6 +3484,7 @@ export type Database = {
           enable_manual_approval?: boolean | null
           id?: string
           is_active?: boolean | null
+          master_referral_code?: string | null
           payment_instructions?: string | null
           pix_key: string
           pix_key_type: string
@@ -3500,6 +3502,7 @@ export type Database = {
           enable_manual_approval?: boolean | null
           id?: string
           is_active?: boolean | null
+          master_referral_code?: string | null
           payment_instructions?: string | null
           pix_key?: string
           pix_key_type?: string

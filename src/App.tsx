@@ -88,6 +88,7 @@ import SalespersonDashboard from "./pages/salesperson/SalespersonDashboard";
 import SalespersonMyLink from "./pages/salesperson/SalespersonMyLink";
 import SalespersonContract from "./pages/salesperson/SalespersonContract";
 import SalespersonProfile from "./pages/salesperson/SalespersonProfile";
+import SalespersonSharePage from "./pages/salesperson/SalespersonSharePage";
 import { SalespersonLayout } from "./components/salesperson/SalespersonLayout";
 import ProspectingGuidePage from "./pages/admin/ProspectingGuidePage";
 import BusinessIntelligencePage from "./pages/admin/BusinessIntelligencePage";
@@ -95,6 +96,7 @@ import CompileAppsGuidePage from "./pages/admin/CompileAppsGuidePage";
 import OnboardingGuidePage from "./pages/salesperson/OnboardingGuidePage";
 import LeadsManagementPage from "./pages/admin/LeadsManagementPage";
 import SalespersonLeadsPage from "./pages/salesperson/SalespersonLeadsPage";
+import AdminSharePage from "./pages/admin/AdminSharePage";
 
 const queryClient = new QueryClient();
 
@@ -362,6 +364,11 @@ const App = () => (
                 <AdminLayout pageTitle="Gestão de Leads"><LeadsManagementPage /></AdminLayout>
               </ProtectedRoute>
             } />
+            <Route path="/dashboard/material-divulgacao" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Material de Divulgação"><AdminSharePage /></AdminLayout>
+              </ProtectedRoute>
+            } />
             <Route path="/dashboard/my-store" element={
               <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
                 <AdminLayout><MyStorePage /></AdminLayout>
@@ -509,6 +516,16 @@ const App = () => (
               <ProtectedRoute allowedRoles={["salesperson"]}>
                 <SalespersonLayout>
                   <SalespersonLeadsPage />
+                </SalespersonLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendedor/compartilhar"
+            element={
+              <ProtectedRoute allowedRoles={["salesperson"]}>
+                <SalespersonLayout>
+                  <SalespersonSharePage />
                 </SalespersonLayout>
               </ProtectedRoute>
             }

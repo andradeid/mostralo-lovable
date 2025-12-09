@@ -1272,6 +1272,59 @@ export type Database = {
         }
         Relationships: []
       }
+      lead_follow_up_reminders: {
+        Row: {
+          created_at: string | null
+          days_stale: number | null
+          dismissed_at: string | null
+          id: string
+          lead_company: string | null
+          lead_id: string
+          lead_name: string | null
+          message: string
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          days_stale?: number | null
+          dismissed_at?: string | null
+          id?: string
+          lead_company?: string | null
+          lead_id: string
+          lead_name?: string | null
+          message: string
+          read_at?: string | null
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          days_stale?: number | null
+          dismissed_at?: string | null
+          id?: string
+          lead_company?: string | null
+          lead_id?: string
+          lead_name?: string | null
+          message?: string
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_follow_up_reminders_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           business_type: string | null
@@ -1285,6 +1338,7 @@ export type Database = {
           id: string
           ip_address: string | null
           landing_page: string | null
+          last_follow_up_reminder_at: string | null
           monthly_revenue: string | null
           name: string
           notes: string | null
@@ -1314,6 +1368,7 @@ export type Database = {
           id?: string
           ip_address?: string | null
           landing_page?: string | null
+          last_follow_up_reminder_at?: string | null
           monthly_revenue?: string | null
           name: string
           notes?: string | null
@@ -1343,6 +1398,7 @@ export type Database = {
           id?: string
           ip_address?: string | null
           landing_page?: string | null
+          last_follow_up_reminder_at?: string | null
           monthly_revenue?: string | null
           name?: string
           notes?: string | null

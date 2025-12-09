@@ -1,14 +1,27 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Printer, FileText, CreditCard, QrCode, Download } from "lucide-react";
+import { FileText, CreditCard, QrCode, Presentation, Instagram } from "lucide-react";
 import { QRCodeDisplay } from "./QRCodeDisplay";
 import { FlyerTemplate } from "./FlyerTemplate";
 import { BusinessCardTemplate } from "./BusinessCardTemplate";
 import { MiniQRTemplate } from "./MiniQRTemplate";
+import { CommercialPresentationTemplate } from "./CommercialPresentationTemplate";
+import { SalesInstagramStory } from "./SalesInstagramStory";
+import { DownloadButtons } from "./DownloadButtons";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Plan {
+  id: string;
+  name: string;
+  price: number;
+  discount_price?: number | null;
+  promotion_active?: boolean | null;
+  is_popular?: boolean | null;
+  features?: { text: string }[] | null;
+}
 
 interface SharePageContentProps {
   referralCode: string;
@@ -24,13 +37,57 @@ export function SharePageContent({
   const [sellerName, setSellerName] = useState(defaultName);
   const [sellerPhone, setSellerPhone] = useState(defaultPhone);
   const [selectedTemplate, setSelectedTemplate] = useState("flyer");
+  const [plans, setPlans] = useState<Plan[]>([]);
+  
+  const flyerRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const miniRef = useRef<HTMLDivElement>(null);
+  const presentationRef = useRef<HTMLDivElement>(null);
+  const storyRef = useRef<HTMLDivElement>(null);
   
   const baseUrl = window.location.origin;
   const homepageLink = `${baseUrl}/?ref=${referralCode}`;
   const signupLink = `${baseUrl}/signup?ref=${referralCode}`;
 
-  const handlePrint = () => {
-    window.print();
+  useEffect(() => {
+    fetchPlans();
+  }, []);
+
+  const fetchPlans = async () => {
+    const { data } = await supabase
+      .from('plans')
+      .select('id, name, price, discount_price, promotion_active, is_popular, features')
+      .eq('status', 'active')
+      .order('price', { ascending: true });
+    if (data) {
+      setPlans(data as Plan[]);
+    }
+  };
+
+  const getCurrentRef = () => {
+    switch (selectedTemplate) {
+      case 'flyer': return flyerRef;
+      case 'card': return cardRef;
+      case 'mini': return miniRef;
+      case 'presentation': return presentationRef;
+      case 'story': return storyRef;
+      default: return flyerRef;
+    }
+  };
+
+  const getPaperSize = (): 'A4' | 'A5' => {
+    return selectedTemplate === 'flyer' ? 'A5' : 'A4';
+  };
+
+  const getFilename = () => {
+    const names: Record<string, string> = {
+      flyer: 'flyer-mostralo',
+      card: 'cartao-visita-mostralo',
+      mini: 'mini-qr-mostralo',
+      presentation: 'apresentacao-comercial-mostralo',
+      story: 'story-instagram-mostralo'
+    };
+    return names[selectedTemplate] || 'material-mostralo';
   };
 
   return (
@@ -118,53 +175,93 @@ export function SharePageContent({
         </CardHeader>
         <CardContent>
           <Tabs value={selectedTemplate} onValueChange={setSelectedTemplate} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 no-print">
-              <TabsTrigger value="flyer" className="flex items-center gap-2">
+            <TabsList className="grid w-full grid-cols-5 no-print">
+              <TabsTrigger value="flyer" className="flex items-center gap-1 text-xs sm:text-sm">
                 <FileText className="h-4 w-4" />
-                <span className="hidden sm:inline">Flyer A4</span>
+                <span className="hidden sm:inline">Flyer A5</span>
               </TabsTrigger>
-              <TabsTrigger value="card" className="flex items-center gap-2">
+              <TabsTrigger value="card" className="flex items-center gap-1 text-xs sm:text-sm">
                 <CreditCard className="h-4 w-4" />
-                <span className="hidden sm:inline">Cartão</span>
+                <span className="hidden sm:inline">Cartões</span>
               </TabsTrigger>
-              <TabsTrigger value="mini" className="flex items-center gap-2">
+              <TabsTrigger value="mini" className="flex items-center gap-1 text-xs sm:text-sm">
                 <QrCode className="h-4 w-4" />
                 <span className="hidden sm:inline">Mini QR</span>
+              </TabsTrigger>
+              <TabsTrigger value="presentation" className="flex items-center gap-1 text-xs sm:text-sm">
+                <Presentation className="h-4 w-4" />
+                <span className="hidden sm:inline">Apresentação</span>
+              </TabsTrigger>
+              <TabsTrigger value="story" className="flex items-center gap-1 text-xs sm:text-sm">
+                <Instagram className="h-4 w-4" />
+                <span className="hidden sm:inline">Story</span>
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="flyer" className="print-area">
-              <FlyerTemplate
-                referralCode={referralCode}
-                homepageLink={homepageLink}
-                signupLink={signupLink}
-                sellerName={sellerName || undefined}
-              />
+              <div ref={flyerRef}>
+                <FlyerTemplate
+                  referralCode={referralCode}
+                  homepageLink={homepageLink}
+                  signupLink={signupLink}
+                  sellerName={sellerName || undefined}
+                />
+              </div>
             </TabsContent>
 
             <TabsContent value="card" className="print-area">
-              <BusinessCardTemplate
-                referralCode={referralCode}
-                signupLink={signupLink}
-                sellerName={sellerName || undefined}
-                sellerPhone={sellerPhone || undefined}
-              />
+              <div ref={cardRef}>
+                <BusinessCardTemplate
+                  referralCode={referralCode}
+                  signupLink={signupLink}
+                  sellerName={sellerName || undefined}
+                  sellerPhone={sellerPhone || undefined}
+                />
+              </div>
             </TabsContent>
 
             <TabsContent value="mini" className="print-area">
-              <MiniQRTemplate
-                referralCode={referralCode}
-                signupLink={signupLink}
-              />
+              <div ref={miniRef}>
+                <MiniQRTemplate
+                  referralCode={referralCode}
+                  signupLink={signupLink}
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="presentation" className="print-area">
+              <div ref={presentationRef}>
+                <CommercialPresentationTemplate
+                  referralCode={referralCode}
+                  homepageLink={homepageLink}
+                  signupLink={signupLink}
+                  sellerName={sellerName || undefined}
+                  sellerPhone={sellerPhone || undefined}
+                  plans={plans}
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="story" className="print-area overflow-auto">
+              <div ref={storyRef} className="mx-auto" style={{ width: 'fit-content' }}>
+                <div style={{ transform: 'scale(0.3)', transformOrigin: 'top center' }}>
+                  <SalesInstagramStory
+                    referralCode={referralCode}
+                    signupLink={signupLink}
+                    sellerName={sellerName || undefined}
+                  />
+                </div>
+              </div>
             </TabsContent>
           </Tabs>
 
-          {/* Botão de Impressão */}
+          {/* Botões de Download */}
           <div className="flex justify-center gap-4 mt-6 no-print">
-            <Button onClick={handlePrint} size="lg" className="gap-2">
-              <Printer className="h-5 w-5" />
-              Imprimir Material
-            </Button>
+            <DownloadButtons
+              targetRef={getCurrentRef()}
+              filename={getFilename()}
+              paperSize={getPaperSize()}
+            />
           </div>
         </CardContent>
       </Card>
@@ -176,9 +273,11 @@ export function SharePageContent({
         </CardHeader>
         <CardContent>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>📄 <strong>Flyer A4:</strong> Ideal para murais, balcões e panfletagem</li>
-            <li>💳 <strong>Cartão de Visita:</strong> Perfeito para entrega pessoal e networking</li>
-            <li>🏷️ <strong>Mini QR:</strong> Recorte e cole em mesas, vitrines, sacolas e embalagens</li>
+            <li>📄 <strong>Flyer A5:</strong> Ideal para panfletagem rápida</li>
+            <li>💳 <strong>Cartões:</strong> Perfeito para entrega pessoal e networking</li>
+            <li>🏷️ <strong>Mini QR:</strong> Recorte e cole em mesas, vitrines e sacolas</li>
+            <li>📊 <strong>Apresentação:</strong> Ideal para reuniões e enviar por e-mail (4 páginas)</li>
+            <li>📱 <strong>Story:</strong> Compartilhe no Instagram e WhatsApp Status</li>
             <li>🖨️ Use papel de qualidade para melhor resultado na impressão</li>
           </ul>
         </CardContent>

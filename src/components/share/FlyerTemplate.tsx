@@ -75,10 +75,10 @@ export function FlyerTemplate({
             <span className="text-green-500">✓</span> Sem Taxa por Pedido
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-green-500">✓</span> Relatórios Detalhados
+            <span className="text-[#25D366]">✓</span> <span className="font-medium">WhatsApp Marketing</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-green-500">✓</span> Suporte Humanizado
+            <span className="text-[#25D366]">✓</span> <span className="font-medium">Recupera Clientes Inativos</span>
           </div>
         </div>
       </div>

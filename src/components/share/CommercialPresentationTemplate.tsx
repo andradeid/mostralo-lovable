@@ -183,26 +183,31 @@ export function CommercialPresentationTemplate({
         {/* Diferenciais */}
         <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: 'repeat(3, 1fr)', 
-          gap: '12px', 
+          gridTemplateColumns: 'repeat(4, 1fr)', 
+          gap: '10px', 
           marginTop: '20px',
           position: 'relative',
           zIndex: 10,
         }}>
-          <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
-            <p style={{ fontSize: '24px', marginBottom: '4px' }}>📱</p>
-            <p style={{ fontSize: '12px', fontWeight: '600' }}>Cardápio Digital</p>
-            <p style={{ fontSize: '10px', opacity: 0.8 }}>Seu próprio app</p>
+          <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
+            <p style={{ fontSize: '20px', marginBottom: '4px' }}>📱</p>
+            <p style={{ fontSize: '11px', fontWeight: '600' }}>Cardápio Digital</p>
+            <p style={{ fontSize: '9px', opacity: 0.8 }}>Seu próprio app</p>
           </div>
-          <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
-            <p style={{ fontSize: '24px', marginBottom: '4px' }}>📈</p>
-            <p style={{ fontSize: '12px', fontWeight: '600' }}>Marketing Digital</p>
-            <p style={{ fontSize: '10px', opacity: 0.8 }}>Gestão de redes</p>
+          <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
+            <p style={{ fontSize: '20px', marginBottom: '4px' }}>📈</p>
+            <p style={{ fontSize: '11px', fontWeight: '600' }}>Marketing Digital</p>
+            <p style={{ fontSize: '9px', opacity: 0.8 }}>Gestão de redes</p>
           </div>
-          <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
-            <p style={{ fontSize: '24px', marginBottom: '4px' }}>0%</p>
-            <p style={{ fontSize: '12px', fontWeight: '600' }}>Taxa por Pedido</p>
-            <p style={{ fontSize: '10px', opacity: 0.8 }}>Lucro 100% seu</p>
+          <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '10px', padding: '10px', textAlign: 'center', border: '1px solid rgba(255,255,255,0.3)' }}>
+            <p style={{ fontSize: '20px', marginBottom: '4px' }}>💬</p>
+            <p style={{ fontSize: '11px', fontWeight: '600' }}>WhatsApp</p>
+            <p style={{ fontSize: '9px', opacity: 0.8 }}>Recupera clientes</p>
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
+            <p style={{ fontSize: '20px', marginBottom: '4px' }}>0%</p>
+            <p style={{ fontSize: '11px', fontWeight: '600' }}>Taxa por Pedido</p>
+            <p style={{ fontSize: '9px', opacity: 0.8 }}>Lucro 100% seu</p>
           </div>
         </div>
         
@@ -356,8 +361,8 @@ export function CommercialPresentationTemplate({
           position: 'relative',
           zIndex: 10,
         }}>
-          <p style={{ fontSize: '12px', color: '#4ade80' }}>
-            ✅ Todos os planos: Cardápio Digital • Gestão de Pedidos • Marketing Digital • 0% taxa
+          <p style={{ fontSize: '11px', color: '#4ade80' }}>
+            ✅ Todos os planos: Cardápio Digital • Marketing Digital • WhatsApp Marketing • 0% taxa
           </p>
         </div>
         

@@ -39,12 +39,98 @@ const ECONOMY_FEATURES = [
     description: '1 perfil de rede social com agendamento ilimitado de posts incluído em todos os planos. Valor de mercado: R$ 800-2.000/mês.',
   },
   {
+    title: 'WhatsApp Marketing Automático',
+    description: 'Recupere clientes inativos automaticamente com campanhas personalizadas. Valor de mercado: R$ 500-1.500/mês.',
+  },
+  {
     title: 'Relatórios com IA',
     description: 'Inteligência artificial que ajuda a tomar decisões melhores.',
   },
   {
     title: 'Independência total',
     description: 'Seu negócio não depende de nenhum marketplace.',
+  },
+];
+
+// WhatsApp Marketing - Funcionalidades completas
+const WHATSAPP_MARKETING_FEATURES = {
+  title: 'WhatsApp Marketing Integrado',
+  subtitle: 'Recupere clientes inativos e aumente vendas no piloto automático',
+  features: [
+    {
+      name: 'Gestão de Contatos Inteligente',
+      description: 'Sincronize todos os contatos do WhatsApp com foto, nome e histórico de compras automaticamente',
+    },
+    {
+      name: 'Etiquetas Coloridas',
+      description: 'Organize clientes: VIP (dourado), Novo (verde), Inativo (vermelho), Frequente (azul). Segmente suas campanhas',
+    },
+    {
+      name: 'Recuperação Automática de Inativos',
+      description: 'Sistema identifica clientes inativos há X dias (você configura) e envia mensagem personalizada automaticamente',
+    },
+    {
+      name: 'Templates com Variáveis Dinâmicas',
+      description: 'Mensagens personalizadas: {nome}, {primeiro_nome}, {último_pedido}, {dias_inativo}, {valor_desconto}',
+    },
+    {
+      name: 'Campanhas Agendadas',
+      description: 'Programe envios em massa com horários específicos, limites diários para evitar bloqueios, e pausas automáticas',
+    },
+    {
+      name: 'Métricas em Tempo Real',
+      description: 'Acompanhe: mensagens enviadas, taxa de entrega, clientes recuperados, vendas geradas por campanha',
+    },
+    {
+      name: 'Integração com Grupos',
+      description: 'Sincronize grupos, veja membros, extraia contatos e faça envios segmentados',
+    },
+    {
+      name: 'Link com Clientes',
+      description: 'Sistema identifica automaticamente clientes cadastrados pelo telefone e vincula ao contato do WhatsApp',
+    },
+  ],
+  stats: {
+    recoveryRate: '23%',
+    averageIncrease: 'R$ 2.400',
+    timeSaved: '8 horas/mês',
+    messageOpenRate: '98%',
+  },
+};
+
+// FAQ específico de WhatsApp Marketing
+const WHATSAPP_FAQ = [
+  {
+    question: 'Como funciona a recuperação automática de clientes inativos?',
+    answer: 'O sistema identifica automaticamente clientes que não compram há X dias (você configura: 15, 30, 60 dias). Quando detecta um cliente inativo, envia mensagem personalizada com o nome dele, último pedido e uma oferta especial. Tudo automático, 24/7.',
+  },
+  {
+    question: 'Preciso de outro número de WhatsApp para usar?',
+    answer: 'Não! Você conecta o MESMO WhatsApp da loja via QR Code. Funciona integrado com suas conversas existentes. Seus clientes continuam falando com você normalmente.',
+  },
+  {
+    question: 'Quantos contatos posso ter e enviar mensagens?',
+    answer: 'Você pode ter TODOS os seus contatos sincronizados. Para envios em massa, configuramos limites inteligentes por dia (50, 100, 200) para evitar bloqueios do WhatsApp. O sistema tem pausas automáticas.',
+  },
+  {
+    question: 'As mensagens são realmente automáticas?',
+    answer: 'Sim! Configure uma vez o template e as regras (ex: enviar para quem não compra há 30 dias) e o sistema trabalha sozinho 24/7. Cliente ficou inativo = mensagem enviada automaticamente.',
+  },
+  {
+    question: 'Posso personalizar as mensagens enviadas?',
+    answer: 'Totalmente! Use variáveis como {nome}, {primeiro_nome}, {último_pedido}, {dias_inativo} para criar mensagens personalizadas. "Olá {nome}, sentimos sua falta! Faz {dias_inativo} dias que você não pede..."',
+  },
+  {
+    question: 'E se o WhatsApp bloquear meu número?',
+    answer: 'O sistema tem proteções: limites diários configuráveis, pausas automáticas entre envios, e respeita os padrões do WhatsApp. Nenhum cliente nosso foi bloqueado seguindo as recomendações do sistema.',
+  },
+  {
+    question: 'Funciona com grupos do WhatsApp também?',
+    answer: 'Sim! Você pode sincronizar grupos, ver todos os membros, extrair contatos para sua lista e fazer envios segmentados. Útil para grupos de promoções, clientes VIP, etc.',
+  },
+  {
+    question: 'Quanto custa esse sistema de WhatsApp Marketing?',
+    answer: 'ESTÁ INCLUSO em todos os planos do Mostralo! No mercado, sistemas de WhatsApp Marketing custam R$ 500-1.500/mês. No Mostralo você tem isso + delivery + marketing digital por um preço fixo.',
   },
 ];
 
@@ -74,6 +160,17 @@ const TECHNICAL_FEATURES = {
     'Relatórios de Performance',
     'Análise de Concorrentes',
     'Integração Facebook/Google Ads',
+  ],
+  'WhatsApp Marketing (ÚNICO COM ISSO!)': [
+    'Sincronização automática de contatos com foto',
+    'Etiquetas coloridas e segmentação',
+    'Recuperação AUTOMÁTICA de clientes inativos',
+    'Campanhas agendadas com filtros',
+    'Templates com variáveis dinâmicas',
+    'Métricas de conversão em tempo real',
+    'Integração com grupos do WhatsApp',
+    'Link automático com clientes cadastrados',
+    'Limites inteligentes anti-bloqueio',
   ],
   'Sua Marca': [
     'Domínio personalizado',
@@ -107,23 +204,23 @@ const TESTIMONIALS = [
 const FAQ = [
   {
     question: 'Como vou atrair clientes sem o marketplace?',
-    answer: 'Com a economia de taxas, você pode investir em marketing próprio (Google Ads, Instagram, panfletos). Além disso, o sistema tem IA de atendimento 24/7 e funcionalidades que fidelizam seus clientes.',
+    answer: 'Com a economia de taxas, você pode investir em marketing próprio (Google Ads, Instagram, panfletos). Além disso, o sistema tem IA de atendimento 24/7, WhatsApp Marketing automático e funcionalidades que fidelizam seus clientes.',
   },
   {
     question: 'É caro para começar?',
-    answer: 'Compare: no iFood você paga 25% de CADA pedido para sempre. No Mostralo você paga um valor fixo por mês. Se você fatura R$ 10.000/mês, paga R$ 2.500 ao iFood. No Mostralo seria R$ 397,90 fixo + Marketing Digital incluso (valor de mercado R$ 800-2.000/mês).',
+    answer: 'Compare: no iFood você paga 25% de CADA pedido para sempre. No Mostralo você paga um valor fixo por mês. Se você fatura R$ 10.000/mês, paga R$ 2.500 ao iFood. No Mostralo seria R$ 397,90 fixo + Marketing Digital + WhatsApp Marketing inclusos (valor de mercado R$ 1.500-3.500/mês).',
   },
   {
-    question: 'Marketing digital está incluso em todos os planos?',
-    answer: 'Sim! Todos os planos incluem 1 perfil de rede social com agendamento ilimitado de posts. Você pode agendar quantos posts quiser, usar IA para criar legendas, analisar concorrentes e integrar com Facebook/Google Ads. Perfis adicionais podem ser negociados.',
+    question: 'Marketing digital e WhatsApp Marketing estão inclusos?',
+    answer: 'Sim! Todos os planos incluem: 1 perfil de rede social com agendamento ilimitado + WhatsApp Marketing completo com recuperação automática de clientes inativos. Você não paga nada a mais por isso.',
   },
   {
     question: 'E se eu não tiver clientes no começo?',
-    answer: 'Você terá 7 dias grátis para testar. Use a economia das taxas para investir em marketing. Com R$ 2.000 economizados no primeiro mês, você pode fazer 4 campanhas de R$ 500 no Google Ads.',
+    answer: 'Você terá 7 dias grátis para testar. Use a economia das taxas para investir em marketing. E o WhatsApp Marketing vai recuperar clientes antigos automaticamente!',
   },
   {
     question: 'É difícil de usar?',
-    answer: 'O sistema é intuitivo e tem IA que ajuda em tudo. Além disso, oferecemos suporte 24/7 e treinamento completo.',
+    answer: 'O sistema é intuitivo e tem IA que ajuda em tudo. O WhatsApp Marketing funciona no piloto automático após configurar uma vez. Suporte 24/7 e treinamento completo inclusos.',
   },
   {
     question: 'E se não der certo?',
@@ -132,6 +229,23 @@ const FAQ = [
   {
     question: 'Como funcionam os pagamentos?',
     answer: 'Os clientes pagam direto para você (PIX, dinheiro, cartão na entrega). Você não depende do marketplace para receber.',
+  },
+  // FAQs específicos de WhatsApp Marketing
+  {
+    question: 'Como funciona a recuperação automática de clientes pelo WhatsApp?',
+    answer: 'O sistema identifica clientes inativos há X dias (você configura) e envia mensagens personalizadas com nome, último pedido e ofertas especiais. Tudo automático, 24/7, sem você fazer nada.',
+  },
+  {
+    question: 'Preciso de outro número de WhatsApp?',
+    answer: 'Não! Conecte o MESMO WhatsApp da loja via QR Code. Funciona integrado com suas conversas existentes.',
+  },
+  {
+    question: 'O WhatsApp pode bloquear meu número?',
+    answer: 'O sistema tem proteções inteligentes: limites diários, pausas automáticas e respeita as regras do WhatsApp. Nenhum cliente foi bloqueado seguindo as recomendações.',
+  },
+  {
+    question: 'Posso personalizar as mensagens do WhatsApp?',
+    answer: 'Sim! Use variáveis como {nome}, {último_pedido}, {dias_inativo}. Ex: "Olá {nome}, faz {dias_inativo} dias que você não pede. Que tal um desconto especial?"',
   },
 ];
 
@@ -343,6 +457,7 @@ function generateTestimonialsSection(): string {
 
 function generateCalculatorSection(type: PromptType): string {
   const example = calculateSavings(10000, 397.90);
+  const whatsappValue = 800; // Valor médio de WhatsApp Marketing no mercado
   
   let section = '\n## CALCULADORA DE ECONOMIA\n\n';
   section += '**Fórmula**: (faturamento × 0.25) - valor_plano = economia mensal\n\n';
@@ -352,18 +467,100 @@ function generateCalculatorSection(type: PromptType): string {
   section += `- Mostralo: R$ 397,90/mês\n`;
   section += `- **Economia em taxas**: ${formatCurrency(example.monthlySavings)}/mês ou ${formatCurrency(example.annualSavings)}/ano\n`;
   section += `- **+ Marketing Digital Incluso**: R$ 1.200/mês (valor de mercado)\n`;
-  section += `- **🔥 ECONOMIA TOTAL**: ${formatCurrency(example.totalSavingsWithMarketing)}/mês\n\n`;
+  section += `- **+ WhatsApp Marketing Incluso**: R$ ${whatsappValue}/mês (valor de mercado)\n`;
+  section += `- **🔥 ECONOMIA + VALOR TOTAL**: ${formatCurrency(example.totalSavingsWithMarketing + whatsappValue)}/mês\n\n`;
+
+  section += '**💰 Valor que você recebe no Mostralo:**\n';
+  section += `- Sistema de delivery completo: R$ 397,90/mês\n`;
+  section += `- Marketing Digital incluso: R$ 1.200/mês (mercado)\n`;
+  section += `- WhatsApp Marketing incluso: R$ 800/mês (mercado)\n`;
+  section += `- **TOTAL: R$ 2.397,90/mês de valor por apenas R$ 397,90!**\n\n`;
 
   section += '**O que fazer com essa economia:**\n';
   SAVINGS_INVESTMENT_IDEAS.forEach(idea => {
     section += `- ${idea}\n`;
   });
 
-  section += '\n**🚨 DIFERENCIAL ÚNICO: Marketing Digital Incluso**\n';
-  section += 'Concorrentes (Anota AI, Goomer, Cardápio Web) não incluem marketing.\n';
-  section += 'Você teria que pagar R$ 800-2.000/mês por fora para uma agência.\n';
-  section += 'No Mostralo, já vem junto: 1 perfil + posts ilimitados + IA + análises.\n';
+  section += '\n**🚨 DIFERENCIAIS ÚNICOS DO MOSTRALO:**\n';
+  section += '1. **Marketing Digital Incluso** - Concorrentes não têm. Agência cobraria R$ 800-2.000/mês.\n';
+  section += '2. **WhatsApp Marketing Incluso** - Único com recuperação automática de clientes inativos.\n';
+  section += '   - 23% dos clientes inativos voltam a comprar\n';
+  section += '   - Média de R$ 2.400/mês em vendas recuperadas\n';
+  section += '   - Funciona 24/7 no piloto automático\n';
 
+  return section;
+}
+
+function generateWhatsAppMarketingSection(type: PromptType): string {
+  let section = '\n## 💬 WHATSAPP MARKETING (DIFERENCIAL ÚNICO!)\n\n';
+
+  section += '### O que é:\n';
+  section += `${WHATSAPP_MARKETING_FEATURES.title} - ${WHATSAPP_MARKETING_FEATURES.subtitle}\n\n`;
+
+  section += '### Funcionalidades:\n';
+  WHATSAPP_MARKETING_FEATURES.features.forEach(feature => {
+    section += `- **${feature.name}**: ${feature.description}\n`;
+  });
+
+  section += '\n### Estatísticas Reais:\n';
+  section += `- **Taxa de Recuperação**: ${WHATSAPP_MARKETING_FEATURES.stats.recoveryRate} dos clientes inativos voltam a comprar\n`;
+  section += `- **Aumento Médio em Vendas**: ${WHATSAPP_MARKETING_FEATURES.stats.averageIncrease}/mês em vendas recuperadas\n`;
+  section += `- **Tempo Economizado**: ${WHATSAPP_MARKETING_FEATURES.stats.timeSaved} com automação\n`;
+  section += `- **Taxa de Abertura**: ${WHATSAPP_MARKETING_FEATURES.stats.messageOpenRate} das mensagens são lidas\n\n`;
+
+  const approaches = {
+    basic: `### Como Apresentar (Consultivo):
+
+"Você mantém contato com seus clientes pelo WhatsApp?"
+"Quando um cliente para de pedir, você entra em contato com ele?"
+
+**Problema**: 68% dos clientes que compram uma vez nunca mais voltam se você não entrar em contato.
+
+**Solução**: Nosso sistema de WhatsApp Marketing identifica automaticamente clientes que não compram há X dias (você configura) e envia mensagem personalizada com o nome do cliente, último pedido e uma oferta especial.
+
+**Resultado**: Em média, 23% dos clientes inativos voltam a comprar. São R$ 2.400/mês em vendas que você está perdendo por não ter esse recurso.
+
+"O melhor? Funciona 24/7 no piloto automático. Você configura uma vez e o sistema trabalha por você."`,
+
+    intermediate: `### Como Apresentar (Persuasivo):
+
+"Sabia que 68% dos clientes compram UMA VEZ e nunca mais voltam?"
+
+**Números claros**:
+- Se você tem 100 clientes inativos
+- 23 voltam a comprar com mensagem personalizada
+- Se cada um gasta R$ 50, são R$ 1.150/mês recuperados
+- Com pedido médio de R$ 80, são R$ 1.840/mês!
+
+**Como funciona**:
+1. Sistema sincroniza contatos do seu WhatsApp
+2. Identifica quem não compra há 15, 30, 60 dias
+3. Envia mensagem personalizada: "Oi {nome}, faz {dias} dias que você não pede..."
+4. Você recebe o pedido!
+
+"E isso está INCLUSO no plano. No mercado, sistemas de WhatsApp Marketing custam R$ 500-1.500/mês."`,
+
+    aggressive: `### Como Apresentar (Urgência):
+
+"Você está JOGANDO DINHEIRO FORA todos os dias!"
+
+**A dura realidade**:
+- 68% dos seus clientes compraram uma vez e ESQUECERAM DE VOCÊ
+- São clientes que VOCÊ conquistou, gastou dinheiro pra trazer
+- E agora estão comprando DO CONCORRENTE porque você não entra em contato!
+
+**Quanto você está perdendo**:
+- 100 clientes inativos × 23% recuperação = 23 clientes de volta
+- 23 × R$ 80 pedido médio = R$ 1.840/MÊS que você está PERDENDO
+- R$ 22.080/ANO jogados no lixo por não ter WhatsApp Marketing!
+
+"Enquanto você 'pensa', seus clientes estão pedindo no concorrente. O sistema recupera eles AUTOMATICAMENTE. Funciona 24/7 enquanto você dorme!"
+
+**URGÊNCIA**: Cada dia sem WhatsApp Marketing = clientes perdidos para sempre. ATIVE AGORA!`,
+  };
+
+  section += approaches[type];
+  
   return section;
 }
 
@@ -383,13 +580,20 @@ function generateConversationFlowSection(type: PromptType): string {
 4. **Calcular e apresentar com empatia**
    "Olha, deixa eu te mostrar uma coisa interessante... Com [valor] de faturamento, você está pagando [cálculo] ao iFood. Você sabia disso?"
 
-5. **Educar sobre alternativas**
-   "Existe uma forma de você ter seu próprio sistema, com IA, app próprio, e pagar apenas [valor fixo] por mês..."
+5. **Perguntar sobre retenção de clientes (NOVO - WhatsApp)**
+   "E os clientes que você conquistou mas não voltam a pedir... você mantém contato com eles?"
+   "Você sabia que 68% dos clientes que compram uma vez nunca mais voltam se você não entrar em contato?"
 
-6. **Perguntar se faz sentido**
+6. **Educar sobre alternativas**
+   "Existe uma forma de você ter seu próprio sistema, com IA, app próprio, E recuperar esses clientes automaticamente pelo WhatsApp..."
+
+7. **Apresentar WhatsApp Marketing**
+   "Nosso sistema identifica clientes inativos e manda mensagem personalizada automaticamente. Em média, 23% voltam a comprar."
+
+8. **Perguntar se faz sentido**
    "Isso faz sentido para você? Quer que eu te mostre como funciona?"
 
-7. **CTA suave**
+9. **CTA suave**
    "Você tem 7 dias grátis para testar, sem cartão, sem compromisso. Quer conhecer?"`,
 
     intermediate: `\n## FLUXO DE CONVERSA (PERSUASIVO)
@@ -407,17 +611,24 @@ function generateConversationFlowSection(type: PromptType): string {
    No Mostralo você pagaria R$ 397,90 fixo.
    Economia de R$ [diferença] por mês = R$ [anual] por ano."
 
-4. **Mostrar testemunhos**
+4. **Perguntar sobre clientes inativos (NOVO - WhatsApp)**
+   "E quantos clientes você já conquistou que nunca mais voltaram?
+   Estatística: 68% dos clientes compram uma vez e somem.
+   
+   Nosso WhatsApp Marketing recupera esses clientes automaticamente.
+   Média de 23% voltam a comprar = R$ 2.400/mês em vendas recuperadas."
+
+5. **Mostrar testemunhos**
    "A Pizzaria Bella Napoli faturava R$ 12.000/mês no iFood.
-   Economizou R$ 28.800 no primeiro ano com o Mostralo."
+   Economizou R$ 28.800 no primeiro ano e recuperou mais R$ 28.000 com WhatsApp Marketing."
 
-5. **Apresentar funcionalidades**
-   "E você ainda ganha: IA de atendimento 24/7, app próprio, relatórios avançados..."
+6. **Apresentar funcionalidades**
+   "E você ainda ganha: IA de atendimento 24/7, app próprio, Marketing Digital + WhatsApp Marketing inclusos..."
 
-6. **Quebrar objeção principal**
+7. **Quebrar objeção principal**
    [Usar FAQ relevante]
 
-7. **CTA forte**
+8. **CTA forte**
    "Teste 7 dias grátis. Crie sua conta agora: https://mostralo.me/signup"`,
 
     aggressive: `\n## FLUXO DE CONVERSA (URGÊNCIA)
@@ -428,7 +639,7 @@ function generateConversationFlowSection(type: PromptType): string {
 2. **Capturar faturamento**
    "Quanto você fatura por mês com delivery?"
 
-3. **Choque de realidade**
+3. **Choque de realidade - Taxas**
    "Com R$ [faturamento]:
    
    - iFood leva: R$ [taxa] TODO MÊS
@@ -437,24 +648,31 @@ function generateConversationFlowSection(type: PromptType): string {
    
    Enquanto você 'pensa', está perdendo R$ [diária] HOJE."
 
-4. **Despertar arrependimento**
+4. **Choque de realidade - Clientes (NOVO - WhatsApp)**
+   "E tem mais: 68% dos clientes que você conquistou NUNCA MAIS VOLTAM.
+   Você trabalhou duro pra conquistar, e eles esqueceram de você!
+   
+   Com nosso WhatsApp Marketing, você recupera eles AUTOMATICAMENTE.
+   23% voltam = R$ 2.400/mês em média que você está PERDENDO!"
+
+5. **Despertar arrependimento**
    "Esse dinheiro poderia:
    - Contratar [X] funcionários
    - Fazer [Y] campanhas de marketing
    - Abrir uma FILIAL
    
-   Mas você está dando para o iFood crescer."
+   Mas você está dando pro iFood E perdendo clientes que já eram SEUS."
 
-5. **Alternativa urgente**
+6. **Alternativa urgente**
    "No Mostralo: R$ 397,90 FIXO. Não importa se você vende R$ 10 mil ou R$ 100 mil.
-   Sistema próprio, IA, marketing digital incluso, tudo SEU."
+   Sistema próprio, IA, Marketing Digital, WhatsApp Marketing que recupera clientes... tudo SEU."
 
-6. **Criar escassez**
-   "Cada dia que passa usando iFood = R$ [diária] perdidos.
+7. **Criar escassez**
+   "Cada dia que passa usando iFood = R$ [diária] perdidos + clientes esquecendo de você.
    7 dias grátis para testar AGORA."
 
-7. **CTA agressivo**
-   "Quer sair dessa armadilha HOJE ou vai continuar pagando aluguel pro iFood?
+8. **CTA agressivo**
+   "Quer sair dessa armadilha HOJE ou vai continuar pagando aluguel pro iFood E perdendo seus clientes?
    Crie sua conta AGORA: https://mostralo.me/signup"`,
   };
 
@@ -466,22 +684,31 @@ function generateObjectionHandlingSection(type: PromptType): string {
 
   const objectionStyles = {
     basic: {
-      price: 'Eu entendo a preocupação. Mas vamos fazer uma conta: se você fatura R$ 10 mil/mês, paga R$ 2.500 ao iFood. No Mostralo é R$ 397,90 fixo. A diferença paga o sistema 6 vezes! E ainda tem marketing digital incluso.',
-      clients: 'Ótima pergunta! Com a economia de taxas, você pode investir em marketing próprio. Nossos clientes usam a economia para Google Ads, Instagram, e constroem base própria de clientes.',
-      difficult: 'O sistema é super intuitivo e tem IA que ajuda em tudo. Além disso, oferecemos suporte 24/7 e treinamento completo. Nos primeiros 7 dias você testa grátis com todo suporte.',
-      time: 'Eu entendo que está sem tempo, mas pensa comigo: quanto tempo você gasta conferindo taxas do iFood? O Mostralo tem IA que automatiza atendimento, pedidos, tudo.',
+      price: 'Eu entendo a preocupação. Mas vamos fazer uma conta: se você fatura R$ 10 mil/mês, paga R$ 2.500 ao iFood. No Mostralo é R$ 397,90 fixo. A diferença paga o sistema 6 vezes! E ainda tem Marketing Digital + WhatsApp Marketing inclusos.',
+      clients: 'Ótima pergunta! Com a economia de taxas, você pode investir em marketing próprio. E o WhatsApp Marketing recupera automaticamente clientes antigos que não compram mais. 23% voltam a pedir!',
+      difficult: 'O sistema é super intuitivo e tem IA que ajuda em tudo. O WhatsApp Marketing funciona no piloto automático - você configura uma vez e ele trabalha 24/7.',
+      time: 'Eu entendo que está sem tempo, mas pensa comigo: o Mostralo tem IA que automatiza atendimento, pedidos, E o WhatsApp Marketing envia mensagens automaticamente. Menos trabalho pra você.',
+      whatsappManual: 'Entendo, mas quanto tempo você gasta mandando mensagens? Com nosso sistema você configura uma vez e funciona 24/7. Os clientes inativos recebem mensagens personalizadas automaticamente.',
+      whatsappBlock: 'O sistema tem limites inteligentes, pausas automáticas e respeita os padrões do WhatsApp. Nenhum cliente nosso foi bloqueado seguindo as recomendações.',
+      whatsappWorks: 'Os números mostram: 23% dos clientes inativos voltam a comprar após receber mensagem personalizada. São em média R$ 2.400/mês em vendas que você está perdendo.',
     },
     intermediate: {
-      price: 'Vamos aos números: R$ 10.000 faturamento = R$ 2.500 iFood vs R$ 397,90 Mostralo. Economia de R$ 2.102/mês. Em 4 meses você economiza R$ 8.408.',
-      clients: 'A Pizzaria Bella Napoli saiu do iFood com base zero própria. Investiu R$ 2.000/mês em Google Ads (usando a economia). Em 3 meses recuperou a carteira.',
-      difficult: 'Sistema mais simples que o painel do iFood. IA responde clientes automaticamente. KDS mostra pedidos na cozinha. Tudo visual, intuitivo.',
-      time: 'Configuração leva 30 minutos. Depois a IA trabalha por você 24/7. Menos tempo do que você gasta resolvendo problemas com o iFood.',
+      price: 'Vamos aos números: R$ 10.000 faturamento = R$ 2.500 iFood vs R$ 397,90 Mostralo. Economia de R$ 2.102/mês + Marketing Digital + WhatsApp Marketing inclusos (valor R$ 2.000/mês no mercado).',
+      clients: 'A Pizzaria Bella Napoli saiu do iFood com base zero própria. Investiu R$ 2.000/mês em Google Ads e usou o WhatsApp Marketing pra recuperar clientes antigos. Em 3 meses dobrou a carteira.',
+      difficult: 'Sistema mais simples que o painel do iFood. O WhatsApp Marketing é automático - configure templates, defina regras (ex: 30 dias sem pedir) e pronto. Funciona sozinho.',
+      time: 'Configuração leva 30 minutos. Depois a IA trabalha por você 24/7. O WhatsApp Marketing recupera clientes automaticamente. Menos tempo do que você gasta no iFood.',
+      whatsappManual: 'Você manda mensagens manualmente? Gasta horas fazendo o que nosso sistema faz em segundos. Configure uma vez, funciona pra sempre. 23% dos inativos voltam.',
+      whatsappBlock: 'Sistema com proteções: limites diários configuráveis (50, 100, 200), pausas entre envios, horários adequados. Zero bloqueios seguindo as recomendações.',
+      whatsappWorks: 'Dados reais: 23% de taxa de recuperação. Cliente com 100 inativos recupera 23. Se cada um gasta R$ 50, são R$ 1.150/mês de vendas que estavam perdidas.',
     },
     aggressive: {
-      price: 'CARO? Você paga R$ 2.500/MÊS ao iFood! São R$ 30.000 POR ANO! O Mostralo é R$ 4.774,80/ano. Você está jogando R$ 25.225 NO LIXO todo ano!',
-      clients: 'E o iFood te deu clientes de graça? NÃO! Você conquistou eles. Agora você paga aluguel para acessar SEUS PRÓPRIOS CLIENTES. Absurdo!',
-      difficult: 'A IA faz TUDO por você. Atende, organiza, calcula. Você só prepara e entrega. Para de arranjar desculpa e começa a economizar!',
-      time: 'Você TEM TEMPO para pagar R$ 2.500/mês ao iFood mas NÃO TEM TEMPO para economizar esse dinheiro? Faz sentido isso?',
+      price: 'CARO? Você paga R$ 2.500/MÊS ao iFood! São R$ 30.000 POR ANO! O Mostralo é R$ 4.774,80/ano COM Marketing Digital E WhatsApp Marketing inclusos. Você está jogando R$ 25.225 NO LIXO todo ano!',
+      clients: 'E o iFood te deu clientes de graça? NÃO! Você conquistou eles e agora eles ESQUECERAM DE VOCÊ. O WhatsApp Marketing recupera esses clientes AUTOMATICAMENTE. 23% voltam a pedir!',
+      difficult: 'A IA faz TUDO por você. Atende, organiza, calcula, E manda WhatsApp automático pra cliente inativo. Você só prepara e entrega. Para de arranjar desculpa!',
+      time: 'Você TEM TEMPO para pagar R$ 2.500/mês ao iFood mas NÃO TEM TEMPO para configurar um sistema que trabalha SOZINHO? WhatsApp automático, IA 24/7... faz sentido isso?',
+      whatsappManual: 'Você GASTA HORAS mandando WhatsApp manualmente? São HORAS que você poderia estar vendendo! Nosso sistema faz isso em SEGUNDOS, 24/7, enquanto você dorme!',
+      whatsappBlock: 'Medo de bloqueio? E MEDO de perder R$ 2.400/mês em clientes inativos você não tem? O sistema é SEGURO. Limites inteligentes. ZERO bloqueios.',
+      whatsappWorks: 'NÃO FUNCIONA? 23% dos clientes VOLTAM A COMPRAR depois da mensagem automática! Você prefere continuar PERDENDO esses clientes ou quer recuperar eles AGORA?',
     },
   };
 
@@ -499,8 +726,25 @@ function generateObjectionHandlingSection(type: PromptType): string {
   section += '\n### Objeção: "Não tenho tempo"\n';
   section += `**Resposta**: ${style.time}\n`;
 
+  // Novas objeções de WhatsApp
+  section += '\n### Objeção: "Já mando mensagens pelo WhatsApp manualmente"\n';
+  section += `**Resposta**: ${style.whatsappManual}\n`;
+
+  section += '\n### Objeção: "Tenho medo do WhatsApp bloquear meu número"\n';
+  section += `**Resposta**: ${style.whatsappBlock}\n`;
+
+  section += '\n### Objeção: "Não sei se esse WhatsApp Marketing funciona"\n';
+  section += `**Resposta**: ${style.whatsappWorks}\n`;
+
   section += '\n### FAQ Completo para Consulta:\n';
   FAQ.forEach(faq => {
+    section += `\n**P: ${faq.question}**\n`;
+    section += `R: ${faq.answer}\n`;
+  });
+
+  // FAQ específico de WhatsApp Marketing
+  section += '\n### FAQ Específico - WhatsApp Marketing:\n';
+  WHATSAPP_FAQ.forEach(faq => {
     section += `\n**P: ${faq.question}**\n`;
     section += `R: ${faq.answer}\n`;
   });
@@ -603,6 +847,7 @@ export function generateSalesPrompt(config: PromptConfig): string {
   prompt += generatePlansSection(plans);
   prompt += generateMarketplaceProblemsSection();
   prompt += generateFeaturesSection();
+  prompt += generateWhatsAppMarketingSection(type); // Nova seção de WhatsApp Marketing
   prompt += generateTestimonialsSection();
   prompt += generateCalculatorSection(type);
   prompt += generateConversationFlowSection(type);

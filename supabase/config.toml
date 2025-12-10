@@ -92,3 +92,6 @@ verify_jwt = false
 
 [functions.evolution-test-connection]
 verify_jwt = true
+
+[functions.whatsapp-contacts]
+verify_jwt = true

@@ -3787,6 +3787,232 @@ export type Database = {
           },
         ]
       }
+      whatsapp_contact_label_assignments: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          contact_id: string
+          id: string
+          label_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          contact_id: string
+          id?: string
+          label_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          contact_id?: string
+          id?: string
+          label_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_contact_label_assignments_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_contact_label_assignments_label_id_fkey"
+            columns: ["label_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_contact_labels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_contact_labels: {
+        Row: {
+          color: string
+          contacts_count: number | null
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          store_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          color?: string
+          contacts_count?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          store_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          color?: string
+          contacts_count?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          store_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_contact_labels_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_contact_labels_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_contacts: {
+        Row: {
+          created_at: string | null
+          customer_id: string | null
+          id: string
+          is_business: boolean | null
+          is_whatsapp_valid: boolean | null
+          last_synced_at: string | null
+          name: string | null
+          phone_number: string
+          profile_picture_url: string | null
+          push_name: string | null
+          source: string | null
+          source_group_id: string | null
+          source_group_name: string | null
+          store_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          customer_id?: string | null
+          id?: string
+          is_business?: boolean | null
+          is_whatsapp_valid?: boolean | null
+          last_synced_at?: string | null
+          name?: string | null
+          phone_number: string
+          profile_picture_url?: string | null
+          push_name?: string | null
+          source?: string | null
+          source_group_id?: string | null
+          source_group_name?: string | null
+          store_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          customer_id?: string | null
+          id?: string
+          is_business?: boolean | null
+          is_whatsapp_valid?: boolean | null
+          last_synced_at?: string | null
+          name?: string | null
+          phone_number?: string
+          profile_picture_url?: string | null
+          push_name?: string | null
+          source?: string | null
+          source_group_id?: string | null
+          source_group_name?: string | null
+          store_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_contacts_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_contacts_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_contacts_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_groups: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          extracted_at: string | null
+          group_jid: string
+          id: string
+          is_admin: boolean | null
+          is_extracted: boolean | null
+          last_synced_at: string | null
+          name: string | null
+          owner_phone: string | null
+          participants_count: number | null
+          picture_url: string | null
+          store_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          extracted_at?: string | null
+          group_jid: string
+          id?: string
+          is_admin?: boolean | null
+          is_extracted?: boolean | null
+          last_synced_at?: string | null
+          name?: string | null
+          owner_phone?: string | null
+          participants_count?: number | null
+          picture_url?: string | null
+          store_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          extracted_at?: string | null
+          group_jid?: string
+          id?: string
+          is_admin?: boolean | null
+          is_extracted?: boolean | null
+          last_synced_at?: string | null
+          name?: string | null
+          owner_phone?: string | null
+          participants_count?: number | null
+          picture_url?: string | null
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_groups_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_groups_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_instances: {
         Row: {
           created_at: string | null
@@ -4022,6 +4248,60 @@ export type Database = {
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_sync_config: {
+        Row: {
+          auto_sync_enabled: boolean | null
+          created_at: string | null
+          id: string
+          last_sync_at: string | null
+          next_sync_at: string | null
+          store_id: string
+          sync_contacts: boolean | null
+          sync_groups: boolean | null
+          sync_interval_hours: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          auto_sync_enabled?: boolean | null
+          created_at?: string | null
+          id?: string
+          last_sync_at?: string | null
+          next_sync_at?: string | null
+          store_id: string
+          sync_contacts?: boolean | null
+          sync_groups?: boolean | null
+          sync_interval_hours?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          auto_sync_enabled?: boolean | null
+          created_at?: string | null
+          id?: string
+          last_sync_at?: string | null
+          next_sync_at?: string | null
+          store_id?: string
+          sync_contacts?: boolean | null
+          sync_groups?: boolean | null
+          sync_interval_hours?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_sync_config_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_sync_config_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "stores"
             referencedColumns: ["id"]
           },
         ]

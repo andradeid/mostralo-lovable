@@ -23,8 +23,16 @@ import {
   Clock,
   Filter,
   Send,
-  Eye
+  Eye,
+  MessageCircle
 } from "lucide-react";
+
+interface SelectedTemplate {
+  id: string;
+  name: string;
+  content: string;
+  category: string;
+}
 
 export default function WhatsAppCampaignNewPage() {
   const navigate = useNavigate();
@@ -34,6 +42,9 @@ export default function WhatsAppCampaignNewPage() {
   const [previewing, setPreviewing] = useState(false);
   const [templates, setTemplates] = useState<any[]>([]);
   const [previewData, setPreviewData] = useState<any>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<SelectedTemplate | null>(null);
+  const [storeName, setStoreName] = useState<string>('');
+  const [storeSlug, setStoreSlug] = useState<string>('');
   
   const [form, setForm] = useState({
     name: '',
@@ -53,8 +64,39 @@ export default function WhatsAppCampaignNewPage() {
   useEffect(() => {
     if (storeId) {
       fetchTemplates();
+      fetchStoreInfo();
     }
   }, [storeId]);
+
+  // Buscar template quando o ID mudar
+  useEffect(() => {
+    if (form.template_id) {
+      const template = templates.find(t => t.id === form.template_id);
+      if (template) {
+        setSelectedTemplate({
+          id: template.id,
+          name: template.name,
+          content: template.content,
+          category: template.category,
+        });
+      }
+    } else {
+      setSelectedTemplate(null);
+    }
+  }, [form.template_id, templates]);
+
+  const fetchStoreInfo = async () => {
+    const { data } = await supabase
+      .from('stores')
+      .select('name, slug')
+      .eq('id', storeId)
+      .single();
+    
+    if (data) {
+      setStoreName(data.name);
+      setStoreSlug(data.slug);
+    }
+  };
 
   const fetchTemplates = async () => {
     const { data } = await supabase
@@ -65,6 +107,40 @@ export default function WhatsAppCampaignNewPage() {
       .order('name');
 
     setTemplates(data || []);
+  };
+
+  // Função para substituir variáveis por exemplos
+  const renderMessagePreview = (content: string) => {
+    const domain = window.location.origin;
+    const linkLoja = `${domain}/loja/${storeSlug}`;
+    
+    return content
+      .replace(/\{primeiro_nome\}/g, 'Maria')
+      .replace(/\{nome\}/g, 'Maria Silva')
+      .replace(/\{loja\}/g, storeName || 'Sua Loja')
+      .replace(/\{link_loja\}/g, linkLoja)
+      .replace(/\{dias_inativo\}/g, String(form.filter_days_inactive))
+      .replace(/\{total_pedidos\}/g, '5')
+      .replace(/\{total_gasto\}/g, 'R$ 150,00')
+      .replace(/\{ultimo_pedido\}/g, '25/11/2024');
+  };
+
+  // Detectar variáveis no template
+  const detectVariables = (content: string): string[] => {
+    const regex = /\{(\w+)\}/g;
+    const matches = content.match(regex) || [];
+    return [...new Set(matches)];
+  };
+
+  const variableDescriptions: Record<string, string> = {
+    '{primeiro_nome}': 'Primeiro nome do cliente',
+    '{nome}': 'Nome completo do cliente',
+    '{loja}': 'Nome da sua loja',
+    '{link_loja}': 'Link do cardápio digital',
+    '{dias_inativo}': 'Dias desde o último pedido',
+    '{total_pedidos}': 'Total de pedidos do cliente',
+    '{total_gasto}': 'Valor total gasto pelo cliente',
+    '{ultimo_pedido}': 'Data do último pedido',
   };
 
   const previewCampaign = async () => {
@@ -311,6 +387,48 @@ export default function WhatsAppCampaignNewPage() {
                   </p>
                 )}
               </div>
+
+              {/* Prévia do Template */}
+              {selectedTemplate ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <MessageCircle className="h-4 w-4 text-green-600" />
+                    <Label className="text-sm font-medium">Prévia da Mensagem</Label>
+                  </div>
+                  
+                  {/* Balão estilo WhatsApp */}
+                  <div className="bg-[#dcf8c6] rounded-lg rounded-tr-none p-3 relative max-w-full shadow-sm">
+                    <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
+                      {renderMessagePreview(selectedTemplate.content)}
+                    </p>
+                    <span className="text-[10px] text-gray-500 float-right mt-1">
+                      {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+
+                  {/* Legenda de variáveis */}
+                  {detectVariables(selectedTemplate.content).length > 0 && (
+                    <div className="bg-muted/50 rounded-lg p-3 text-xs space-y-1">
+                      <p className="font-medium text-muted-foreground mb-2">Variáveis utilizadas:</p>
+                      {detectVariables(selectedTemplate.content).map((variable) => (
+                        <div key={variable} className="flex items-center gap-2">
+                          <code className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[10px]">
+                            {variable}
+                          </code>
+                          <span className="text-muted-foreground">
+                            {variableDescriptions[variable] || 'Variável personalizada'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="border border-dashed rounded-lg p-4 text-center text-muted-foreground text-sm">
+                  <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                  <p>Selecione um template para visualizar a mensagem</p>
+                </div>
+              )}
             </CardContent>
           </Card>
 

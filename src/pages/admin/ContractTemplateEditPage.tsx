@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Save, Eye, ChevronDown, Info, FileText, Building2, RefreshCw } from "lucide-react";
+import { Save, Eye, ChevronDown, Info, FileText, Building2, RefreshCw, Search, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ContractViewer } from "@/components/contract/ContractViewer";
@@ -45,6 +45,7 @@ export default function ContractTemplateEditPage() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [fetchingCnpj, setFetchingCnpj] = useState(false);
   const [template, setTemplate] = useState<ContractTemplate | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   
@@ -154,6 +155,67 @@ export default function ContractTemplateEditPage() {
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleFetchCnpjData = async () => {
+    const cleanCnpj = companyCnpj.replace(/\D/g, '');
+    if (cleanCnpj.length !== 14) {
+      toast({
+        title: "CNPJ inválido",
+        description: "Digite um CNPJ válido com 14 dígitos",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setFetchingCnpj(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('validate-cnpj', {
+        body: { 
+          cnpj: companyCnpj,
+          skip_cnae_validation: true
+        }
+      });
+
+      if (error) throw error;
+
+      if (!data?.valid) {
+        toast({
+          title: "CNPJ não encontrado",
+          description: data?.error || "Verifique o CNPJ e tente novamente",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Auto-preencher campos
+      setCompanyName(data.data.razao_social || '');
+      setCompanyCity(data.data.municipio || '');
+      setCompanyState(data.data.uf || '');
+      
+      // Montar endereço completo
+      const endereco = [
+        data.data.logradouro,
+        data.data.numero,
+        data.data.complemento
+      ].filter(Boolean).join(', ');
+      
+      if (endereco) setCompanyAddress(endereco);
+
+      toast({
+        title: "✅ Dados encontrados!",
+        description: `Empresa: ${data.data.razao_social}`,
+      });
+
+    } catch (err: any) {
+      toast({
+        title: "Erro na consulta",
+        description: err.message || "Não foi possível buscar os dados",
+        variant: "destructive",
+      });
+    } finally {
+      setFetchingCnpj(false);
     }
   };
 
@@ -270,12 +332,26 @@ export default function ContractTemplateEditPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="companyCnpj">CNPJ *</Label>
-                    <Input
-                      id="companyCnpj"
-                      value={companyCnpj}
-                      onChange={(e) => setCompanyCnpj(e.target.value)}
-                      placeholder="00.000.000/0001-00"
-                    />
+                    <div className="flex gap-2">
+                      <Input
+                        id="companyCnpj"
+                        value={companyCnpj}
+                        onChange={(e) => setCompanyCnpj(e.target.value)}
+                        placeholder="00.000.000/0001-00"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleFetchCnpjData}
+                        disabled={fetchingCnpj || companyCnpj.replace(/\D/g, '').length !== 14}
+                      >
+                        {fetchingCnpj ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Search className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="companyAddress">Endereço</Label>

@@ -52,7 +52,7 @@ const PhoneMockup = ({ title, messages, isVisible, delay = 0 }: MockupProps) => 
       messages.forEach((msg, index) => {
         if (msg.isBot && index > 0) {
           timeouts.push(
-            setTimeout(() => setTyping(true), msg.delay - 800)
+            setTimeout(() => setTyping(true), msg.delay - 2400)
           );
         }
 
@@ -69,12 +69,12 @@ const PhoneMockup = ({ title, messages, isVisible, delay = 0 }: MockupProps) => 
       timeouts.push(
         setTimeout(() => {
           setIsFadingOut(true);
-        }, lastMessageDelay + 3000)
+        }, lastMessageDelay + 9000)
       );
 
       loopTimeout = setTimeout(() => {
         runAnimation();
-      }, lastMessageDelay + 4000);
+      }, lastMessageDelay + 12000);
     };
 
     startTimeout = setTimeout(runAnimation, delay);
@@ -165,24 +165,24 @@ interface WhatsAppMarketingMockupsProps {
 
 export const WhatsAppMarketingMockups = ({ isVisible }: WhatsAppMarketingMockupsProps) => {
   const recoveryMessages: Message[] = [
-    { id: 1, text: "Oi! Já faz um tempo que não te vejo por aqui 😊", isBot: true, delay: 500 },
-    { id: 2, text: "Sentimos sua falta! Faz 15 dias que você não pede com a gente.", isBot: true, delay: 1500 },
-    { id: 3, text: "Que tal 15% OFF pra matar a saudade?\n\nUse: VOLTEI15 🍕", isBot: true, delay: 2800 },
-    { id: 4, text: "Opa! Vou pedir sim, obrigado! 😋", isBot: false, delay: 4500 },
+    { id: 1, text: "Oi! Já faz um tempo que não te vejo por aqui 😊", isBot: true, delay: 1500 },
+    { id: 2, text: "Sentimos sua falta! Faz 15 dias que você não pede com a gente.", isBot: true, delay: 4500 },
+    { id: 3, text: "Que tal 15% OFF pra matar a saudade?\n\nUse: VOLTEI15 🍕", isBot: true, delay: 8400 },
+    { id: 4, text: "Opa! Vou pedir sim, obrigado! 😋", isBot: false, delay: 13500 },
   ];
 
   const campaignMessages: Message[] = [
-    { id: 1, text: "🎉 HAPPY HOUR ESPECIAL!", isBot: true, delay: 500 },
-    { id: 2, text: "Hoje das 18h às 20h:\n\n• Todas as pizzas 25% OFF\n• Refrigerante grátis\n\nSó até hoje! ⏰", isBot: true, delay: 1800 },
-    { id: 3, text: "Uau! Vou aproveitar agora mesmo!", isBot: false, delay: 3500 },
-    { id: 4, text: "Perfeito! Aqui está o cardápio 👇\nrestaurante.com.br/cardapio", isBot: true, delay: 4800 },
+    { id: 1, text: "🎉 HAPPY HOUR ESPECIAL!", isBot: true, delay: 1500 },
+    { id: 2, text: "Hoje das 18h às 20h:\n\n• Todas as pizzas 25% OFF\n• Refrigerante grátis\n\nSó até hoje! ⏰", isBot: true, delay: 5400 },
+    { id: 3, text: "Uau! Vou aproveitar agora mesmo!", isBot: false, delay: 10500 },
+    { id: 4, text: "Perfeito! Aqui está o cardápio 👇\nrestaurante.com.br/cardapio", isBot: true, delay: 14400 },
   ];
 
   const statusMessages: Message[] = [
-    { id: 1, text: "✅ Pedido #4521 confirmado!", isBot: true, delay: 500 },
-    { id: 2, text: "👨‍🍳 Seu pedido está sendo preparado com carinho!", isBot: true, delay: 2000 },
-    { id: 3, text: "🛵 Saiu para entrega!\n\nEntregador: Carlos\nPrevisão: 25 minutos", isBot: true, delay: 3500 },
-    { id: 4, text: "Obrigado! Aguardando ansioso 😋", isBot: false, delay: 5000 },
+    { id: 1, text: "✅ Pedido #4521 confirmado!", isBot: true, delay: 1500 },
+    { id: 2, text: "👨‍🍳 Seu pedido está sendo preparado com carinho!", isBot: true, delay: 6000 },
+    { id: 3, text: "🛵 Saiu para entrega!\n\nEntregador: Carlos\nPrevisão: 25 minutos", isBot: true, delay: 10500 },
+    { id: 4, text: "Obrigado! Aguardando ansioso 😋", isBot: false, delay: 15000 },
   ];
 
   return (
@@ -204,7 +204,7 @@ export const WhatsAppMarketingMockups = ({ isVisible }: WhatsAppMarketingMockups
           title="Campanha Promocional"
           messages={campaignMessages}
           isVisible={isVisible}
-          delay={3000}
+          delay={9000}
         />
         <p className="mt-4 text-sm font-medium text-muted-foreground">
           📢 Promoção em massa
@@ -216,7 +216,7 @@ export const WhatsAppMarketingMockups = ({ isVisible }: WhatsAppMarketingMockups
           title="Status Automático"
           messages={statusMessages}
           isVisible={isVisible}
-          delay={6000}
+          delay={18000}
         />
         <p className="mt-4 text-sm font-medium text-muted-foreground">
           📦 Atualização em tempo real

@@ -1,6 +1,15 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.55.0';
 import { corsHeaders } from '../_shared/cors.ts';
 
+// Simple hash function using Web Crypto API
+async function generateVerificationHash(data: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const dataBuffer = encoder.encode(data);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -26,7 +35,7 @@ Deno.serve(async (req) => {
     // Buscar dados do vendedor
     const { data: salesperson, error: salespersonError } = await supabase
       .from('salespeople')
-      .select('*')
+      .select('*, profiles:user_id(full_name)')
       .eq('user_id', user.id)
       .single();
 
@@ -38,19 +47,38 @@ Deno.serve(async (req) => {
       throw new Error('Contrato já foi aceito ou vendedor não está aprovado');
     }
 
+    // Buscar template ativo do contrato
+    const { data: template, error: templateError } = await supabase
+      .from('salesperson_contract_templates')
+      .select('id, version')
+      .eq('is_active', true)
+      .single();
+
     // Obter IP e user agent
     const ip_address = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
     const user_agent = req.headers.get('user-agent') || 'unknown';
+    const accepted_at = new Date().toISOString();
+
+    // Gerar hash de verificação único
+    const hashData = `${salesperson.id}|${template?.version || '1.0'}|${accepted_at}|${ip_address}|${user.id}`;
+    const verification_hash = await generateVerificationHash(hashData);
+
+    // Extrair nome do vendedor do profile
+    const salespersonName = (salesperson.profiles as any)?.full_name || salesperson.full_name || null;
 
     // Criar registro de aceite do contrato
     const { error: contractError } = await supabase
       .from('salesperson_contracts')
       .insert({
         salesperson_id: salesperson.id,
-        contract_version: '1.0',
-        accepted_at: new Date().toISOString(),
+        contract_version: template?.version || '1.0',
+        accepted_at,
         ip_address,
-        user_agent
+        user_agent,
+        verification_hash,
+        contract_template_id: template?.id || null,
+        salesperson_name: salespersonName,
+        salesperson_cnpj: salesperson.cnpj || null,
       });
 
     if (contractError) {
@@ -63,7 +91,7 @@ Deno.serve(async (req) => {
       .from('salespeople')
       .update({
         status: 'active',
-        contract_accepted_at: new Date().toISOString()
+        contract_accepted_at: accepted_at
       })
       .eq('id', salesperson.id);
 
@@ -72,12 +100,13 @@ Deno.serve(async (req) => {
       throw new Error('Erro ao ativar vendedor');
     }
 
-    console.log(`Contrato aceito pelo vendedor ${salesperson.id}`);
+    console.log(`Contrato aceito pelo vendedor ${salesperson.id} - Hash: ${verification_hash}`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Contrato aceito com sucesso'
+        message: 'Contrato aceito com sucesso',
+        verification_hash
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

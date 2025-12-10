@@ -4,9 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useStoreAccess } from "@/hooks/useStoreAccess";
+import { format } from "date-fns";
 import { 
   Loader2, 
   Plus, 
@@ -18,7 +20,11 @@ import {
   Send,
   CheckCircle,
   Clock,
-  BarChart3
+  BarChart3,
+  ChevronDown,
+  ChevronUp,
+  RefreshCw,
+  MessageSquare
 } from "lucide-react";
 
 export default function WhatsAppCampaignsPage() {
@@ -28,6 +34,9 @@ export default function WhatsAppCampaignsPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [expandedCampaign, setExpandedCampaign] = useState<string | null>(null);
+  const [campaignMessages, setCampaignMessages] = useState<Record<string, any[]>>({});
+  const [messagesLoading, setMessagesLoading] = useState<string | null>(null);
 
   useEffect(() => {
     if (storeId) {
@@ -105,6 +114,52 @@ export default function WhatsAppCampaignsPage() {
   const calculateProgress = (campaign: any) => {
     if (campaign.total_recipients === 0) return 0;
     return Math.round((campaign.messages_sent / campaign.total_recipients) * 100);
+  };
+
+  const fetchCampaignMessages = async (campaignId: string) => {
+    setMessagesLoading(campaignId);
+    try {
+      const { data, error } = await supabase
+        .from('whatsapp_messages' as any)
+        .select(`
+          id,
+          phone_number,
+          content,
+          status,
+          error_message,
+          sent_at,
+          failed_at,
+          created_at,
+          customer:customers(name)
+        `)
+        .eq('campaign_id', campaignId)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+      
+      if (data) {
+        setCampaignMessages(prev => ({
+          ...prev,
+          [campaignId]: data
+        }));
+      }
+    } catch (error) {
+      console.error('Erro ao buscar mensagens:', error);
+    } finally {
+      setMessagesLoading(null);
+    }
+  };
+
+  const toggleCampaignMessages = (campaignId: string) => {
+    if (expandedCampaign === campaignId) {
+      setExpandedCampaign(null);
+    } else {
+      setExpandedCampaign(campaignId);
+      if (!campaignMessages[campaignId]) {
+        fetchCampaignMessages(campaignId);
+      }
+    }
   };
 
   if (loading) {
@@ -256,6 +311,19 @@ export default function WhatsAppCampaignsPage() {
                     <BarChart3 className="h-4 w-4 mr-1" />
                     Detalhes
                   </Button>
+
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => toggleCampaignMessages(campaign.id)}
+                  >
+                    {expandedCampaign === campaign.id ? (
+                      <ChevronUp className="h-4 w-4 mr-1" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 mr-1" />
+                    )}
+                    Ver Mensagens
+                  </Button>
                 </div>
 
                 {campaign.started_at && (
@@ -263,6 +331,74 @@ export default function WhatsAppCampaignsPage() {
                     Iniciada em: {new Date(campaign.started_at).toLocaleString('pt-BR')}
                   </p>
                 )}
+
+                {/* Seção expansível de mensagens */}
+                <Collapsible open={expandedCampaign === campaign.id}>
+                  <CollapsibleContent>
+                    <div className="border-t pt-4 mt-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-medium flex items-center gap-2">
+                          <MessageSquare className="h-4 w-4" />
+                          Mensagens Enviadas ({campaign.messages_sent})
+                        </h4>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => fetchCampaignMessages(campaign.id)}
+                        >
+                          <RefreshCw className={`h-4 w-4 ${messagesLoading === campaign.id ? 'animate-spin' : ''}`} />
+                        </Button>
+                      </div>
+                      
+                      {messagesLoading === campaign.id ? (
+                        <div className="flex justify-center py-4">
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        </div>
+                      ) : campaignMessages[campaign.id]?.length > 0 ? (
+                        <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                          {campaignMessages[campaign.id].map((msg: any) => (
+                            <div 
+                              key={msg.id}
+                              className={`p-3 rounded-lg text-sm border ${
+                                msg.status === 'failed' 
+                                  ? 'bg-destructive/10 border-destructive/20' 
+                                  : 'bg-green-500/10 border-green-500/20'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
+                                <div className="flex items-center gap-2">
+                                  {msg.status === 'failed' ? (
+                                    <XCircle className="h-4 w-4 text-destructive" />
+                                  ) : (
+                                    <CheckCircle className="h-4 w-4 text-green-500" />
+                                  )}
+                                  <span className="text-xs text-muted-foreground">
+                                    {format(new Date(msg.sent_at || msg.created_at), "dd/MM HH:mm")}
+                                  </span>
+                                  <span className="font-mono text-xs">{msg.phone_number}</span>
+                                  {msg.customer?.name && (
+                                    <span className="text-muted-foreground">• {msg.customer.name}</span>
+                                  )}
+                                </div>
+                              </div>
+                              <p className="line-clamp-2 text-muted-foreground">
+                                {msg.status === 'failed' ? (
+                                  <span className="text-destructive">Erro: {msg.error_message}</span>
+                                ) : (
+                                  msg.content
+                                )}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-center text-muted-foreground py-4">
+                          Nenhuma mensagem enviada ainda
+                        </p>
+                      )}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
               </CardContent>
             </Card>
           ))}

@@ -104,6 +104,7 @@ import WhatsAppTemplatesPage from "./pages/admin/WhatsAppTemplatesPage";
 import WhatsAppCampaignsPage from "./pages/admin/WhatsAppCampaignsPage";
 import WhatsAppCampaignNewPage from "./pages/admin/WhatsAppCampaignNewPage";
 import WhatsAppAutomationsPage from "./pages/admin/WhatsAppAutomationsPage";
+import WhatsAppContactsPage from "./pages/admin/WhatsAppContactsPage";
 
 const queryClient = new QueryClient();
 
@@ -423,6 +424,11 @@ const App = () => (
             <Route path="/dashboard/whatsapp/campaigns/new" element={
               <ProtectedRoute allowedRoles={['store_admin']}>
                 <AdminLayout pageTitle="Nova Campanha"><WhatsAppCampaignNewPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/whatsapp/contacts" element={
+              <ProtectedRoute allowedRoles={['store_admin']}>
+                <AdminLayout pageTitle="Contatos WhatsApp"><WhatsAppContactsPage /></AdminLayout>
               </ProtectedRoute>
             } />
 

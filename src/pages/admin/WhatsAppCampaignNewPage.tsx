@@ -44,6 +44,7 @@ export default function WhatsAppCampaignNewPage() {
   const [loading, setLoading] = useState(false);
   const [previewing, setPreviewing] = useState(false);
   const [templates, setTemplates] = useState<any[]>([]);
+  const [labels, setLabels] = useState<any[]>([]);
   const [previewData, setPreviewData] = useState<any>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<SelectedTemplate | null>(null);
   const [storeName, setStoreName] = useState<string>('');
@@ -58,6 +59,8 @@ export default function WhatsAppCampaignNewPage() {
     filter_max_orders: 0,
     filter_min_spent: 0,
     filter_max_spent: 0,
+    filter_label_ids: [] as string[],
+    include_imported_contacts: false,
     message_interval_seconds: 60,
     daily_limit: 100,
     start_hour: 9,
@@ -103,8 +106,18 @@ export default function WhatsAppCampaignNewPage() {
     if (storeId) {
       fetchTemplates();
       fetchStoreInfo();
+      fetchLabels();
     }
   }, [storeId]);
+
+  const fetchLabels = async () => {
+    const { data } = await supabase
+      .from('whatsapp_contact_labels' as any)
+      .select('*')
+      .eq('store_id', storeId)
+      .order('name');
+    setLabels(data || []);
+  };
 
   // Buscar template quando o ID mudar
   useEffect(() => {
@@ -548,6 +561,64 @@ export default function WhatsAppCampaignNewPage() {
                   />
                 </div>
               </div>
+
+              {/* Filtro por Etiquetas */}
+              {labels.length > 0 && (
+                <div className="space-y-3">
+                  <Label>Filtrar por etiquetas</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {labels.map((label: any) => (
+                      <div
+                        key={label.id}
+                        onClick={() => {
+                          setForm(prev => ({
+                            ...prev,
+                            filter_label_ids: prev.filter_label_ids.includes(label.id)
+                              ? prev.filter_label_ids.filter(id => id !== label.id)
+                              : [...prev.filter_label_ids, label.id]
+                          }));
+                        }}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-full cursor-pointer transition-all ${
+                          form.filter_label_ids.includes(label.id)
+                            ? 'ring-2 ring-primary ring-offset-2'
+                            : 'opacity-60 hover:opacity-100'
+                        }`}
+                        style={{ backgroundColor: label.color + '30', color: label.color }}
+                      >
+                        <div 
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: label.color }}
+                        />
+                        <span className="text-sm font-medium">{label.name}</span>
+                        <span className="text-xs opacity-70">({label.contacts_count || 0})</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Enviar apenas para contatos com as etiquetas selecionadas
+                  </p>
+                </div>
+              )}
+
+              {/* Incluir contatos importados */}
+              <div className="flex items-center space-x-2 pt-2">
+                <Checkbox
+                  id="include_imported"
+                  checked={form.include_imported_contacts}
+                  onCheckedChange={(checked) => 
+                    setForm(prev => ({ ...prev, include_imported_contacts: checked === true }))
+                  }
+                />
+                <label
+                  htmlFor="include_imported"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Incluir contatos importados
+                </label>
+              </div>
+              <p className="text-xs text-muted-foreground -mt-1">
+                Além de clientes, incluir contatos da aba "Contatos WhatsApp"
+              </p>
             </CardContent>
           </Card>
 

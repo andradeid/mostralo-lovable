@@ -625,6 +625,79 @@ export function CommercialPresentationWhatsAppTemplate({
     });
   }, []);
 
+  // Função para capturar elemento como PNG usando canvas nativo
+  const captureElementToPng = useCallback(async (element: HTMLElement): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      try {
+        // Criar canvas com tamanho 1080x1080 (540 x 2 = 1080)
+        const canvas = document.createElement('canvas');
+        canvas.width = 1080;
+        canvas.height = 1080;
+        const ctx = canvas.getContext('2d');
+        
+        if (!ctx) {
+          reject(new Error('Canvas não suportado'));
+          return;
+        }
+
+        // Clonar e preparar elemento
+        const clone = element.cloneNode(true) as HTMLElement;
+        clone.style.margin = '0';
+        clone.style.padding = clone.style.padding || '40px';
+        
+        // Serializar para SVG foreignObject
+        const serializer = new XMLSerializer();
+        const htmlString = serializer.serializeToString(clone);
+        
+        // Criar SVG com foreignObject
+        const svgString = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080">
+            <defs>
+              <style>
+                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap');
+              </style>
+            </defs>
+            <foreignObject width="100%" height="100%">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="width:540px;height:540px;transform:scale(2);transform-origin:top left;">
+                ${htmlString}
+              </div>
+            </foreignObject>
+          </svg>
+        `;
+        
+        // Converter SVG para blob
+        const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+        
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        
+        img.onload = () => {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, 1080, 1080);
+          ctx.drawImage(img, 0, 0);
+          URL.revokeObjectURL(url);
+          
+          try {
+            const dataUrl = canvas.toDataURL('image/png', 1.0);
+            resolve(dataUrl);
+          } catch (e) {
+            reject(e);
+          }
+        };
+        
+        img.onerror = () => {
+          URL.revokeObjectURL(url);
+          reject(new Error('Falha ao carregar imagem'));
+        };
+        
+        img.src = url;
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }, []);
+
   const viewSlide = useCallback(async (index: number) => {
     const ref = captureRefs[index];
     if (!ref.current) return;
@@ -632,9 +705,10 @@ export function CommercialPresentationWhatsAppTemplate({
     try {
       toast.loading('Gerando preview...', { id: `view-${index}` });
       
-      // Clonar o elemento e abrir em janela com instruções
-      const clone = ref.current.cloneNode(true) as HTMLElement;
+      // Gerar PNG real antes de abrir janela
+      const dataUrl = await captureElementToPng(ref.current);
       
+      // Abrir janela com IMAGEM REAL (tag <img>)
       const win = window.open('', '_blank', 'width=620,height=750');
       if (!win) {
         toast.dismiss(`view-${index}`);
@@ -659,11 +733,7 @@ export function CommercialPresentationWhatsAppTemplate({
                 padding: 20px;
                 font-family: system-ui, sans-serif;
               }
-              .slide-container { 
-                border-radius: 12px; 
-                overflow: hidden;
-                box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-              }
+              img { border-radius: 12px; max-width: 100%; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
               .instructions {
                 margin-top: 20px;
                 text-align: center;
@@ -671,37 +741,11 @@ export function CommercialPresentationWhatsAppTemplate({
                 font-size: 16px;
                 font-weight: 500;
               }
-              .btn {
-                margin-top: 16px;
-                padding: 12px 24px;
-                background: linear-gradient(135deg, #f97316, #ea580c);
-                color: white;
-                border: none;
-                border-radius: 8px;
-                font-size: 16px;
-                font-weight: bold;
-                cursor: pointer;
-              }
-              .btn:hover { opacity: 0.9; }
             </style>
-            <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"><\/script>
           </head>
           <body>
-            <div class="slide-container" id="slide">
-              ${clone.outerHTML}
-            </div>
-            <p class="instructions">✅ Clique no botão abaixo para baixar ou use Print Screen</p>
-            <button class="btn" onclick="downloadPng()">📥 Baixar PNG</button>
-            <script>
-              async function downloadPng() {
-                const el = document.getElementById('slide');
-                const canvas = await html2canvas(el, { scale: 2, useCORS: true, allowTaint: true });
-                const link = document.createElement('a');
-                link.download = 'mostralo-whatsapp-${index + 1}-${slideNames[index]}.png';
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-              }
-            <\/script>
+            <img src="${dataUrl}" alt="Slide ${index + 1}" />
+            <p class="instructions">✅ Clique direito na imagem → "Salvar imagem como..."</p>
           </body>
         </html>
       `);
@@ -714,7 +758,7 @@ export function CommercialPresentationWhatsAppTemplate({
       console.error('Erro:', error);
       toast.error('Erro ao gerar preview');
     }
-  }, [slideNames]);
+  }, [slideNames, captureElementToPng]);
 
   const downloadSlide = useCallback(async (index: number) => {
     const ref = captureRefs[index];
@@ -723,76 +767,19 @@ export function CommercialPresentationWhatsAppTemplate({
     try {
       toast.loading('Gerando imagem...', { id: `download-${index}` });
       
-      // Abrir janela com html2canvas CDN para download
-      const clone = ref.current.cloneNode(true) as HTMLElement;
+      // Gerar PNG usando canvas nativo
+      const dataUrl = await captureElementToPng(ref.current);
       
-      const win = window.open('', '_blank', 'width=620,height=750');
-      if (!win) {
-        toast.dismiss(`download-${index}`);
-        toast.error('Pop-up bloqueado. Permita pop-ups.');
-        return;
-      }
-      
-      win.document.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>Baixando - ${slideNames[index]}</title>
-            <style>
-              * { margin: 0; padding: 0; box-sizing: border-box; }
-              body { 
-                display: flex; 
-                flex-direction: column;
-                align-items: center; 
-                justify-content: center;
-                min-height: 100vh; 
-                background: #1a1a1a; 
-                padding: 20px;
-                font-family: system-ui, sans-serif;
-              }
-              .slide-container { 
-                border-radius: 12px; 
-                overflow: hidden;
-              }
-              .status {
-                margin-top: 20px;
-                color: #f97316;
-                font-size: 18px;
-                font-weight: 500;
-              }
-            </style>
-            <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"><\/script>
-          </head>
-          <body>
-            <div class="slide-container" id="slide">
-              ${clone.outerHTML}
-            </div>
-            <p class="status" id="status">⏳ Gerando PNG...</p>
-            <script>
-              (async function() {
-                try {
-                  await new Promise(r => setTimeout(r, 500)); // Aguardar render
-                  const el = document.getElementById('slide');
-                  const canvas = await html2canvas(el, { scale: 2, useCORS: true, allowTaint: true });
-                  const link = document.createElement('a');
-                  link.download = 'mostralo-whatsapp-${index + 1}-${slideNames[index]}.png';
-                  link.href = canvas.toDataURL('image/png');
-                  link.click();
-                  document.getElementById('status').textContent = '✅ Download iniciado!';
-                  document.getElementById('status').style.color = '#22c55e';
-                } catch(e) {
-                  document.getElementById('status').textContent = '❌ Erro: ' + e.message;
-                  document.getElementById('status').style.color = '#ef4444';
-                }
-              })();
-            <\/script>
-          </body>
-        </html>
-      `);
-      win.document.close();
+      // Download automático
+      const link = document.createElement('a');
+      link.download = `mostralo-whatsapp-${index + 1}-${slideNames[index]}.png`;
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
       
       toast.dismiss(`download-${index}`);
-      toast.success(`Baixando imagem ${index + 1}...`);
+      toast.success(`Imagem ${index + 1} baixada!`);
     } catch (error) {
       toast.dismiss(`download-${index}`);
       console.error('Erro:', error);

@@ -5,11 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Copy, Phone, MessageSquare, Instagram, Target, Shield, CheckCircle, TrendingUp, Loader2, RefreshCw } from 'lucide-react';
+import { Copy, Phone, MessageSquare, Instagram, Target, Shield, CheckCircle, TrendingUp, Loader2, RefreshCw, Users, Clock, Zap, Tags, Send, BarChart3, UsersRound, Link2, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 type Plan = Database['public']['Tables']['plans']['Row'];
 
@@ -59,7 +60,10 @@ export default function ProspectingGuidePage() {
     const savings = ifoodFee - planPrice;
     const annual = savings * 12;
     const daily = savings / 30;
-    return { ifoodFee, savings, annual, daily };
+    const marketingValue = 1200;
+    const whatsappValue = 800;
+    const totalValue = savings + marketingValue + whatsappValue;
+    return { ifoodFee, savings, annual, daily, marketingValue, whatsappValue, totalValue };
   };
 
   if (loading) {
@@ -97,11 +101,12 @@ export default function ProspectingGuidePage() {
       </div>
 
       <Tabs defaultValue="como-prospectar" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7">
           <TabsTrigger value="como-prospectar">Como Prospectar</TabsTrigger>
           <TabsTrigger value="scripts">Scripts</TabsTrigger>
           <TabsTrigger value="qualificacao">Qualificação</TabsTrigger>
           <TabsTrigger value="apresentacao">Apresentação</TabsTrigger>
+          <TabsTrigger value="whatsapp" className="text-[#25D366]">💬 WhatsApp</TabsTrigger>
           <TabsTrigger value="objecoes">Objeções</TabsTrigger>
           <TabsTrigger value="fechamento">Fechamento</TabsTrigger>
         </TabsList>
@@ -574,7 +579,468 @@ Em 1 ano, são R$ [DIFERENÇA × 12] no seu bolso!"`}
           </Card>
         </TabsContent>
 
-        {/* SEÇÃO 5: QUEBRA DE OBJEÇÕES */}
+        {/* SEÇÃO 5: WHATSAPP MARKETING */}
+        <TabsContent value="whatsapp" className="space-y-4">
+          {/* Card: O Problema */}
+          <Card className="border-red-500/50">
+            <CardHeader>
+              <CardTitle className="text-red-600 dark:text-red-400 flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5" />
+                🚨 O Problema que o Cliente NÃO SABE que Tem
+              </CardTitle>
+              <CardDescription>Use esses dados para criar consciência da dor</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-center">
+                  <p className="text-4xl font-bold text-red-600 dark:text-red-400">68%</p>
+                  <p className="text-sm text-muted-foreground mt-1">dos clientes compram UMA VEZ e nunca mais voltam</p>
+                </div>
+                <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-center">
+                  <p className="text-4xl font-bold text-red-600 dark:text-red-400">R$ 2.400</p>
+                  <p className="text-sm text-muted-foreground mt-1">perdidos por mês em média por não reconquistar clientes</p>
+                </div>
+                <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-center">
+                  <p className="text-4xl font-bold text-red-600 dark:text-red-400">15 dias</p>
+                  <p className="text-sm text-muted-foreground mt-1">tempo médio para um cliente "esquecer" do restaurante</p>
+                </div>
+              </div>
+              <Button 
+                variant="outline"
+                className="w-full mt-4"
+                onClick={() => copyToClipboard(
+                  `🚨 DADOS IMPORTANTES:\n\n• 68% dos clientes compram UMA VEZ e nunca mais voltam se você não entrar em contato\n• Restaurantes perdem em média R$ 2.400/mês por não reconquistar clientes inativos\n• Após 15 dias sem contato, o cliente "esquece" do seu restaurante\n\nVocê está deixando dinheiro na mesa!`,
+                  'Estatísticas do problema'
+                )}
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Copiar Estatísticas
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Card: Funcionalidades */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5 text-[#25D366]" />
+                💬 Funcionalidades do WhatsApp Marketing
+              </CardTitle>
+              <CardDescription>8 recursos que transformam o WhatsApp em máquina de vendas</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                  <Users className="h-5 w-5 text-[#25D366] mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">Gestão de Contatos Inteligente</p>
+                    <p className="text-sm text-muted-foreground">Sincroniza e organiza todos os contatos automaticamente</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                  <Tags className="h-5 w-5 text-[#25D366] mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">Etiquetas Coloridas</p>
+                    <p className="text-sm text-muted-foreground">Segmentação visual por tipo de cliente (VIP, Inativo, Novo...)</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                  <Zap className="h-5 w-5 text-[#25D366] mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">Recuperação Automática</p>
+                    <p className="text-sm text-muted-foreground">Identifica inativos e envia mensagem personalizada 24/7</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                  <MessageSquare className="h-5 w-5 text-[#25D366] mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">Templates com Variáveis</p>
+                    <p className="text-sm text-muted-foreground">{'{nome}, {último_pedido}, {dias_sem_comprar}'} personalizados</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                  <Clock className="h-5 w-5 text-[#25D366] mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">Campanhas Agendadas</p>
+                    <p className="text-sm text-muted-foreground">Programe envios em massa com proteção anti-bloqueio</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                  <BarChart3 className="h-5 w-5 text-[#25D366] mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">Métricas em Tempo Real</p>
+                    <p className="text-sm text-muted-foreground">Acompanhe taxa de entrega, abertura e conversão</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                  <UsersRound className="h-5 w-5 text-[#25D366] mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">Integração com Grupos</p>
+                    <p className="text-sm text-muted-foreground">Extrai membros de grupos e transforma em contatos</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                  <Link2 className="h-5 w-5 text-[#25D366] mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">Link com Clientes</p>
+                    <p className="text-sm text-muted-foreground">Vincula contatos com histórico de pedidos automaticamente</p>
+                  </div>
+                </div>
+              </div>
+              <Button 
+                variant="outline"
+                className="w-full mt-4"
+                onClick={() => copyToClipboard(
+                  `💬 FUNCIONALIDADES DO WHATSAPP MARKETING:\n\n✅ Gestão de Contatos Inteligente - Sincroniza todos automaticamente\n✅ Etiquetas Coloridas - Segmentação visual (VIP, Inativo, Novo...)\n✅ Recuperação Automática - Identifica inativos e envia mensagem 24/7\n✅ Templates com Variáveis - {nome}, {último_pedido} personalizados\n✅ Campanhas Agendadas - Envios em massa com proteção anti-bloqueio\n✅ Métricas em Tempo Real - Taxa de entrega, abertura e conversão\n✅ Integração com Grupos - Extrai membros e transforma em contatos\n✅ Link com Clientes - Vincula contatos com histórico de pedidos\n\nTudo isso INCLUSO no plano! No mercado custa R$ 500-1.500/mês.`,
+                  'Funcionalidades WhatsApp'
+                )}
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Copiar Lista de Funcionalidades
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Card: KPIs de Resultados */}
+          <Card className="border-[#25D366]/50 bg-[#25D366]/5">
+            <CardHeader>
+              <CardTitle className="text-[#25D366] flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                📊 Resultados Comprovados
+              </CardTitle>
+              <CardDescription>Use esses números para convencer o lead</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-4 gap-4">
+                <div className="p-4 rounded-lg bg-background border text-center">
+                  <p className="text-3xl font-bold text-[#25D366]">23%</p>
+                  <p className="text-sm text-muted-foreground mt-1">Taxa de recuperação de clientes inativos</p>
+                </div>
+                <div className="p-4 rounded-lg bg-background border text-center">
+                  <p className="text-3xl font-bold text-[#25D366]">R$ 2.400</p>
+                  <p className="text-sm text-muted-foreground mt-1">Aumento médio mensal em vendas recuperadas</p>
+                </div>
+                <div className="p-4 rounded-lg bg-background border text-center">
+                  <p className="text-3xl font-bold text-[#25D366]">8h/mês</p>
+                  <p className="text-sm text-muted-foreground mt-1">Economizadas em trabalho manual</p>
+                </div>
+                <div className="p-4 rounded-lg bg-background border text-center">
+                  <p className="text-3xl font-bold text-[#25D366]">98%</p>
+                  <p className="text-sm text-muted-foreground mt-1">Taxa de abertura das mensagens</p>
+                </div>
+              </div>
+              <Button 
+                variant="outline"
+                className="w-full mt-4"
+                onClick={() => copyToClipboard(
+                  `📊 RESULTADOS COMPROVADOS DO WHATSAPP MARKETING:\n\n• 23% dos clientes inativos VOLTAM a comprar\n• R$ 2.400/mês de aumento médio em vendas recuperadas\n• 8 horas/mês economizadas em trabalho manual\n• 98% de taxa de abertura (vs 20% do e-mail)\n\nSó o WhatsApp Marketing já paga o sistema inteiro!`,
+                  'KPIs de Resultados'
+                )}
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Copiar KPIs
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Card: Scripts de Abordagem */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5" />
+                🎯 Scripts de Abordagem WhatsApp
+              </CardTitle>
+              <CardDescription>3 estilos para diferentes situações e perfis de lead</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Script Consultivo */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/30">Consultivo</Badge>
+                  <span className="text-sm text-muted-foreground">Para leads que precisam entender o valor</span>
+                </div>
+                <ScrollArea className="h-[180px] rounded-md border p-4 bg-muted/30">
+                  <p className="text-sm whitespace-pre-wrap font-mono">
+{`"Você mantém contato com seus clientes pelo WhatsApp?"
+"Quando um cliente para de pedir, você entra em contato com ele?"
+
+O problema: 68% dos clientes que compram uma vez nunca mais voltam se você não entrar em contato.
+
+Nosso sistema identifica automaticamente clientes inativos há X dias e envia mensagem personalizada com o nome dele, último pedido e uma oferta especial. Tudo automático, 24/7.
+
+Em média, 23% dos clientes inativos voltam a comprar. São R$ 2.400/mês em vendas que você está perdendo.`}
+                  </p>
+                </ScrollArea>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => copyToClipboard(
+                    `"Você mantém contato com seus clientes pelo WhatsApp?"\n"Quando um cliente para de pedir, você entra em contato com ele?"\n\nO problema: 68% dos clientes que compram uma vez nunca mais voltam se você não entrar em contato.\n\nNosso sistema identifica automaticamente clientes inativos há X dias e envia mensagem personalizada com o nome dele, último pedido e uma oferta especial. Tudo automático, 24/7.\n\nEm média, 23% dos clientes inativos voltam a comprar. São R$ 2.400/mês em vendas que você está perdendo.`,
+                    'Script Consultivo WhatsApp'
+                  )}
+                >
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copiar Script Consultivo
+                </Button>
+              </div>
+
+              <Separator />
+
+              {/* Script Persuasivo */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="bg-orange-500/10 text-orange-600 border-orange-500/30">Persuasivo</Badge>
+                  <span className="text-sm text-muted-foreground">Para leads que respondem a números</span>
+                </div>
+                <ScrollArea className="h-[200px] rounded-md border p-4 bg-muted/30">
+                  <p className="text-sm whitespace-pre-wrap font-mono">
+{`"Sabia que 68% dos clientes compram UMA VEZ e nunca mais voltam?"
+
+Se você tem 100 clientes inativos:
+- 23 voltam a comprar com mensagem personalizada
+- Se cada um gasta R$ 80, são R$ 1.840/mês recuperados!
+
+O sistema sincroniza seus contatos, identifica quem não compra há 15, 30, 60 dias, e envia mensagem automática:
+
+"Oi {nome}, faz {dias} dias que você não pede da gente... Sentimos sua falta! 🍕 Que tal um cupom de 10% pra voltar?"
+
+E isso está INCLUSO no plano. No mercado custa R$ 500-1.500/mês.`}
+                  </p>
+                </ScrollArea>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => copyToClipboard(
+                    `"Sabia que 68% dos clientes compram UMA VEZ e nunca mais voltam?"\n\nSe você tem 100 clientes inativos:\n- 23 voltam a comprar com mensagem personalizada\n- Se cada um gasta R$ 80, são R$ 1.840/mês recuperados!\n\nO sistema sincroniza seus contatos, identifica quem não compra há 15, 30, 60 dias, e envia mensagem automática:\n\n"Oi {nome}, faz {dias} dias que você não pede da gente... Sentimos sua falta! 🍕 Que tal um cupom de 10% pra voltar?"\n\nE isso está INCLUSO no plano. No mercado custa R$ 500-1.500/mês.`,
+                    'Script Persuasivo WhatsApp'
+                  )}
+                >
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copiar Script Persuasivo
+                </Button>
+              </div>
+
+              <Separator />
+
+              {/* Script Urgência */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-500/30">Urgência</Badge>
+                  <span className="text-sm text-muted-foreground">Para leads indecisos que precisam de pressão</span>
+                </div>
+                <ScrollArea className="h-[200px] rounded-md border p-4 bg-muted/30">
+                  <p className="text-sm whitespace-pre-wrap font-mono">
+{`"Você está JOGANDO DINHEIRO FORA todos os dias!"
+
+68% dos seus clientes compraram uma vez e ESQUECERAM DE VOCÊ.
+Clientes que VOCÊ conquistou, gastou dinheiro pra trazer...
+E agora estão comprando DO CONCORRENTE!
+
+Faz a conta:
+100 clientes inativos × 23% = 23 clientes de volta
+23 × R$ 80 = R$ 1.840/MÊS que você está PERDENDO!
+
+O sistema recupera eles AUTOMATICAMENTE enquanto você dorme!
+
+E sabe quanto custa? Está INCLUSO no plano.
+Ferramentas similares cobram R$ 500-1.500/mês SÓ pelo WhatsApp Marketing.`}
+                  </p>
+                </ScrollArea>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => copyToClipboard(
+                    `"Você está JOGANDO DINHEIRO FORA todos os dias!"\n\n68% dos seus clientes compraram uma vez e ESQUECERAM DE VOCÊ.\nClientes que VOCÊ conquistou, gastou dinheiro pra trazer...\nE agora estão comprando DO CONCORRENTE!\n\nFaz a conta:\n100 clientes inativos × 23% = 23 clientes de volta\n23 × R$ 80 = R$ 1.840/MÊS que você está PERDENDO!\n\nO sistema recupera eles AUTOMATICAMENTE enquanto você dorme!\n\nE sabe quanto custa? Está INCLUSO no plano.\nFerramentas similares cobram R$ 500-1.500/mês SÓ pelo WhatsApp Marketing.`,
+                    'Script Urgência WhatsApp'
+                  )}
+                >
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copiar Script Urgência
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Card: FAQ */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                ❓ FAQ - Perguntas Frequentes sobre WhatsApp Marketing
+              </CardTitle>
+              <CardDescription>Respostas prontas para as dúvidas mais comuns</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="item-1">
+                  <AccordionTrigger>Como funciona a recuperação automática?</AccordionTrigger>
+                  <AccordionContent>
+                    <p className="text-sm text-muted-foreground">
+                      O sistema monitora todos os clientes e identifica quem não faz pedidos há X dias (você configura: 15, 30, 60 dias). 
+                      Quando um cliente atinge esse período, o sistema envia automaticamente uma mensagem personalizada com o nome dele, 
+                      mencionando o último pedido e oferecendo um incentivo para voltar. Tudo sem você precisar fazer nada!
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-2">
+                  <AccordionTrigger>Preciso de outro número de WhatsApp?</AccordionTrigger>
+                  <AccordionContent>
+                    <p className="text-sm text-muted-foreground">
+                      Não! Você conecta o mesmo número que já usa no restaurante. O sistema funciona em paralelo, 
+                      você continua usando o WhatsApp normalmente enquanto as automações trabalham por você.
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-3">
+                  <AccordionTrigger>Quantos contatos posso ter?</AccordionTrigger>
+                  <AccordionContent>
+                    <p className="text-sm text-muted-foreground">
+                      Ilimitados! Não há limite de contatos cadastrados. Você pode importar sua base inteira, 
+                      sincronizar grupos e adicionar novos clientes sem restrição.
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-4">
+                  <AccordionTrigger>As mensagens são realmente automáticas?</AccordionTrigger>
+                  <AccordionContent>
+                    <p className="text-sm text-muted-foreground">
+                      Sim! Você configura uma vez os templates e as regras (ex: enviar após 15 dias sem pedido), 
+                      e o sistema trabalha 24 horas por dia, 7 dias por semana. Você recebe relatórios de quantas 
+                      mensagens foram enviadas e quantos clientes voltaram.
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-5">
+                  <AccordionTrigger>Posso personalizar as mensagens?</AccordionTrigger>
+                  <AccordionContent>
+                    <p className="text-sm text-muted-foreground">
+                      Totalmente! Você cria templates usando variáveis como {'{nome}'}, {'{último_pedido}'}, {'{dias_sem_comprar}'}, {'{link_loja}'}.
+                      Cada mensagem sai personalizada com os dados reais do cliente. Quanto mais personalizada, maior a taxa de conversão!
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-6">
+                  <AccordionTrigger>O WhatsApp pode bloquear meu número?</AccordionTrigger>
+                  <AccordionContent>
+                    <p className="text-sm text-muted-foreground">
+                      O sistema tem proteção anti-bloqueio com delays inteligentes entre mensagens e limites diários seguros. 
+                      Além disso, as mensagens são personalizadas (não parecem spam) e só são enviadas para clientes que já 
+                      têm relacionamento com você. A taxa de bloqueio é praticamente zero.
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-7">
+                  <AccordionTrigger>Funciona com grupos?</AccordionTrigger>
+                  <AccordionContent>
+                    <p className="text-sm text-muted-foreground">
+                      Sim! Você pode extrair membros dos grupos que administra e transformá-los em contatos individuais. 
+                      Isso é ótimo para grupos de promoções ou clientes VIP. Depois de extrair, pode enviar mensagens 
+                      personalizadas para cada um.
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-8">
+                  <AccordionTrigger>Quanto custa?</AccordionTrigger>
+                  <AccordionContent>
+                    <p className="text-sm text-muted-foreground">
+                      O WhatsApp Marketing está INCLUSO em todos os planos! Não tem custo adicional. 
+                      Ferramentas similares no mercado cobram de R$ 500 a R$ 1.500/mês. 
+                      No Mostralo, você ganha isso de bônus junto com o sistema de delivery e marketing digital.
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </CardContent>
+          </Card>
+
+          {/* Card: Objeções Específicas */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                🛡️ Objeções Específicas de WhatsApp
+              </CardTitle>
+              <CardDescription>Respostas para quebrar resistências sobre o WhatsApp Marketing</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Objeção 1 */}
+              <div className="space-y-2">
+                <div className="flex items-start gap-2">
+                  <Badge variant="destructive" className="mt-1">❌</Badge>
+                  <p className="font-semibold">"TENHO MEDO DE SER BLOQUEADO"</p>
+                </div>
+                <div className="ml-8 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+                  <p className="text-sm font-medium text-green-700 dark:text-green-300">✅ Resposta:</p>
+                  <p className="text-sm mt-1">
+                    "O sistema tem proteção inteligente! Ele coloca delays entre as mensagens, respeita limites diários seguros, 
+                    e só manda para clientes que JÁ COMPRARAM de você. Não é spam, é relacionamento. 
+                    Além disso, as mensagens são personalizadas com o nome do cliente - isso não parece automatizado.
+                    A taxa de bloqueio é praticamente zero!"
+                  </p>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Objeção 2 */}
+              <div className="space-y-2">
+                <div className="flex items-start gap-2">
+                  <Badge variant="destructive" className="mt-1">❌</Badge>
+                  <p className="font-semibold">"JÁ MANDO MENSAGEM MANUAL"</p>
+                </div>
+                <div className="ml-8 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+                  <p className="text-sm font-medium text-green-700 dark:text-green-300">✅ Resposta:</p>
+                  <p className="text-sm mt-1">
+                    "E quanto tempo você gasta nisso? Com 100 clientes, mandando mensagem um por um...
+                    O sistema economiza 8 HORAS por mês! E funciona 24/7, inclusive enquanto você dorme.
+                    Você foca em fazer comida boa, o sistema cuida da reconquista!"
+                  </p>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Objeção 3 */}
+              <div className="space-y-2">
+                <div className="flex items-start gap-2">
+                  <Badge variant="destructive" className="mt-1">❌</Badge>
+                  <p className="font-semibold">"MEUS CLIENTES VÃO ACHAR SPAM"</p>
+                </div>
+                <div className="ml-8 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+                  <p className="text-sm font-medium text-green-700 dark:text-green-300">✅ Resposta:</p>
+                  <p className="text-sm mt-1">
+                    "Spam é quando você manda a mesma mensagem genérica pra todo mundo. 
+                    Com o sistema, a mensagem vai assim: 'Oi João, faz 20 dias que você não pede da gente... 
+                    Da última vez você pediu nossa pizza marguerita! Sentimos sua falta!'
+                    Isso não é spam, é CUIDADO! O cliente se sente lembrado, especial. 
+                    Por isso a taxa de retorno é 23%!"
+                  </p>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Objeção 4 */}
+              <div className="space-y-2">
+                <div className="flex items-start gap-2">
+                  <Badge variant="destructive" className="mt-1">❌</Badge>
+                  <p className="font-semibold">"NÃO TENHO MUITOS CONTATOS"</p>
+                </div>
+                <div className="ml-8 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+                  <p className="text-sm font-medium text-green-700 dark:text-green-300">✅ Resposta:</p>
+                  <p className="text-sm mt-1">
+                    "Melhor ainda! Com poucos contatos, cada cliente perdido pesa mais.
+                    Se você tem 50 clientes e perde 68% (34), sobram 16. 
+                    Recuperar 23% desses 34 = 8 clientes de volta!
+                    E à medida que você cresce, o sistema já está configurado. 
+                    O sistema também vincula automaticamente novos clientes que fazem pedido - sua base cresce sozinha!"
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* SEÇÃO 6: QUEBRA DE OBJEÇÕES */}
         <TabsContent value="objecoes" className="space-y-4">
           <Card>
             <CardHeader>

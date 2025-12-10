@@ -69,10 +69,11 @@ serve(async (req) => {
       eventType, // 'greeting' | 'order_received' | 'order_confirmed' | 'order_ready' | 'order_in_transit' | 'order_completed' | 'order_cancelled'
       phoneNumber,
       customerName,
-      orderId
+      orderId,
+      isTest = false // Modo teste - ignora verificações de habilitação
     } = await req.json();
 
-    console.log(`[whatsapp-auto-send] Event: ${eventType}, Store: ${storeId}, Phone: ${phoneNumber}`);
+    console.log(`[whatsapp-auto-send] Event: ${eventType}, Store: ${storeId}, Phone: ${phoneNumber}, isTest: ${isTest}`);
 
     // Buscar configuração de mensagens automáticas
     const { data: autoConfig, error: configError } = await supabase
@@ -88,10 +89,10 @@ serve(async (req) => {
       });
     }
 
-    // Verificar se sistema está ativo
-    if (!autoConfig.is_enabled) {
+    // Verificar se sistema está ativo (pular verificação se for teste)
+    if (!isTest && !autoConfig.is_enabled) {
       console.log('[whatsapp-auto-send] Sistema de automação desativado');
-      return new Response(JSON.stringify({ success: false, reason: 'automation_disabled' }), {
+      return new Response(JSON.stringify({ success: false, skipped: true, reason: 'automation_disabled' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -120,9 +121,10 @@ serve(async (req) => {
     const enabledField = eventEnabledMap[eventType];
     const messageField = eventMessageMap[eventType];
 
-    if (!enabledField || !autoConfig[enabledField]) {
+    // Verificar se evento específico está ativo (pular verificação se for teste)
+    if (!isTest && (!enabledField || !autoConfig[enabledField])) {
       console.log(`[whatsapp-auto-send] Evento ${eventType} não habilitado`);
-      return new Response(JSON.stringify({ success: false, reason: 'event_disabled' }), {
+      return new Response(JSON.stringify({ success: false, skipped: true, reason: 'event_disabled' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }

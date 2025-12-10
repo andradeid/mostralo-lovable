@@ -33,7 +33,9 @@ import {
   TrendingUp,
   Smartphone,
   Rss,
-  QrCode
+  QrCode,
+  MessageCircle,
+  Send
 } from "lucide-react";
 
 import {
@@ -342,6 +344,7 @@ export function AdminSidebar() {
         { title: 'Usuários', url: '/dashboard/users', icon: UserCircle, group: 'Gerenciamento' },
         { title: 'Módulos', url: '/dashboard/modules', icon: Package, group: 'Sistema' },
         { title: 'Compilar Apps', url: '/dashboard/compile-apps', icon: Smartphone, group: 'Sistema' },
+        { title: 'Evolution API', url: '/dashboard/evolution-config', icon: MessageCircle, group: 'Sistema' },
         { title: 'Pagamentos Assinaturas', url: '/dashboard/subscription-payments', icon: Receipt, group: 'Financeiro' },
         { title: 'Planos', url: '/dashboard/plans', icon: CreditCard, group: 'Financeiro' },
         { title: 'Config. Pagamentos', url: '/dashboard/subscription-config', icon: DollarSign, group: 'Financeiro' },
@@ -481,6 +484,15 @@ export function AdminSidebar() {
             icon: ExternalLink,
             group: 'Integrações'
           }))
+        );
+      }
+
+      // WhatsApp Recuperação - verifica módulo
+      if (hasModule('whatsapp_recovery')) {
+        menuItems.push(
+          { title: 'Conexão WhatsApp', url: '/dashboard/whatsapp', icon: MessageCircle, group: 'WhatsApp' },
+          { title: 'Modelos de Mensagem', url: '/dashboard/whatsapp/templates', icon: FileText, group: 'WhatsApp' },
+          { title: 'Campanhas', url: '/dashboard/whatsapp/campaigns', icon: Send, group: 'WhatsApp' }
         );
       }
 

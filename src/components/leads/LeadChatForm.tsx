@@ -346,7 +346,7 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
       .limit(1)
       .single();
     
-    const whatsappNumber = data?.support_whatsapp || '5561994009368';
+    const whatsappNumber = data?.support_whatsapp || '5511941941427';
     const messageTemplate = data?.support_whatsapp_message || 'Olá! Sou {nome} e gostaria de saber mais sobre o Mostralo!';
     
     // Formatar telefone para exibição

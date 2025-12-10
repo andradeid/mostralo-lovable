@@ -94,9 +94,10 @@ export function ContractViewer({
           }
 
           // Regular numbered section
-          const match = section.match(/^(\d+)\.\s+(.+)/);
+          const match = section.match(/^(\d+)\.\s+/);
           if (match) {
-            const [, number, rest] = match;
+            const number = match[1];
+            const rest = section.substring(match[0].length);
             const lines = rest.split("\n");
             const title = lines[0];
             const content = lines.slice(1).join("\n");

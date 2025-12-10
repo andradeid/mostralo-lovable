@@ -1,3 +1,5 @@
+import { Store } from 'lucide-react';
+
 interface BusinessCardTemplateProps {
   referralCode: string;
   signupLink: string;
@@ -25,8 +27,8 @@ export function BusinessCardTemplate({
           <div className="flex-1 flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-sm font-bold">
-                  M
+                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm">
+                  <Store className="w-5 h-5" style={{ color: '#f97316' }} />
                 </div>
                 <span className="font-bold text-lg">MOSTRALO</span>
               </div>

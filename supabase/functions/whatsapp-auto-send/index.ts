@@ -26,19 +26,40 @@ function replaceVariables(template: string, data: {
   customerName?: string;
   storeName?: string;
   storeSlug?: string;
+  storeCustomDomain?: string | null;
+  storeCustomDomainVerified?: boolean;
   orderNumber?: string;
   orderTotal?: number;
   deliveryAddress?: string;
   deliveryType?: string;
   orderId?: string;
   storePhone?: string;
+  baseUrl?: string;
 }): string {
   let message = template;
   
   const firstName = data.customerName?.split(' ')[0] || '';
-  const storeLink = data.storeSlug ? `${Deno.env.get('PUBLIC_URL') || 'https://mostralo.com.br'}/loja/${data.storeSlug}` : '';
-  const orderLink = data.orderId ? `${Deno.env.get('PUBLIC_URL') || 'https://mostralo.com.br'}/pedido/${data.orderId}` : '';
   const formattedTotal = data.orderTotal ? data.orderTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '';
+  
+  // Lógica de links dinâmicos
+  // Prioridade: 1. Domínio customizado, 2. baseUrl do frontend, 3. PUBLIC_URL, 4. Fallback
+  let storeLink = '';
+  let orderLink = '';
+  
+  if (data.storeCustomDomain && data.storeCustomDomainVerified) {
+    // Loja com domínio customizado verificado
+    storeLink = `https://${data.storeCustomDomain}`;
+    orderLink = data.orderId ? `https://${data.storeCustomDomain}/pedido/${data.orderId}` : '';
+  } else if (data.baseUrl) {
+    // URL passada pelo frontend (testes/dev)
+    storeLink = data.storeSlug ? `${data.baseUrl}/loja/${data.storeSlug}` : '';
+    orderLink = data.orderId ? `${data.baseUrl}/pedido/${data.orderId}` : '';
+  } else {
+    // Fallback: ENV ou padrão
+    const defaultUrl = Deno.env.get('PUBLIC_URL') || 'https://mostralo.com.br';
+    storeLink = data.storeSlug ? `${defaultUrl}/loja/${data.storeSlug}` : '';
+    orderLink = data.orderId ? `${defaultUrl}/pedido/${data.orderId}` : '';
+  }
   
   message = message.replace(/{nome}/g, data.customerName || '');
   message = message.replace(/{primeiro_nome}/g, firstName);
@@ -70,7 +91,8 @@ serve(async (req) => {
       phoneNumber,
       customerName,
       orderId,
-      isTest = false // Modo teste - ignora verificações de habilitação
+      isTest = false, // Modo teste - ignora verificações de habilitação
+      baseUrl // URL base passada pelo frontend para links dinâmicos
     } = await req.json();
 
     console.log(`[whatsapp-auto-send] Event: ${eventType}, Store: ${storeId}, Phone: ${phoneNumber}, isTest: ${isTest}`);
@@ -129,10 +151,10 @@ serve(async (req) => {
       });
     }
 
-    // Buscar dados da loja
+    // Buscar dados da loja (incluindo domínio customizado)
     const { data: store, error: storeError } = await supabase
       .from('stores')
-      .select('name, slug, phone')
+      .select('name, slug, phone, custom_domain, custom_domain_verified')
       .eq('id', storeId)
       .single();
 
@@ -162,12 +184,15 @@ serve(async (req) => {
       customerName: customerName || orderData?.customer_name,
       storeName: store.name,
       storeSlug: store.slug,
+      storeCustomDomain: store.custom_domain,
+      storeCustomDomainVerified: store.custom_domain_verified,
       orderNumber: orderData?.order_number,
       orderTotal: orderData?.total,
       deliveryAddress: orderData?.customer_address,
       deliveryType: orderData?.delivery_type,
       orderId: orderId,
-      storePhone: store.phone
+      storePhone: store.phone,
+      baseUrl: baseUrl
     });
 
     // Buscar configuração da Evolution API

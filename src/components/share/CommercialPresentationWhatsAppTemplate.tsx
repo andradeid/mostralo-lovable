@@ -559,77 +559,38 @@ export function CommercialPresentationWhatsAppTemplate({
     'cta-cadastro',
   ];
 
-  const generatePngDataUrl = useCallback(async (element: HTMLElement): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const clone = element.cloneNode(true) as HTMLElement;
-      const container = document.createElement('div');
-      container.style.position = 'fixed';
-      container.style.left = '-9999px';
-      container.style.top = '-9999px';
-      container.appendChild(clone);
-      document.body.appendChild(container);
-
-      // Aguardar imagens carregarem
-      const images = clone.querySelectorAll('img');
-      const imagePromises = Array.from(images).map(img => {
-        if (img.complete) return Promise.resolve();
-        return new Promise<void>((res) => {
-          img.onload = () => res();
-          img.onerror = () => res();
+  // Função auxiliar para converter imagens para base64
+  const convertImagesToBase64 = async (element: HTMLElement): Promise<void> => {
+    const images = element.querySelectorAll('img');
+    const conversionPromises = Array.from(images).map(async (img) => {
+      if (img.src.startsWith('data:')) return; // Já é base64
+      
+      try {
+        const response = await fetch(img.src);
+        const blob = await response.blob();
+        
+        return new Promise<void>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            img.src = reader.result as string;
+            resolve();
+          };
+          reader.onerror = () => resolve();
+          reader.readAsDataURL(blob);
         });
-      });
-
-      Promise.all(imagePromises).then(() => {
-        // Usar svg foreignObject para converter HTML para imagem
-        const data = new XMLSerializer().serializeToString(clone);
-        const svgString = `
-          <svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080">
-            <foreignObject width="100%" height="100%">
-              <div xmlns="http://www.w3.org/1999/xhtml" style="transform: scale(2); transform-origin: top left;">
-                ${data}
-              </div>
-            </foreignObject>
-          </svg>
-        `;
-        
-        const canvas = document.createElement('canvas');
-        canvas.width = 1080;
-        canvas.height = 1080;
-        const ctx = canvas.getContext('2d');
-        
-        if (!ctx) {
-          document.body.removeChild(container);
-          reject(new Error('Canvas not supported'));
-          return;
-        }
-
-        const img = new Image();
-        const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-        const url = URL.createObjectURL(svgBlob);
-        
-        img.onload = () => {
-          ctx.drawImage(img, 0, 0);
-          URL.revokeObjectURL(url);
-          document.body.removeChild(container);
-          resolve(canvas.toDataURL('image/png'));
-        };
-        
-        img.onerror = () => {
-          URL.revokeObjectURL(url);
-          document.body.removeChild(container);
-          reject(new Error('Failed to load image'));
-        };
-        
-        img.src = url;
-      });
+      } catch {
+        // Se falhar, manter imagem original
+        console.warn('Failed to convert image to base64:', img.src);
+      }
     });
-  }, []);
+    
+    await Promise.all(conversionPromises);
+  };
 
   // Função para capturar elemento como PNG usando canvas nativo
   const captureElementToPng = useCallback(async (element: HTMLElement): Promise<string> => {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       try {
-        // Criar canvas com tamanho 1080x1080 (540 x 2 = 1080)
         const canvas = document.createElement('canvas');
         canvas.width = 1080;
         canvas.height = 1080;
@@ -640,23 +601,20 @@ export function CommercialPresentationWhatsAppTemplate({
           return;
         }
 
-        // Clonar e preparar elemento
+        // Clonar elemento
         const clone = element.cloneNode(true) as HTMLElement;
         clone.style.margin = '0';
         clone.style.padding = clone.style.padding || '40px';
+        
+        // ✅ Converter todas as imagens para base64 ANTES de serializar
+        await convertImagesToBase64(clone);
         
         // Serializar para SVG foreignObject
         const serializer = new XMLSerializer();
         const htmlString = serializer.serializeToString(clone);
         
-        // Criar SVG com foreignObject
         const svgString = `
           <svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080">
-            <defs>
-              <style>
-                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap');
-              </style>
-            </defs>
             <foreignObject width="100%" height="100%">
               <div xmlns="http://www.w3.org/1999/xhtml" style="width:540px;height:540px;transform:scale(2);transform-origin:top left;">
                 ${htmlString}
@@ -665,12 +623,10 @@ export function CommercialPresentationWhatsAppTemplate({
           </svg>
         `;
         
-        // Converter SVG para blob
         const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
         const url = URL.createObjectURL(svgBlob);
         
         const img = new Image();
-        img.crossOrigin = 'anonymous';
         
         img.onload = () => {
           ctx.fillStyle = '#ffffff';

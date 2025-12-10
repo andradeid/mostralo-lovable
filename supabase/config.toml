@@ -84,5 +84,11 @@ verify_jwt = true
 [functions.whatsapp-auto-send]
 verify_jwt = false
 
+[functions.whatsapp-webhook]
+verify_jwt = false
+
+[functions.whatsapp-process-queue]
+verify_jwt = false
+
 [functions.evolution-test-connection]
 verify_jwt = true

@@ -3601,6 +3601,7 @@ export type Database = {
           order_received_enabled: boolean | null
           order_received_message: string | null
           store_id: string
+          test_phone_number: string | null
           updated_at: string | null
         }
         Insert: {
@@ -3622,6 +3623,7 @@ export type Database = {
           order_received_enabled?: boolean | null
           order_received_message?: string | null
           store_id: string
+          test_phone_number?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -3643,6 +3645,7 @@ export type Database = {
           order_received_enabled?: boolean | null
           order_received_message?: string | null
           store_id?: string
+          test_phone_number?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -3843,6 +3846,70 @@ export type Database = {
             foreignKeyName: "whatsapp_instances_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: true
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_message_queue: {
+        Row: {
+          attempts: number | null
+          created_at: string | null
+          customer_name: string | null
+          event_type: string
+          id: string
+          last_error: string | null
+          order_id: string | null
+          phone_number: string
+          processed_at: string | null
+          status: string | null
+          store_id: string
+        }
+        Insert: {
+          attempts?: number | null
+          created_at?: string | null
+          customer_name?: string | null
+          event_type: string
+          id?: string
+          last_error?: string | null
+          order_id?: string | null
+          phone_number: string
+          processed_at?: string | null
+          status?: string | null
+          store_id: string
+        }
+        Update: {
+          attempts?: number | null
+          created_at?: string | null
+          customer_name?: string | null
+          event_type?: string
+          id?: string
+          last_error?: string | null
+          order_id?: string | null
+          phone_number?: string
+          processed_at?: string | null
+          status?: string | null
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_message_queue_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_message_queue_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_message_queue_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
             referencedRelation: "stores"
             referencedColumns: ["id"]
           },

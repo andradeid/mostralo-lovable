@@ -217,10 +217,34 @@ serve(async (req) => {
 
         console.log(`[whatsapp-campaign] Iniciando campanha com ${filteredCustomers.length} destinatários`);
 
+        // Função para gerar intervalo aleatório humanizado (75-100%)
+        const getRandomInterval = (baseInterval: number): number => {
+          const minPercent = 0.75;
+          const maxPercent = 1.00;
+          const randomPercent = minPercent + Math.random() * (maxPercent - minPercent);
+          return Math.floor(baseInterval * randomPercent);
+        };
+
         // Criar mensagens pendentes para cada cliente
         const now = new Date();
+        const baseInterval = campaign.message_interval_seconds || 60;
+        const pauseAfterMessages = campaign.pause_after_messages || 0;
+        const pauseDurationSeconds = campaign.pause_duration_seconds || 60;
+
+        let accumulatedTimeMs = 0;
+        
         const messages = filteredCustomers.map((customer: any, index: number) => {
-          const scheduledTime = new Date(now.getTime() + (index * (campaign.message_interval_seconds || 30) * 1000));
+          // A cada X mensagens, adicionar pausa extra
+          if (pauseAfterMessages > 0 && index > 0 && index % pauseAfterMessages === 0) {
+            accumulatedTimeMs += pauseDurationSeconds * 1000;
+            console.log(`[whatsapp-campaign] Pausa de ${pauseDurationSeconds}s aplicada após mensagem ${index}`);
+          }
+
+          // Intervalo aleatório entre 75-100% do configurado
+          const randomInterval = getRandomInterval(baseInterval);
+          accumulatedTimeMs += randomInterval * 1000;
+
+          const scheduledTime = new Date(now.getTime() + accumulatedTimeMs);
           const finalContent = replaceVariables(campaign.template.content, customer, store);
 
           return {

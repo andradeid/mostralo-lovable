@@ -3602,6 +3602,8 @@ export type Database = {
           messages_read: number | null
           messages_sent: number | null
           name: string
+          pause_after_messages: number | null
+          pause_duration_seconds: number | null
           scheduled_start_at: string | null
           start_hour: number | null
           started_at: string | null
@@ -3631,6 +3633,8 @@ export type Database = {
           messages_read?: number | null
           messages_sent?: number | null
           name: string
+          pause_after_messages?: number | null
+          pause_duration_seconds?: number | null
           scheduled_start_at?: string | null
           start_hour?: number | null
           started_at?: string | null
@@ -3662,6 +3666,8 @@ export type Database = {
           messages_read?: number | null
           messages_sent?: number | null
           name?: string
+          pause_after_messages?: number | null
+          pause_duration_seconds?: number | null
           scheduled_start_at?: string | null
           start_hour?: number | null
           started_at?: string | null

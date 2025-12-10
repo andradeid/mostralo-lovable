@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RefreshCw, Search, Tags, Download, MoreHorizontal, User, Phone, Trash2, Link, MessageCircle } from "lucide-react";
+import { RefreshCw, Search, Tags, Download, MoreHorizontal, User, Phone, Trash2, Link, MessageCircle, Camera } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { BulkLabelModal } from "./BulkLabelModal";
@@ -49,6 +49,7 @@ export function ContactsTab({ storeId, instance, onRefresh, storeName = "", stor
   const [labels, setLabels] = useState<Label[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [fetchingPhotos, setFetchingPhotos] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [labelFilter, setLabelFilter] = useState<string>("all");
   const [sourceFilter, setSourceFilter] = useState<string>("all");
@@ -157,6 +158,36 @@ export function ContactsTab({ storeId, instance, onRefresh, storeName = "", stor
     }
   };
 
+  const handleFetchPhotos = async () => {
+    setFetchingPhotos(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Não autenticado');
+
+      const response = await supabase.functions.invoke('whatsapp-contacts', {
+        body: {
+          action: 'fetchProfilePictures',
+          store_id: storeId,
+          instance_name: instance.instance_name,
+        },
+      });
+
+      if (response.error) throw response.error;
+
+      if (response.data.updated > 0) {
+        toast.success(`${response.data.updated} fotos atualizadas!`);
+        fetchContacts();
+      } else {
+        toast.info(response.data.message || 'Nenhuma foto nova encontrada');
+      }
+    } catch (error) {
+      console.error('Erro ao buscar fotos:', error);
+      toast.error('Erro ao buscar fotos de perfil');
+    } finally {
+      setFetchingPhotos(false);
+    }
+  };
+
   const handleDeleteContact = async (contactId: string) => {
     try {
       const { error } = await supabase
@@ -246,6 +277,10 @@ export function ContactsTab({ storeId, instance, onRefresh, storeName = "", stor
             <Button variant="outline" onClick={() => setExportModalOpen(true)}>
               <Download className="h-4 w-4 mr-2" />
               Exportar CSV
+            </Button>
+            <Button variant="outline" onClick={handleFetchPhotos} disabled={fetchingPhotos}>
+              <Camera className={`h-4 w-4 mr-2 ${fetchingPhotos ? 'animate-pulse' : ''}`} />
+              {fetchingPhotos ? 'Buscando...' : 'Buscar Fotos'}
             </Button>
             <Button onClick={handleSync} disabled={syncing}>
               <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />

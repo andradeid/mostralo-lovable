@@ -787,6 +787,72 @@ serve(async (req) => {
         break;
       }
 
+      case 'fetchProfilePictures': {
+        // Buscar contatos sem foto de perfil (limite de 50)
+        const { data: contactsWithoutPhoto } = await supabase
+          .from('whatsapp_contacts')
+          .select('id, phone_number')
+          .eq('store_id', store_id)
+          .is('profile_picture_url', null)
+          .limit(50);
+
+        if (!contactsWithoutPhoto || contactsWithoutPhoto.length === 0) {
+          result = { updated: 0, message: 'Todos os contatos já possuem foto' };
+          break;
+        }
+
+        console.log(`[whatsapp-contacts] Buscando fotos para ${contactsWithoutPhoto.length} contatos`);
+
+        let updated = 0;
+        let errors = 0;
+
+        for (const contact of contactsWithoutPhoto) {
+          try {
+            // Buscar foto de perfil via Evolution API
+            const profilePicResponse = await fetch(
+              `${api_url}/chat/fetchProfilePictureUrl/${instance_name}`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'apikey': api_key,
+                },
+                body: JSON.stringify({ number: contact.phone_number }),
+              }
+            );
+
+            if (profilePicResponse.ok) {
+              const picData = await profilePicResponse.json();
+              const profilePictureUrl = picData.profilePictureUrl || picData.pictureUrl || null;
+
+              if (profilePictureUrl) {
+                // Atualizar contato com a foto
+                const { error: updateError } = await supabase
+                  .from('whatsapp_contacts')
+                  .update({ profile_picture_url: profilePictureUrl })
+                  .eq('id', contact.id);
+
+                if (!updateError) {
+                  updated++;
+                } else {
+                  errors++;
+                }
+              }
+            }
+
+            // Delay para não sobrecarregar a API (150ms entre requisições)
+            await new Promise(resolve => setTimeout(resolve, 150));
+          } catch (e) {
+            console.log(`[whatsapp-contacts] Erro ao buscar foto para ${contact.phone_number}:`, e);
+            errors++;
+          }
+        }
+
+        console.log(`[whatsapp-contacts] Fotos atualizadas: ${updated}, Erros: ${errors}`);
+        result = { updated, errors, total: contactsWithoutPhoto.length };
+        break;
+      }
+
       default:
         return new Response(JSON.stringify({ error: 'Ação não reconhecida' }), {
           status: 400,

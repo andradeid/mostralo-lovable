@@ -7,11 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RefreshCw, Search, Tags, Download, MoreHorizontal, User, Phone, Trash2, Link } from "lucide-react";
+import { RefreshCw, Search, Tags, Download, MoreHorizontal, User, Phone, Trash2, Link, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { BulkLabelModal } from "./BulkLabelModal";
 import { ExportContactsModal } from "./ExportContactsModal";
+import { SendMessageModal } from "./SendMessageModal";
 
 interface Contact {
   id: string;
@@ -39,9 +40,11 @@ interface ContactsTabProps {
     instance_name: string;
   };
   onRefresh: () => void;
+  storeName?: string;
+  storeSlug?: string;
 }
 
-export function ContactsTab({ storeId, instance, onRefresh }: ContactsTabProps) {
+export function ContactsTab({ storeId, instance, onRefresh, storeName = "", storeSlug = "" }: ContactsTabProps) {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [labels, setLabels] = useState<Label[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,6 +55,29 @@ export function ContactsTab({ storeId, instance, onRefresh }: ContactsTabProps) 
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
   const [bulkLabelModalOpen, setBulkLabelModalOpen] = useState(false);
   const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [sendMessageModalOpen, setSendMessageModalOpen] = useState(false);
+  const [selectedContactForMessage, setSelectedContactForMessage] = useState<Contact | null>(null);
+
+  // Função para formatar número de telefone
+  const formatPhoneNumber = (phone: string): string => {
+    const cleaned = phone.replace(/\D/g, "");
+
+    if (cleaned.length === 13) {
+      return `+${cleaned.slice(0, 2)} ${cleaned.slice(2, 4)} ${cleaned.slice(4, 9)}-${cleaned.slice(9)}`;
+    } else if (cleaned.length === 12) {
+      return `+${cleaned.slice(0, 2)} ${cleaned.slice(2, 4)} ${cleaned.slice(4, 8)}-${cleaned.slice(8)}`;
+    } else if (cleaned.length === 11) {
+      return `+55 ${cleaned.slice(0, 2)} ${cleaned.slice(2, 7)}-${cleaned.slice(7)}`;
+    } else if (cleaned.length === 10) {
+      return `+55 ${cleaned.slice(0, 2)} ${cleaned.slice(2, 6)}-${cleaned.slice(6)}`;
+    }
+    return phone;
+  };
+
+  const openSendMessageModal = (contact: Contact) => {
+    setSelectedContactForMessage(contact);
+    setSendMessageModalOpen(true);
+  };
 
   useEffect(() => {
     fetchContacts();
@@ -317,7 +343,7 @@ export function ContactsTab({ storeId, instance, onRefresh }: ContactsTabProps) 
                       {contact.name || contact.push_name || 'Sem nome'}
                     </p>
                     {contact.customer_id && (
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
                         <Link className="h-3 w-3 mr-1" />
                         Cliente
                       </Badge>
@@ -325,7 +351,7 @@ export function ContactsTab({ storeId, instance, onRefresh }: ContactsTabProps) 
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Phone className="h-3 w-3" />
-                    <span>{contact.phone_number}</span>
+                    <span className="font-mono text-xs">{formatPhoneNumber(contact.phone_number)}</span>
                     <span className="text-xs">• {getSourceLabel(contact.source)}</span>
                     {contact.source_group_name && (
                       <span className="text-xs truncate">({contact.source_group_name})</span>
@@ -346,6 +372,17 @@ export function ContactsTab({ storeId, instance, onRefresh }: ContactsTabProps) 
                   ))}
                 </div>
 
+                {/* Botão WhatsApp */}
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="text-green-600 hover:text-green-700 hover:bg-green-50 flex-shrink-0"
+                  onClick={() => openSendMessageModal(contact)}
+                  title="Enviar mensagem no WhatsApp"
+                >
+                  <MessageCircle className="h-5 w-5" />
+                </Button>
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
@@ -353,6 +390,10 @@ export function ContactsTab({ storeId, instance, onRefresh }: ContactsTabProps) 
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => openSendMessageModal(contact)}>
+                      <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
+                      Enviar Mensagem
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setBulkLabelModalOpen(true)}>
                       <Tags className="h-4 w-4 mr-2" />
                       Adicionar Etiqueta
@@ -385,6 +426,15 @@ export function ContactsTab({ storeId, instance, onRefresh }: ContactsTabProps) 
         onOpenChange={setExportModalOpen}
         storeId={storeId}
         labels={labels}
+      />
+
+      <SendMessageModal
+        open={sendMessageModalOpen}
+        onOpenChange={setSendMessageModalOpen}
+        contact={selectedContactForMessage}
+        storeId={storeId}
+        storeName={storeName}
+        storeSlug={storeSlug}
       />
     </Card>
   );

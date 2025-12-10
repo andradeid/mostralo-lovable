@@ -3,12 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, CreditCard, QrCode, Presentation, Instagram } from "lucide-react";
+import { FileText, CreditCard, QrCode, Presentation, Instagram, MessageSquare } from "lucide-react";
 import { QRCodeDisplay } from "./QRCodeDisplay";
 import { FlyerTemplate } from "./FlyerTemplate";
 import { BusinessCardTemplate } from "./BusinessCardTemplate";
 import { MiniQRTemplate } from "./MiniQRTemplate";
 import { CommercialPresentationTemplate } from "./CommercialPresentationTemplate";
+import { CommercialPresentationWhatsAppTemplate } from "./CommercialPresentationWhatsAppTemplate";
 import { SalesInstagramStory } from "./SalesInstagramStory";
 import { DownloadButtons } from "./DownloadButtons";
 import { supabase } from "@/integrations/supabase/client";
@@ -71,6 +72,7 @@ export function SharePageContent({
       case 'mini': return miniRef;
       case 'presentation': return presentationRef;
       case 'story': return storyRef;
+      case 'whatsapp': return null; // WhatsApp tem seus próprios botões
       default: return flyerRef;
     }
   };
@@ -85,10 +87,13 @@ export function SharePageContent({
       card: 'cartao-visita-mostralo',
       mini: 'mini-qr-mostralo',
       presentation: 'apresentacao-comercial-mostralo',
-      story: 'story-instagram-mostralo'
+      story: 'story-instagram-mostralo',
+      whatsapp: 'whatsapp-mostralo'
     };
     return names[selectedTemplate] || 'material-mostralo';
   };
+
+  const showDownloadButtons = selectedTemplate !== 'whatsapp';
 
   return (
     <div className="space-y-6">
@@ -175,10 +180,10 @@ export function SharePageContent({
         </CardHeader>
         <CardContent>
           <Tabs value={selectedTemplate} onValueChange={setSelectedTemplate} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5 no-print">
+            <TabsList className="grid w-full grid-cols-6 no-print">
               <TabsTrigger value="flyer" className="flex items-center gap-1 text-xs sm:text-sm">
                 <FileText className="h-4 w-4" />
-                <span className="hidden sm:inline">Flyer A5</span>
+                <span className="hidden sm:inline">Flyer</span>
               </TabsTrigger>
               <TabsTrigger value="card" className="flex items-center gap-1 text-xs sm:text-sm">
                 <CreditCard className="h-4 w-4" />
@@ -192,20 +197,26 @@ export function SharePageContent({
                 <Presentation className="h-4 w-4" />
                 <span className="hidden sm:inline">Apresentação</span>
               </TabsTrigger>
+              <TabsTrigger value="whatsapp" className="flex items-center gap-1 text-xs sm:text-sm">
+                <MessageSquare className="h-4 w-4" />
+                <span className="hidden sm:inline">WhatsApp</span>
+              </TabsTrigger>
               <TabsTrigger value="story" className="flex items-center gap-1 text-xs sm:text-sm">
                 <Instagram className="h-4 w-4" />
                 <span className="hidden sm:inline">Story</span>
               </TabsTrigger>
             </TabsList>
 
-            {/* Botões de Download - logo após tabs */}
-            <div className="flex justify-center gap-4 no-print">
-              <DownloadButtons
-                targetRef={getCurrentRef()}
-                filename={getFilename()}
-                paperSize={getPaperSize()}
-              />
-            </div>
+            {/* Botões de Download - logo após tabs (exceto WhatsApp que tem seus próprios botões) */}
+            {showDownloadButtons && getCurrentRef() && (
+              <div className="flex justify-center gap-4 no-print">
+                <DownloadButtons
+                  targetRef={getCurrentRef()!}
+                  filename={getFilename()}
+                  paperSize={getPaperSize()}
+                />
+              </div>
+            )}
 
             <TabsContent value="flyer" className="print-area">
               <div ref={flyerRef}>
@@ -262,6 +273,17 @@ export function SharePageContent({
                 </div>
               </div>
             </TabsContent>
+
+            <TabsContent value="whatsapp" className="print-area">
+              <CommercialPresentationWhatsAppTemplate
+                referralCode={referralCode}
+                homepageLink={homepageLink}
+                signupLink={signupLink}
+                sellerName={sellerName || undefined}
+                sellerPhone={sellerPhone || undefined}
+                plans={plans}
+              />
+            </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
@@ -273,10 +295,11 @@ export function SharePageContent({
         </CardHeader>
         <CardContent>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>📄 <strong>Flyer A5:</strong> Ideal para panfletagem rápida</li>
+            <li>📄 <strong>Flyer:</strong> Ideal para panfletagem rápida (A5)</li>
             <li>💳 <strong>Cartões:</strong> Perfeito para entrega pessoal e networking</li>
             <li>🏷️ <strong>Mini QR:</strong> Recorte e cole em mesas, vitrines e sacolas</li>
-            <li>📊 <strong>Apresentação:</strong> Ideal para reuniões e enviar por e-mail (4 páginas)</li>
+            <li>📊 <strong>Apresentação:</strong> Ideal para reuniões e impressão frente/verso</li>
+            <li>💬 <strong>WhatsApp:</strong> 6 imagens quadradas para enviar como carrossel</li>
             <li>📱 <strong>Story:</strong> Compartilhe no Instagram e WhatsApp Status</li>
             <li>🖨️ Use papel de qualidade para melhor resultado na impressão</li>
           </ul>

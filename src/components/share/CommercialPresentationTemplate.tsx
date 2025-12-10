@@ -1,3 +1,5 @@
+import { Store } from 'lucide-react';
+
 // Usar API gratuita para gerar QR Code
 const getQrCodeUrl = (url: string, size: number) => 
   `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(url)}&format=svg`;
@@ -46,7 +48,9 @@ export function CommercialPresentationTemplate({
         
         {/* Logo */}
         <div className="flex items-center gap-4 mb-8 relative z-10">
-          <img src="/mostralo-icon.png" alt="Mostralo" className="w-20 h-20 rounded-xl shadow-lg" />
+          <div className="w-20 h-20 rounded-xl shadow-lg bg-white flex items-center justify-center">
+            <Store className="w-12 h-12" style={{ color: '#f97316' }} />
+          </div>
           <span className="text-5xl font-bold text-white">Mostralo</span>
         </div>
         

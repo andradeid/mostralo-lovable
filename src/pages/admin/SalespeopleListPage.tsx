@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { SalespersonCard } from "@/components/admin/salespeople/SalespersonCard";
 import { ApprovalDialog } from "@/components/admin/salespeople/ApprovalDialog";
 import { RejectionDialog } from "@/components/admin/salespeople/RejectionDialog";
+import { SalespeopleAdminGuide } from "@/components/admin/salespeople/SalespeopleAdminGuide";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
@@ -120,6 +121,8 @@ export default function SalespeopleListPage() {
           Gerencie os vendedores e afiliados do sistema
         </p>
       </div>
+
+      <SalespeopleAdminGuide />
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

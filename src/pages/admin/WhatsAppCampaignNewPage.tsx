@@ -16,6 +16,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useStoreAccess } from "@/hooks/useStoreAccess";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Loader2, 
   ArrowLeft,
@@ -24,7 +25,9 @@ import {
   Filter,
   Send,
   Eye,
-  MessageCircle
+  MessageCircle,
+  Shield,
+  Timer
 } from "lucide-react";
 
 interface SelectedTemplate {
@@ -55,11 +58,46 @@ export default function WhatsAppCampaignNewPage() {
     filter_max_orders: 0,
     filter_min_spent: 0,
     filter_max_spent: 0,
-    message_interval_seconds: 30,
+    message_interval_seconds: 60,
     daily_limit: 100,
     start_hour: 9,
     end_hour: 21,
+    // Anti-bloqueio
+    pause_enabled: false,
+    pause_after_messages: 10,
+    pause_duration_seconds: 120,
   });
+
+  // Funções auxiliares para formatação de tempo
+  const formatTime = (seconds: number): string => {
+    if (seconds < 60) return `${seconds}s`;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return secs > 0 ? `${mins}min ${secs}s` : `${mins}min`;
+  };
+
+  const calculateEstimate = () => {
+    if (!previewData?.totalRecipients) return null;
+    const total = previewData.totalRecipients;
+    const avgInterval = form.message_interval_seconds * 0.875; // Média entre 75% e 100%
+    
+    let totalSeconds = total * avgInterval;
+    
+    // Adicionar pausas
+    if (form.pause_enabled && form.pause_after_messages > 0) {
+      const pauseCount = Math.floor((total - 1) / form.pause_after_messages);
+      totalSeconds += pauseCount * form.pause_duration_seconds;
+    }
+    
+    const hours = Math.floor(totalSeconds / 3600);
+    const mins = Math.floor((totalSeconds % 3600) / 60);
+    
+    return {
+      time: hours > 0 ? `${hours}h ${mins}min` : `${mins}min`,
+      pauseCount: form.pause_enabled ? Math.floor((total - 1) / form.pause_after_messages) : 0,
+      avgInterval: formatTime(Math.round(avgInterval)),
+    };
+  };
 
   useEffect(() => {
     if (storeId) {
@@ -172,6 +210,8 @@ export default function WhatsAppCampaignNewPage() {
           daily_limit: form.daily_limit,
           start_hour: form.start_hour,
           end_hour: form.end_hour,
+          pause_after_messages: form.pause_enabled ? form.pause_after_messages : 0,
+          pause_duration_seconds: form.pause_duration_seconds,
           status: 'draft',
         })
         .select()
@@ -225,12 +265,14 @@ export default function WhatsAppCampaignNewPage() {
 
     setLoading(true);
     try {
-      // Atualizar nome e descrição antes de iniciar
+      // Atualizar nome, descrição e configurações anti-bloqueio antes de iniciar
       await supabase
         .from('whatsapp_campaigns' as any)
         .update({
           name: form.name,
           description: form.description,
+          pause_after_messages: form.pause_enabled ? form.pause_after_messages : 0,
+          pause_duration_seconds: form.pause_duration_seconds,
         })
         .eq('id', previewData.campaignId);
 
@@ -287,6 +329,8 @@ export default function WhatsAppCampaignNewPage() {
             daily_limit: form.daily_limit,
             start_hour: form.start_hour,
             end_hour: form.end_hour,
+            pause_after_messages: form.pause_enabled ? form.pause_after_messages : 0,
+            pause_duration_seconds: form.pause_duration_seconds,
           })
           .eq('id', previewData.campaignId);
       } else {
@@ -307,6 +351,8 @@ export default function WhatsAppCampaignNewPage() {
             daily_limit: form.daily_limit,
             start_hour: form.start_hour,
             end_hour: form.end_hour,
+            pause_after_messages: form.pause_enabled ? form.pause_after_messages : 0,
+            pause_duration_seconds: form.pause_duration_seconds,
             status: 'draft',
           });
       }
@@ -514,18 +560,22 @@ export default function WhatsAppCampaignNewPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Intervalo entre mensagens (segundos)</Label>
+                <Label>Intervalo entre mensagens</Label>
                 <div className="flex items-center gap-4">
                   <Slider
                     value={[form.message_interval_seconds]}
                     onValueChange={([v]) => setForm(prev => ({ ...prev, message_interval_seconds: v }))}
                     min={10}
-                    max={120}
+                    max={300}
                     step={5}
                     className="flex-1"
                   />
-                  <span className="w-16 text-right">{form.message_interval_seconds}s</span>
+                  <span className="w-20 text-right font-medium">{formatTime(form.message_interval_seconds)}</span>
                 </div>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Timer className="h-3 w-3" />
+                  Envios entre {formatTime(Math.floor(form.message_interval_seconds * 0.75))} e {formatTime(form.message_interval_seconds)} (humanizado)
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -575,6 +625,74 @@ export default function WhatsAppCampaignNewPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Card Anti-Bloqueio */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                Configurações Anti-Bloqueio
+              </CardTitle>
+              <CardDescription>
+                Pausas estratégicas para evitar detecção
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="pause_enabled"
+                  checked={form.pause_enabled}
+                  onCheckedChange={(checked) => setForm(prev => ({ ...prev, pause_enabled: !!checked }))}
+                />
+                <label
+                  htmlFor="pause_enabled"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Ativar pausas por lote
+                </label>
+              </div>
+
+              {form.pause_enabled && (
+                <>
+                  <div className="space-y-2">
+                    <Label>Pausar a cada X mensagens</Label>
+                    <div className="flex items-center gap-4">
+                      <Slider
+                        value={[form.pause_after_messages]}
+                        onValueChange={([v]) => setForm(prev => ({ ...prev, pause_after_messages: v }))}
+                        min={5}
+                        max={50}
+                        step={5}
+                        className="flex-1"
+                      />
+                      <span className="w-24 text-right">{form.pause_after_messages} msgs</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Duração da pausa</Label>
+                    <div className="flex items-center gap-4">
+                      <Slider
+                        value={[form.pause_duration_seconds]}
+                        onValueChange={([v]) => setForm(prev => ({ ...prev, pause_duration_seconds: v }))}
+                        min={30}
+                        max={300}
+                        step={10}
+                        className="flex-1"
+                      />
+                      <span className="w-20 text-right">{formatTime(form.pause_duration_seconds)}</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-muted/50 rounded-lg p-3 text-sm">
+                    <p className="text-muted-foreground">
+                      📌 A cada <strong>{form.pause_after_messages} envios</strong>, o sistema pausará por <strong>{formatTime(form.pause_duration_seconds)}</strong>
+                    </p>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         <div className="space-y-6">
@@ -609,6 +727,23 @@ export default function WhatsAppCampaignNewPage() {
                     <p className="text-3xl font-bold text-primary">{previewData.totalRecipients}</p>
                     <p className="text-sm text-muted-foreground">clientes serão contatados</p>
                   </div>
+
+                  {/* Estimativa de tempo */}
+                  {calculateEstimate() && (
+                    <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 space-y-1">
+                      <p className="text-sm font-medium flex items-center gap-2">
+                        <Timer className="h-4 w-4 text-primary" />
+                        Estimativa de Tempo
+                      </p>
+                      <div className="text-xs text-muted-foreground space-y-0.5">
+                        <p>• Tempo total: <strong className="text-foreground">{calculateEstimate()?.time}</strong></p>
+                        <p>• Intervalo médio: <strong className="text-foreground">{calculateEstimate()?.avgInterval}</strong></p>
+                        {form.pause_enabled && calculateEstimate()!.pauseCount > 0 && (
+                          <p>• {calculateEstimate()?.pauseCount} pausas de {formatTime(form.pause_duration_seconds)}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   {previewData.sampleRecipients?.length > 0 && (
                     <div>

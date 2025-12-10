@@ -11,7 +11,14 @@ export function useRouteTheme() {
     if (location.pathname === '/') {
       setTheme('dark');
     } 
-    // Todas as outras páginas = tema claro
+    // Dashboard e sub-rotas = respeitar preferência do usuário (não forçar nada)
+    else if (location.pathname.startsWith('/dashboard') || 
+             location.pathname.startsWith('/entregador') ||
+             location.pathname.startsWith('/vendedor')) {
+      // Não fazer nada - usuário controla o tema manualmente
+      return;
+    }
+    // Páginas públicas (loja, checkout, cliente, etc.) = tema claro
     else {
       setTheme('light');
     }

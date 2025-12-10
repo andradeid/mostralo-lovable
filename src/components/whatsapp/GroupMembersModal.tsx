@@ -17,6 +17,7 @@ interface Group {
 
 interface Member {
   id: string;
+  phoneNumber?: string;
   admin?: string;
   name?: string;
   pushName?: string;
@@ -83,24 +84,25 @@ export function GroupMembersModal({
     }
   };
 
-  const extractPhoneFromId = (id: string): string | null => {
-    if (!id) return null;
-    
-    // Se é um LID (Linked ID interno do WhatsApp), não temos o número real
-    if (id.includes('@lid')) {
-      return null;
+  const extractPhoneFromMember = (member: Member): string | null => {
+    // Primeiro, tentar o phoneNumber (contém o número real)
+    if (member.phoneNumber) {
+      const cleaned = member.phoneNumber
+        .replace('@s.whatsapp.net', '')
+        .replace('@c.us', '');
+      if (/^\d{10,13}$/.test(cleaned)) {
+        return cleaned;
+      }
     }
     
-    // Limpar sufixos do WhatsApp
-    let cleaned = id
-      .replace('@s.whatsapp.net', '')
-      .replace('@c.us', '');
-    
-    // Validar formato de telefone brasileiro (não LID)
-    // Telefones brasileiros: 10-13 dígitos (com ou sem 55)
-    // LIDs têm 14+ dígitos ou padrões estranhos
-    if (/^\d{10,13}$/.test(cleaned)) {
-      return cleaned;
+    // Fallback para id (só se não for LID)
+    if (member.id && !member.id.includes('@lid')) {
+      const cleaned = member.id
+        .replace('@s.whatsapp.net', '')
+        .replace('@c.us', '');
+      if (/^\d{10,13}$/.test(cleaned)) {
+        return cleaned;
+      }
     }
     
     return null;
@@ -122,7 +124,7 @@ export function GroupMembersModal({
   };
 
   const filteredMembers = members.filter(member => {
-    const phone = extractPhoneFromId(member.id) || '';
+    const phone = extractPhoneFromMember(member) || '';
     const name = member.name || member.pushName || '';
     return phone.includes(searchTerm) || name.toLowerCase().includes(searchTerm.toLowerCase());
   });
@@ -172,7 +174,7 @@ export function GroupMembersModal({
                   >
                     <Avatar className="h-9 w-9">
                       <AvatarFallback>
-                        {(member.name || member.pushName || extractPhoneFromId(member.id) || '?').charAt(0).toUpperCase()}
+                        {(member.name || member.pushName || extractPhoneFromMember(member) || '?').charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     
@@ -181,8 +183,8 @@ export function GroupMembersModal({
                         {member.name || member.pushName || 'Sem nome'}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {extractPhoneFromId(member.id) 
-                          ? formatPhoneNumber(extractPhoneFromId(member.id)!)
+                        {extractPhoneFromMember(member) 
+                          ? formatPhoneNumber(extractPhoneFromMember(member)!)
                           : 'Número não disponível'}
                       </p>
                     </div>

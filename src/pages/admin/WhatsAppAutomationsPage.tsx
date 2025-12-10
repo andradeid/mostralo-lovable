@@ -283,7 +283,8 @@ export default function WhatsAppAutomationsPage() {
           eventType,
           phoneNumber: config.test_phone_number,
           customerName: 'Cliente Teste',
-          isTest: true
+          isTest: true,
+          baseUrl: window.location.origin
         }
       });
 

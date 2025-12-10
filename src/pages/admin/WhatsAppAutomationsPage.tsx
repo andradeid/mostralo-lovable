@@ -12,7 +12,10 @@ import {
   Save,
   Loader2,
   Info,
-  ArrowLeft
+  ArrowLeft,
+  Send,
+  TestTube,
+  Phone
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,6 +25,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useStoreAccess } from "@/hooks/useStoreAccess";
@@ -44,6 +48,7 @@ interface AutoMessageConfig {
   order_completed_message: string;
   order_cancelled_enabled: boolean;
   order_cancelled_message: string;
+  test_phone_number?: string;
 }
 
 const defaultMessages = {
@@ -88,6 +93,8 @@ export default function WhatsAppAutomationsPage() {
   const { storeId } = useStoreAccess();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingField, setSavingField] = useState<string | null>(null);
+  const [sendingTest, setSendingTest] = useState<string | null>(null);
   const [config, setConfig] = useState<AutoMessageConfig | null>(null);
   const [hasInstance, setHasInstance] = useState(false);
 
@@ -124,7 +131,6 @@ export default function WhatsAppAutomationsPage() {
       if (data) {
         setConfig(data as any);
       } else {
-        // Criar configuração padrão
         setConfig({
           store_id: storeId!,
           is_enabled: false,
@@ -162,7 +168,6 @@ export default function WhatsAppAutomationsPage() {
     setSaving(true);
     try {
       if (config.id) {
-        // Update
         const { error } = await supabase
           .from('whatsapp_auto_messages')
           .update({
@@ -180,13 +185,13 @@ export default function WhatsAppAutomationsPage() {
             order_completed_enabled: config.order_completed_enabled,
             order_completed_message: config.order_completed_message,
             order_cancelled_enabled: config.order_cancelled_enabled,
-            order_cancelled_message: config.order_cancelled_message
+            order_cancelled_message: config.order_cancelled_message,
+            test_phone_number: config.test_phone_number
           })
           .eq('id', config.id);
 
         if (error) throw error;
       } else {
-        // Insert
         const { data, error } = await supabase
           .from('whatsapp_auto_messages')
           .insert(config as any)
@@ -210,6 +215,101 @@ export default function WhatsAppAutomationsPage() {
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSaveMessage = async (messageType: string) => {
+    if (!config || !storeId) return;
+
+    setSavingField(messageType);
+    try {
+      const enabledField = `${messageType}_enabled` as keyof AutoMessageConfig;
+      const messageField = `${messageType}_message` as keyof AutoMessageConfig;
+
+      const updateData: Record<string, any> = {
+        [enabledField]: config[enabledField],
+        [messageField]: config[messageField]
+      };
+
+      if (config.id) {
+        const { error } = await supabase
+          .from('whatsapp_auto_messages')
+          .update(updateData)
+          .eq('id', config.id);
+
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase
+          .from('whatsapp_auto_messages')
+          .insert({ ...config, ...updateData } as any)
+          .select()
+          .single();
+
+        if (error) throw error;
+        setConfig(data as any);
+      }
+
+      toast({
+        title: "✅ Mensagem salva!",
+        description: `Configuração de "${messageType}" atualizada`
+      });
+    } catch (error: any) {
+      console.error('Erro ao salvar mensagem:', error);
+      toast({
+        title: "❌ Erro ao salvar",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setSavingField(null);
+    }
+  };
+
+  const handleSendTest = async (eventType: string) => {
+    if (!config?.test_phone_number) {
+      toast({
+        title: "⚠️ Configure o número de teste primeiro",
+        description: "Insira um número no campo 'Modo de Teste' acima",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setSendingTest(eventType);
+    try {
+      const { data, error } = await supabase.functions.invoke('whatsapp-auto-send', {
+        body: {
+          storeId,
+          eventType,
+          phoneNumber: config.test_phone_number,
+          customerName: 'Cliente Teste',
+          isTest: true
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.skipped) {
+        toast({
+          title: "⚠️ Mensagem pulada",
+          description: "Esta mensagem está desativada. Ative-a primeiro.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "✅ Teste enviado!",
+          description: `Mensagem enviada para ${config.test_phone_number}`
+        });
+      }
+    } catch (error: any) {
+      console.error('Erro ao enviar teste:', error);
+      toast({
+        title: "❌ Erro ao enviar teste",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setSendingTest(null);
     }
   };
 
@@ -254,7 +354,7 @@ export default function WhatsAppAutomationsPage() {
           ) : (
             <Save className="h-4 w-4 mr-2" />
           )}
-          Salvar Configurações
+          Salvar Tudo
         </Button>
       </div>
 
@@ -304,6 +404,41 @@ export default function WhatsAppAutomationsPage() {
         </CardHeader>
       </Card>
 
+      {/* Card de Modo de Teste */}
+      <Card className="border-dashed border-2 border-yellow-500/50 bg-yellow-500/5">
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-yellow-500/20">
+              <TestTube className="h-5 w-5 text-yellow-500" />
+            </div>
+            <div className="flex-1">
+              <CardTitle className="text-base">🧪 Modo de Teste</CardTitle>
+              <CardDescription>
+                Configure um número para testar as mensagens antes de ativá-las
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-2">
+            <div className="flex-1 flex items-center gap-2">
+              <Phone className="h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="(11) 99999-9999"
+                value={config?.test_phone_number || ''}
+                onChange={(e) => updateConfig('test_phone_number', e.target.value)}
+              />
+            </div>
+            <Button variant="outline" onClick={handleSave} disabled={saving}>
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            ⚠️ As mensagens de teste serão enviadas para este número, independente do sistema estar ativo
+          </p>
+        </CardContent>
+      </Card>
+
       {/* Variáveis Disponíveis */}
       <Card>
         <CardHeader className="pb-3">
@@ -344,6 +479,12 @@ export default function WhatsAppAutomationsPage() {
           onMessageChange={(value) => updateConfig('greeting_message', value)}
           onInsertVariable={(variable) => insertVariable('greeting_message', variable)}
           disabled={!config?.is_enabled}
+          messageType="greeting"
+          testPhoneNumber={config?.test_phone_number}
+          onSaveMessage={handleSaveMessage}
+          onSendTest={handleSendTest}
+          savingField={savingField}
+          sendingTest={sendingTest}
         />
       </div>
 
@@ -367,6 +508,12 @@ export default function WhatsAppAutomationsPage() {
             onMessageChange={(value) => updateConfig('order_received_message', value)}
             onInsertVariable={(variable) => insertVariable('order_received_message', variable)}
             disabled={!config?.is_enabled}
+            messageType="order_received"
+            testPhoneNumber={config?.test_phone_number}
+            onSaveMessage={handleSaveMessage}
+            onSendTest={handleSendTest}
+            savingField={savingField}
+            sendingTest={sendingTest}
           />
 
           <MessageConfigCard
@@ -379,6 +526,12 @@ export default function WhatsAppAutomationsPage() {
             onMessageChange={(value) => updateConfig('order_confirmed_message', value)}
             onInsertVariable={(variable) => insertVariable('order_confirmed_message', variable)}
             disabled={!config?.is_enabled}
+            messageType="order_confirmed"
+            testPhoneNumber={config?.test_phone_number}
+            onSaveMessage={handleSaveMessage}
+            onSendTest={handleSendTest}
+            savingField={savingField}
+            sendingTest={sendingTest}
           />
 
           <MessageConfigCard
@@ -391,6 +544,12 @@ export default function WhatsAppAutomationsPage() {
             onMessageChange={(value) => updateConfig('order_ready_message', value)}
             onInsertVariable={(variable) => insertVariable('order_ready_message', variable)}
             disabled={!config?.is_enabled}
+            messageType="order_ready"
+            testPhoneNumber={config?.test_phone_number}
+            onSaveMessage={handleSaveMessage}
+            onSendTest={handleSendTest}
+            savingField={savingField}
+            sendingTest={sendingTest}
           />
 
           <MessageConfigCard
@@ -403,6 +562,12 @@ export default function WhatsAppAutomationsPage() {
             onMessageChange={(value) => updateConfig('order_in_transit_message', value)}
             onInsertVariable={(variable) => insertVariable('order_in_transit_message', variable)}
             disabled={!config?.is_enabled}
+            messageType="order_in_transit"
+            testPhoneNumber={config?.test_phone_number}
+            onSaveMessage={handleSaveMessage}
+            onSendTest={handleSendTest}
+            savingField={savingField}
+            sendingTest={sendingTest}
           />
 
           <MessageConfigCard
@@ -415,6 +580,12 @@ export default function WhatsAppAutomationsPage() {
             onMessageChange={(value) => updateConfig('order_completed_message', value)}
             onInsertVariable={(variable) => insertVariable('order_completed_message', variable)}
             disabled={!config?.is_enabled}
+            messageType="order_completed"
+            testPhoneNumber={config?.test_phone_number}
+            onSaveMessage={handleSaveMessage}
+            onSendTest={handleSendTest}
+            savingField={savingField}
+            sendingTest={sendingTest}
           />
 
           <MessageConfigCard
@@ -427,6 +598,12 @@ export default function WhatsAppAutomationsPage() {
             onMessageChange={(value) => updateConfig('order_cancelled_message', value)}
             onInsertVariable={(variable) => insertVariable('order_cancelled_message', variable)}
             disabled={!config?.is_enabled}
+            messageType="order_cancelled"
+            testPhoneNumber={config?.test_phone_number}
+            onSaveMessage={handleSaveMessage}
+            onSendTest={handleSendTest}
+            savingField={savingField}
+            sendingTest={sendingTest}
           />
         </div>
       </div>
@@ -444,7 +621,13 @@ function MessageConfigCard({
   message,
   onMessageChange,
   onInsertVariable,
-  disabled
+  disabled,
+  messageType,
+  testPhoneNumber,
+  onSaveMessage,
+  onSendTest,
+  savingField,
+  sendingTest
 }: {
   title: string;
   description: string;
@@ -455,6 +638,12 @@ function MessageConfigCard({
   onMessageChange: (value: string) => void;
   onInsertVariable: (variable: string) => void;
   disabled: boolean;
+  messageType: string;
+  testPhoneNumber?: string;
+  onSaveMessage: (messageType: string) => void;
+  onSendTest: (eventType: string) => void;
+  savingField: string | null;
+  sendingTest: string | null;
 }) {
   const [expanded, setExpanded] = useState(enabled);
 
@@ -512,6 +701,36 @@ function MessageConfigCard({
                 className="mt-1 min-h-[100px] font-mono text-sm"
                 disabled={disabled || !enabled}
               />
+            </div>
+            
+            {/* Footer com botões */}
+            <div className="flex justify-end gap-2 pt-3 border-t">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onSendTest(messageType)}
+                disabled={!testPhoneNumber || !message || sendingTest === messageType}
+              >
+                {sendingTest === messageType ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Send className="h-4 w-4 mr-2" />
+                )}
+                Enviar Teste
+              </Button>
+              
+              <Button
+                size="sm"
+                onClick={() => onSaveMessage(messageType)}
+                disabled={savingField === messageType}
+              >
+                {savingField === messageType ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
+                Salvar
+              </Button>
             </div>
           </div>
         </CardContent>

@@ -6,6 +6,25 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Normaliza telefone para formato WhatsApp (com DDI 55 Brasil)
+function normalizePhoneForWhatsApp(phone: string): string {
+  // Remove caracteres não numéricos
+  let normalized = phone.replace(/\D/g, '');
+  
+  // Se já começa com 55 e tem 12-13 dígitos, está correto
+  if (normalized.startsWith('55') && normalized.length >= 12 && normalized.length <= 13) {
+    return normalized;
+  }
+  
+  // Se tem 10-11 dígitos (DDD + número), adicionar 55
+  if (normalized.length >= 10 && normalized.length <= 11) {
+    return '55' + normalized;
+  }
+  
+  // Retorna como está se não se enquadrar
+  return normalized;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -88,8 +107,8 @@ serve(async (req) => {
       });
     }
 
-    // Formatar número de telefone (remover caracteres não numéricos)
-    const formattedPhone = phoneNumber.replace(/\D/g, '');
+    // Formatar número de telefone com DDI 55
+    const formattedPhone = normalizePhoneForWhatsApp(phoneNumber);
     
     // Construir payload baseado no tipo de mensagem
     let endpoint = '';

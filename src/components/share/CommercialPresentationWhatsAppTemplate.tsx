@@ -90,21 +90,27 @@ function SlideHook() {
         <Store style={{ width: '48px', height: '48px', color: '#f97316' }} />
       </div>
       
-      <p style={{ fontSize: '18px', opacity: 0.9, marginBottom: '16px' }}>
-        Você está pagando
-      </p>
-      
       <h1 style={{ 
+        fontSize: '36px', 
+        fontWeight: 'bold', 
+        marginBottom: '8px',
+        textShadow: '0 4px 12px rgba(0,0,0,0.2)',
+        textAlign: 'center',
+      }}>
+        PARE DE PAGAR
+      </h1>
+      
+      <h2 style={{ 
         fontSize: '72px', 
         fontWeight: 'bold', 
         marginBottom: '8px',
         textShadow: '0 4px 12px rgba(0,0,0,0.2)',
       }}>
         25%
-      </h1>
+      </h2>
       
-      <p style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '24px' }}>
-        PARA O IFOOD?
+      <p style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '24px' }}>
+        PARA O IFOOD!
       </p>
       
       <p style={{ fontSize: '16px', opacity: 0.85, textAlign: 'center' }}>
@@ -557,7 +563,18 @@ export function CommercialPresentationWhatsAppTemplate({
     if (!ref.current) return;
     
     try {
-      // Abrir a imagem em uma nova janela para o usuário salvar manualmente
+      // Encontrar o elemento real do slide (filho do container com scale)
+      const slideElement = ref.current.querySelector('div') as HTMLElement;
+      if (!slideElement) {
+        toast.error('Elemento não encontrado');
+        return;
+      }
+
+      // Clonar o elemento e remover scale para captura correta
+      const clone = slideElement.cloneNode(true) as HTMLElement;
+      clone.style.transform = 'none';
+      
+      // Abrir janela com o slide em tamanho real
       const printWindow = window.open('', '_blank');
       if (!printWindow) {
         toast.error('Pop-up bloqueado. Permita pop-ups para baixar.');
@@ -568,29 +585,52 @@ export function CommercialPresentationWhatsAppTemplate({
         <!DOCTYPE html>
         <html>
           <head>
-            <title>Mostralo - Imagem ${index + 1}</title>
+            <title>Mostralo - ${slideNames[index]}</title>
             <style>
-              body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f5f5f5; }
-              .container { text-align: center; }
-              .image-wrapper { width: 540px; height: 540px; margin: 0 auto 16px; }
-              p { font-family: system-ui; color: #666; margin-top: 16px; }
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+              body { 
+                display: flex; 
+                flex-direction: column;
+                align-items: center; 
+                justify-content: center;
+                min-height: 100vh; 
+                background: #1a1a1a; 
+                padding: 20px;
+                font-family: system-ui, -apple-system, sans-serif;
+              }
+              .slide-container {
+                width: 540px;
+                height: 540px;
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+              }
+              .instructions {
+                margin-top: 24px;
+                text-align: center;
+                color: #888;
+                font-size: 14px;
+              }
+              .instructions strong { color: #fff; }
             </style>
           </head>
           <body>
-            <div class="container">
-              <div class="image-wrapper">
-                ${ref.current.outerHTML}
-              </div>
-              <p>Clique com botão direito na imagem e selecione "Salvar imagem como..."</p>
+            <div class="slide-container">
+              ${clone.outerHTML}
+            </div>
+            <div class="instructions">
+              <p><strong>Clique com botão direito na imagem</strong> e selecione "Salvar imagem como..."</p>
+              <p>Ou use <strong>Ctrl+S</strong> (Cmd+S no Mac) para salvar a página</p>
             </div>
           </body>
         </html>
       `);
       printWindow.document.close();
       
-      toast.success(`Imagem ${index + 1} aberta! Clique com botão direito para salvar.`);
+      toast.success(`Imagem ${index + 1} aberta! Clique direito para salvar.`);
     } catch (error) {
-      toast.error('Erro ao abrir imagem');
+      console.error('Erro ao baixar:', error);
+      toast.error('Erro ao baixar imagem');
     }
   };
 
@@ -629,27 +669,39 @@ export function CommercialPresentationWhatsAppTemplate({
       </div>
 
       {/* Grid de Slides */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {slides.map((slide, index) => (
-          <div key={index} className="space-y-3">
+          <div key={index} className="space-y-2">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium text-muted-foreground">{slide.title}</h3>
+              <h3 className="text-xs font-medium text-muted-foreground">{slide.title}</h3>
               <Button 
                 variant="outline" 
                 size="sm" 
                 onClick={() => downloadSlide(index)}
-                className="no-print"
+                className="no-print h-7 text-xs"
               >
-                <Download className="h-4 w-4 mr-1" />
+                <Download className="h-3 w-3 mr-1" />
                 PNG
               </Button>
             </div>
             <div 
               ref={slideRefs[index]}
               className="rounded-lg overflow-hidden shadow-lg"
-              style={{ transform: 'scale(1)', transformOrigin: 'top left' }}
+              style={{ 
+                width: '180px', 
+                height: '180px',
+                position: 'relative',
+              }}
             >
-              {slide.component}
+              <div style={{ 
+                transform: 'scale(0.333)', 
+                transformOrigin: 'top left',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+              }}>
+                {slide.component}
+              </div>
             </div>
           </div>
         ))}

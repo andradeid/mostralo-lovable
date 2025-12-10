@@ -14,6 +14,8 @@ interface EvolutionInstance {
   number: string | null;
   apiKey: string | null;
   integration: string;
+  contactsCount: number;
+  chatsCount: number;
 }
 
 serve(async (req) => {
@@ -65,18 +67,52 @@ serve(async (req) => {
     
     if (Array.isArray(rawData)) {
       for (const item of rawData) {
-        // A Evolution API retorna estrutura variada, vamos normalizar
         const instance = item.instance || item;
+        const instanceName = instance.instanceName || instance.name || 'Sem nome';
+        
+        // Buscar contatos e conversas para instâncias conectadas
+        let contactsCount = 0;
+        let chatsCount = 0;
+        const instanceStatus = instance.status || instance.connectionStatus || 'unknown';
+        
+        if (instanceStatus === 'open' || instanceStatus === 'connected') {
+          try {
+            // Buscar contatos
+            const contactsResponse = await fetch(`${baseUrl}/chat/findContacts/${instanceName}`, {
+              method: 'POST',
+              headers: { 'apikey': api_key, 'Content-Type': 'application/json' },
+              body: JSON.stringify({})
+            });
+            if (contactsResponse.ok) {
+              const contactsData = await contactsResponse.json();
+              contactsCount = Array.isArray(contactsData) ? contactsData.length : 0;
+            }
+            
+            // Buscar conversas
+            const chatsResponse = await fetch(`${baseUrl}/chat/findChats/${instanceName}`, {
+              method: 'GET',
+              headers: { 'apikey': api_key, 'Content-Type': 'application/json' }
+            });
+            if (chatsResponse.ok) {
+              const chatsData = await chatsResponse.json();
+              chatsCount = Array.isArray(chatsData) ? chatsData.length : 0;
+            }
+          } catch (err) {
+            console.log(`[evolution-test-connection] Erro ao buscar métricas de ${instanceName}:`, err);
+          }
+        }
         
         instances.push({
-          instanceName: instance.instanceName || instance.name || 'Sem nome',
+          instanceName,
           instanceId: instance.instanceId || instance.id || crypto.randomUUID(),
-          status: instance.status || instance.connectionStatus || 'unknown',
+          status: instanceStatus,
           owner: instance.owner || instance.profileName || instance.pushname || '',
           profilePictureUrl: instance.profilePicUrl || instance.profilePictureUrl || null,
-          number: instance.number || instance.wuid?.split('@')[0] || null,
+          number: instance.number || instance.ownerJid?.split('@')[0] || instance.wuid?.split('@')[0] || null,
           apiKey: instance.token || instance.apikey || null,
           integration: instance.integration || 'WHATSAPP-BAILEYS',
+          contactsCount,
+          chatsCount,
         });
       }
     }

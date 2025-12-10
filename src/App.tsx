@@ -98,6 +98,11 @@ import LeadsManagementPage from "./pages/admin/LeadsManagementPage";
 import SalespersonLeadsPage from "./pages/salesperson/SalespersonLeadsPage";
 import AdminSharePage from "./pages/admin/AdminSharePage";
 import StoreMarketingPage from "./pages/admin/StoreMarketingPage";
+import EvolutionConfigPage from "./pages/admin/EvolutionConfigPage";
+import WhatsAppInstancePage from "./pages/admin/WhatsAppInstancePage";
+import WhatsAppTemplatesPage from "./pages/admin/WhatsAppTemplatesPage";
+import WhatsAppCampaignsPage from "./pages/admin/WhatsAppCampaignsPage";
+import WhatsAppCampaignNewPage from "./pages/admin/WhatsAppCampaignNewPage";
 
 const queryClient = new QueryClient();
 
@@ -383,6 +388,35 @@ const App = () => (
             <Route path="/dashboard/print-config" element={
               <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
                 <AdminLayout><PrintConfigPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+
+            {/* Rotas WhatsApp - Master Admin */}
+            <Route path="/dashboard/evolution-config" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Configuração Evolution API"><EvolutionConfigPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+
+            {/* Rotas WhatsApp - Store Admin */}
+            <Route path="/dashboard/whatsapp" element={
+              <ProtectedRoute allowedRoles={['store_admin']}>
+                <AdminLayout pageTitle="Conexão WhatsApp"><WhatsAppInstancePage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/whatsapp/templates" element={
+              <ProtectedRoute allowedRoles={['store_admin']}>
+                <AdminLayout pageTitle="Modelos de Mensagem"><WhatsAppTemplatesPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/whatsapp/campaigns" element={
+              <ProtectedRoute allowedRoles={['store_admin']}>
+                <AdminLayout pageTitle="Campanhas WhatsApp"><WhatsAppCampaignsPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/whatsapp/campaigns/new" element={
+              <ProtectedRoute allowedRoles={['store_admin']}>
+                <AdminLayout pageTitle="Nova Campanha"><WhatsAppCampaignNewPage /></AdminLayout>
               </ProtectedRoute>
             } />
 

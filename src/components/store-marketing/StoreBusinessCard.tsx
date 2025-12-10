@@ -1,4 +1,5 @@
 import { forwardRef } from 'react';
+import { useQRCode } from '@/hooks/useQRCode';
 
 interface StoreData {
   name: string;
@@ -16,7 +17,7 @@ interface StoreBusinessCardProps {
 
 export const StoreBusinessCard = forwardRef<HTMLDivElement, StoreBusinessCardProps>(
   ({ storeData }, ref) => {
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(storeData.menuUrl)}`;
+    const qrDataUrl = useQRCode(storeData.menuUrl, 150);
     const primaryColor = storeData.primaryColor || '#f97316';
 
     const renderCard = (index: number) => (
@@ -63,7 +64,7 @@ export const StoreBusinessCard = forwardRef<HTMLDivElement, StoreBusinessCardPro
               <p>Escaneie para</p>
               <p className="font-semibold" style={{ color: primaryColor }}>ver o cardápio!</p>
             </div>
-            <img src={qrCodeUrl} alt="QR Code" className="w-12 h-12" />
+            {qrDataUrl && <img src={qrDataUrl} alt="QR Code" className="w-12 h-12" />}
           </div>
         </div>
       </div>

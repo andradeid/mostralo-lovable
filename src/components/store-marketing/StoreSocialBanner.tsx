@@ -1,4 +1,5 @@
 import { forwardRef } from 'react';
+import { useQRCode } from '@/hooks/useQRCode';
 
 interface StoreData {
   name: string;
@@ -17,7 +18,7 @@ interface StoreSocialBannerProps {
 
 export const StoreSocialBanner = forwardRef<HTMLDivElement, StoreSocialBannerProps>(
   ({ storeData }, ref) => {
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(storeData.menuUrl)}`;
+    const qrDataUrl = useQRCode(storeData.menuUrl, 150);
     const primaryColor = storeData.primaryColor || '#f97316';
 
     return (
@@ -103,7 +104,7 @@ export const StoreSocialBanner = forwardRef<HTMLDivElement, StoreSocialBannerPro
               className="bg-white p-6 rounded-3xl shadow-xl border-4"
               style={{ borderColor: primaryColor }}
             >
-              <img src={qrCodeUrl} alt="QR Code" className="w-40 h-40 mx-auto mb-4" />
+              {qrDataUrl && <img src={qrDataUrl} alt="QR Code" className="w-40 h-40 mx-auto mb-4" />}
               <p className="text-2xl font-bold" style={{ color: primaryColor }}>
                 PEÇA AGORA!
               </p>

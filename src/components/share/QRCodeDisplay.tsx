@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Copy, Check, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useQRCode } from "@/hooks/useQRCode";
 
 interface QRCodeDisplayProps {
   url: string;
@@ -19,9 +20,7 @@ export function QRCodeDisplay({
   showActions = true 
 }: QRCodeDisplayProps) {
   const [copied, setCopied] = useState(false);
-  
-  // Usar API gratuita para gerar QR Code
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(url)}&format=svg`;
+  const qrDataUrl = useQRCode(url, size);
 
   const handleCopy = async () => {
     try {
@@ -37,13 +36,20 @@ export function QRCodeDisplay({
   return (
     <div className="flex flex-col items-center gap-3">
       <div className="bg-white p-3 rounded-lg shadow-sm">
-        <img 
-          src={qrCodeUrl} 
-          alt={`QR Code - ${label}`}
-          width={size}
-          height={size}
-          className="block"
-        />
+        {qrDataUrl ? (
+          <img 
+            src={qrDataUrl} 
+            alt={`QR Code - ${label}`}
+            width={size}
+            height={size}
+            className="block"
+          />
+        ) : (
+          <div 
+            className="animate-pulse bg-gray-200" 
+            style={{ width: size, height: size }} 
+          />
+        )}
       </div>
       <div className="text-center">
         <p className="font-medium text-sm">{label}</p>

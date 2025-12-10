@@ -1,8 +1,5 @@
 import { Store } from 'lucide-react';
-
-// Usar API gratuita para gerar QR Code
-const getQrCodeUrl = (url: string, size: number) => 
-  `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(url)}&format=svg`;
+import { useQRCode } from '@/hooks/useQRCode';
 
 interface SalesInstagramStoryProps {
   referralCode: string;
@@ -15,6 +12,8 @@ export function SalesInstagramStory({
   signupLink,
   sellerName
 }: SalesInstagramStoryProps) {
+  const qrDataUrl = useQRCode(signupLink, 280);
+
   return (
     <div 
       className="relative overflow-hidden flex flex-col items-center justify-between"
@@ -106,7 +105,7 @@ export function SalesInstagramStory({
             padding: '40px'
           }}
         >
-          <img src={getQrCodeUrl(signupLink, 280)} alt="QR Code" width={280} height={280} />
+          {qrDataUrl && <img src={qrDataUrl} alt="QR Code" width={280} height={280} />}
           <p 
             className="font-bold text-gray-800 mt-4"
             style={{ fontSize: '32px' }}

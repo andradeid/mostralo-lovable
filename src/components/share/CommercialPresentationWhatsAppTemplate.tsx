@@ -1,11 +1,8 @@
-import { Store, Download, MessageSquare, Eye } from 'lucide-react';
+import { Store, Download, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRef, useCallback } from 'react';
 import { toast } from 'sonner';
-
-const getQrCodeUrl = (url: string, size: number) =>
-  `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(url)}&format=svg`;
-
+import { useQRCode } from '@/hooks/useQRCode';
 interface Plan {
   id: string;
   name: string;
@@ -454,12 +451,12 @@ function SlidePlans({ plans }: { plans: Plan[] }) {
 // Imagem 6 - CTA
 function SlideCTA({ 
   referralCode, 
-  signupLink, 
+  qrDataUrl, 
   sellerName, 
   sellerPhone 
 }: { 
   referralCode: string; 
-  signupLink: string;
+  qrDataUrl: string;
   sellerName?: string;
   sellerPhone?: string;
 }) {
@@ -502,7 +499,7 @@ function SlideCTA({
         marginBottom: '24px',
         boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
       }}>
-        <img src={getQrCodeUrl(signupLink, 160)} alt="QR Code" width={160} height={160} />
+        {qrDataUrl && <img src={qrDataUrl} alt="QR Code" width={160} height={160} />}
       </div>
       
       <p style={{ fontSize: '14px', opacity: 0.85, marginBottom: '16px' }}>

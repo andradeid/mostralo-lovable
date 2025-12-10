@@ -1,4 +1,5 @@
 import { Store } from 'lucide-react';
+import { useQRCode } from '@/hooks/useQRCode';
 
 interface MiniQRTemplateProps {
   referralCode: string;
@@ -6,7 +7,7 @@ interface MiniQRTemplateProps {
 }
 
 export function MiniQRTemplate({ referralCode, signupLink }: MiniQRTemplateProps) {
-  const qrSignup = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(signupLink)}&format=svg`;
+  const qrSignup = useQRCode(signupLink, 120);
   const currentDomain = typeof window !== 'undefined' ? window.location.hostname : 'mostralo.com.br';
 
   return (
@@ -18,7 +19,7 @@ export function MiniQRTemplate({ referralCode, signupLink }: MiniQRTemplateProps
           className="w-[50mm] h-[50mm] bg-white border-2 border-dashed border-gray-300 rounded-lg p-3 flex flex-col items-center justify-center text-center"
         >
           <div className="bg-white p-1 rounded">
-            <img src={qrSignup} alt="QR Code" width={80} height={80} />
+            {qrSignup && <img src={qrSignup} alt="QR Code" width={80} height={80} />}
           </div>
           <p className="text-[10px] text-gray-600 mt-1 font-medium">
             Escaneie aqui ↑

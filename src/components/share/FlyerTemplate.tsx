@@ -1,4 +1,5 @@
 import { Store } from 'lucide-react';
+import { useQRCode } from '@/hooks/useQRCode';
 
 interface FlyerTemplateProps {
   referralCode: string;
@@ -13,8 +14,8 @@ export function FlyerTemplate({
   signupLink,
   sellerName 
 }: FlyerTemplateProps) {
-  const qrHomepage = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(homepageLink)}&format=svg`;
-  const qrSignup = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(signupLink)}&format=svg`;
+  const qrHomepage = useQRCode(homepageLink, 200);
+  const qrSignup = useQRCode(signupLink, 200);
 
   return (
     <div className="bg-white text-gray-900 p-8 w-[210mm] min-h-[297mm] mx-auto print:shadow-none shadow-lg">
@@ -43,14 +44,14 @@ export function FlyerTemplate({
       <div className="grid grid-cols-2 gap-8 mb-8">
         <div className="text-center">
           <div className="bg-gray-50 p-4 rounded-xl mb-3 inline-block">
-            <img src={qrHomepage} alt="QR Página Inicial" width={180} height={180} />
+            {qrHomepage && <img src={qrHomepage} alt="QR Página Inicial" width={180} height={180} />}
           </div>
           <p className="font-bold text-lg">🏠 Ver Planos</p>
           <p className="text-sm text-gray-600">Conheça nossos benefícios</p>
         </div>
         <div className="text-center">
           <div className="bg-gray-50 p-4 rounded-xl mb-3 inline-block">
-            <img src={qrSignup} alt="QR Cadastro" width={180} height={180} />
+            {qrSignup && <img src={qrSignup} alt="QR Cadastro" width={180} height={180} />}
           </div>
           <p className="font-bold text-lg">📝 Cadastrar Agora</p>
           <p className="text-sm text-gray-600">Comece a economizar hoje</p>

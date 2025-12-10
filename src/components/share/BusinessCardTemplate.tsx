@@ -1,4 +1,5 @@
 import { Store } from 'lucide-react';
+import { useQRCode } from '@/hooks/useQRCode';
 
 interface BusinessCardTemplateProps {
   referralCode: string;
@@ -13,7 +14,7 @@ export function BusinessCardTemplate({
   sellerName,
   sellerPhone
 }: BusinessCardTemplateProps) {
-  const qrSignup = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(signupLink)}&format=svg`;
+  const qrSignup = useQRCode(signupLink, 150);
 
   return (
     <div className="flex flex-wrap gap-6 justify-center print:gap-4">
@@ -54,7 +55,7 @@ export function BusinessCardTemplate({
           {/* Right side - QR */}
           <div className="flex flex-col items-center justify-center">
             <div className="bg-white p-2 rounded-lg">
-              <img src={qrSignup} alt="QR Code" width={80} height={80} />
+              {qrSignup && <img src={qrSignup} alt="QR Code" width={80} height={80} />}
             </div>
             <p className="text-[10px] text-gray-400 mt-1 text-center">
               Escaneie para<br/>cadastrar

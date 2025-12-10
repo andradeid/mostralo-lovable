@@ -22,6 +22,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useStoreAccess } from "@/hooks/useStoreAccess";
@@ -34,15 +40,21 @@ import {
   Image,
   FileAudio,
   Video,
-  File
+  File,
+  Copy,
+  BookOpen,
+  Heart,
+  Gift,
+  RotateCcw,
+  Sparkles
 } from "lucide-react";
 
 const CATEGORIES = [
-  { value: 'recuperacao', label: 'Recuperação de Cliente' },
-  { value: 'boas_vindas', label: 'Boas-vindas' },
-  { value: 'promocao', label: 'Promoção' },
-  { value: 'agradecimento', label: 'Agradecimento' },
-  { value: 'custom', label: 'Personalizado' },
+  { value: 'recuperacao', label: 'Recuperação de Cliente', icon: RotateCcw },
+  { value: 'boas_vindas', label: 'Boas-vindas', icon: Sparkles },
+  { value: 'promocao', label: 'Promoção', icon: Gift },
+  { value: 'agradecimento', label: 'Agradecimento', icon: Heart },
+  { value: 'custom', label: 'Personalizado', icon: FileText },
 ];
 
 const MESSAGE_TYPES = [
@@ -71,6 +83,7 @@ export default function WhatsAppTemplatesPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [templates, setTemplates] = useState<any[]>([]);
+  const [defaultTemplates, setDefaultTemplates] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<any>(null);
   
@@ -87,6 +100,7 @@ export default function WhatsAppTemplatesPage() {
   useEffect(() => {
     if (storeId) {
       fetchTemplates();
+      fetchDefaultTemplates();
     }
   }, [storeId]);
 
@@ -104,6 +118,22 @@ export default function WhatsAppTemplatesPage() {
       console.error('Erro ao buscar templates:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchDefaultTemplates = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('whatsapp_templates' as any)
+        .select('*')
+        .is('store_id', null)
+        .eq('is_default', true)
+        .order('category', { ascending: true });
+
+      if (error) throw error;
+      setDefaultTemplates(data || []);
+    } catch (error) {
+      console.error('Erro ao buscar templates padrão:', error);
     }
   };
 
@@ -136,6 +166,43 @@ export default function WhatsAppTemplatesPage() {
       resetForm();
     }
     setDialogOpen(true);
+  };
+
+  const useDefaultTemplate = async (template: any) => {
+    setSaving(true);
+    try {
+      const templateData = {
+        store_id: storeId,
+        name: template.name,
+        category: template.category,
+        message_type: template.message_type,
+        content: template.content,
+        media_url: template.media_url || null,
+        media_caption: template.media_caption || null,
+        is_active: true,
+        is_default: false,
+      };
+
+      const { error } = await supabase
+        .from('whatsapp_templates' as any)
+        .insert(templateData);
+
+      if (error) throw error;
+      
+      toast({ 
+        title: "Template adicionado!", 
+        description: `"${template.name}" foi copiado para sua loja. Você pode editá-lo livremente.` 
+      });
+      fetchTemplates();
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao usar template",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSave = async () => {
@@ -220,14 +287,24 @@ export default function WhatsAppTemplatesPage() {
     }));
   };
 
-  const getCategoryLabel = (value: string) => {
-    return CATEGORIES.find(c => c.value === value)?.label || value;
+  const getCategoryInfo = (value: string) => {
+    return CATEGORIES.find(c => c.value === value) || CATEGORIES[4];
   };
 
   const getTypeIcon = (type: string) => {
     const TypeIcon = MESSAGE_TYPES.find(t => t.value === type)?.icon || FileText;
     return <TypeIcon className="h-4 w-4" />;
   };
+
+  // Agrupar templates padrão por categoria
+  const groupedDefaultTemplates = defaultTemplates.reduce((acc: Record<string, any[]>, template: any) => {
+    const category = template.category;
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+    acc[category].push(template);
+    return acc;
+  }, {} as Record<string, any[]>);
 
   if (loading) {
     return (
@@ -386,61 +463,134 @@ export default function WhatsAppTemplatesPage() {
         </Dialog>
       </div>
 
-      {templates.length === 0 ? (
+      {/* Templates Padrão */}
+      {defaultTemplates.length > 0 && (
         <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground text-center">
-              Nenhum template criado ainda.<br />
-              Crie seu primeiro template para começar!
-            </p>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5 text-primary" />
+              <CardTitle className="text-lg">📚 Modelos Prontos</CardTitle>
+            </div>
+            <CardDescription>
+              20 templates profissionais prontos para usar. Clique em "Usar" para copiar para sua loja e personalizar.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Accordion type="multiple" className="w-full">
+              {Object.entries(groupedDefaultTemplates).map(([category, categoryTemplates]: [string, any[]]) => {
+                const catInfo = getCategoryInfo(category);
+                const CatIcon = catInfo.icon;
+                return (
+                  <AccordionItem key={category} value={category}>
+                    <AccordionTrigger className="hover:no-underline">
+                      <div className="flex items-center gap-2">
+                        <CatIcon className="h-4 w-4 text-primary" />
+                        <span>{catInfo.label}</span>
+                        <Badge variant="secondary" className="ml-2">
+                          {categoryTemplates.length}
+                        </Badge>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="grid gap-3 md:grid-cols-2 pt-2">
+                        {categoryTemplates.map((template: any) => (
+                          <div 
+                            key={template.id} 
+                            className="p-4 border rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+                          >
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                              <h4 className="font-medium text-sm">{template.name}</h4>
+                              <Button 
+                                size="sm" 
+                                variant="default"
+                                onClick={() => useDefaultTemplate(template)}
+                                disabled={saving}
+                              >
+                                <Copy className="h-3 w-3 mr-1" />
+                                Usar
+                              </Button>
+                            </div>
+                            <p className="text-xs text-muted-foreground line-clamp-3 whitespace-pre-line">
+                              {template.content}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                );
+              })}
+            </Accordion>
           </CardContent>
         </Card>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {templates.map(template => (
-            <Card key={template.id} className={!template.is_active ? 'opacity-60' : ''}>
-              <CardHeader className="pb-2">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2">
-                    {getTypeIcon(template.message_type)}
-                    <CardTitle className="text-base">{template.name}</CardTitle>
-                  </div>
-                  <Badge variant={template.is_active ? "default" : "secondary"}>
-                    {template.is_active ? 'Ativo' : 'Inativo'}
-                  </Badge>
-                </div>
-                <CardDescription>
-                  {getCategoryLabel(template.category)}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
-                  {template.content}
-                </p>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => openDialog(template)}
-                  >
-                    <Pencil className="h-3 w-3 mr-1" />
-                    Editar
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => deleteTemplate(template.id)}
-                  >
-                    <Trash2 className="h-3 w-3 mr-1" />
-                    Remover
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
       )}
+
+      {/* Templates da Loja */}
+      <div>
+        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <FileText className="h-5 w-5" />
+          Meus Templates
+          {templates.length > 0 && (
+            <Badge variant="outline">{templates.length}</Badge>
+          )}
+        </h2>
+
+        {templates.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground text-center">
+                Nenhum template criado ainda.<br />
+                Use um modelo pronto acima ou crie do zero!
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {templates.map(template => (
+              <Card key={template.id} className={!template.is_active ? 'opacity-60' : ''}>
+                <CardHeader className="pb-2">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-2">
+                      {getTypeIcon(template.message_type)}
+                      <CardTitle className="text-base">{template.name}</CardTitle>
+                    </div>
+                    <Badge variant={template.is_active ? "default" : "secondary"}>
+                      {template.is_active ? 'Ativo' : 'Inativo'}
+                    </Badge>
+                  </div>
+                  <CardDescription>
+                    {getCategoryInfo(template.category).label}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground line-clamp-3 mb-4 whitespace-pre-line">
+                    {template.content}
+                  </p>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => openDialog(template)}
+                    >
+                      <Pencil className="h-3 w-3 mr-1" />
+                      Editar
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => deleteTemplate(template.id)}
+                    >
+                      <Trash2 className="h-3 w-3 mr-1" />
+                      Remover
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

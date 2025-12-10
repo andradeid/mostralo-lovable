@@ -28,6 +28,39 @@ interface GroupData {
   is_admin?: boolean;
 }
 
+// Função para extrair número de telefone válido de múltiplos campos possíveis
+// Evolution API 2.3+ usa IDs internos, o número real está em campos alternativos
+const extractPhoneNumber = (contact: any): string | null => {
+  // Campos possíveis onde o número pode estar (ordem de prioridade)
+  const possibleFields = [
+    contact.remoteJid,
+    contact.owner,
+    contact.wuid,
+    contact.jid,
+    contact.phone,
+    contact.phoneNumber,
+    contact.id, // Último porque pode ser ID interno
+  ];
+  
+  for (const field of possibleFields) {
+    if (!field || typeof field !== 'string') continue;
+    
+    // Limpar sufixos do WhatsApp
+    let cleaned = field
+      .replace('@s.whatsapp.net', '')
+      .replace('@c.us', '')
+      .replace('@lid', '')
+      .replace(/@.*$/, ''); // Remove qualquer sufixo @ restante
+    
+    // Verificar se é um número válido (apenas dígitos, 10-15 caracteres)
+    if (/^\d{10,15}$/.test(cleaned)) {
+      return cleaned;
+    }
+  }
+  
+  return null; // Não encontrou número válido
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -176,14 +209,24 @@ serve(async (req) => {
         const contacts = await response.json();
         let synced = 0;
         let errors = 0;
+        let skipped = 0;
+
+        // Log de debug para primeiros 3 contatos
+        console.log('[whatsapp-contacts] Sample contacts structure:', JSON.stringify(contacts.slice(0, 3), null, 2));
 
         for (const contact of contacts) {
           try {
-            // Extrair número do phone
-            const phoneNumber = contact.id?.replace('@s.whatsapp.net', '') || 
-                               contact.remoteJid?.replace('@s.whatsapp.net', '');
+            // Usar função de extração validada
+            const phoneNumber = extractPhoneNumber(contact);
             
-            if (!phoneNumber || phoneNumber.includes('@g.us')) continue; // Ignorar grupos
+            // Ignorar se não encontrou número válido ou é grupo
+            if (!phoneNumber) {
+              console.log('[whatsapp-contacts] Skipping contact without valid phone:', contact.id?.slice(0, 20));
+              skipped++;
+              continue;
+            }
+            
+            if (contact.id?.includes('@g.us')) continue; // Ignorar grupos
 
             const { error } = await supabase
               .from('whatsapp_contacts')
@@ -223,7 +266,8 @@ serve(async (req) => {
             onConflict: 'store_id',
           });
 
-        result = { synced, errors, total: contacts.length };
+        console.log(`[whatsapp-contacts] Sync complete: ${synced} synced, ${skipped} skipped (invalid phone), ${errors} errors`);
+        result = { synced, errors, skipped, total: contacts.length };
         break;
       }
 
@@ -298,13 +342,21 @@ serve(async (req) => {
         const participants = data.participants || data || [];
         let extracted = 0;
         let errors = 0;
+        let skipped = 0;
+
+        // Log de debug para primeiros 3 participantes
+        console.log('[whatsapp-contacts] Sample participants structure:', JSON.stringify(participants.slice(0, 3), null, 2));
 
         for (const participant of participants) {
           try {
-            const phoneNumber = participant.id?.replace('@s.whatsapp.net', '') ||
-                               participant.participant?.replace('@s.whatsapp.net', '');
+            // Usar função de extração validada
+            const phoneNumber = extractPhoneNumber(participant);
             
-            if (!phoneNumber) continue;
+            if (!phoneNumber) {
+              console.log('[whatsapp-contacts] Skipping participant without valid phone:', participant.id?.slice(0, 20));
+              skipped++;
+              continue;
+            }
 
             const { data: contact, error } = await supabase
               .from('whatsapp_contacts')
@@ -359,7 +411,8 @@ serve(async (req) => {
           .eq('store_id', store_id)
           .eq('group_jid', group_jid);
 
-        result = { extracted, errors, total: participants.length };
+        console.log(`[whatsapp-contacts] Extract complete: ${extracted} extracted, ${skipped} skipped (invalid phone), ${errors} errors`);
+        result = { extracted, errors, skipped, total: participants.length };
         break;
       }
 

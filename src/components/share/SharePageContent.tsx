@@ -299,9 +299,10 @@ export function SharePageContent({
             <li>💳 <strong>Cartões:</strong> Perfeito para entrega pessoal e networking</li>
             <li>🏷️ <strong>Mini QR:</strong> Recorte e cole em mesas, vitrines e sacolas</li>
             <li>📊 <strong>Apresentação:</strong> Ideal para reuniões e impressão frente/verso</li>
-            <li>💬 <strong>WhatsApp:</strong> 6 imagens quadradas para enviar como carrossel</li>
+            <li>💬 <strong>WhatsApp:</strong> 7 imagens com WhatsApp Marketing para carrossel</li>
             <li>📱 <strong>Story:</strong> Compartilhe no Instagram e WhatsApp Status</li>
             <li>🖨️ Use papel de qualidade para melhor resultado na impressão</li>
+            <li className="text-[#25D366] font-medium">🎯 <strong>Destaque:</strong> WhatsApp Marketing é um diferencial exclusivo! 23% dos clientes inativos voltam a comprar.</li>
           </ul>
         </CardContent>
       </Card>

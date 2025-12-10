@@ -120,16 +120,17 @@ export function SalesInstagramStory({
         {[
           '🚫 0% de Taxa por Pedido',
           '📱 Marketing Digital Incluso',
-          '💰 Economize até R$ 7.500/mês'
+          '💬 WhatsApp: Recupera 23% Clientes'
         ].map((benefit, index) => (
           <div 
             key={index}
             className="rounded-full text-center text-white font-semibold"
             style={{
-              background: 'rgba(255, 255, 255, 0.2)',
+              background: index === 2 ? 'rgba(37, 211, 102, 0.3)' : 'rgba(255, 255, 255, 0.2)',
               backdropFilter: 'blur(10px)',
               padding: '20px 40px',
-              fontSize: '36px'
+              fontSize: '36px',
+              border: index === 2 ? '2px solid rgba(37, 211, 102, 0.5)' : 'none'
             }}
           >
             {benefit}

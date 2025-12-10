@@ -277,74 +277,183 @@ function SlideDifferentials() {
       background: 'linear-gradient(135deg, #f97316 0%, #f59e0b 100%)',
       display: 'flex',
       flexDirection: 'column',
-      padding: '40px',
+      padding: '32px',
       color: 'white',
       position: 'relative',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '32px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
         <div style={{
-          width: '40px',
-          height: '40px',
-          borderRadius: '10px',
+          width: '36px',
+          height: '36px',
+          borderRadius: '8px',
           background: 'white',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
         }}>
-          <Store style={{ width: '24px', height: '24px', color: '#f97316' }} />
+          <Store style={{ width: '20px', height: '20px', color: '#f97316' }} />
         </div>
-        <span style={{ fontSize: '20px', fontWeight: 'bold' }}>Mostralo</span>
+        <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Mostralo</span>
       </div>
       
-      <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '32px' }}>
+      <h2 style={{ fontSize: '22px', fontWeight: 'bold', marginBottom: '20px' }}>
         O que você ganha:
       </h2>
       
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: 1 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', flex: 1 }}>
         <div style={{ 
           background: 'rgba(255,255,255,0.15)', 
-          borderRadius: '16px', 
-          padding: '20px',
+          borderRadius: '12px', 
+          padding: '16px',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
-          gap: '16px',
+          textAlign: 'center',
         }}>
-          <span style={{ fontSize: '40px' }}>📱</span>
-          <div>
-            <p style={{ fontSize: '18px', fontWeight: 'bold' }}>Cardápio Digital Próprio</p>
-            <p style={{ fontSize: '14px', opacity: 0.85 }}>Seu app personalizado</p>
-          </div>
+          <span style={{ fontSize: '32px', marginBottom: '8px' }}>📱</span>
+          <p style={{ fontSize: '14px', fontWeight: 'bold' }}>Cardápio Digital</p>
+          <p style={{ fontSize: '11px', opacity: 0.85 }}>Seu app próprio</p>
         </div>
         
         <div style={{ 
           background: 'rgba(255,255,255,0.15)', 
-          borderRadius: '16px', 
-          padding: '20px',
+          borderRadius: '12px', 
+          padding: '16px',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
-          gap: '16px',
+          textAlign: 'center',
         }}>
-          <span style={{ fontSize: '40px' }}>📈</span>
-          <div>
-            <p style={{ fontSize: '18px', fontWeight: 'bold' }}>Marketing Digital Incluso</p>
-            <p style={{ fontSize: '14px', opacity: 0.85 }}>Gestão das suas redes sociais</p>
-          </div>
+          <span style={{ fontSize: '32px', marginBottom: '8px' }}>📈</span>
+          <p style={{ fontSize: '14px', fontWeight: 'bold' }}>Marketing Digital</p>
+          <p style={{ fontSize: '11px', opacity: 0.85 }}>Gestão de redes</p>
+        </div>
+        
+        <div style={{ 
+          background: 'rgba(255,255,255,0.2)', 
+          borderRadius: '12px', 
+          padding: '16px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          textAlign: 'center',
+          border: '2px solid rgba(255,255,255,0.3)',
+        }}>
+          <span style={{ fontSize: '32px', marginBottom: '8px' }}>💬</span>
+          <p style={{ fontSize: '14px', fontWeight: 'bold' }}>WhatsApp Marketing</p>
+          <p style={{ fontSize: '11px', opacity: 0.85 }}>Recupera clientes</p>
         </div>
         
         <div style={{ 
           background: 'rgba(255,255,255,0.15)', 
-          borderRadius: '16px', 
-          padding: '20px',
+          borderRadius: '12px', 
+          padding: '16px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          textAlign: 'center',
+        }}>
+          <span style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '8px' }}>0%</span>
+          <p style={{ fontSize: '14px', fontWeight: 'bold' }}>Taxa por Pedido</p>
+          <p style={{ fontSize: '11px', opacity: 0.85 }}>Lucro 100% seu</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Imagem 5 - WHATSAPP MARKETING (NOVO)
+function SlideWhatsAppMarketing() {
+  return (
+    <div style={{
+      ...imageStyle,
+      background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+      display: 'flex',
+      flexDirection: 'column',
+      padding: '32px',
+      color: 'white',
+      position: 'relative',
+      overflow: 'hidden',
+    }}>
+      <div style={{
+        position: 'absolute',
+        top: '-60px',
+        right: '-60px',
+        width: '180px',
+        height: '180px',
+        borderRadius: '50%',
+        background: 'rgba(255,255,255,0.1)',
+      }} />
+      
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+        <div style={{
+          width: '36px',
+          height: '36px',
+          borderRadius: '8px',
+          background: 'white',
           display: 'flex',
           alignItems: 'center',
-          gap: '16px',
+          justifyContent: 'center',
         }}>
-          <span style={{ fontSize: '40px', fontWeight: 'bold' }}>0%</span>
-          <div>
-            <p style={{ fontSize: '18px', fontWeight: 'bold' }}>Taxa por Pedido</p>
-            <p style={{ fontSize: '14px', opacity: 0.85 }}>Lucro 100% seu</p>
-          </div>
+          <MessageSquare style={{ width: '20px', height: '20px', color: '#25D366' }} />
         </div>
+        <span style={{ fontSize: '16px', fontWeight: 'bold' }}>WhatsApp Marketing</span>
+      </div>
+      
+      <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '16px', textAlign: 'center' }}>
+        💬 Recupere Clientes Inativos<br />Automaticamente!
+      </h2>
+      
+      {/* KPIs */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '16px' }}>
+        <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
+          <p style={{ fontSize: '28px', fontWeight: 'bold' }}>23%</p>
+          <p style={{ fontSize: '10px', opacity: 0.9 }}>Clientes Recuperados</p>
+        </div>
+        <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
+          <p style={{ fontSize: '24px', fontWeight: 'bold' }}>R$ 2.400</p>
+          <p style={{ fontSize: '10px', opacity: 0.9 }}>Aumento/mês</p>
+        </div>
+        <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
+          <p style={{ fontSize: '28px', fontWeight: 'bold' }}>8h</p>
+          <p style={{ fontSize: '10px', opacity: 0.9 }}>Economizadas/mês</p>
+        </div>
+        <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '10px', padding: '12px', textAlign: 'center' }}>
+          <p style={{ fontSize: '28px', fontWeight: 'bold' }}>98%</p>
+          <p style={{ fontSize: '10px', opacity: 0.9 }}>Taxa de Abertura</p>
+        </div>
+      </div>
+      
+      {/* Features */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px' }}>
+          <span>✅</span>
+          <span>Recuperação automática de inativos</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px' }}>
+          <span>✅</span>
+          <span>Etiquetas coloridas por segmento</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px' }}>
+          <span>✅</span>
+          <span>Templates personalizados com {'{nome}'}</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px' }}>
+          <span>✅</span>
+          <span>Campanhas agendadas automáticas</span>
+        </div>
+      </div>
+      
+      <div style={{ 
+        background: 'rgba(255,255,255,0.25)', 
+        borderRadius: '10px', 
+        padding: '12px',
+        textAlign: 'center',
+        marginTop: '12px',
+      }}>
+        <p style={{ fontSize: '14px', fontWeight: 'bold' }}>
+          🎁 INCLUSO em todos os planos!
+        </p>
       </div>
     </div>
   );
@@ -548,6 +657,7 @@ export function CommercialPresentationWhatsAppTemplate({
     useRef<HTMLDivElement>(null),
     useRef<HTMLDivElement>(null),
     useRef<HTMLDivElement>(null),
+    useRef<HTMLDivElement>(null),
   ];
 
   const slideNames = [
@@ -555,6 +665,7 @@ export function CommercialPresentationWhatsAppTemplate({
     'problema-taxas',
     'solucao-economia',
     'diferenciais',
+    'whatsapp-marketing',
     'planos',
     'cta-cadastro',
   ];
@@ -759,8 +870,9 @@ export function CommercialPresentationWhatsAppTemplate({
     { title: '2. O Problema', component: <SlideProblem /> },
     { title: '3. A Solução', component: <SlideSolution /> },
     { title: '4. Diferenciais', component: <SlideDifferentials /> },
-    { title: '5. Planos', component: <SlidePlans plans={plans} /> },
-    { title: '6. Chamada para Ação', component: <SlideCTA referralCode={referralCode} qrDataUrl={qrDataUrl} sellerName={sellerName} sellerPhone={sellerPhone} /> },
+    { title: '5. WhatsApp Marketing', component: <SlideWhatsAppMarketing /> },
+    { title: '6. Planos', component: <SlidePlans plans={plans} /> },
+    { title: '7. Chamada para Ação', component: <SlideCTA referralCode={referralCode} qrDataUrl={qrDataUrl} sellerName={sellerName} sellerPhone={sellerPhone} /> },
   ];
 
   return (
@@ -773,7 +885,7 @@ export function CommercialPresentationWhatsAppTemplate({
           className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
         >
           <Download className="h-5 w-5 mr-2" />
-          Baixar Todas (6 imagens)
+          Baixar Todas (7 imagens)
         </Button>
       </div>
 
@@ -843,8 +955,11 @@ export function CommercialPresentationWhatsAppTemplate({
         <div className="text-sm">
           <p className="font-medium text-foreground mb-1">💡 Como usar no WhatsApp:</p>
           <p className="text-muted-foreground">
-            Baixe as imagens e envie na ordem (1 a 6) como carrossel no WhatsApp. 
+            Baixe as imagens e envie na ordem (1 a 7) como carrossel no WhatsApp. 
             Cada imagem tem uma mensagem única e impactante que guia o cliente até a ação.
+            <span className="block mt-1 text-green-600 font-medium">
+              💬 Destaque: O slide de WhatsApp Marketing mostra 23% de recuperação de clientes!
+            </span>
           </p>
         </div>
       </div>

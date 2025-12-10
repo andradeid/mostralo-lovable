@@ -6,10 +6,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { RefreshCw, Search, Users, Crown, Shield, Tag, Pencil } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RefreshCw, Search, Users, Crown, Shield, Tag, Pencil, UserPlus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { EditContactModal } from "./EditContactModal";
+import { BulkLabelModal } from "./BulkLabelModal";
 
 interface Group {
   group_jid: string;
@@ -67,10 +69,16 @@ export function GroupMembersModal({
     customer_name?: string | null;
     labels: { name: string; color: string }[];
   } | null>(null);
+  
+  // Seleção múltipla
+  const [selectedPhones, setSelectedPhones] = useState<Set<string>>(new Set());
+  const [showBulkLabelModal, setShowBulkLabelModal] = useState(false);
+  const [addingAllContacts, setAddingAllContacts] = useState(false);
 
   useEffect(() => {
     if (open) {
       fetchMembers();
+      setSelectedPhones(new Set());
     }
   }, [open, group.group_jid]);
 
@@ -78,7 +86,6 @@ export function GroupMembersModal({
     const cleaned = phone.replace(/\D/g, '');
     const variants = [cleaned];
     
-    // Com e sem 55
     if (cleaned.startsWith('55')) {
       variants.push(cleaned.slice(2));
     } else {
@@ -103,7 +110,6 @@ export function GroupMembersModal({
       if (!store) throw new Error('Loja não encontrada');
       setStoreId(store.id);
 
-      // Buscar membros do grupo via API
       const response = await supabase.functions.invoke('whatsapp-contacts', {
         body: {
           action: 'fetchGroupMembers',
@@ -118,7 +124,6 @@ export function GroupMembersModal({
       const participants = response.data.members?.participants || response.data.members || [];
       setMembers(participants);
 
-      // Buscar contatos sincronizados com etiquetas e foto de perfil
       const { data: contacts } = await supabase
         .from('whatsapp_contacts')
         .select(`
@@ -133,9 +138,8 @@ export function GroupMembersModal({
         `)
         .eq('store_id', store.id);
 
-      // Buscar nomes dos clientes separadamente
       const customerIds = contacts?.map(c => c.customer_id).filter(Boolean) || [];
-      let customersMap = new Map<string, string>();
+      const customersMap = new Map<string, string>();
       
       if (customerIds.length > 0) {
         const { data: customers } = await supabase
@@ -146,11 +150,10 @@ export function GroupMembersModal({
         customers?.forEach(c => customersMap.set(c.id, c.name));
       }
 
-      // Criar mapa de telefone → contato
       const contactsMap = new Map<string, SyncedContact>();
       contacts?.forEach(contact => {
         const labels: LabelWithColor[] = contact.whatsapp_contact_label_assignments
-          ?.map((a: any) => ({
+          ?.map((a: { whatsapp_contact_labels: { name: string; color: string } | null }) => ({
             name: a.whatsapp_contact_labels?.name,
             color: a.whatsapp_contact_labels?.color || '#6b7280'
           }))
@@ -165,7 +168,6 @@ export function GroupMembersModal({
           labels,
         };
 
-        // Adicionar variantes do telefone para matching
         const variants = createPhoneVariants(contact.phone_number);
         variants.forEach(v => contactsMap.set(v, syncedContact));
       });
@@ -234,6 +236,148 @@ export function GroupMembersModal({
       || 'Sem nome';
   };
 
+  // Membros não sincronizados
+  const getUnsyncedMembers = (): { member: Member; phone: string }[] => {
+    return members
+      .map(m => ({ member: m, phone: extractPhoneFromMember(m) }))
+      .filter((item): item is { member: Member; phone: string } => 
+        item.phone !== null && !findSyncedContact(item.phone)
+      );
+  };
+
+  // Adicionar todos como contatos
+  const handleAddAllAsContacts = async () => {
+    if (!storeId) return;
+    
+    const unsyncedMembers = getUnsyncedMembers();
+    if (unsyncedMembers.length === 0) {
+      toast.info('Todos os membros já são contatos');
+      return;
+    }
+
+    setAddingAllContacts(true);
+    try {
+      const contactsToInsert = unsyncedMembers.map(({ member, phone }) => ({
+        store_id: storeId,
+        phone_number: phone,
+        name: member.name || member.pushName || null,
+        source: 'whatsapp_group',
+        whatsapp_jid: member.id,
+      }));
+
+      const { error } = await supabase
+        .from('whatsapp_contacts')
+        .upsert(contactsToInsert, { 
+          onConflict: 'store_id,phone_number',
+          ignoreDuplicates: true 
+        });
+
+      if (error) throw error;
+
+      toast.success(`${unsyncedMembers.length} contatos adicionados com sucesso!`);
+      await fetchMembers();
+    } catch (error) {
+      console.error('Erro ao adicionar contatos:', error);
+      toast.error('Erro ao adicionar contatos');
+    } finally {
+      setAddingAllContacts(false);
+    }
+  };
+
+  // Toggle seleção individual
+  const toggleSelection = (phone: string) => {
+    const newSelection = new Set(selectedPhones);
+    if (newSelection.has(phone)) {
+      newSelection.delete(phone);
+    } else {
+      newSelection.add(phone);
+    }
+    setSelectedPhones(newSelection);
+  };
+
+  // Selecionar/deselecionar todos
+  const toggleSelectAll = () => {
+    const allPhones = filteredMembers
+      .map(m => extractPhoneFromMember(m))
+      .filter((p): p is string => p !== null);
+    
+    if (selectedPhones.size === allPhones.length) {
+      setSelectedPhones(new Set());
+    } else {
+      setSelectedPhones(new Set(allPhones));
+    }
+  };
+
+  // Aplicar etiqueta em massa
+  const handleBulkLabelAssign = async (labelId: string) => {
+    if (!storeId || selectedPhones.size === 0) return;
+
+    try {
+      const phonesArray = Array.from(selectedPhones);
+
+      // Primeiro, garantir que todos os selecionados são contatos
+      const contactsToCreate: { store_id: string; phone_number: string; name: string | null; source: string }[] = [];
+      
+      for (const phone of phonesArray) {
+        if (!findSyncedContact(phone)) {
+          const member = members.find(m => extractPhoneFromMember(m) === phone);
+          if (member) {
+            contactsToCreate.push({
+              store_id: storeId,
+              phone_number: phone,
+              name: member.name || member.pushName || null,
+              source: 'whatsapp_group',
+            });
+          }
+        }
+      }
+
+      if (contactsToCreate.length > 0) {
+        await supabase
+          .from('whatsapp_contacts')
+          .upsert(contactsToCreate, { 
+            onConflict: 'store_id,phone_number',
+            ignoreDuplicates: true 
+          });
+      }
+
+      // Buscar IDs dos contatos
+      const { data: contacts } = await supabase
+        .from('whatsapp_contacts')
+        .select('id, phone_number')
+        .eq('store_id', storeId)
+        .in('phone_number', phonesArray);
+
+      if (!contacts || contacts.length === 0) {
+        toast.error('Nenhum contato encontrado');
+        return;
+      }
+
+      // Criar assignments de etiqueta
+      const assignments = contacts.map(c => ({
+        contact_id: c.id,
+        label_id: labelId,
+      }));
+
+      const { error } = await supabase
+        .from('whatsapp_contact_label_assignments')
+        .upsert(assignments, { 
+          onConflict: 'contact_id,label_id',
+          ignoreDuplicates: true 
+        });
+
+      if (error) throw error;
+
+      toast.success(`Etiqueta aplicada a ${contacts.length} contatos!`);
+      setShowBulkLabelModal(false);
+      setSelectedPhones(new Set());
+      await fetchMembers();
+    } catch (error) {
+      console.error('Erro ao aplicar etiquetas:', error);
+      toast.error('Erro ao aplicar etiquetas');
+    }
+  };
+
   const filteredMembers = members.filter(member => {
     const phone = extractPhoneFromMember(member) || '';
     const syncedContact = findSyncedContact(phone);
@@ -245,9 +389,15 @@ export function GroupMembersModal({
       || labelsText.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
+  const selectablePhones = filteredMembers
+    .map(m => extractPhoneFromMember(m))
+    .filter((p): p is string => p !== null);
+
+  const unsyncedCount = getUnsyncedMembers().length;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[80vh]">
+      <DialogContent className="max-w-lg max-h-[85vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
@@ -258,12 +408,62 @@ export function GroupMembersModal({
         <div className="space-y-4">
           <div className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg">
             <Users className="h-8 w-8 text-muted-foreground" />
-            <div>
+            <div className="flex-1">
               <p className="font-medium">{group.name || 'Sem nome'}</p>
               <p className="text-sm text-muted-foreground">
                 {members.length} membros carregados
               </p>
             </div>
+            {unsyncedCount > 0 && (
+              <Button 
+                size="sm" 
+                onClick={handleAddAllAsContacts}
+                disabled={addingAllContacts}
+              >
+                {addingAllContacts ? (
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <UserPlus className="h-4 w-4 mr-2" />
+                )}
+                Adicionar {unsyncedCount}
+              </Button>
+            )}
+          </div>
+
+          {/* Barra de seleção */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Checkbox 
+                id="select-all"
+                checked={selectedPhones.size > 0 && selectedPhones.size === selectablePhones.length}
+                onCheckedChange={toggleSelectAll}
+              />
+              <label htmlFor="select-all" className="text-sm cursor-pointer">
+                Selecionar Todos
+              </label>
+            </div>
+            
+            {selectedPhones.size > 0 && (
+              <div className="flex items-center gap-2 ml-auto">
+                <Badge variant="secondary">
+                  {selectedPhones.size} selecionado(s)
+                </Badge>
+                <Button 
+                  size="sm" 
+                  onClick={() => setShowBulkLabelModal(true)}
+                >
+                  <Tag className="h-4 w-4 mr-2" />
+                  Aplicar Etiqueta
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="ghost"
+                  onClick={() => setSelectedPhones(new Set())}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </div>
 
           <div className="relative">
@@ -281,19 +481,27 @@ export function GroupMembersModal({
               <RefreshCw className="h-6 w-6 animate-spin text-primary" />
             </div>
           ) : (
-            <ScrollArea className="h-[350px] pr-4">
+            <ScrollArea className="h-[300px] pr-4">
               <div className="space-y-3">
                 {filteredMembers.map((member, index) => {
                   const phone = extractPhoneFromMember(member);
                   const syncedContact = findSyncedContact(phone);
                   const displayName = getDisplayName(member, syncedContact);
+                  const isSelected = phone ? selectedPhones.has(phone) : false;
 
                   return (
                     <Card 
                       key={member.id || index}
-                      className="p-3 hover:shadow-md transition-shadow"
+                      className={`p-3 hover:shadow-md transition-shadow ${isSelected ? 'ring-2 ring-primary bg-primary/5' : ''}`}
                     >
                       <div className="flex items-center gap-3">
+                        {phone && (
+                          <Checkbox 
+                            checked={isSelected}
+                            onCheckedChange={() => toggleSelection(phone)}
+                          />
+                        )}
+                        
                         <Avatar className="h-12 w-12">
                           {syncedContact?.profile_picture_url && (
                             <AvatarImage src={syncedContact.profile_picture_url} />
@@ -318,6 +526,11 @@ export function GroupMembersModal({
                               <Badge className="text-xs h-5 bg-amber-500">
                                 <Crown className="h-3 w-3 mr-1" />
                                 Dono
+                              </Badge>
+                            )}
+                            {!syncedContact && phone && (
+                              <Badge variant="outline" className="text-xs h-5">
+                                Novo
                               </Badge>
                             )}
                           </div>
@@ -383,6 +596,17 @@ export function GroupMembersModal({
           contact={editingContact}
           storeId={storeId}
           onSave={() => fetchMembers()}
+        />
+      )}
+
+      {/* Modal de Etiqueta em Massa */}
+      {storeId && (
+        <BulkLabelModal
+          open={showBulkLabelModal}
+          onOpenChange={setShowBulkLabelModal}
+          storeId={storeId}
+          selectedCount={selectedPhones.size}
+          onAssign={handleBulkLabelAssign}
         />
       )}
     </Dialog>

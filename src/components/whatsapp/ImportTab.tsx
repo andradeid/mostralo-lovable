@@ -145,7 +145,7 @@ export function ImportTab({ storeId, instance, onRefresh }: ImportTabProps) {
             phone_number: c.phone_number,
             name: c.name,
           })),
-          label_id: selectedLabel || undefined,
+          label_id: selectedLabel && selectedLabel !== 'none' ? selectedLabel : undefined,
           source,
         },
       });
@@ -244,7 +244,7 @@ export function ImportTab({ storeId, instance, onRefresh }: ImportTabProps) {
                   <SelectValue placeholder="Selecione uma etiqueta" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhuma</SelectItem>
+                  <SelectItem value="none">Nenhuma</SelectItem>
                   {labels.map(label => (
                     <SelectItem key={label.id} value={label.id}>
                       <div className="flex items-center gap-2">
@@ -315,7 +315,7 @@ export function ImportTab({ storeId, instance, onRefresh }: ImportTabProps) {
                   <SelectValue placeholder="Selecione uma etiqueta" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhuma</SelectItem>
+                  <SelectItem value="none">Nenhuma</SelectItem>
                   {labels.map(label => (
                     <SelectItem key={label.id} value={label.id}>
                       <div className="flex items-center gap-2">

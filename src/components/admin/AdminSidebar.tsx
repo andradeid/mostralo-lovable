@@ -523,7 +523,7 @@ export function AdminSidebar() {
     const active = isActive(path);
     return active 
       ? "bg-primary text-primary-foreground hover:bg-primary/90" 
-      : "hover:bg-muted text-muted-foreground hover:text-foreground";
+      : "bg-primary/10 text-primary hover:bg-primary/20";
   };
 
   const handleSignOut = async () => {

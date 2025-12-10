@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MessageCircle, Check, CheckCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -19,33 +19,71 @@ interface MockupProps {
 const PhoneMockup = ({ title, messages, isVisible, delay = 0 }: MockupProps) => {
   const [visibleMessages, setVisibleMessages] = useState<number[]>([]);
   const [typing, setTyping] = useState(false);
+  const [isFadingOut, setIsFadingOut] = useState(false);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [visibleMessages, typing]);
 
   useEffect(() => {
     if (!isVisible) {
       setVisibleMessages([]);
       setTyping(false);
+      setIsFadingOut(false);
       return;
     }
 
     let timeouts: NodeJS.Timeout[] = [];
+    let loopTimeout: NodeJS.Timeout;
+    let startTimeout: NodeJS.Timeout;
 
-    messages.forEach((msg, index) => {
-      // Show typing indicator before bot messages
-      if (msg.isBot && index > 0) {
+    const runAnimation = () => {
+      setIsFadingOut(false);
+      setVisibleMessages([]);
+      setTyping(false);
+
+      messages.forEach((msg, index) => {
+        if (msg.isBot && index > 0) {
+          timeouts.push(
+            setTimeout(() => setTyping(true), msg.delay - 800)
+          );
+        }
+
         timeouts.push(
-          setTimeout(() => setTyping(true), delay + msg.delay - 800)
+          setTimeout(() => {
+            setTyping(false);
+            setVisibleMessages(prev => [...prev, msg.id]);
+          }, msg.delay)
         );
-      }
+      });
 
+      const lastMessageDelay = Math.max(...messages.map(m => m.delay));
+      
       timeouts.push(
         setTimeout(() => {
-          setTyping(false);
-          setVisibleMessages(prev => [...prev, msg.id]);
-        }, delay + msg.delay)
+          setIsFadingOut(true);
+        }, lastMessageDelay + 3000)
       );
-    });
 
-    return () => timeouts.forEach(clearTimeout);
+      loopTimeout = setTimeout(() => {
+        runAnimation();
+      }, lastMessageDelay + 4000);
+    };
+
+    startTimeout = setTimeout(runAnimation, delay);
+
+    return () => {
+      timeouts.forEach(clearTimeout);
+      clearTimeout(loopTimeout);
+      clearTimeout(startTimeout);
+    };
   }, [isVisible, messages, delay]);
 
   return (
@@ -69,7 +107,11 @@ const PhoneMockup = ({ title, messages, isVisible, delay = 0 }: MockupProps) => 
           </div>
 
           {/* Chat Area */}
-          <div className="p-3 space-y-2 h-[calc(100%-80px)] overflow-y-auto">
+          <div 
+            ref={chatContainerRef}
+            className="p-3 space-y-2 h-[calc(100%-80px)] overflow-y-auto"
+            style={{ scrollBehavior: 'smooth' }}
+          >
             {messages.map((msg) => (
               <div
                 key={msg.id}
@@ -79,7 +121,9 @@ const PhoneMockup = ({ title, messages, isVisible, delay = 0 }: MockupProps) => 
                     ? "bg-white dark:bg-[#202c33] text-foreground ml-0 mr-auto rounded-tl-none"
                     : "bg-[#dcf8c6] dark:bg-[#005c4b] text-foreground ml-auto mr-0 rounded-tr-none",
                   visibleMessages.includes(msg.id)
-                    ? "opacity-100 translate-y-0"
+                    ? isFadingOut 
+                      ? "opacity-0 translate-y-0"
+                      : "opacity-100 translate-y-0"
                     : "opacity-0 translate-y-4"
                 )}
               >
@@ -97,7 +141,10 @@ const PhoneMockup = ({ title, messages, isVisible, delay = 0 }: MockupProps) => 
 
             {/* Typing Indicator */}
             {typing && (
-              <div className="max-w-[85%] bg-white dark:bg-[#202c33] rounded-lg px-4 py-3 rounded-tl-none">
+              <div className={cn(
+                "max-w-[85%] bg-white dark:bg-[#202c33] rounded-lg px-4 py-3 rounded-tl-none transition-opacity duration-300",
+                isFadingOut ? "opacity-0" : "opacity-100"
+              )}>
                 <div className="flex gap-1">
                   <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                   <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -157,7 +204,7 @@ export const WhatsAppMarketingMockups = ({ isVisible }: WhatsAppMarketingMockups
           title="Campanha Promocional"
           messages={campaignMessages}
           isVisible={isVisible}
-          delay={1000}
+          delay={3000}
         />
         <p className="mt-4 text-sm font-medium text-muted-foreground">
           📢 Promoção em massa
@@ -169,7 +216,7 @@ export const WhatsAppMarketingMockups = ({ isVisible }: WhatsAppMarketingMockups
           title="Status Automático"
           messages={statusMessages}
           isVisible={isVisible}
-          delay={2000}
+          delay={6000}
         />
         <p className="mt-4 text-sm font-medium text-muted-foreground">
           📦 Atualização em tempo real

@@ -3,14 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Users, UsersRound, Tags, Upload, RefreshCw, Settings } from "lucide-react";
+import { ArrowLeft, Users, UsersRound, Tags, Upload, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { ContactsTab } from "@/components/whatsapp/ContactsTab";
 import { GroupsTab } from "@/components/whatsapp/GroupsTab";
 import { LabelsTab } from "@/components/whatsapp/LabelsTab";
 import { ImportTab } from "@/components/whatsapp/ImportTab";
 import { SyncConfigCard } from "@/components/whatsapp/SyncConfigCard";
+import { useStoreAccess } from "@/hooks/useStoreAccess";
 
 interface WhatsAppInstance {
   id: string;
@@ -23,7 +23,7 @@ interface WhatsAppInstance {
 
 export default function WhatsAppContactsPage() {
   const navigate = useNavigate();
-  const [storeId, setStoreId] = useState<string | null>(null);
+  const { storeId, isLoading: storeLoading } = useStoreAccess();
   const [instance, setInstance] = useState<WhatsAppInstance | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("contacts");
@@ -32,55 +32,40 @@ export default function WhatsAppContactsPage() {
   const [labelsCount, setLabelsCount] = useState(0);
 
   useEffect(() => {
-    fetchStoreAndInstance();
-  }, []);
-
-  useEffect(() => {
     if (storeId) {
+      fetchInstance();
       fetchCounts();
     }
   }, [storeId]);
 
-  const fetchStoreAndInstance = async () => {
+  const fetchInstance = async () => {
+    if (!storeId) return;
+    
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: store } = await supabase
-        .from('stores')
-        .select('id')
-        .eq('owner_id', user.id)
+      const { data: instanceData } = await supabase
+        .from('whatsapp_instances')
+        .select('id, instance_name, status, store_id')
+        .eq('store_id', storeId)
+        .eq('status', 'connected')
         .single();
 
-      if (store) {
-        setStoreId(store.id);
-
-        const { data: instanceData } = await supabase
-          .from('whatsapp_instances')
-          .select('id, instance_name, status, store_id')
-          .eq('store_id', store.id)
-          .eq('status', 'connected')
+      if (instanceData) {
+        const { data: evolutionConfig } = await supabase
+          .from('evolution_config')
+          .select('api_url, api_key')
+          .eq('is_active', true)
           .single();
 
-        if (instanceData) {
-          // Buscar config da Evolution API
-          const { data: evolutionConfig } = await supabase
-            .from('evolution_config')
-            .select('api_url, api_key')
-            .eq('is_active', true)
-            .single();
-
-          if (evolutionConfig) {
-            setInstance({
-              ...instanceData,
-              api_url: evolutionConfig.api_url,
-              api_key: evolutionConfig.api_key,
-            });
-          }
+        if (evolutionConfig) {
+          setInstance({
+            ...instanceData,
+            api_url: evolutionConfig.api_url,
+            api_key: evolutionConfig.api_key,
+          });
         }
       }
     } catch (error) {
-      console.error('Erro ao buscar dados:', error);
+      console.error('Erro ao buscar instância:', error);
     } finally {
       setLoading(false);
     }
@@ -100,7 +85,7 @@ export default function WhatsAppContactsPage() {
     setLabelsCount(labelsRes.count || 0);
   };
 
-  if (loading) {
+  if (storeLoading || loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <RefreshCw className="h-8 w-8 animate-spin text-primary" />

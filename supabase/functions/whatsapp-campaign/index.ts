@@ -6,6 +6,25 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Normaliza telefone para formato WhatsApp (com DDI 55 Brasil)
+function normalizePhoneForWhatsApp(phone: string): string {
+  // Remove caracteres não numéricos
+  let normalized = phone.replace(/\D/g, '');
+  
+  // Se já começa com 55 e tem 12-13 dígitos, está correto
+  if (normalized.startsWith('55') && normalized.length >= 12 && normalized.length <= 13) {
+    return normalized;
+  }
+  
+  // Se tem 10-11 dígitos (DDD + número), adicionar 55
+  if (normalized.length >= 10 && normalized.length <= 11) {
+    return '55' + normalized;
+  }
+  
+  // Retorna como está se não se enquadrar
+  return normalized;
+}
+
 // Função para substituir variáveis no template
 function replaceVariables(template: string, customer: any, store: any): string {
   const now = new Date();
@@ -252,7 +271,7 @@ serve(async (req) => {
             campaign_id: campaignId,
             customer_id: customer.id,
             template_id: campaign.template_id,
-            phone_number: customer.phone?.replace(/\D/g, ''),
+            phone_number: normalizePhoneForWhatsApp(customer.phone || ''),
             customer_name: customer.name,
             message_type: campaign.template.message_type,
             content: finalContent,

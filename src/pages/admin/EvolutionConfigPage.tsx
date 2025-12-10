@@ -119,25 +119,26 @@ export default function EvolutionConfigPage() {
     setConnectionStatus('unknown');
 
     try {
-      const response = await fetch(`${config.api_url.replace(/\/$/, '')}/instance/fetchInstances`, {
-        method: 'GET',
-        headers: {
-          'apikey': config.api_key,
-        },
+      const { data, error } = await supabase.functions.invoke('evolution-test-connection', {
+        body: { 
+          api_url: config.api_url, 
+          api_key: config.api_key 
+        }
       });
 
-      if (response.ok) {
+      if (error) throw error;
+
+      if (data?.success) {
         setConnectionStatus('connected');
-        const data = await response.json();
         toast({
           title: "Conexão OK",
-          description: `Evolution API conectada. ${Array.isArray(data) ? data.length : 0} instância(s) encontrada(s).`,
+          description: data.message || `Evolution API conectada.`,
         });
       } else {
         setConnectionStatus('error');
         toast({
           title: "Erro de Conexão",
-          description: `Status: ${response.status} - ${response.statusText}`,
+          description: data?.error || "Não foi possível conectar à Evolution API",
           variant: "destructive",
         });
       }

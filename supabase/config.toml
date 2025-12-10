@@ -80,3 +80,6 @@ verify_jwt = true
 
 [functions.whatsapp-campaign]
 verify_jwt = true
+
+[functions.evolution-test-connection]
+verify_jwt = true

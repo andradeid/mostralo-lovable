@@ -533,26 +533,32 @@ const Index = () => {
                 <span className="text-primary block mt-2 font-display">Invista no SEU negócio, não no deles.</span>
               </p>
               <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-                Sistema completo com <strong>0% de taxa por pedido</strong>. Todos os clientes e dados são 100% seus.
+                Sistema completo com <strong>0% de taxa por pedido</strong> + <span className="text-green-600 dark:text-green-400 font-bold">WhatsApp Marketing automático</span> que recupera clientes inativos. Todos os clientes são 100% seus.
               </p>
 
-              {/* Novo destaque Marketing Digital */}
-              <div className="mt-6 p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 rounded-2xl border-2 border-blue-200 dark:border-blue-800 max-w-3xl mx-auto">
+              {/* Novo destaque Marketing + WhatsApp */}
+              <div className="mt-6 p-6 bg-gradient-to-r from-blue-50 via-green-50 to-emerald-50 dark:from-blue-950/30 dark:via-green-950/30 dark:to-emerald-950/30 rounded-2xl border-2 border-green-300 dark:border-green-700 max-w-3xl mx-auto">
                 <div className="flex items-center justify-center gap-2 mb-3">
                   <Sparkles className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                  <h3 className="text-xl md:text-2xl font-bold text-blue-600 dark:text-blue-400">
-                    E o marketing?
+                  <MessageCircle className="w-6 h-6 text-green-500" />
+                  <h3 className="text-xl md:text-2xl font-bold text-foreground">
+                    E o marketing? E os clientes inativos?
                   </h3>
                 </div>
                 <p className="text-lg md:text-xl font-semibold text-foreground">
-                  Nós fazemos a gestão pra você.
+                  Nós cuidamos de <span className="text-green-600 dark:text-green-400">TUDO</span> pra você.
                 </p>
                 <p className="text-sm md:text-base text-muted-foreground mt-2">
-                  Gestão completa de redes sociais INCLUSA em todos os planos. Tudo em um único lugar para crescer o SEU negócio.
+                  Gestão de redes sociais + <strong className="text-green-600 dark:text-green-400">WhatsApp Marketing automático</strong> que recupera clientes inativos e aumenta suas vendas.
                 </p>
-                <Badge className="mt-4 bg-green-600 hover:bg-green-700 text-white">
-                  🔥 Único com Marketing Digital Incluso
-                </Badge>
+                <div className="flex flex-wrap justify-center gap-2 mt-4">
+                  <Badge className="bg-blue-600 hover:bg-blue-700 text-white">
+                    🔥 Marketing Digital Incluso
+                  </Badge>
+                  <Badge className="bg-green-600 hover:bg-green-700 text-white">
+                    💬 WhatsApp Marketing Incluso
+                  </Badge>
+                </div>
               </div>
             </div>
             
@@ -577,6 +583,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* WhatsApp Marketing Section - Segunda Seção */}
+      <WhatsAppMarketingSection />
 
       {/* Nova Seção: Você Está Financiando Seu Próprio Concorrente */}
       <section className="py-12 md:py-16 bg-gradient-to-br from-red-100 to-orange-100 dark:from-red-950/30 dark:to-orange-950/30 border-y border-red-200 dark:border-red-800 w-full overflow-x-hidden">
@@ -971,9 +980,6 @@ const Index = () => {
           </Card>
         </div>
       </section>
-
-      {/* WhatsApp Marketing Section */}
-      <WhatsAppMarketingSection />
 
       {/* Nova Seção: Comparativo com Concorrentes */}
       <section className="py-12 md:py-20 lg:py-32 bg-gradient-to-br from-gray-50 to-slate-50 dark:from-gray-950/20 dark:to-slate-950/20">

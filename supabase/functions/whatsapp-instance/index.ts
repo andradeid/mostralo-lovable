@@ -220,10 +220,14 @@ serve(async (req) => {
         console.log('[whatsapp-instance] Status response:', statusData);
 
         // Mapear status da Evolution para nosso enum
+        // A Evolution API retorna o estado em statusData.instance.state
+        const instanceState = statusData.instance?.state || statusData.state;
+        console.log('[whatsapp-instance] Instance state:', instanceState);
+        
         let newStatus: 'disconnected' | 'connecting' | 'connected' | 'banned' = 'disconnected';
-        if (statusData.state === 'open') {
+        if (instanceState === 'open') {
           newStatus = 'connected';
-        } else if (statusData.state === 'connecting') {
+        } else if (instanceState === 'connecting') {
           newStatus = 'connecting';
         }
 

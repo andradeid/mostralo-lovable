@@ -86,14 +86,20 @@ export function GroupMembersModal({
   const extractPhoneFromId = (id: string): string | null => {
     if (!id) return null;
     
-    // Limpar todos os sufixos do WhatsApp
+    // Se é um LID (Linked ID interno do WhatsApp), não temos o número real
+    if (id.includes('@lid')) {
+      return null;
+    }
+    
+    // Limpar sufixos do WhatsApp
     let cleaned = id
       .replace('@s.whatsapp.net', '')
-      .replace('@c.us', '')
-      .replace('@lid', '');
+      .replace('@c.us', '');
     
-    // Verificar se é um número válido (10-15 dígitos)
-    if (/^\d{10,15}$/.test(cleaned)) {
+    // Validar formato de telefone brasileiro (não LID)
+    // Telefones brasileiros: 10-13 dígitos (com ou sem 55)
+    // LIDs têm 14+ dígitos ou padrões estranhos
+    if (/^\d{10,13}$/.test(cleaned)) {
       return cleaned;
     }
     

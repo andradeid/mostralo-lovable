@@ -3581,6 +3581,87 @@ export type Database = {
           },
         ]
       }
+      whatsapp_auto_messages: {
+        Row: {
+          created_at: string | null
+          greeting_enabled: boolean | null
+          greeting_message: string | null
+          id: string
+          is_enabled: boolean | null
+          order_cancelled_enabled: boolean | null
+          order_cancelled_message: string | null
+          order_completed_enabled: boolean | null
+          order_completed_message: string | null
+          order_confirmed_enabled: boolean | null
+          order_confirmed_message: string | null
+          order_in_transit_enabled: boolean | null
+          order_in_transit_message: string | null
+          order_ready_enabled: boolean | null
+          order_ready_message: string | null
+          order_received_enabled: boolean | null
+          order_received_message: string | null
+          store_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          greeting_enabled?: boolean | null
+          greeting_message?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          order_cancelled_enabled?: boolean | null
+          order_cancelled_message?: string | null
+          order_completed_enabled?: boolean | null
+          order_completed_message?: string | null
+          order_confirmed_enabled?: boolean | null
+          order_confirmed_message?: string | null
+          order_in_transit_enabled?: boolean | null
+          order_in_transit_message?: string | null
+          order_ready_enabled?: boolean | null
+          order_ready_message?: string | null
+          order_received_enabled?: boolean | null
+          order_received_message?: string | null
+          store_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          greeting_enabled?: boolean | null
+          greeting_message?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          order_cancelled_enabled?: boolean | null
+          order_cancelled_message?: string | null
+          order_completed_enabled?: boolean | null
+          order_completed_message?: string | null
+          order_confirmed_enabled?: boolean | null
+          order_confirmed_message?: string | null
+          order_in_transit_enabled?: boolean | null
+          order_in_transit_message?: string | null
+          order_ready_enabled?: boolean | null
+          order_ready_message?: string | null
+          order_received_enabled?: boolean | null
+          order_received_message?: string | null
+          store_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_auto_messages_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_auto_messages_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_campaigns: {
         Row: {
           completed_at: string | null

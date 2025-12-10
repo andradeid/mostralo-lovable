@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { BulkLabelModal } from "./BulkLabelModal";
 import { ExportContactsModal } from "./ExportContactsModal";
 import { SendMessageModal } from "./SendMessageModal";
-
+import { ManageLabelsModal } from "./ManageLabelsModal";
 interface Contact {
   id: string;
   phone_number: string;
@@ -57,6 +57,13 @@ export function ContactsTab({ storeId, instance, onRefresh, storeName = "", stor
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [sendMessageModalOpen, setSendMessageModalOpen] = useState(false);
   const [selectedContactForMessage, setSelectedContactForMessage] = useState<Contact | null>(null);
+  const [manageLabelsModalOpen, setManageLabelsModalOpen] = useState(false);
+  const [selectedContactForLabels, setSelectedContactForLabels] = useState<Contact | null>(null);
+
+  const openManageLabelsModal = (contact: Contact) => {
+    setSelectedContactForLabels(contact);
+    setManageLabelsModalOpen(true);
+  };
 
   // Função para formatar número de telefone
   const formatPhoneNumber = (phone: string): string => {
@@ -394,9 +401,9 @@ export function ContactsTab({ storeId, instance, onRefresh, storeName = "", stor
                       <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
                       Enviar Mensagem
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setBulkLabelModalOpen(true)}>
+                    <DropdownMenuItem onClick={() => openManageLabelsModal(contact)}>
                       <Tags className="h-4 w-4 mr-2" />
-                      Adicionar Etiqueta
+                      Gerenciar Etiquetas
                     </DropdownMenuItem>
                     <DropdownMenuItem 
                       onClick={() => handleDeleteContact(contact.id)}
@@ -436,6 +443,18 @@ export function ContactsTab({ storeId, instance, onRefresh, storeName = "", stor
         storeName={storeName}
         storeSlug={storeSlug}
       />
+
+      {selectedContactForLabels && (
+        <ManageLabelsModal
+          open={manageLabelsModalOpen}
+          onOpenChange={setManageLabelsModalOpen}
+          storeId={storeId}
+          contactId={selectedContactForLabels.id}
+          contactName={selectedContactForLabels.name || selectedContactForLabels.push_name || selectedContactForLabels.phone_number}
+          currentLabels={selectedContactForLabels.labels}
+          onSuccess={fetchContacts}
+        />
+      )}
     </Card>
   );
 }

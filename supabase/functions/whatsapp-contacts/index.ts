@@ -210,9 +210,77 @@ serve(async (req) => {
         let synced = 0;
         let errors = 0;
         let skipped = 0;
+        let linked = 0;
 
         // Log de debug para primeiros 3 contatos
         console.log('[whatsapp-contacts] Sample contacts structure:', JSON.stringify(contacts.slice(0, 3), null, 2));
+
+        // === CRIAR/GARANTIR ETIQUETA "Cliente" PARA A LOJA ===
+        let clienteLabelId: string | null = null;
+        
+        // Tentar buscar etiqueta existente
+        const { data: existingLabel } = await supabase
+          .from('whatsapp_contact_labels')
+          .select('id')
+          .eq('store_id', store_id)
+          .eq('name', 'Cliente')
+          .maybeSingle();
+
+        if (existingLabel) {
+          clienteLabelId = existingLabel.id;
+          console.log('[whatsapp-contacts] Etiqueta "Cliente" já existe:', clienteLabelId);
+        } else {
+          // Criar etiqueta "Cliente"
+          const { data: newLabel, error: labelError } = await supabase
+            .from('whatsapp_contact_labels')
+            .insert({
+              store_id,
+              name: 'Cliente',
+              color: '#22c55e', // Verde
+              description: 'Clientes cadastrados na loja'
+            })
+            .select('id')
+            .single();
+
+          if (labelError) {
+            console.error('[whatsapp-contacts] Erro ao criar etiqueta Cliente:', labelError);
+          } else {
+            clienteLabelId = newLabel?.id || null;
+            console.log('[whatsapp-contacts] Etiqueta "Cliente" criada:', clienteLabelId);
+          }
+        }
+
+        // Buscar todos os clientes da loja para comparação rápida
+        const { data: storeCustomers } = await supabase
+          .from('customer_stores')
+          .select('customer_id, customers!inner(id, name, phone)')
+          .eq('store_id', store_id);
+
+        // Criar mapa de telefone -> customer para busca rápida
+        const customerMap = new Map<string, { id: string; name: string }>();
+        
+        if (storeCustomers) {
+          for (const cs of storeCustomers) {
+            const customer = cs.customers as any;
+            if (customer?.phone) {
+              // Normalizar telefone e criar variantes
+              const normalizedPhone = customer.phone.replace(/\D/g, '');
+              customerMap.set(normalizedPhone, { id: customer.id, name: customer.name });
+              
+              // Variante sem código do país (55)
+              if (normalizedPhone.startsWith('55') && normalizedPhone.length > 10) {
+                customerMap.set(normalizedPhone.slice(2), { id: customer.id, name: customer.name });
+              }
+              
+              // Variante com código do país
+              if (!normalizedPhone.startsWith('55') && normalizedPhone.length <= 11) {
+                customerMap.set('55' + normalizedPhone, { id: customer.id, name: customer.name });
+              }
+            }
+          }
+        }
+        
+        console.log('[whatsapp-contacts] Customer map size:', customerMap.size);
 
         for (const contact of contacts) {
           try {
@@ -228,26 +296,59 @@ serve(async (req) => {
             
             if (contact.id?.includes('@g.us')) continue; // Ignorar grupos
 
-            const { error } = await supabase
+            // Verificar se é um cliente da loja
+            const normalizedPhone = phoneNumber.replace(/\D/g, '');
+            const matchedCustomer = customerMap.get(normalizedPhone) ||
+                                   customerMap.get(normalizedPhone.slice(2)) ||
+                                   customerMap.get('55' + normalizedPhone);
+
+            const contactData: any = {
+              store_id,
+              phone_number: phoneNumber,
+              name: matchedCustomer?.name || contact.name || contact.pushName,
+              push_name: contact.pushName,
+              profile_picture_url: contact.profilePictureUrl,
+              is_whatsapp_valid: true,
+              source: 'sync',
+              last_synced_at: new Date().toISOString(),
+            };
+
+            // Vincular customer_id se encontrado
+            if (matchedCustomer) {
+              contactData.customer_id = matchedCustomer.id;
+              linked++;
+            }
+
+            const { data: upsertedContact, error } = await supabase
               .from('whatsapp_contacts')
-              .upsert({
-                store_id,
-                phone_number: phoneNumber,
-                name: contact.name || contact.pushName,
-                push_name: contact.pushName,
-                profile_picture_url: contact.profilePictureUrl,
-                is_whatsapp_valid: true,
-                source: 'sync',
-                last_synced_at: new Date().toISOString(),
-              }, {
+              .upsert(contactData, {
                 onConflict: 'store_id,phone_number',
-              });
+              })
+              .select('id')
+              .single();
 
             if (error) {
               console.error(`Erro ao sincronizar contato ${phoneNumber}:`, error);
               errors++;
             } else {
               synced++;
+
+              // === ATRIBUIR ETIQUETA "Cliente" SE É CLIENTE ===
+              if (matchedCustomer && clienteLabelId && upsertedContact?.id) {
+                const { error: labelAssignError } = await supabase
+                  .from('whatsapp_contact_label_assignments')
+                  .upsert({
+                    contact_id: upsertedContact.id,
+                    label_id: clienteLabelId,
+                    assigned_by: user.id,
+                  }, {
+                    onConflict: 'contact_id,label_id',
+                  });
+
+                if (labelAssignError) {
+                  console.error(`Erro ao atribuir etiqueta Cliente:`, labelAssignError);
+                }
+              }
             }
           } catch (e) {
             console.error('Erro ao processar contato:', e);
@@ -266,8 +367,8 @@ serve(async (req) => {
             onConflict: 'store_id',
           });
 
-        console.log(`[whatsapp-contacts] Sync complete: ${synced} synced, ${skipped} skipped (invalid phone), ${errors} errors`);
-        result = { synced, errors, skipped, total: contacts.length };
+        console.log(`[whatsapp-contacts] Sync complete: ${synced} synced, ${linked} linked to customers, ${skipped} skipped (invalid phone), ${errors} errors`);
+        result = { synced, errors, skipped, linked, total: contacts.length };
         break;
       }
 

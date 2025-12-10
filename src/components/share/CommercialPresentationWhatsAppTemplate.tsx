@@ -1,0 +1,671 @@
+import { Store, Download, MessageSquare } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useRef } from 'react';
+import { toast } from 'sonner';
+
+const getQrCodeUrl = (url: string, size: number) =>
+  `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(url)}&format=svg`;
+
+interface Plan {
+  id: string;
+  name: string;
+  price: number;
+  discount_price?: number | null;
+  promotion_active?: boolean | null;
+  is_popular?: boolean | null;
+  features?: { text: string }[] | null;
+}
+
+interface CommercialPresentationWhatsAppTemplateProps {
+  referralCode: string;
+  homepageLink: string;
+  signupLink: string;
+  sellerName?: string;
+  sellerPhone?: string;
+  plans: Plan[];
+}
+
+const formatPrice = (price: number) => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+  }).format(price);
+};
+
+// Dimensões otimizadas para WhatsApp (1080x1080)
+const imageStyle = {
+  width: '540px',
+  height: '540px',
+  minWidth: '540px',
+  minHeight: '540px',
+  maxWidth: '540px',
+  maxHeight: '540px',
+};
+
+// Imagem 1 - HOOK
+function SlideHook() {
+  return (
+    <div style={{
+      ...imageStyle,
+      background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '40px',
+      color: 'white',
+      position: 'relative',
+      overflow: 'hidden',
+    }}>
+      <div style={{
+        position: 'absolute',
+        top: '-60px',
+        right: '-60px',
+        width: '200px',
+        height: '200px',
+        borderRadius: '50%',
+        background: 'rgba(255,255,255,0.1)',
+      }} />
+      <div style={{
+        position: 'absolute',
+        bottom: '-40px',
+        left: '-40px',
+        width: '150px',
+        height: '150px',
+        borderRadius: '50%',
+        background: 'rgba(255,255,255,0.08)',
+      }} />
+      
+      <div style={{
+        width: '80px',
+        height: '80px',
+        borderRadius: '20px',
+        background: 'white',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: '24px',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+      }}>
+        <Store style={{ width: '48px', height: '48px', color: '#f97316' }} />
+      </div>
+      
+      <p style={{ fontSize: '18px', opacity: 0.9, marginBottom: '16px' }}>
+        Você está pagando
+      </p>
+      
+      <h1 style={{ 
+        fontSize: '72px', 
+        fontWeight: 'bold', 
+        marginBottom: '8px',
+        textShadow: '0 4px 12px rgba(0,0,0,0.2)',
+      }}>
+        25%
+      </h1>
+      
+      <p style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '24px' }}>
+        PARA O IFOOD?
+      </p>
+      
+      <p style={{ fontSize: '16px', opacity: 0.85, textAlign: 'center' }}>
+        Seu dinheiro está indo para o lugar errado
+      </p>
+      
+      <div style={{
+        position: 'absolute',
+        bottom: '24px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        opacity: 0.7,
+        fontSize: '14px',
+      }}>
+        <span>Mostralo</span>
+        <span>•</span>
+        <span>Delivery + Marketing Digital</span>
+      </div>
+    </div>
+  );
+}
+
+// Imagem 2 - O PROBLEMA
+function SlideProblem() {
+  return (
+    <div style={{
+      ...imageStyle,
+      background: 'white',
+      display: 'flex',
+      flexDirection: 'column',
+      padding: '40px',
+      color: '#111827',
+      position: 'relative',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
+        <div style={{
+          width: '40px',
+          height: '40px',
+          borderRadius: '10px',
+          background: 'linear-gradient(135deg, #f97316 0%, #f59e0b 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <Store style={{ width: '24px', height: '24px', color: 'white' }} />
+        </div>
+        <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#f97316' }}>Mostralo</span>
+      </div>
+      
+      <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '24px' }}>
+        Se você fatura <span style={{ color: '#f97316' }}>R$ 30.000/mês</span>
+      </h2>
+      
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: 1 }}>
+        <div style={{ 
+          background: '#fef2f2', 
+          borderRadius: '16px', 
+          padding: '20px',
+          border: '2px solid #fecaca',
+        }}>
+          <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '8px' }}>Taxa iFood (25%)</p>
+          <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#dc2626' }}>- R$ 7.500</p>
+          <p style={{ color: '#9ca3af', fontSize: '14px' }}>POR MÊS</p>
+        </div>
+        
+        <div style={{ 
+          background: '#fee2e2', 
+          borderRadius: '16px', 
+          padding: '20px',
+          border: '2px solid #fca5a5',
+        }}>
+          <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '8px' }}>Isso significa por ANO:</p>
+          <p style={{ fontSize: '42px', fontWeight: 'bold', color: '#b91c1c' }}>- R$ 90.000</p>
+          <p style={{ color: '#dc2626', fontSize: '16px', fontWeight: '600' }}>💸 Dinheiro perdido!</p>
+        </div>
+      </div>
+      
+      <p style={{ textAlign: 'center', fontSize: '14px', color: '#6b7280', marginTop: '16px' }}>
+        Deslize para ver a solução →
+      </p>
+    </div>
+  );
+}
+
+// Imagem 3 - A SOLUÇÃO
+function SlideSolution() {
+  return (
+    <div style={{
+      ...imageStyle,
+      background: 'linear-gradient(135deg, #16a34a 0%, #22c55e 100%)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '40px',
+      color: 'white',
+      position: 'relative',
+      overflow: 'hidden',
+    }}>
+      <div style={{
+        position: 'absolute',
+        top: '-80px',
+        left: '-80px',
+        width: '200px',
+        height: '200px',
+        borderRadius: '50%',
+        background: 'rgba(255,255,255,0.1)',
+      }} />
+      
+      <p style={{ fontSize: '48px', marginBottom: '16px' }}>💰</p>
+      
+      <p style={{ fontSize: '18px', opacity: 0.9, marginBottom: '16px' }}>
+        Com o Mostralo você
+      </p>
+      
+      <h2 style={{ 
+        fontSize: '32px', 
+        fontWeight: 'bold', 
+        marginBottom: '32px',
+        textAlign: 'center',
+      }}>
+        ECONOMIZA ATÉ
+      </h2>
+      
+      <div style={{
+        background: 'white',
+        color: '#16a34a',
+        padding: '24px 48px',
+        borderRadius: '20px',
+        marginBottom: '32px',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+      }}>
+        <p style={{ fontSize: '48px', fontWeight: 'bold' }}>R$ 82.800</p>
+        <p style={{ fontSize: '18px', textAlign: 'center' }}>por ano</p>
+      </div>
+      
+      <div style={{ display: 'flex', gap: '24px', fontSize: '14px' }}>
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ textDecoration: 'line-through', opacity: 0.7 }}>iFood</p>
+          <p style={{ fontWeight: 'bold' }}>R$ 90.000</p>
+        </div>
+        <p style={{ fontSize: '24px' }}>→</p>
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ opacity: 0.9 }}>Mostralo</p>
+          <p style={{ fontWeight: 'bold' }}>~R$ 7.200</p>
+        </div>
+      </div>
+      
+      <p style={{ 
+        position: 'absolute',
+        bottom: '24px',
+        fontSize: '16px',
+        fontWeight: '600',
+      }}>
+        O lucro fica com VOCÊ! 🚀
+      </p>
+    </div>
+  );
+}
+
+// Imagem 4 - DIFERENCIAIS
+function SlideDifferentials() {
+  return (
+    <div style={{
+      ...imageStyle,
+      background: 'linear-gradient(135deg, #f97316 0%, #f59e0b 100%)',
+      display: 'flex',
+      flexDirection: 'column',
+      padding: '40px',
+      color: 'white',
+      position: 'relative',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '32px' }}>
+        <div style={{
+          width: '40px',
+          height: '40px',
+          borderRadius: '10px',
+          background: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <Store style={{ width: '24px', height: '24px', color: '#f97316' }} />
+        </div>
+        <span style={{ fontSize: '20px', fontWeight: 'bold' }}>Mostralo</span>
+      </div>
+      
+      <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '32px' }}>
+        O que você ganha:
+      </h2>
+      
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: 1 }}>
+        <div style={{ 
+          background: 'rgba(255,255,255,0.15)', 
+          borderRadius: '16px', 
+          padding: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+        }}>
+          <span style={{ fontSize: '40px' }}>📱</span>
+          <div>
+            <p style={{ fontSize: '18px', fontWeight: 'bold' }}>Cardápio Digital Próprio</p>
+            <p style={{ fontSize: '14px', opacity: 0.85 }}>Seu app personalizado</p>
+          </div>
+        </div>
+        
+        <div style={{ 
+          background: 'rgba(255,255,255,0.15)', 
+          borderRadius: '16px', 
+          padding: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+        }}>
+          <span style={{ fontSize: '40px' }}>📈</span>
+          <div>
+            <p style={{ fontSize: '18px', fontWeight: 'bold' }}>Marketing Digital Incluso</p>
+            <p style={{ fontSize: '14px', opacity: 0.85 }}>Gestão das suas redes sociais</p>
+          </div>
+        </div>
+        
+        <div style={{ 
+          background: 'rgba(255,255,255,0.15)', 
+          borderRadius: '16px', 
+          padding: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+        }}>
+          <span style={{ fontSize: '40px', fontWeight: 'bold' }}>0%</span>
+          <div>
+            <p style={{ fontSize: '18px', fontWeight: 'bold' }}>Taxa por Pedido</p>
+            <p style={{ fontSize: '14px', opacity: 0.85 }}>Lucro 100% seu</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Imagem 5 - PLANOS
+function SlidePlans({ plans }: { plans: Plan[] }) {
+  return (
+    <div style={{
+      ...imageStyle,
+      background: '#111827',
+      display: 'flex',
+      flexDirection: 'column',
+      padding: '32px',
+      color: 'white',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
+        <div style={{
+          width: '36px',
+          height: '36px',
+          borderRadius: '8px',
+          background: 'linear-gradient(135deg, #f97316 0%, #f59e0b 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <Store style={{ width: '20px', height: '20px', color: 'white' }} />
+        </div>
+        <span style={{ fontSize: '18px', fontWeight: 'bold' }}>Nossos Planos</span>
+      </div>
+      
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
+        {plans.slice(0, 3).map((plan) => {
+          const currentPrice = plan.promotion_active && plan.discount_price 
+            ? plan.discount_price 
+            : plan.price;
+          
+          return (
+            <div 
+              key={plan.id}
+              style={{
+                borderRadius: '12px',
+                padding: '16px 20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                background: plan.is_popular 
+                  ? 'linear-gradient(135deg, #f97316 0%, #f59e0b 100%)' 
+                  : 'rgba(255,255,255,0.05)',
+                border: plan.is_popular ? 'none' : '1px solid rgba(255,255,255,0.1)',
+                position: 'relative',
+              }}
+            >
+              {plan.is_popular && (
+                <div style={{
+                  position: 'absolute',
+                  top: '-8px',
+                  right: '16px',
+                  background: 'white',
+                  color: '#ea580c',
+                  padding: '2px 10px',
+                  borderRadius: '9999px',
+                  fontSize: '10px',
+                  fontWeight: 'bold',
+                }}>
+                  ⭐ POPULAR
+                </div>
+              )}
+              
+              <div>
+                <p style={{ fontSize: '18px', fontWeight: 'bold' }}>{plan.name}</p>
+                {plan.promotion_active && plan.discount_price && (
+                  <p style={{ fontSize: '12px', textDecoration: 'line-through', opacity: 0.6 }}>
+                    {formatPrice(plan.price)}
+                  </p>
+                )}
+              </div>
+              
+              <div style={{ textAlign: 'right' }}>
+                <p style={{ fontSize: '24px', fontWeight: 'bold' }}>{formatPrice(currentPrice)}</p>
+                <p style={{ fontSize: '12px', opacity: 0.7 }}>/mês</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      
+      <div style={{ 
+        background: 'rgba(34, 197, 94, 0.15)', 
+        border: '1px solid rgba(34, 197, 94, 0.3)', 
+        borderRadius: '12px', 
+        padding: '12px',
+        textAlign: 'center',
+        marginTop: '16px',
+      }}>
+        <p style={{ fontSize: '12px', color: '#4ade80' }}>
+          ✅ Cardápio Digital • Marketing Digital • 0% taxa
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// Imagem 6 - CTA
+function SlideCTA({ 
+  referralCode, 
+  signupLink, 
+  sellerName, 
+  sellerPhone 
+}: { 
+  referralCode: string; 
+  signupLink: string;
+  sellerName?: string;
+  sellerPhone?: string;
+}) {
+  return (
+    <div style={{
+      ...imageStyle,
+      background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '40px',
+      color: 'white',
+      position: 'relative',
+      overflow: 'hidden',
+    }}>
+      <div style={{
+        position: 'absolute',
+        bottom: '-100px',
+        right: '-100px',
+        width: '250px',
+        height: '250px',
+        borderRadius: '50%',
+        background: 'rgba(255,255,255,0.1)',
+      }} />
+      
+      <h2 style={{ 
+        fontSize: '28px', 
+        fontWeight: 'bold', 
+        marginBottom: '24px',
+        textAlign: 'center',
+      }}>
+        ACESSE AGORA E<br />COMECE A ECONOMIZAR!
+      </h2>
+      
+      <div style={{ 
+        background: 'white', 
+        padding: '16px', 
+        borderRadius: '16px', 
+        marginBottom: '24px',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+      }}>
+        <img src={getQrCodeUrl(signupLink, 160)} alt="QR Code" width={160} height={160} />
+      </div>
+      
+      <p style={{ fontSize: '14px', opacity: 0.85, marginBottom: '16px' }}>
+        Use o código de indicação
+      </p>
+      
+      <div style={{ 
+        background: 'rgba(255,255,255,0.2)', 
+        padding: '12px 32px', 
+        borderRadius: '12px',
+        border: '2px dashed rgba(255,255,255,0.4)',
+        marginBottom: '24px',
+      }}>
+        <p style={{ fontSize: '28px', fontFamily: 'monospace', fontWeight: 'bold', letterSpacing: '0.1em' }}>
+          {referralCode}
+        </p>
+      </div>
+      
+      {sellerName && (
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ fontSize: '14px', opacity: 0.8 }}>Fale comigo:</p>
+          <p style={{ fontSize: '18px', fontWeight: 'bold' }}>{sellerName}</p>
+          {sellerPhone && <p style={{ fontSize: '16px', opacity: 0.9 }}>{sellerPhone}</p>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function CommercialPresentationWhatsAppTemplate({
+  referralCode,
+  homepageLink,
+  signupLink,
+  sellerName,
+  sellerPhone,
+  plans
+}: CommercialPresentationWhatsAppTemplateProps) {
+  const slideRefs = [
+    useRef<HTMLDivElement>(null),
+    useRef<HTMLDivElement>(null),
+    useRef<HTMLDivElement>(null),
+    useRef<HTMLDivElement>(null),
+    useRef<HTMLDivElement>(null),
+    useRef<HTMLDivElement>(null),
+  ];
+
+  const slideNames = [
+    'hook-pare-de-pagar',
+    'problema-taxas',
+    'solucao-economia',
+    'diferenciais',
+    'planos',
+    'cta-cadastro',
+  ];
+
+  const downloadSlide = async (index: number) => {
+    const ref = slideRefs[index];
+    if (!ref.current) return;
+    
+    try {
+      // Abrir a imagem em uma nova janela para o usuário salvar manualmente
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        toast.error('Pop-up bloqueado. Permita pop-ups para baixar.');
+        return;
+      }
+      
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Mostralo - Imagem ${index + 1}</title>
+            <style>
+              body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f5f5f5; }
+              .container { text-align: center; }
+              .image-wrapper { width: 540px; height: 540px; margin: 0 auto 16px; }
+              p { font-family: system-ui; color: #666; margin-top: 16px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="image-wrapper">
+                ${ref.current.outerHTML}
+              </div>
+              <p>Clique com botão direito na imagem e selecione "Salvar imagem como..."</p>
+            </div>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      
+      toast.success(`Imagem ${index + 1} aberta! Clique com botão direito para salvar.`);
+    } catch (error) {
+      toast.error('Erro ao abrir imagem');
+    }
+  };
+
+  const downloadAll = async () => {
+    toast.info('Baixando todas as imagens...');
+    
+    for (let i = 0; i < slideRefs.length; i++) {
+      await downloadSlide(i);
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    
+    toast.success('Todas as imagens foram baixadas!');
+  };
+
+  const slides = [
+    { title: '1. Impacto Inicial', component: <SlideHook /> },
+    { title: '2. O Problema', component: <SlideProblem /> },
+    { title: '3. A Solução', component: <SlideSolution /> },
+    { title: '4. Diferenciais', component: <SlideDifferentials /> },
+    { title: '5. Planos', component: <SlidePlans plans={plans} /> },
+    { title: '6. Chamada para Ação', component: <SlideCTA referralCode={referralCode} signupLink={signupLink} sellerName={sellerName} sellerPhone={sellerPhone} /> },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Botão Baixar Todas */}
+      <div className="flex justify-center gap-4 no-print">
+        <Button 
+          onClick={downloadAll} 
+          size="lg"
+          className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
+        >
+          <Download className="h-5 w-5 mr-2" />
+          Baixar Todas (6 imagens)
+        </Button>
+      </div>
+
+      {/* Grid de Slides */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {slides.map((slide, index) => (
+          <div key={index} className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-medium text-muted-foreground">{slide.title}</h3>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => downloadSlide(index)}
+                className="no-print"
+              >
+                <Download className="h-4 w-4 mr-1" />
+                PNG
+              </Button>
+            </div>
+            <div 
+              ref={slideRefs[index]}
+              className="rounded-lg overflow-hidden shadow-lg"
+              style={{ transform: 'scale(1)', transformOrigin: 'top left' }}
+            >
+              {slide.component}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Dica */}
+      <div className="bg-muted/50 rounded-lg p-4 flex items-start gap-3 no-print">
+        <MessageSquare className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+        <div className="text-sm">
+          <p className="font-medium text-foreground mb-1">💡 Como usar no WhatsApp:</p>
+          <p className="text-muted-foreground">
+            Baixe as imagens e envie na ordem (1 a 6) como carrossel no WhatsApp. 
+            Cada imagem tem uma mensagem única e impactante que guia o cliente até a ação.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

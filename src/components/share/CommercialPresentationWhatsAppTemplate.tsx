@@ -1,6 +1,6 @@
 import { Store, Download, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useRef } from 'react';
+import { useRef, useCallback } from 'react';
 import { toast } from 'sonner';
 
 const getQrCodeUrl = (url: string, size: number) =>
@@ -540,7 +540,8 @@ export function CommercialPresentationWhatsAppTemplate({
   sellerPhone,
   plans
 }: CommercialPresentationWhatsAppTemplateProps) {
-  const slideRefs = [
+  // Refs para captura em tamanho real (invisíveis)
+  const captureRefs = [
     useRef<HTMLDivElement>(null),
     useRef<HTMLDivElement>(null),
     useRef<HTMLDivElement>(null),
@@ -558,25 +559,20 @@ export function CommercialPresentationWhatsAppTemplate({
     'cta-cadastro',
   ];
 
-  const downloadSlide = async (index: number) => {
-    const ref = slideRefs[index];
+  const downloadSlide = useCallback(async (index: number) => {
+    const ref = captureRefs[index];
     if (!ref.current) return;
     
     try {
-      // Encontrar o elemento real do slide (filho do container com scale)
-      const slideElement = ref.current.querySelector('div') as HTMLElement;
-      if (!slideElement) {
-        toast.error('Elemento não encontrado');
-        return;
-      }
-
-      // Clonar o elemento e remover scale para captura correta
-      const clone = slideElement.cloneNode(true) as HTMLElement;
-      clone.style.transform = 'none';
+      toast.loading('Gerando imagem...', { id: `download-${index}` });
       
-      // Abrir janela com o slide em tamanho real
-      const printWindow = window.open('', '_blank');
+      // Abrir nova janela com imagem renderizada
+      const element = ref.current;
+      const clone = element.cloneNode(true) as HTMLElement;
+      
+      const printWindow = window.open('', '_blank', 'width=600,height=700');
       if (!printWindow) {
+        toast.dismiss(`download-${index}`);
         toast.error('Pop-up bloqueado. Permita pop-ups para baixar.');
         return;
       }
@@ -601,43 +597,66 @@ export function CommercialPresentationWhatsAppTemplate({
               .slide-container {
                 width: 540px;
                 height: 540px;
-                border-radius: 12px;
+                border-radius: 0;
                 overflow: hidden;
-                box-shadow: 0 20px 60px rgba(0,0,0,0.5);
               }
+              .download-btn {
+                margin-top: 20px;
+                padding: 12px 24px;
+                background: linear-gradient(135deg, #f97316, #ea580c);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-size: 16px;
+                font-weight: bold;
+                cursor: pointer;
+              }
+              .download-btn:hover { opacity: 0.9; }
               .instructions {
-                margin-top: 24px;
+                margin-top: 16px;
                 text-align: center;
                 color: #888;
                 font-size: 14px;
               }
-              .instructions strong { color: #fff; }
             </style>
           </head>
           <body>
-            <div class="slide-container">
+            <div class="slide-container" id="slide">
               ${clone.outerHTML}
             </div>
+            <button class="download-btn" onclick="downloadImage()">Baixar PNG</button>
             <div class="instructions">
-              <p><strong>Clique com botão direito na imagem</strong> e selecione "Salvar imagem como..."</p>
-              <p>Ou use <strong>Ctrl+S</strong> (Cmd+S no Mac) para salvar a página</p>
+              <p>Ou clique com botão direito na imagem → "Salvar imagem como..."</p>
             </div>
+            <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+            <script>
+              async function downloadImage() {
+                const element = document.getElementById('slide');
+                const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+                const link = document.createElement('a');
+                link.download = 'mostralo-whatsapp-${index + 1}-${slideNames[index]}.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+              }
+            </script>
           </body>
         </html>
       `);
       printWindow.document.close();
       
-      toast.success(`Imagem ${index + 1} aberta! Clique direito para salvar.`);
+      toast.dismiss(`download-${index}`);
+      toast.success(`Imagem ${index + 1} aberta! Clique "Baixar PNG".`);
     } catch (error) {
+      toast.dismiss(`download-${index}`);
       console.error('Erro ao baixar:', error);
       toast.error('Erro ao baixar imagem');
     }
-  };
+  }, [slideNames]);
 
   const downloadAll = async () => {
     toast.info('Baixando todas as imagens...');
     
-    for (let i = 0; i < slideRefs.length; i++) {
+    for (let i = 0; i < captureRefs.length; i++) {
       await downloadSlide(i);
       await new Promise(resolve => setTimeout(resolve, 500));
     }
@@ -668,7 +687,16 @@ export function CommercialPresentationWhatsAppTemplate({
         </Button>
       </div>
 
-      {/* Grid de Slides */}
+      {/* Elementos invisíveis para captura em tamanho real */}
+      <div className="fixed -left-[9999px] -top-[9999px] pointer-events-none">
+        {slides.map((slide, index) => (
+          <div key={`capture-${index}`} ref={captureRefs[index]}>
+            {slide.component}
+          </div>
+        ))}
+      </div>
+
+      {/* Grid de Slides - Preview */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {slides.map((slide, index) => (
           <div key={index} className="space-y-2">
@@ -685,16 +713,15 @@ export function CommercialPresentationWhatsAppTemplate({
               </Button>
             </div>
             <div 
-              ref={slideRefs[index]}
               className="rounded-lg overflow-hidden shadow-lg"
               style={{ 
-                width: '180px', 
-                height: '180px',
+                width: '270px', 
+                height: '270px',
                 position: 'relative',
               }}
             >
               <div style={{ 
-                transform: 'scale(0.333)', 
+                transform: 'scale(0.5)', 
                 transformOrigin: 'top left',
                 position: 'absolute',
                 top: 0,

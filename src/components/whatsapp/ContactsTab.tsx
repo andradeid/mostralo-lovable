@@ -7,13 +7,16 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RefreshCw, Search, Tags, Download, MoreHorizontal, User, Phone, Trash2, Link, MessageCircle, Camera } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { RefreshCw, Search, Tags, Download, MoreHorizontal, User, Phone, Trash2, Link, MessageCircle, Camera, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { BulkLabelModal } from "./BulkLabelModal";
 import { ExportContactsModal } from "./ExportContactsModal";
 import { SendMessageModal } from "./SendMessageModal";
 import { ManageLabelsModal } from "./ManageLabelsModal";
+import { EditContactModal } from "./EditContactModal";
+
 interface Contact {
   id: string;
   phone_number: string;
@@ -60,10 +63,23 @@ export function ContactsTab({ storeId, instance, onRefresh, storeName = "", stor
   const [selectedContactForMessage, setSelectedContactForMessage] = useState<Contact | null>(null);
   const [manageLabelsModalOpen, setManageLabelsModalOpen] = useState(false);
   const [selectedContactForLabels, setSelectedContactForLabels] = useState<Contact | null>(null);
+  
+  // Estados para edição de contato
+  const [editContactModalOpen, setEditContactModalOpen] = useState(false);
+  const [selectedContactForEdit, setSelectedContactForEdit] = useState<Contact | null>(null);
+  
+  // Estados para progresso da sincronização
+  const [syncProgress, setSyncProgress] = useState(0);
+  const [syncMessage, setSyncMessage] = useState("");
 
   const openManageLabelsModal = (contact: Contact) => {
     setSelectedContactForLabels(contact);
     setManageLabelsModalOpen(true);
+  };
+
+  const openEditContactModal = (contact: Contact) => {
+    setSelectedContactForEdit(contact);
+    setEditContactModalOpen(true);
   };
 
   // Função para formatar número de telefone
@@ -133,9 +149,26 @@ export function ContactsTab({ storeId, instance, onRefresh, storeName = "", stor
 
   const handleSync = async () => {
     setSyncing(true);
+    setSyncProgress(0);
+    setSyncMessage("Conectando à API do WhatsApp...");
+    
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Não autenticado');
+
+      // Simular progresso enquanto aguarda resposta
+      let progress = 0;
+      const progressInterval = setInterval(() => {
+        progress += Math.random() * 8 + 2;
+        if (progress > 85) progress = 85;
+        setSyncProgress(Math.floor(progress));
+        
+        if (progress < 20) setSyncMessage("Buscando contatos...");
+        else if (progress < 40) setSyncMessage("Processando contatos...");
+        else if (progress < 60) setSyncMessage("Vinculando clientes...");
+        else if (progress < 80) setSyncMessage("Buscando fotos de perfil...");
+        else setSyncMessage("Finalizando...");
+      }, 300);
 
       const response = await supabase.functions.invoke('whatsapp-contacts', {
         body: {
@@ -145,7 +178,14 @@ export function ContactsTab({ storeId, instance, onRefresh, storeName = "", stor
         },
       });
 
+      clearInterval(progressInterval);
+      
       if (response.error) throw response.error;
+
+      setSyncProgress(100);
+      setSyncMessage(`${response.data.synced} contatos sincronizados!`);
+      
+      await new Promise(r => setTimeout(r, 800));
 
       toast.success(`${response.data.synced} contatos sincronizados!`);
       fetchContacts();
@@ -155,6 +195,8 @@ export function ContactsTab({ storeId, instance, onRefresh, storeName = "", stor
       toast.error('Erro ao sincronizar contatos');
     } finally {
       setSyncing(false);
+      setSyncProgress(0);
+      setSyncMessage("");
     }
   };
 
@@ -282,10 +324,23 @@ export function ContactsTab({ storeId, instance, onRefresh, storeName = "", stor
               <Camera className={`h-4 w-4 mr-2 ${fetchingPhotos ? 'animate-pulse' : ''}`} />
               {fetchingPhotos ? 'Buscando...' : 'Buscar Fotos'}
             </Button>
-            <Button onClick={handleSync} disabled={syncing}>
-              <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
-              Sincronizar
-            </Button>
+            
+            {/* Botão de Sincronizar com Indicador de Progresso */}
+            {syncing ? (
+              <div className="flex flex-col gap-1.5 min-w-[200px] p-2 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <RefreshCw className="h-4 w-4 animate-spin text-primary" />
+                  <span className="text-sm font-medium">{syncMessage}</span>
+                </div>
+                <Progress value={syncProgress} className="h-2" />
+                <span className="text-xs text-muted-foreground text-right">{syncProgress}%</span>
+              </div>
+            ) : (
+              <Button onClick={handleSync} disabled={syncing}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Sincronizar
+              </Button>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -425,6 +480,17 @@ export function ContactsTab({ storeId, instance, onRefresh, storeName = "", stor
                   <MessageCircle className="h-5 w-5" />
                 </Button>
 
+                {/* Botão Editar */}
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => openEditContactModal(contact)}
+                  title="Editar contato"
+                  className="flex-shrink-0"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
@@ -432,6 +498,10 @@ export function ContactsTab({ storeId, instance, onRefresh, storeName = "", stor
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => openEditContactModal(contact)}>
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Editar Contato
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => openSendMessageModal(contact)}>
                       <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
                       Enviar Mensagem
@@ -488,6 +558,26 @@ export function ContactsTab({ storeId, instance, onRefresh, storeName = "", stor
           contactName={selectedContactForLabels.name || selectedContactForLabels.push_name || selectedContactForLabels.phone_number}
           currentLabels={selectedContactForLabels.labels}
           onSuccess={fetchContacts}
+        />
+      )}
+
+      {selectedContactForEdit && (
+        <EditContactModal
+          open={editContactModalOpen}
+          onOpenChange={(open) => {
+            setEditContactModalOpen(open);
+            if (!open) setSelectedContactForEdit(null);
+          }}
+          contact={{
+            id: selectedContactForEdit.id,
+            phone_number: selectedContactForEdit.phone_number,
+            name: selectedContactForEdit.name,
+            profile_picture_url: selectedContactForEdit.profile_picture_url,
+            customer_id: selectedContactForEdit.customer_id,
+            labels: selectedContactForEdit.labels
+          }}
+          storeId={storeId}
+          onSave={fetchContacts}
         />
       )}
     </Card>

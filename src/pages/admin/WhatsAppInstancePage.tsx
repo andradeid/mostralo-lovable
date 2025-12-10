@@ -23,7 +23,8 @@ import {
   TestTube,
   MessageSquare,
   Calendar,
-  Phone
+  Phone,
+  History
 } from "lucide-react";
 import {
   AlertDialog,
@@ -63,6 +64,19 @@ interface Customer {
   last_order_at: string | null;
 }
 
+interface MessageLog {
+  id: string;
+  phone_number: string;
+  content: string;
+  status: string;
+  error_message?: string;
+  sent_at?: string;
+  failed_at?: string;
+  created_at: string;
+  customer?: { name: string } | null;
+  template?: { name: string } | null;
+}
+
 
 export default function WhatsAppInstancePage() {
   const { toast } = useToast();
@@ -88,14 +102,25 @@ export default function WhatsAppInstancePage() {
   const [sendTestLoading, setSendTestLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
 
+  // Estados para histórico de mensagens avulsas
+  const [messageLogs, setMessageLogs] = useState<MessageLog[]>([]);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [showAllLogs, setShowAllLogs] = useState(false);
 
   useEffect(() => {
     if (storeId) {
       fetchInstance();
       fetchTemplates();
       fetchStoreInfo();
+      fetchMessageLogs();
     }
   }, [storeId]);
+
+  useEffect(() => {
+    if (storeId && showAllLogs) {
+      fetchMessageLogs();
+    }
+  }, [showAllLogs]);
 
   // Polling para verificar status quando conectando
   useEffect(() => {
@@ -157,6 +182,32 @@ export default function WhatsAppInstancePage() {
       }
     } catch (error) {
       console.error('Erro ao buscar templates:', error);
+    }
+  };
+
+  const fetchMessageLogs = async () => {
+    setLogsLoading(true);
+    try {
+      const { data } = await supabase
+        .from('whatsapp_messages' as any)
+        .select(`
+          id, phone_number, content, status, error_message,
+          sent_at, failed_at, created_at,
+          customer:customers(name),
+          template:whatsapp_templates(name)
+        `)
+        .eq('store_id', storeId)
+        .is('campaign_id', null)
+        .order('created_at', { ascending: false })
+        .limit(showAllLogs ? 50 : 10);
+
+      if (data) {
+        setMessageLogs(data as unknown as MessageLog[]);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar histórico de mensagens:', error);
+    } finally {
+      setLogsLoading(false);
     }
   };
 
@@ -883,6 +934,96 @@ export default function WhatsAppInstancePage() {
                   <p className="text-sm text-muted-foreground text-center">
                     Configure templates de mensagem na seção de Campanhas para poder enviar mensagens de teste.
                   </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Histórico de Mensagens de Teste */}
+          {instance?.status === 'connected' && (
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <History className="h-5 w-5" />
+                    Histórico de Testes
+                  </CardTitle>
+                  <CardDescription>
+                    Últimas mensagens enviadas fora de campanhas
+                  </CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={fetchMessageLogs} disabled={logsLoading}>
+                  <RefreshCw className={`h-4 w-4 mr-1 ${logsLoading ? 'animate-spin' : ''}`} />
+                  Atualizar
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {logsLoading && messageLogs.length === 0 ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  </div>
+                ) : messageLogs.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <MessageSquare className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                    <p>Nenhuma mensagem de teste enviada</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {messageLogs.map((log) => (
+                      <div 
+                        key={log.id} 
+                        className={`p-4 rounded-lg border ${
+                          log.status === 'failed' 
+                            ? 'bg-destructive/10 border-destructive/20' 
+                            : 'bg-green-500/10 border-green-500/20'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+                          <div className="flex items-center gap-2">
+                            {log.status === 'failed' ? (
+                              <Badge variant="destructive" className="gap-1">
+                                <XCircle className="h-3 w-3" /> Falhou
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-green-500 gap-1">
+                                <CheckCircle className="h-3 w-3" /> Enviada
+                              </Badge>
+                            )}
+                            <span className="text-xs text-muted-foreground">
+                              {format(new Date(log.sent_at || log.failed_at || log.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Phone className="h-3 w-3" />
+                            <span className="font-mono text-xs">{log.phone_number}</span>
+                          </div>
+                        </div>
+                        
+                        {(log.customer?.name || log.template?.name) && (
+                          <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground">
+                            {log.customer?.name && <span>👤 {log.customer.name}</span>}
+                            {log.template?.name && <span>• 📄 {log.template.name}</span>}
+                          </div>
+                        )}
+                        
+                        <p className="text-sm line-clamp-2 text-muted-foreground">
+                          {log.status === 'failed' && log.error_message 
+                            ? <span className="text-destructive">Erro: {log.error_message}</span>
+                            : log.content}
+                        </p>
+                      </div>
+                    ))}
+                    
+                    {!showAllLogs && messageLogs.length >= 10 && (
+                      <Button 
+                        variant="ghost" 
+                        className="w-full"
+                        onClick={() => setShowAllLogs(true)}
+                      >
+                        Ver mais mensagens
+                      </Button>
+                    )}
+                  </div>
                 )}
               </CardContent>
             </Card>

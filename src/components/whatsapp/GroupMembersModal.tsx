@@ -28,8 +28,6 @@ interface GroupMembersModalProps {
   group: Group;
   instance: {
     instance_name: string;
-    api_url: string;
-    api_key: string;
   };
 }
 
@@ -69,8 +67,6 @@ export function GroupMembersModal({
           action: 'fetchGroupMembers',
           store_id: store.id,
           instance_name: instance.instance_name,
-          api_url: instance.api_url,
-          api_key: instance.api_key,
           group_jid: group.group_jid,
         },
       });

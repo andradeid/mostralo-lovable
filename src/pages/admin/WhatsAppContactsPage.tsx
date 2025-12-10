@@ -15,8 +15,6 @@ import { useStoreAccess } from "@/hooks/useStoreAccess";
 interface WhatsAppInstance {
   id: string;
   instance_name: string;
-  api_url: string;
-  api_key: string;
   status: string;
   store_id: string;
 }
@@ -50,19 +48,7 @@ export default function WhatsAppContactsPage() {
         .single();
 
       if (instanceData) {
-        const { data: evolutionConfig } = await supabase
-          .from('evolution_config')
-          .select('api_url, api_key')
-          .eq('is_active', true)
-          .single();
-
-        if (evolutionConfig) {
-          setInstance({
-            ...instanceData,
-            api_url: evolutionConfig.api_url,
-            api_key: evolutionConfig.api_key,
-          });
-        }
+        setInstance(instanceData);
       }
     } catch (error) {
       console.error('Erro ao buscar instância:', error);

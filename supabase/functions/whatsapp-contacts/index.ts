@@ -56,9 +56,29 @@ serve(async (req) => {
       });
     }
 
-    const { action, store_id, instance_name, api_url, api_key, ...params } = await req.json();
+    const { action, store_id, instance_name, ...params } = await req.json();
 
     console.log(`[whatsapp-contacts] Action: ${action}, Store: ${store_id}`);
+
+    // Buscar config da Evolution API internamente (mais seguro - não depende do frontend)
+    let api_url = params.api_url;
+    let api_key = params.api_key;
+    
+    // Se não foi passado, buscar do banco
+    if (!api_url || !api_key) {
+      const { data: evolutionConfig } = await supabase
+        .from('evolution_config')
+        .select('api_url, api_key')
+        .eq('is_active', true)
+        .single();
+
+      if (evolutionConfig) {
+        api_url = evolutionConfig.api_url;
+        api_key = evolutionConfig.api_key;
+      } else {
+        console.log('[whatsapp-contacts] Evolution config not found');
+      }
+    }
 
     // Verificar se usuário é dono da loja
     if (store_id) {

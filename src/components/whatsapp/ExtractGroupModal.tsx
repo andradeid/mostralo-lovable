@@ -28,8 +28,6 @@ interface ExtractGroupModalProps {
   storeId: string;
   instance: {
     instance_name: string;
-    api_url: string;
-    api_key: string;
   };
   onSuccess: () => void;
 }
@@ -73,8 +71,6 @@ export function ExtractGroupModal({
           action: 'extractFromGroup',
           store_id: storeId,
           instance_name: instance.instance_name,
-          api_url: instance.api_url,
-          api_key: instance.api_key,
           group_jid: group.group_jid,
           group_name: group.name,
           label_id: selectedLabel || undefined,

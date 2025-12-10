@@ -28,8 +28,6 @@ interface GroupsTabProps {
   storeId: string;
   instance: {
     instance_name: string;
-    api_url: string;
-    api_key: string;
   };
   onRefresh: () => void;
 }
@@ -77,8 +75,6 @@ export function GroupsTab({ storeId, instance, onRefresh }: GroupsTabProps) {
           action: 'syncGroups',
           store_id: storeId,
           instance_name: instance.instance_name,
-          api_url: instance.api_url,
-          api_key: instance.api_key,
         },
       });
 

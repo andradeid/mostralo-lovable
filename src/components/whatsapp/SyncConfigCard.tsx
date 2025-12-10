@@ -24,8 +24,6 @@ interface SyncConfigCardProps {
   storeId: string;
   instance: {
     instance_name: string;
-    api_url: string;
-    api_key: string;
   };
 }
 

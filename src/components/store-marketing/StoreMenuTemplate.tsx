@@ -1,4 +1,5 @@
 import { forwardRef } from 'react';
+import { useQRCode } from '@/hooks/useQRCode';
 
 interface Product {
   id: string;
@@ -40,7 +41,7 @@ interface StoreMenuTemplateProps {
 
 export const StoreMenuTemplate = forwardRef<HTMLDivElement, StoreMenuTemplateProps>(
   ({ storeData, categories }, ref) => {
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(storeData.menuUrl)}`;
+    const qrDataUrl = useQRCode(storeData.menuUrl, 150);
     const primaryColor = storeData.primaryColor || '#f97316';
 
     const formatPrice = (price: number) => {
@@ -181,7 +182,7 @@ export const StoreMenuTemplate = forwardRef<HTMLDivElement, StoreMenuTemplatePro
             </div>
             
             <div className="text-center">
-              <img src={qrCodeUrl} alt="QR Code" className="w-20 h-20 mx-auto" />
+              {qrDataUrl && <img src={qrDataUrl} alt="QR Code" className="w-20 h-20 mx-auto" />}
               <p className="text-xs font-medium mt-1" style={{ color: primaryColor }}>
                 📱 Cardápio Digital
               </p>

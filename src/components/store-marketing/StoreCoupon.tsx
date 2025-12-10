@@ -1,4 +1,5 @@
 import { forwardRef } from 'react';
+import { useQRCode } from '@/hooks/useQRCode';
 
 interface Promotion {
   id: string;
@@ -24,7 +25,7 @@ interface StoreCouponProps {
 
 export const StoreCoupon = forwardRef<HTMLDivElement, StoreCouponProps>(
   ({ storeData, promotion }, ref) => {
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(storeData.menuUrl)}`;
+    const qrDataUrl = useQRCode(storeData.menuUrl, 150);
     const primaryColor = storeData.primaryColor || '#f97316';
 
     const formatDate = (dateStr?: string) => {
@@ -92,7 +93,7 @@ export const StoreCoupon = forwardRef<HTMLDivElement, StoreCouponProps>(
                 </p>
               )}
             </div>
-            <img src={qrCodeUrl} alt="QR" className="w-12 h-12" />
+            {qrDataUrl && <img src={qrDataUrl} alt="QR" className="w-12 h-12" />}
           </div>
         </div>
       </div>

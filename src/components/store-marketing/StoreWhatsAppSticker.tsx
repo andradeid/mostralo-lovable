@@ -1,4 +1,5 @@
 import { forwardRef } from 'react';
+import { useQRCode } from '@/hooks/useQRCode';
 
 interface StoreData {
   name: string;
@@ -15,7 +16,7 @@ export const StoreWhatsAppSticker = forwardRef<HTMLDivElement, StoreWhatsAppStic
   ({ storeData }, ref) => {
     const whatsappNumber = storeData.whatsapp?.replace(/\D/g, '') || '';
     const whatsappUrl = `https://wa.me/55${whatsappNumber}`;
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(whatsappUrl)}`;
+    const qrDataUrl = useQRCode(whatsappUrl, 200);
     const primaryColor = storeData.primaryColor || '#25D366'; // Verde WhatsApp
 
     const renderSticker = (index: number) => (
@@ -40,7 +41,7 @@ export const StoreWhatsAppSticker = forwardRef<HTMLDivElement, StoreWhatsAppStic
           className="rounded-xl p-3 mb-3"
           style={{ backgroundColor: '#25D366' }}
         >
-          <img src={qrCodeUrl} alt="WhatsApp QR" className="w-28 h-28 bg-white rounded-lg p-1" />
+          {qrDataUrl && <img src={qrDataUrl} alt="WhatsApp QR" className="w-28 h-28 bg-white rounded-lg p-1" />}
         </div>
 
         <div className="text-center">

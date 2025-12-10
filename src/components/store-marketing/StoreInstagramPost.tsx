@@ -1,4 +1,5 @@
 import { forwardRef } from 'react';
+import { useQRCode } from '@/hooks/useQRCode';
 
 interface StoreData {
   name: string;
@@ -17,7 +18,7 @@ interface StoreInstagramPostProps {
 
 export const StoreInstagramPost = forwardRef<HTMLDivElement, StoreInstagramPostProps>(
   ({ storeData }, ref) => {
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(storeData.menuUrl)}`;
+    const qrDataUrl = useQRCode(storeData.menuUrl, 250);
     const primaryColor = storeData.primaryColor || '#f97316';
 
     return (
@@ -77,7 +78,7 @@ export const StoreInstagramPost = forwardRef<HTMLDivElement, StoreInstagramPostP
               className="bg-white p-8 rounded-[32px] shadow-2xl border-4"
               style={{ borderColor: primaryColor }}
             >
-              <img src={qrCodeUrl} alt="QR Code" className="w-56 h-56 mx-auto mb-6" />
+              {qrDataUrl && <img src={qrDataUrl} alt="QR Code" className="w-56 h-56 mx-auto mb-6" />}
               <p className="text-4xl font-bold" style={{ color: primaryColor }}>
                 📱 PEÇA AGORA!
               </p>

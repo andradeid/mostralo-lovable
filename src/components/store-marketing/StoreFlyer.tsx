@@ -1,4 +1,5 @@
 import { forwardRef } from 'react';
+import { useQRCode } from '@/hooks/useQRCode';
 
 interface StoreData {
   name: string;
@@ -26,7 +27,7 @@ interface StoreFlyerProps {
 
 export const StoreFlyer = forwardRef<HTMLDivElement, StoreFlyerProps>(
   ({ storeData }, ref) => {
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(storeData.menuUrl)}`;
+    const qrDataUrl = useQRCode(storeData.menuUrl, 200);
     
     const primaryColor = storeData.primaryColor || '#f97316';
 
@@ -85,7 +86,7 @@ export const StoreFlyer = forwardRef<HTMLDivElement, StoreFlyerProps>(
           {/* Right Side - QR Code */}
           <div className="text-center">
             <div className="bg-gray-50 p-4 rounded-xl border-2" style={{ borderColor: primaryColor }}>
-              <img src={qrCodeUrl} alt="QR Code" className="w-32 h-32 mx-auto mb-2" />
+              {qrDataUrl && <img src={qrDataUrl} alt="QR Code" className="w-32 h-32 mx-auto mb-2" />}
               <p className="text-base font-bold" style={{ color: primaryColor }}>
                 📱 PEÇA ONLINE!
               </p>

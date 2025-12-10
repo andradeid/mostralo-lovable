@@ -1,3 +1,5 @@
+import { Store } from 'lucide-react';
+
 interface FlyerTemplateProps {
   referralCode: string;
   homepageLink: string;
@@ -18,8 +20,8 @@ export function FlyerTemplate({
     <div className="bg-white text-gray-900 p-8 w-[210mm] min-h-[297mm] mx-auto print:shadow-none shadow-lg">
       {/* Header */}
       <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 text-white text-3xl font-bold mb-4">
-          M
+        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-white shadow-lg mb-4">
+          <Store className="w-12 h-12" style={{ color: '#f97316' }} />
         </div>
         <h1 className="text-4xl font-bold text-gray-900 mb-2">MOSTRALO</h1>
         <p className="text-xl text-orange-600 font-semibold">

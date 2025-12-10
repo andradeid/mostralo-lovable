@@ -35,7 +35,8 @@ import {
   Rss,
   QrCode,
   MessageCircle,
-  Send
+  Send,
+  Zap
 } from "lucide-react";
 
 import {
@@ -491,6 +492,7 @@ export function AdminSidebar() {
       if (hasModule('whatsapp_recovery')) {
         menuItems.push(
           { title: 'Conexão WhatsApp', url: '/dashboard/whatsapp', icon: MessageCircle, group: 'WhatsApp' },
+          { title: 'Mensagens Automáticas', url: '/dashboard/whatsapp/automations', icon: Zap, group: 'WhatsApp' },
           { title: 'Modelos de Mensagem', url: '/dashboard/whatsapp/templates', icon: FileText, group: 'WhatsApp' },
           { title: 'Campanhas', url: '/dashboard/whatsapp/campaigns', icon: Send, group: 'WhatsApp' }
         );

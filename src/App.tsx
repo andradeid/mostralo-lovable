@@ -103,6 +103,7 @@ import WhatsAppInstancePage from "./pages/admin/WhatsAppInstancePage";
 import WhatsAppTemplatesPage from "./pages/admin/WhatsAppTemplatesPage";
 import WhatsAppCampaignsPage from "./pages/admin/WhatsAppCampaignsPage";
 import WhatsAppCampaignNewPage from "./pages/admin/WhatsAppCampaignNewPage";
+import WhatsAppAutomationsPage from "./pages/admin/WhatsAppAutomationsPage";
 
 const queryClient = new QueryClient();
 
@@ -407,6 +408,11 @@ const App = () => (
             <Route path="/dashboard/whatsapp/templates" element={
               <ProtectedRoute allowedRoles={['store_admin']}>
                 <AdminLayout pageTitle="Modelos de Mensagem"><WhatsAppTemplatesPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/whatsapp/automations" element={
+              <ProtectedRoute allowedRoles={['store_admin']}>
+                <AdminLayout pageTitle="Mensagens Automáticas"><WhatsAppAutomationsPage /></AdminLayout>
               </ProtectedRoute>
             } />
             <Route path="/dashboard/whatsapp/campaigns" element={

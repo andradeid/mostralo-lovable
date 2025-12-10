@@ -154,19 +154,20 @@ export function CommercialPresentationTemplate({
           background: 'white',
           display: 'flex',
           flexDirection: 'column',
-          padding: '48px',
+          padding: '32px',
           boxSizing: 'border-box',
+          overflow: 'hidden',
         }}
       >
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
           <div style={{ 
-            width: '8px', 
-            height: '48px', 
+            width: '6px', 
+            height: '40px', 
             background: 'linear-gradient(180deg, #f97316 0%, #f59e0b 100%)', 
             borderRadius: '9999px',
           }} />
-          <h2 style={{ fontSize: '36px', fontWeight: 'bold', color: '#111827' }}>O Custo Escondido do iFood</h2>
+          <h2 style={{ fontSize: '32px', fontWeight: 'bold', color: '#111827' }}>O Custo Escondido do iFood</h2>
         </div>
         
         {/* Conteúdo */}
@@ -175,24 +176,24 @@ export function CommercialPresentationTemplate({
           <div style={{ 
             background: '#fef2f2', 
             border: '2px solid #fecaca', 
-            borderRadius: '16px', 
-            padding: '32px', 
-            marginBottom: '32px',
+            borderRadius: '12px', 
+            padding: '24px', 
+            marginBottom: '24px',
           }}>
-            <p style={{ fontSize: '20px', color: '#374151', marginBottom: '24px' }}>Se você fatura por mês:</p>
+            <p style={{ fontSize: '18px', color: '#374151', marginBottom: '16px' }}>Se você fatura por mês:</p>
             
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px', textAlign: 'center' }}>
-              <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '8px' }}>Faturamento</p>
-                <p style={{ fontSize: '28px', fontWeight: 'bold', color: '#111827' }}>R$ 30.000</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', textAlign: 'center' }}>
+              <div style={{ background: 'white', borderRadius: '10px', padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+                <p style={{ color: '#6b7280', fontSize: '12px', marginBottom: '4px' }}>Faturamento</p>
+                <p style={{ fontSize: '22px', fontWeight: 'bold', color: '#111827' }}>R$ 30.000</p>
               </div>
-              <div style={{ background: '#fee2e2', borderRadius: '12px', padding: '24px' }}>
-                <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '8px' }}>Taxa iFood (25%)</p>
-                <p style={{ fontSize: '28px', fontWeight: 'bold', color: '#dc2626' }}>- R$ 7.500</p>
+              <div style={{ background: '#fee2e2', borderRadius: '10px', padding: '16px' }}>
+                <p style={{ color: '#6b7280', fontSize: '12px', marginBottom: '4px' }}>Taxa iFood (25%)</p>
+                <p style={{ fontSize: '22px', fontWeight: 'bold', color: '#dc2626' }}>- R$ 7.500</p>
               </div>
-              <div style={{ background: '#fecaca', borderRadius: '12px', padding: '24px' }}>
-                <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '8px' }}>Por ANO</p>
-                <p style={{ fontSize: '28px', fontWeight: 'bold', color: '#b91c1c' }}>- R$ 90.000</p>
+              <div style={{ background: '#fecaca', borderRadius: '10px', padding: '16px' }}>
+                <p style={{ color: '#6b7280', fontSize: '12px', marginBottom: '4px' }}>Por ANO</p>
+                <p style={{ fontSize: '22px', fontWeight: 'bold', color: '#b91c1c' }}>- R$ 90.000</p>
               </div>
             </div>
           </div>
@@ -240,24 +241,25 @@ export function CommercialPresentationTemplate({
           background: 'white',
           display: 'flex',
           flexDirection: 'column',
-          padding: '48px',
+          padding: '32px',
           boxSizing: 'border-box',
+          overflow: 'hidden',
         }}
       >
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
           <div style={{ 
-            width: '8px', 
-            height: '48px', 
+            width: '6px', 
+            height: '40px', 
             background: 'linear-gradient(180deg, #f97316 0%, #f59e0b 100%)', 
             borderRadius: '9999px',
           }} />
-          <h2 style={{ fontSize: '36px', fontWeight: 'bold', color: '#111827' }}>Nossos Planos</h2>
+          <h2 style={{ fontSize: '32px', fontWeight: 'bold', color: '#111827' }}>Nossos Planos</h2>
         </div>
         
         {/* Planos */}
         <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px', width: '100%' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', width: '100%' }}>
             {plans.slice(0, 3).map((plan, index) => {
               const currentPrice = plan.promotion_active && plan.discount_price 
                 ? plan.discount_price 
@@ -268,16 +270,15 @@ export function CommercialPresentationTemplate({
                 <div 
                   key={plan.id}
                   style={{
-                    borderRadius: '16px',
-                    padding: '24px',
+                    borderRadius: '12px',
+                    padding: '20px',
                     position: 'relative',
                     background: plan.is_popular 
                       ? 'linear-gradient(135deg, #f97316 0%, #f59e0b 100%)' 
                       : '#f9fafb',
                     color: plan.is_popular ? 'white' : '#111827',
-                    border: plan.is_popular ? 'none' : '2px solid #e5e7eb',
-                    boxShadow: plan.is_popular ? '0 20px 60px rgba(249, 115, 22, 0.3)' : 'none',
-                    transform: plan.is_popular ? 'scale(1.05)' : 'none',
+                    border: plan.is_popular ? '2px solid #ea580c' : '2px solid #e5e7eb',
+                    boxShadow: plan.is_popular ? '0 8px 24px rgba(249, 115, 22, 0.25)' : 'none',
                   }}
                 >
                   {plan.is_popular && (

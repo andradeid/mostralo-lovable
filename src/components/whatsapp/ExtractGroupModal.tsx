@@ -73,7 +73,7 @@ export function ExtractGroupModal({
           instance_name: instance.instance_name,
           group_jid: group.group_jid,
           group_name: group.name,
-          label_id: selectedLabel || undefined,
+          label_id: selectedLabel && selectedLabel !== 'none' ? selectedLabel : undefined,
         },
       });
 
@@ -128,7 +128,7 @@ export function ExtractGroupModal({
                 <SelectValue placeholder="Selecione uma etiqueta" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Nenhuma</SelectItem>
+                <SelectItem value="none">Nenhuma</SelectItem>
                 {labels.map(label => (
                   <SelectItem key={label.id} value={label.id}>
                     <div className="flex items-center gap-2">

@@ -1,4 +1,4 @@
-import { Store, Download, Eye } from 'lucide-react';
+import { Store, Download, Eye, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRef, useCallback } from 'react';
 import { toast } from 'sonner';
@@ -537,6 +537,9 @@ export function CommercialPresentationWhatsAppTemplate({
   sellerPhone,
   plans
 }: CommercialPresentationWhatsAppTemplateProps) {
+  // QR Code como base64 para evitar tainted canvas
+  const qrDataUrl = useQRCode(signupLink, 160);
+
   // Refs para captura em tamanho real (invisíveis)
   const captureRefs = [
     useRef<HTMLDivElement>(null),
@@ -801,7 +804,7 @@ export function CommercialPresentationWhatsAppTemplate({
     { title: '3. A Solução', component: <SlideSolution /> },
     { title: '4. Diferenciais', component: <SlideDifferentials /> },
     { title: '5. Planos', component: <SlidePlans plans={plans} /> },
-    { title: '6. Chamada para Ação', component: <SlideCTA referralCode={referralCode} signupLink={signupLink} sellerName={sellerName} sellerPhone={sellerPhone} /> },
+    { title: '6. Chamada para Ação', component: <SlideCTA referralCode={referralCode} qrDataUrl={qrDataUrl} sellerName={sellerName} sellerPhone={sellerPhone} /> },
   ];
 
   return (

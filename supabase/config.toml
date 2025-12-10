@@ -71,3 +71,12 @@ verify_jwt = false
 
 [functions.check-stale-leads]
 verify_jwt = false
+
+[functions.whatsapp-instance]
+verify_jwt = true
+
+[functions.whatsapp-send]
+verify_jwt = true
+
+[functions.whatsapp-campaign]
+verify_jwt = true

@@ -15,8 +15,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MessageCircle, ExternalLink } from "lucide-react";
+import { MessageCircle, Send, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface Template {
   id: string;
@@ -52,6 +53,7 @@ export function SendMessageModal({
   const [selectedTemplate, setSelectedTemplate] = useState<string>("custom");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     if (open && storeId) {
@@ -131,13 +133,36 @@ export function SendMessageModal({
     return phone;
   };
 
-  const openWhatsApp = () => {
-    if (!contact) return;
+  const sendMessage = async () => {
+    if (!contact || !message.trim()) return;
 
-    const cleaned = contact.phone_number.replace(/\D/g, "");
-    const encodedMessage = encodeURIComponent(message);
-    window.open(`https://wa.me/${cleaned}?text=${encodedMessage}`, "_blank");
-    onOpenChange(false);
+    setSending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('whatsapp-send', {
+        body: {
+          storeId: storeId,
+          phoneNumber: contact.phone_number,
+          messageType: 'text',
+          content: message,
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast.success('Mensagem enviada com sucesso!');
+        setMessage("");
+        setSelectedTemplate("custom");
+        onOpenChange(false);
+      } else {
+        throw new Error(data?.error || 'Erro ao enviar mensagem');
+      }
+    } catch (error: any) {
+      console.error('Erro ao enviar mensagem:', error);
+      toast.error(error.message || 'Erro ao enviar mensagem. Verifique se o WhatsApp está conectado.');
+    } finally {
+      setSending(false);
+    }
   };
 
   const contactDisplayName =
@@ -205,12 +230,16 @@ export function SendMessageModal({
 
           {/* Botão de Envio */}
           <Button
-            onClick={openWhatsApp}
+            onClick={sendMessage}
             className="w-full bg-green-600 hover:bg-green-700 text-white"
-            disabled={!message.trim()}
+            disabled={!message.trim() || sending}
           >
-            <ExternalLink className="h-4 w-4 mr-2" />
-            Abrir WhatsApp
+            {sending ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4 mr-2" />
+            )}
+            {sending ? 'Enviando...' : 'Enviar Mensagem'}
           </Button>
         </div>
       </DialogContent>

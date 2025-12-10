@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,8 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { validatePixKey, formatPixKey, type PixKeyType } from "@/utils/pixValidation";
+import { ContractViewer } from "@/components/contract/ContractViewer";
 import {
   User,
   Building2,
@@ -18,6 +20,7 @@ import {
   AlertCircle,
   ArrowRight,
   ArrowLeft,
+  FileText,
 } from "lucide-react";
 
 type Step = 1 | 2 | 3;
@@ -49,6 +52,8 @@ export default function CadastroVendedor() {
   const [loading, setLoading] = useState(false);
   const [validatingCNPJ, setValidatingCNPJ] = useState(false);
   const [cnpjValid, setCnpjValid] = useState<boolean | null>(null);
+  const [contractTemplate, setContractTemplate] = useState<any>(null);
+  const [loadingContract, setLoadingContract] = useState(true);
 
   const [formData, setFormData] = useState<FormData>({
     full_name: "",
@@ -65,6 +70,50 @@ export default function CadastroVendedor() {
     pix_key_type: "cpf",
     acceptedTerms: false,
   });
+
+  // Carregar template de contrato ao montar o componente
+  useEffect(() => {
+    const loadContractTemplate = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('salesperson_contract_templates')
+          .select('*')
+          .eq('is_active', true)
+          .maybeSingle();
+        
+        if (!error && data) {
+          setContractTemplate(data);
+        }
+      } catch (err) {
+        console.error('Erro ao carregar template de contrato:', err);
+      } finally {
+        setLoadingContract(false);
+      }
+    };
+    
+    loadContractTemplate();
+  }, []);
+
+  // Função para substituir placeholders no contrato
+  const getFormattedContractText = () => {
+    if (!contractTemplate) return '';
+    
+    let text = contractTemplate.contract_text || '';
+    
+    // Dados da empresa (do template)
+    text = text.replace(/{empresa}/g, contractTemplate.company_name || '');
+    text = text.replace(/{cnpj}/g, contractTemplate.company_cnpj || '');
+    text = text.replace(/{cidade}/g, contractTemplate.company_city || '');
+    text = text.replace(/{estado}/g, contractTemplate.company_state || '');
+    
+    // Dados do vendedor (do formulário preenchido)
+    text = text.replace(/{vendedor_nome}/g, formData.full_name || '[Seu Nome]');
+    text = text.replace(/{vendedor_cnpj}/g, formData.cnpj || '[Seu CNPJ]');
+    text = text.replace(/{vendedor_empresa}/g, formData.company_name || '[Sua Empresa]');
+    text = text.replace(/{comissao_percentual}/g, '10');
+    
+    return text;
+  };
 
   // Função para formatar telefone
   const formatPhone = (value: string) => {
@@ -490,6 +539,48 @@ export default function CadastroVendedor() {
                 </AlertDescription>
               </Alert>
 
+              {/* Contrato */}
+              <div className="border rounded-lg">
+                <div className="p-4 border-b bg-muted/50">
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Contrato de Prestação de Serviços
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Leia atentamente o contrato antes de aceitar
+                  </p>
+                </div>
+                
+                {loadingContract ? (
+                  <div className="p-8 text-center">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+                    <p className="text-sm text-muted-foreground mt-2">Carregando contrato...</p>
+                  </div>
+                ) : contractTemplate ? (
+                  <ScrollArea className="h-[400px]">
+                    <div className="p-4">
+                      <ContractViewer
+                        contractText={getFormattedContractText()}
+                        companyName={contractTemplate.company_name || ''}
+                        companyCnpj={contractTemplate.company_cnpj || ''}
+                        companyCity={contractTemplate.company_city || ''}
+                        companyState={contractTemplate.company_state || ''}
+                        version={contractTemplate.version || '1.0'}
+                        salespersonName={formData.full_name || undefined}
+                        salespersonCnpj={formData.cnpj || undefined}
+                      />
+                    </div>
+                  </ScrollArea>
+                ) : (
+                  <Alert variant="destructive" className="m-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      Não foi possível carregar o contrato. Tente novamente mais tarde.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+
               <div className="border-t pt-4">
                 <div className="flex items-start gap-2">
                   <Checkbox
@@ -498,13 +589,14 @@ export default function CadastroVendedor() {
                     onCheckedChange={(checked) =>
                       setFormData({ ...formData, acceptedTerms: checked as boolean })
                     }
+                    disabled={!contractTemplate}
                   />
                   <div className="space-y-1">
                     <Label htmlFor="terms" className="cursor-pointer">
-                      Aceito os termos de uso *
+                      Li e aceito os termos do contrato *
                     </Label>
                     <p className="text-sm text-muted-foreground">
-                      Declaro que li e concordo com os termos do contrato de prestação de serviços.
+                      Declaro que li e concordo com todos os termos do contrato acima.
                       Confirmo que possuo CNPJ ativo com CNAE compatível e que esta relação é
                       estritamente comercial (B2B), sem vínculo empregatício.
                     </p>

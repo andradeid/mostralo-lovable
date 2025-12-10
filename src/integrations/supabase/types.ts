@@ -2736,18 +2736,67 @@ export type Database = {
           },
         ]
       }
+      salesperson_contract_templates: {
+        Row: {
+          company_address: string | null
+          company_city: string
+          company_cnpj: string
+          company_name: string
+          company_state: string | null
+          contract_text: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          updated_at: string | null
+          version: string
+        }
+        Insert: {
+          company_address?: string | null
+          company_city: string
+          company_cnpj: string
+          company_name: string
+          company_state?: string | null
+          contract_text: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          version: string
+        }
+        Update: {
+          company_address?: string | null
+          company_city?: string
+          company_cnpj?: string
+          company_name?: string
+          company_state?: string | null
+          contract_text?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          version?: string
+        }
+        Relationships: []
+      }
       salesperson_contracts: {
         Row: {
           accepted_at: string
           bonus_terms: Json | null
           cnae_requirements: string[] | null
           commission_terms: Json
+          contract_template_id: string | null
           contract_text: string
           created_at: string | null
           id: string
           ip_address: string | null
+          salesperson_cnpj: string | null
           salesperson_id: string
+          salesperson_name: string | null
           user_agent: string | null
+          verification_hash: string | null
           version: string
         }
         Insert: {
@@ -2755,12 +2804,16 @@ export type Database = {
           bonus_terms?: Json | null
           cnae_requirements?: string[] | null
           commission_terms: Json
+          contract_template_id?: string | null
           contract_text: string
           created_at?: string | null
           id?: string
           ip_address?: string | null
+          salesperson_cnpj?: string | null
           salesperson_id: string
+          salesperson_name?: string | null
           user_agent?: string | null
+          verification_hash?: string | null
           version: string
         }
         Update: {
@@ -2768,15 +2821,26 @@ export type Database = {
           bonus_terms?: Json | null
           cnae_requirements?: string[] | null
           commission_terms?: Json
+          contract_template_id?: string | null
           contract_text?: string
           created_at?: string | null
           id?: string
           ip_address?: string | null
+          salesperson_cnpj?: string | null
           salesperson_id?: string
+          salesperson_name?: string | null
           user_agent?: string | null
+          verification_hash?: string | null
           version?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "salesperson_contracts_contract_template_id_fkey"
+            columns: ["contract_template_id"]
+            isOneToOne: false
+            referencedRelation: "salesperson_contract_templates"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "salesperson_contracts_salesperson_id_fkey"
             columns: ["salesperson_id"]

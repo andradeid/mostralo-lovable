@@ -82,6 +82,9 @@ import IframePage from './pages/admin/IframePage';
 import GoalsPage from './pages/admin/GoalsPage';
 import SalesPromptsPage from './pages/admin/SalesPromptsPage';
 import SalespeopleListPage from './pages/admin/SalespeopleListPage';
+import ContractTemplateEditPage from './pages/admin/ContractTemplateEditPage';
+import VerifyContractPage from './pages/public/VerifyContractPage';
+import SalespersonContractHistory from './pages/salesperson/SalespersonContractHistory';
 import SalespersonDetailPage from './pages/admin/SalespersonDetailPage';
 import SalespersonCommissionsPage from './pages/admin/SalespersonCommissionsPage';
 import SalespersonDashboard from "./pages/salesperson/SalespersonDashboard";
@@ -469,6 +472,21 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/users-demo" element={<UsersDemo />} />
+            <Route path="/verificar-contrato" element={<VerifyContractPage />} />
+            
+            {/* Rota do contrato para master admin */}
+            <Route path="/dashboard/salespeople/contract" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Editar Contrato"><ContractTemplateEditPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            
+            {/* Histórico de contratos para vendedor */}
+            <Route path="/vendedor/contratos" element={
+              <ProtectedRoute allowedRoles={["salesperson"]}>
+                <SalespersonLayout><SalespersonContractHistory /></SalespersonLayout>
+              </ProtectedRoute>
+            } />
             <Route path="/seja-vendedor" element={<SejaVendedor />} />
             <Route path="/cadastro-vendedor" element={<CadastroVendedor />} />
             <Route path="/cadastro-vendedor/sucesso" element={<CadastroVendedorSucesso />} />

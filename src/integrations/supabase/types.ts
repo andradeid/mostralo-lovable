@@ -1272,6 +1272,36 @@ export type Database = {
         }
         Relationships: []
       }
+      evolution_config: {
+        Row: {
+          api_key: string
+          api_url: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          api_key: string
+          api_url: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          api_key?: string
+          api_url?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       lead_follow_up_reminders: {
         Row: {
           created_at: string | null
@@ -3551,6 +3581,360 @@ export type Database = {
           },
         ]
       }
+      whatsapp_campaigns: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          daily_limit: number | null
+          description: string | null
+          end_hour: number | null
+          filter_days_inactive: number | null
+          filter_last_order_after: string | null
+          filter_last_order_before: string | null
+          filter_max_orders: number | null
+          filter_max_spent: number | null
+          filter_min_orders: number | null
+          filter_min_spent: number | null
+          id: string
+          message_interval_seconds: number | null
+          messages_delivered: number | null
+          messages_failed: number | null
+          messages_read: number | null
+          messages_sent: number | null
+          name: string
+          scheduled_start_at: string | null
+          start_hour: number | null
+          started_at: string | null
+          status: Database["public"]["Enums"]["whatsapp_campaign_status"] | null
+          store_id: string
+          template_id: string | null
+          total_recipients: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          daily_limit?: number | null
+          description?: string | null
+          end_hour?: number | null
+          filter_days_inactive?: number | null
+          filter_last_order_after?: string | null
+          filter_last_order_before?: string | null
+          filter_max_orders?: number | null
+          filter_max_spent?: number | null
+          filter_min_orders?: number | null
+          filter_min_spent?: number | null
+          id?: string
+          message_interval_seconds?: number | null
+          messages_delivered?: number | null
+          messages_failed?: number | null
+          messages_read?: number | null
+          messages_sent?: number | null
+          name: string
+          scheduled_start_at?: string | null
+          start_hour?: number | null
+          started_at?: string | null
+          status?:
+            | Database["public"]["Enums"]["whatsapp_campaign_status"]
+            | null
+          store_id: string
+          template_id?: string | null
+          total_recipients?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          daily_limit?: number | null
+          description?: string | null
+          end_hour?: number | null
+          filter_days_inactive?: number | null
+          filter_last_order_after?: string | null
+          filter_last_order_before?: string | null
+          filter_max_orders?: number | null
+          filter_max_spent?: number | null
+          filter_min_orders?: number | null
+          filter_min_spent?: number | null
+          id?: string
+          message_interval_seconds?: number | null
+          messages_delivered?: number | null
+          messages_failed?: number | null
+          messages_read?: number | null
+          messages_sent?: number | null
+          name?: string
+          scheduled_start_at?: string | null
+          start_hour?: number | null
+          started_at?: string | null
+          status?:
+            | Database["public"]["Enums"]["whatsapp_campaign_status"]
+            | null
+          store_id?: string
+          template_id?: string | null
+          total_recipients?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_campaigns_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_campaigns_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_campaigns_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_instances: {
+        Row: {
+          created_at: string | null
+          id: string
+          instance_id: string | null
+          instance_name: string
+          last_connected_at: string | null
+          phone_number: string | null
+          profile_name: string | null
+          profile_picture_url: string | null
+          qr_code: string | null
+          status: Database["public"]["Enums"]["whatsapp_instance_status"] | null
+          store_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          instance_id?: string | null
+          instance_name: string
+          last_connected_at?: string | null
+          phone_number?: string | null
+          profile_name?: string | null
+          profile_picture_url?: string | null
+          qr_code?: string | null
+          status?:
+            | Database["public"]["Enums"]["whatsapp_instance_status"]
+            | null
+          store_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          instance_id?: string | null
+          instance_name?: string
+          last_connected_at?: string | null
+          phone_number?: string | null
+          profile_name?: string | null
+          profile_picture_url?: string | null
+          qr_code?: string | null
+          status?:
+            | Database["public"]["Enums"]["whatsapp_instance_status"]
+            | null
+          store_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_instances_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_instances_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_messages: {
+        Row: {
+          campaign_id: string | null
+          content: string
+          created_at: string | null
+          customer_id: string | null
+          customer_name: string | null
+          delivered_at: string | null
+          error_message: string | null
+          evolution_message_id: string | null
+          failed_at: string | null
+          id: string
+          media_url: string | null
+          message_type:
+            | Database["public"]["Enums"]["whatsapp_message_type"]
+            | null
+          phone_number: string
+          read_at: string | null
+          scheduled_for: string | null
+          sent_at: string | null
+          status: Database["public"]["Enums"]["whatsapp_message_status"] | null
+          store_id: string
+          template_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          content: string
+          created_at?: string | null
+          customer_id?: string | null
+          customer_name?: string | null
+          delivered_at?: string | null
+          error_message?: string | null
+          evolution_message_id?: string | null
+          failed_at?: string | null
+          id?: string
+          media_url?: string | null
+          message_type?:
+            | Database["public"]["Enums"]["whatsapp_message_type"]
+            | null
+          phone_number: string
+          read_at?: string | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["whatsapp_message_status"] | null
+          store_id: string
+          template_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          campaign_id?: string | null
+          content?: string
+          created_at?: string | null
+          customer_id?: string | null
+          customer_name?: string | null
+          delivered_at?: string | null
+          error_message?: string | null
+          evolution_message_id?: string | null
+          failed_at?: string | null
+          id?: string
+          media_url?: string | null
+          message_type?:
+            | Database["public"]["Enums"]["whatsapp_message_type"]
+            | null
+          phone_number?: string
+          read_at?: string | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["whatsapp_message_status"] | null
+          store_id?: string
+          template_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_messages_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_messages_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_messages_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_messages_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_messages_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_templates: {
+        Row: {
+          category: string
+          content: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          media_caption: string | null
+          media_url: string | null
+          message_type:
+            | Database["public"]["Enums"]["whatsapp_message_type"]
+            | null
+          name: string
+          store_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          content: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          media_caption?: string | null
+          media_url?: string | null
+          message_type?:
+            | Database["public"]["Enums"]["whatsapp_message_type"]
+            | null
+          name: string
+          store_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          media_caption?: string | null
+          media_url?: string | null
+          message_type?:
+            | Database["public"]["Enums"]["whatsapp_message_type"]
+            | null
+          name?: string
+          store_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_templates_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_templates_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       public_store_config: {
@@ -3828,6 +4212,26 @@ export type Database = {
         | "minimum_order"
       store_status: "active" | "inactive" | "suspended"
       user_type: "master_admin" | "store_admin"
+      whatsapp_campaign_status:
+        | "draft"
+        | "scheduled"
+        | "running"
+        | "paused"
+        | "completed"
+        | "cancelled"
+      whatsapp_instance_status:
+        | "disconnected"
+        | "connecting"
+        | "connected"
+        | "banned"
+      whatsapp_message_status:
+        | "pending"
+        | "queued"
+        | "sent"
+        | "delivered"
+        | "read"
+        | "failed"
+      whatsapp_message_type: "text" | "image" | "document" | "audio" | "video"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3995,6 +4399,29 @@ export const Constants = {
       ],
       store_status: ["active", "inactive", "suspended"],
       user_type: ["master_admin", "store_admin"],
+      whatsapp_campaign_status: [
+        "draft",
+        "scheduled",
+        "running",
+        "paused",
+        "completed",
+        "cancelled",
+      ],
+      whatsapp_instance_status: [
+        "disconnected",
+        "connecting",
+        "connected",
+        "banned",
+      ],
+      whatsapp_message_status: [
+        "pending",
+        "queued",
+        "sent",
+        "delivered",
+        "read",
+        "failed",
+      ],
+      whatsapp_message_type: ["text", "image", "document", "audio", "video"],
     },
   },
 } as const

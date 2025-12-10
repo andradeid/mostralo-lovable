@@ -4,9 +4,33 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Save, Server, Key, CheckCircle, XCircle, Eye, EyeOff } from "lucide-react";
+import { 
+  Loader2, Save, Server, Key, CheckCircle, XCircle, Eye, EyeOff, 
+  RefreshCw, Smartphone, Users, MessageSquare, Wifi, WifiOff, 
+  Copy, Phone, Trash2
+} from "lucide-react";
+
+interface EvolutionInstance {
+  instanceName: string;
+  instanceId: string;
+  status: string;
+  owner: string;
+  profilePictureUrl: string | null;
+  number: string | null;
+  apiKey: string | null;
+  integration: string;
+}
+
+interface InstanceStats {
+  total: number;
+  connected: number;
+  connecting: number;
+  offline: number;
+}
 
 export default function EvolutionConfigPage() {
   const { toast } = useToast();
@@ -15,6 +39,9 @@ export default function EvolutionConfigPage() {
   const [testing, setTesting] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'unknown' | 'connected' | 'error'>('unknown');
+  const [instances, setInstances] = useState<EvolutionInstance[]>([]);
+  const [stats, setStats] = useState<InstanceStats>({ total: 0, connected: 0, connecting: 0, offline: 0 });
+  const [loadingInstances, setLoadingInstances] = useState(false);
   
   const [config, setConfig] = useState({
     id: '',
@@ -43,11 +70,45 @@ export default function EvolutionConfigPage() {
           api_key: configData.api_key,
           is_active: configData.is_active,
         });
+        // Se já temos configuração, buscar instâncias automaticamente
+        if (configData.api_url && configData.api_key) {
+          fetchInstances(configData.api_url, configData.api_key);
+        }
       }
     } catch (error) {
       console.log('Nenhuma configuração encontrada, será criada ao salvar');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchInstances = async (apiUrl?: string, apiKey?: string) => {
+    const url = apiUrl || config.api_url;
+    const key = apiKey || config.api_key;
+    
+    if (!url || !key) return;
+
+    setLoadingInstances(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('evolution-test-connection', {
+        body: { api_url: url, api_key: key }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        setInstances(data.instances || []);
+        setStats(data.stats || { total: 0, connected: 0, connecting: 0, offline: 0 });
+        setConnectionStatus('connected');
+      } else {
+        setConnectionStatus('error');
+        setInstances([]);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar instâncias:', error);
+      setConnectionStatus('error');
+    } finally {
+      setLoadingInstances(false);
     }
   };
 
@@ -64,13 +125,12 @@ export default function EvolutionConfigPage() {
     setSaving(true);
     try {
       const saveData = {
-        api_url: config.api_url.replace(/\/$/, ''), // Remove trailing slash
+        api_url: config.api_url.replace(/\/$/, ''),
         api_key: config.api_key,
         is_active: config.is_active,
       };
 
       if (config.id) {
-        // Atualizar
         const { error } = await supabase
           .from('evolution_config' as any)
           .update(saveData)
@@ -78,7 +138,6 @@ export default function EvolutionConfigPage() {
 
         if (error) throw error;
       } else {
-        // Criar
         const { data, error } = await supabase
           .from('evolution_config' as any)
           .insert(saveData)
@@ -93,6 +152,9 @@ export default function EvolutionConfigPage() {
         title: "Sucesso",
         description: "Configuração salva com sucesso",
       });
+
+      // Atualizar instâncias após salvar
+      fetchInstances();
     } catch (error: any) {
       console.error('Erro ao salvar:', error);
       toast({
@@ -120,16 +182,15 @@ export default function EvolutionConfigPage() {
 
     try {
       const { data, error } = await supabase.functions.invoke('evolution-test-connection', {
-        body: { 
-          api_url: config.api_url, 
-          api_key: config.api_key 
-        }
+        body: { api_url: config.api_url, api_key: config.api_key }
       });
 
       if (error) throw error;
 
       if (data?.success) {
         setConnectionStatus('connected');
+        setInstances(data.instances || []);
+        setStats(data.stats || { total: 0, connected: 0, connecting: 0, offline: 0 });
         toast({
           title: "Conexão OK",
           description: data.message || `Evolution API conectada.`,
@@ -154,6 +215,36 @@ export default function EvolutionConfigPage() {
     }
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({ title: "Copiado!", description: "Texto copiado para a área de transferência" });
+  };
+
+  const formatPhoneNumber = (phone: string | null) => {
+    if (!phone) return 'Não conectado';
+    const cleaned = phone.replace(/\D/g, '');
+    if (cleaned.length === 13) {
+      return `+${cleaned.slice(0, 2)} ${cleaned.slice(2, 4)} ${cleaned.slice(4, 9)}-${cleaned.slice(9)}`;
+    }
+    return phone;
+  };
+
+  const getStatusConfig = (status: string) => {
+    switch (status) {
+      case 'open':
+      case 'connected':
+        return { label: 'Conectado', color: 'bg-emerald-500', textColor: 'text-emerald-500', icon: Wifi };
+      case 'connecting':
+        return { label: 'Conectando', color: 'bg-amber-500', textColor: 'text-amber-500', icon: RefreshCw };
+      case 'close':
+      case 'closed':
+      case 'disconnected':
+        return { label: 'Desconectado', color: 'bg-red-500', textColor: 'text-red-500', icon: WifiOff };
+      default:
+        return { label: 'Desconhecido', color: 'bg-gray-500', textColor: 'text-gray-500', icon: WifiOff };
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -164,13 +255,149 @@ export default function EvolutionConfigPage() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold">Configuração Evolution API</h1>
         <p className="text-muted-foreground">
-          Configure a conexão com o servidor Evolution API para o módulo WhatsApp Recuperação
+          Gerencie a conexão com o servidor Evolution API e monitore suas instâncias WhatsApp
         </p>
       </div>
 
+      {/* Estatísticas Globais */}
+      {connectionStatus === 'connected' && (
+        <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Smartphone className="h-5 w-5 text-primary" />
+                Instâncias WhatsApp
+              </CardTitle>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => fetchInstances()}
+                disabled={loadingInstances}
+              >
+                <RefreshCw className={`h-4 w-4 mr-1 ${loadingInstances ? 'animate-spin' : ''}`} />
+                Atualizar
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-3 rounded-lg bg-background/50 border">
+                <div className="text-2xl font-bold text-foreground">{stats.total}</div>
+                <div className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                  <Smartphone className="h-3 w-3" /> Total
+                </div>
+              </div>
+              <div className="text-center p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                <div className="text-2xl font-bold text-emerald-500">{stats.connected}</div>
+                <div className="text-xs text-emerald-600 flex items-center justify-center gap-1">
+                  <Wifi className="h-3 w-3" /> Conectadas
+                </div>
+              </div>
+              <div className="text-center p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                <div className="text-2xl font-bold text-amber-500">{stats.connecting}</div>
+                <div className="text-xs text-amber-600 flex items-center justify-center gap-1">
+                  <RefreshCw className="h-3 w-3" /> Conectando
+                </div>
+              </div>
+              <div className="text-center p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+                <div className="text-2xl font-bold text-red-500">{stats.offline}</div>
+                <div className="text-xs text-red-600 flex items-center justify-center gap-1">
+                  <WifiOff className="h-3 w-3" /> Offline
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Grid de Cards de Instâncias */}
+      {instances.length > 0 && (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {instances.map((instance) => {
+            const statusConfig = getStatusConfig(instance.status);
+            const StatusIcon = statusConfig.icon;
+            
+            return (
+              <Card 
+                key={instance.instanceId} 
+                className="overflow-hidden border-l-4 transition-all hover:shadow-lg"
+                style={{ borderLeftColor: statusConfig.color.replace('bg-', 'var(--') }}
+              >
+                {/* Header do Card */}
+                <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-12 w-12 border-2 border-background shadow-md">
+                        <AvatarImage src={instance.profilePictureUrl || undefined} />
+                        <AvatarFallback className="bg-primary/20 text-primary font-bold">
+                          {instance.instanceName.slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="font-semibold text-foreground">{instance.instanceName}</h3>
+                        {instance.owner && (
+                          <p className="text-xs text-muted-foreground">{instance.owner}</p>
+                        )}
+                      </div>
+                    </div>
+                    <Badge 
+                      variant="outline" 
+                      className={`${statusConfig.textColor} border-current text-xs`}
+                    >
+                      <StatusIcon className={`h-3 w-3 mr-1 ${instance.status === 'connecting' ? 'animate-spin' : ''}`} />
+                      {statusConfig.label}
+                    </Badge>
+                  </div>
+                </div>
+
+                <CardContent className="p-4 space-y-4">
+                  {/* Número de Telefone */}
+                  <div className="flex items-center gap-2 text-sm">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Número:</span>
+                    <span className="font-medium">{formatPhoneNumber(instance.number)}</span>
+                  </div>
+
+                  {/* API Key da Instância */}
+                  {instance.apiKey && (
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Key className="h-4 w-4" />
+                        <span>API Key:</span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-muted/50 rounded-md p-2">
+                        <code className="text-xs font-mono flex-1 truncate">
+                          {instance.apiKey.slice(0, 16)}...
+                        </code>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-6 w-6"
+                          onClick={() => copyToClipboard(instance.apiKey!)}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Integração */}
+                  <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
+                    <span>{instance.integration}</span>
+                    <span className="font-mono">{instance.instanceId.slice(0, 8)}...</span>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Configuração do Servidor */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -240,7 +467,7 @@ export default function EvolutionConfigPage() {
           {connectionStatus !== 'unknown' && (
             <div className={`p-4 rounded-lg flex items-center gap-2 ${
               connectionStatus === 'connected' 
-                ? 'bg-green-500/10 text-green-500' 
+                ? 'bg-emerald-500/10 text-emerald-500' 
                 : 'bg-red-500/10 text-red-500'
             }`}>
               {connectionStatus === 'connected' ? (
@@ -286,6 +513,7 @@ export default function EvolutionConfigPage() {
         </CardContent>
       </Card>
 
+      {/* Documentação */}
       <Card>
         <CardHeader>
           <CardTitle>Documentação</CardTitle>

@@ -3879,13 +3879,14 @@ export type Database = {
           created_at: string | null
           id: string
           is_active: boolean | null
+          is_default: boolean | null
           media_caption: string | null
           media_url: string | null
           message_type:
             | Database["public"]["Enums"]["whatsapp_message_type"]
             | null
           name: string
-          store_id: string
+          store_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -3894,13 +3895,14 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_active?: boolean | null
+          is_default?: boolean | null
           media_caption?: string | null
           media_url?: string | null
           message_type?:
             | Database["public"]["Enums"]["whatsapp_message_type"]
             | null
           name: string
-          store_id: string
+          store_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -3909,13 +3911,14 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_active?: boolean | null
+          is_default?: boolean | null
           media_caption?: string | null
           media_url?: string | null
           message_type?:
             | Database["public"]["Enums"]["whatsapp_message_type"]
             | null
           name?: string
-          store_id?: string
+          store_id?: string | null
           updated_at?: string | null
         }
         Relationships: [

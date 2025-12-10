@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useStoreAccess } from "@/hooks/useStoreAccess";
@@ -24,7 +25,8 @@ import {
   ChevronDown,
   ChevronUp,
   RefreshCw,
-  MessageSquare
+  MessageSquare,
+  FileEdit
 } from "lucide-react";
 
 export default function WhatsAppCampaignsPage() {
@@ -37,6 +39,11 @@ export default function WhatsAppCampaignsPage() {
   const [expandedCampaign, setExpandedCampaign] = useState<string | null>(null);
   const [campaignMessages, setCampaignMessages] = useState<Record<string, any[]>>({});
   const [messagesLoading, setMessagesLoading] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'active' | 'drafts'>('active');
+
+  // Filtrar campanhas por tipo
+  const activeCampaigns = campaigns.filter(c => c.status !== 'draft');
+  const draftCampaigns = campaigns.filter(c => c.status === 'draft');
 
   useEffect(() => {
     if (storeId) {
@@ -95,7 +102,12 @@ export default function WhatsAppCampaignsPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'draft':
-        return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" /> Rascunho</Badge>;
+        return (
+          <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-950 dark:text-orange-400 dark:border-orange-800 font-semibold">
+            <FileEdit className="h-3 w-3 mr-1" /> 
+            RASCUNHO
+          </Badge>
+        );
       case 'scheduled':
         return <Badge className="bg-blue-500"><Clock className="h-3 w-3 mr-1" /> Agendada</Badge>;
       case 'running':
@@ -200,210 +212,325 @@ export default function WhatsAppCampaignsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
-          {campaigns.map(campaign => (
-            <Card key={campaign.id}>
-              <CardHeader className="pb-2">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-lg">{campaign.name}</CardTitle>
-                    <CardDescription>
-                      Template: {campaign.template?.name || 'Não definido'}
-                    </CardDescription>
-                  </div>
-                  {getStatusBadge(campaign.status)}
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {campaign.description && (
-                  <p className="text-sm text-muted-foreground">{campaign.description}</p>
-                )}
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'active' | 'drafts')}>
+          <TabsList className="mb-4">
+            <TabsTrigger value="active" className="gap-2">
+              <Send className="h-4 w-4" />
+              Ativas/Finalizadas
+              {activeCampaigns.length > 0 && (
+                <Badge variant="secondary" className="ml-1">{activeCampaigns.length}</Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="drafts" className="gap-2">
+              <FileEdit className="h-4 w-4" />
+              Rascunhos
+              {draftCampaigns.length > 0 && (
+                <Badge variant="secondary" className="ml-1">{draftCampaigns.length}</Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
 
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span>{campaign.total_recipients} destinatários</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Send className="h-4 w-4 text-muted-foreground" />
-                    <span>{campaign.messages_sent} enviadas</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span>{campaign.messages_delivered} entregues</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Eye className="h-4 w-4 text-blue-500" />
-                    <span>{campaign.messages_read} lidas</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <XCircle className="h-4 w-4 text-red-500" />
-                    <span>{campaign.messages_failed} falhas</span>
-                  </div>
-                </div>
+          <TabsContent value="active">
+            {activeCampaigns.length === 0 ? (
+              <Card>
+                <CardContent className="py-8 text-center text-muted-foreground">
+                  <Send className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>Nenhuma campanha iniciada ainda</p>
+                  <p className="text-sm">Inicie uma campanha na aba Rascunhos</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {activeCampaigns.map(campaign => (
+                  <CampaignCard 
+                    key={campaign.id}
+                    campaign={campaign}
+                    getStatusBadge={getStatusBadge}
+                    calculateProgress={calculateProgress}
+                    handleCampaignAction={handleCampaignAction}
+                    actionLoading={actionLoading}
+                    navigate={navigate}
+                    toggleCampaignMessages={toggleCampaignMessages}
+                    expandedCampaign={expandedCampaign}
+                    campaignMessages={campaignMessages}
+                    messagesLoading={messagesLoading}
+                    fetchCampaignMessages={fetchCampaignMessages}
+                    showMessagesButton={true}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
 
-                {campaign.status === 'running' && (
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-sm">
-                      <span>Progresso</span>
-                      <span>{calculateProgress(campaign)}%</span>
-                    </div>
-                    <Progress value={calculateProgress(campaign)} />
-                  </div>
-                )}
-
-                <div className="flex flex-wrap gap-2 pt-2">
-                  {campaign.status === 'draft' && (
-                    <Button
-                      size="sm"
-                      onClick={() => handleCampaignAction(campaign.id, 'start')}
-                      disabled={actionLoading === campaign.id}
-                    >
-                      {actionLoading === campaign.id ? (
-                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                      ) : (
-                        <Play className="h-4 w-4 mr-1" />
-                      )}
-                      Iniciar
-                    </Button>
-                  )}
-
-                  {campaign.status === 'running' && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleCampaignAction(campaign.id, 'pause')}
-                      disabled={actionLoading === campaign.id}
-                    >
-                      <Pause className="h-4 w-4 mr-1" />
-                      Pausar
-                    </Button>
-                  )}
-
-                  {campaign.status === 'paused' && (
-                    <Button
-                      size="sm"
-                      onClick={() => handleCampaignAction(campaign.id, 'resume')}
-                      disabled={actionLoading === campaign.id}
-                    >
-                      <Play className="h-4 w-4 mr-1" />
-                      Retomar
-                    </Button>
-                  )}
-
-                  {['running', 'paused'].includes(campaign.status) && (
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => handleCampaignAction(campaign.id, 'cancel')}
-                      disabled={actionLoading === campaign.id}
-                    >
-                      <XCircle className="h-4 w-4 mr-1" />
-                      Cancelar
-                    </Button>
-                  )}
-
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => navigate(`/dashboard/whatsapp/campaigns/${campaign.id}`)}
-                  >
-                    <BarChart3 className="h-4 w-4 mr-1" />
-                    Detalhes
-                  </Button>
-
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => toggleCampaignMessages(campaign.id)}
-                  >
-                    {expandedCampaign === campaign.id ? (
-                      <ChevronUp className="h-4 w-4 mr-1" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4 mr-1" />
-                    )}
-                    Ver Mensagens
-                  </Button>
-                </div>
-
-                {campaign.started_at && (
-                  <p className="text-xs text-muted-foreground">
-                    Iniciada em: {new Date(campaign.started_at).toLocaleString('pt-BR')}
-                  </p>
-                )}
-
-                {/* Seção expansível de mensagens */}
-                <Collapsible open={expandedCampaign === campaign.id}>
-                  <CollapsibleContent>
-                    <div className="border-t pt-4 mt-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-medium flex items-center gap-2">
-                          <MessageSquare className="h-4 w-4" />
-                          Mensagens Enviadas ({campaign.messages_sent})
-                        </h4>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => fetchCampaignMessages(campaign.id)}
-                        >
-                          <RefreshCw className={`h-4 w-4 ${messagesLoading === campaign.id ? 'animate-spin' : ''}`} />
-                        </Button>
-                      </div>
-                      
-                      {messagesLoading === campaign.id ? (
-                        <div className="flex justify-center py-4">
-                          <Loader2 className="h-5 w-5 animate-spin" />
-                        </div>
-                      ) : campaignMessages[campaign.id]?.length > 0 ? (
-                        <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                          {campaignMessages[campaign.id].map((msg: any) => (
-                            <div 
-                              key={msg.id}
-                              className={`p-3 rounded-lg text-sm border ${
-                                msg.status === 'failed' 
-                                  ? 'bg-destructive/10 border-destructive/20' 
-                                  : 'bg-green-500/10 border-green-500/20'
-                              }`}
-                            >
-                              <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
-                                <div className="flex items-center gap-2">
-                                  {msg.status === 'failed' ? (
-                                    <XCircle className="h-4 w-4 text-destructive" />
-                                  ) : (
-                                    <CheckCircle className="h-4 w-4 text-green-500" />
-                                  )}
-                                  <span className="text-xs text-muted-foreground">
-                                    {format(new Date(msg.sent_at || msg.created_at), "dd/MM HH:mm")}
-                                  </span>
-                                  <span className="font-mono text-xs">{msg.phone_number}</span>
-                                  {msg.customer?.name && (
-                                    <span className="text-muted-foreground">• {msg.customer.name}</span>
-                                  )}
-                                </div>
-                              </div>
-                              <p className="line-clamp-2 text-muted-foreground">
-                                {msg.status === 'failed' ? (
-                                  <span className="text-destructive">Erro: {msg.error_message}</span>
-                                ) : (
-                                  msg.content
-                                )}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-center text-muted-foreground py-4">
-                          Nenhuma mensagem enviada ainda
-                        </p>
-                      )}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+          <TabsContent value="drafts">
+            {draftCampaigns.length === 0 ? (
+              <Card>
+                <CardContent className="py-8 text-center text-muted-foreground">
+                  <FileEdit className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>Nenhum rascunho de campanha</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {draftCampaigns.map(campaign => (
+                  <CampaignCard 
+                    key={campaign.id}
+                    campaign={campaign}
+                    getStatusBadge={getStatusBadge}
+                    calculateProgress={calculateProgress}
+                    handleCampaignAction={handleCampaignAction}
+                    actionLoading={actionLoading}
+                    navigate={navigate}
+                    toggleCampaignMessages={toggleCampaignMessages}
+                    expandedCampaign={expandedCampaign}
+                    campaignMessages={campaignMessages}
+                    messagesLoading={messagesLoading}
+                    fetchCampaignMessages={fetchCampaignMessages}
+                    showMessagesButton={false}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       )}
     </div>
+  );
+}
+
+// Componente de Card de Campanha extraído para reutilização
+interface CampaignCardProps {
+  campaign: any;
+  getStatusBadge: (status: string) => React.ReactNode;
+  calculateProgress: (campaign: any) => number;
+  handleCampaignAction: (campaignId: string, action: 'start' | 'pause' | 'resume' | 'cancel') => void;
+  actionLoading: string | null;
+  navigate: (path: string) => void;
+  toggleCampaignMessages: (campaignId: string) => void;
+  expandedCampaign: string | null;
+  campaignMessages: Record<string, any[]>;
+  messagesLoading: string | null;
+  fetchCampaignMessages: (campaignId: string) => void;
+  showMessagesButton: boolean;
+}
+
+function CampaignCard({
+  campaign,
+  getStatusBadge,
+  calculateProgress,
+  handleCampaignAction,
+  actionLoading,
+  navigate,
+  toggleCampaignMessages,
+  expandedCampaign,
+  campaignMessages,
+  messagesLoading,
+  fetchCampaignMessages,
+  showMessagesButton,
+}: CampaignCardProps) {
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <div className="flex items-start justify-between">
+          <div>
+            <CardTitle className="text-lg">{campaign.name}</CardTitle>
+            <CardDescription>
+              Template: {campaign.template?.name || 'Não definido'}
+            </CardDescription>
+          </div>
+          {getStatusBadge(campaign.status)}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {campaign.description && (
+          <p className="text-sm text-muted-foreground">{campaign.description}</p>
+        )}
+
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4 text-muted-foreground" />
+            <span>{campaign.total_recipients} destinatários</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Send className="h-4 w-4 text-muted-foreground" />
+            <span>{campaign.messages_sent} enviadas</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-green-500" />
+            <span>{campaign.messages_delivered} entregues</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Eye className="h-4 w-4 text-blue-500" />
+            <span>{campaign.messages_read} lidas</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <XCircle className="h-4 w-4 text-red-500" />
+            <span>{campaign.messages_failed} falhas</span>
+          </div>
+        </div>
+
+        {campaign.status === 'running' && (
+          <div className="space-y-1">
+            <div className="flex justify-between text-sm">
+              <span>Progresso</span>
+              <span>{calculateProgress(campaign)}%</span>
+            </div>
+            <Progress value={calculateProgress(campaign)} />
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-2 pt-2">
+          {campaign.status === 'draft' && (
+            <Button
+              size="sm"
+              onClick={() => handleCampaignAction(campaign.id, 'start')}
+              disabled={actionLoading === campaign.id}
+            >
+              {actionLoading === campaign.id ? (
+                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              ) : (
+                <Play className="h-4 w-4 mr-1" />
+              )}
+              Iniciar
+            </Button>
+          )}
+
+          {campaign.status === 'running' && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handleCampaignAction(campaign.id, 'pause')}
+              disabled={actionLoading === campaign.id}
+            >
+              <Pause className="h-4 w-4 mr-1" />
+              Pausar
+            </Button>
+          )}
+
+          {campaign.status === 'paused' && (
+            <Button
+              size="sm"
+              onClick={() => handleCampaignAction(campaign.id, 'resume')}
+              disabled={actionLoading === campaign.id}
+            >
+              <Play className="h-4 w-4 mr-1" />
+              Retomar
+            </Button>
+          )}
+
+          {['running', 'paused'].includes(campaign.status) && (
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={() => handleCampaignAction(campaign.id, 'cancel')}
+              disabled={actionLoading === campaign.id}
+            >
+              <XCircle className="h-4 w-4 mr-1" />
+              Cancelar
+            </Button>
+          )}
+
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => navigate(`/dashboard/whatsapp/campaigns/${campaign.id}`)}
+          >
+            <BarChart3 className="h-4 w-4 mr-1" />
+            Detalhes
+          </Button>
+
+          {showMessagesButton && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => toggleCampaignMessages(campaign.id)}
+            >
+              {expandedCampaign === campaign.id ? (
+                <ChevronUp className="h-4 w-4 mr-1" />
+              ) : (
+                <ChevronDown className="h-4 w-4 mr-1" />
+              )}
+              Ver Mensagens
+            </Button>
+          )}
+        </div>
+
+        {campaign.started_at && (
+          <p className="text-xs text-muted-foreground">
+            Iniciada em: {new Date(campaign.started_at).toLocaleString('pt-BR')}
+          </p>
+        )}
+
+        {/* Seção expansível de mensagens - só mostra se showMessagesButton */}
+        {showMessagesButton && (
+          <Collapsible open={expandedCampaign === campaign.id}>
+            <CollapsibleContent>
+              <div className="border-t pt-4 mt-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    Mensagens Enviadas ({campaign.messages_sent})
+                  </h4>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => fetchCampaignMessages(campaign.id)}
+                  >
+                    <RefreshCw className={`h-4 w-4 ${messagesLoading === campaign.id ? 'animate-spin' : ''}`} />
+                  </Button>
+                </div>
+                
+                {messagesLoading === campaign.id ? (
+                  <div className="flex justify-center py-4">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  </div>
+                ) : campaignMessages[campaign.id]?.length > 0 ? (
+                  <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                    {campaignMessages[campaign.id].map((msg: any) => (
+                      <div 
+                        key={msg.id}
+                        className={`p-3 rounded-lg text-sm border ${
+                          msg.status === 'failed' 
+                            ? 'bg-destructive/10 border-destructive/20' 
+                            : 'bg-green-500/10 border-green-500/20'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
+                          <div className="flex items-center gap-2">
+                            {msg.status === 'failed' ? (
+                              <XCircle className="h-4 w-4 text-destructive" />
+                            ) : (
+                              <CheckCircle className="h-4 w-4 text-green-500" />
+                            )}
+                            <span className="text-xs text-muted-foreground">
+                              {format(new Date(msg.sent_at || msg.created_at), "dd/MM HH:mm")}
+                            </span>
+                            <span className="font-mono text-xs">{msg.phone_number}</span>
+                            {msg.customer?.name && (
+                              <span className="text-muted-foreground">• {msg.customer.name}</span>
+                            )}
+                          </div>
+                        </div>
+                        <p className="line-clamp-2 text-muted-foreground">
+                          {msg.status === 'failed' ? (
+                            <span className="text-destructive">Erro: {msg.error_message}</span>
+                          ) : (
+                            msg.content
+                          )}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center text-muted-foreground py-4">
+                    Nenhuma mensagem enviada ainda
+                  </p>
+                )}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+      </CardContent>
+    </Card>
   );
 }

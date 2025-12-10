@@ -28,6 +28,45 @@ interface GroupData {
   is_admin?: boolean;
 }
 
+// Função para criar variantes de telefone brasileiro (com/sem 55, com/sem 9° dígito)
+const createPhoneVariants = (phone: string): string[] => {
+  const normalized = phone.replace(/\D/g, '');
+  if (!normalized) return [];
+  
+  const variants: string[] = [normalized];
+  
+  // Com/sem código do país 55
+  if (normalized.startsWith('55') && normalized.length > 10) {
+    variants.push(normalized.slice(2)); // Sem 55
+  } else if (!normalized.startsWith('55')) {
+    variants.push('55' + normalized); // Com 55
+  }
+  
+  // Variantes de 9° dígito (para celulares brasileiros)
+  const processedVariants = [...variants];
+  for (const v of processedVariants) {
+    const withoutCountry = v.startsWith('55') ? v.slice(2) : v;
+    
+    // Se tem 11 dígitos e o 3° dígito é 9 → criar versão sem o 9
+    // Ex: 61994009368 (11 dig) → 6194009368 (10 dig)
+    if (withoutCountry.length === 11 && withoutCountry[2] === '9') {
+      const without9 = withoutCountry.slice(0, 2) + withoutCountry.slice(3);
+      variants.push(without9);
+      variants.push('55' + without9);
+    }
+    
+    // Se tem 10 dígitos → criar versão com o 9 adicionado
+    // Ex: 6194009368 (10 dig) → 61994009368 (11 dig)
+    if (withoutCountry.length === 10) {
+      const with9 = withoutCountry.slice(0, 2) + '9' + withoutCountry.slice(2);
+      variants.push(with9);
+      variants.push('55' + with9);
+    }
+  }
+  
+  return [...new Set(variants)]; // Remover duplicatas
+};
+
 // Função para extrair número de telefone válido de múltiplos campos possíveis
 // Evolution API 2.3+ usa IDs internos, o número real está em campos alternativos
 const extractPhoneNumber = (contact: any): string | null => {
@@ -257,30 +296,25 @@ serve(async (req) => {
           .eq('store_id', store_id);
 
         // Criar mapa de telefone -> customer para busca rápida
+        // Usando createPhoneVariants para lidar com 9° dígito e código do país
         const customerMap = new Map<string, { id: string; name: string }>();
         
         if (storeCustomers) {
           for (const cs of storeCustomers) {
             const customer = cs.customers as any;
             if (customer?.phone) {
-              // Normalizar telefone e criar variantes
-              const normalizedPhone = customer.phone.replace(/\D/g, '');
-              customerMap.set(normalizedPhone, { id: customer.id, name: customer.name });
+              const customerData = { id: customer.id, name: customer.name };
               
-              // Variante sem código do país (55)
-              if (normalizedPhone.startsWith('55') && normalizedPhone.length > 10) {
-                customerMap.set(normalizedPhone.slice(2), { id: customer.id, name: customer.name });
-              }
-              
-              // Variante com código do país
-              if (!normalizedPhone.startsWith('55') && normalizedPhone.length <= 11) {
-                customerMap.set('55' + normalizedPhone, { id: customer.id, name: customer.name });
+              // Criar todas as variantes possíveis do telefone do cliente
+              const variants = createPhoneVariants(customer.phone);
+              for (const variant of variants) {
+                customerMap.set(variant, customerData);
               }
             }
           }
         }
         
-        console.log('[whatsapp-contacts] Customer map size:', customerMap.size);
+        console.log('[whatsapp-contacts] Customer map size:', customerMap.size, 'variants for', storeCustomers?.length || 0, 'customers');
 
         for (const contact of contacts) {
           try {
@@ -296,11 +330,17 @@ serve(async (req) => {
             
             if (contact.id?.includes('@g.us')) continue; // Ignorar grupos
 
-            // Verificar se é um cliente da loja
-            const normalizedPhone = phoneNumber.replace(/\D/g, '');
-            const matchedCustomer = customerMap.get(normalizedPhone) ||
-                                   customerMap.get(normalizedPhone.slice(2)) ||
-                                   customerMap.get('55' + normalizedPhone);
+            // Verificar se é um cliente da loja usando todas as variantes possíveis
+            const contactVariants = createPhoneVariants(phoneNumber);
+            let matchedCustomer = null;
+            
+            for (const variant of contactVariants) {
+              matchedCustomer = customerMap.get(variant);
+              if (matchedCustomer) {
+                console.log(`[whatsapp-contacts] Match found: ${phoneNumber} → ${variant} → ${matchedCustomer.name}`);
+                break;
+              }
+            }
 
             const contactData: any = {
               store_id,

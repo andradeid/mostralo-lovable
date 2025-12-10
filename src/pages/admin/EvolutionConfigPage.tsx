@@ -11,8 +11,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { 
   Loader2, Save, Server, Key, CheckCircle, XCircle, Eye, EyeOff, 
   RefreshCw, Smartphone, Users, MessageSquare, Wifi, WifiOff, 
-  Copy, Phone, Trash2
+  Copy, Phone, Trash2, Store, AlertCircle, Link
 } from "lucide-react";
+
+interface LinkedStore {
+  id: string;
+  name: string;
+  slug: string;
+  ownerName: string | null;
+  ownerEmail: string | null;
+}
 
 interface EvolutionInstance {
   instanceName: string;
@@ -25,6 +33,8 @@ interface EvolutionInstance {
   integration: string;
   contactsCount: number;
   chatsCount: number;
+  isLinked: boolean;
+  linkedStore: LinkedStore | null;
 }
 
 interface InstanceStats {
@@ -32,6 +42,8 @@ interface InstanceStats {
   connected: number;
   connecting: number;
   offline: number;
+  linked: number;
+  orphan: number;
 }
 
 export default function EvolutionConfigPage() {
@@ -42,7 +54,7 @@ export default function EvolutionConfigPage() {
   const [showApiKey, setShowApiKey] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'unknown' | 'connected' | 'error'>('unknown');
   const [instances, setInstances] = useState<EvolutionInstance[]>([]);
-  const [stats, setStats] = useState<InstanceStats>({ total: 0, connected: 0, connecting: 0, offline: 0 });
+  const [stats, setStats] = useState<InstanceStats>({ total: 0, connected: 0, connecting: 0, offline: 0, linked: 0, orphan: 0 });
   const [loadingInstances, setLoadingInstances] = useState(false);
   
   const [config, setConfig] = useState({
@@ -286,7 +298,7 @@ export default function EvolutionConfigPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
               <div className="text-center p-3 rounded-lg bg-background/50 border">
                 <div className="text-2xl font-bold text-foreground">{stats.total}</div>
                 <div className="text-xs text-muted-foreground flex items-center justify-center gap-1">
@@ -309,6 +321,18 @@ export default function EvolutionConfigPage() {
                 <div className="text-2xl font-bold text-red-500">{stats.offline}</div>
                 <div className="text-xs text-red-600 flex items-center justify-center gap-1">
                   <WifiOff className="h-3 w-3" /> Offline
+                </div>
+              </div>
+              <div className="text-center p-3 rounded-lg bg-primary/10 border border-primary/20">
+                <div className="text-2xl font-bold text-primary">{stats.linked}</div>
+                <div className="text-xs text-primary flex items-center justify-center gap-1">
+                  <Store className="h-3 w-3" /> Vinculadas
+                </div>
+              </div>
+              <div className="text-center p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                <div className="text-2xl font-bold text-orange-500">{stats.orphan}</div>
+                <div className="text-xs text-orange-600 flex items-center justify-center gap-1">
+                  <AlertCircle className="h-3 w-3" /> Órfãs
                 </div>
               </div>
             </div>
@@ -381,6 +405,42 @@ export default function EvolutionConfigPage() {
                           <div className="text-xs text-purple-600">Conversas</div>
                         </div>
                       </div>
+                    </div>
+                  )}
+
+                  {/* Vínculo com Loja */}
+                  {instance.isLinked && instance.linkedStore ? (
+                    <div className="p-3 rounded-lg bg-primary/10 border border-primary/20 space-y-2">
+                      <div className="flex items-center gap-2 text-primary font-medium text-sm">
+                        <Store className="h-4 w-4" />
+                        Vinculada à Loja
+                      </div>
+                      <div className="space-y-1 text-sm">
+                        <div className="font-semibold text-foreground">{instance.linkedStore.name}</div>
+                        {instance.linkedStore.ownerName && (
+                          <div className="text-muted-foreground flex items-center gap-1">
+                            <Users className="h-3 w-3" />
+                            {instance.linkedStore.ownerName}
+                            {instance.linkedStore.ownerEmail && (
+                              <span className="text-xs">({instance.linkedStore.ownerEmail})</span>
+                            )}
+                          </div>
+                        )}
+                        <div className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Link className="h-3 w-3" />
+                          /loja/{instance.linkedStore.slug}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                      <div className="flex items-center gap-2 text-orange-600 font-medium text-sm">
+                        <AlertCircle className="h-4 w-4" />
+                        Não Vinculada
+                      </div>
+                      <p className="text-xs text-orange-600/80 mt-1">
+                        Esta instância não está associada a nenhuma loja no sistema
+                      </p>
                     </div>
                   )}
 

@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
-import { RefreshCw, Search, Users, Crown, Shield, Tag } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { RefreshCw, Search, Users, Crown, Shield, Tag, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { EditContactModal } from "./EditContactModal";
 
 interface Group {
   group_jid: string;
@@ -30,7 +33,9 @@ interface LabelWithColor {
 interface SyncedContact {
   phone_number: string;
   name: string | null;
+  customer_id: string | null;
   customer_name: string | null;
+  profile_picture_url: string | null;
   labels: LabelWithColor[];
 }
 
@@ -53,6 +58,15 @@ export function GroupMembersModal({
   const [syncedContactsMap, setSyncedContactsMap] = useState<Map<string, SyncedContact>>(new Map());
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [storeId, setStoreId] = useState<string | null>(null);
+  const [editingContact, setEditingContact] = useState<{
+    phone_number: string;
+    name: string | null;
+    profile_picture_url?: string | null;
+    customer_id?: string | null;
+    customer_name?: string | null;
+    labels: { name: string; color: string }[];
+  } | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -87,6 +101,7 @@ export function GroupMembersModal({
         .single();
 
       if (!store) throw new Error('Loja não encontrada');
+      setStoreId(store.id);
 
       // Buscar membros do grupo via API
       const response = await supabase.functions.invoke('whatsapp-contacts', {
@@ -103,13 +118,15 @@ export function GroupMembersModal({
       const participants = response.data.members?.participants || response.data.members || [];
       setMembers(participants);
 
-      // Buscar contatos sincronizados com etiquetas
+      // Buscar contatos sincronizados com etiquetas e foto de perfil
       const { data: contacts } = await supabase
         .from('whatsapp_contacts')
         .select(`
+          id,
           phone_number,
           name,
           customer_id,
+          profile_picture_url,
           whatsapp_contact_label_assignments(
             whatsapp_contact_labels(name, color)
           )
@@ -142,7 +159,9 @@ export function GroupMembersModal({
         const syncedContact: SyncedContact = {
           phone_number: contact.phone_number,
           name: contact.name,
+          customer_id: contact.customer_id || null,
           customer_name: contact.customer_id ? customersMap.get(contact.customer_id) || null : null,
+          profile_picture_url: contact.profile_picture_url || null,
           labels,
         };
 
@@ -262,60 +281,86 @@ export function GroupMembersModal({
               <RefreshCw className="h-6 w-6 animate-spin text-primary" />
             </div>
           ) : (
-            <ScrollArea className="h-[300px] pr-4">
-              <div className="space-y-2">
+            <ScrollArea className="h-[350px] pr-4">
+              <div className="space-y-3">
                 {filteredMembers.map((member, index) => {
                   const phone = extractPhoneFromMember(member);
                   const syncedContact = findSyncedContact(phone);
                   const displayName = getDisplayName(member, syncedContact);
 
                   return (
-                    <div 
+                    <Card 
                       key={member.id || index}
-                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50"
+                      className="p-3 hover:shadow-md transition-shadow"
                     >
-                      <Avatar className="h-9 w-9">
-                        <AvatarFallback>
-                          {displayName.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-medium text-sm truncate">
-                            {displayName}
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-12 w-12">
+                          {syncedContact?.profile_picture_url && (
+                            <AvatarImage src={syncedContact.profile_picture_url} />
+                          )}
+                          <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                            {displayName.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-medium text-sm">
+                              {displayName}
+                            </p>
+                            {member.admin === 'admin' && (
+                              <Badge variant="secondary" className="text-xs h-5">
+                                <Shield className="h-3 w-3 mr-1" />
+                                Admin
+                              </Badge>
+                            )}
+                            {member.admin === 'superadmin' && (
+                              <Badge className="text-xs h-5 bg-amber-500">
+                                <Crown className="h-3 w-3 mr-1" />
+                                Dono
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {phone 
+                              ? formatPhoneNumber(phone)
+                              : 'Número não disponível'}
                           </p>
-                          {syncedContact?.labels.map(label => (
-                            <Badge 
-                              key={label.name} 
-                              className="text-xs px-1.5 py-0 h-5 gap-1 text-white border-0"
-                              style={{ backgroundColor: label.color }}
-                            >
-                              <Tag className="h-2.5 w-2.5" />
-                              {label.name}
-                            </Badge>
-                          ))}
+                          {syncedContact?.labels && syncedContact.labels.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1.5">
+                              {syncedContact.labels.map(label => (
+                                <Badge 
+                                  key={label.name} 
+                                  className="text-xs px-1.5 py-0 h-5 gap-1 text-white border-0"
+                                  style={{ backgroundColor: label.color }}
+                                >
+                                  <Tag className="h-2.5 w-2.5" />
+                                  {label.name}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          {phone 
-                            ? formatPhoneNumber(phone)
-                            : 'Número não disponível'}
-                        </p>
-                      </div>
 
-                      {member.admin === 'admin' && (
-                        <Badge variant="secondary" className="text-xs">
-                          <Shield className="h-3 w-3 mr-1" />
-                          Admin
-                        </Badge>
-                      )}
-                      {member.admin === 'superadmin' && (
-                        <Badge className="text-xs bg-amber-500">
-                          <Crown className="h-3 w-3 mr-1" />
-                          Dono
-                        </Badge>
-                      )}
-                    </div>
+                        {phone && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 shrink-0"
+                            onClick={() => setEditingContact({
+                              phone_number: phone,
+                              name: syncedContact?.name || member.name || member.pushName || null,
+                              profile_picture_url: syncedContact?.profile_picture_url,
+                              customer_id: syncedContact?.customer_id,
+                              customer_name: syncedContact?.customer_name,
+                              labels: syncedContact?.labels || []
+                            })}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </Card>
                   );
                 })}
 
@@ -329,6 +374,17 @@ export function GroupMembersModal({
           )}
         </div>
       </DialogContent>
+
+      {/* Modal de Edição */}
+      {editingContact && storeId && (
+        <EditContactModal
+          open={!!editingContact}
+          onOpenChange={(open) => !open && setEditingContact(null)}
+          contact={editingContact}
+          storeId={storeId}
+          onSave={() => fetchMembers()}
+        />
+      )}
     </Dialog>
   );
 }

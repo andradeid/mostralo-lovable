@@ -12,6 +12,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { useCountUp } from '@/hooks/useCountUp';
 import WhatsAppMockup from '@/components/WhatsAppMockup';
 import { PromotionBanner } from '@/components/coupons/PromotionBanner';
+import { WhatsAppMarketingSection } from '@/components/landing/WhatsAppMarketingSection';
 import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
 import { 
   Store, 
@@ -415,6 +416,12 @@ const Index = () => {
               Marketing Digital
             </a>
             <a 
+              href="#whatsapp-marketing" 
+              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+            >
+              WhatsApp
+            </a>
+            <a 
               href="#integracao-ia" 
               className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
             >
@@ -476,6 +483,13 @@ const Index = () => {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Marketing Digital
+              </a>
+              <a 
+                href="#whatsapp-marketing" 
+                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                WhatsApp
               </a>
               <a 
                 href="#integracao-ia" 
@@ -957,6 +971,9 @@ const Index = () => {
           </Card>
         </div>
       </section>
+
+      {/* WhatsApp Marketing Section */}
+      <WhatsAppMarketingSection />
 
       {/* Nova Seção: Comparativo com Concorrentes */}
       <section className="py-12 md:py-20 lg:py-32 bg-gradient-to-br from-gray-50 to-slate-50 dark:from-gray-950/20 dark:to-slate-950/20">

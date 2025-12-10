@@ -23,6 +23,8 @@ interface EvolutionInstance {
   number: string | null;
   apiKey: string | null;
   integration: string;
+  contactsCount: number;
+  chatsCount: number;
 }
 
 interface InstanceStats {
@@ -361,6 +363,26 @@ export default function EvolutionConfigPage() {
                     <span className="text-muted-foreground">Número:</span>
                     <span className="font-medium">{formatPhoneNumber(instance.number)}</span>
                   </div>
+
+                  {/* Métricas de Contatos e Conversas */}
+                  {(instance.status === 'open' || instance.status === 'connected') && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                        <Users className="h-4 w-4 text-blue-500" />
+                        <div>
+                          <div className="text-lg font-bold text-blue-500">{instance.contactsCount || 0}</div>
+                          <div className="text-xs text-blue-600">Contatos</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 p-2 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                        <MessageSquare className="h-4 w-4 text-purple-500" />
+                        <div>
+                          <div className="text-lg font-bold text-purple-500">{instance.chatsCount || 0}</div>
+                          <div className="text-xs text-purple-600">Conversas</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* API Key da Instância */}
                   {instance.apiKey && (

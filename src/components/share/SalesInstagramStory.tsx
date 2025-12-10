@@ -1,3 +1,5 @@
+import { Store } from 'lucide-react';
+
 // Usar API gratuita para gerar QR Code
 const getQrCodeUrl = (url: string, size: number) => 
   `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(url)}&format=svg`;
@@ -57,14 +59,14 @@ export function SalesInstagramStory({
       {/* Topo - Logo */}
       <div className="relative z-10 pt-24 flex flex-col items-center">
         <div 
-          className="rounded-2xl flex items-center justify-center shadow-2xl overflow-hidden"
+          className="rounded-2xl flex items-center justify-center shadow-2xl"
           style={{
             width: '160px',
             height: '160px',
             background: 'white'
           }}
         >
-          <img src="/mostralo-icon.png" alt="Mostralo" style={{ width: '140px', height: '140px' }} />
+          <Store style={{ width: '100px', height: '100px', color: '#f97316' }} />
         </div>
         <p 
           className="text-center font-bold text-white mt-6"

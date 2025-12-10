@@ -22,11 +22,16 @@ interface Member {
   pushName?: string;
 }
 
+interface LabelWithColor {
+  name: string;
+  color: string;
+}
+
 interface SyncedContact {
   phone_number: string;
   name: string | null;
   customer_name: string | null;
-  labels: string[];
+  labels: LabelWithColor[];
 }
 
 interface GroupMembersModalProps {
@@ -106,7 +111,7 @@ export function GroupMembersModal({
           name,
           customer_id,
           whatsapp_contact_label_assignments(
-            whatsapp_contact_labels(name)
+            whatsapp_contact_labels(name, color)
           )
         `)
         .eq('store_id', store.id);
@@ -127,9 +132,12 @@ export function GroupMembersModal({
       // Criar mapa de telefone → contato
       const contactsMap = new Map<string, SyncedContact>();
       contacts?.forEach(contact => {
-        const labels = contact.whatsapp_contact_label_assignments
-          ?.map((a: any) => a.whatsapp_contact_labels?.name)
-          .filter(Boolean) || [];
+        const labels: LabelWithColor[] = contact.whatsapp_contact_label_assignments
+          ?.map((a: any) => ({
+            name: a.whatsapp_contact_labels?.name,
+            color: a.whatsapp_contact_labels?.color || '#6b7280'
+          }))
+          .filter((l: LabelWithColor) => l.name) || [];
 
         const syncedContact: SyncedContact = {
           phone_number: contact.phone_number,
@@ -211,7 +219,7 @@ export function GroupMembersModal({
     const phone = extractPhoneFromMember(member) || '';
     const syncedContact = findSyncedContact(phone);
     const displayName = getDisplayName(member, syncedContact);
-    const labelsText = syncedContact?.labels.join(' ') || '';
+    const labelsText = syncedContact?.labels.map(l => l.name).join(' ') || '';
     
     return phone.includes(searchTerm) 
       || displayName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -279,12 +287,12 @@ export function GroupMembersModal({
                           </p>
                           {syncedContact?.labels.map(label => (
                             <Badge 
-                              key={label} 
-                              variant="outline" 
-                              className="text-xs px-1.5 py-0 h-5 gap-1"
+                              key={label.name} 
+                              className="text-xs px-1.5 py-0 h-5 gap-1 text-white border-0"
+                              style={{ backgroundColor: label.color }}
                             >
                               <Tag className="h-2.5 w-2.5" />
-                              {label}
+                              {label.name}
                             </Badge>
                           ))}
                         </div>

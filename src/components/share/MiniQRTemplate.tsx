@@ -1,3 +1,5 @@
+import { Store } from 'lucide-react';
+
 interface MiniQRTemplateProps {
   referralCode: string;
   signupLink: string;
@@ -5,6 +7,7 @@ interface MiniQRTemplateProps {
 
 export function MiniQRTemplate({ referralCode, signupLink }: MiniQRTemplateProps) {
   const qrSignup = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(signupLink)}&format=svg`;
+  const currentDomain = typeof window !== 'undefined' ? window.location.hostname : 'mostralo.com.br';
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 justify-items-center print:grid-cols-4">
@@ -20,10 +23,13 @@ export function MiniQRTemplate({ referralCode, signupLink }: MiniQRTemplateProps
           <p className="text-[10px] text-gray-600 mt-1 font-medium">
             Escaneie aqui ↑
           </p>
-          <div className="mt-1 px-2 py-0.5 bg-orange-100 rounded">
+          <div className="mt-1 px-2 py-0.5 bg-orange-100 rounded flex items-center gap-1">
+            <div className="w-4 h-4 rounded-full bg-white shadow-sm flex items-center justify-center">
+              <Store className="w-3 h-3" style={{ color: '#f97316' }} />
+            </div>
             <span className="text-[9px] font-bold text-orange-600">{referralCode}</span>
           </div>
-          <p className="text-[8px] text-gray-400 mt-1">mostralo.com.br</p>
+          <p className="text-[8px] text-gray-400 mt-1">{currentDomain}</p>
         </div>
       ))}
     </div>

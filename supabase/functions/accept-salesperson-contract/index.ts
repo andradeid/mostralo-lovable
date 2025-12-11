@@ -33,13 +33,22 @@ Deno.serve(async (req) => {
     }
 
     // Buscar dados do vendedor
+    console.log('Buscando vendedor para user_id:', user.id);
+    
     const { data: salesperson, error: salespersonError } = await supabase
       .from('salespeople')
-      .select('*, profiles:user_id(full_name)')
+      .select('*')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (salespersonError || !salesperson) {
+    console.log('Resultado da busca:', { salesperson, salespersonError });
+
+    if (salespersonError) {
+      console.error('Erro ao buscar vendedor:', salespersonError);
+      throw new Error('Erro ao buscar dados do vendedor');
+    }
+
+    if (!salesperson) {
       throw new Error('Vendedor não encontrado');
     }
 
@@ -52,7 +61,7 @@ Deno.serve(async (req) => {
       .from('salesperson_contract_templates')
       .select('id, version')
       .eq('is_active', true)
-      .single();
+      .maybeSingle();
 
     // Obter IP e user agent
     const ip_address = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
@@ -63,8 +72,8 @@ Deno.serve(async (req) => {
     const hashData = `${salesperson.id}|${template?.version || '1.0'}|${accepted_at}|${ip_address}|${user.id}`;
     const verification_hash = await generateVerificationHash(hashData);
 
-    // Extrair nome do vendedor do profile
-    const salespersonName = (salesperson.profiles as any)?.full_name || salesperson.full_name || null;
+    // Usar nome diretamente do registro do vendedor
+    const salespersonName = salesperson.full_name || null;
 
     // Criar registro de aceite do contrato
     const { error: contractError } = await supabase

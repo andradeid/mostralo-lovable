@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, CheckCircle2, XCircle } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { ArrowLeft, CheckCircle2, XCircle, User, Building2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CommissionConfigForm } from "@/components/admin/salespeople/CommissionConfigForm";
@@ -123,6 +124,11 @@ export default function SalespersonDetailPage() {
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
+  const isAffiliate = salesperson.salesperson_type === 'affiliate';
+  const monthlyUsed = salesperson.current_month_earnings || 0;
+  const monthlyLimit = salesperson.monthly_earnings_limit || 1900;
+  const monthlyPercentage = Math.min((monthlyUsed / monthlyLimit) * 100, 100);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -133,7 +139,20 @@ export default function SalespersonDetailPage() {
           <h1 className="text-3xl font-bold">{salesperson.full_name}</h1>
           <p className="text-muted-foreground">Código: {salesperson.referral_code}</p>
         </div>
-        {getStatusBadge(salesperson.status)}
+        <div className="flex items-center gap-2">
+          {isAffiliate ? (
+            <Badge variant="outline" className="gap-1">
+              <User className="h-3 w-3" />
+              Afiliado (CPF)
+            </Badge>
+          ) : (
+            <Badge className="bg-gradient-to-r from-primary to-orange-500 gap-1">
+              <Building2 className="h-3 w-3" />
+              Parceiro PJ
+            </Badge>
+          )}
+          {getStatusBadge(salesperson.status)}
+        </div>
       </div>
 
       {salesperson.status === "pending_approval" && (
@@ -171,6 +190,12 @@ export default function SalespersonDetailPage() {
               <span className="text-sm text-muted-foreground">Telefone:</span>
               <p className="font-medium">{salesperson.phone}</p>
             </div>
+            {isAffiliate && salesperson.cpf && (
+              <div>
+                <span className="text-sm text-muted-foreground">CPF:</span>
+                <p className="font-medium font-mono">{salesperson.cpf}</p>
+              </div>
+            )}
             <div>
               <span className="text-sm text-muted-foreground">Data de Cadastro:</span>
               <p className="font-medium">
@@ -182,51 +207,87 @@ export default function SalespersonDetailPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Dados do CNPJ</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div>
-              <span className="text-sm text-muted-foreground">CNPJ:</span>
-              <p className="font-medium font-mono">{salesperson.cnpj}</p>
-            </div>
-            {salesperson.company_name && (
-              <div>
-                <span className="text-sm text-muted-foreground">Razão Social:</span>
-                <p className="font-medium">{salesperson.company_name}</p>
+        {isAffiliate ? (
+          <Card className="border-amber-500/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Limite Mensal (Afiliado)
+              </CardTitle>
+              <CardDescription>
+                Afiliados têm limite de R$ 1.900/mês em ganhos
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Ganhos este mês:</span>
+                  <span className="font-medium">R$ {monthlyUsed.toFixed(2)} / R$ {monthlyLimit.toFixed(2)}</span>
+                </div>
+                <Progress 
+                  value={monthlyPercentage} 
+                  className={`h-3 ${monthlyPercentage >= 80 ? '[&>div]:bg-amber-500' : ''}`}
+                />
               </div>
-            )}
-            {salesperson.company_trade_name && (
-              <div>
-                <span className="text-sm text-muted-foreground">Nome Fantasia:</span>
-                <p className="font-medium">{salesperson.company_trade_name}</p>
+              <div className="text-sm space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Comissão:</span>
+                  <span>5-7%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Bônus Trimestral:</span>
+                  <span className="text-destructive">Não elegível</span>
+                </div>
               </div>
-            )}
-            {salesperson.cnpj_validation_data && typeof salesperson.cnpj_validation_data === 'object' && 'situacao_cadastral' in salesperson.cnpj_validation_data && (
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle>Dados do CNPJ</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
               <div>
-                <span className="text-sm text-muted-foreground">Situação Cadastral:</span>
-                <p className={`font-medium ${
-                  (salesperson.cnpj_validation_data as any).situacao_cadastral === "ATIVA"
-                    ? "text-green-600"
-                    : "text-destructive"
-                }`}>
-                  {(salesperson.cnpj_validation_data as any).situacao_cadastral}
-                </p>
+                <span className="text-sm text-muted-foreground">CNPJ:</span>
+                <p className="font-medium font-mono">{salesperson.cnpj || "—"}</p>
               </div>
-            )}
-            {salesperson.cnae_codes && salesperson.cnae_codes.length > 0 && (
-              <div>
-                <span className="text-sm text-muted-foreground">CNAEs:</span>
-                <ul className="list-disc list-inside mt-1 text-sm">
-                  {salesperson.cnae_codes.map((cnae: string, idx: number) => (
-                    <li key={idx}>{cnae}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              {salesperson.company_name && (
+                <div>
+                  <span className="text-sm text-muted-foreground">Razão Social:</span>
+                  <p className="font-medium">{salesperson.company_name}</p>
+                </div>
+              )}
+              {salesperson.company_trade_name && (
+                <div>
+                  <span className="text-sm text-muted-foreground">Nome Fantasia:</span>
+                  <p className="font-medium">{salesperson.company_trade_name}</p>
+                </div>
+              )}
+              {salesperson.cnpj_validation_data && typeof salesperson.cnpj_validation_data === 'object' && 'situacao_cadastral' in salesperson.cnpj_validation_data && (
+                <div>
+                  <span className="text-sm text-muted-foreground">Situação Cadastral:</span>
+                  <p className={`font-medium ${
+                    (salesperson.cnpj_validation_data as any).situacao_cadastral === "ATIVA"
+                      ? "text-green-600"
+                      : "text-destructive"
+                  }`}>
+                    {(salesperson.cnpj_validation_data as any).situacao_cadastral}
+                  </p>
+                </div>
+              )}
+              {salesperson.cnae_codes && salesperson.cnae_codes.length > 0 && (
+                <div>
+                  <span className="text-sm text-muted-foreground">CNAEs:</span>
+                  <ul className="list-disc list-inside mt-1 text-sm">
+                    {salesperson.cnae_codes.map((cnae: string, idx: number) => (
+                      <li key={idx}>{cnae}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>
@@ -267,7 +328,7 @@ export default function SalespersonDetailPage() {
         onOpenChange={setApprovalDialogOpen}
         onConfirm={handleApprove}
         salespersonName={salesperson.full_name}
-        cnpjData={{
+        cnpjData={isAffiliate ? undefined : {
           razao_social: salesperson.company_name,
           nome_fantasia: salesperson.company_trade_name,
           situacao_cadastral: salesperson.cnpj_validation_data && typeof salesperson.cnpj_validation_data === 'object' && 'situacao_cadastral' in salesperson.cnpj_validation_data ? (salesperson.cnpj_validation_data as any).situacao_cadastral : undefined,

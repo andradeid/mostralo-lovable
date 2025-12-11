@@ -1,7 +1,8 @@
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, XCircle, Eye } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { CheckCircle2, XCircle, Eye, User, Building2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -9,13 +10,17 @@ interface SalespersonCardProps {
   salesperson: {
     id: string;
     full_name: string;
-    cnpj: string;
+    cnpj?: string | null;
+    cpf?: string | null;
     referral_code: string;
     status: string;
     created_at: string;
-    company_name?: string;
-    company_trade_name?: string;
-    cnae_codes?: string[];
+    company_name?: string | null;
+    company_trade_name?: string | null;
+    cnae_codes?: string[] | null;
+    salesperson_type?: string | null;
+    current_month_earnings?: number | null;
+    monthly_earnings_limit?: number | null;
   };
   onViewDetails: () => void;
   onApprove?: () => void;
@@ -41,6 +46,11 @@ export function SalespersonCard({
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
+  const isAffiliate = salesperson.salesperson_type === 'affiliate';
+  const monthlyUsed = salesperson.current_month_earnings || 0;
+  const monthlyLimit = salesperson.monthly_earnings_limit || 1900;
+  const monthlyPercentage = Math.min((monthlyUsed / monthlyLimit) * 100, 100);
+
   const showActionButtons = salesperson.status === 'pending_approval' && onApprove && onReject;
 
   return (
@@ -53,26 +63,62 @@ export function SalespersonCard({
               Código: {salesperson.referral_code}
             </p>
           </div>
-          {getStatusBadge(salesperson.status)}
+          <div className="flex flex-col items-end gap-1">
+            {getStatusBadge(salesperson.status)}
+            {isAffiliate ? (
+              <Badge variant="outline" className="gap-1 text-xs">
+                <User className="h-3 w-3" />
+                Afiliado
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="gap-1 text-xs bg-primary/5">
+                <Building2 className="h-3 w-3" />
+                Parceiro PJ
+              </Badge>
+            )}
+          </div>
         </div>
 
         <div className="space-y-2 text-sm">
-          <div>
-            <span className="text-muted-foreground">CNPJ:</span>{" "}
-            <span className="font-mono">{salesperson.cnpj}</span>
-          </div>
-          
-          {salesperson.company_name && (
+          {isAffiliate ? (
             <div>
-              <span className="text-muted-foreground">Razão Social:</span>{" "}
-              {salesperson.company_name}
+              <span className="text-muted-foreground">CPF:</span>{" "}
+              <span className="font-mono">{salesperson.cpf || "—"}</span>
             </div>
+          ) : (
+            <>
+              <div>
+                <span className="text-muted-foreground">CNPJ:</span>{" "}
+                <span className="font-mono">{salesperson.cnpj || "—"}</span>
+              </div>
+              
+              {salesperson.company_name && (
+                <div>
+                  <span className="text-muted-foreground">Razão Social:</span>{" "}
+                  {salesperson.company_name}
+                </div>
+              )}
+
+              {salesperson.cnae_codes && salesperson.cnae_codes.length > 0 && (
+                <div>
+                  <span className="text-muted-foreground">CNAEs:</span>{" "}
+                  {salesperson.cnae_codes.join(", ")}
+                </div>
+              )}
+            </>
           )}
 
-          {salesperson.cnae_codes && salesperson.cnae_codes.length > 0 && (
-            <div>
-              <span className="text-muted-foreground">CNAEs:</span>{" "}
-              {salesperson.cnae_codes.join(", ")}
+          {/* Limite mensal para afiliados */}
+          {isAffiliate && salesperson.status === 'active' && (
+            <div className="pt-2 space-y-1">
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Limite mensal:</span>
+                <span>R$ {monthlyUsed.toFixed(2)} / R$ {monthlyLimit.toFixed(2)}</span>
+              </div>
+              <Progress 
+                value={monthlyPercentage} 
+                className={`h-1.5 ${monthlyPercentage >= 80 ? '[&>div]:bg-amber-500' : ''}`}
+              />
             </div>
           )}
 

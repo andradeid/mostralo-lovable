@@ -5,15 +5,26 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 interface RegisterRequest {
+  // Tipo de vendedor
+  salesperson_type: 'affiliate' | 'partner';
+  
+  // Dados pessoais (ambos)
   full_name: string;
   email: string;
   phone: string;
   password: string;
-  cnpj: string;
-  company_name: string;
+  
+  // Dados PJ (apenas partner)
+  cnpj?: string;
+  company_name?: string;
   company_trade_name?: string;
-  cnae_codes: string[];
-  cnpj_validation_data: any;
+  cnae_codes?: string[];
+  cnpj_validation_data?: any;
+  
+  // Dados PF (apenas affiliate)
+  cpf?: string;
+  
+  // PIX (ambos)
   pix_key?: string;
   pix_key_type?: string;
 }
@@ -27,6 +38,7 @@ Deno.serve(async (req) => {
     const body: RegisterRequest = await req.json();
 
     const {
+      salesperson_type = 'partner', // Default para manter compatibilidade
       full_name,
       email,
       phone,
@@ -36,12 +48,15 @@ Deno.serve(async (req) => {
       company_trade_name,
       cnae_codes,
       cnpj_validation_data,
+      cpf,
       pix_key,
       pix_key_type,
     } = body;
 
-    // Validações básicas
-    if (!full_name || !email || !phone || !password || !cnpj || !company_name) {
+    console.log(`Registrando vendedor tipo: ${salesperson_type}`);
+
+    // Validações básicas (ambos tipos)
+    if (!full_name || !email || !phone || !password) {
       return new Response(
         JSON.stringify({ error: 'Dados obrigatórios faltando' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -53,6 +68,23 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: 'Senha deve ter no mínimo 6 caracteres' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    // Validações específicas por tipo
+    if (salesperson_type === 'partner') {
+      if (!cnpj || !company_name) {
+        return new Response(
+          JSON.stringify({ error: 'CNPJ e razão social são obrigatórios para Parceiro PJ' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    } else if (salesperson_type === 'affiliate') {
+      if (!cpf) {
+        return new Response(
+          JSON.stringify({ error: 'CPF é obrigatório para Afiliado' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     // Cliente Supabase com service role
@@ -74,18 +106,35 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Verificar se CNPJ já existe
-    const { data: existingCNPJ } = await supabase
-      .from('salespeople')
-      .select('id')
-      .eq('cnpj', cnpj)
-      .single();
+    // Verificar CNPJ ou CPF duplicado
+    if (salesperson_type === 'partner' && cnpj) {
+      const { data: existingCNPJ } = await supabase
+        .from('salespeople')
+        .select('id')
+        .eq('cnpj', cnpj)
+        .single();
 
-    if (existingCNPJ) {
-      return new Response(
-        JSON.stringify({ error: 'CNPJ já cadastrado' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      if (existingCNPJ) {
+        return new Response(
+          JSON.stringify({ error: 'CNPJ já cadastrado' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
+    if (salesperson_type === 'affiliate' && cpf) {
+      const { data: existingCPF } = await supabase
+        .from('salespeople')
+        .select('id')
+        .eq('cpf', cpf)
+        .single();
+
+      if (existingCPF) {
+        return new Response(
+          JSON.stringify({ error: 'CPF já cadastrado' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     // Gerar código de indicação único (primeiras letras do nome + timestamp)
@@ -100,15 +149,16 @@ Deno.serve(async (req) => {
 
     console.log(`Código de indicação gerado: ${referralCode}`);
 
-    // 1. Criar usuário no Supabase Auth (DESABILITADO até aprovação)
+    // 1. Criar usuário no Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email,
       password,
-      email_confirm: false, // Não confirmar email automaticamente
+      email_confirm: false,
       user_metadata: {
         full_name,
         phone,
         role_type: 'salesperson',
+        salesperson_type,
       },
     });
 
@@ -123,26 +173,42 @@ Deno.serve(async (req) => {
     const userId = authData.user!.id;
     console.log(`Usuário criado: ${userId}`);
 
-    // 2. Criar registro em salespeople com status pending_approval
+    // 2. Criar registro em salespeople
+    const salespersonData: any = {
+      user_id: userId,
+      full_name,
+      email,
+      phone,
+      salesperson_type,
+      pix_key,
+      pix_key_type,
+      referral_code: referralCode,
+      status: 'pending_approval',
+    };
+
+    // Dados específicos para Parceiro PJ
+    if (salesperson_type === 'partner') {
+      salespersonData.cnpj = cnpj;
+      salespersonData.company_name = company_name;
+      salespersonData.company_trade_name = company_trade_name;
+      salespersonData.cnae_codes = cnae_codes || [];
+      salespersonData.cnpj_validated = true;
+      salespersonData.cnpj_validated_at = new Date().toISOString();
+      salespersonData.cnpj_validation_data = cnpj_validation_data;
+      salespersonData.bonus_eligible = true;
+      salespersonData.monthly_earnings_limit = null; // Sem limite
+    }
+
+    // Dados específicos para Afiliado
+    if (salesperson_type === 'affiliate') {
+      salespersonData.cpf = cpf;
+      salespersonData.bonus_eligible = false; // Afiliados não têm bônus
+      salespersonData.monthly_earnings_limit = 1900; // Limite de R$ 1.900/mês
+    }
+
     const { data: salesperson, error: salespersonError } = await supabase
       .from('salespeople')
-      .insert({
-        user_id: userId,
-        full_name,
-        email,
-        phone,
-        cnpj,
-        company_name,
-        company_trade_name,
-        cnae_codes,
-        cnpj_validated: true,
-        cnpj_validated_at: new Date().toISOString(),
-        cnpj_validation_data,
-        pix_key,
-        pix_key_type,
-        referral_code: referralCode,
-        status: 'pending_approval',
-      })
+      .insert(salespersonData)
       .select()
       .single();
 
@@ -159,27 +225,36 @@ Deno.serve(async (req) => {
     }
 
     console.log(`✅ Vendedor registrado com sucesso: ${salesperson.id}`);
+    console.log(`Tipo: ${salesperson.salesperson_type}`);
     console.log(`Status: ${salesperson.status}`);
 
     // 3. Desabilitar usuário até aprovação do master admin
     await supabase.auth.admin.updateUserById(userId, {
-      ban_duration: 'none', // Não banir permanentemente
+      ban_duration: 'none',
       user_metadata: {
         ...authData.user!.user_metadata,
         pending_approval: true,
       },
     });
 
+    // Mensagem de sucesso diferenciada por tipo
+    const successMessage = salesperson_type === 'affiliate'
+      ? 'Cadastro de Afiliado realizado com sucesso! Aguarde aprovação do administrador.'
+      : 'Cadastro de Parceiro PJ realizado com sucesso! Aguarde aprovação do administrador.';
+
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Cadastro realizado com sucesso! Aguarde aprovação do administrador.',
+        message: successMessage,
         salesperson: {
           id: salesperson.id,
           full_name: salesperson.full_name,
           email: salesperson.email,
           referral_code: salesperson.referral_code,
           status: salesperson.status,
+          salesperson_type: salesperson.salesperson_type,
+          bonus_eligible: salesperson.bonus_eligible,
+          monthly_earnings_limit: salesperson.monthly_earnings_limit,
         },
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

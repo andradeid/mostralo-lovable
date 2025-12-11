@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { SalespersonLayout } from "@/components/salesperson/SalespersonLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -107,11 +106,9 @@ export default function SalespersonContract() {
 
   if (loading) {
     return (
-      <SalespersonLayout>
-        <div className="flex items-center justify-center h-64">
-          <p className="text-muted-foreground">Carregando...</p>
-        </div>
-      </SalespersonLayout>
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">Carregando...</p>
+      </div>
     );
   }
 
@@ -119,8 +116,7 @@ export default function SalespersonContract() {
   const isContractAccepted = salesperson?.status === 'active' && salesperson?.contract_accepted_at;
 
   return (
-    <SalespersonLayout>
-      <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 max-w-4xl">
         <div>
           <h1 className="text-3xl font-bold">Contrato de Prestação de Serviços</h1>
           <p className="text-muted-foreground">
@@ -200,7 +196,6 @@ export default function SalespersonContract() {
             </CardContent>
           </Card>
         )}
-      </div>
-    </SalespersonLayout>
+    </div>
   );
 }

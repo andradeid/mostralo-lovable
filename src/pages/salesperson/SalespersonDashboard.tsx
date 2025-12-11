@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { SalespersonLayout } from "@/components/salesperson/SalespersonLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -70,17 +69,14 @@ export default function SalespersonDashboard() {
 
   if (loading) {
     return (
-      <SalespersonLayout>
-        <div className="flex items-center justify-center h-64">
-          <p className="text-muted-foreground">Carregando...</p>
-        </div>
-      </SalespersonLayout>
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">Carregando...</p>
+      </div>
     );
   }
 
   return (
-    <SalespersonLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Dashboard</h1>
@@ -289,7 +285,6 @@ export default function SalespersonDashboard() {
             </Card>
           </>
         )}
-      </div>
-    </SalespersonLayout>
+    </div>
   );
 }

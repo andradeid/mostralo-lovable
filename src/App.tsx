@@ -85,6 +85,7 @@ import SalespeopleListPage from './pages/admin/SalespeopleListPage';
 import ContractTemplateEditPage from './pages/admin/ContractTemplateEditPage';
 import VerifyContractPage from './pages/public/VerifyContractPage';
 import FeaturesPage from './pages/public/FeaturesPage';
+import SalespersonSalesGuidePage from './pages/public/SalespersonSalesGuidePage';
 import SalespersonContractHistory from './pages/salesperson/SalespersonContractHistory';
 import SalespersonDetailPage from './pages/admin/SalespersonDetailPage';
 import SalespersonCommissionsPage from './pages/admin/SalespersonCommissionsPage';
@@ -142,6 +143,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/funcionalidades" element={<FeaturesPage />} />
+            <Route path="/guia-vendedor" element={<SalespersonSalesGuidePage />} />
             <Route path="/sitemap.xml" element={<Sitemap />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/signup" element={<SignUp />} />

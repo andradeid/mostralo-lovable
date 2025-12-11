@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { 
   Users, 
   DollarSign, 
@@ -11,7 +12,12 @@ import {
   AlertTriangle,
   RefreshCw,
   Download,
-  RotateCcw
+  RotateCcw,
+  HelpCircle,
+  ChevronDown,
+  Clock,
+  Info,
+  ArrowUpCircle
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -28,6 +34,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Affiliate {
   id: string;
@@ -59,6 +66,7 @@ export default function AffiliateEarningsReportsPage() {
   const [loading, setLoading] = useState(true);
   const [resetting, setResetting] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [instructionsOpen, setInstructionsOpen] = useState(false);
   const { toast } = useToast();
 
   const MONTHLY_LIMIT = 1900;
@@ -227,6 +235,103 @@ export default function AffiliateEarningsReportsPage() {
           </Button>
         </div>
       </div>
+
+      {/* Seção de Instruções */}
+      <Collapsible open={instructionsOpen} onOpenChange={setInstructionsOpen}>
+        <CollapsibleTrigger className="flex items-center gap-2 w-full p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors">
+          <HelpCircle className="h-5 w-5 text-primary" />
+          <span className="font-semibold">📚 Instruções de Uso</span>
+          <ChevronDown className={`h-4 w-4 ml-auto transition-transform duration-200 ${instructionsOpen ? "rotate-180" : ""}`} />
+        </CollapsibleTrigger>
+
+        <CollapsibleContent className="mt-4 space-y-4">
+          <div className="grid md:grid-cols-3 gap-4">
+            {/* Reset Automático */}
+            <Card className="border-green-500/30 bg-green-500/5">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-green-600" />
+                  🔄 Reset Automático Mensal
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm space-y-2">
+                <p className="text-muted-foreground">
+                  <strong className="text-foreground">Quando:</strong> Todo dia 1º às 00:01 UTC
+                </p>
+                <ul className="text-muted-foreground space-y-1 text-xs">
+                  <li>• Zera <code className="bg-muted px-1 rounded">current_month_earnings</code></li>
+                  <li>• Atualiza <code className="bg-muted px-1 rounded">last_earnings_reset_at</code></li>
+                  <li>• Registra histórico automaticamente</li>
+                  <li>• Executado por: <Badge variant="outline" className="text-xs">system_cron</Badge></li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Limite Mensal */}
+            <Card className="border-yellow-500/30 bg-yellow-500/5">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                  ⚠️ Limite R$ 1.900/mês
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm space-y-2">
+                <p className="text-muted-foreground">
+                  <strong className="text-foreground">Por que:</strong> Evita caracterização de atividade habitual
+                </p>
+                <ul className="text-muted-foreground space-y-1 text-xs">
+                  <li>• Sistema bloqueia novas comissões ao atingir</li>
+                  <li>• Alerta <Badge variant="destructive" className="text-xs">≥80%</Badge> = próximo do limite</li>
+                  <li>• Incentive upgrade para <strong>Parceiro PJ</strong></li>
+                  <li>• PJ tem ganhos <strong>ilimitados</strong></li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Reset Manual */}
+            <Card className="border-red-500/30 bg-red-500/5">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <RotateCcw className="h-4 w-4 text-red-600" />
+                  🔴 Reset Manual
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm space-y-2">
+                <p className="text-muted-foreground">
+                  <strong className="text-foreground">Quando usar:</strong> APENAS em emergências
+                </p>
+                <ul className="text-muted-foreground space-y-1 text-xs">
+                  <li>• Cron falhou e não resetou no dia 1º</li>
+                  <li>• Erro de sistema registrou valores incorretos</li>
+                  <li>• <strong className="text-red-500">Não use</strong> para antecipar reset</li>
+                  <li>• Registra: <Badge variant="outline" className="text-xs">manual</Badge></li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* FAQ Rápido */}
+          <Alert className="bg-primary/5 border-primary/20">
+            <Info className="h-4 w-4 text-primary" />
+            <AlertDescription className="text-sm">
+              <strong>FAQ Rápido:</strong> Afiliado atingiu 80%? → Sugira upgrade para PJ via <code className="bg-muted px-1 rounded text-xs">/seja-vendedor</code>. 
+              Reset não executou? → Use "Reset Manual" e verifique logs do cron. 
+              Afiliado quer mais comissões? → Só como Parceiro PJ (CNPJ + CNAE válido).
+            </AlertDescription>
+          </Alert>
+
+          {/* Link para Guia Completo */}
+          <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+            <div className="flex items-center gap-2">
+              <ArrowUpCircle className="h-4 w-4 text-primary" />
+              <span className="text-sm">Guia completo com mais detalhes disponível na página de Vendedores</span>
+            </div>
+            <Button variant="link" size="sm" asChild>
+              <a href="/dashboard/salespeople">Ver Guia Completo →</a>
+            </Button>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* Cards de Resumo */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

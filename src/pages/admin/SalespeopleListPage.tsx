@@ -4,19 +4,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SalespersonCard } from "@/components/admin/salespeople/SalespersonCard";
 import { ApprovalDialog } from "@/components/admin/salespeople/ApprovalDialog";
 import { RejectionDialog } from "@/components/admin/salespeople/RejectionDialog";
 import { SalespeopleAdminGuide } from "@/components/admin/salespeople/SalespeopleAdminGuide";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, User, Building2 } from "lucide-react";
 
 export default function SalespeopleListPage() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTab, setSelectedTab] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
   const [rejectionDialogOpen, setRejectionDialogOpen] = useState(false);
   const [selectedSalesperson, setSelectedSalesperson] = useState<any>(null);
@@ -91,10 +93,12 @@ export default function SalespeopleListPage() {
   };
 
   const filteredSalespeople = salespeople?.filter((s) => {
+    const searchLower = searchTerm.toLowerCase();
     const matchesSearch =
-      s.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.cnpj.includes(searchTerm) ||
-      s.referral_code.toLowerCase().includes(searchTerm.toLowerCase());
+      s.full_name.toLowerCase().includes(searchLower) ||
+      (s.cnpj && s.cnpj.includes(searchTerm)) ||
+      (s.cpf && s.cpf.includes(searchTerm)) ||
+      s.referral_code.toLowerCase().includes(searchLower);
 
     const matchesTab =
       selectedTab === "all" ||
@@ -102,12 +106,19 @@ export default function SalespeopleListPage() {
       (selectedTab === "active" && s.status === "active") ||
       (selectedTab === "inactive" && s.status === "inactive");
 
-    return matchesSearch && matchesTab;
+    const matchesType =
+      typeFilter === "all" ||
+      (typeFilter === "affiliate" && s.salesperson_type === "affiliate") ||
+      (typeFilter === "partner" && (s.salesperson_type === "partner" || !s.salesperson_type));
+
+    return matchesSearch && matchesTab && matchesType;
   });
 
   const pendingCount = salespeople?.filter((s) => s.status === "pending_approval").length || 0;
   const activeCount = salespeople?.filter((s) => s.status === "active").length || 0;
   const inactiveCount = salespeople?.filter((s) => s.status === "inactive").length || 0;
+  const affiliateCount = salespeople?.filter((s) => s.salesperson_type === "affiliate").length || 0;
+  const partnerCount = salespeople?.filter((s) => s.salesperson_type === "partner" || !s.salesperson_type).length || 0;
 
   if (isLoading) {
     return <div>Carregando...</div>;
@@ -124,14 +135,62 @@ export default function SalespeopleListPage() {
 
       <SalespeopleAdminGuide />
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar por nome, CNPJ ou código..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
-        />
+      {/* Stats por tipo */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="p-4 rounded-lg border bg-card">
+          <div className="text-sm text-muted-foreground">Total</div>
+          <div className="text-2xl font-bold">{salespeople?.length || 0}</div>
+        </div>
+        <div className="p-4 rounded-lg border bg-card">
+          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            <User className="h-3 w-3" />
+            Afiliados (CPF)
+          </div>
+          <div className="text-2xl font-bold">{affiliateCount}</div>
+        </div>
+        <div className="p-4 rounded-lg border bg-card">
+          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            <Building2 className="h-3 w-3" />
+            Parceiros PJ
+          </div>
+          <div className="text-2xl font-bold">{partnerCount}</div>
+        </div>
+        <div className="p-4 rounded-lg border bg-card">
+          <div className="text-sm text-muted-foreground">Pendentes</div>
+          <div className="text-2xl font-bold text-amber-500">{pendingCount}</div>
+        </div>
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nome, CNPJ, CPF ou código..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <SelectTrigger className="w-full md:w-[200px]">
+            <SelectValue placeholder="Tipo de vendedor" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os tipos</SelectItem>
+            <SelectItem value="affiliate">
+              <span className="flex items-center gap-2">
+                <User className="h-3 w-3" />
+                Afiliados (CPF)
+              </span>
+            </SelectItem>
+            <SelectItem value="partner">
+              <span className="flex items-center gap-2">
+                <Building2 className="h-3 w-3" />
+                Parceiros PJ
+              </span>
+            </SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
@@ -188,7 +247,7 @@ export default function SalespeopleListPage() {
             onOpenChange={setApprovalDialogOpen}
             onConfirm={handleApprove}
             salespersonName={selectedSalesperson.full_name}
-            cnpjData={selectedSalesperson.cnpj_data}
+            cnpjData={selectedSalesperson.cnpj_validation_data}
           />
 
           <RejectionDialog

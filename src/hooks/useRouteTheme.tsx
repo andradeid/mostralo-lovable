@@ -15,7 +15,8 @@ export function useRouteTheme() {
         location.pathname === '/para-lojistas' ||
         location.pathname === '/para-feirantes' ||
         location.pathname === '/para-farmacias' ||
-        location.pathname === '/proposta-biomundo') {
+        location.pathname === '/proposta-biomundo' ||
+        location.pathname === '/para-supermercados') {
       setTheme('dark');
     }
     // Dashboard e sub-rotas = respeitar preferência do usuário (não forçar nada)

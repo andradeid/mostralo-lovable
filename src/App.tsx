@@ -89,6 +89,7 @@ import FeirantesPage from './pages/public/FeirantesPage';
 import LojistasLocaisPage from './pages/public/LojistasLocaisPage';
 import FarmaciasPage from './pages/public/FarmaciasPage';
 import BioMundoPropostaPage from './pages/public/BioMundoPropostaPage';
+import SupermercadosPage from './pages/public/SupermercadosPage';
 import SalespersonSalesGuidePage from './pages/public/SalespersonSalesGuidePage';
 import SalespersonContractHistory from './pages/salesperson/SalespersonContractHistory';
 import SalespersonDetailPage from './pages/admin/SalespersonDetailPage';
@@ -152,6 +153,7 @@ const App = () => (
             <Route path="/para-lojistas" element={<LojistasLocaisPage />} />
             <Route path="/para-farmacias" element={<FarmaciasPage />} />
             <Route path="/proposta-biomundo" element={<BioMundoPropostaPage />} />
+            <Route path="/para-supermercados" element={<SupermercadosPage />} />
             <Route path="/guia-vendedor" element={<SalespersonSalesGuidePage />} />
             <Route path="/sitemap.xml" element={<Sitemap />} />
             <Route path="/auth" element={<Auth />} />

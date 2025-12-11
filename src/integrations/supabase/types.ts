@@ -244,6 +244,39 @@ export type Database = {
           },
         ]
       }
+      affiliate_earnings_resets: {
+        Row: {
+          affiliates_count: number
+          created_at: string | null
+          executed_by: string | null
+          id: string
+          notes: string | null
+          reset_at: string
+          reset_details: Json | null
+          total_reset_amount: number
+        }
+        Insert: {
+          affiliates_count?: number
+          created_at?: string | null
+          executed_by?: string | null
+          id?: string
+          notes?: string | null
+          reset_at?: string
+          reset_details?: Json | null
+          total_reset_amount?: number
+        }
+        Update: {
+          affiliates_count?: number
+          created_at?: string | null
+          executed_by?: string | null
+          id?: string
+          notes?: string | null
+          reset_at?: string
+          reset_details?: Json | null
+          total_reset_amount?: number
+        }
+        Relationships: []
+      }
       banners: {
         Row: {
           created_at: string
@@ -2527,6 +2560,7 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          last_earnings_reset_at: string | null
           monthly_earnings_limit: number | null
           phone: string
           pix_key: string | null
@@ -2556,6 +2590,7 @@ export type Database = {
           email: string
           full_name: string
           id?: string
+          last_earnings_reset_at?: string | null
           monthly_earnings_limit?: number | null
           phone: string
           pix_key?: string | null
@@ -2585,6 +2620,7 @@ export type Database = {
           email?: string
           full_name?: string
           id?: string
+          last_earnings_reset_at?: string | null
           monthly_earnings_limit?: number | null
           phone?: string
           pix_key?: string | null

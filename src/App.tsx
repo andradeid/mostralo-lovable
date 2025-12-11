@@ -88,6 +88,7 @@ import SalespersonContractHistory from './pages/salesperson/SalespersonContractH
 import SalespersonDetailPage from './pages/admin/SalespersonDetailPage';
 import SalespersonCommissionsPage from './pages/admin/SalespersonCommissionsPage';
 import SalespeoplePayoutsPage from './pages/admin/SalespeoplePayoutsPage';
+import AffiliateEarningsReportsPage from './pages/admin/AffiliateEarningsReportsPage';
 import SalespersonDashboard from "./pages/salesperson/SalespersonDashboard";
 import SalespersonMyLink from "./pages/salesperson/SalespersonMyLink";
 import SalespersonContract from "./pages/salesperson/SalespersonContract";
@@ -211,6 +212,11 @@ const App = () => (
             <Route path="/dashboard/salespeople/payouts" element={
               <ProtectedRoute allowedRoles={['master_admin']}>
                 <AdminLayout pageTitle="Pagamentos de Vendedores"><SalespeoplePayoutsPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/salespeople/affiliate-reports" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Relatórios de Afiliados"><AffiliateEarningsReportsPage /></AdminLayout>
               </ProtectedRoute>
             } />
             <Route path="/dashboard/stores" element={

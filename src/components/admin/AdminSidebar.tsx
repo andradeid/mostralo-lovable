@@ -336,6 +336,7 @@ export function AdminSidebar() {
         { title: 'Material de Divulgação', url: '/dashboard/material-divulgacao', icon: QrCode, group: 'Prospecção' },
         { title: 'Vendedores', url: '/dashboard/salespeople', icon: Users, group: 'Vendedores' },
         { title: 'Pagamentos Vendedores', url: '/dashboard/salespeople/payouts', icon: DollarSign, group: 'Vendedores' },
+        { title: 'Relatórios Afiliados', url: '/dashboard/salespeople/affiliate-reports', icon: BarChart3, group: 'Vendedores' },
         { title: 'Leads', url: '/dashboard/leads', icon: UserCircle, group: 'Vendedores' },
         { title: 'Configurar Bônus', url: '/dashboard/salespeople/commissions', icon: DollarSign, group: 'Vendedores' },
         { title: 'Editar Contrato', url: '/dashboard/salespeople/contract', icon: FileText, group: 'Vendedores' },

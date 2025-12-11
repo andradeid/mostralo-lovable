@@ -70,6 +70,12 @@ const Auth = () => {
       return;
     }
 
+    // Vendedores vão para painel do vendedor
+    if (userRole === 'salesperson') {
+      navigate('/vendedor/dashboard');
+      return;
+    }
+
     // Admins: master_admin ou store_admin
     navigate('/dashboard');
   }, [user, userRole, profile, authLoading, navigate, toast]);

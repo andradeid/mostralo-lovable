@@ -228,7 +228,23 @@ Deno.serve(async (req) => {
     console.log(`Tipo: ${salesperson.salesperson_type}`);
     console.log(`Status: ${salesperson.status}`);
 
-    // 3. Desabilitar usuário até aprovação do master admin
+    // 3. Criar role na tabela user_roles
+    const { error: roleError } = await supabase
+      .from('user_roles')
+      .insert({
+        user_id: userId,
+        role: 'salesperson',
+        store_id: null // Vendedores não têm store_id
+      });
+
+    if (roleError) {
+      console.error('Erro ao criar role do vendedor:', roleError);
+      // Não é crítico, continua o fluxo
+    } else {
+      console.log(`✅ Role salesperson criada para user_id: ${userId}`);
+    }
+
+    // 4. Desabilitar usuário até aprovação do master admin
     await supabase.auth.admin.updateUserById(userId, {
       ban_duration: 'none',
       user_metadata: {

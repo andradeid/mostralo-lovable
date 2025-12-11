@@ -1,4 +1,4 @@
-import { Home, Link2, FileText, User, LogOut, MessageSquare, Target, ClipboardList, Users, Printer, History, Wallet } from "lucide-react";
+import { Home, Link2, FileText, User, LogOut, MessageSquare, Target, ClipboardList, Users, Printer, History, Wallet, BookOpen } from "lucide-react";
 import { useLocation, Link } from "react-router-dom";
 import {
   Sidebar,
@@ -21,6 +21,7 @@ export function SalespersonSidebar({ onSignOut }: SalespersonSidebarProps) {
 
   const menuItems = [
     { icon: Home, title: "Dashboard", path: "/vendedor" },
+    { icon: BookOpen, title: "📚 Guia Completo", path: "/vendedor/guia" },
     { icon: Link2, title: "Meu Link", path: "/vendedor/link" },
     { icon: Wallet, title: "Pagamentos", path: "/vendedor/pagamentos" },
     { icon: Printer, title: "Material", path: "/vendedor/compartilhar" },

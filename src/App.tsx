@@ -96,6 +96,7 @@ import SalespersonProfile from "./pages/salesperson/SalespersonProfile";
 import SalespersonSharePage from "./pages/salesperson/SalespersonSharePage";
 import SalespersonUpgrade from "./pages/salesperson/SalespersonUpgrade";
 import SalespersonPayouts from "./pages/salesperson/SalespersonPayouts";
+import SalespersonGuidePage from "./pages/salesperson/SalespersonGuidePage";
 import { SalespersonLayout } from "./components/salesperson/SalespersonLayout";
 import ProspectingGuidePage from "./pages/admin/ProspectingGuidePage";
 import BusinessIntelligencePage from "./pages/admin/BusinessIntelligencePage";
@@ -524,6 +525,16 @@ const App = () => (
               <ProtectedRoute allowedRoles={["salesperson"]}>
                 <SalespersonLayout>
                   <SalespersonDashboard />
+                </SalespersonLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendedor/guia"
+            element={
+              <ProtectedRoute allowedRoles={["salesperson"]}>
+                <SalespersonLayout>
+                  <SalespersonGuidePage />
                 </SalespersonLayout>
               </ProtectedRoute>
             }

@@ -175,7 +175,6 @@ export default function SalespersonProfile() {
             </Button>
           </CardContent>
         </Card>
-      </div>
     </div>
   );
 }

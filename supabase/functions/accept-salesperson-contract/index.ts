@@ -56,10 +56,10 @@ Deno.serve(async (req) => {
       throw new Error('Contrato já foi aceito ou vendedor não está aprovado');
     }
 
-    // Buscar template ativo do contrato
+    // Buscar template ativo do contrato com texto completo
     const { data: template, error: templateError } = await supabase
       .from('salesperson_contract_templates')
-      .select('id, version')
+      .select('id, version, contract_text')
       .eq('is_active', true)
       .maybeSingle();
 
@@ -81,6 +81,7 @@ Deno.serve(async (req) => {
       .insert({
         salesperson_id: salesperson.id,
         version: template?.version || '1.0',
+        contract_text: template?.contract_text || 'Termos de Indicação aceitos digitalmente',
         accepted_at,
         ip_address,
         user_agent,

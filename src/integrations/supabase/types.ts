@@ -1489,6 +1489,118 @@ export type Database = {
           },
         ]
       }
+      merchant_contract_acceptance: {
+        Row: {
+          accepted_at: string
+          business_info_declaration: boolean | null
+          company_authorization: boolean | null
+          compliance_commitment: boolean | null
+          contract_template_id: string | null
+          contract_version: string
+          cookies_accepted: boolean | null
+          created_at: string | null
+          id: string
+          ip_address: string | null
+          marketing_accepted: boolean | null
+          privacy_accepted: boolean | null
+          store_id: string | null
+          terms_accepted: boolean | null
+          user_agent: string | null
+          user_id: string
+          verification_hash: string | null
+        }
+        Insert: {
+          accepted_at?: string
+          business_info_declaration?: boolean | null
+          company_authorization?: boolean | null
+          compliance_commitment?: boolean | null
+          contract_template_id?: string | null
+          contract_version: string
+          cookies_accepted?: boolean | null
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          marketing_accepted?: boolean | null
+          privacy_accepted?: boolean | null
+          store_id?: string | null
+          terms_accepted?: boolean | null
+          user_agent?: string | null
+          user_id: string
+          verification_hash?: string | null
+        }
+        Update: {
+          accepted_at?: string
+          business_info_declaration?: boolean | null
+          company_authorization?: boolean | null
+          compliance_commitment?: boolean | null
+          contract_template_id?: string | null
+          contract_version?: string
+          cookies_accepted?: boolean | null
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          marketing_accepted?: boolean | null
+          privacy_accepted?: boolean | null
+          store_id?: string | null
+          terms_accepted?: boolean | null
+          user_agent?: string | null
+          user_id?: string
+          verification_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "merchant_contract_acceptance_contract_template_id_fkey"
+            columns: ["contract_template_id"]
+            isOneToOne: false
+            referencedRelation: "merchant_contract_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "merchant_contract_acceptance_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "merchant_contract_acceptance_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      merchant_contract_templates: {
+        Row: {
+          content: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          title: string
+          version: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          title: string
+          version: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          title?: string
+          version?: string
+        }
+        Relationships: []
+      }
       modules: {
         Row: {
           created_at: string

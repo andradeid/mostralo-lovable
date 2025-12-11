@@ -11,6 +11,17 @@ import { Loader2, Store, ArrowLeft, Check, Info, Gift, Search, Building2, MapPin
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import ContractAcceptanceStep from '@/components/signup/ContractAcceptanceStep';
+
+interface ContractAcceptances {
+  termsAccepted: boolean;
+  privacyAccepted: boolean;
+  cookiesAccepted: boolean;
+  marketingAccepted: boolean;
+  businessInfoDeclaration: boolean;
+  companyAuthorization: boolean;
+  complianceCommitment: boolean;
+}
 
 interface SignUpFormData {
   // Dados de Login
@@ -92,6 +103,17 @@ const SignUp = () => {
     state: '',
     zipCode: '',
     planId: '',
+  });
+
+  // Estado para aceites do contrato
+  const [contractAcceptances, setContractAcceptances] = useState<ContractAcceptances>({
+    termsAccepted: false,
+    privacyAccepted: false,
+    cookiesAccepted: false,
+    marketingAccepted: false,
+    businessInfoDeclaration: false,
+    companyAuthorization: false,
+    complianceCommitment: false,
   });
 
   // 🎯 Validar código de referência
@@ -519,13 +541,28 @@ const SignUp = () => {
     return true;
   };
 
+  const validateStep5 = () => {
+    const { termsAccepted, privacyAccepted, cookiesAccepted, businessInfoDeclaration, companyAuthorization, complianceCommitment } = contractAcceptances;
+    
+    if (!termsAccepted || !privacyAccepted || !cookiesAccepted || !businessInfoDeclaration || !companyAuthorization || !complianceCommitment) {
+      toast({
+        title: 'Aceite obrigatório',
+        description: 'Você precisa aceitar todos os termos obrigatórios para continuar.',
+        variant: 'destructive',
+      });
+      return false;
+    }
+    return true;
+  };
+
   const handleNext = () => {
     if (currentStep === 1 && !validateStep1()) return;
     if (currentStep === 2 && !validateStep2()) return;
     if (currentStep === 3 && !validateStep3()) return;
     if (currentStep === 4 && !validateStep4()) return;
+    if (currentStep === 5 && !validateStep5()) return;
 
-    if (currentStep < 4) {
+    if (currentStep < 5) {
       setCurrentStep(prev => prev + 1);
     } else {
       handleSubmit();
@@ -633,7 +670,34 @@ const SignUp = () => {
 
       if (approvalError) throw approvalError;
 
-      // 8. Redirecionar para página de comprovante
+      // 8. Registrar aceite do contrato via Edge Function
+      try {
+        const contractResponse = await supabase.functions.invoke('accept-merchant-contract', {
+          body: {
+            user_id: userId,
+            store_id: storeData.id,
+            contract_version: '1.0',
+            terms_accepted: contractAcceptances.termsAccepted,
+            privacy_accepted: contractAcceptances.privacyAccepted,
+            cookies_accepted: contractAcceptances.cookiesAccepted,
+            marketing_accepted: contractAcceptances.marketingAccepted,
+            business_info_declaration: contractAcceptances.businessInfoDeclaration,
+            company_authorization: contractAcceptances.companyAuthorization,
+            compliance_commitment: contractAcceptances.complianceCommitment,
+          }
+        });
+
+        if (contractResponse.error) {
+          console.error('Erro ao registrar contrato:', contractResponse.error);
+          // Não bloqueia o cadastro, apenas loga o erro
+        } else {
+          console.log('✅ Contrato registrado:', contractResponse.data);
+        }
+      } catch (contractError) {
+        console.error('Erro ao chamar Edge Function de contrato:', contractError);
+      }
+
+      // 9. Redirecionar para página de comprovante
       // 🧹 Limpar código de referência após cadastro bem-sucedido
       localStorage.removeItem('mostralo_referral_code');
       localStorage.removeItem('mostralo_referral_timestamp');
@@ -969,6 +1033,15 @@ const SignUp = () => {
           </div>
         );
 
+      case 5:
+        return (
+          <ContractAcceptanceStep
+            acceptances={contractAcceptances}
+            onAcceptancesChange={setContractAcceptances}
+            companyName={formData.companyName}
+          />
+        );
+
       default:
         return null;
     }
@@ -978,7 +1051,8 @@ const SignUp = () => {
     'Dados de Login',
     'Dados Pessoais e Empresa',
     'Endereço',
-    'Escolha seu Plano'
+    'Escolha seu Plano',
+    'Aceite dos Termos'
   ];
 
   return (
@@ -1009,20 +1083,20 @@ const SignUp = () => {
 
         {/* Progress */}
         <div className="flex items-center justify-between mb-8">
-          {[1, 2, 3, 4].map((step) => (
+          {[1, 2, 3, 4, 5].map((step) => (
             <div key={step} className="flex items-center">
               <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
+                className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-semibold text-sm md:text-base ${
                   step <= currentStep
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-muted text-muted-foreground'
                 }`}
               >
-                {step < currentStep ? <Check className="w-5 h-5" /> : step}
+                {step < currentStep ? <Check className="w-4 h-4 md:w-5 md:h-5" /> : step}
               </div>
-              {step < 4 && (
+              {step < 5 && (
                 <div
-                  className={`h-1 w-16 mx-2 ${
+                  className={`h-1 w-8 md:w-12 mx-1 md:mx-2 ${
                     step < currentStep ? 'bg-primary' : 'bg-muted'
                   }`}
                 />
@@ -1038,7 +1112,7 @@ const SignUp = () => {
               {stepTitles[currentStep - 1]}
             </CardTitle>
             <CardDescription>
-              Passo {currentStep} de 4
+              Passo {currentStep} de 5
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -1065,8 +1139,8 @@ const SignUp = () => {
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Criando conta...
                   </>
-                ) : currentStep === 4 ? (
-                  'Criar Conta'
+                ) : currentStep === 5 ? (
+                  'Criar Conta e Aceitar Termos'
                 ) : (
                   'Próximo'
                 )}

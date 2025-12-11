@@ -50,8 +50,8 @@ export function SalespersonSidebar({ onSignOut }: SalespersonSidebarProps) {
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarMenu>
+      <SidebarContent className="py-2">
+        <SidebarMenu className="space-y-1 px-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -61,7 +61,7 @@ export function SalespersonSidebar({ onSignOut }: SalespersonSidebarProps) {
                 <SidebarMenuButton
                   asChild
                   isActive={isActive}
-                  className="w-full justify-start"
+                  className="w-full justify-start h-10 px-3"
                 >
                   <Link to={item.path}>
                     <Icon className="h-4 w-4" />

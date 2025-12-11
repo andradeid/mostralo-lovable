@@ -303,7 +303,7 @@ Site: mostralo.com.br`;
       {/* Main Content */}
       <main className="lg:ml-64 pt-20">
         {/* Hero Section */}
-        <section ref={heroRef} className="bg-gradient-to-br from-blue-500/10 via-background to-primary/10 dark:from-blue-500/5 dark:to-primary/5 py-16 md:py-24">
+        <section ref={heroRef.ref} className="bg-gradient-to-br from-blue-500/10 via-background to-primary/10 dark:from-blue-500/5 dark:to-primary/5 py-16 md:py-24">
           <div className="container mx-auto px-4 text-center">
             <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 rounded-full px-4 py-2 mb-6">
               <Building2 className="h-4 w-4 text-blue-500" />
@@ -365,7 +365,7 @@ Site: mostralo.com.br`;
         </section>
 
         {/* Section 1: A Dor do Lojista */}
-        <section id="dor-lojista" ref={dorRef} className="py-16 bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20">
+        <section id="dor-lojista" ref={dorRef.ref} className="py-16 bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20">
           <div className="container mx-auto px-4">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-12 h-12 bg-destructive/10 rounded-xl flex items-center justify-center">
@@ -469,7 +469,7 @@ Site: mostralo.com.br`;
         </section>
 
         {/* Section 2: Sua Loja Online */}
-        <section id="loja-online" ref={solucaoRef} className="py-16 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20">
+        <section id="loja-online" ref={solucaoRef.ref} className="py-16 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20">
           <div className="container mx-auto px-4">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center">
@@ -570,7 +570,7 @@ Site: mostralo.com.br`;
         </section>
 
         {/* Section 3: Catálogo Digital */}
-        <section id="catalogo" ref={catalogoRef} className="py-16">
+        <section id="catalogo" ref={catalogoRef.ref} className="py-16">
           <div className="container mx-auto px-4">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center">
@@ -751,7 +751,7 @@ Site: mostralo.com.br`;
         </section>
 
         {/* Section 4: WhatsApp */}
-        <section id="whatsapp" ref={whatsappRef} className="py-16 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20">
+        <section id="whatsapp" ref={whatsappRef.ref} className="py-16 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20">
           <div className="container mx-auto px-4">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center">
@@ -832,7 +832,7 @@ Site: mostralo.com.br`;
         </section>
 
         {/* Section 5: Base de Clientes */}
-        <section id="clientes" ref={clientesRef} className="py-16">
+        <section id="clientes" ref={clientesRef.ref} className="py-16">
           <div className="container mx-auto px-4">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center">
@@ -904,7 +904,7 @@ Site: mostralo.com.br`;
         </section>
 
         {/* Section 6: Divulgação */}
-        <section id="divulgacao" ref={divulgacaoRef} className="py-16 bg-muted/30">
+        <section id="divulgacao" ref={divulgacaoRef.ref} className="py-16 bg-muted/30">
           <div className="container mx-auto px-4">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
@@ -950,7 +950,7 @@ Site: mostralo.com.br`;
         </section>
 
         {/* Section 7: Google Shopping + Instagram Shopping - DESTAQUE */}
-        <section id="google-shopping" ref={googleRef} className="py-16 bg-gradient-to-br from-blue-500/10 via-pink-500/5 to-primary/10 dark:from-blue-500/5 dark:via-pink-500/5 dark:to-primary/5">
+        <section id="google-shopping" ref={googleRef.ref} className="py-16 bg-gradient-to-br from-blue-500/10 via-pink-500/5 to-primary/10 dark:from-blue-500/5 dark:via-pink-500/5 dark:to-primary/5">
           <div className="container mx-auto px-4">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center">
@@ -1121,7 +1121,7 @@ Site: mostralo.com.br`;
         </section>
 
         {/* Section 8: Venda Fora do Horário */}
-        <section id="horario" ref={horarioRef} className="py-16">
+        <section id="horario" ref={horarioRef.ref} className="py-16">
           <div className="container mx-auto px-4">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center">
@@ -1200,7 +1200,7 @@ Site: mostralo.com.br`;
         </section>
 
         {/* Section 9: Reservas */}
-        <section id="reservas" ref={reservasRef} className="py-16 bg-muted/30">
+        <section id="reservas" ref={reservasRef.ref} className="py-16 bg-muted/30">
           <div className="container mx-auto px-4">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center">
@@ -1253,7 +1253,7 @@ Site: mostralo.com.br`;
         </section>
 
         {/* Section 10: Fidelização */}
-        <section id="fidelizacao" ref={fidelizacaoRef} className="py-16">
+        <section id="fidelizacao" ref={fidelizacaoRef.ref} className="py-16">
           <div className="container mx-auto px-4">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-12 h-12 bg-red-500/10 rounded-xl flex items-center justify-center">
@@ -1307,7 +1307,7 @@ Site: mostralo.com.br`;
         </section>
 
         {/* Section 11: Pagamentos */}
-        <section id="pagamentos" ref={pagamentosRef} className="py-16 bg-muted/30">
+        <section id="pagamentos" ref={pagamentosRef.ref} className="py-16 bg-muted/30">
           <div className="container mx-auto px-4">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center">
@@ -1369,7 +1369,7 @@ Site: mostralo.com.br`;
         </section>
 
         {/* Section 12: Fotos */}
-        <section id="fotos" ref={fotosRef} className="py-16">
+        <section id="fotos" ref={fotosRef.ref} className="py-16">
           <div className="container mx-auto px-4">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-12 h-12 bg-cyan-500/10 rounded-xl flex items-center justify-center">
@@ -1434,7 +1434,7 @@ Site: mostralo.com.br`;
         </section>
 
         {/* Section 13: Localização */}
-        <section id="localizacao" ref={localizacaoRef} className="py-16 bg-muted/30">
+        <section id="localizacao" ref={localizacaoRef.ref} className="py-16 bg-muted/30">
           <div className="container mx-auto px-4">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
@@ -1505,7 +1505,7 @@ Site: mostralo.com.br`;
         </section>
 
         {/* Section 14: Feira Digital */}
-        <section id="feira-digital" ref={feiraDigitalRef} className="py-16">
+        <section id="feira-digital" ref={feiraDigitalRef.ref} className="py-16">
           <div className="container mx-auto px-4">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-12 h-12 bg-violet-500/10 rounded-xl flex items-center justify-center">
@@ -1557,7 +1557,7 @@ Site: mostralo.com.br`;
         </section>
 
         {/* Section 15: Comparativo */}
-        <section id="comparativo" ref={comparativoRef} className="py-16 bg-gradient-to-br from-primary/5 to-green-500/5">
+        <section id="comparativo" ref={comparativoRef.ref} className="py-16 bg-gradient-to-br from-primary/5 to-green-500/5">
           <div className="container mx-auto px-4">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
@@ -1623,7 +1623,7 @@ Site: mostralo.com.br`;
         </section>
 
         {/* Section 16: Depoimentos */}
-        <section id="depoimentos" ref={depoimentosRef} className="py-16">
+        <section id="depoimentos" ref={depoimentosRef.ref} className="py-16">
           <div className="container mx-auto px-4">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center">
@@ -1728,7 +1728,7 @@ Site: mostralo.com.br`;
         </section>
 
         {/* Section 17: Calculadora */}
-        <section id="calculadora" ref={calculadoraRef} className="py-16 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20">
+        <section id="calculadora" ref={calculadoraRef.ref} className="py-16 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20">
           <div className="container mx-auto px-4">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center">
@@ -1805,7 +1805,7 @@ Site: mostralo.com.br`;
         </section>
 
         {/* Section 18: Começar */}
-        <section id="comecar" ref={comecarRef} className="py-16">
+        <section id="comecar" ref={comecarRef.ref} className="py-16">
           <div className="container mx-auto px-4">
             <div className="text-center max-w-2xl mx-auto">
               <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">

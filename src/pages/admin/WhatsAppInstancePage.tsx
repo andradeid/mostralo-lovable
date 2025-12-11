@@ -719,205 +719,165 @@ export default function WhatsAppInstancePage() {
               </CardContent>
             </Card>
 
-            {/* QR Code */}
-            {(qrCode || instance.qr_code) && instance.status !== 'connected' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <QrCode className="h-5 w-5" />
-                    Escaneie o QR Code
-                  </CardTitle>
-                  <CardDescription>
-                    Abra o WhatsApp no seu celular e escaneie o código abaixo
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-col items-center">
-                  <div className="bg-white p-4 rounded-lg">
-                    <img 
-                      src={qrCode || instance.qr_code} 
-                      alt="QR Code" 
-                      className="h-64 w-64"
-                    />
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-4 text-center">
-                    O QR Code expira em alguns segundos. Clique em "Gerar QR Code" para obter um novo.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
+            {/* Card de Instruções de Gerenciamento */}
+            <Card className="bg-muted/30 border-dashed">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <HelpCircle className="h-5 w-5 text-primary" />
+                  Instruções de Gerenciamento
+                </CardTitle>
+                <CardDescription>
+                  Saiba como trocar de número e a diferença entre as ações disponíveis
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Accordion type="single" collapsible className="w-full">
+                  <AccordionItem value="trocar-numero">
+                    <AccordionTrigger className="text-sm font-medium">
+                      📱 Como trocar de número WhatsApp?
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-3 text-sm">
+                        <p className="text-muted-foreground">
+                          Siga estes passos simples para conectar um novo número:
+                        </p>
+                        <ol className="space-y-2 ml-4">
+                          <li className="flex items-start gap-2">
+                            <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shrink-0">1</span>
+                            <span>Clique em <strong>"Desconectar"</strong> para desvincular o número atual</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shrink-0">2</span>
+                            <span>Clique em <strong>"Gerar QR Code"</strong> para obter um novo código</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shrink-0">3</span>
+                            <span>Abra o WhatsApp no celular com o <strong>novo número</strong> e escaneie o QR Code</span>
+                          </li>
+                        </ol>
+                        <div className="flex items-center gap-2 text-muted-foreground bg-muted/50 p-2 rounded">
+                          <AlertCircle className="h-4 w-4 shrink-0" />
+                          <span>⏱️ Tempo estimado: ~1 minuto</span>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  <AccordionItem value="diferenca-acoes">
+                    <AccordionTrigger className="text-sm font-medium">
+                      ⚡ Diferença: Desconectar vs Remover
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-4 text-sm">
+                        <div className="grid gap-3">
+                          {/* Desconectar */}
+                          <div className="border rounded-lg p-3 space-y-2">
+                            <div className="flex items-center gap-2">
+                              <PowerOff className="h-4 w-4 text-orange-500" />
+                              <span className="font-semibold">Desconectar</span>
+                              <Badge variant="secondary" className="text-xs">Recomendado</Badge>
+                            </div>
+                            <p className="text-muted-foreground text-xs">
+                              Apenas desvincula o número atual
+                            </p>
+                            <ul className="space-y-1 text-xs">
+                              <li className="flex items-center gap-1">
+                                <CheckCircle className="h-3 w-3 text-green-500" />
+                                Configurações preservadas
+                              </li>
+                              <li className="flex items-center gap-1">
+                                <CheckCircle className="h-3 w-3 text-green-500" />
+                                Contatos mantidos
+                              </li>
+                              <li className="flex items-center gap-1">
+                                <CheckCircle className="h-3 w-3 text-green-500" />
+                                Reconexão rápida (~1 min)
+                              </li>
+                            </ul>
+                          </div>
+
+                          {/* Remover */}
+                          <div className="border border-destructive/30 rounded-lg p-3 space-y-2">
+                            <div className="flex items-center gap-2">
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                              <span className="font-semibold">Remover</span>
+                              <Badge variant="destructive" className="text-xs">Permanente</Badge>
+                            </div>
+                            <p className="text-muted-foreground text-xs">
+                              Remove a instância completamente
+                            </p>
+                            <ul className="space-y-1 text-xs">
+                              <li className="flex items-center gap-1">
+                                <XCircle className="h-3 w-3 text-destructive" />
+                                Configurações perdidas
+                              </li>
+                              <li className="flex items-center gap-1">
+                                <AlertCircle className="h-3 w-3 text-orange-500" />
+                                Contatos ficam órfãos
+                              </li>
+                              <li className="flex items-center gap-1">
+                                <XCircle className="h-3 w-3 text-destructive" />
+                                Nova config (~2 min)
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  <AccordionItem value="avisos" className="border-b-0">
+                    <AccordionTrigger className="text-sm font-medium">
+                      ⚠️ Avisos importantes
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-start gap-2 p-2 bg-orange-500/10 text-orange-700 dark:text-orange-400 rounded text-xs">
+                          <AlertCircle className="h-3 w-3 shrink-0 mt-0.5" />
+                          <span>Verifique <strong>campanhas ativas</strong></span>
+                        </div>
+                        <div className="flex items-start gap-2 p-2 bg-blue-500/10 text-blue-700 dark:text-blue-400 rounded text-xs">
+                          <MessageSquare className="h-3 w-3 shrink-0 mt-0.5" />
+                          <span><strong>Contatos</strong> permanecem salvos</span>
+                        </div>
+                        <div className="flex items-start gap-2 p-2 bg-green-500/10 text-green-700 dark:text-green-400 rounded text-xs">
+                          <RefreshCw className="h-3 w-3 shrink-0 mt-0.5" />
+                          <span><strong>Automações</strong> continuam funcionando</span>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Card de Instruções de Gerenciamento */}
-          <Card className="bg-muted/30 border-dashed">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <HelpCircle className="h-5 w-5 text-primary" />
-                Instruções de Gerenciamento
-              </CardTitle>
-              <CardDescription>
-                Saiba como trocar de número e a diferença entre as ações disponíveis
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="trocar-numero">
-                  <AccordionTrigger className="text-sm font-medium">
-                    📱 Como trocar de número WhatsApp?
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="space-y-3 text-sm">
-                      <p className="text-muted-foreground">
-                        Siga estes passos simples para conectar um novo número:
-                      </p>
-                      <ol className="space-y-2 ml-4">
-                        <li className="flex items-start gap-2">
-                          <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shrink-0">1</span>
-                          <span>Clique em <strong>"Desconectar"</strong> para desvincular o número atual</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shrink-0">2</span>
-                          <span>Clique em <strong>"Gerar QR Code"</strong> para obter um novo código</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shrink-0">3</span>
-                          <span>Abra o WhatsApp no celular com o <strong>novo número</strong> e escaneie o QR Code</span>
-                        </li>
-                      </ol>
-                      <div className="flex items-center gap-2 text-muted-foreground bg-muted/50 p-2 rounded">
-                        <AlertCircle className="h-4 w-4 shrink-0" />
-                        <span>⏱️ Tempo estimado: ~1 minuto</span>
-                      </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="diferenca-acoes">
-                  <AccordionTrigger className="text-sm font-medium">
-                    ⚡ Diferença: Desconectar vs Remover
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="space-y-4 text-sm">
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        {/* Desconectar */}
-                        <div className="border rounded-lg p-3 space-y-2">
-                          <div className="flex items-center gap-2">
-                            <PowerOff className="h-4 w-4 text-orange-500" />
-                            <span className="font-semibold">Desconectar</span>
-                            <Badge variant="secondary" className="text-xs">Recomendado</Badge>
-                          </div>
-                          <p className="text-muted-foreground text-xs">
-                            Apenas desvincula o número atual, mantendo a instância ativa
-                          </p>
-                          <ul className="space-y-1 text-xs">
-                            <li className="flex items-center gap-1">
-                              <CheckCircle className="h-3 w-3 text-green-500" />
-                              Configurações preservadas
-                            </li>
-                            <li className="flex items-center gap-1">
-                              <CheckCircle className="h-3 w-3 text-green-500" />
-                              Contatos sincronizados mantidos
-                            </li>
-                            <li className="flex items-center gap-1">
-                              <CheckCircle className="h-3 w-3 text-green-500" />
-                              Histórico de mensagens preservado
-                            </li>
-                            <li className="flex items-center gap-1">
-                              <CheckCircle className="h-3 w-3 text-green-500" />
-                              Reconexão rápida (~1 min)
-                            </li>
-                          </ul>
-                        </div>
-
-                        {/* Remover */}
-                        <div className="border border-destructive/30 rounded-lg p-3 space-y-2">
-                          <div className="flex items-center gap-2">
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                            <span className="font-semibold">Remover</span>
-                            <Badge variant="destructive" className="text-xs">Ação permanente</Badge>
-                          </div>
-                          <p className="text-muted-foreground text-xs">
-                            Remove completamente a instância e todos os dados associados
-                          </p>
-                          <ul className="space-y-1 text-xs">
-                            <li className="flex items-center gap-1">
-                              <XCircle className="h-3 w-3 text-destructive" />
-                              Configurações perdidas
-                            </li>
-                            <li className="flex items-center gap-1">
-                              <AlertCircle className="h-3 w-3 text-orange-500" />
-                              Contatos ficam órfãos
-                            </li>
-                            <li className="flex items-center gap-1">
-                              <CheckCircle className="h-3 w-3 text-green-500" />
-                              Histórico de mensagens preservado
-                            </li>
-                            <li className="flex items-center gap-1">
-                              <XCircle className="h-3 w-3 text-destructive" />
-                              Nova configuração necessária (~2 min)
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="quando-usar">
-                  <AccordionTrigger className="text-sm font-medium">
-                    🔄 Quando usar cada opção?
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="space-y-3 text-sm">
-                      <div className="flex items-start gap-3 p-2 bg-muted/50 rounded">
-                        <PowerOff className="h-4 w-4 text-orange-500 mt-0.5 shrink-0" />
-                        <div>
-                          <span className="font-medium">Use "Desconectar" quando:</span>
-                          <ul className="text-muted-foreground text-xs mt-1 space-y-1">
-                            <li>• Precisa trocar para outro número WhatsApp</li>
-                            <li>• A conexão está com problemas e quer reconectar</li>
-                            <li>• Quer pausar temporariamente o envio de mensagens</li>
-                          </ul>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3 p-2 bg-destructive/5 rounded">
-                        <Trash2 className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
-                        <div>
-                          <span className="font-medium">Use "Remover" quando:</span>
-                          <ul className="text-muted-foreground text-xs mt-1 space-y-1">
-                            <li>• Quer começar do zero com configurações limpas</li>
-                            <li>• Há problemas persistentes que desconectar não resolve</li>
-                            <li>• Precisa reconfigurar completamente a integração</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="avisos" className="border-b-0">
-                  <AccordionTrigger className="text-sm font-medium">
-                    ⚠️ Avisos importantes
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-start gap-2 p-2 bg-orange-500/10 text-orange-700 dark:text-orange-400 rounded">
-                        <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                        <span>Verifique se há <strong>campanhas ativas</strong> antes de desconectar ou remover</span>
-                      </div>
-                      <div className="flex items-start gap-2 p-2 bg-blue-500/10 text-blue-700 dark:text-blue-400 rounded">
-                        <MessageSquare className="h-4 w-4 shrink-0 mt-0.5" />
-                        <span>Os <strong>contatos sincronizados</strong> permanecem salvos no sistema mesmo após desconectar</span>
-                      </div>
-                      <div className="flex items-start gap-2 p-2 bg-green-500/10 text-green-700 dark:text-green-400 rounded">
-                        <RefreshCw className="h-4 w-4 shrink-0 mt-0.5" />
-                        <span>As <strong>automações</strong> continuarão funcionando normalmente com o novo número</span>
-                      </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            </CardContent>
-          </Card>
+          {/* QR Code - Largura total abaixo do grid */}
+          {(qrCode || instance.qr_code) && instance.status !== 'connected' && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <QrCode className="h-5 w-5" />
+                  Escaneie o QR Code
+                </CardTitle>
+                <CardDescription>
+                  Abra o WhatsApp no seu celular e escaneie o código abaixo
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col items-center">
+                <div className="bg-white p-4 rounded-lg">
+                  <img 
+                    src={qrCode || instance.qr_code} 
+                    alt="QR Code" 
+                    className="h-64 w-64"
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground mt-4 text-center">
+                  O QR Code expira em alguns segundos. Clique em "Gerar QR Code" para obter um novo.
+                </p>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Seção de Teste de Conexão - Só aparece se conectado */}
           {instance.status === 'connected' && (

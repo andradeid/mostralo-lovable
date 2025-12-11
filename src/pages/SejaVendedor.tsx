@@ -16,6 +16,14 @@ import {
   FileText,
   ArrowRight,
   Info,
+  LayoutDashboard,
+  Link2,
+  Printer,
+  Bot,
+  Crosshair,
+  ClipboardList,
+  BarChart3,
+  Sparkles,
 } from "lucide-react";
 
 export default function SejaVendedor() {
@@ -103,6 +111,157 @@ export default function SejaVendedor() {
               <CardDescription>Ganhe a cada indicação aprovada</CardDescription>
             </CardHeader>
           </Card>
+        </div>
+      </section>
+
+      {/* Central de Vendas - Recursos */}
+      <section className="container mx-auto px-4 py-16">
+        <div className="text-center mb-10">
+          <Badge className="mb-4" variant="outline">
+            <Sparkles className="w-3 h-3 mr-1" />
+            Exclusivo para Vendedores
+          </Badge>
+          <h2 className="text-3xl font-bold mb-4">
+            Sua Central de Vendas Completa
+          </h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Ao se cadastrar, você terá acesso a um painel exclusivo com todas as ferramentas 
+            que precisa para vender com eficiência e acompanhar seus resultados.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          {/* Dashboard */}
+          <Card className="border-2 hover:border-primary/50 transition-colors">
+            <CardHeader>
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-3">
+                <LayoutDashboard className="w-6 h-6 text-primary" />
+              </div>
+              <CardTitle className="text-lg">Dashboard de Vendas</CardTitle>
+              <CardDescription>
+                Acompanhe suas vendas, comissões e progresso do bônus trimestral em tempo real
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          {/* Link de Indicação */}
+          <Card className="border-2 hover:border-primary/50 transition-colors">
+            <CardHeader>
+              <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center mb-3">
+                <Link2 className="w-6 h-6 text-green-600" />
+              </div>
+              <CardTitle className="text-lg">Link Personalizado</CardTitle>
+              <CardDescription>
+                Seu link exclusivo para indicar clientes. Cada venda é automaticamente rastreada
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          {/* Material de Marketing */}
+          <Card className="border-2 hover:border-primary/50 transition-colors">
+            <CardHeader>
+              <div className="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center mb-3">
+                <Printer className="w-6 h-6 text-blue-600" />
+              </div>
+              <CardTitle className="text-lg">Material de Marketing</CardTitle>
+              <CardDescription>
+                Flyers, banners e artes prontas para você baixar e compartilhar com seus leads
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          {/* Gestão de Leads */}
+          <Card className="border-2 hover:border-primary/50 transition-colors">
+            <CardHeader>
+              <div className="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center mb-3">
+                <Users className="w-6 h-6 text-purple-600" />
+              </div>
+              <CardTitle className="text-lg">Gestão de Leads</CardTitle>
+              <CardDescription>
+                Veja todos os leads que acessaram seu link e acompanhe o status de cada um
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          {/* Prompts de IA */}
+          <Card className="border-2 hover:border-primary/50 transition-colors relative overflow-hidden">
+            <Badge className="absolute top-2 right-2 bg-gradient-to-r from-primary to-orange-500 text-primary-foreground">
+              IA
+            </Badge>
+            <CardHeader>
+              <div className="w-12 h-12 bg-gradient-to-br from-primary/10 to-orange-500/10 rounded-lg flex items-center justify-center mb-3">
+                <Bot className="w-6 h-6 text-primary" />
+              </div>
+              <CardTitle className="text-lg">Prompts de Vendas com IA</CardTitle>
+              <CardDescription>
+                Scripts de vendas inteligentes: consultivo, persuasivo e urgência - prontos para usar no ChatGPT
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          {/* Guia de Prospecção */}
+          <Card className="border-2 hover:border-primary/50 transition-colors">
+            <CardHeader>
+              <div className="w-12 h-12 bg-amber-500/10 rounded-lg flex items-center justify-center mb-3">
+                <Crosshair className="w-6 h-6 text-amber-600" />
+              </div>
+              <CardTitle className="text-lg">Guia de Prospecção</CardTitle>
+              <CardDescription>
+                Onde encontrar clientes, como abordar, quebra de objeções e técnicas de fechamento
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          {/* Guia de Cadastro */}
+          <Card className="border-2 hover:border-primary/50 transition-colors">
+            <CardHeader>
+              <div className="w-12 h-12 bg-teal-500/10 rounded-lg flex items-center justify-center mb-3">
+                <ClipboardList className="w-6 h-6 text-teal-600" />
+              </div>
+              <CardTitle className="text-lg">Roteiro de Onboarding</CardTitle>
+              <CardDescription>
+                Guia passo a passo para coletar os dados do cliente e fazer o cadastro corretamente
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          {/* Métricas */}
+          <Card className="border-2 hover:border-primary/50 transition-colors">
+            <CardHeader>
+              <div className="w-12 h-12 bg-rose-500/10 rounded-lg flex items-center justify-center mb-3">
+                <BarChart3 className="w-6 h-6 text-rose-600" />
+              </div>
+              <CardTitle className="text-lg">Métricas em Tempo Real</CardTitle>
+              <CardDescription>
+                Veja suas vendas, comissões pendentes e quanto falta para o próximo nível de bônus
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          {/* Contrato e Pagamentos */}
+          <Card className="border-2 hover:border-primary/50 transition-colors">
+            <CardHeader>
+              <div className="w-12 h-12 bg-indigo-500/10 rounded-lg flex items-center justify-center mb-3">
+                <FileText className="w-6 h-6 text-indigo-600" />
+              </div>
+              <CardTitle className="text-lg">Contrato & Pagamentos</CardTitle>
+              <CardDescription>
+                Contrato digital, histórico de versões e solicitação de pagamentos via PIX
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+
+        {/* CTA secundário */}
+        <div className="text-center mt-10">
+          <p className="text-muted-foreground mb-4">
+            Tudo isso <strong>gratuitamente</strong> para você começar a vender ainda hoje!
+          </p>
+          <Button size="lg" variant="outline" asChild>
+            <a href="#cadastro">
+              Quero Ter Acesso <ArrowRight className="ml-2 h-4 w-4" />
+            </a>
+          </Button>
         </div>
       </section>
 

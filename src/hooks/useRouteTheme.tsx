@@ -14,7 +14,8 @@ export function useRouteTheme() {
         location.pathname === '/cadastro-vendedor-sucesso' ||
         location.pathname === '/para-lojistas' ||
         location.pathname === '/para-feirantes' ||
-        location.pathname === '/para-farmacias') {
+        location.pathname === '/para-farmacias' ||
+        location.pathname === '/proposta-biomundo') {
       setTheme('dark');
     }
     // Dashboard e sub-rotas = respeitar preferência do usuário (não forçar nada)

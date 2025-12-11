@@ -96,7 +96,10 @@ Deno.serve(async (req) => {
 
     const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
       salesperson.user_id,
-      { ban_duration: 'none' }
+      { 
+        ban_duration: 'none',
+        email_confirm: true  // Confirma o email automaticamente na aprovação
+      }
     );
 
     if (authError) {

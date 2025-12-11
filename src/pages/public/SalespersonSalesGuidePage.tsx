@@ -7,8 +7,9 @@ import {
   Percent, Gift, FileText, BarChart3, Zap, Heart, Star,
   ChevronRight, Play, Download, BookOpen, HelpCircle, Rocket,
   Trophy, Crown, Gem, Medal, UserPlus, CreditCard, Calendar,
-  TrendingDown, AlertTriangle, Lightbulb, Quote, ExternalLink
+  TrendingDown, AlertTriangle, Lightbulb, Quote, ExternalLink, Copy, Check
 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,287 @@ import { DashboardFooter } from "@/components/admin/DashboardFooter";
 const SalespersonGuidePage = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("hero");
+  const [copied, setCopied] = useState(false);
+
+  const copyPageText = async () => {
+    const pageText = `# GUIA COMPLETO DO VENDEDOR MOSTRALO
+
+## MERCADO BRASILEIRO DE DELIVERY
+
+### Números do Mercado:
+- Mercado 2025: US$ 21+ bilhões (~R$ 110 bilhões)
+- Crescimento anual: 7,05%
+- Projeção 2029: US$ 27,8 bilhões (~R$ 146 bilhões)
+- Estabelecimentos food service: 1,6 milhão
+- Restaurantes que usam iFood: ~300 mil
+- Taxa iFood por pedido: até 27%
+- Fechamentos 2024: 29 mil restaurantes (custos altos)
+
+### O Problema dos Restaurantes:
+- 27% de taxa = R$ 2.700 em cada R$ 10.000 vai pro iFood
+- Margem média de restaurante: 15-25%
+- Taxa iFood come TODO o lucro de muitos restaurantes
+- 29 mil fecharam em 2024 por custos altos
+
+### A Oportunidade:
+- Restaurantes PRECISAM de alternativas ao iFood
+- Você será o consultor que traz a solução
+- Mercado gigante e em crescimento
+
+---
+
+## QUANTO VOCÊ PODE GANHAR
+
+### Tipos de Vendedor:
+
+**Afiliado (CPF):**
+- Comissão: 5-7% do valor do plano
+- Limite mensal: R$ 1.900
+- Bônus trimestral: Não elegível
+- Ideal para: Iniciantes, renda extra
+
+**Parceiro PJ (CNPJ):**
+- Comissão: 10% do valor do plano
+- Limite mensal: ILIMITADO
+- Bônus trimestral: Até R$ 8.500
+- Ideal para: Profissionais, renda principal
+
+### Exemplo de Ganhos (Parceiro PJ):
+- 15 vendas/mês × Plano Profissional (R$ 597,90) × 10% = R$ 896,85/mês
+- 45 vendas no trimestre = Bronze + Prata + Ouro = R$ 3.500 de bônus
+- Ganho trimestral: R$ 2.690,55 + R$ 3.500 = R$ 6.190,55
+- Projeção anual: R$ 35.261,40
+
+### Sistema de Bônus (Apenas Parceiro PJ):
+| Tier | Meta Trimestral | Bônus | Acumulado |
+|------|-----------------|-------|-----------|
+| 🥉 Bronze | 10 vendas | R$ 500 | R$ 500 |
+| 🥈 Prata | 20 vendas | R$ 1.000 | R$ 1.500 |
+| 🥇 Ouro | 30 vendas | R$ 2.000 | R$ 3.500 |
+| 💎 Diamante | 50 vendas | R$ 5.000 | R$ 8.500 |
+
+**BÔNUS SÃO CUMULATIVOS!** 30 vendas = Bronze + Prata + Ouro = R$ 3.500
+
+---
+
+## PARA QUEM VENDER (PÚBLICO-ALVO)
+
+### 🍕 Pizzarias
+- Dor: Taxa alta no iFood (27%)
+- Argumento: "Com 500 pedidos/mês de R$50, você paga R$6.750 ao iFood. Conosco: R$597,90. Economia: R$6.152/mês"
+- Potencial: ALTO
+
+### 🍔 Hamburguerias
+- Dor: Margem apertada, concorrência alta
+- Argumento: "Cada % economizado vai direto pro lucro. Sem taxa = mais margem para investir"
+- Potencial: ALTO
+
+### 🍣 Sushi/Japonês
+- Dor: Ticket alto = taxa alta
+- Argumento: "Ticket médio R$80 = R$20 de taxa por pedido no iFood. 100 pedidos = R$2.000/mês de economia"
+- Potencial: MUITO ALTO
+
+### 🥐 Padarias e Confeitarias
+- Dor: Encomendas e fidelização
+- Argumento: "Pedidos agendados + WhatsApp Marketing = clientes fiéis que compram todo mês"
+- Potencial: MÉDIO
+
+### 🍝 Restaurantes em Geral
+- Dor: Pratos feitos, marmitas
+- Argumento: "Clientes de almoço são fiéis. Com seu app, eles pedem direto sem intermediário"
+- Potencial: ALTO
+
+### 🛒 Mercados e Mercearias
+- Dor: Delivery de conveniência crescendo
+- Argumento: "Mercado de conveniência explodiu. Seu app próprio = margem total"
+- Potencial: CRESCENTE
+
+### 🍦 Açaiterias e Sorveterias
+- Dor: Sazonalidade, promoções
+- Argumento: "Promoções automáticas + Happy Hour = movimento nos dias fracos"
+- Potencial: MÉDIO
+
+### 🥗 Marmitas Fit
+- Dor: Público específico, recorrência
+- Argumento: "WhatsApp Marketing perfeito: lembra cliente toda semana de pedir"
+- Potencial: ALTO
+
+---
+
+## ONDE ENCONTRAR CLIENTES
+
+### 🗺️ Google Maps
+Pesquise "restaurante delivery [cidade]" e veja quem não tem site próprio
+
+### 📱 Instagram
+Busque hashtags como #deliverybrasilia #pizzariasp - restaurantes ativos precisam de sistema
+
+### 🍔 iFood
+Veja quem paga 27% de taxa e não tem sistema próprio - esses são seus clientes
+
+### 🚶 Caminhando
+Visite restaurantes locais, converse com donos - abordagem pessoal funciona muito bem
+
+### 💬 WhatsApp Business
+Muitos restaurantes usam só WhatsApp para pedidos - ofereça upgrade profissional
+
+### 🎪 Eventos de Gastronomia
+Feiras, eventos, encontros do setor - networking direto com decisores
+
+### 👥 Grupos de Facebook
+Grupos de empreendedores de restaurantes - oportunidades diárias
+
+### 🤝 Indicações
+Cada cliente satisfeito indica outros - peça sempre
+
+---
+
+## SCRIPTS DE VENDAS
+
+### Script WhatsApp:
+"Olá! Vi que você faz delivery pelo iFood. Sabia que existe uma forma de economizar até 27% em taxas e ter seu próprio aplicativo? Sou consultor da Mostralo e posso te mostrar como funciona. Tem 5 minutos?"
+
+### Script Presencial:
+"Boa tarde! Sou da Mostralo, uma plataforma de delivery próprio. Vocês usam iFood? [Sim] Então vocês pagam até 27% de taxa por pedido. A gente oferece 0% de taxa, você fica com 100% do dinheiro. Posso mostrar como funciona?"
+
+### Script Ligação:
+"Olá, falo com o [nome]? Tudo bem? Meu nome é [seu nome], sou consultor da Mostralo. A gente ajuda restaurantes a economizar até R$ 3.000 por mês em taxas de delivery. Você tem 2 minutos para eu explicar?"
+
+---
+
+## QUEBRA DE OBJEÇÕES
+
+| Objeção | Resposta |
+|---------|----------|
+| "Já uso iFood" | "Ótimo! Você não precisa sair do iFood. O Mostralo é complementar. Com o tempo, seus clientes migram para seu app próprio e você para de pagar 27%." |
+| "Não tenho tempo" | "A gente configura tudo pra você. Em 48h sua loja está no ar. Você só precisa receber os pedidos." |
+| "É caro" | "O plano custa R$ 397,90/mês. Se você tem 50 pedidos/mês no iFood com ticket de R$50 e paga 27%, são R$675 de taxa. Economia de R$277/mês desde o primeiro mês." |
+| "Meus clientes só usam iFood" | "Seus clientes usam iFood porque você não tem alternativa. Com seu app próprio + WhatsApp Marketing, você recupera 23% dos inativos." |
+| "Vou pensar" | "Entendo! Enquanto você pensa, posso te mandar um cálculo personalizado de quanto você economizaria? Qual seu volume de pedidos mensal?" |
+| "Não sei usar tecnologia" | "O sistema é mais fácil que o WhatsApp. Pedido chega, você aceita, pronto. Se precisar, temos suporte em português." |
+
+---
+
+## CALCULADORA DE ECONOMIA DO CLIENTE
+
+Exemplo com 300 pedidos/mês de R$ 45:
+- Faturamento mensal: R$ 13.500
+- Taxa iFood (25%): R$ 3.375
+- Mostralo (Plano Profissional): R$ 597,90
+- ECONOMIA MENSAL: R$ 2.777,10
+- ECONOMIA ANUAL: R$ 33.325,20
+
+---
+
+## FERRAMENTAS DO VENDEDOR
+
+1. **Dashboard de Vendas** - KPIs em tempo real: vendas, comissões, progresso de metas
+2. **Link Personalizado** - Seu link único com rastreamento automático de indicações
+3. **Material de Marketing** - Flyers, banners, apresentações prontas para usar
+4. **Gestão de Leads** - Acompanhe cada contato do primeiro ao fechamento
+5. **Prompts de IA** - 3 tipos de scripts de venda gerados por inteligência artificial
+6. **Guia de Prospecção** - Onde e como encontrar clientes potenciais
+7. **Roteiro de Onboarding** - Perguntas certas para fechar a venda
+8. **Métricas em Tempo Real** - Acompanhe seus resultados ao vivo
+9. **Contrato Digital** - Segurança jurídica com assinatura digital
+10. **Histórico de Pagamentos** - Transparência total em suas comissões
+
+---
+
+## FLUXO DE TRABALHO DO VENDEDOR
+
+1️⃣ Cadastro (5 min)
+2️⃣ Aprovação (até 48h)
+3️⃣ Aceita Contrato Digital
+4️⃣ Acessa Dashboard
+5️⃣ Pega Link de Indicação
+6️⃣ Prospecta Clientes
+7️⃣ Cliente se Cadastra pelo seu Link
+8️⃣ Cliente Paga
+9️⃣ Sua Comissão é Liberada
+🔟 Solicita Pagamento (dia 1 do mês)
+1️⃣1️⃣ Envia NF (se Parceiro PJ)
+1️⃣2️⃣ Recebe PIX (até 5 dias úteis)
+
+---
+
+## DICAS DE OURO PARA VENDER MAIS
+
+✅ Foque em restaurantes com delivery ativo - já têm demanda
+✅ Calcule a economia ANTES de abordar - números convencem
+✅ Mostre o WhatsApp Marketing - é o diferencial único
+✅ Ofereça demonstração do sistema - ver é acreditar
+✅ Siga o cliente após cadastro - garanta a ativação
+✅ Peça indicações - cada cliente indica 2-3 outros
+✅ Use material visual - flyers e apresentações ajudam
+✅ Responda rápido - timing é tudo em vendas
+
+---
+
+## RESULTADOS COMPROVADOS DO MOSTRALO
+
+✅ 23% dos clientes inativos recuperados via WhatsApp
+✅ R$ 2.400/mês de aumento médio em vendas
+✅ 8 horas/mês economizadas em trabalho manual
+✅ 98% de taxa de abertura em mensagens WhatsApp
+✅ 0% de taxa por pedido (vs 27% iFood)
+
+---
+
+## FAQ DO VENDEDOR
+
+**P: Quanto posso ganhar por venda?**
+R: Afiliados ganham 5-7% e Parceiros PJ ganham 10% do valor do plano. Ex: Plano Profissional (R$597,90) = R$59,79 por venda como Parceiro.
+
+**P: Como funciona o pagamento?**
+R: Solicite pagamento a partir do dia 1 de cada mês. Parceiros PJ emitem NF, Afiliados não precisam. PIX em até 5 dias úteis.
+
+**P: Preciso de experiência em vendas?**
+R: Não! Fornecemos todos os materiais, scripts e treinamento. Qualquer pessoa pode começar.
+
+**P: Posso vender para qualquer segmento?**
+R: Sim! Restaurantes, pizzarias, hamburguerias, mercados, padarias... qualquer negócio com delivery.
+
+**P: O que acontece se o cliente cancelar?**
+R: Você recebe comissão apenas de clientes ativos. Se cancelar no primeiro mês, a comissão é estornada.
+
+**P: Como funciona o bônus trimestral?**
+R: Apenas Parceiros PJ são elegíveis. Os bônus são cumulativos: 10 vendas = Bronze (R$500), 20 = +Prata (R$1.000), etc.
+
+**P: Posso começar como Afiliado e virar PJ?**
+R: Sim! Muitos começam como Afiliado para testar e depois fazem upgrade para Parceiro PJ.
+
+**P: Preciso emitir nota fiscal?**
+R: Apenas Parceiros PJ precisam emitir NF. Afiliados recebem como pessoa física.
+
+**P: Qual o prazo para receber?**
+R: Após solicitar pagamento e (se PJ) enviar NF, o PIX cai em até 5 dias úteis.
+
+**P: Posso indicar de qualquer cidade do Brasil?**
+R: Sim! O sistema é 100% online. Você pode indicar clientes de qualquer lugar do país.
+
+---
+
+## PLANOS DISPONÍVEIS
+
+### Essencial: R$ 397,90/mês
+### Profissional: R$ 597,90/mês (Mais Popular)
+### Empresarial: R$ 997,90/mês
+
+---
+
+Conteúdo do Programa de Vendedores Mostralo
+Site: mostralo.com.br/seja-vendedor`;
+
+    try {
+      await navigator.clipboard.writeText(pageText);
+      setCopied(true);
+      toast.success("Texto copiado para área de transferência!");
+      setTimeout(() => setCopied(false), 3000);
+    } catch (err) {
+      toast.error("Erro ao copiar texto");
+    }
+  };
   
   // Simulador de Ganhos
   const [salesPerMonth, setSalesPerMonth] = useState(15);
@@ -1163,6 +1445,40 @@ const SalespersonGuidePage = () => {
                 ✓ Análise em até 48 horas &nbsp;•&nbsp; ✓ Suporte em português &nbsp;•&nbsp; ✓ Materiais inclusos
               </p>
             </div>
+          </div>
+        </section>
+
+        {/* Copiar Texto para IA */}
+        <section className="py-12 bg-muted/30">
+          <div className="container mx-auto px-4">
+            <Card className="max-w-2xl mx-auto">
+              <CardContent className="p-6 text-center">
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <FileText className="h-5 w-5 text-muted-foreground" />
+                  <h4 className="font-semibold text-foreground">Usar com IA</h4>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Copie todo o conteúdo desta página para usar em prompts de IA como ChatGPT, Claude ou outros assistentes.
+                </p>
+                <Button 
+                  onClick={copyPageText}
+                  variant={copied ? "secondary" : "outline"}
+                  className="gap-2"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="h-4 w-4 text-green-600" />
+                      Texto Copiado!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-4 w-4" />
+                      Copiar Todo o Texto da Página
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </section>
 

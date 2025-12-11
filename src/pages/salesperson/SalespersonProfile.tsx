@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { SalespersonLayout } from "@/components/salesperson/SalespersonLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,19 +60,16 @@ export default function SalespersonProfile() {
 
   if (loading) {
     return (
-      <SalespersonLayout>
-        <div className="flex items-center justify-center h-64">
-          <p className="text-muted-foreground">Carregando...</p>
-        </div>
-      </SalespersonLayout>
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">Carregando...</p>
+      </div>
     );
   }
 
   const cnpjData = salesperson?.cnpj_validation_data;
 
   return (
-    <SalespersonLayout>
-      <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 max-w-2xl">
         <div>
           <h1 className="text-3xl font-bold">Meu Perfil</h1>
           <p className="text-muted-foreground">
@@ -180,6 +176,6 @@ export default function SalespersonProfile() {
           </CardContent>
         </Card>
       </div>
-    </SalespersonLayout>
+    </div>
   );
 }

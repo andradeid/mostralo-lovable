@@ -4,6 +4,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { SalespersonSidebar } from "./SalespersonSidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { UserProfileHeader } from "@/components/admin/UserProfileHeader";
 
 interface SalespersonLayoutProps {
   children: ReactNode;
@@ -28,14 +29,19 @@ export function SalespersonLayout({ children }: SalespersonLayoutProps) {
       <div className="flex min-h-screen w-full">
         <SalespersonSidebar onSignOut={handleSignOut} />
         
-        <main className="flex-1 overflow-auto">
-          <div className="container mx-auto p-6">
-            <div className="mb-4">
-              <SidebarTrigger />
+        <div className="flex-1 flex flex-col">
+          <header className="h-16 border-b bg-background flex items-center px-4 md:px-6">
+            <SidebarTrigger className="mr-4" />
+            <div className="flex items-center justify-between w-full">
+              <h1 className="text-lg md:text-xl font-semibold">Painel do Vendedor</h1>
+              <UserProfileHeader />
             </div>
+          </header>
+          
+          <main className="flex-1 p-4 md:p-6 bg-muted/30 overflow-auto">
             {children}
-          </div>
-        </main>
+          </main>
+        </div>
       </div>
     </SidebarProvider>
   );

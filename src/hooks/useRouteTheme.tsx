@@ -7,10 +7,13 @@ export function useRouteTheme() {
   const { setTheme } = useTheme();
 
   useEffect(() => {
-    // Landing page (/) = tema escuro
-    if (location.pathname === '/') {
+    // Landing page (/) e páginas de vendedores públicas = tema escuro
+    if (location.pathname === '/' || 
+        location.pathname === '/seja-vendedor' ||
+        location.pathname === '/cadastro-vendedor' ||
+        location.pathname === '/cadastro-vendedor-sucesso') {
       setTheme('dark');
-    } 
+    }
     // Dashboard e sub-rotas = respeitar preferência do usuário (não forçar nada)
     else if (location.pathname.startsWith('/dashboard') || 
              location.pathname.startsWith('/entregador') ||

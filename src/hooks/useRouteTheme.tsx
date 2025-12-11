@@ -11,7 +11,9 @@ export function useRouteTheme() {
     if (location.pathname === '/' || 
         location.pathname === '/seja-vendedor' ||
         location.pathname === '/cadastro-vendedor' ||
-        location.pathname === '/cadastro-vendedor-sucesso') {
+        location.pathname === '/cadastro-vendedor-sucesso' ||
+        location.pathname === '/para-lojistas' ||
+        location.pathname === '/para-feirantes') {
       setTheme('dark');
     }
     // Dashboard e sub-rotas = respeitar preferência do usuário (não forçar nada)

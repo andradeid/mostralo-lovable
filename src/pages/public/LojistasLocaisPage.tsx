@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { toast } from '@/hooks/use-toast';
 import { 
   Store, ShoppingBag, Smartphone, MessageCircle, Users, Megaphone,
   Search, Clock, MapPin, Heart, CreditCard, Camera, Navigation,
@@ -13,13 +15,15 @@ import {
   CheckCircle2, XCircle, TrendingUp, AlertTriangle, Star, Package,
   Shirt, Tv, Home, Baby, Pill, Wrench, Instagram, ShoppingCart,
   Globe, QrCode, Calendar, Gift, ArrowRight, Play, Zap, Target,
-  DollarSign, Percent, Timer, Eye, MousePointer, Tag, Menu, X
+  DollarSign, Percent, Timer, Eye, MousePointer, Tag, Menu, X,
+  Copy, Check, FileText
 } from 'lucide-react';
 
 const LojistasLocaisPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('hero');
   const [faturamento, setFaturamento] = useState([15000]);
+  const [copied, setCopied] = useState(false);
 
   // Scroll reveal hooks for each section
   const heroRef = useScrollReveal({ threshold: 0.1 });
@@ -101,6 +105,101 @@ const LojistasLocaisPage = () => {
   const economia = totalTaxas - mensalidadeMostralo;
   const economiaAnual = economia * 12;
 
+  const copyPageText = () => {
+    const content = `# MOSTRALO PARA LOJISTAS LOCAIS
+Sua Loja do Bairro Agora Alcança a Cidade Inteira
+
+## ESTATÍSTICAS DE MERCADO
+- 73% pesquisam online antes de comprar local
+- 46% das buscas têm intenção local
+- 78% compram em 24h após busca mobile
+- 100x mais alcance com loja online
+
+## A DOR DO LOJISTA LOCAL
+1. Grandes redes dominam - Magazine Luiza, Americanas, Amazon entregam no mesmo dia
+2. Cliente pesquisa online - "Loja de roupas perto de mim" - você não aparece
+3. Menos movimento na rua - preferem comprar de casa
+4. Custos fixos altos - Aluguel, funcionário, luz... e vendas caindo
+5. Clientes antigos sumindo - Foram pro online sem contato
+6. Horário limitado - Loja fecha às 19h, cliente compra às 23h
+7. Só vende pro bairro - Cliente do bairro vizinho nem sabe que você existe
+
+## DADOS QUE COMPROVAM A URGÊNCIA
+- 73% dos consumidores pesquisam online antes de comprar localmente
+- 46% das buscas no Google têm intenção local ("perto de mim")
+- 78% das buscas mobile locais resultam em compra em 24 horas
+- Pequenos varejistas perderam 30% de vendas para e-commerce em 5 anos
+
+## A SOLUÇÃO: SUA LOJA ONLINE PROFISSIONAL
+- Alcance a cidade inteira (não só o bairro)
+- Apareça nas buscas do Google
+- Venda 24 horas (site vende às 23h)
+- Retire na loja (Click & Collect)
+- Fidelize clientes com base de dados
+- Concorra com grandes redes
+- Custos previsíveis (mensalidade fixa)
+
+## CATÁLOGO DIGITAL POR TIPO DE LOJA
+1. Roupas e Moda - Tamanhos, cores, provador virtual
+2. Eletrônicos - Especificações técnicas, garantia
+3. Casa e Decoração - Ambientes, medidas, combinações
+4. Infantil - Faixa etária, segurança, durabilidade
+5. Farmácia - Princípio ativo, dosagem, receita
+6. Serviços - Agendamento, orçamento, portfólio
+
+## GOOGLE SHOPPING + INSTAGRAM SHOPPING
+- Apareça no Google Shopping gratuitamente
+- Produtos aparecem quando cliente pesquisa
+- Conecte direto ao Instagram Shop
+- Venda pelo Instagram sem sair do app
+- Feed XML automático para Google Merchant Center
+
+## RETIRE NA LOJA (CLICK & COLLECT)
+Benefícios:
+- Economia de frete para o cliente
+- Cliente conhece sua loja física
+- Oportunidade de venda adicional
+- Estoque unificado online/físico
+
+## COMPARATIVO: SEM LOJA ONLINE vs COM MOSTRALO
+| Sem Loja Online | Com Mostralo |
+|-----------------|--------------|
+| Só vende no horário comercial | Vende 24 horas por dia |
+| Alcance limitado ao bairro | Alcança cidade/região toda |
+| Cliente não te encontra online | Aparece no Google e Instagram |
+| Perde cliente pro marketplace | Cliente compra direto de você |
+| Sem dados dos clientes | Base completa para remarketing |
+| Depende de movimento na rua | Vende mesmo sem movimento |
+
+## CALCULADORA DE ECONOMIA
+Faturamento: R$ ${faturamento[0].toLocaleString('pt-BR')}
+- Taxa marketplace (18%): R$ ${taxaMarketplace.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+- Taxa frete (4%): R$ ${taxaFrete.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+- Total taxas: R$ ${totalTaxas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+- Mensalidade Mostralo: R$ ${mensalidadeMostralo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+- ECONOMIA MENSAL: R$ ${economia.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+- ECONOMIA ANUAL: R$ ${economiaAnual.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+
+## CTA
+Pronto para transformar sua loja?
+- 7 dias para testar
+- Suporte no WhatsApp
+- Não gostou? Devolvemos
+
+Cadastre-se: ${window.location.origin}/signup
+WhatsApp: 5561994009368
+`;
+    
+    navigator.clipboard.writeText(content).then(() => {
+      setCopied(true);
+      toast({
+        title: "Texto copiado!",
+        description: "Cole em ChatGPT, Claude ou outra IA para usar como contexto.",
+      });
+      setTimeout(() => setCopied(false), 3000);
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header Fixo */}
@@ -126,6 +225,7 @@ const LojistasLocaisPage = () => {
           </nav>
 
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <Button 
               variant="ghost" 
               size="icon" 
@@ -178,7 +278,7 @@ const LojistasLocaisPage = () => {
         <section 
           id="hero" 
           ref={heroRef.ref}
-          className={`relative min-h-[90vh] flex items-center bg-gradient-to-br from-primary/10 via-background to-green-500/10 transition-all duration-700 ${heroRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+          className={`relative min-h-[90vh] flex items-center bg-gradient-to-br from-primary/10 via-background to-green-500/10 dark:from-primary/5 dark:to-green-500/5 transition-all duration-700 ${heroRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
         >
           <div className="container mx-auto px-4 py-20">
             <div className="max-w-4xl mx-auto text-center">
@@ -223,7 +323,7 @@ const LojistasLocaisPage = () => {
                   { value: '78%', label: 'compram em 24h após busca mobile' },
                   { value: '100x', label: 'mais alcance com loja online' },
                 ].map((stat, index) => (
-                  <div key={index} className="bg-card/50 backdrop-blur-sm rounded-xl p-4 border border-border">
+                  <div key={index} className="bg-card/50 dark:bg-card/30 backdrop-blur-sm rounded-xl p-4 border border-border">
                     <div className="text-2xl md:text-3xl font-bold text-primary">{stat.value}</div>
                     <div className="text-xs text-muted-foreground">{stat.label}</div>
                   </div>
@@ -237,7 +337,7 @@ const LojistasLocaisPage = () => {
         <section 
           id="dor" 
           ref={dorRef.ref}
-          className={`py-20 bg-destructive/5 transition-all duration-700 ${dorRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+          className={`py-20 bg-destructive/5 dark:bg-destructive/10 transition-all duration-700 ${dorRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
         >
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
@@ -339,7 +439,7 @@ const LojistasLocaisPage = () => {
         <section 
           id="solucao" 
           ref={solucaoRef.ref}
-          className={`py-20 bg-green-500/5 transition-all duration-700 ${solucaoRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+          className={`py-20 bg-green-500/5 dark:bg-green-500/10 transition-all duration-700 ${solucaoRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
         >
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
@@ -694,7 +794,7 @@ const LojistasLocaisPage = () => {
         <section 
           id="divulgacao" 
           ref={divulgacaoRef.ref}
-          className={`py-20 bg-muted/30 transition-all duration-700 ${divulgacaoRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+          className={`py-20 bg-muted/30 dark:bg-muted/10 transition-all duration-700 ${divulgacaoRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
         >
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
@@ -764,7 +864,7 @@ const LojistasLocaisPage = () => {
         <section 
           id="shopping" 
           ref={shoppingRef.ref}
-          className={`py-20 bg-gradient-to-br from-primary/10 via-background to-pink-500/10 transition-all duration-700 ${shoppingRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+          className={`py-20 bg-gradient-to-br from-primary/10 via-background to-pink-500/10 dark:from-primary/5 dark:to-pink-500/5 transition-all duration-700 ${shoppingRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
         >
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
@@ -1081,7 +1181,7 @@ const LojistasLocaisPage = () => {
         <section 
           id="pagamentos" 
           ref={pagamentosRef.ref}
-          className={`py-20 bg-muted/30 transition-all duration-700 ${pagamentosRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+          className={`py-20 bg-muted/30 dark:bg-muted/10 transition-all duration-700 ${pagamentosRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
         >
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
@@ -1172,7 +1272,7 @@ const LojistasLocaisPage = () => {
         <section 
           id="localizacao" 
           ref={localizacaoRef.ref}
-          className={`py-20 bg-muted/30 transition-all duration-700 ${localizacaoRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+          className={`py-20 bg-muted/30 dark:bg-muted/10 transition-all duration-700 ${localizacaoRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
         >
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
@@ -1218,7 +1318,7 @@ const LojistasLocaisPage = () => {
         <section 
           id="multibairros" 
           ref={multiBairrosRef.ref}
-          className={`py-20 bg-gradient-to-br from-primary/10 to-green-500/10 transition-all duration-700 ${multiBairrosRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+          className={`py-20 bg-gradient-to-br from-primary/10 to-green-500/10 dark:from-primary/5 dark:to-green-500/5 transition-all duration-700 ${multiBairrosRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
         >
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
@@ -1349,7 +1449,7 @@ const LojistasLocaisPage = () => {
         <section 
           id="depoimentos" 
           ref={depoimentosRef.ref}
-          className={`py-20 bg-muted/30 transition-all duration-700 ${depoimentosRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+          className={`py-20 bg-muted/30 dark:bg-muted/10 transition-all duration-700 ${depoimentosRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
         >
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
@@ -1587,6 +1687,30 @@ const LojistasLocaisPage = () => {
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* Copiar Texto */}
+        <section className="py-8 bg-muted/30 dark:bg-muted/10">
+          <div className="container mx-auto px-4">
+            <Card className="max-w-2xl mx-auto">
+              <CardContent className="p-6 text-center">
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <FileText className="h-5 w-5 text-muted-foreground" />
+                  <h4 className="font-semibold text-foreground">Usar com IA</h4>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Copie todo o conteúdo para usar em prompts de IA como ChatGPT ou Claude.
+                </p>
+                <Button onClick={copyPageText} variant={copied ? "secondary" : "outline"}>
+                  {copied ? (
+                    <><Check className="h-4 w-4 text-green-600 mr-2" /> Texto Copiado!</>
+                  ) : (
+                    <><Copy className="h-4 w-4 mr-2" /> Copiar Todo o Texto</>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </section>
 

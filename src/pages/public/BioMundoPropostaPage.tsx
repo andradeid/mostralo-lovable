@@ -1489,8 +1489,7 @@ interface SectionHeaderProps {
 }
 
 const SectionHeader = ({ badge, title, description }: SectionHeaderProps) => {
-  const ref = useRef<HTMLDivElement>(null);
-  useScrollReveal({ ref });
+  const { ref } = useScrollReveal();
 
   return (
     <div ref={ref} className="text-center max-w-3xl mx-auto">

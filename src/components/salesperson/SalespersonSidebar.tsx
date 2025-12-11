@@ -51,7 +51,7 @@ export function SalespersonSidebar({ onSignOut }: SalespersonSidebarProps) {
       </SidebarHeader>
 
       <SidebarContent className="py-2">
-        <SidebarMenu className="space-y-1 px-2">
+        <SidebarMenu className="space-y-1 px-4">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;

@@ -72,7 +72,7 @@ const Auth = () => {
 
     // Vendedores vão para painel do vendedor
     if (userRole === 'salesperson') {
-      navigate('/vendedor/dashboard');
+      navigate('/vendedor');
       return;
     }
 

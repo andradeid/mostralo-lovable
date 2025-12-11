@@ -49,7 +49,8 @@ import {
   Truck,
   Percent,
   Target,
-  Menu
+  Menu,
+  Briefcase
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -433,6 +434,13 @@ const Index = () => {
             >
               Planos
             </a>
+            <Link 
+              to="/seja-vendedor" 
+              className="flex items-center gap-1.5 text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 px-3 py-1.5 rounded-full transition-colors"
+            >
+              <Briefcase className="w-4 h-4" />
+              Trabalhe Conosco
+            </Link>
           </nav>
 
           {/* Actions */}
@@ -505,6 +513,14 @@ const Index = () => {
               >
                 Planos
               </a>
+              <Link 
+                to="/seja-vendedor" 
+                className="flex items-center justify-center gap-2 text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 px-4 py-3 rounded-lg transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <Briefcase className="w-4 h-4" />
+                Trabalhe Conosco
+              </Link>
               <Link to="/auth" className="sm:hidden" onClick={() => setMobileMenuOpen(false)}>
                 <Button variant="outline" size="sm" className="w-full">Entrar</Button>
               </Link>
@@ -1730,6 +1746,15 @@ const Index = () => {
                 <li><Link to="/termos" className="hover:text-foreground">Termos de Uso</Link></li>
                 <li><Link to="/privacidade" className="hover:text-foreground">Privacidade</Link></li>
                 <li><Link to="/suporte" className="hover:text-foreground">Suporte</Link></li>
+                <li>
+                  <Link 
+                    to="/seja-vendedor" 
+                    className="text-primary font-semibold hover:text-primary/80 flex items-center gap-1"
+                  >
+                    <Briefcase className="w-3 h-3" />
+                    Trabalhe Conosco
+                  </Link>
+                </li>
               </ul>
             </div>
 

@@ -2781,7 +2781,7 @@ export type Database = {
           {
             foreignKeyName: "salesperson_commission_configs_salesperson_id_fkey"
             columns: ["salesperson_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "salespeople"
             referencedColumns: ["id"]
           },

@@ -115,6 +115,7 @@ import WhatsAppCampaignsPage from "./pages/admin/WhatsAppCampaignsPage";
 import WhatsAppCampaignNewPage from "./pages/admin/WhatsAppCampaignNewPage";
 import WhatsAppAutomationsPage from "./pages/admin/WhatsAppAutomationsPage";
 import WhatsAppContactsPage from "./pages/admin/WhatsAppContactsPage";
+import MerchantContractHistoryPage from "./pages/admin/MerchantContractHistoryPage";
 
 const queryClient = new QueryClient();
 
@@ -372,6 +373,11 @@ const App = () => (
             <Route path="/dashboard/profile" element={
               <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
                 <AdminLayout><ProfilePage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/contracts" element={
+              <ProtectedRoute allowedRoles={['store_admin']}>
+                <AdminLayout pageTitle="Meus Contratos"><MerchantContractHistoryPage /></AdminLayout>
               </ProtectedRoute>
             } />
             <Route path="/dashboard/attendants" element={

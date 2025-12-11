@@ -826,6 +826,38 @@ export default function WhatsAppInstancePage() {
                     </AccordionContent>
                   </AccordionItem>
 
+                  <AccordionItem value="quando-usar" className="border-border/50">
+                    <AccordionTrigger className="text-sm font-medium">
+                      🔄 Quando usar cada opção?
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-3 text-xs">
+                        <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
+                          <p className="font-medium text-green-600 dark:text-green-400 mb-2 flex items-center gap-2">
+                            <RefreshCw className="h-3 w-3" />
+                            Use "Desconectar" quando:
+                          </p>
+                          <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-1">
+                            <li>Precisa trocar para outro número WhatsApp</li>
+                            <li>A conexão está com problemas e quer reconectar</li>
+                            <li>Quer pausar temporariamente o envio de mensagens</li>
+                          </ul>
+                        </div>
+                        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+                          <p className="font-medium text-destructive mb-2 flex items-center gap-2">
+                            <Trash2 className="h-3 w-3" />
+                            Use "Remover" quando:
+                          </p>
+                          <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-1">
+                            <li>Quer começar do zero com configurações limpas</li>
+                            <li>Há problemas persistentes que desconectar não resolve</li>
+                            <li>Precisa reconfigurar completamente a integração</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+
                   <AccordionItem value="avisos" className="border-b-0">
                     <AccordionTrigger className="text-sm font-medium">
                       ⚠️ Avisos importantes

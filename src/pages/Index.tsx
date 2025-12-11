@@ -435,6 +435,12 @@ const Index = () => {
               Planos
             </a>
             <Link 
+              to="/funcionalidades" 
+              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+            >
+              Funcionalidades
+            </Link>
+            <Link 
               to="/seja-vendedor" 
               className="flex items-center gap-1.5 text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 px-3 py-1.5 rounded-full transition-colors"
             >
@@ -513,6 +519,13 @@ const Index = () => {
               >
                 Planos
               </a>
+              <Link 
+                to="/funcionalidades" 
+                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Funcionalidades
+              </Link>
               <Link 
                 to="/seja-vendedor" 
                 className="flex items-center justify-center gap-2 text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 px-4 py-3 rounded-lg transition-colors"

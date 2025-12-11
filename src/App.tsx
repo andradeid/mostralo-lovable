@@ -84,6 +84,7 @@ import SalesPromptsPage from './pages/admin/SalesPromptsPage';
 import SalespeopleListPage from './pages/admin/SalespeopleListPage';
 import ContractTemplateEditPage from './pages/admin/ContractTemplateEditPage';
 import VerifyContractPage from './pages/public/VerifyContractPage';
+import FeaturesPage from './pages/public/FeaturesPage';
 import SalespersonContractHistory from './pages/salesperson/SalespersonContractHistory';
 import SalespersonDetailPage from './pages/admin/SalespersonDetailPage';
 import SalespersonCommissionsPage from './pages/admin/SalespersonCommissionsPage';
@@ -140,6 +141,7 @@ const App = () => (
               <CustomDomainRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/funcionalidades" element={<FeaturesPage />} />
             <Route path="/sitemap.xml" element={<Sitemap />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/signup" element={<SignUp />} />

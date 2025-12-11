@@ -82,6 +82,8 @@ Deno.serve(async (req) => {
         salesperson_id: salesperson.id,
         version: template?.version || '1.0',
         contract_text: template?.contract_text || 'Termos de Indicação aceitos digitalmente',
+        commission_terms: { percentage: salesperson.salesperson_type === 'affiliate' ? 7 : 10 },
+        bonus_terms: { eligible: salesperson.bonus_eligible || false },
         accepted_at,
         ip_address,
         user_agent,

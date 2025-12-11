@@ -4,8 +4,9 @@ import {
   Store, Menu, X, ChevronRight, Smartphone, Package, Truck, MessageCircle, 
   BarChart3, Tag, Calendar, Printer, Palette, Map, Users, Megaphone, 
   Link2, Image, AlertTriangle, Check, ArrowRight, Star, Shield, Database,
-  Heart, Clock, Target, Zap, TrendingUp, Bell, MapPin, CreditCard
+  Heart, Clock, Target, Zap, TrendingUp, Bell, MapPin, CreditCard, Copy, FileText
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -32,6 +33,182 @@ const sections = [
 export default function FeaturesPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const copyPageText = async () => {
+    const pageText = `# GUIA COMPLETO DO MOSTRALO - TODAS AS FUNCIONALIDADES
+
+## POR QUE SAIR DO IFOOD?
+
+### O Problema do iFood:
+- 25% de taxa por pedido = Você trabalha para eles crescerem
+- Clientes fiéis ao app, não a você - Se você sair, os clientes ficam lá
+- Seus dados vendidos para concorrentes - O marketplace promove seu concorrente
+- Você não tem controle - Não pode fazer promoções do seu jeito
+
+### A Solução Mostralo:
+✅ 0% de taxa por pedido - Pague apenas mensalidade fixa
+✅ 100% dos clientes são seus - Você constrói sua própria base
+✅ Seus dados nunca são compartilhados - Exporte quando quiser
+✅ Total liberdade para criar promoções - Faça do seu jeito
+
+## CARDÁPIO DIGITAL PROFISSIONAL
+- Produtos Ilimitados com fotos de alta qualidade
+- Categorias Organizadas (Pizzas, Bebidas, Sobremesas)
+- Variações e Tamanhos (P, M, G, sabores, bordas)
+- Adicionais/Complementos (bacon extra, queijo, molho)
+- Preços Promocionais com destaque
+- Disponibilidade controlada com um clique
+
+## CENTRAL DE PEDIDOS EM TEMPO REAL
+- Recebimento instantâneo sem atrasos
+- Notificações sonoras e visuais
+- Kanban visual: Entrada → Preparo → Saída → Entregue
+- Aceitar ou rejeitar pedidos com motivo
+- Atribuição de entregadores
+- Histórico completo de pedidos
+
+## SISTEMA DE ENTREGADORES
+- Cadastro de entregadores próprios
+- Rastreamento GPS em tempo real
+- Configuração de taxas por distância/bairro
+- App exclusivo para entregadores
+- Histórico de entregas e pagamentos
+
+## WHATSAPP MARKETING
+Problema: 68% dos clientes nunca mais voltam após primeira compra
+Solução Mostralo:
+- 23% dos clientes inativos recuperados automaticamente
+- R$ 2.400/mês de aumento médio em vendas
+- 98% de taxa de abertura de mensagens
+- 8 horas/mês economizadas em trabalho manual
+
+Funcionalidades:
+- Campanhas automáticas de recuperação
+- Mensagens personalizadas por nome
+- Segmentação por comportamento de compra
+- Integração direta com WhatsApp Business
+
+## RELATÓRIOS E ANÁLISES
+- Vendas por período (diário, semanal, mensal)
+- Produtos mais vendidos
+- Ticket médio e crescimento
+- Horários de pico
+- Clientes fiéis x novos
+- Exportação de dados (CSV, Excel)
+
+## PROMOÇÕES E CUPONS
+- Cupons de desconto personalizados
+- Promoções por categoria ou produto
+- Happy Hour automático
+- Frete grátis condicional
+- Combos e kits promocionais
+- Limite de uso por cliente
+
+## PEDIDOS AGENDADOS
+- Cliente escolhe data e hora de entrega
+- Alertas automáticos antes do preparo
+- Calendário visual de pedidos
+- Controle de capacidade por horário
+
+## IMPRESSÃO AUTOMÁTICA
+- Integração com impressoras térmicas
+- Impressão automática ao aceitar pedido
+- Personalização do layout do pedido
+- Múltiplas cópias (cozinha, entrega, cliente)
+
+## PERSONALIZAÇÃO DA LOJA
+- Logo e cores da sua marca
+- Domínio próprio (sualoja.com.br)
+- Layout customizável
+- Scripts personalizados (chat, pixels)
+- Horários de funcionamento
+
+## DELIVERY INTELIGENTE
+- Zonas de entrega por polígono no mapa
+- Taxas diferentes por região
+- Bloqueio de áreas não atendidas
+- Cálculo automático de distância
+- Entrega ou retirada
+
+## GESTÃO DE ATENDENTES
+- Múltiplos usuários por loja
+- Permissões personalizadas
+- Acesso restrito por função
+- Auditoria de ações
+
+## MARKETING DIGITAL INTEGRADO
+- Gerenciamento de redes sociais
+- Agendamento de posts
+- Análise de desempenho
+- Integração mLabs inclusa
+
+## INTEGRAÇÕES
+- APIs para sistemas externos
+- Webhook para automações
+- Integração com Evolution API (WhatsApp)
+- Export para Google Shopping e Meta
+
+## BANNERS PROMOCIONAIS
+- Banners rotativos na loja
+- Vídeos promocionais
+- Links para promoções específicas
+- Agendamento de exibição
+
+## COMPARATIVO: IFOOD vs MOSTRALO
+
+| Funcionalidade | iFood | Mostralo |
+|---|---|---|
+| Taxa por pedido | 25% | 0% |
+| Dados do cliente | Deles | SEUS |
+| Controle do cardápio | Limitado | Total |
+| Marketing próprio | Proibido | Incluso |
+| WhatsApp Marketing | ❌ | ✅ |
+| Domínio próprio | ❌ | ✅ |
+| App para entregadores | ❌ | ✅ |
+| Relatórios detalhados | Básico | Completo |
+
+## ECONOMIA MENSAL ESTIMADA
+
+Exemplo com 300 pedidos/mês de R$ 45:
+- Faturamento: R$ 13.500
+- Taxa iFood (25%): R$ 3.375
+- Mostralo (plano): R$ 597,90
+- ECONOMIA: R$ 2.777/mês = R$ 33.324/ano
+
+## PLANOS
+
+### Essencial: R$ 397,90/mês
+- Cardápio digital completo
+- Central de pedidos
+- WhatsApp Marketing básico
+- Relatórios essenciais
+
+### Profissional: R$ 597,90/mês (Mais Popular)
+- Tudo do Essencial +
+- Sistema de entregadores
+- Promoções avançadas
+- Marketing digital integrado
+
+### Empresarial: R$ 997,90/mês
+- Tudo do Profissional +
+- Multi-lojas
+- API completa
+- Suporte prioritário
+
+---
+Conteúdo do Mostralo - Plataforma de Delivery + Marketing Digital
+Site: mostralo.com.br`;
+
+    try {
+      await navigator.clipboard.writeText(pageText);
+      setCopied(true);
+      toast.success("Texto copiado para área de transferência!");
+      setTimeout(() => setCopied(false), 3000);
+    } catch (err) {
+      toast.error("Erro ao copiar texto");
+    }
+  };
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -937,6 +1114,40 @@ export default function FeaturesPage() {
                     </Button>
                   </Link>
                 </div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        {/* Copiar Texto para IA */}
+        <section className="py-12 bg-muted/30">
+          <div className="container mx-auto px-4">
+            <Card className="max-w-2xl mx-auto">
+              <CardContent className="p-6 text-center">
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <FileText className="h-5 w-5 text-muted-foreground" />
+                  <h4 className="font-semibold text-foreground">Usar com IA</h4>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Copie todo o conteúdo desta página para usar em prompts de IA como ChatGPT, Claude ou outros assistentes.
+                </p>
+                <Button 
+                  onClick={copyPageText}
+                  variant={copied ? "secondary" : "outline"}
+                  className="gap-2"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="h-4 w-4 text-green-600" />
+                      Texto Copiado!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-4 w-4" />
+                      Copiar Todo o Texto da Página
+                    </>
+                  )}
+                </Button>
               </CardContent>
             </Card>
           </div>

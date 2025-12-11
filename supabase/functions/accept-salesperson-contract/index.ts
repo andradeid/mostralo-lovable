@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
       .from('salesperson_contracts')
       .insert({
         salesperson_id: salesperson.id,
-        contract_version: template?.version || '1.0',
+        version: template?.version || '1.0',
         accepted_at,
         ip_address,
         user_agent,

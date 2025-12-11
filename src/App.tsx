@@ -87,12 +87,14 @@ import VerifyContractPage from './pages/public/VerifyContractPage';
 import SalespersonContractHistory from './pages/salesperson/SalespersonContractHistory';
 import SalespersonDetailPage from './pages/admin/SalespersonDetailPage';
 import SalespersonCommissionsPage from './pages/admin/SalespersonCommissionsPage';
+import SalespeoplePayoutsPage from './pages/admin/SalespeoplePayoutsPage';
 import SalespersonDashboard from "./pages/salesperson/SalespersonDashboard";
 import SalespersonMyLink from "./pages/salesperson/SalespersonMyLink";
 import SalespersonContract from "./pages/salesperson/SalespersonContract";
 import SalespersonProfile from "./pages/salesperson/SalespersonProfile";
 import SalespersonSharePage from "./pages/salesperson/SalespersonSharePage";
 import SalespersonUpgrade from "./pages/salesperson/SalespersonUpgrade";
+import SalespersonPayouts from "./pages/salesperson/SalespersonPayouts";
 import { SalespersonLayout } from "./components/salesperson/SalespersonLayout";
 import ProspectingGuidePage from "./pages/admin/ProspectingGuidePage";
 import BusinessIntelligencePage from "./pages/admin/BusinessIntelligencePage";
@@ -204,6 +206,11 @@ const App = () => (
             <Route path="/dashboard/salespeople/commissions" element={
               <ProtectedRoute allowedRoles={['master_admin']}>
                 <AdminLayout><SalespersonCommissionsPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/salespeople/payouts" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Pagamentos de Vendedores"><SalespeoplePayoutsPage /></AdminLayout>
               </ProtectedRoute>
             } />
             <Route path="/dashboard/stores" element={
@@ -521,6 +528,16 @@ const App = () => (
               <ProtectedRoute allowedRoles={["salesperson"]}>
                 <SalespersonLayout>
                   <SalespersonMyLink />
+                </SalespersonLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendedor/pagamentos"
+            element={
+              <ProtectedRoute allowedRoles={["salesperson"]}>
+                <SalespersonLayout>
+                  <SalespersonPayouts />
                 </SalespersonLayout>
               </ProtectedRoute>
             }

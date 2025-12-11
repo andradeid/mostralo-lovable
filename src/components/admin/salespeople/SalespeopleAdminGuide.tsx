@@ -886,6 +886,204 @@ export function SalespeopleAdminGuide() {
               </Alert>
             </CardContent>
           </Card>
+
+          {/* Monitoramento de Afiliados */}
+          <Card className="border-2 border-orange-500/20">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-orange-600" />
+                📊 Monitoramento de Afiliados
+              </CardTitle>
+              <CardDescription>Acompanhe ganhos e limites mensais</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="bg-orange-500/5 rounded-lg p-4 border border-orange-500/20">
+                <h4 className="font-semibold mb-2 flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-orange-600" />
+                  Limite Mensal: R$ 1.900
+                </h4>
+                <ul className="text-sm space-y-2 text-muted-foreground">
+                  <li>• Afiliados (CPF) têm limite de <strong className="text-foreground">R$ 1.900/mês</strong></li>
+                  <li>• Evita caracterização de atividade habitual (legislação)</li>
+                  <li>• Sistema bloqueia novas comissões ao atingir o limite</li>
+                  <li>• Ganhos são resetados automaticamente no dia 1º de cada mês</li>
+                </ul>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-sm font-medium">🚨 Alertas:</p>
+                <div className="flex flex-wrap gap-2">
+                  <Badge className="bg-green-500/20 text-green-700 hover:bg-green-500/30">
+                    &lt;50% = Saudável
+                  </Badge>
+                  <Badge className="bg-yellow-500/20 text-yellow-700 hover:bg-yellow-500/30">
+                    50-79% = Atenção
+                  </Badge>
+                  <Badge className="bg-red-500/20 text-red-700 hover:bg-red-500/30">
+                    ≥80% = Crítico
+                  </Badge>
+                </div>
+              </div>
+
+              <Button className="w-full" variant="outline" asChild>
+                <Link to="/dashboard/salespeople/affiliate-reports">
+                  📈 Abrir Relatórios de Afiliados
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Reset Automático Mensal */}
+          <Card className="border-2 border-green-500/20">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-green-600" />
+                🔄 Reset Automático Mensal
+              </CardTitle>
+              <CardDescription>Sistema automático de reset de ganhos</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="bg-green-500/5 rounded-lg p-4 border border-green-500/20">
+                <h4 className="font-semibold mb-2">📅 Quando acontece?</h4>
+                <p className="text-sm text-muted-foreground">
+                  <strong className="text-foreground">Todo dia 1º às 00:01 UTC</strong> (21:01 horário de Brasília do dia anterior)
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-sm font-medium">O que o reset faz:</p>
+                <ul className="text-sm space-y-1 text-muted-foreground">
+                  <li>✅ Zera <code className="bg-muted px-1 rounded text-xs">current_month_earnings</code> de todos os afiliados</li>
+                  <li>✅ Atualiza <code className="bg-muted px-1 rounded text-xs">last_earnings_reset_at</code> com timestamp</li>
+                  <li>✅ Registra histórico na tabela <code className="bg-muted px-1 rounded text-xs">affiliate_earnings_resets</code></li>
+                  <li>✅ Marca como executado por <Badge variant="outline" className="text-xs">system_cron</Badge></li>
+                </ul>
+              </div>
+
+              <Alert className="bg-yellow-500/10 border-yellow-500/30">
+                <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                <AlertDescription className="text-xs">
+                  <strong>Reset Manual:</strong> Use APENAS se o cron falhar. Disponível na página de relatórios de afiliados.
+                </AlertDescription>
+              </Alert>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Como verificar se está funcionando:</p>
+                <ol className="text-sm space-y-1 text-muted-foreground">
+                  <li>1. Acesse <strong>Relatórios de Afiliados</strong></li>
+                  <li>2. Veja "Histórico de Resets Mensais"</li>
+                  <li>3. Último reset deve ser do dia 1º do mês atual</li>
+                  <li>4. Tipo: <Badge variant="outline" className="text-xs">system_cron</Badge></li>
+                </ol>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* FAQ Administrativo */}
+          <Card className="md:col-span-2 border-2 border-primary/20">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <HelpCircle className="h-5 w-5 text-primary" />
+                ❓ FAQ Administrativo
+              </CardTitle>
+              <CardDescription>Perguntas frequentes sobre gestão de vendedores</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 gap-4">
+                {/* Pergunta 1 */}
+                <div className="bg-muted/30 rounded-lg p-4">
+                  <h4 className="font-semibold text-sm mb-2">
+                    🟡 Afiliado atingiu 80% do limite. O que fazer?
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Incentive o upgrade para <strong>Parceiro PJ</strong>. Envie link do MEI (gov.br/mei) explicando que é gratuito e leva 15 minutos. 
+                    Como PJ, ganhos são ilimitados + comissão sobe para 10% + acesso a bônus trimestrais.
+                  </p>
+                </div>
+
+                {/* Pergunta 2 */}
+                <div className="bg-muted/30 rounded-lg p-4">
+                  <h4 className="font-semibold text-sm mb-2">
+                    🔴 O reset automático não executou. E agora?
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Acesse <strong>Relatórios de Afiliados</strong> → clique em <strong>Reset Manual</strong>. 
+                    Verifique logs do cron no Supabase Dashboard. O reset manual registra como "manual" no histórico.
+                  </p>
+                </div>
+
+                {/* Pergunta 3 */}
+                <div className="bg-muted/30 rounded-lg p-4">
+                  <h4 className="font-semibold text-sm mb-2">
+                    📋 Afiliado quer ser PJ mas não tem CNPJ ainda.
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Oriente a abrir MEI em <a href="https://gov.br/mei" target="_blank" rel="noopener noreferrer" className="underline">gov.br/mei</a> (gratuito, 15 min). 
+                    CNAEs recomendados: 7319-0/02 (Promoção de vendas) ou 4619-2/00 (Representante comercial). 
+                    Após abertura, ele faz o upgrade pelo painel.
+                  </p>
+                </div>
+
+                {/* Pergunta 4 */}
+                <div className="bg-muted/30 rounded-lg p-4">
+                  <h4 className="font-semibold text-sm mb-2">
+                    💰 Como lidar com pagamentos pendentes no fim do mês?
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Pagamentos solicitados antes do reset devem ser processados normalmente. 
+                    O reset zera apenas <code className="bg-muted px-1 rounded text-xs">current_month_earnings</code>, 
+                    não afeta saldos em <code className="bg-muted px-1 rounded text-xs">salesperson_payouts</code> pendentes.
+                  </p>
+                </div>
+
+                {/* Pergunta 5 */}
+                <div className="bg-muted/30 rounded-lg p-4">
+                  <h4 className="font-semibold text-sm mb-2">
+                    ⚙️ Como verificar se o cron job está configurado?
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Acesse o <strong>Supabase Dashboard</strong> → <strong>Database</strong> → <strong>Extensions</strong> → verifique se <code className="bg-muted px-1 rounded text-xs">pg_cron</code> está habilitado. 
+                    Em <strong>SQL Editor</strong>, execute: <code className="bg-muted px-1 rounded text-xs">SELECT * FROM cron.job;</code>
+                  </p>
+                </div>
+
+                {/* Pergunta 6 */}
+                <div className="bg-muted/30 rounded-lg p-4">
+                  <h4 className="font-semibold text-sm mb-2">
+                    📊 Onde vejo o histórico de resets anteriores?
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Acesse <strong>Vendedores</strong> → <strong>Relatórios de Afiliados</strong> → seção <strong>"Histórico de Resets Mensais"</strong>. 
+                    Mostra data, quantidade de afiliados resetados, valor total, tipo (manual/cron), e detalhes por afiliado.
+                  </p>
+                </div>
+
+                {/* Pergunta 7 */}
+                <div className="bg-muted/30 rounded-lg p-4">
+                  <h4 className="font-semibold text-sm mb-2">
+                    🔐 Afiliado pode ver seus próprios ganhos?
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Sim! No painel do vendedor (<strong>/vendedor/dashboard</strong>), ele vê: ganhos do mês atual, 
+                    % do limite utilizado (se afiliado), histórico de vendas, e progresso de bônus (se PJ).
+                  </p>
+                </div>
+
+                {/* Pergunta 8 */}
+                <div className="bg-muted/30 rounded-lg p-4">
+                  <h4 className="font-semibold text-sm mb-2">
+                    🚫 Afiliado atingiu 100% e quer continuar vendendo.
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Não é possível sem upgrade. Explique que é uma limitação legal (caracterização de atividade habitual). 
+                    Única solução: upgrade para PJ. Ele pode continuar indicando, mas comissões só serão contabilizadas no próximo mês ou após upgrade.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </CollapsibleContent>
     </Collapsible>

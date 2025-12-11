@@ -54,6 +54,9 @@ verify_jwt = true
 [functions.validate-cnpj]
 verify_jwt = false
 
+[functions.validate-cpf]
+verify_jwt = false
+
 [functions.salesperson-self-register]
 verify_jwt = false
 

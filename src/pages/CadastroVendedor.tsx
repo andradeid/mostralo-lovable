@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,9 +8,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { validatePixKey, formatPixKey, type PixKeyType } from "@/utils/pixValidation";
 import { ContractViewer } from "@/components/contract/ContractViewer";
+import { AffiliateTerms } from "@/components/salesperson/AffiliateTerms";
+import { SalespersonTypeSelector } from "@/components/salesperson/SalespersonTypeSelector";
 import {
   User,
   Building2,
@@ -21,11 +24,16 @@ import {
   ArrowRight,
   ArrowLeft,
   FileText,
+  CreditCard,
 } from "lucide-react";
 
-type Step = 1 | 2 | 3;
+type SalespersonType = 'affiliate' | 'partner' | null;
+type Step = 0 | 1 | 2 | 3;
 
 interface FormData {
+  // Tipo de vendedor
+  salesperson_type: SalespersonType;
+  
   // Etapa 1: Dados Pessoais
   full_name: string;
   email: string;
@@ -33,7 +41,10 @@ interface FormData {
   password: string;
   confirmPassword: string;
 
-  // Etapa 2: CNPJ
+  // Etapa 2 Afiliado: CPF
+  cpf: string;
+  
+  // Etapa 2 Parceiro: CNPJ
   cnpj: string;
   company_name: string;
   company_trade_name: string;
@@ -48,19 +59,26 @@ interface FormData {
 
 export default function CadastroVendedor() {
   const navigate = useNavigate();
-  const [step, setStep] = useState<Step>(1);
+  const [searchParams] = useSearchParams();
+  const initialType = searchParams.get('type') as SalespersonType;
+  
+  const [step, setStep] = useState<Step>(initialType ? 1 : 0);
   const [loading, setLoading] = useState(false);
   const [validatingCNPJ, setValidatingCNPJ] = useState(false);
+  const [validatingCPF, setValidatingCPF] = useState(false);
   const [cnpjValid, setCnpjValid] = useState<boolean | null>(null);
+  const [cpfValid, setCpfValid] = useState<boolean | null>(null);
   const [contractTemplate, setContractTemplate] = useState<any>(null);
   const [loadingContract, setLoadingContract] = useState(true);
 
   const [formData, setFormData] = useState<FormData>({
+    salesperson_type: initialType,
     full_name: "",
     email: "",
     phone: "",
     password: "",
     confirmPassword: "",
+    cpf: "",
     cnpj: "",
     company_name: "",
     company_trade_name: "",
@@ -71,28 +89,32 @@ export default function CadastroVendedor() {
     acceptedTerms: false,
   });
 
-  // Carregar template de contrato ao montar o componente
+  // Carregar template de contrato (apenas para Parceiro PJ)
   useEffect(() => {
-    const loadContractTemplate = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('salesperson_contract_templates')
-          .select('*')
-          .eq('is_active', true)
-          .maybeSingle();
-        
-        if (!error && data) {
-          setContractTemplate(data);
+    if (formData.salesperson_type === 'partner') {
+      const loadContractTemplate = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('salesperson_contract_templates')
+            .select('*')
+            .eq('is_active', true)
+            .maybeSingle();
+          
+          if (!error && data) {
+            setContractTemplate(data);
+          }
+        } catch (err) {
+          console.error('Erro ao carregar template de contrato:', err);
+        } finally {
+          setLoadingContract(false);
         }
-      } catch (err) {
-        console.error('Erro ao carregar template de contrato:', err);
-      } finally {
-        setLoadingContract(false);
-      }
-    };
-    
-    loadContractTemplate();
-  }, []);
+      };
+      
+      loadContractTemplate();
+    } else {
+      setLoadingContract(false);
+    }
+  }, [formData.salesperson_type]);
 
   // Função para substituir placeholders no contrato
   const getFormattedContractText = () => {
@@ -100,13 +122,10 @@ export default function CadastroVendedor() {
     
     let text = contractTemplate.contract_text || '';
     
-    // Dados da empresa (do template)
     text = text.replace(/{empresa}/g, contractTemplate.company_name || '');
     text = text.replace(/{cnpj}/g, contractTemplate.company_cnpj || '');
     text = text.replace(/{cidade}/g, contractTemplate.company_city || '');
     text = text.replace(/{estado}/g, contractTemplate.company_state || '');
-    
-    // Dados do vendedor (do formulário preenchido)
     text = text.replace(/{vendedor_nome}/g, formData.full_name || '[Seu Nome]');
     text = text.replace(/{vendedor_cnpj}/g, formData.cnpj || '[Seu CNPJ]');
     text = text.replace(/{vendedor_empresa}/g, formData.company_name || '[Sua Empresa]');
@@ -131,15 +150,55 @@ export default function CadastroVendedor() {
     }
   };
 
-  // Validar email
+  // Função para formatar CPF
+  const formatCPF = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    const limited = numbers.slice(0, 11);
+    return limited
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})/, '$1-$2');
+  };
+
   const isValidEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
-  // Validar chave PIX
   const isValidPixKey = () => {
     if (!formData.pix_key) return false;
     return validatePixKey(formData.pix_key, formData.pix_key_type as PixKeyType);
+  };
+
+  const handleValidateCPF = async () => {
+    if (!formData.cpf) {
+      toast.error("Digite um CPF");
+      return;
+    }
+
+    setValidatingCPF(true);
+    setCpfValid(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("validate-cpf", {
+        body: { cpf: formData.cpf },
+      });
+
+      if (error) throw error;
+
+      if (data.valid) {
+        setCpfValid(true);
+        toast.success("CPF válido!");
+      } else {
+        setCpfValid(false);
+        toast.error(data.error || "CPF inválido");
+      }
+    } catch (error: any) {
+      console.error("Erro ao validar CPF:", error);
+      toast.error("Erro ao validar CPF. Tente novamente.");
+      setCpfValid(false);
+    } finally {
+      setValidatingCPF(false);
+    }
   };
 
   const handleValidateCNPJ = async () => {
@@ -182,9 +241,8 @@ export default function CadastroVendedor() {
   };
 
   const handleSubmit = async () => {
-    // Validações finais
     if (!formData.acceptedTerms) {
-      toast.error("Você deve aceitar os termos de uso");
+      toast.error("Você deve aceitar os termos");
       return;
     }
 
@@ -196,27 +254,34 @@ export default function CadastroVendedor() {
     setLoading(true);
 
     try {
+      const payload: any = {
+        salesperson_type: formData.salesperson_type,
+        full_name: formData.full_name,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        pix_key: formData.pix_key,
+        pix_key_type: formData.pix_key_type,
+      };
+
+      if (formData.salesperson_type === 'partner') {
+        payload.cnpj = formData.cnpj;
+        payload.company_name = formData.company_name;
+        payload.company_trade_name = formData.company_trade_name;
+        payload.cnae_codes = formData.cnae_codes;
+        payload.cnpj_validation_data = formData.cnpj_validation_data;
+      } else {
+        payload.cpf = formData.cpf.replace(/\D/g, '');
+      }
+
       const { data, error } = await supabase.functions.invoke("salesperson-self-register", {
-        body: {
-          full_name: formData.full_name,
-          email: formData.email,
-          phone: formData.phone,
-          password: formData.password,
-          cnpj: formData.cnpj,
-          company_name: formData.company_name,
-          company_trade_name: formData.company_trade_name,
-          cnae_codes: formData.cnae_codes,
-          cnpj_validation_data: formData.cnpj_validation_data,
-          pix_key: formData.pix_key,
-          pix_key_type: formData.pix_key_type,
-        },
+        body: payload,
       });
 
       if (error) throw error;
 
       if (data.success) {
         toast.success(data.message);
-        // Redirecionar para página de sucesso
         navigate("/cadastro-vendedor/sucesso");
       } else {
         toast.error(data.error || "Erro ao realizar cadastro");
@@ -242,8 +307,21 @@ export default function CadastroVendedor() {
     );
   };
 
-  const canProceedStep2 = () => {
-    return cnpjValid === true && formData.company_name;
+  const canProceedStep2Affiliate = () => cpfValid === true;
+  const canProceedStep2Partner = () => cnpjValid === true && formData.company_name;
+
+  // Número total de etapas baseado no tipo
+  const totalSteps = formData.salesperson_type === 'affiliate' ? 3 : 4;
+  
+  // Calcular etapa de exibição
+  const getDisplayStep = () => {
+    if (step === 0) return 0;
+    if (formData.salesperson_type === 'affiliate') {
+      // Afiliado: 0 (tipo) -> 1 (pessoais) -> 2 (CPF+PIX+termos)
+      return step;
+    }
+    // Parceiro: 0 (tipo) -> 1 (pessoais) -> 2 (CNPJ) -> 3 (PIX+termos)
+    return step;
   };
 
   return (
@@ -258,37 +336,80 @@ export default function CadastroVendedor() {
           </Link>
           <h1 className="text-3xl font-bold mb-2">Cadastro de Vendedor</h1>
           <p className="text-muted-foreground">
-            Complete as etapas abaixo para se tornar um vendedor Mostralo
+            {step === 0 
+              ? "Escolha como deseja se cadastrar"
+              : formData.salesperson_type === 'affiliate'
+                ? "Complete as etapas para se tornar um Afiliado"
+                : "Complete as etapas para se tornar um Parceiro PJ"
+            }
           </p>
+          {formData.salesperson_type && (
+            <Badge className="mt-2" variant={formData.salesperson_type === 'partner' ? 'default' : 'secondary'}>
+              {formData.salesperson_type === 'affiliate' ? 'Afiliado (CPF)' : 'Parceiro PJ (CNPJ)'}
+            </Badge>
+          )}
         </div>
 
-        {/* Progress */}
-        <div className="flex justify-center mb-8">
-          <div className="flex items-center gap-2">
-            <div className={`flex items-center gap-2 ${step >= 1 ? 'text-primary' : 'text-muted-foreground'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                1
-              </div>
-              <span className="text-sm font-medium hidden sm:inline">Dados Pessoais</span>
-            </div>
-            <div className="w-12 h-0.5 bg-muted" />
-            <div className={`flex items-center gap-2 ${step >= 2 ? 'text-primary' : 'text-muted-foreground'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                2
-              </div>
-              <span className="text-sm font-medium hidden sm:inline">CNPJ</span>
-            </div>
-            <div className="w-12 h-0.5 bg-muted" />
-            <div className={`flex items-center gap-2 ${step >= 3 ? 'text-primary' : 'text-muted-foreground'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 3 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                3
-              </div>
-              <span className="text-sm font-medium hidden sm:inline">PIX & Termos</span>
+        {/* Progress - só mostrar após escolher tipo */}
+        {step > 0 && (
+          <div className="flex justify-center mb-8">
+            <div className="flex items-center gap-2">
+              {formData.salesperson_type === 'affiliate' ? (
+                // Progress Afiliado: 2 etapas
+                <>
+                  <div className={`flex items-center gap-2 ${step >= 1 ? 'text-primary' : 'text-muted-foreground'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                      1
+                    </div>
+                    <span className="text-sm font-medium hidden sm:inline">Dados Pessoais</span>
+                  </div>
+                  <div className="w-12 h-0.5 bg-muted" />
+                  <div className={`flex items-center gap-2 ${step >= 2 ? 'text-primary' : 'text-muted-foreground'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                      2
+                    </div>
+                    <span className="text-sm font-medium hidden sm:inline">CPF & Termos</span>
+                  </div>
+                </>
+              ) : (
+                // Progress Parceiro: 3 etapas
+                <>
+                  <div className={`flex items-center gap-2 ${step >= 1 ? 'text-primary' : 'text-muted-foreground'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                      1
+                    </div>
+                    <span className="text-sm font-medium hidden sm:inline">Dados Pessoais</span>
+                  </div>
+                  <div className="w-12 h-0.5 bg-muted" />
+                  <div className={`flex items-center gap-2 ${step >= 2 ? 'text-primary' : 'text-muted-foreground'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                      2
+                    </div>
+                    <span className="text-sm font-medium hidden sm:inline">CNPJ</span>
+                  </div>
+                  <div className="w-12 h-0.5 bg-muted" />
+                  <div className={`flex items-center gap-2 ${step >= 3 ? 'text-primary' : 'text-muted-foreground'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 3 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                      3
+                    </div>
+                    <span className="text-sm font-medium hidden sm:inline">PIX & Termos</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Etapa 1: Dados Pessoais */}
+        {/* Etapa 0: Seleção de Tipo */}
+        {step === 0 && (
+          <SalespersonTypeSelector
+            selectedType={formData.salesperson_type}
+            onSelectType={(type) => setFormData({ ...formData, salesperson_type: type })}
+            onContinue={() => setStep(1)}
+          />
+        )}
+
+        {/* Etapa 1: Dados Pessoais (ambos) */}
         {step === 1 && (
           <Card>
             <CardHeader>
@@ -337,9 +458,6 @@ export default function CadastroVendedor() {
                     placeholder="(11) 99999-9999"
                     maxLength={15}
                   />
-                  {formData.phone && formData.phone.replace(/\D/g, '').length < 10 && (
-                    <p className="text-sm text-destructive mt-1">Telefone deve ter 10 ou 11 dígitos</p>
-                  )}
                 </div>
               </div>
 
@@ -374,19 +492,195 @@ export default function CadastroVendedor() {
                 </Alert>
               )}
 
-              <Button
-                onClick={() => setStep(2)}
-                disabled={!canProceedStep1()}
-                className="w-full"
-              >
-                Próximo: Validar CNPJ <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setStep(0)} className="flex-1">
+                  <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
+                </Button>
+                <Button
+                  onClick={() => setStep(2)}
+                  disabled={!canProceedStep1()}
+                  className="flex-1"
+                >
+                  Próximo <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}
 
-        {/* Etapa 2: CNPJ */}
-        {step === 2 && (
+        {/* Etapa 2 Afiliado: CPF + PIX + Termos (tudo junto) */}
+        {step === 2 && formData.salesperson_type === 'affiliate' && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="w-5 h-5" />
+                CPF, PIX e Termos de Indicação
+              </CardTitle>
+              <CardDescription>
+                Valide seu CPF, informe o PIX e aceite os termos
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* CPF */}
+              <div>
+                <Label htmlFor="cpf">CPF *</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="cpf"
+                    value={formData.cpf}
+                    onChange={(e) => {
+                      setFormData({ ...formData, cpf: formatCPF(e.target.value) });
+                      setCpfValid(null);
+                    }}
+                    placeholder="000.000.000-00"
+                    disabled={cpfValid === true}
+                    maxLength={14}
+                  />
+                  <Button
+                    onClick={handleValidateCPF}
+                    disabled={validatingCPF || cpfValid === true || formData.cpf.replace(/\D/g, '').length !== 11}
+                  >
+                    {validatingCPF ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : cpfValid === true ? (
+                      <CheckCircle2 className="h-4 w-4" />
+                    ) : (
+                      "Validar"
+                    )}
+                  </Button>
+                </div>
+                {cpfValid === true && (
+                  <p className="text-sm text-green-600 mt-1 flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3" /> CPF válido
+                  </p>
+                )}
+                {cpfValid === false && (
+                  <p className="text-sm text-destructive mt-1">CPF inválido</p>
+                )}
+              </div>
+
+              {/* PIX */}
+              <div className="border-t pt-4">
+                <h4 className="font-semibold mb-3 flex items-center gap-2">
+                  <DollarSign className="w-4 h-4" />
+                  Dados de Pagamento
+                </h4>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="pix_key_type">Tipo de Chave PIX</Label>
+                    <select
+                      id="pix_key_type"
+                      value={formData.pix_key_type}
+                      onChange={(e) => setFormData({ ...formData, pix_key_type: e.target.value })}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    >
+                      <option value="cpf">CPF</option>
+                      <option value="email">Email</option>
+                      <option value="phone">Telefone</option>
+                      <option value="random">Chave Aleatória</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="pix_key">Chave PIX *</Label>
+                    <Input
+                      id="pix_key"
+                      value={formData.pix_key}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (['phone', 'cpf'].includes(formData.pix_key_type)) {
+                          setFormData({ ...formData, pix_key: formatPixKey(value, formData.pix_key_type as PixKeyType) });
+                        } else {
+                          setFormData({ ...formData, pix_key: value });
+                        }
+                      }}
+                      placeholder={
+                        formData.pix_key_type === 'cpf' ? '000.000.000-00' :
+                        formData.pix_key_type === 'email' ? 'seuemail@exemplo.com' :
+                        formData.pix_key_type === 'phone' ? '(11) 99999-9999' :
+                        'Chave aleatória UUID'
+                      }
+                    />
+                    {formData.pix_key && isValidPixKey() && (
+                      <p className="text-sm text-green-600 mt-1 flex items-center gap-1">
+                        <CheckCircle2 className="h-3 w-3" /> Chave PIX válida
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Termos de Indicação */}
+              <div className="border-t pt-4">
+                <div className="border rounded-lg">
+                  <div className="p-4 border-b bg-muted/50">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      Termos de Indicação - Afiliado
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Leia atentamente os termos antes de aceitar
+                    </p>
+                  </div>
+                  
+                  <ScrollArea className="h-[350px]">
+                    <div className="p-4">
+                      <AffiliateTerms
+                        salespersonName={formData.full_name || undefined}
+                        salespersonCpf={formData.cpf || undefined}
+                        commissionPercentage={7}
+                      />
+                    </div>
+                  </ScrollArea>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <div className="flex items-start gap-2">
+                  <Checkbox
+                    id="terms"
+                    checked={formData.acceptedTerms}
+                    onCheckedChange={(checked) =>
+                      setFormData({ ...formData, acceptedTerms: checked as boolean })
+                    }
+                  />
+                  <div className="space-y-1">
+                    <Label htmlFor="terms" className="cursor-pointer">
+                      Li e aceito os Termos de Indicação *
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Declaro que li e concordo com os termos acima. Confirmo que esta é uma 
+                      relação de indicação eventual e voluntária, sem vínculo empregatício.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
+                  <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
+                </Button>
+                <Button
+                  onClick={handleSubmit}
+                  disabled={loading || !formData.acceptedTerms || !formData.pix_key || !isValidPixKey() || !cpfValid}
+                  className="flex-1"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    "Finalizar Cadastro"
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Etapa 2 Parceiro: CNPJ */}
+        {step === 2 && formData.salesperson_type === 'partner' && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -457,7 +751,7 @@ export default function CadastroVendedor() {
                 </Button>
                 <Button
                   onClick={() => setStep(3)}
-                  disabled={!canProceedStep2()}
+                  disabled={!canProceedStep2Partner()}
                   className="flex-1"
                 >
                   Próximo: Dados de Pagamento <ArrowRight className="ml-2 h-4 w-4" />
@@ -467,8 +761,8 @@ export default function CadastroVendedor() {
           </Card>
         )}
 
-        {/* Etapa 3: PIX e Termos */}
-        {step === 3 && (
+        {/* Etapa 3 Parceiro: PIX e Contrato */}
+        {step === 3 && formData.salesperson_type === 'partner' && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -503,7 +797,6 @@ export default function CadastroVendedor() {
                   value={formData.pix_key}
                   onChange={(e) => {
                     const value = e.target.value;
-                    // Aplica formatação automática se for telefone, CPF ou CNPJ
                     if (['phone', 'cpf', 'cnpj'].includes(formData.pix_key_type)) {
                       setFormData({ ...formData, pix_key: formatPixKey(value, formData.pix_key_type as PixKeyType) });
                     } else {
@@ -517,29 +810,15 @@ export default function CadastroVendedor() {
                     formData.pix_key_type === 'phone' ? '(11) 99999-9999' :
                     'Chave aleatória UUID'
                   }
-                  className={formData.pix_key && !isValidPixKey() ? 'border-destructive' : ''}
                 />
-                {formData.pix_key && !isValidPixKey() && (
-                  <p className="text-sm text-destructive mt-1">
-                    Chave PIX inválida para o tipo selecionado
-                  </p>
-                )}
                 {formData.pix_key && isValidPixKey() && (
                   <p className="text-sm text-green-600 mt-1 flex items-center gap-1">
-                    <CheckCircle2 className="h-3 w-3" />
-                    Chave PIX válida
+                    <CheckCircle2 className="h-3 w-3" /> Chave PIX válida
                   </p>
                 )}
               </div>
 
-              <Alert>
-                <AlertDescription className="text-sm">
-                  Esta chave PIX será usada para enviar seus pagamentos mensais.
-                  Certifique-se de que está correta.
-                </AlertDescription>
-              </Alert>
-
-              {/* Contrato */}
+              {/* Contrato PJ */}
               <div className="border rounded-lg">
                 <div className="p-4 border-b bg-muted/50">
                   <h3 className="font-semibold flex items-center gap-2">

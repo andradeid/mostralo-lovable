@@ -436,11 +436,122 @@ export default function SejaVendedor() {
         </div>
       </section>
 
-      {/* Requisitos */}
-      <section className="container mx-auto px-4 py-16 bg-muted/50 rounded-lg">
+      {/* Duas Opções - Afiliado vs Parceiro PJ */}
+      <section id="opcoes" className="container mx-auto px-4 py-16 bg-muted/50 rounded-lg">
+        <div className="text-center mb-10">
+          <Badge className="mb-4" variant="outline">
+            <Users className="w-3 h-3 mr-1" />
+            Duas Formas de Participar
+          </Badge>
+          <h2 className="text-3xl font-bold mb-4">
+            Escolha Como Quer Vender
+          </h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Não tem CNPJ? Sem problema! Oferecemos opções para todos os perfis.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          {/* Afiliado */}
+          <Card className="border-2">
+            <CardHeader className="text-center">
+              <Badge variant="secondary" className="w-fit mx-auto mb-2">Sem CNPJ</Badge>
+              <CardTitle className="text-2xl">Afiliado</CardTitle>
+              <div className="text-4xl font-bold text-primary mt-2">5-7%</div>
+              <CardDescription className="text-base">de comissão por venda</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <ul className="space-y-3">
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span>Cadastro apenas com CPF</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span>Início rápido em 2 etapas</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span>Pagamento via PIX</span>
+                </li>
+                <li className="flex items-center gap-2 text-amber-600">
+                  <Info className="w-5 h-5 flex-shrink-0" />
+                  <span>Limite: R$ 1.900/mês</span>
+                </li>
+                <li className="flex items-center gap-2 text-muted-foreground">
+                  <span className="w-5 h-5 flex-shrink-0 text-center">-</span>
+                  <span>Sem bônus trimestral</span>
+                </li>
+              </ul>
+              <Button className="w-full" variant="outline" size="lg" asChild>
+                <Link to="/cadastro-vendedor?type=affiliate">
+                  Começar como Afiliado <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Parceiro PJ */}
+          <Card className="border-2 border-primary relative overflow-hidden">
+            <div className="absolute top-0 right-0 bg-gradient-to-r from-primary to-orange-500 text-white px-4 py-1 text-xs font-bold rounded-bl-lg">
+              RECOMENDADO
+            </div>
+            <CardHeader className="text-center">
+              <Badge className="w-fit mx-auto mb-2">Com MEI/CNPJ</Badge>
+              <CardTitle className="text-2xl">Parceiro PJ</CardTitle>
+              <div className="text-4xl font-bold text-primary mt-2">10%</div>
+              <CardDescription className="text-base">de comissão por venda</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <ul className="space-y-3">
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span>CNPJ ativo + CNAE compatível</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span><strong>Ganhos ilimitados</strong></span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span>Bônus até R$ 8.500/trimestre</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span>Contrato formal PJ</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span>Pode emitir Nota Fiscal</span>
+                </li>
+              </ul>
+              <Button className="w-full" size="lg" asChild>
+                <Link to="/cadastro-vendedor?type=partner">
+                  Começar como Parceiro <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* CTA MEI */}
+        <div className="text-center mt-8">
+          <p className="text-sm text-muted-foreground mb-2">
+            Não tem MEI mas quer ganhar mais?
+          </p>
+          <Button variant="link" asChild>
+            <a href="https://www.gov.br/empresas-e-negocios/pt-br/empreendedor" target="_blank" rel="noopener noreferrer">
+              Abrir MEI Gratuitamente →
+            </a>
+          </Button>
+        </div>
+      </section>
+
+      {/* Requisitos Parceiro PJ */}
+      <section className="container mx-auto px-4 py-16">
         <h2 className="text-3xl font-bold text-center mb-8">
           <FileText className="inline w-8 h-8 mr-2 text-primary" />
-          Requisitos para Ser Vendedor
+          Requisitos para Parceiro PJ
         </h2>
         <Card className="max-w-2xl mx-auto">
           <CardContent className="pt-6 space-y-4">
@@ -510,7 +621,7 @@ export default function SejaVendedor() {
             },
             {
               q: "E se eu não tiver CNPJ?",
-              a: "Infelizmente, é obrigatório ter CNPJ para ser vendedor Mostralo. Isso garante a legalidade da relação comercial.",
+              a: "Você pode se cadastrar como Afiliado usando apenas seu CPF! A comissão é de 5-7% com limite de R$ 1.900/mês. Se quiser ganhar mais, pode abrir um MEI gratuitamente e fazer upgrade para Parceiro PJ.",
             },
             {
               q: "Posso vender para qualquer loja?",
@@ -527,21 +638,27 @@ export default function SejaVendedor() {
         </div>
       </section>
 
-      {/* CTA Final */}
       <section id="cadastro" className="container mx-auto px-4 py-16 text-center">
         <Card className="max-w-2xl mx-auto bg-gradient-to-br from-primary/10 to-orange-500/10 border-primary/20">
           <CardHeader>
             <CardTitle className="text-3xl">Pronto para Começar?</CardTitle>
             <CardDescription className="text-lg">
-              Faça seu cadastro agora e comece a ganhar renda recorrente
+              Escolha como quer participar e comece a ganhar renda recorrente
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Button size="lg" asChild className="w-full md:w-auto">
-              <Link to="/cadastro-vendedor">
-                Fazer Cadastro <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
+          <CardContent className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" variant="outline" asChild>
+                <Link to="/cadastro-vendedor?type=affiliate">
+                  Afiliado (CPF) <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button size="lg" asChild>
+                <Link to="/cadastro-vendedor?type=partner">
+                  Parceiro PJ (CNPJ) <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
             <p className="text-sm text-muted-foreground mt-4">
               Seu cadastro será analisado pelo nosso time em até 48 horas
             </p>

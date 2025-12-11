@@ -2512,23 +2512,28 @@ export type Database = {
         Row: {
           approved_at: string | null
           approved_by: string | null
+          bonus_eligible: boolean | null
           cnae_codes: string[]
-          cnpj: string
+          cnpj: string | null
           cnpj_validated: boolean | null
           cnpj_validated_at: string | null
           cnpj_validation_data: Json | null
-          company_name: string
+          company_name: string | null
           company_trade_name: string | null
           contract_accepted_at: string | null
+          cpf: string | null
           created_at: string | null
+          current_month_earnings: number | null
           email: string
           full_name: string
           id: string
+          monthly_earnings_limit: number | null
           phone: string
           pix_key: string | null
           pix_key_type: string | null
           referral_code: string
           rejection_reason: string | null
+          salesperson_type: string
           status: string
           updated_at: string | null
           user_id: string | null
@@ -2536,23 +2541,28 @@ export type Database = {
         Insert: {
           approved_at?: string | null
           approved_by?: string | null
+          bonus_eligible?: boolean | null
           cnae_codes?: string[]
-          cnpj: string
+          cnpj?: string | null
           cnpj_validated?: boolean | null
           cnpj_validated_at?: string | null
           cnpj_validation_data?: Json | null
-          company_name: string
+          company_name?: string | null
           company_trade_name?: string | null
           contract_accepted_at?: string | null
+          cpf?: string | null
           created_at?: string | null
+          current_month_earnings?: number | null
           email: string
           full_name: string
           id?: string
+          monthly_earnings_limit?: number | null
           phone: string
           pix_key?: string | null
           pix_key_type?: string | null
           referral_code: string
           rejection_reason?: string | null
+          salesperson_type?: string
           status?: string
           updated_at?: string | null
           user_id?: string | null
@@ -2560,23 +2570,28 @@ export type Database = {
         Update: {
           approved_at?: string | null
           approved_by?: string | null
+          bonus_eligible?: boolean | null
           cnae_codes?: string[]
-          cnpj?: string
+          cnpj?: string | null
           cnpj_validated?: boolean | null
           cnpj_validated_at?: string | null
           cnpj_validation_data?: Json | null
-          company_name?: string
+          company_name?: string | null
           company_trade_name?: string | null
           contract_accepted_at?: string | null
+          cpf?: string | null
           created_at?: string | null
+          current_month_earnings?: number | null
           email?: string
           full_name?: string
           id?: string
+          monthly_earnings_limit?: number | null
           phone?: string
           pix_key?: string | null
           pix_key_type?: string | null
           referral_code?: string
           rejection_reason?: string | null
+          salesperson_type?: string
           status?: string
           updated_at?: string | null
           user_id?: string | null
@@ -3022,6 +3037,47 @@ export type Database = {
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      salesperson_terms_acceptance: {
+        Row: {
+          accepted_at: string
+          created_at: string | null
+          id: string
+          ip_address: string | null
+          salesperson_id: string
+          terms_type: string
+          terms_version: string
+          user_agent: string | null
+        }
+        Insert: {
+          accepted_at?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          salesperson_id: string
+          terms_type: string
+          terms_version: string
+          user_agent?: string | null
+        }
+        Update: {
+          accepted_at?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          salesperson_id?: string
+          terms_type?: string
+          terms_version?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salesperson_terms_acceptance_salesperson_id_fkey"
+            columns: ["salesperson_id"]
+            isOneToOne: false
+            referencedRelation: "salespeople"
             referencedColumns: ["id"]
           },
         ]
@@ -4674,6 +4730,7 @@ export type Database = {
         Args: { admin_user_id: string; approval_id: string; reason?: string }
         Returns: boolean
       }
+      reset_affiliate_monthly_earnings: { Args: never; Returns: undefined }
       update_expired_coupons: { Args: never; Returns: undefined }
     }
     Enums: {

@@ -13,7 +13,8 @@ export function useRouteTheme() {
         location.pathname === '/cadastro-vendedor' ||
         location.pathname === '/cadastro-vendedor-sucesso' ||
         location.pathname === '/para-lojistas' ||
-        location.pathname === '/para-feirantes') {
+        location.pathname === '/para-feirantes' ||
+        location.pathname === '/para-farmacias') {
       setTheme('dark');
     }
     // Dashboard e sub-rotas = respeitar preferência do usuário (não forçar nada)

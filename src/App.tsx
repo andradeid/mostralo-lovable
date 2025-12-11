@@ -87,6 +87,7 @@ import VerifyContractPage from './pages/public/VerifyContractPage';
 import FeaturesPage from './pages/public/FeaturesPage';
 import FeirantesPage from './pages/public/FeirantesPage';
 import LojistasLocaisPage from './pages/public/LojistasLocaisPage';
+import FarmaciasPage from './pages/public/FarmaciasPage';
 import SalespersonSalesGuidePage from './pages/public/SalespersonSalesGuidePage';
 import SalespersonContractHistory from './pages/salesperson/SalespersonContractHistory';
 import SalespersonDetailPage from './pages/admin/SalespersonDetailPage';
@@ -148,6 +149,7 @@ const App = () => (
             <Route path="/funcionalidades" element={<FeaturesPage />} />
 <Route path="/para-feirantes" element={<FeirantesPage />} />
             <Route path="/para-lojistas" element={<LojistasLocaisPage />} />
+            <Route path="/para-farmacias" element={<FarmaciasPage />} />
             <Route path="/guia-vendedor" element={<SalespersonSalesGuidePage />} />
             <Route path="/sitemap.xml" element={<Sitemap />} />
             <Route path="/auth" element={<Auth />} />

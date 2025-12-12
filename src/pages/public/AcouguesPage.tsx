@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -35,42 +35,17 @@ import {
   Award,
   Globe,
   ChefHat,
-  Utensils
+  Utensils,
+  Menu
 } from 'lucide-react';
-
-interface SectionRefs {
-  [key: string]: HTMLElement | null;
-}
 
 const AcouguesPage = () => {
   const [monthlyRevenue, setMonthlyRevenue] = useState([150000]);
   const [deliveryPercent, setDeliveryPercent] = useState([25]);
-  const [activeSection, setActiveSection] = useState('hero');
-  const sectionRefs: SectionRefs = {};
-
-  const registerRef = (id: string) => (el: HTMLElement | null) => {
-    sectionRefs[id] = el;
-  };
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useScrollReveal();
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const sections = Object.entries(sectionRefs);
-      for (const [id, ref] of sections) {
-        if (ref) {
-          const rect = ref.getBoundingClientRect();
-          if (rect.top <= 100 && rect.bottom >= 100) {
-            setActiveSection(id);
-            break;
-          }
-        }
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const deliveryRevenue = (monthlyRevenue[0] * deliveryPercent[0]) / 100;
   const marketplaceFee = deliveryRevenue * 0.27;
@@ -248,55 +223,102 @@ Site: mostralo.com.br
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
+      setSidebarOpen(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header Fixo */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Store className="h-6 w-6 text-primary" />
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <Link to="/" className="flex items-center gap-2">
+              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg">
+                <Store className="h-5 w-5 text-primary-foreground" />
+              </div>
+              <span className="text-xl font-bold text-foreground">Mostralo</span>
+            </Link>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-6">
+              <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
+                Início
+              </Link>
+              <Link to="/funcionalidades" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
+                Funcionalidades
+              </Link>
+              <Link to="/#plans" className="text-muted-foreground hover:text-foreground transition-colors text-sm">
+                Planos
+              </Link>
+              <span className="text-primary font-medium text-sm">
+                Para Açougues
+              </span>
+            </nav>
+
+            <div className="flex items-center gap-3">
+              <ThemeToggle />
+              <Link to="/auth" className="hidden md:block">
+                <Button variant="outline" size="sm">Entrar</Button>
+              </Link>
+              <Link to="/signup" className="hidden md:block">
+                <Button size="sm">Começar</Button>
+              </Link>
+              <button
+                className="md:hidden p-2"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </button>
             </div>
-            <span className="font-bold text-xl">Mostralo</span>
-          </Link>
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <Button asChild>
-              <Link to="/signup">Começar Agora</Link>
-            </Button>
           </div>
+
+          {/* Mobile Menu */}
+          {mobileMenuOpen && (
+            <nav className="md:hidden py-4 border-t border-border mt-3 space-y-3">
+              <Link to="/" className="block text-muted-foreground hover:text-foreground">Início</Link>
+              <Link to="/funcionalidades" className="block text-muted-foreground hover:text-foreground">Funcionalidades</Link>
+              <Link to="/#plans" className="block text-muted-foreground hover:text-foreground">Planos</Link>
+              <span className="block text-primary font-medium">Para Açougues</span>
+              <div className="flex gap-2 pt-2">
+                <Link to="/auth"><Button variant="outline" size="sm" className="flex-1">Entrar</Button></Link>
+                <Link to="/signup"><Button size="sm" className="flex-1">Começar</Button></Link>
+              </div>
+            </nav>
+          )}
         </div>
       </header>
 
-      {/* Sidebar Navegação - Desktop */}
-      <nav className="hidden lg:block fixed left-4 top-1/2 -translate-y-1/2 z-40">
-        <div className="bg-card/80 backdrop-blur-sm rounded-2xl border border-border p-2 shadow-lg">
+      {/* Sidebar Toggle (Mobile) */}
+      <button
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        className="fixed bottom-4 right-4 z-50 lg:hidden bg-primary text-primary-foreground p-3 rounded-full shadow-lg"
+      >
+        <Menu className="h-5 w-5" />
+      </button>
+
+      {/* Sidebar Navigation */}
+      <aside className={`fixed top-20 left-0 h-[calc(100vh-5rem)] w-64 bg-background border-r border-border overflow-y-auto z-40 transition-transform lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <nav className="p-4 space-y-1">
+          <p className="text-xs font-semibold text-muted-foreground uppercase mb-3">Navegação</p>
           {sections.map((section) => (
             <button
               key={section.id}
               onClick={() => scrollToSection(section.id)}
-              className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm transition-all ${
-                activeSection === section.id
-                  ? 'bg-primary text-primary-foreground'
-                  : 'hover:bg-muted text-muted-foreground hover:text-foreground'
-              }`}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors text-left"
             >
               <section.icon className="h-4 w-4" />
-              <span className="hidden xl:inline">{section.label}</span>
+              {section.label}
             </button>
           ))}
-        </div>
-      </nav>
+        </nav>
+      </aside>
 
       {/* Conteúdo Principal */}
-      <main className="pt-20 lg:pl-20 xl:pl-48">
+      <main className="lg:ml-64 pt-20">
         {/* Seção 1: Hero */}
         <section
           id="hero"
-          ref={registerRef('hero')}
           className="min-h-screen flex items-center py-20 px-4"
         >
           <div className="container mx-auto max-w-6xl">
@@ -362,7 +384,6 @@ Site: mostralo.com.br
         {/* Seção 2: O Mercado */}
         <section
           id="mercado"
-          ref={registerRef('mercado')}
           className="py-20 px-4 bg-muted/30"
         >
           <div className="container mx-auto max-w-6xl">
@@ -401,7 +422,6 @@ Site: mostralo.com.br
         {/* Seção 3: Os Grandes Investem */}
         <section
           id="grandes"
-          ref={registerRef('grandes')}
           className="py-20 px-4"
         >
           <div className="container mx-auto max-w-6xl">
@@ -462,7 +482,6 @@ Site: mostralo.com.br
         {/* Seção 4: O Problema */}
         <section
           id="problema"
-          ref={registerRef('problema')}
           className="py-20 px-4 bg-destructive/5"
         >
           <div className="container mx-auto max-w-6xl">
@@ -525,7 +544,6 @@ Site: mostralo.com.br
         {/* Seção 5: Oportunidade Digital */}
         <section
           id="oportunidade"
-          ref={registerRef('oportunidade')}
           className="py-20 px-4"
         >
           <div className="container mx-auto max-w-6xl">
@@ -561,7 +579,6 @@ Site: mostralo.com.br
         {/* Seção 6: Calculadora de Economia */}
         <section
           id="economia"
-          ref={registerRef('economia')}
           className="py-20 px-4 bg-muted/30"
         >
           <div className="container mx-auto max-w-4xl">
@@ -667,7 +684,6 @@ Site: mostralo.com.br
         {/* Seção 7: Vantagem Local */}
         <section
           id="vantagem"
-          ref={registerRef('vantagem')}
           className="py-20 px-4"
         >
           <div className="container mx-auto max-w-6xl">
@@ -705,7 +721,6 @@ Site: mostralo.com.br
         {/* Seção 8: Catálogo Digital */}
         <section
           id="catalogo"
-          ref={registerRef('catalogo')}
           className="py-20 px-4 bg-muted/30"
         >
           <div className="container mx-auto max-w-6xl">
@@ -748,7 +763,6 @@ Site: mostralo.com.br
         {/* Seção 9: WhatsApp Marketing */}
         <section
           id="whatsapp"
-          ref={registerRef('whatsapp')}
           className="py-20 px-4"
         >
           <div className="container mx-auto max-w-6xl">
@@ -816,7 +830,6 @@ Site: mostralo.com.br
         {/* Seção 10: Google Shopping */}
         <section
           id="google"
-          ref={registerRef('google')}
           className="py-20 px-4 bg-muted/30"
         >
           <div className="container mx-auto max-w-6xl">
@@ -908,7 +921,6 @@ Site: mostralo.com.br
         {/* Seção 11: Instagram Shopping */}
         <section
           id="instagram"
-          ref={registerRef('instagram')}
           className="py-20 px-4"
         >
           <div className="container mx-auto max-w-6xl">
@@ -996,7 +1008,6 @@ Site: mostralo.com.br
         {/* Seção 12: Churrasco & Eventos */}
         <section
           id="churrasco"
-          ref={registerRef('churrasco')}
           className="py-20 px-4 bg-gradient-to-br from-red-500/5 to-orange-500/5"
         >
           <div className="container mx-auto max-w-6xl">
@@ -1064,7 +1075,6 @@ Site: mostralo.com.br
         {/* Seção 13: Programa de Fidelidade */}
         <section
           id="fidelidade"
-          ref={registerRef('fidelidade')}
           className="py-20 px-4"
         >
           <div className="container mx-auto max-w-6xl">
@@ -1129,7 +1139,6 @@ Site: mostralo.com.br
         {/* Seção 14: Casos de Sucesso */}
         <section
           id="casos"
-          ref={registerRef('casos')}
           className="py-20 px-4 bg-muted/30"
         >
           <div className="container mx-auto max-w-6xl">
@@ -1192,7 +1201,6 @@ Site: mostralo.com.br
         {/* Seção 15: Planos */}
         <section
           id="planos"
-          ref={registerRef('planos')}
           className="py-20 px-4"
         >
           <div className="container mx-auto max-w-6xl">
@@ -1267,7 +1275,6 @@ Site: mostralo.com.br
         {/* Seção 16: Comparativo */}
         <section
           id="comparativo"
-          ref={registerRef('comparativo')}
           className="py-20 px-4 bg-muted/30"
         >
           <div className="container mx-auto max-w-4xl">
@@ -1329,7 +1336,6 @@ Site: mostralo.com.br
         {/* Seção 17: ROI */}
         <section
           id="roi"
-          ref={registerRef('roi')}
           className="py-20 px-4"
         >
           <div className="container mx-auto max-w-4xl">
@@ -1397,7 +1403,6 @@ Site: mostralo.com.br
         {/* Seção 18: Contato */}
         <section
           id="contato"
-          ref={registerRef('contato')}
           className="py-20 px-4 bg-gradient-to-br from-red-500/10 to-orange-500/10"
         >
           <div className="container mx-auto max-w-4xl text-center">

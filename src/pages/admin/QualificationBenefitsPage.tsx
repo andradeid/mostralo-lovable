@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Loader2, Save, Zap, Scale, Briefcase, History, Calculator, Gift, Tag, RefreshCw } from 'lucide-react';
+import { Loader2, Save, Zap, Scale, Briefcase, History, Calculator, Gift, Tag, RefreshCw, Eye, Copy, Check } from 'lucide-react';
 import { useQualificationTiers } from '@/hooks/useQualificationTiers';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -39,6 +39,66 @@ export default function QualificationBenefitsPage() {
   const [editingTierId, setEditingTierId] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<Record<string, any>>({});
   const [simulatedRevenue, setSimulatedRevenue] = useState<number>(15000);
+  const [copiedPreview, setCopiedPreview] = useState<'table' | 'script' | null>(null);
+
+  // Gera preview do prompt em tempo real
+  const generateTierPreview = () => {
+    if (!editValues.tier_name) return null;
+    
+    const promotion = editValues.promotion_id && editValues.promotion_id !== 'none' 
+      ? promotions.find(p => p.id === editValues.promotion_id) 
+      : null;
+    
+    const planPrice = 397.90;
+    const ifoodTax = simulatedRevenue * 0.25;
+    const monthlyEconomy = ifoodTax - planPrice;
+    const freeDaysValue = (planPrice / 30) * (editValues.free_days || 0);
+    
+    let couponText = '';
+    let couponValue = 0;
+    if (promotion) {
+      if (promotion.discount_type === 'percentage') {
+        couponValue = planPrice * (promotion.discount_value / 100);
+        couponText = `+ cupom ${promotion.code || promotion.name} (${promotion.discount_value}% OFF)`;
+      } else {
+        couponValue = promotion.discount_value;
+        couponText = `+ cupom ${promotion.code || promotion.name} (${formatCurrency(promotion.discount_value)} OFF)`;
+      }
+    }
+    
+    const benefits = [];
+    if (editValues.free_days > 0) benefits.push(`${editValues.free_days} dias grátis`);
+    if (editValues.include_consulting) benefits.push('consultoria personalizada');
+    if (editValues.include_followup) benefits.push(`${editValues.followup_days}d de acompanhamento`);
+    if (couponText) benefits.push(couponText);
+    
+    const benefitText = benefits.length > 0 ? benefits.join(' + ') : 'benefício padrão';
+    
+    const tableRow = `| ${editValues.emoji || '⭐'} ${editValues.tier_name} | ${editValues.min_points || 0}-${editValues.max_points || 0} pts | ${benefitText} |`;
+    
+    const totalEconomy = monthlyEconomy + freeDaysValue + couponValue;
+    
+    const agentScript = `🎯 **Para leads ${editValues.tier_name}** (${editValues.min_points}-${editValues.max_points} pontos):
+
+"Olha, com base no que você me contou, você se qualificou para nossa faixa ${editValues.emoji || '⭐'} ${editValues.tier_name}!
+
+Isso significa que você vai receber: ${benefitText}.
+
+Com um faturamento de ${formatCurrency(simulatedRevenue)}/mês, você está deixando ${formatCurrency(ifoodTax)}/mês no iFood. 
+Com a Mostralo, são apenas ${formatCurrency(planPrice)}/mês - uma economia de ${formatCurrency(monthlyEconomy)}/mês!
+${freeDaysValue > 0 ? `\nMais os ${editValues.free_days} dias grátis: ${formatCurrency(freeDaysValue)} de economia adicional.` : ''}
+${couponValue > 0 ? `\nE com o cupom: mais ${formatCurrency(couponValue)} de desconto!` : ''}
+
+**Economia total no primeiro ano: ${formatCurrency(totalEconomy * 12 + freeDaysValue + couponValue)}**"`;
+
+    return { tableRow, agentScript };
+  };
+
+  const copyToClipboard = async (text: string, type: 'table' | 'script') => {
+    await navigator.clipboard.writeText(text);
+    setCopiedPreview(type);
+    setTimeout(() => setCopiedPreview(null), 2000);
+  };
 
   if (loading) {
     return (
@@ -330,6 +390,56 @@ export default function QualificationBenefitsPage() {
                             <Label>Acompanhamento</Label>
                           </div>
                         </div>
+
+                        {/* PREVIEW EM TEMPO REAL */}
+                        {generateTierPreview() && (
+                          <div className="md:col-span-3 mt-4 border-t pt-4">
+                            <div className="flex items-center gap-2 mb-3">
+                              <Eye className="h-4 w-4 text-primary" />
+                              <span className="font-medium text-sm">Preview do Prompt</span>
+                              <Badge variant="secondary" className="text-xs">Tempo Real</Badge>
+                            </div>
+                            
+                            <Tabs defaultValue="table" className="w-full">
+                              <TabsList className="grid w-full grid-cols-2">
+                                <TabsTrigger value="table" className="text-xs">Tabela</TabsTrigger>
+                                <TabsTrigger value="script" className="text-xs">Script do Agente</TabsTrigger>
+                              </TabsList>
+                              
+                              <TabsContent value="table" className="mt-2">
+                                <div className="relative">
+                                  <pre className="bg-muted/50 border rounded-md p-3 text-xs font-mono overflow-x-auto whitespace-pre-wrap">
+                                    {generateTierPreview()?.tableRow}
+                                  </pre>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="absolute top-1 right-1 h-7 w-7 p-0"
+                                    onClick={() => copyToClipboard(generateTierPreview()?.tableRow || '', 'table')}
+                                  >
+                                    {copiedPreview === 'table' ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                                  </Button>
+                                </div>
+                              </TabsContent>
+                              
+                              <TabsContent value="script" className="mt-2">
+                                <div className="relative">
+                                  <pre className="bg-muted/50 border rounded-md p-3 text-xs font-mono overflow-x-auto whitespace-pre-wrap max-h-64 overflow-y-auto">
+                                    {generateTierPreview()?.agentScript}
+                                  </pre>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="absolute top-1 right-1 h-7 w-7 p-0"
+                                    onClick={() => copyToClipboard(generateTierPreview()?.agentScript || '', 'script')}
+                                  >
+                                    {copiedPreview === 'script' ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
+                                  </Button>
+                                </div>
+                              </TabsContent>
+                            </Tabs>
+                          </div>
+                        )}
                       </div>
                     )}
                   </CardContent>

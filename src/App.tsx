@@ -81,6 +81,7 @@ import IntegrationsPage from './pages/admin/IntegrationsPage';
 import IframePage from './pages/admin/IframePage';
 import GoalsPage from './pages/admin/GoalsPage';
 import SalesPromptsPage from './pages/admin/SalesPromptsPage';
+import QualificationBenefitsPage from './pages/admin/QualificationBenefitsPage';
 import SalespeopleListPage from './pages/admin/SalespeopleListPage';
 import ContractTemplateEditPage from './pages/admin/ContractTemplateEditPage';
 import VerifyContractPage from './pages/public/VerifyContractPage';
@@ -181,6 +182,13 @@ const App = () => (
               <ProtectedRoute allowedRoles={['master_admin']}>
                 <AdminLayout pageTitle="Prompts de Vendas">
                   <SalesPromptsPage />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/qualification-benefits" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Faixas de Qualificação">
+                  <QualificationBenefitsPage />
                 </AdminLayout>
               </ProtectedRoute>
             } />

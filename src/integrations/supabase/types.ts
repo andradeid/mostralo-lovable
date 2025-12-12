@@ -2653,6 +2653,142 @@ export type Database = {
           },
         ]
       }
+      qualification_benefit_tiers: {
+        Row: {
+          benefit_description: string
+          created_at: string | null
+          emoji: string
+          followup_days: number | null
+          free_days: number | null
+          id: string
+          include_consulting: boolean | null
+          include_followup: boolean | null
+          is_active: boolean | null
+          max_points: number
+          min_points: number
+          promotion_id: string | null
+          tier_name: string
+          tier_order: number
+          updated_at: string | null
+        }
+        Insert: {
+          benefit_description: string
+          created_at?: string | null
+          emoji: string
+          followup_days?: number | null
+          free_days?: number | null
+          id?: string
+          include_consulting?: boolean | null
+          include_followup?: boolean | null
+          is_active?: boolean | null
+          max_points: number
+          min_points: number
+          promotion_id?: string | null
+          tier_name: string
+          tier_order: number
+          updated_at?: string | null
+        }
+        Update: {
+          benefit_description?: string
+          created_at?: string | null
+          emoji?: string
+          followup_days?: number | null
+          free_days?: number | null
+          id?: string
+          include_consulting?: boolean | null
+          include_followup?: boolean | null
+          is_active?: boolean | null
+          max_points?: number
+          min_points?: number
+          promotion_id?: string | null
+          tier_name?: string
+          tier_order?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qualification_benefit_tiers_promotion_id_fkey"
+            columns: ["promotion_id"]
+            isOneToOne: false
+            referencedRelation: "promotions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qualification_tier_edit_history: {
+        Row: {
+          change_type: string
+          edited_at: string | null
+          edited_by: string
+          id: string
+          new_values: Json | null
+          previous_values: Json | null
+          promotion_changed: boolean | null
+          template_applied: string | null
+          tier_id: string | null
+        }
+        Insert: {
+          change_type: string
+          edited_at?: string | null
+          edited_by: string
+          id?: string
+          new_values?: Json | null
+          previous_values?: Json | null
+          promotion_changed?: boolean | null
+          template_applied?: string | null
+          tier_id?: string | null
+        }
+        Update: {
+          change_type?: string
+          edited_at?: string | null
+          edited_by?: string
+          id?: string
+          new_values?: Json | null
+          previous_values?: Json | null
+          promotion_changed?: boolean | null
+          template_applied?: string | null
+          tier_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qualification_tier_edit_history_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "qualification_benefit_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qualification_tier_templates: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_default: boolean | null
+          template_name: string
+          template_type: string
+          tier_configs: Json
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_default?: boolean | null
+          template_name: string
+          template_type: string
+          tier_configs: Json
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_default?: boolean | null
+          template_name?: string
+          template_type?: string
+          tier_configs?: Json
+        }
+        Relationships: []
+      }
       salespeople: {
         Row: {
           approved_at: string | null

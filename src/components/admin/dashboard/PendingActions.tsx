@@ -112,7 +112,7 @@ export function PendingActions() {
       color: 'text-red-600',
       bgColor: 'bg-red-100',
       priority: 'high',
-      link: '/dashboard/subscribers'
+      link: '/dashboard/subscription-payments'
     },
     {
       title: 'Expirando em 7 dias',

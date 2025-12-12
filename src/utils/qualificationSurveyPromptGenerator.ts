@@ -377,7 +377,14 @@ Economia: R$ 11.250 - R$ 397,90 = R$ 10.852,10/mês
   return section;
 }
 
-function generateFunnelSection(baseUrl: string): string {
+function generateFunnelSection(baseUrl: string, customTiers?: BenefitTier[]): string {
+  const tiers = customTiers || BENEFIT_TIERS;
+  const premiumTier = tiers[0];
+  const hotTier = tiers[1];
+  const warmTier = tiers[2];
+  const coldTier = tiers[3];
+  const disqualifiedTier = tiers[4];
+
   return `## 🎯 FLUXO COMPLETO DO AGENTE (8 FASES)
 
 ### FASE 1: ABERTURA (Conquistar Atenção)
@@ -434,7 +441,7 @@ Deixa eu somar suas respostas aqui...
 
 [Pausa dramática]
 
-Você se classificou como [CLASSIFICAÇÃO]! ${BENEFIT_TIERS[0].emoji}
+Você se classificou como [CLASSIFICAÇÃO]! ${premiumTier?.emoji || '🏆'}
 
 Por isso, você ganhou: [BENEFÍCIO]!
 
@@ -443,11 +450,11 @@ Parabéns! 👏"
 
 **EXEMPLOS POR FAIXA:**
 
-- 80-100 pts: "Você é LEAD PREMIUM! 🏆 Ganhou 1 mês GRÁTIS + Consultoria + 30 dias de acompanhamento!"
-- 60-79 pts: "Você é LEAD QUENTE! 🔥 Ganhou 15 dias GRÁTIS + Consultoria de setup!"
-- 40-59 pts: "Classificação: LEAD MORNO! 🌡️ Ganhou Consultoria GRATUITA + 7 dias de teste!"
-- 20-39 pts: "Classificação: LEAD FRIO! ❄️ Ganhou nossa Análise de Taxas Comparativa em PDF!"
-- 0-19 pts: "Obrigado pela participação! Vou deixar meu contato caso mude de ideia no futuro."
+- ${premiumTier?.minPoints || 80}-${premiumTier?.maxPoints || 100} pts: "Você é ${premiumTier?.classification || 'LEAD PREMIUM'}! ${premiumTier?.emoji || '🏆'} Ganhou ${premiumTier?.benefit || '1 mês GRÁTIS + Consultoria + 30 dias de acompanhamento'}!"${premiumTier?.promotionCode ? ` + Cupom ${premiumTier.promotionCode}!` : ''}
+- ${hotTier?.minPoints || 60}-${hotTier?.maxPoints || 79} pts: "Você é ${hotTier?.classification || 'LEAD QUENTE'}! ${hotTier?.emoji || '🔥'} Ganhou ${hotTier?.benefit || '15 dias GRÁTIS + Consultoria de setup'}!"${hotTier?.promotionCode ? ` + Cupom ${hotTier.promotionCode}!` : ''}
+- ${warmTier?.minPoints || 40}-${warmTier?.maxPoints || 59} pts: "Classificação: ${warmTier?.classification || 'LEAD MORNO'}! ${warmTier?.emoji || '🌡️'} Ganhou ${warmTier?.benefit || 'Consultoria GRATUITA + 7 dias de teste'}!"${warmTier?.promotionCode ? ` + Cupom ${warmTier.promotionCode}!` : ''}
+- ${coldTier?.minPoints || 20}-${coldTier?.maxPoints || 39} pts: "Classificação: ${coldTier?.classification || 'LEAD FRIO'}! ${coldTier?.emoji || '❄️'} Ganhou ${coldTier?.benefit || 'Análise de Taxas Comparativa em PDF'}!"${coldTier?.promotionCode ? ` + Cupom ${coldTier.promotionCode}!` : ''}
+- ${disqualifiedTier?.minPoints || 0}-${disqualifiedTier?.maxPoints || 19} pts: "Obrigado pela participação! Vou deixar meu contato caso mude de ideia no futuro."
 
 ---
 
@@ -632,7 +639,14 @@ Assim você mostra pro decisor e garante o benefício. Qual o email?"
 `;
 }
 
-function generateRulesSection(): string {
+function generateRulesSection(customTiers?: BenefitTier[]): string {
+  const tiers = customTiers || BENEFIT_TIERS;
+  const premiumTier = tiers[0];
+  const hotTier = tiers[1];
+  const warmTier = tiers[2];
+  const coldTier = tiers[3];
+  const disqualifiedTier = tiers[4];
+
   return `## ⚠️ REGRAS IMPORTANTES
 
 ### O QUE FAZER:
@@ -649,32 +663,36 @@ function generateRulesSection(): string {
 ❌ Dar benefício máximo para lead desqualificado
 ❌ Parecer vendedor antes da fase 4
 ❌ Desistir após primeira objeção
-❌ Forçar venda para lead com 0-19 pontos (apenas agradecer)
+❌ Forçar venda para lead com ${disqualifiedTier?.minPoints || 0}-${disqualifiedTier?.maxPoints || 19} pontos (apenas agradecer)
 
 ### TRATAMENTO ESPECIAL:
 
-**LEAD PREMIUM (80-100 pts):**
+**${premiumTier?.classification || 'LEAD PREMIUM'} (${premiumTier?.minPoints || 80}-${premiumTier?.maxPoints || 100} pts):**
 - Tratamento VIP
 - Acelerar fechamento
 - Oferecer suporte prioritário
 - Vale a pena insistir
+- Benefício: ${premiumTier?.benefit || 'Máximo disponível'}
 
-**LEAD QUENTE (60-79 pts):**
+**${hotTier?.classification || 'LEAD QUENTE'} (${hotTier?.minPoints || 60}-${hotTier?.maxPoints || 79} pts):**
 - Bom potencial
 - Trabalhar objeções com calma
 - Enfatizar benefício ganho
+- Benefício: ${hotTier?.benefit || 'Alto'}
 
-**LEAD MORNO (40-59 pts):**
+**${warmTier?.classification || 'LEAD MORNO'} (${warmTier?.minPoints || 40}-${warmTier?.maxPoints || 59} pts):**
 - Precisa de mais educação
 - Focar em dor/economia
 - Consultoria ajuda a converter
+- Benefício: ${warmTier?.benefit || 'Médio'}
 
-**LEAD FRIO (20-39 pts):**
+**${coldTier?.classification || 'LEAD FRIO'} (${coldTier?.minPoints || 20}-${coldTier?.maxPoints || 39} pts):**
 - Não forçar venda
 - PDF como porta de entrada
 - Follow-up em 30 dias
+- Benefício: ${coldTier?.benefit || 'Básico'}
 
-**DESQUALIFICADO (0-19 pts):**
+**${disqualifiedTier?.classification || 'DESQUALIFICADO'} (${disqualifiedTier?.minPoints || 0}-${disqualifiedTier?.maxPoints || 19} pts):**
 - Agradecer educadamente
 - Não insistir
 - Manter porta aberta
@@ -682,7 +700,13 @@ function generateRulesSection(): string {
 }
 
 export function generateQualificationSurveyPrompt(config: QualificationSurveyConfig): string {
-  const { baseUrl, plans } = config;
+  const { baseUrl, plans, benefitTiers, promotions } = config;
+
+  // Convert database tiers to BenefitTier format if provided
+  let customTiers: BenefitTier[] | undefined;
+  if (benefitTiers && benefitTiers.length > 0 && promotions) {
+    customTiers = convertDbTiersToBenefitTiers(benefitTiers, promotions);
+  }
 
   return `# 📊 AGENTE DE QUALIFICAÇÃO POR PESQUISA - MOSTRALO
 
@@ -710,15 +734,15 @@ Para ele, é apenas uma pesquisa onde ele pode ganhar benefícios.
 
 ${generateQuestionsSection()}
 
-${generateBenefitTiersSection()}
+${generateBenefitTiersSection(customTiers)}
 
-${generateFunnelSection(baseUrl)}
+${generateFunnelSection(baseUrl, customTiers)}
 
 ${generateSmartTriggersSection()}
 
 ${generatePlansSection(plans)}
 
-${generateRulesSection()}
+${generateRulesSection(customTiers)}
 
 ---
 
@@ -726,7 +750,7 @@ ${generateRulesSection()}
 
 1. **Abra como pesquisa** → Baixa resistência
 2. **Faça 10 perguntas** → Qualifique o lead
-3. **Calcule pontos** → Classifique em 5 faixas
+3. **Calcule pontos** → Classifique em ${customTiers?.length || 5} faixas
 4. **Revele benefício** → Gamificação + reciprocidade
 5. **Transite para venda** → Use respostas como gatilhos
 6. **Apresente Mostralo** → Economia + WhatsApp Marketing

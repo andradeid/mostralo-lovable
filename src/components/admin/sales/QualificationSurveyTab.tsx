@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Copy, Check, ClipboardList, Target, Gift, Zap, Calculator, ArrowRight, RotateCcw } from 'lucide-react';
+import { Copy, Check, ClipboardList, Target, Gift, Zap, Calculator, ArrowRight, RotateCcw, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { 
@@ -13,8 +13,11 @@ import {
   getTierByPoints, 
   getMaxPoints,
   generateQualificationSurveyPrompt,
-  QualificationSurveyConfig 
+  convertDbTiersToBenefitTiers,
+  QualificationSurveyConfig,
+  BenefitTier
 } from '@/utils/qualificationSurveyPromptGenerator';
+import { useQualificationTiers } from '@/hooks/useQualificationTiers';
 import { Database } from '@/integrations/supabase/types';
 
 type Plan = Database['public']['Tables']['plans']['Row'];
@@ -27,11 +30,24 @@ export function QualificationSurveyTab({ plans }: QualificationSurveyTabProps) {
   const [copied, setCopied] = useState(false);
   const [simulatorAnswers, setSimulatorAnswers] = useState<Record<number, number>>({});
   
+  // Fetch dynamic tiers from database
+  const { tiers: dbTiers, promotions, loading: tiersLoading } = useQualificationTiers();
+  
+  // Convert DB tiers to BenefitTier format
+  const dynamicTiers: BenefitTier[] = dbTiers.length > 0 && promotions
+    ? convertDbTiersToBenefitTiers(dbTiers, promotions)
+    : BENEFIT_TIERS;
+  
   const baseUrl = window.location.origin;
-  const prompt = generateQualificationSurveyPrompt({ baseUrl, plans });
+  const prompt = generateQualificationSurveyPrompt({ 
+    baseUrl, 
+    plans,
+    benefitTiers: dbTiers.length > 0 ? dbTiers : undefined,
+    promotions: promotions.length > 0 ? promotions : undefined
+  });
   
   const simulatorScore = Object.values(simulatorAnswers).reduce((sum, pts) => sum + pts, 0);
-  const simulatorTier = getTierByPoints(simulatorScore);
+  const simulatorTier = getTierByPoints(simulatorScore, dynamicTiers);
   const maxPoints = getMaxPoints();
 
   const handleCopy = async () => {
@@ -101,28 +117,40 @@ export function QualificationSurveyTab({ plans }: QualificationSurveyTabProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-            {BENEFIT_TIERS.map((tier) => (
-              <div 
-                key={tier.classification}
-                className={cn(
-                  "p-4 rounded-lg border text-center",
-                  tier.minPoints >= 80 && "bg-yellow-500/10 border-yellow-500/30",
-                  tier.minPoints >= 60 && tier.minPoints < 80 && "bg-orange-500/10 border-orange-500/30",
-                  tier.minPoints >= 40 && tier.minPoints < 60 && "bg-blue-500/10 border-blue-500/30",
-                  tier.minPoints >= 20 && tier.minPoints < 40 && "bg-cyan-500/10 border-cyan-500/30",
-                  tier.minPoints < 20 && "bg-muted/50 border-border"
-                )}
-              >
-                <div className="text-2xl mb-2">{tier.emoji}</div>
-                <div className="font-semibold text-sm">{tier.classification}</div>
-                <Badge variant="outline" className="mt-2">
-                  {tier.minPoints}-{tier.maxPoints} pts
-                </Badge>
-                <p className="text-xs text-muted-foreground mt-2">{tier.benefit}</p>
-              </div>
-            ))}
-          </div>
+          {tiersLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              <span className="ml-2 text-muted-foreground">Carregando faixas...</span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+              {dynamicTiers.map((tier, index) => (
+                <div 
+                  key={tier.classification}
+                  className={cn(
+                    "p-4 rounded-lg border text-center",
+                    index === 0 && "bg-yellow-500/10 border-yellow-500/30",
+                    index === 1 && "bg-orange-500/10 border-orange-500/30",
+                    index === 2 && "bg-blue-500/10 border-blue-500/30",
+                    index === 3 && "bg-cyan-500/10 border-cyan-500/30",
+                    index >= 4 && "bg-muted/50 border-border"
+                  )}
+                >
+                  <div className="text-2xl mb-2">{tier.emoji}</div>
+                  <div className="font-semibold text-sm">{tier.classification}</div>
+                  <Badge variant="outline" className="mt-2">
+                    {tier.minPoints}-{tier.maxPoints} pts
+                  </Badge>
+                  <p className="text-xs text-muted-foreground mt-2">{tier.benefit}</p>
+                  {tier.promotionCode && (
+                    <Badge variant="secondary" className="mt-2 text-xs">
+                      🎁 {tier.promotionCode}
+                    </Badge>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 

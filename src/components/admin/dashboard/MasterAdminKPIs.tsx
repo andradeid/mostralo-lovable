@@ -17,7 +17,11 @@ interface KPIData {
   };
 }
 
-export function MasterAdminKPIs() {
+interface MasterAdminKPIsProps {
+  compact?: boolean;
+}
+
+export function MasterAdminKPIs({ compact = false }: MasterAdminKPIsProps) {
   const [kpis, setKpis] = useState<KPIData>({
     mrr: 0,
     arr: 0,
@@ -194,9 +198,13 @@ export function MasterAdminKPIs() {
     }
   ];
 
+  const gridClass = compact 
+    ? 'grid grid-cols-2 gap-4' 
+    : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4';
+
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className={gridClass}>
         {[...Array(4)].map((_, i) => (
           <Card key={i}>
             <CardHeader className="pb-2">
@@ -213,7 +221,7 @@ export function MasterAdminKPIs() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className={gridClass}>
       {kpiCards.map((kpi, i) => (
         <Card key={i}>
           <CardHeader className="flex flex-row items-center justify-between pb-2">

@@ -5,12 +5,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Copy, Phone, MessageSquare, Instagram, Target, Shield, CheckCircle, TrendingUp, Loader2, RefreshCw, Users, Clock, Zap, Tags, Send, BarChart3, UsersRound, Link2, AlertTriangle } from 'lucide-react';
+import { Copy, Phone, MessageSquare, Instagram, Target, Shield, CheckCircle, TrendingUp, Loader2, RefreshCw, Users, Clock, Zap, Tags, Send, BarChart3, UsersRound, Link2, AlertTriangle, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { ColdLeadsGuideTab } from '@/components/admin/sales/ColdLeadsGuideTab';
 
 type Plan = Database['public']['Tables']['plans']['Row'];
 
@@ -101,8 +102,9 @@ export default function ProspectingGuidePage() {
       </div>
 
       <Tabs defaultValue="como-prospectar" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
           <TabsTrigger value="como-prospectar">Como Prospectar</TabsTrigger>
+          <TabsTrigger value="leads-frios" className="text-primary font-semibold">🗺️ Leads Frios</TabsTrigger>
           <TabsTrigger value="scripts">Scripts</TabsTrigger>
           <TabsTrigger value="qualificacao">Qualificação</TabsTrigger>
           <TabsTrigger value="apresentacao">Apresentação</TabsTrigger>
@@ -110,6 +112,11 @@ export default function ProspectingGuidePage() {
           <TabsTrigger value="objecoes">Objeções</TabsTrigger>
           <TabsTrigger value="fechamento">Fechamento</TabsTrigger>
         </TabsList>
+        
+        {/* NOVA SEÇÃO: LEADS FRIOS */}
+        <TabsContent value="leads-frios">
+          <ColdLeadsGuideTab />
+        </TabsContent>
 
         {/* SEÇÃO 1: COMO PROSPECTAR */}
         <TabsContent value="como-prospectar" className="space-y-4">

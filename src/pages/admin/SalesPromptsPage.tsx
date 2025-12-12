@@ -4,13 +4,15 @@ import { PromptTypeSelector } from '@/components/admin/sales/PromptTypeSelector'
 import { PromptPreview } from '@/components/admin/sales/PromptPreview';
 import { SavingsCalculatorDemo } from '@/components/admin/sales/SavingsCalculatorDemo';
 import { generateSalesPrompt, PromptType } from '@/utils/salesPromptGenerator';
+import { generateColdLeadPrompt, getColdLeadProfileInfo, COLD_LEAD_PROFILES, ColdLeadProfile } from '@/utils/coldLeadPromptGenerator';
 import { Database } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
-import { Loader2, RefreshCw, Database as DatabaseIcon, CheckCircle } from 'lucide-react';
+import { Loader2, RefreshCw, Database as DatabaseIcon, CheckCircle, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 type Plan = Database['public']['Tables']['plans']['Row'];
 

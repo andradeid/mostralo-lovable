@@ -295,17 +295,17 @@ const DashboardHome = () => {
           </p>
         </div>
 
+        {/* Ações Urgentes - No topo para visibilidade imediata */}
+        <PendingActions />
+
         {/* KPIs Financeiros */}
         <MasterAdminKPIs />
 
         {/* Projeções e Valuation */}
         <GrowthProjections />
 
-        {/* Alertas e Atividades */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <PendingActions />
-          <RecentActivityReal />
-        </div>
+        {/* Atividades Recentes */}
+        <RecentActivityReal />
 
         {/* Saúde das Lojas */}
         <StoreHealthIndicators />

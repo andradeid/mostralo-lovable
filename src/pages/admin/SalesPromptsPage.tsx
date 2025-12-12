@@ -3,11 +3,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { PromptTypeSelector } from '@/components/admin/sales/PromptTypeSelector';
 import { PromptPreview } from '@/components/admin/sales/PromptPreview';
 import { SavingsCalculatorDemo } from '@/components/admin/sales/SavingsCalculatorDemo';
+import { QualificationSurveyTab } from '@/components/admin/sales/QualificationSurveyTab';
 import { generateSalesPrompt, PromptType } from '@/utils/salesPromptGenerator';
 import { generateColdLeadPrompt, getColdLeadProfileInfo, COLD_LEAD_PROFILES, ColdLeadProfile } from '@/utils/coldLeadPromptGenerator';
 import { Database } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
-import { Loader2, RefreshCw, Database as DatabaseIcon, CheckCircle, MapPin, Copy, Check, Smile, GraduationCap, BarChart3, Zap } from 'lucide-react';
+import { Loader2, RefreshCw, Database as DatabaseIcon, CheckCircle, MapPin, Copy, Check, Smile, GraduationCap, BarChart3, Zap, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -175,9 +176,10 @@ export default function SalesPromptsPage() {
       </Card>
 
       <Tabs defaultValue="warm" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6">
+        <TabsList className="grid w-full grid-cols-3 mb-6">
           <TabsTrigger value="warm">🔥 Leads Quentes</TabsTrigger>
-          <TabsTrigger value="cold">🗺️ Leads Frios (Google Maps)</TabsTrigger>
+          <TabsTrigger value="cold">🗺️ Leads Frios</TabsTrigger>
+          <TabsTrigger value="survey" className="text-primary">📊 Pesquisa de Qualificação</TabsTrigger>
         </TabsList>
 
         <TabsContent value="warm" className="space-y-6">
@@ -321,6 +323,11 @@ export default function SalesPromptsPage() {
               </p>
             </div>
           </div>
+        </TabsContent>
+
+        {/* Aba Pesquisa de Qualificação */}
+        <TabsContent value="survey">
+          <QualificationSurveyTab plans={plans} />
         </TabsContent>
       </Tabs>
 

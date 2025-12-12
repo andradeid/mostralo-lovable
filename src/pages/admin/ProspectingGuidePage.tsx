@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ColdLeadsGuideTab } from '@/components/admin/sales/ColdLeadsGuideTab';
+import { QualificationSurveyTab } from '@/components/admin/sales/QualificationSurveyTab';
 
 type Plan = Database['public']['Tables']['plans']['Row'];
 
@@ -102,9 +103,10 @@ export default function ProspectingGuidePage() {
       </div>
 
       <Tabs defaultValue="como-prospectar" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9">
           <TabsTrigger value="como-prospectar">Como Prospectar</TabsTrigger>
           <TabsTrigger value="leads-frios" className="text-primary font-semibold">🗺️ Leads Frios</TabsTrigger>
+          <TabsTrigger value="pesquisa" className="text-primary">📊 Pesquisa</TabsTrigger>
           <TabsTrigger value="scripts">Scripts</TabsTrigger>
           <TabsTrigger value="qualificacao">Qualificação</TabsTrigger>
           <TabsTrigger value="apresentacao">Apresentação</TabsTrigger>
@@ -113,9 +115,14 @@ export default function ProspectingGuidePage() {
           <TabsTrigger value="fechamento">Fechamento</TabsTrigger>
         </TabsList>
         
-        {/* NOVA SEÇÃO: LEADS FRIOS */}
+        {/* SEÇÃO: LEADS FRIOS */}
         <TabsContent value="leads-frios">
           <ColdLeadsGuideTab />
+        </TabsContent>
+
+        {/* SEÇÃO: PESQUISA DE QUALIFICAÇÃO */}
+        <TabsContent value="pesquisa">
+          <QualificationSurveyTab plans={plans} />
         </TabsContent>
 
         {/* SEÇÃO 1: COMO PROSPECTAR */}

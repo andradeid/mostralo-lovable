@@ -34,7 +34,8 @@ import {
   Key,
   Wrench,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Briefcase
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -236,6 +237,17 @@ const UsersPage = () => {
     // 3. Verificar roles específicos (ANTES de verificar store_admin)
     const hasDeliveryDriver = user.roles?.some(r => r.role === 'delivery_driver');
     const hasCustomer = user.roles?.some(r => r.role === 'customer');
+    const hasSalesperson = user.roles?.some(r => r.role === 'salesperson');
+
+    // Vendedor (alta prioridade)
+    if (hasSalesperson) {
+      return {
+        label: 'Vendedor',
+        variant: 'outline' as const,
+        icon: Briefcase,
+        color: 'text-yellow-600'
+      };
+    }
 
     if (hasDeliveryDriver) {
       return {
@@ -278,11 +290,12 @@ const UsersPage = () => {
   const filteredUsers = users.filter(user => {
     const hasDeliveryDriver = user.roles?.some(r => r.role === 'delivery_driver');
     const hasCustomer = user.roles?.some(r => r.role === 'customer');
+    const hasSalesperson = user.roles?.some(r => r.role === 'salesperson');
     const isMasterAdmin = user.user_type === 'master_admin';
     const isStoreOwner = user.user_type === 'store_admin' && user.hasStore;
     
-    // Se é APENAS cliente (não é admin, não é dono de loja, não é entregador)
-    const isOnlyCustomer = hasCustomer && !isMasterAdmin && !isStoreOwner && !hasDeliveryDriver;
+    // Se é APENAS cliente (não é admin, não é dono de loja, não é entregador, não é vendedor)
+    const isOnlyCustomer = hasCustomer && !isMasterAdmin && !isStoreOwner && !hasDeliveryDriver && !hasSalesperson;
     
     // Só excluir clientes SE o filtro NÃO for "customer"
     if (isOnlyCustomer && typeFilter !== 'customer') {
@@ -302,6 +315,8 @@ const UsersPage = () => {
         matchesType = user.user_type === 'store_admin' && user.hasStore;
       } else if (typeFilter === 'delivery_driver') {
         matchesType = user.roles?.some(r => r.role === 'delivery_driver') || false;
+      } else if (typeFilter === 'salesperson') {
+        matchesType = hasSalesperson;
       } else if (typeFilter === 'customer') {
         // Cliente: deve ter role 'customer' e ser "apenas cliente"
         matchesType = isOnlyCustomer;
@@ -348,6 +363,13 @@ const UsersPage = () => {
       description: 'Com lojas ativas',
       icon: Store,
       color: 'text-blue-600'
+    },
+    {
+      title: 'Vendedores',
+      value: users.filter(u => u.roles?.some(r => r.role === 'salesperson')).length,
+      description: 'Afiliados e parceiros',
+      icon: Briefcase,
+      color: 'text-yellow-600'
     }
   ];
 
@@ -436,6 +458,7 @@ const UsersPage = () => {
                     <SelectItem value="master_admin">Master Admin</SelectItem>
                     <SelectItem value="store_admin">Dono de Loja</SelectItem>
                     <SelectItem value="delivery_driver">Entregador</SelectItem>
+                    <SelectItem value="salesperson">Vendedor</SelectItem>
                     <SelectItem value="customer">Cliente</SelectItem>
                   </SelectContent>
                 </Select>
@@ -484,11 +507,14 @@ const UsersPage = () => {
               {paginatedUsers.map((user) => {
                 const userTypeInfo = getUserTypeInfo(user);
                 const TypeIcon = userTypeInfo.icon;
+                const isSalesperson = user.roles?.some(r => r.role === 'salesperson');
 
                 return (
                   <div
                     key={user.id}
-                    className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors gap-4"
+                    className={`flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors gap-4 ${
+                      isSalesperson ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800' : ''
+                    }`}
                   >
                     <div className="flex items-center space-x-4 flex-1">
                       <div className={`p-2 rounded-full bg-muted ${userTypeInfo.color} shrink-0`}>

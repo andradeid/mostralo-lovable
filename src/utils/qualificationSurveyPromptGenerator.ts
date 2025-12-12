@@ -1,10 +1,13 @@
 import { Database } from '@/integrations/supabase/types';
+import type { QualificationBenefitTier, PromotionForTier } from '@/types/qualificationTiers';
 
 type Plan = Database['public']['Tables']['plans']['Row'];
 
 export interface QualificationSurveyConfig {
   baseUrl: string;
   plans: Plan[];
+  benefitTiers?: QualificationBenefitTier[];
+  promotions?: PromotionForTier[];
 }
 
 export interface SurveyQuestion {
@@ -23,6 +26,9 @@ export interface BenefitTier {
   emoji: string;
   benefit: string;
   color: string;
+  promotionCode?: string;
+  promotionValue?: number;
+  promotionType?: string;
 }
 
 function formatCurrency(value: number): string {
@@ -214,12 +220,47 @@ export const BENEFIT_TIERS: BenefitTier[] = [
   },
 ];
 
-export function getTierByPoints(points: number): BenefitTier {
-  return BENEFIT_TIERS.find(t => points >= t.minPoints && points <= t.maxPoints) || BENEFIT_TIERS[BENEFIT_TIERS.length - 1];
+export function getTierByPoints(points: number, customTiers?: BenefitTier[]): BenefitTier {
+  const tiers = customTiers || BENEFIT_TIERS;
+  return tiers.find(t => points >= t.minPoints && points <= t.maxPoints) || tiers[tiers.length - 1];
 }
 
 export function getMaxPoints(): number {
   return SURVEY_QUESTIONS.reduce((sum, q) => sum + q.maxPoints, 0);
+}
+
+// Convert database tiers to BenefitTier format
+export function convertDbTiersToBenefitTiers(
+  dbTiers: QualificationBenefitTier[],
+  promotions: PromotionForTier[]
+): BenefitTier[] {
+  return dbTiers.map(tier => {
+    const promotion = tier.promotion_id 
+      ? promotions.find(p => p.id === tier.promotion_id) 
+      : null;
+    
+    return {
+      minPoints: tier.min_points,
+      maxPoints: tier.max_points,
+      classification: tier.tier_name,
+      emoji: tier.emoji,
+      benefit: tier.benefit_description,
+      color: getColorByTierOrder(tier.tier_order),
+      promotionCode: promotion?.code || undefined,
+      promotionValue: promotion?.discount_value,
+      promotionType: promotion?.discount_type,
+    };
+  });
+}
+
+function getColorByTierOrder(order: number): string {
+  switch (order) {
+    case 1: return 'text-yellow-500';
+    case 2: return 'text-orange-500';
+    case 3: return 'text-blue-500';
+    case 4: return 'text-cyan-500';
+    default: return 'text-muted-foreground';
+  }
 }
 
 function generatePlansSection(plans: Plan[]): string {
@@ -290,7 +331,9 @@ function generateQuestionsSection(): string {
   return section;
 }
 
-function generateBenefitTiersSection(): string {
+function generateBenefitTiersSection(customTiers?: BenefitTier[]): string {
+  const tiers = customTiers || BENEFIT_TIERS;
+  
   let section = `## 🎁 FAIXAS DE BENEFÍCIOS
 
 Após somar os pontos, classifique o lead e entregue o benefício correspondente:
@@ -299,8 +342,12 @@ Após somar os pontos, classifique o lead e entregue o benefício correspondente
 |--------|---------------|-----------|
 `;
 
-  BENEFIT_TIERS.forEach(tier => {
-    section += `| ${tier.minPoints}-${tier.maxPoints} | ${tier.emoji} ${tier.classification} | ${tier.benefit} |\n`;
+  tiers.forEach(tier => {
+    let benefitText = tier.benefit;
+    if (tier.promotionCode) {
+      benefitText += ` + 🎁 Cupom ${tier.promotionCode} (${tier.promotionType === 'percentage' ? `${tier.promotionValue}% OFF` : `R$ ${tier.promotionValue} OFF`})`;
+    }
+    section += `| ${tier.minPoints}-${tier.maxPoints} | ${tier.emoji} ${tier.classification} | ${benefitText} |\n`;
   });
 
   section += `
@@ -309,6 +356,22 @@ Após somar os pontos, classifique o lead e entregue o benefício correspondente
 ⚠️ **REGRA DE OURO:** O benefício é proporcional ao potencial do lead!
 - Leads PREMIUM/QUENTES merecem mais porque vão gerar mais receita
 - Leads FRIOS/DESQUALIFICADOS recebem menos para não desperdiçar recursos
+
+### 💰 CALCULADORA DE ECONOMIA (USE COM O LEAD)
+
+\`\`\`
+FÓRMULA:
+1. Faturamento = Pedidos/dia × Ticket × 30
+2. Taxa iFood (25%) = Faturamento × 0.25
+3. Economia Mensal = Taxa iFood - R$ 397,90
+4. Economia Anual = Economia Mensal × 12
+
+EXEMPLO (30 pedidos/dia, ticket R$ 50):
+Faturamento: 30 × 50 × 30 = R$ 45.000/mês
+Taxa iFood: R$ 11.250/mês
+Economia: R$ 11.250 - R$ 397,90 = R$ 10.852,10/mês
+= R$ 130.225,20/ano de ECONOMIA!
+\`\`\`
 `;
 
   return section;

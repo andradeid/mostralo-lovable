@@ -295,10 +295,10 @@ const DashboardHome = () => {
           </p>
         </div>
 
-        {/* Ações Urgentes + KPIs lado a lado */}
+        {/* KPIs + Ações Urgentes lado a lado */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <PendingActions />
           <MasterAdminKPIs compact />
+          <PendingActions />
         </div>
 
         {/* Projeções e Valuation */}

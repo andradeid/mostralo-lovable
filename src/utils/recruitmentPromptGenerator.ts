@@ -5,7 +5,7 @@ import { Database } from '@/integrations/supabase/types';
 
 type Plan = Database['public']['Tables']['plans']['Row'];
 
-export type RecruitmentPromptType = 'moderate' | 'aggressive' | 'super_aggressive';
+export type RecruitmentPromptType = 'cold_lead' | 'moderate' | 'aggressive' | 'super_aggressive';
 
 export interface BonusTier {
   id: string;
@@ -84,6 +84,28 @@ const RECRUITMENT_FAQ = [
 
 // Objeções comuns e respostas por tipo de prompt
 const RECRUITMENT_OBJECTIONS = {
+  cold_lead: [
+    {
+      objection: 'Não estou interessado',
+      response: 'Sem problema! Por acaso conhece alguém que esteja precisando de renda extra? Pode ser amigo, familiar... A pessoa pode trabalhar de casa, no horário dela.'
+    },
+    {
+      objection: 'Não conheço ninguém',
+      response: 'Tranquilo! Se lembrar de alguém, pode me chamar. Às vezes aparece aquele amigo que tá precisando, né? Fica com meu contato 😊'
+    },
+    {
+      objection: 'O que é isso exatamente?',
+      response: 'É um programa de vendedores pra uma plataforma de delivery e marketing. Você indica restaurantes, lojas, e ganha comissão. Trabalha de casa, sem horário fixo, sem meta obrigatória. Quer saber mais?'
+    },
+    {
+      objection: 'Quanto ganha?',
+      response: 'Depende de quanto você se dedicar! Comissão de 7-10% por venda. Planos de R$400-1.000. Nossos vendedores fazem de R$1.000 a R$10.000/mês. Quer que eu te explique melhor?'
+    },
+    {
+      objection: 'É golpe?',
+      response: 'Entendo a desconfiança! É uma plataforma de delivery real, tipo iFood só que sem as taxas abusivas. Empresas usam todos os dias. Você ganha comissão por cada cliente que indicar. Posso te mandar o site pra você ver?'
+    }
+  ],
   moderate: [
     {
       objection: 'Não tenho tempo',
@@ -199,6 +221,26 @@ export function calculateEarnings(
 // Geradores de seções do prompt
 function generateIdentitySection(type: RecruitmentPromptType): string {
   const identities = {
+    cold_lead: `## 🎯 IDENTIDADE DO AGENTE
+
+Você é um recrutador de vendedores do Mostralo, uma plataforma de delivery + marketing digital.
+Seu estilo é de PROSPECÇÃO LEVE e INDICAÇÃO.
+
+**Contexto:**
+- O lead NÃO está buscando trabalho ativamente
+- Você está iniciando o contato (cold outreach)
+- Objetivo DUPLO: despertar interesse próprio OU conseguir indicação de alguém
+
+**Personalidade:**
+- Tom casual e amigável, não invasivo
+- Não força a barra, respeita o tempo da pessoa
+- Oferece duas saídas: interesse próprio OU indicar alguém
+- Valoriza o tempo da pessoa
+- Deixa porta aberta para futuro contato
+
+**Objetivo:**
+Apresentar a oportunidade rapidamente. Perguntar se tem interesse. Se não tiver, pedir indicação de alguém que esteja precisando de renda extra. Nunca sair sem plantar uma semente.`,
+
     moderate: `## 🎯 IDENTIDADE DO AGENTE
 
 Você é um recrutador de vendedores do Mostralo, uma plataforma de delivery + marketing digital.
@@ -343,6 +385,16 @@ function generateCalculatorSection(plans: Plan[], bonusTiers: BonusTier[], type:
   const planName = middlePlan?.name || 'Profissional';
 
   const examples = {
+    cold_lead: `**Exemplo rápido com ${planName} (${formatCurrency(planPrice)}):**
+
+Quando a pessoa demonstrar interesse, mostre os números básicos:
+- **5 vendas/mês:** ${formatCurrency(5 * planPrice * 0.07)} a ${formatCurrency(5 * planPrice * 0.10)}
+- **10 vendas/mês:** ${formatCurrency(10 * planPrice * 0.07)} a ${formatCurrency(10 * planPrice * 0.10)} + bônus
+
+"Isso trabalhando só algumas horas por semana, no seu tempo, de casa."
+
+Se pedir indicação, simplifique: "A pessoa pode ganhar R$ 1.000 a R$ 3.000+ por mês, trabalhando de casa."`,
+
     moderate: `**Exemplo prático com ${planName} (${formatCurrency(planPrice)}):**
 
 Se você fizer 10 vendas por mês:
@@ -399,6 +451,18 @@ ${examples[type]}`;
 
 function generateBeginnerPathSection(type: RecruitmentPromptType): string {
   const paths = {
+    cold_lead: `## 🚀 COMO APRESENTAR A OPORTUNIDADE (Lead Frio)
+
+Se a pessoa demonstrar interesse, explique de forma simples:
+
+**Passo 1:** "É bem simples - você indica restaurantes, lojas, e ganha comissão."
+**Passo 2:** "Não precisa de CNPJ pra começar. Só CPF."
+**Passo 3:** "Trabalha no seu tempo, de casa, pelo WhatsApp."
+**Passo 4:** "Pode ganhar de R$ 1.000 a R$ 10.000+ dependendo da dedicação."
+
+Se pedir pra indicar alguém:
+"Manda o link pra pessoa. Se ela se cadastrar e vender, você também pode participar depois."`,
+
     moderate: `## 🚀 CAMINHO DO INICIANTE
 
 Recomendação para quem está começando:
@@ -664,10 +728,105 @@ Se tiver alguma dúvida, me fala que te explico.
 "Com esses scripts, você não precisa inventar nada. É só copiar, personalizar e mandar."`;
 }
 
+function generateColdLeadRecruitmentScriptsSection(): string {
+  return `## 📱 SCRIPTS PARA RECRUTAMENTO LEAD FRIO
+
+Use estes scripts para abordar pessoas que NÃO estão buscando trabalho:
+
+**SCRIPT 1 - Primeiro Contato (Curto):**
+\`\`\`
+Oi [NOME]! Tudo bem?
+
+Estamos recrutando vendedores pra uma plataforma de delivery. Trabalha de casa, horário livre, sem meta.
+
+Teria interesse ou conhece alguém que tá precisando de renda extra?
+\`\`\`
+
+**SCRIPT 2 - Primeiro Contato (Com Contexto):**
+\`\`\`
+Oi [NOME]! Vi que você é de [CIDADE/ÁREA].
+
+Tô recrutando pessoas da região pra trabalhar como vendedor de uma plataforma pra restaurantes e lojas.
+
+É renda extra, comissão por venda, você faz no seu tempo.
+
+Isso te interessa? Ou conhece alguém que poderia se interessar?
+\`\`\`
+
+**SCRIPT 3 - Abordagem via Indicação:**
+\`\`\`
+Oi [NOME]! O [AMIGO] me passou seu contato.
+
+Tô buscando pessoas pra trabalhar como vendedor de uma plataforma de delivery.
+
+Ele disse que talvez você conhecesse alguém precisando de renda extra.
+
+Você mesmo tem interesse ou pode indicar alguém?
+\`\`\`
+
+**SCRIPT 4 - Follow-up de Indicação (7-14 dias):**
+\`\`\`
+Oi [NOME]! Lembra que conversamos sobre aquela oportunidade de vendedor?
+
+Pensou em alguém que poderia se interessar?
+
+Se não também, sem problema! Só checando 😊
+\`\`\`
+
+**SCRIPT 5 - Segundo Follow-up (30 dias):**
+\`\`\`
+Oi [NOME]! Passando aqui de novo...
+
+Nossos vendedores estão tendo ótimos resultados. Um deles fez R$ 4.000 no mês passado trabalhando meio período.
+
+Se souber de alguém precisando de renda extra, me avisa! 🙏
+\`\`\`
+
+"Sempre deixe a porta aberta. Quem não tem interesse hoje pode conhecer alguém amanhã."`;
+}
+
 function generateConversationFlowSection(type: RecruitmentPromptType, baseUrl: string): string {
   const trackingParams = `?source=ai_recruitment&prompt_type=${type}`;
   
   const flows = {
+    cold_lead: `## 💬 FLUXO PARA LEAD FRIO (Prospecção Inicial)
+
+**CONTEXTO:** Você está abordando alguém que NÃO está procurando trabalho. O objetivo é duplo: despertar interesse OU conseguir uma indicação.
+
+**1. ABERTURA LEVE (não invasiva):**
+"Oi [NOME]! Tudo bem?
+Não sei se é do seu interesse, mas estamos recrutando pessoas pra trabalhar como vendedor de uma plataforma de delivery. Renda extra, horário flexível, trabalha de casa.
+Você teria interesse ou conhece alguém que esteja precisando de renda extra?"
+
+**2. SE DEMONSTRAR INTERESSE:**
+→ Mude para tom Moderado ou Agressivo
+→ "Que legal! Deixa eu te explicar como funciona..."
+→ Continue com apresentação completa (ganhos, bônus, etc.)
+→ Calcule quanto a pessoa poderia ganhar
+→ Link de cadastro: ${baseUrl}/seja-vendedor${trackingParams}&type=affiliate
+
+**3. SE NÃO TIVER INTERESSE MAS PUDER INDICAR:**
+"Sem problema! Se lembrar de alguém que tá precisando de renda extra, manda esse link pra pessoa:
+${baseUrl}/seja-vendedor${trackingParams}&referral=cold
+
+Quem indica também pode participar do programa depois, se mudar de ideia 😊
+Obrigado pelo tempo!"
+
+**4. SE NÃO TIVER INTERESSE NEM INDICAÇÃO:**
+"Tranquilo! Se mudar de ideia ou conhecer alguém, pode me chamar.
+Fica com meu contato caso precise.
+Obrigado pelo tempo! 🙏"
+
+**5. FOLLOW-UP (7-14 dias depois):**
+"Oi [NOME]! Lembra que conversamos sobre aquela oportunidade de vendedor?
+Surgiu alguém que poderia se interessar?
+Sem compromisso, só perguntando 😊"
+
+**6. SEGUNDO FOLLOW-UP (30 dias):**
+"Oi [NOME]! Passando aqui de novo...
+Nossos vendedores estão tendo ótimos resultados. [INSERIR RESULTADO RECENTE]
+Se souber de alguém precisando de renda extra, me avisa! 🙏"`,
+
     moderate: `## 💬 FLUXO DA CONVERSA
 
 **1. ABERTURA (quebrar gelo):**
@@ -792,6 +951,7 @@ export function generateRecruitmentPrompt(config: RecruitmentPromptConfig): stri
     generateDifferentiationSection(),
     generateFirstWeekSection(),
     generateWhatsAppScriptsSection(),
+    ...(type === 'cold_lead' ? [generateColdLeadRecruitmentScriptsSection()] : []),
     generateBeginnerPathSection(type),
     generateFAQSection(),
     generateObjectionsSection(type),
@@ -799,13 +959,14 @@ export function generateRecruitmentPrompt(config: RecruitmentPromptConfig): stri
     generateResourcesSection(baseUrl),
   ];
 
-  const header = `# 🎯 PROMPT DE RECRUTAMENTO DE VENDEDORES - ${type === 'moderate' ? 'MODERADO' : type === 'aggressive' ? 'AGRESSIVO' : 'SUPER AGRESSIVO'}
+  const typeLabel = type === 'cold_lead' ? 'LEAD FRIO' : type === 'moderate' ? 'MODERADO' : type === 'aggressive' ? 'AGRESSIVO' : 'SUPER AGRESSIVO';
+  
+  const header = `# 🎯 PROMPT DE RECRUTAMENTO DE VENDEDORES - ${typeLabel}
 
 Este prompt foi gerado automaticamente com dados atualizados do sistema.
 Use-o com ChatGPT, Claude ou outro assistente de IA para recrutar novos vendedores.
 
 **Seções incluídas:** Identidade, Programa, Comparativo PF/PJ, Planos Atuais, Bônus, Calculadora, Testemunhos, Comparativo de Renda, Mitos vs Realidade, Diferenciação, Primeiros 7 Dias, Scripts WhatsApp, Caminho Iniciante, FAQ, Objeções, Fluxo de Conversa, Recursos.
-
 ---
 
 `;
@@ -844,6 +1005,13 @@ export function getRecruitmentPromptTypeInfo(type: RecruitmentPromptType): {
   sections: number;
 } {
   const info = {
+    cold_lead: {
+      name: 'Lead Frio',
+      emoji: '❄️',
+      description: 'Prospecção inicial leve. Pergunta interesse e pede indicações.',
+      idealFor: 'Abordar pessoas que NÃO estão buscando trabalho',
+      sections: 18
+    },
     moderate: {
       name: 'Moderado',
       emoji: '🟢',
@@ -870,4 +1038,4 @@ export function getRecruitmentPromptTypeInfo(type: RecruitmentPromptType): {
   return info[type];
 }
 
-export const RECRUITMENT_PROMPT_TYPES: RecruitmentPromptType[] = ['moderate', 'aggressive', 'super_aggressive'];
+export const RECRUITMENT_PROMPT_TYPES: RecruitmentPromptType[] = ['cold_lead', 'moderate', 'aggressive', 'super_aggressive'];

@@ -14,6 +14,14 @@ interface RegisterRequest {
   phone: string;
   password: string;
   
+  // Foto de perfil
+  profile_photo_url?: string;
+  
+  // Qualificação
+  qualification_answers?: Record<string, string>;
+  qualification_score?: number;
+  qualification_level?: string;
+  
   // Dados PJ (apenas partner)
   cnpj?: string;
   company_name?: string;
@@ -43,6 +51,10 @@ Deno.serve(async (req) => {
       email,
       phone,
       password,
+      profile_photo_url,
+      qualification_answers,
+      qualification_score,
+      qualification_level,
       cnpj,
       company_name,
       company_trade_name,
@@ -184,6 +196,10 @@ Deno.serve(async (req) => {
       pix_key_type,
       referral_code: referralCode,
       status: 'pending_approval',
+      profile_photo_url: profile_photo_url || null,
+      qualification_answers: qualification_answers || [],
+      qualification_score: qualification_score || 0,
+      qualification_level: qualification_level || 'evaluation',
     };
 
     // Dados específicos para Parceiro PJ

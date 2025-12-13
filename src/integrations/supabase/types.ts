@@ -2826,6 +2826,10 @@ export type Database = {
           phone: string
           pix_key: string | null
           pix_key_type: string | null
+          profile_photo_url: string | null
+          qualification_answers: Json | null
+          qualification_level: string | null
+          qualification_score: number | null
           referral_code: string
           rejection_reason: string | null
           salesperson_type: string
@@ -2856,6 +2860,10 @@ export type Database = {
           phone: string
           pix_key?: string | null
           pix_key_type?: string | null
+          profile_photo_url?: string | null
+          qualification_answers?: Json | null
+          qualification_level?: string | null
+          qualification_score?: number | null
           referral_code: string
           rejection_reason?: string | null
           salesperson_type?: string
@@ -2886,6 +2894,10 @@ export type Database = {
           phone?: string
           pix_key?: string | null
           pix_key_type?: string | null
+          profile_photo_url?: string | null
+          qualification_answers?: Json | null
+          qualification_level?: string | null
+          qualification_score?: number | null
           referral_code?: string
           rejection_reason?: string | null
           salesperson_type?: string

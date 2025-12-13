@@ -4,6 +4,7 @@ import { RecruitmentPromptSelector } from '@/components/admin/sales/RecruitmentP
 import { RecruitmentPromptPreview } from '@/components/admin/sales/RecruitmentPromptPreview';
 import { RecruitmentEarningsSimulator } from '@/components/admin/sales/RecruitmentEarningsSimulator';
 import { RecruitmentPostsGenerator } from '@/components/admin/sales/RecruitmentPostsGenerator';
+import { RecruitmentFunnel } from '@/components/admin/recruitment/RecruitmentFunnel';
 import { generateRecruitmentPrompt, RecruitmentPromptType, BonusTier } from '@/utils/recruitmentPromptGenerator';
 import { Database } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
@@ -105,44 +106,8 @@ export default function RecruitmentPage() {
         </Button>
       </div>
 
-      {/* Cards de Resumo */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-primary/5 border-primary/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Vendedores Ativos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-primary">{salespeopleStats.active}</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-yellow-500/5 border-yellow-500/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Pendentes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-yellow-600">{salespeopleStats.pending}</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-muted/50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{salespeopleStats.total}</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-green-500/5 border-green-500/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Bônus Configurados</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-green-600">{bonusTiers.length}</p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Funil de Recrutamento */}
+      <RecruitmentFunnel onRefresh={fetchData} />
 
       {/* Planos Carregados */}
       <Card className="bg-muted/30">

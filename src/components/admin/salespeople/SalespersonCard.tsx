@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { CheckCircle2, XCircle, Eye, User, Building2, Trophy, Star, Sparkles, Medal } from "lucide-react";
+import { CheckCircle2, XCircle, Eye, User, Building2, Trophy, Star, Sparkles, Medal, Users, Target } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getLevelConfig, type QualificationLevel } from "@/lib/qualificationLevels";
@@ -26,6 +26,8 @@ interface SalespersonCardProps {
     profile_photo_url?: string | null;
     qualification_score?: number | null;
     qualification_level?: string | null;
+    leads_count?: number;
+    clients_count?: number;
   };
   onViewDetails: () => void;
   onApprove?: () => void;
@@ -117,6 +119,24 @@ export function SalespersonCard({
                 Parceiro PJ
               </Badge>
             )}
+          </div>
+        </div>
+
+        {/* Métricas de Performance */}
+        <div className="grid grid-cols-2 gap-2 p-2 rounded-lg bg-muted/50">
+          <div className="flex items-center gap-2 p-2">
+            <Target className="h-4 w-4 text-blue-500" />
+            <div>
+              <p className="text-xs text-muted-foreground">Leads</p>
+              <p className="font-semibold">{salesperson.leads_count || 0}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 p-2">
+            <Users className="h-4 w-4 text-green-500" />
+            <div>
+              <p className="text-xs text-muted-foreground">Clientes</p>
+              <p className="font-semibold">{salesperson.clients_count || 0}</p>
+            </div>
           </div>
         </div>
 

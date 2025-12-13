@@ -14,6 +14,8 @@ import { validatePixKey, formatPixKey, type PixKeyType } from "@/utils/pixValida
 import { ContractViewer } from "@/components/contract/ContractViewer";
 import { AffiliateTerms } from "@/components/salesperson/AffiliateTerms";
 import { SalespersonTypeSelector } from "@/components/salesperson/SalespersonTypeSelector";
+import { ProfilePhotoUpload } from "@/components/salesperson/ProfilePhotoUpload";
+import { QualificationQuiz } from "@/components/salesperson/QualificationQuiz";
 import {
   User,
   Building2,
@@ -25,10 +27,12 @@ import {
   ArrowLeft,
   FileText,
   CreditCard,
+  Camera,
+  ClipboardList,
 } from "lucide-react";
 
 type SalespersonType = 'affiliate' | 'partner' | null;
-type Step = 0 | 1 | 2 | 3;
+type Step = 0 | 1 | 2 | 3 | 4 | 5;
 
 interface FormData {
   // Tipo de vendedor
@@ -41,17 +45,25 @@ interface FormData {
   password: string;
   confirmPassword: string;
 
-  // Etapa 2 Afiliado: CPF
+  // Etapa 2: Foto de Perfil
+  profile_photo_url: string;
+
+  // Etapa 3: Questionário de Qualificação
+  qualification_answers: Record<string, string>;
+  qualification_score: number;
+  qualification_level: string;
+
+  // Etapa 4 Afiliado: CPF
   cpf: string;
   
-  // Etapa 2 Parceiro: CNPJ
+  // Etapa 4 Parceiro: CNPJ
   cnpj: string;
   company_name: string;
   company_trade_name: string;
   cnae_codes: string[];
   cnpj_validation_data: any;
 
-  // Etapa 3: PIX e Termos
+  // Etapa 5: PIX e Termos
   pix_key: string;
   pix_key_type: string;
   acceptedTerms: boolean;
@@ -78,6 +90,10 @@ export default function CadastroVendedor() {
     phone: "",
     password: "",
     confirmPassword: "",
+    profile_photo_url: "",
+    qualification_answers: {},
+    qualification_score: 0,
+    qualification_level: "evaluation",
     cpf: "",
     cnpj: "",
     company_name: "",
@@ -260,6 +276,10 @@ export default function CadastroVendedor() {
         email: formData.email,
         phone: formData.phone,
         password: formData.password,
+        profile_photo_url: formData.profile_photo_url,
+        qualification_answers: formData.qualification_answers,
+        qualification_score: formData.qualification_score,
+        qualification_level: formData.qualification_level,
         pix_key: formData.pix_key,
         pix_key_type: formData.pix_key_type,
       };
@@ -307,20 +327,19 @@ export default function CadastroVendedor() {
     );
   };
 
-  const canProceedStep2Affiliate = () => cpfValid === true;
-  const canProceedStep2Partner = () => cnpjValid === true && formData.company_name;
+  const canProceedStep2Photo = () => !!formData.profile_photo_url;
+  const canProceedStep3Quiz = () => Object.keys(formData.qualification_answers).length === 6;
+  const canProceedStep4Affiliate = () => cpfValid === true;
+  const canProceedStep4Partner = () => cnpjValid === true && formData.company_name;
 
   // Número total de etapas baseado no tipo
-  const totalSteps = formData.salesperson_type === 'affiliate' ? 3 : 4;
+  // Afiliado: 0 (tipo) -> 1 (pessoais) -> 2 (foto) -> 3 (quiz) -> 4 (CPF+PIX+termos) = 5 etapas
+  // Parceiro: 0 (tipo) -> 1 (pessoais) -> 2 (foto) -> 3 (quiz) -> 4 (CNPJ) -> 5 (PIX+termos) = 6 etapas
+  const totalSteps = formData.salesperson_type === 'affiliate' ? 5 : 6;
   
   // Calcular etapa de exibição
   const getDisplayStep = () => {
     if (step === 0) return 0;
-    if (formData.salesperson_type === 'affiliate') {
-      // Afiliado: 0 (tipo) -> 1 (pessoais) -> 2 (CPF+PIX+termos)
-      return step;
-    }
-    // Parceiro: 0 (tipo) -> 1 (pessoais) -> 2 (CNPJ) -> 3 (PIX+termos)
     return step;
   };
 
@@ -352,48 +371,48 @@ export default function CadastroVendedor() {
 
         {/* Progress - só mostrar após escolher tipo */}
         {step > 0 && (
-          <div className="flex justify-center mb-8">
-            <div className="flex items-center gap-2">
+          <div className="flex justify-center mb-8 overflow-x-auto pb-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               {formData.salesperson_type === 'affiliate' ? (
-                // Progress Afiliado: 2 etapas
+                // Progress Afiliado: 4 etapas visuais
                 <>
-                  <div className={`flex items-center gap-2 ${step >= 1 ? 'text-primary' : 'text-muted-foreground'}`}>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                      1
+                  {[
+                    { num: 1, label: "Dados", icon: User },
+                    { num: 2, label: "Foto", icon: Camera },
+                    { num: 3, label: "Perfil", icon: ClipboardList },
+                    { num: 4, label: "Finalizar", icon: FileText },
+                  ].map((s, i) => (
+                    <div key={s.num} className="flex items-center">
+                      <div className={`flex items-center gap-1 ${step >= s.num ? 'text-primary' : 'text-muted-foreground'}`}>
+                        <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-sm ${step >= s.num ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                          {s.num}
+                        </div>
+                        <span className="text-xs font-medium hidden md:inline">{s.label}</span>
+                      </div>
+                      {i < 3 && <div className="w-6 sm:w-10 h-0.5 bg-muted mx-1" />}
                     </div>
-                    <span className="text-sm font-medium hidden sm:inline">Dados Pessoais</span>
-                  </div>
-                  <div className="w-12 h-0.5 bg-muted" />
-                  <div className={`flex items-center gap-2 ${step >= 2 ? 'text-primary' : 'text-muted-foreground'}`}>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                      2
-                    </div>
-                    <span className="text-sm font-medium hidden sm:inline">CPF & Termos</span>
-                  </div>
+                  ))}
                 </>
               ) : (
-                // Progress Parceiro: 3 etapas
+                // Progress Parceiro: 5 etapas visuais
                 <>
-                  <div className={`flex items-center gap-2 ${step >= 1 ? 'text-primary' : 'text-muted-foreground'}`}>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                      1
+                  {[
+                    { num: 1, label: "Dados", icon: User },
+                    { num: 2, label: "Foto", icon: Camera },
+                    { num: 3, label: "Perfil", icon: ClipboardList },
+                    { num: 4, label: "CNPJ", icon: Building2 },
+                    { num: 5, label: "Finalizar", icon: FileText },
+                  ].map((s, i) => (
+                    <div key={s.num} className="flex items-center">
+                      <div className={`flex items-center gap-1 ${step >= s.num ? 'text-primary' : 'text-muted-foreground'}`}>
+                        <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-sm ${step >= s.num ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                          {s.num}
+                        </div>
+                        <span className="text-xs font-medium hidden md:inline">{s.label}</span>
+                      </div>
+                      {i < 4 && <div className="w-6 sm:w-10 h-0.5 bg-muted mx-1" />}
                     </div>
-                    <span className="text-sm font-medium hidden sm:inline">Dados Pessoais</span>
-                  </div>
-                  <div className="w-12 h-0.5 bg-muted" />
-                  <div className={`flex items-center gap-2 ${step >= 2 ? 'text-primary' : 'text-muted-foreground'}`}>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                      2
-                    </div>
-                    <span className="text-sm font-medium hidden sm:inline">CNPJ</span>
-                  </div>
-                  <div className="w-12 h-0.5 bg-muted" />
-                  <div className={`flex items-center gap-2 ${step >= 3 ? 'text-primary' : 'text-muted-foreground'}`}>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 3 ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                      3
-                    </div>
-                    <span className="text-sm font-medium hidden sm:inline">PIX & Termos</span>
-                  </div>
+                  ))}
                 </>
               )}
             </div>
@@ -508,8 +527,81 @@ export default function CadastroVendedor() {
           </Card>
         )}
 
-        {/* Etapa 2 Afiliado: CPF + PIX + Termos (tudo junto) */}
-        {step === 2 && formData.salesperson_type === 'affiliate' && (
+        {/* Etapa 2: Foto de Perfil (ambos os tipos) */}
+        {step === 2 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Camera className="w-5 h-5" />
+                Foto de Perfil
+              </CardTitle>
+              <CardDescription>
+                Envie uma foto sua para que possamos conhecê-lo melhor
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <ProfilePhotoUpload
+                value={formData.profile_photo_url}
+                onChange={(url) => setFormData({ ...formData, profile_photo_url: url })}
+              />
+
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
+                  <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
+                </Button>
+                <Button
+                  onClick={() => setStep(3)}
+                  disabled={!canProceedStep2Photo()}
+                  className="flex-1"
+                >
+                  Próximo <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Etapa 3: Questionário de Qualificação (ambos os tipos) */}
+        {step === 3 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ClipboardList className="w-5 h-5" />
+                Conhecendo Seu Perfil
+              </CardTitle>
+              <CardDescription>
+                Responda algumas perguntas para entendermos melhor seu perfil (não é eliminatório!)
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <QualificationQuiz
+                value={formData.qualification_answers}
+                onChange={(answers, score, level) => setFormData({ 
+                  ...formData, 
+                  qualification_answers: answers,
+                  qualification_score: score,
+                  qualification_level: level
+                })}
+              />
+
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setStep(2)} className="flex-1">
+                  <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
+                </Button>
+                <Button
+                  onClick={() => setStep(4)}
+                  disabled={!canProceedStep3Quiz()}
+                  className="flex-1"
+                >
+                  Próximo <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Etapa 4 Afiliado: CPF + PIX + Termos (tudo junto) */}
+        {step === 4 && formData.salesperson_type === 'affiliate' && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -657,7 +749,7 @@ export default function CadastroVendedor() {
               </div>
 
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
+                <Button variant="outline" onClick={() => setStep(3)} className="flex-1">
                   <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
                 </Button>
                 <Button
@@ -679,8 +771,8 @@ export default function CadastroVendedor() {
           </Card>
         )}
 
-        {/* Etapa 2 Parceiro: CNPJ */}
-        {step === 2 && formData.salesperson_type === 'partner' && (
+        {/* Etapa 4 Parceiro: CNPJ */}
+        {step === 4 && formData.salesperson_type === 'partner' && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -746,12 +838,12 @@ export default function CadastroVendedor() {
               )}
 
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
+                <Button variant="outline" onClick={() => setStep(3)} className="flex-1">
                   <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
                 </Button>
                 <Button
-                  onClick={() => setStep(3)}
-                  disabled={!canProceedStep2Partner()}
+                  onClick={() => setStep(5)}
+                  disabled={!canProceedStep4Partner()}
                   className="flex-1"
                 >
                   Próximo: Dados de Pagamento <ArrowRight className="ml-2 h-4 w-4" />
@@ -761,8 +853,8 @@ export default function CadastroVendedor() {
           </Card>
         )}
 
-        {/* Etapa 3 Parceiro: PIX e Contrato */}
-        {step === 3 && formData.salesperson_type === 'partner' && (
+        {/* Etapa 5 Parceiro: PIX e Contrato */}
+        {step === 5 && formData.salesperson_type === 'partner' && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -884,7 +976,7 @@ export default function CadastroVendedor() {
               </div>
 
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setStep(2)} className="flex-1">
+                <Button variant="outline" onClick={() => setStep(4)} className="flex-1">
                   <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
                 </Button>
                 <Button

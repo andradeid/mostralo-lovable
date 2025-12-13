@@ -2,9 +2,11 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, XCircle, Eye, User, Building2 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CheckCircle2, XCircle, Eye, User, Building2, Trophy, Star, Sparkles, Medal } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { getLevelConfig, type QualificationLevel } from "@/lib/qualificationLevels";
 
 interface SalespersonCardProps {
   salesperson: {
@@ -21,6 +23,9 @@ interface SalespersonCardProps {
     salesperson_type?: string | null;
     current_month_earnings?: number | null;
     monthly_earnings_limit?: number | null;
+    profile_photo_url?: string | null;
+    qualification_score?: number | null;
+    qualification_level?: string | null;
   };
   onViewDetails: () => void;
   onApprove?: () => void;
@@ -53,16 +58,52 @@ export function SalespersonCard({
 
   const showActionButtons = salesperson.status === 'pending_approval' && onApprove && onReject;
 
+  const qualificationLevel = (salesperson.qualification_level || 'evaluation') as QualificationLevel;
+  const levelConfig = getLevelConfig(qualificationLevel);
+  const score = salesperson.qualification_score || 0;
+
+  const getQualificationIcon = () => {
+    switch (qualificationLevel) {
+      case 'top': return <Trophy className="h-3 w-3" />;
+      case 'promising': return <Star className="h-3 w-3" />;
+      case 'beginner': return <Sparkles className="h-3 w-3" />;
+      default: return <Medal className="h-3 w-3" />;
+    }
+  };
+
+  const initials = salesperson.full_name
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+
   return (
     <Card>
       <CardContent className="pt-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
-            <h3 className="font-semibold text-lg">{salesperson.full_name}</h3>
+        <div className="flex items-start gap-3 mb-4">
+          {/* Avatar */}
+          <Avatar className="h-14 w-14 border-2 border-muted">
+            <AvatarImage src={salesperson.profile_photo_url || undefined} alt={salesperson.full_name} />
+            <AvatarFallback className="text-lg font-semibold bg-primary/10 text-primary">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-lg truncate">{salesperson.full_name}</h3>
             <p className="text-sm text-muted-foreground">
               Código: {salesperson.referral_code}
             </p>
+            {/* Qualification Badge */}
+            {score > 0 && (
+              <Badge variant="outline" className={`mt-1 gap-1 text-xs ${levelConfig.color}`}>
+                {getQualificationIcon()}
+                {levelConfig.shortLabel} ({score}pts)
+              </Badge>
+            )}
           </div>
+
           <div className="flex flex-col items-end gap-1">
             {getStatusBadge(salesperson.status)}
             {isAffiliate ? (

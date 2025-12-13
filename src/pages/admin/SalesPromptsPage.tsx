@@ -4,11 +4,15 @@ import { PromptTypeSelector } from '@/components/admin/sales/PromptTypeSelector'
 import { PromptPreview } from '@/components/admin/sales/PromptPreview';
 import { SavingsCalculatorDemo } from '@/components/admin/sales/SavingsCalculatorDemo';
 import { QualificationSurveyTab } from '@/components/admin/sales/QualificationSurveyTab';
+import { RecruitmentPromptSelector } from '@/components/admin/sales/RecruitmentPromptSelector';
+import { RecruitmentPromptPreview } from '@/components/admin/sales/RecruitmentPromptPreview';
+import { RecruitmentEarningsSimulator } from '@/components/admin/sales/RecruitmentEarningsSimulator';
 import { generateSalesPrompt, PromptType } from '@/utils/salesPromptGenerator';
 import { generateColdLeadPrompt, getColdLeadProfileInfo, COLD_LEAD_PROFILES, ColdLeadProfile } from '@/utils/coldLeadPromptGenerator';
+import { generateRecruitmentPrompt, RecruitmentPromptType, BonusTier } from '@/utils/recruitmentPromptGenerator';
 import { Database } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
-import { Loader2, RefreshCw, Database as DatabaseIcon, CheckCircle, MapPin, Copy, Check, Smile, GraduationCap, BarChart3, Zap, ClipboardList } from 'lucide-react';
+import { Loader2, RefreshCw, Database as DatabaseIcon, CheckCircle, MapPin, Copy, Check, Smile, GraduationCap, BarChart3, Zap, ClipboardList, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,49 +25,57 @@ type Plan = Database['public']['Tables']['plans']['Row'];
 export default function SalesPromptsPage() {
   const [selectedType, setSelectedType] = useState<PromptType>('intermediate');
   const [selectedColdProfile, setSelectedColdProfile] = useState<ColdLeadProfile>('fun');
+  const [selectedRecruitmentType, setSelectedRecruitmentType] = useState<RecruitmentPromptType>('aggressive');
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [bonusTiers, setBonusTiers] = useState<BonusTier[]>([]);
   const [loading, setLoading] = useState(true);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [coldLeadPrompt, setColdLeadPrompt] = useState('');
+  const [recruitmentPrompt, setRecruitmentPrompt] = useState('');
   const [copiedCold, setCopiedCold] = useState(false);
 
   useEffect(() => {
-    fetchPlans();
+    fetchData();
   }, []);
 
   useEffect(() => {
     if (plans.length > 0) {
-      const prompt = generateSalesPrompt({
-        type: selectedType,
-        plans,
-      });
-      setGeneratedPrompt(prompt);
+      setGeneratedPrompt(generateSalesPrompt({ type: selectedType, plans }));
     }
   }, [selectedType, plans]);
 
   useEffect(() => {
     if (plans.length > 0) {
-      const prompt = generateColdLeadPrompt({ profile: selectedColdProfile, plans });
-      setColdLeadPrompt(prompt);
+      setColdLeadPrompt(generateColdLeadPrompt({ profile: selectedColdProfile, plans }));
     }
   }, [selectedColdProfile, plans]);
 
-  const fetchPlans = async () => {
+  useEffect(() => {
+    if (plans.length > 0) {
+      setRecruitmentPrompt(generateRecruitmentPrompt({
+        type: selectedRecruitmentType,
+        plans,
+        bonusTiers,
+        baseUrl: window.location.origin
+      }));
+    }
+  }, [selectedRecruitmentType, plans, bonusTiers]);
+
+  const fetchData = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('plans')
-        .select('*')
-        .eq('status', 'active')
-        .order('price', { ascending: true });
+      const [plansRes, tiersRes] = await Promise.all([
+        supabase.from('plans').select('*').eq('status', 'active').order('price', { ascending: true }),
+        supabase.from('salesperson_bonus_tiers').select('*').eq('is_active', true).order('min_sales', { ascending: true })
+      ]);
 
-      if (error) throw error;
-
-      setPlans(data || []);
-      toast.success('Dados atualizados com sucesso!');
+      if (plansRes.error) throw plansRes.error;
+      setPlans(plansRes.data || []);
+      setBonusTiers(tiersRes.data || []);
+      toast.success('Dados atualizados!');
     } catch (error) {
-      console.error('Erro ao buscar planos:', error);
-      toast.error('Erro ao carregar planos');
+      console.error('Erro ao buscar dados:', error);
+      toast.error('Erro ao carregar dados');
     } finally {
       setLoading(false);
     }
@@ -95,11 +107,7 @@ export default function SalesPromptsPage() {
           </p>
         </div>
         
-        <Button 
-          variant="outline" 
-          onClick={fetchPlans}
-          disabled={loading}
-        >
+        <Button variant="outline" onClick={fetchData} disabled={loading}>
           <RefreshCw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />
           Atualizar Dados
         </Button>
@@ -176,10 +184,11 @@ export default function SalesPromptsPage() {
       </Card>
 
       <Tabs defaultValue="warm" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
+        <TabsList className="grid w-full grid-cols-4 mb-6">
           <TabsTrigger value="warm">🔥 Leads Quentes</TabsTrigger>
           <TabsTrigger value="cold">🗺️ Leads Frios</TabsTrigger>
-          <TabsTrigger value="survey" className="text-primary">📊 Pesquisa de Qualificação</TabsTrigger>
+          <TabsTrigger value="survey">📊 Qualificação</TabsTrigger>
+          <TabsTrigger value="recruitment" className="text-primary">🎯 Recrutamento</TabsTrigger>
         </TabsList>
 
         <TabsContent value="warm" className="space-y-6">
@@ -325,9 +334,15 @@ export default function SalesPromptsPage() {
           </div>
         </TabsContent>
 
-        {/* Aba Pesquisa de Qualificação */}
         <TabsContent value="survey">
           <QualificationSurveyTab plans={plans} />
+        </TabsContent>
+
+        {/* Aba Recrutamento de Vendedores */}
+        <TabsContent value="recruitment" className="space-y-6">
+          <RecruitmentPromptSelector selectedType={selectedRecruitmentType} onSelectType={setSelectedRecruitmentType} />
+          <RecruitmentEarningsSimulator plans={plans} bonusTiers={bonusTiers} />
+          <RecruitmentPromptPreview prompt={recruitmentPrompt} type={selectedRecruitmentType} />
         </TabsContent>
       </Tabs>
 

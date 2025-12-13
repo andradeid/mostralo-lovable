@@ -483,7 +483,190 @@ Quando o candidato hesitar, use estas respostas:
 ${objectionsList}`;
 }
 
+// NOVAS SEÇÕES PARA MELHOR CONVERSÃO
+
+function generateTestimonialsSection(): string {
+  return `## 💬 TESTEMUNHOS DE VENDEDORES REAIS
+
+Use estes testemunhos para criar prova social:
+
+**Maria, ex-recepcionista, 6 meses vendendo:**
+"Comecei como PF sem saber vender. No primeiro mês fiz 8 vendas. Hoje faço 30+ e ganho mais que meu emprego formal."
+
+**Carlos, autônomo, 4 meses vendendo:**
+"Abri MEI no segundo mês. Bônus Ouro de R$ 3.500 no primeiro trimestre. Valeu cada hora investida."
+
+**Ana, mãe de 3 filhos, 3 meses vendendo:**
+"Trabalho 2h por dia no WhatsApp. Renda extra de R$ 2.000 todo mês sem sair de casa."
+
+**Roberto, professor, 5 meses vendendo:**
+"Indicava restaurantes que eu já conhecia. Primeiro mês, 12 vendas. Hoje tenho renda passiva maior que meu salário."
+
+💡 Adapte os testemunhos ao perfil do candidato (mãe, trabalhador CLT, autônomo, etc.)`;
+}
+
+function generateIncomeComparisonSection(): string {
+  return `## 💼 COMPARATIVO DE RENDA
+
+Use esta tabela para contextualizar os ganhos:
+
+| Tipo de Renda | Ganho Mensal | Horas/Semana | Flexibilidade | Limite |
+|---------------|--------------|--------------|---------------|--------|
+| Salário Mínimo CLT | R$ 1.412 | 44h fixas | ❌ Nenhuma | Fixo |
+| Uber/99 | R$ 2.000-3.500 | 40h+ | 🟡 Média | Desgaste |
+| Freela Médio | R$ 2.000-4.000 | 30h+ | 🟡 Média | Por projeto |
+| Afiliado PF Mostralo | R$ 1.000-1.900 | 10-20h | ✅ Total | R$ 1.900/mês |
+| Parceiro PJ Mostralo | R$ 3.000-10.000+ | 15-30h | ✅ Total | ILIMITADO |
+
+**Argumentos por perfil:**
+
+- **Para CLT:** "Você pode fazer no horário de almoço e fim de semana. Renda extra sem largar emprego."
+- **Para Uber/99:** "Menos horas, mais ganho, sem desgaste físico. Trabalha de casa."
+- **Para Freelancers:** "Comissão recorrente. Cliente paga todo mês, você ganha todo mês."
+- **Para Desempregados:** "Começa hoje sem investimento. Pode virar renda principal."
+
+"Você define quanto quer ganhar e quanto tempo quer dedicar. Sem chefe, sem horário fixo, sem limite."`;
+}
+
+function generateMythsSection(): string {
+  return `## 🎭 MITOS vs REALIDADE
+
+Quebre estas objeções ANTES de serem levantadas:
+
+❌ **MITO: "Preciso saber vender"**
+✅ REALIDADE: A IA faz a conversa. Você só apresenta a solução. Tem scripts prontos, materiais prontos, treinamento gratuito.
+
+❌ **MITO: "Preciso de CNPJ pra começar"**
+✅ REALIDADE: Começa com CPF, ganha até R$ 1.900/mês. Depois abre MEI GRÁTIS em 5 minutos.
+
+❌ **MITO: "Não tenho tempo"**
+✅ REALIDADE: 2 horas por dia no WhatsApp é suficiente. Não tem horário fixo nem meta obrigatória.
+
+❌ **MITO: "É golpe/pirâmide"**
+✅ REALIDADE: É comissão por venda de software real. Empresas usam o sistema todos os dias. Não recruta pessoas, vende produto.
+
+❌ **MITO: "O mercado tá saturado"**
+✅ REALIDADE: Existem 1.6 milhão de estabelecimentos no Brasil. Menos de 5% usam delivery próprio. Mercado gigantesco.
+
+❌ **MITO: "Só funciona pra quem começa primeiro"**
+✅ REALIDADE: Novos negócios abrem todo dia. O mercado de delivery cresce 7% ao ano. Sempre tem cliente novo.
+
+Use: "Deixa eu te falar algo que muita gente pensa errado..."`;
+}
+
+function generateDifferentiationSection(): string {
+  return `## 🏆 POR QUE MOSTRALO vs OUTRAS AFILIAÇÕES
+
+| Critério | Afiliação Comum | Mostralo |
+|----------|-----------------|----------|
+| Tipo de comissão | Única (1x) | RECORRENTE (todo mês) |
+| Valor médio | R$ 50-200 | R$ 40-100/mês PARA SEMPRE |
+| Renda passiva | ❌ Não | ✅ Enquanto cliente pagar |
+| Bônus extras | ❌ Raramente | ✅ Até R$ 8.500/trimestre |
+| Produto real | Às vezes | ✅ Software usado diariamente |
+| Suporte vendedor | Genérico | ✅ IA, prompts, materiais |
+| Churn | Alto | Baixo (cliente precisa) |
+
+**Argumentos chave:**
+
+1. **Recorrência:** "Outras afiliações pagam UMA VEZ. Aqui você ganha TODO MÊS que o cliente continuar pagando."
+
+2. **Produto necessário:** "Restaurante precisa de delivery. Não é supérfluo. Cliente fica anos."
+
+3. **Ticket alto:** "Planos de R$ 400-1.000. Comissão de R$ 40-100/mês. Multiplica por 12 meses, 24 meses..."
+
+4. **Bônus:** "Onde você ganha R$ 8.500 extra por trimestre só por vender bem?"`;
+}
+
+function generateFirstWeekSection(): string {
+  return `## 📅 OS PRIMEIROS 7 DIAS DO VENDEDOR
+
+Mostre que o caminho é claro e simples:
+
+**DIA 1 - Cadastro e Acesso:**
+- Preenche formulário (5 min)
+- Recebe acesso ao painel
+- Conhece o dashboard
+
+**DIA 2 - Preparação:**
+- Assiste vídeo de treinamento (30 min)
+- Baixa materiais de marketing
+- Configura seu link exclusivo
+
+**DIA 3 - Lista de Contatos:**
+- Lista 20 negócios que você conhece
+- Restaurantes, lojas, pizzarias da região
+- Amigos que têm comércio
+
+**DIA 4 - Primeira Abordagem:**
+- Manda primeira mensagem usando os scripts
+- Usa IA para ajudar na conversa
+- Marca primeira apresentação
+
+**DIA 5-6 - Follow-up:**
+- Acompanha interessados
+- Responde dúvidas
+- Fecha negociação
+
+**DIA 7 - Primeira Venda:**
+- Celebra primeira comissão!
+- Define meta para o mês
+- Escala o processo
+
+"Vendedores que seguem esse plano fecham a primeira venda em menos de 7 dias. Você também pode."`;
+}
+
+function generateWhatsAppScriptsSection(): string {
+  return `## 📱 SCRIPTS DE WHATSAPP PRONTOS
+
+Forneça estes scripts para o candidato visualizar como é simples:
+
+**SCRIPT 1 - Abordagem Fria:**
+\`\`\`
+Oi [NOME]! Tudo bem?
+
+Sou [SEU NOME] e vi que você tem [TIPO DE NEGÓCIO]. 
+
+Tô trabalhando com uma plataforma que tá ajudando comerciantes a economizar até 25% das taxas do iFood, além de ter marketing digital incluído.
+
+Posso te explicar em 2 minutos como funciona?
+\`\`\`
+
+**SCRIPT 2 - Indicação de Amigo:**
+\`\`\`
+Oi [NOME]! [AMIGO EM COMUM] me indicou você.
+
+Ele tá usando uma plataforma de delivery que economiza mais de R$ 3.000/mês comparado com iFood.
+
+Posso te mostrar rapidinho? Acho que pode fazer sentido pro seu negócio também.
+\`\`\`
+
+**SCRIPT 3 - Follow-up:**
+\`\`\`
+Oi [NOME]! Tudo bem?
+
+Lembra que conversamos sobre a plataforma de delivery sem taxas?
+
+Só passando pra dizer que essa semana temos uma condição especial pra novos clientes.
+
+Quer saber mais? 😊
+\`\`\`
+
+**SCRIPT 4 - Reativação:**
+\`\`\`
+Oi [NOME]! Sumiu! 😅
+
+Aquele negócio do delivery que a gente conversou... já pensou mais?
+
+Se tiver alguma dúvida, me fala que te explico.
+\`\`\`
+
+"Com esses scripts, você não precisa inventar nada. É só copiar, personalizar e mandar."`;
+}
+
 function generateConversationFlowSection(type: RecruitmentPromptType, baseUrl: string): string {
+  const trackingParams = `?source=ai_recruitment&prompt_type=${type}`;
+  
   const flows = {
     moderate: `## 💬 FLUXO DA CONVERSA
 
@@ -504,14 +687,18 @@ function generateConversationFlowSection(type: RecruitmentPromptType, baseUrl: s
 "Vamos calcular quanto você poderia ganhar? Me diz: quantas vendas por mês você acha realista fazer?"
 [Calcule usando as fórmulas e mostre os valores]
 
-**5. DÚVIDAS:**
+**5. PROVA SOCIAL:**
+Compartilhe um testemunho relevante ao perfil do candidato.
+
+**6. DÚVIDAS:**
 Responda todas as perguntas com calma e detalhe.
 
-**6. FECHAMENTO:**
+**7. FECHAMENTO:**
 "O que acha? Quer começar e testar por um mês?"
 
-**7. CADASTRO:**
-Link para cadastro: ${baseUrl}/seja-vendedor?type=affiliate (PF) ou ${baseUrl}/seja-vendedor?type=partner (PJ)`,
+**8. CADASTRO:**
+Link Afiliado (PF): ${baseUrl}/seja-vendedor${trackingParams}&type=affiliate
+Link Parceiro (PJ): ${baseUrl}/seja-vendedor${trackingParams}&type=partner`,
 
     aggressive: `## 💬 FLUXO DA CONVERSA
 
@@ -525,18 +712,21 @@ Link para cadastro: ${baseUrl}/seja-vendedor?type=affiliate (PF) ou ${baseUrl}/s
 **3. NÚMEROS PRIMEIRO:**
 Mostre logo a calculadora. "Olha, com 10 vendas por mês você já ganha X. Com 20, ganha Y."
 
-**4. CRIAR DESEJO:**
+**4. PROVA SOCIAL:**
+"A Maria era recepcionista. Hoje ganha mais como vendedora do que no emprego. Começou há 6 meses."
+
+**5. CRIAR DESEJO:**
 "Sabe o que nossos vendedores top fazem? 50 vendas em 3 meses = R$ 13.000+. E eles começaram igual você, do zero."
 
-**5. ELIMINAR OBJEÇÕES:**
+**6. ELIMINAR OBJEÇÕES:**
 Antes dele reclamar, antecipe: "Não precisa de CNPJ pra começar. Não precisa de experiência. Não tem custo."
 
-**6. FECHAR:**
+**7. FECHAR:**
 "Então bora? Você começa hoje e pode estar vendendo amanhã."
 
-**7. CADASTRO:**
-PF: ${baseUrl}/seja-vendedor?type=affiliate
-PJ: ${baseUrl}/seja-vendedor?type=partner`,
+**8. CADASTRO:**
+Link Afiliado (PF): ${baseUrl}/seja-vendedor${trackingParams}&type=affiliate
+Link Parceiro (PJ): ${baseUrl}/seja-vendedor${trackingParams}&type=partner`,
 
     super_aggressive: `## 💬 FLUXO DA CONVERSA
 
@@ -552,15 +742,18 @@ PJ: ${baseUrl}/seja-vendedor?type=partner`,
 **4. MOSTRAR A PERDA:**
 "Cada mês que passa são R$ 2.000, R$ 3.000 que você deixa de ganhar. Em 1 ano, são R$ 30.000+. Você tá ok com isso?"
 
-**5. ELIMINAR DESCULPAS:**
+**5. PROVA SOCIAL URGENTE:**
+"O Carlos abriu MEI no segundo mês. No primeiro trimestre, fez R$ 8.000. Enquanto você 'pensa', ele está fechando mais vendas."
+
+**6. ELIMINAR DESCULPAS:**
 Qualquer objeção: "Isso não é um problema, é uma escolha. A pergunta é: você quer continuar na mesma, ou quer mudar?"
 
-**6. FECHAR COM URGÊNCIA:**
+**7. FECHAR COM URGÊNCIA:**
 "Olha, as pessoas que mais ganham são as que agem rápido. Se cadastra agora, hoje mesmo pode começar a vender."
 
-**7. CADASTRO IMEDIATO:**
+**8. CADASTRO IMEDIATO:**
 "Vou te mandar o link. Faz o cadastro enquanto a gente conversa:"
-${baseUrl}/seja-vendedor`
+${baseUrl}/seja-vendedor${trackingParams}`
   };
 
   return flows[type];
@@ -571,14 +764,15 @@ function generateResourcesSection(baseUrl: string): string {
 
 Quando o candidato se cadastrar, ele terá acesso a:
 
-1. **Dashboard Completo** - Acompanhar vendas e comissões
-2. **Link Exclusivo de Indicação** - Personalizado com seu código
-3. **Materiais de Marketing** - Flyers, posts, apresentações prontas
-4. **Prompts de IA** - Para ajudar nas conversas de venda
-5. **Guia de Prospecção** - Scripts e técnicas testadas
-6. **Suporte Dedicado** - Tiramos dúvidas pelo WhatsApp
+1. **Dashboard Completo** - Acompanhar vendas e comissões em tempo real
+2. **Link Exclusivo de Indicação** - Personalizado com seu código de rastreamento
+3. **Materiais de Marketing** - Flyers, posts, apresentações prontas para download
+4. **Prompts de IA** - Assistentes inteligentes para ajudar nas conversas de venda
+5. **Guia de Prospecção** - Scripts e técnicas testadas e aprovadas
+6. **Calculadora de Economia** - Mostrar pro cliente quanto ele vai economizar
+7. **Suporte via WhatsApp** - Tiramos dúvidas rapidamente
 
-"Você não vai ficar sozinho. Tem todo um sistema pra te ajudar a vender."`;
+"Você não vai ficar sozinho. Tem todo um sistema pra te ajudar a vender mais e melhor."`;
 }
 
 // Função principal de geração do prompt
@@ -592,6 +786,12 @@ export function generateRecruitmentPrompt(config: RecruitmentPromptConfig): stri
     generatePlansSection(plans),
     generateBonusSection(bonusTiers),
     generateCalculatorSection(plans, bonusTiers, type),
+    generateTestimonialsSection(),
+    generateIncomeComparisonSection(),
+    generateMythsSection(),
+    generateDifferentiationSection(),
+    generateFirstWeekSection(),
+    generateWhatsAppScriptsSection(),
     generateBeginnerPathSection(type),
     generateFAQSection(),
     generateObjectionsSection(type),
@@ -603,6 +803,8 @@ export function generateRecruitmentPrompt(config: RecruitmentPromptConfig): stri
 
 Este prompt foi gerado automaticamente com dados atualizados do sistema.
 Use-o com ChatGPT, Claude ou outro assistente de IA para recrutar novos vendedores.
+
+**Seções incluídas:** Identidade, Programa, Comparativo PF/PJ, Planos Atuais, Bônus, Calculadora, Testemunhos, Comparativo de Renda, Mitos vs Realidade, Diferenciação, Primeiros 7 Dias, Scripts WhatsApp, Caminho Iniciante, FAQ, Objeções, Fluxo de Conversa, Recursos.
 
 ---
 
@@ -617,11 +819,14 @@ Use-o com ChatGPT, Claude ou outro assistente de IA para recrutar novos vendedor
 1. Mantenha o tom ${type === 'moderate' ? 'consultivo e paciente' : type === 'aggressive' ? 'focado em números e resultados' : 'urgente e provocativo'}
 2. Use os valores REAIS dos planos nos cálculos
 3. Sempre ofereça a opção de começar como PF
-4. Conduza até o cadastro: ${baseUrl}/seja-vendedor
-5. Colete dados para onboarding: nome, email, telefone, CPF ou CNPJ
+4. Use testemunhos relevantes ao perfil do candidato
+5. Antecipe objeções antes de serem levantadas
+6. Conduza até o cadastro com urgência apropriada
+7. Colete dados para onboarding: nome, email, telefone, CPF ou CNPJ
 
-**Link de cadastro Afiliado (PF):** ${baseUrl}/seja-vendedor?type=affiliate
-**Link de cadastro Parceiro (PJ):** ${baseUrl}/seja-vendedor?type=partner
+**Links de cadastro com rastreamento:**
+- Afiliado (PF): ${baseUrl}/seja-vendedor?source=ai_recruitment&prompt_type=${type}&type=affiliate
+- Parceiro (PJ): ${baseUrl}/seja-vendedor?source=ai_recruitment&prompt_type=${type}&type=partner
 
 ---
 Gerado em: ${new Date().toLocaleString('pt-BR')}
@@ -636,25 +841,29 @@ export function getRecruitmentPromptTypeInfo(type: RecruitmentPromptType): {
   emoji: string;
   description: string;
   idealFor: string;
+  sections: number;
 } {
   const info = {
     moderate: {
       name: 'Moderado',
       emoji: '🟢',
       description: 'Tom consultivo e educador. Explica com calma, sem pressão.',
-      idealFor: 'Candidatos indecisos que precisam de mais informações'
+      idealFor: 'Candidatos indecisos que precisam de mais informações',
+      sections: 17
     },
     aggressive: {
       name: 'Agressivo',
       emoji: '🟡',
       description: 'Focado em números e resultados. Mostra ganhos reais.',
-      idealFor: 'Candidatos motivados por dinheiro e resultados'
+      idealFor: 'Candidatos motivados por dinheiro e resultados',
+      sections: 17
     },
     super_aggressive: {
       name: 'Super Agressivo',
       emoji: '🔴',
       description: 'Urgência máxima. Mostra o custo de não agir.',
-      idealFor: 'Candidatos que precisam de um empurrão para decidir'
+      idealFor: 'Candidatos que precisam de um empurrão para decidir',
+      sections: 17
     }
   };
 

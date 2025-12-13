@@ -298,13 +298,67 @@ export default function CadastroVendedor() {
         body: payload,
       });
 
-      if (error) throw error;
+      if (error) {
+        // Tentar extrair mensagem específica do body da resposta HTTP
+        let errorMessage = "Erro ao realizar cadastro";
+        
+        if (error.context) {
+          try {
+            const errorBody = await error.context.json();
+            if (errorBody?.error) {
+              errorMessage = errorBody.error;
+              
+              // Mensagens mais amigáveis para erros de duplicidade
+              if (errorMessage.includes('CPF já cadastrado')) {
+                toast.error("Este CPF já está cadastrado. Se você já tem uma conta, tente fazer login.", {
+                  duration: 6000,
+                  action: {
+                    label: "Fazer login",
+                    onClick: () => navigate("/login"),
+                  },
+                });
+                return;
+              }
+              if (errorMessage.includes('Email já cadastrado')) {
+                toast.error("Este email já está cadastrado. Se você já tem uma conta, tente fazer login.", {
+                  duration: 6000,
+                  action: {
+                    label: "Fazer login",
+                    onClick: () => navigate("/login"),
+                  },
+                });
+                return;
+              }
+              if (errorMessage.includes('CNPJ já cadastrado')) {
+                toast.error("Este CNPJ já está cadastrado. Se você já tem uma conta, tente fazer login.", {
+                  duration: 6000,
+                  action: {
+                    label: "Fazer login",
+                    onClick: () => navigate("/login"),
+                  },
+                });
+                return;
+              }
+            }
+          } catch {
+            // Se não conseguir parsear o body, usa mensagem do error
+            if (error.message) {
+              errorMessage = error.message;
+            }
+          }
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        toast.error(errorMessage);
+        return;
+      }
 
-      if (data.success) {
+      if (data?.success) {
         toast.success(data.message);
         navigate("/cadastro-vendedor/sucesso");
       } else {
-        toast.error(data.error || "Erro ao realizar cadastro");
+        toast.error(data?.error || "Erro ao realizar cadastro");
       }
     } catch (error: any) {
       console.error("Erro no cadastro:", error);

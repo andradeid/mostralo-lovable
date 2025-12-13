@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Copy, Check, Facebook, Linkedin, MessageCircle, Instagram, ShoppingBag, Download, User } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Copy, Check, Facebook, Linkedin, MessageCircle, Instagram, ShoppingBag, Download, User, Flame, Hash, HelpCircle, Frown, Rocket, Clock, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { BonusTier } from '@/utils/recruitmentPromptGenerator';
@@ -23,10 +24,28 @@ interface PostTemplate {
   platform: string;
 }
 
+interface Headline {
+  id: string;
+  short: string;
+  long: string;
+  tip: string;
+}
+
+interface HeadlineCategory {
+  id: string;
+  name: string;
+  emoji: string;
+  icon: React.ReactNode;
+  color: string;
+  description: string;
+  headlines: Headline[];
+}
+
 export function RecruitmentPostsGenerator({ bonusTiers }: RecruitmentPostsGeneratorProps) {
   const [recruiterName, setRecruiterName] = useState('');
   const [recruiterWhatsApp, setRecruiterWhatsApp] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [openCategories, setOpenCategories] = useState<string[]>(['provocativas']);
 
   const baseUrl = window.location.origin;
   const signupLink = `${baseUrl}/seja-vendedor`;
@@ -45,6 +64,109 @@ export function RecruitmentPostsGenerator({ bonusTiers }: RecruitmentPostsGenera
       return `\n\n👤 ${recruiterName}`;
     }
     return '';
+  };
+
+  // Headlines estratégicas por categoria
+  const headlineCategories: HeadlineCategory[] = [
+    {
+      id: 'provocativas',
+      name: 'Provocativas',
+      emoji: '🔥',
+      icon: <Flame className="h-4 w-4" />,
+      color: 'text-red-500',
+      description: 'Geram reação emocional e curiosidade',
+      headlines: [
+        { id: 'prov-1', short: 'Cansou de enriquecer seu chefe?', long: 'Cansou de bater meta pra enriquecer seu chefe enquanto você mal paga as contas?', tip: 'Facebook, WhatsApp' },
+        { id: 'prov-2', short: 'Seu salário paga suas contas?', long: 'Seu salário mal paga as contas e você continua aceitando isso?', tip: 'Facebook, Instagram' },
+        { id: 'prov-3', short: 'Trabalha muito e ganha pouco?', long: 'Trabalha 8h por dia pra ganhar pouco e ainda agradecer?', tip: 'WhatsApp Status' },
+        { id: 'prov-4', short: 'Chefe te trata como número?', long: 'Seu chefe te trata como número e você ainda defende a empresa?', tip: 'LinkedIn, Facebook' },
+      ]
+    },
+    {
+      id: 'numeros',
+      name: 'Com Números',
+      emoji: '💰',
+      icon: <Hash className="h-4 w-4" />,
+      color: 'text-green-500',
+      description: 'Prova social e valores concretos',
+      headlines: [
+        { id: 'num-1', short: `R$ 1.000 a R$ 10.000/mês de casa`, long: `Ganhe de R$ 1.000 a R$ 10.000 por mês trabalhando de casa, sem horário fixo`, tip: 'Todas as plataformas' },
+        { id: 'num-2', short: `Bônus de até ${formattedTotalBonus}/trimestre`, long: `Além da comissão, receba bônus de até ${formattedTotalBonus} por trimestre`, tip: 'LinkedIn, Facebook' },
+        { id: 'num-3', short: '10% de comissão por venda', long: 'Ganhe 10% de comissão em cada venda - e o cliente paga TODO mês', tip: 'OLX, Facebook' },
+        { id: 'num-4', short: 'R$ 400 por cliente, todo mês', long: 'Cada cliente vale R$ 400/mês pra você. Quantos você consegue?', tip: 'WhatsApp, Instagram' },
+      ]
+    },
+    {
+      id: 'perguntas',
+      name: 'Perguntas',
+      emoji: '🤔',
+      icon: <HelpCircle className="h-4 w-4" />,
+      color: 'text-blue-500',
+      description: 'Geram curiosidade e engajamento',
+      headlines: [
+        { id: 'perg-1', short: 'E se você ganhasse TODO mês?', long: 'E se cada cliente que você vendesse pagasse comissão TODO mês, pra sempre?', tip: 'Facebook, LinkedIn' },
+        { id: 'perg-2', short: 'Quanto vale sua hora hoje?', long: 'Quanto você ganha por hora hoje? E se pudesse ganhar R$ 50, R$ 100 por hora?', tip: 'Instagram, WhatsApp' },
+        { id: 'perg-3', short: 'Você está satisfeito com seu salário?', long: 'Você está satisfeito com o quanto ganha ou só se conformou?', tip: 'LinkedIn, Facebook' },
+        { id: 'perg-4', short: 'Home office interessa?', long: 'Trabalhar de casa, sem horário fixo e ganhando bem te interessa?', tip: 'Todas as plataformas' },
+      ]
+    },
+    {
+      id: 'dor',
+      name: 'Dor / Problema',
+      emoji: '😤',
+      icon: <Frown className="h-4 w-4" />,
+      color: 'text-orange-500',
+      description: 'Identificação com frustrações reais',
+      headlines: [
+        { id: 'dor-1', short: 'Bateu meta e perdeu o bônus?', long: 'Bateu meta o mês todo e o bônus sumiu no mês seguinte?', tip: 'Facebook, LinkedIn' },
+        { id: 'dor-2', short: 'Cansou de depender de patrão?', long: 'Cansou de depender de patrão pra ter dinheiro no final do mês?', tip: 'WhatsApp, Instagram' },
+        { id: 'dor-3', short: 'Trânsito te rouba horas?', long: 'Perde 2-3 horas por dia no trânsito indo trabalhar pra ganhar pouco?', tip: 'Facebook, OLX' },
+        { id: 'dor-4', short: 'CLT te dá segurança?', long: 'Sua CLT te dá "segurança" mas não sobra dinheiro pro fim de semana?', tip: 'LinkedIn, Facebook' },
+      ]
+    },
+    {
+      id: 'aspiracionais',
+      name: 'Aspiracionais',
+      emoji: '🚀',
+      icon: <Rocket className="h-4 w-4" />,
+      color: 'text-purple-500',
+      description: 'Despertam desejo e sonhos',
+      headlines: [
+        { id: 'asp-1', short: 'Acorde e veja dinheiro caindo', long: 'Imagine acordar e ver dinheiro caindo na conta de clientes que você vendeu meses atrás', tip: 'Instagram, Facebook' },
+        { id: 'asp-2', short: 'Trabalhe de qualquer lugar', long: 'Trabalhe da praia, de casa, do café - onde você quiser, quando quiser', tip: 'Instagram, WhatsApp' },
+        { id: 'asp-3', short: 'Sua agenda, suas regras', long: 'Chega de bater ponto. Sua agenda, suas regras, seu dinheiro', tip: 'Facebook, LinkedIn' },
+        { id: 'asp-4', short: 'Liberdade financeira é real', long: 'Liberdade financeira não é sonho. É decisão. Quer dar o primeiro passo?', tip: 'Todas as plataformas' },
+      ]
+    },
+    {
+      id: 'urgencia',
+      name: 'Urgência / FOMO',
+      emoji: '⏰',
+      icon: <Clock className="h-4 w-4" />,
+      color: 'text-yellow-500',
+      description: 'Criam senso de escassez',
+      headlines: [
+        { id: 'urg-1', short: '3 vagas. Amanhã não tem.', long: 'Só tenho 3 vagas na minha equipe. Amanhã não vou mais aceitar.', tip: 'WhatsApp, Instagram' },
+        { id: 'urg-2', short: 'Última chamada esta semana', long: 'Última chamada pra entrar no time esta semana. Depois só mês que vem.', tip: 'Facebook, WhatsApp' },
+        { id: 'urg-3', short: 'Enquanto você pensa, outros agem', long: 'Enquanto você pensa se vale a pena, outros já estão ganhando.', tip: 'LinkedIn, Facebook' },
+        { id: 'urg-4', short: 'O mercado não espera', long: 'O mercado de delivery cresce todo dia. Vai ficar só olhando?', tip: 'Todas as plataformas' },
+      ]
+    }
+  ];
+
+  const toggleCategory = (categoryId: string) => {
+    setOpenCategories(prev => 
+      prev.includes(categoryId) 
+        ? prev.filter(id => id !== categoryId)
+        : [...prev, categoryId]
+    );
+  };
+
+  const handleCopyHeadline = async (id: string, text: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    toast.success('Frase copiada!');
+    setTimeout(() => setCopiedId(null), 2000);
   };
 
   // Templates do Facebook
@@ -391,6 +513,107 @@ Comenta "EU QUERO" 👇${getRecruiterInfo()}`,
 
   return (
     <div className="space-y-6">
+      {/* Headlines Estratégicas */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Flame className="h-5 w-5 text-orange-500" />
+            Headlines Estratégicas
+          </CardTitle>
+          <CardDescription>
+            Frases de abertura poderosas categorizadas por gatilho mental. Use no início dos seus posts.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {headlineCategories.map((category) => (
+            <Collapsible 
+              key={category.id}
+              open={openCategories.includes(category.id)}
+              onOpenChange={() => toggleCategory(category.id)}
+            >
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between h-auto py-3"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className={cn("p-1.5 rounded-md bg-muted", category.color)}>
+                      {category.icon}
+                    </span>
+                    <div className="text-left">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{category.emoji} {category.name}</span>
+                        <Badge variant="secondary" className="text-xs">
+                          {category.headlines.length} frases
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground font-normal">
+                        {category.description}
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronDown className={cn(
+                    "h-4 w-4 transition-transform",
+                    openCategories.includes(category.id) && "rotate-180"
+                  )} />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-2">
+                <div className="grid gap-2 pl-2 border-l-2 border-muted ml-4">
+                  {category.headlines.map((headline) => (
+                    <div 
+                      key={headline.id}
+                      className="bg-muted/50 rounded-lg p-3 space-y-2"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 space-y-1">
+                          <p className="font-medium text-sm">"{headline.short}"</p>
+                          <p className="text-xs text-muted-foreground">"{headline.long}"</p>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2"
+                            onClick={() => handleCopyHeadline(`${headline.id}-short`, headline.short)}
+                          >
+                            {copiedId === `${headline.id}-short` ? (
+                              <Check className="h-3 w-3 text-green-500" />
+                            ) : (
+                              <Copy className="h-3 w-3" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2"
+                            onClick={() => handleCopyHeadline(`${headline.id}-long`, headline.long)}
+                          >
+                            {copiedId === `${headline.id}-long` ? (
+                              <Check className="h-3 w-3 text-green-500" />
+                            ) : (
+                              <>
+                                <Copy className="h-3 w-3 mr-1" />
+                                <span className="text-xs">Longa</span>
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Badge variant="outline" className="text-xs">
+                          💡 {headline.tip}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          ))}
+        </CardContent>
+      </Card>
+
       {/* Personalização */}
       <Card>
         <CardHeader>

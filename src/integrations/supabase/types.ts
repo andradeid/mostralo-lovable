@@ -3956,6 +3956,7 @@ export type Database = {
           payment_instructions: string | null
           pix_key: string
           pix_key_type: string
+          support_email: string | null
           support_whatsapp: string | null
           support_whatsapp_message: string | null
           updated_at: string | null
@@ -3974,6 +3975,7 @@ export type Database = {
           payment_instructions?: string | null
           pix_key: string
           pix_key_type: string
+          support_email?: string | null
           support_whatsapp?: string | null
           support_whatsapp_message?: string | null
           updated_at?: string | null
@@ -3992,6 +3994,7 @@ export type Database = {
           payment_instructions?: string | null
           pix_key?: string
           pix_key_type?: string
+          support_email?: string | null
           support_whatsapp?: string | null
           support_whatsapp_message?: string | null
           updated_at?: string | null

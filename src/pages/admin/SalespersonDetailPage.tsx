@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, CheckCircle2, XCircle, User, Building2 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ArrowLeft, CheckCircle2, XCircle, User, Building2, Trophy, Star, Sparkles, Medal, ClipboardList, Target, Users } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CommissionConfigForm } from "@/components/admin/salespeople/CommissionConfigForm";
@@ -13,7 +14,65 @@ import { ApprovalDialog } from "@/components/admin/salespeople/ApprovalDialog";
 import { RejectionDialog } from "@/components/admin/salespeople/RejectionDialog";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { getLevelConfig, type QualificationLevel } from "@/lib/qualificationLevels";
 
+// Definição das perguntas para exibir as respostas
+const QUESTIONS = [
+  {
+    id: "experience",
+    question: "Você já trabalhou com vendas antes?",
+    options: [
+      { value: "yes_years", label: "Sim, tenho mais de 2 anos de experiência", points: 25 },
+      { value: "yes_some", label: "Sim, tenho alguma experiência (menos de 2 anos)", points: 15 },
+      { value: "no", label: "Não, mas estou disposto(a) a aprender", points: 10 },
+    ],
+  },
+  {
+    id: "availability",
+    question: "Quantas horas por semana você pode dedicar?",
+    options: [
+      { value: "full", label: "30+ horas (dedicação integral)", points: 20 },
+      { value: "partial", label: "15-30 horas (tempo parcial)", points: 15 },
+      { value: "casual", label: "5-15 horas (casual)", points: 8 },
+    ],
+  },
+  {
+    id: "network",
+    question: "Você conhece empresários ou donos de restaurantes/comércios?",
+    options: [
+      { value: "many", label: "Sim, conheço vários na minha região", points: 20 },
+      { value: "some", label: "Conheço alguns que posso abordar", points: 12 },
+      { value: "few", label: "Não conheço, mas sei como prospectar", points: 8 },
+    ],
+  },
+  {
+    id: "digital",
+    question: "Como você avalia suas habilidades digitais?",
+    options: [
+      { value: "advanced", label: "Avançado - uso várias ferramentas digitais", points: 15 },
+      { value: "intermediate", label: "Intermediário - me viro bem com tecnologia", points: 10 },
+      { value: "basic", label: "Básico - preciso de ajuda às vezes", points: 5 },
+    ],
+  },
+  {
+    id: "communication",
+    question: "Como você prefere se comunicar com clientes?",
+    options: [
+      { value: "all", label: "Presencial, telefone e WhatsApp", points: 12 },
+      { value: "remote", label: "Principalmente WhatsApp e telefone", points: 8 },
+      { value: "digital", label: "Prefiro comunicação por texto", points: 5 },
+    ],
+  },
+  {
+    id: "goal",
+    question: "Qual é sua principal motivação para ser vendedor?",
+    options: [
+      { value: "main_income", label: "Quero fazer disso minha renda principal", points: 8 },
+      { value: "extra_income", label: "Busco uma renda extra consistente", points: 6 },
+      { value: "trying", label: "Quero experimentar e ver se gosto", points: 4 },
+    ],
+  },
+];
 export default function SalespersonDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -46,6 +105,22 @@ export default function SalespersonDetailPage() {
 
       if (error && error.code !== "PGRST116") throw error;
       return data;
+    },
+  });
+
+  // Buscar métricas de performance
+  const { data: metrics } = useQuery({
+    queryKey: ["salesperson-metrics", id],
+    queryFn: async () => {
+      const [leadsRes, clientsRes] = await Promise.all([
+        supabase.from("leads").select("id").eq("salesperson_id", id),
+        supabase.from("payment_approvals").select("id").eq("referred_by_salesperson_id", id).eq("status", "approved"),
+      ]);
+
+      return {
+        leads_count: leadsRes.data?.length || 0,
+        clients_count: clientsRes.data?.length || 0,
+      };
     },
   });
 
@@ -129,17 +204,67 @@ export default function SalespersonDetailPage() {
   const monthlyLimit = salesperson.monthly_earnings_limit || 1900;
   const monthlyPercentage = Math.min((monthlyUsed / monthlyLimit) * 100, 100);
 
+  const qualificationLevel = (salesperson.qualification_level || 'evaluation') as QualificationLevel;
+  const levelConfig = getLevelConfig(qualificationLevel);
+  const score = salesperson.qualification_score || 0;
+  const qualificationAnswers = salesperson.qualification_answers as Record<string, string> | null;
+
+  const getQualificationIcon = () => {
+    switch (qualificationLevel) {
+      case 'top': return <Trophy className="h-4 w-4" />;
+      case 'promising': return <Star className="h-4 w-4" />;
+      case 'beginner': return <Sparkles className="h-4 w-4" />;
+      default: return <Medal className="h-4 w-4" />;
+    }
+  };
+
+  const initials = salesperson.full_name
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard/salespeople")}>
+      {/* Header com foto grande */}
+      <div className="flex items-start gap-6">
+        <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard/salespeople")} className="mt-2">
           <ArrowLeft className="h-5 w-5" />
         </Button>
+        
+        {/* Foto de perfil grande */}
+        <Avatar className="h-28 w-28 border-4 border-muted">
+          <AvatarImage src={salesperson.profile_photo_url || undefined} alt={salesperson.full_name} />
+          <AvatarFallback className="text-3xl font-bold bg-primary/10 text-primary">
+            {initials}
+          </AvatarFallback>
+        </Avatar>
+
         <div className="flex-1">
           <h1 className="text-3xl font-bold">{salesperson.full_name}</h1>
           <p className="text-muted-foreground">Código: {salesperson.referral_code}</p>
+          
+          {/* Badges de qualificação e métricas */}
+          <div className="flex flex-wrap items-center gap-2 mt-3">
+            {score > 0 && (
+              <Badge variant="outline" className={`gap-1 ${levelConfig.color}`}>
+                {getQualificationIcon()}
+                {levelConfig.label} ({score}pts)
+              </Badge>
+            )}
+            <Badge variant="outline" className="gap-1">
+              <Target className="h-3 w-3 text-blue-500" />
+              {metrics?.leads_count || 0} leads
+            </Badge>
+            <Badge variant="outline" className="gap-1">
+              <Users className="h-3 w-3 text-green-500" />
+              {metrics?.clients_count || 0} clientes
+            </Badge>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex flex-col items-end gap-2">
           {isAffiliate ? (
             <Badge variant="outline" className="gap-1">
               <User className="h-3 w-3" />
@@ -310,6 +435,58 @@ export default function SalespersonDetailPage() {
           currentConfig={commissionConfig}
           onSuccess={() => refetch()}
         />
+
+        {/* Questionário de Qualificação */}
+        {qualificationAnswers && Object.keys(qualificationAnswers).length > 0 && (
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ClipboardList className="h-5 w-5" />
+                Questionário de Qualificação
+              </CardTitle>
+              <CardDescription>
+                Respostas do questionário de perfil
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {QUESTIONS.map((q, index) => {
+                const answer = qualificationAnswers[q.id];
+                const selectedOption = q.options.find(o => o.value === answer);
+                
+                if (!answer) return null;
+                
+                return (
+                  <div key={q.id} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-sm font-bold shrink-0">
+                      {index + 1}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm">{q.question}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
+                        <span className="text-sm text-muted-foreground">{selectedOption?.label}</span>
+                        <Badge variant="outline" className="ml-auto text-xs">
+                          +{selectedOption?.points}pts
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Score total */}
+              <div className={`flex items-center justify-between p-4 rounded-lg border-2 ${levelConfig.color}`}>
+                <div className="flex items-center gap-2">
+                  {getQualificationIcon()}
+                  <span className="font-semibold">{levelConfig.label}</span>
+                </div>
+                <Badge variant="outline" className="text-lg px-3 py-1">
+                  {score}/100 pts
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {salesperson.status === "rejected" && salesperson.rejection_reason && (

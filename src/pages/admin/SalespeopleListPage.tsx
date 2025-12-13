@@ -24,15 +24,50 @@ export default function SalespeopleListPage() {
   const [selectedSalesperson, setSelectedSalesperson] = useState<any>(null);
 
   const { data: salespeople, isLoading, refetch } = useQuery({
-    queryKey: ["salespeople"],
+    queryKey: ["salespeople-with-metrics"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Buscar vendedores
+      const { data: spData, error: spError } = await supabase
         .from("salespeople")
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return data;
+      if (spError) throw spError;
+      if (!spData) return [];
+
+      // Buscar contagem de leads por vendedor
+      const { data: leadsData } = await supabase
+        .from("leads")
+        .select("salesperson_id");
+
+      // Buscar contagem de clientes convertidos por vendedor
+      const { data: clientsData } = await supabase
+        .from("payment_approvals")
+        .select("referred_by_salesperson_id")
+        .eq("status", "approved");
+
+      // Agregar métricas
+      const leadsCount: Record<string, number> = {};
+      const clientsCount: Record<string, number> = {};
+
+      leadsData?.forEach((lead) => {
+        if (lead.salesperson_id) {
+          leadsCount[lead.salesperson_id] = (leadsCount[lead.salesperson_id] || 0) + 1;
+        }
+      });
+
+      clientsData?.forEach((client) => {
+        if (client.referred_by_salesperson_id) {
+          clientsCount[client.referred_by_salesperson_id] = (clientsCount[client.referred_by_salesperson_id] || 0) + 1;
+        }
+      });
+
+      // Adicionar métricas aos vendedores
+      return spData.map((sp) => ({
+        ...sp,
+        leads_count: leadsCount[sp.id] || 0,
+        clients_count: clientsCount[sp.id] || 0,
+      }));
     },
   });
 

@@ -934,6 +934,89 @@ Quando o candidato se cadastrar, ele terá acesso a:
 "Você não vai ficar sozinho. Tem todo um sistema pra te ajudar a vender mais e melhor."`;
 }
 
+// Novas seções: Primeiro Mês e Scripts de Áudio
+
+function generateFirstMonthSection(): string {
+  return `## 📅 PRIMEIROS 30 DIAS - O QUE ESPERAR
+
+**Expectativas realistas para o primeiro mês:**
+
+| Aspecto | O que esperar |
+|---------|---------------|
+| 🎯 Meta realista | 3 a 8 vendas |
+| 💰 Ganho típico | R$ 200 a R$ 800 |
+| ⏰ Tempo necessário | 10 a 15 horas por semana |
+| 📚 Curva de aprendizado | Normal - melhora a cada semana |
+
+**Mensagem para o candidato:**
+"O primeiro mês é para APRENDER. Não se cobre resultados extraordinários logo de cara. O importante é:
+1. Entender o produto
+2. Testar as abordagens
+3. Fazer suas primeiras vendas
+4. Ganhar confiança
+
+Os resultados grandes vêm a partir do segundo mês, quando você dominar as técnicas e tiver mais segurança."
+
+**Marcos do primeiro mês:**
+- **Semana 1:** Conhecer o sistema, materiais e fazer lista de contatos
+- **Semana 2:** Primeiras abordagens, aprender com as rejeições
+- **Semana 3:** Ajustar abordagem, primeira(s) venda(s)
+- **Semana 4:** Consolidar, definir meta pro mês 2
+
+**⚠️ IMPORTANTE:** Não prometa resultados irreais. Um vendedor com expectativas corretas fica mais tempo e vende mais a longo prazo.`;
+}
+
+function generateAudioScriptsSection(): string {
+  return `## 🎤 SCRIPTS DE ÁUDIO PARA WHATSAPP
+
+Roteiros prontos para gravar e enviar como áudio (mais pessoal que texto):
+
+**ÁUDIO 1 - Apresentação (30 segundos):**
+\`\`\`
+"Oi [NOME]! Aqui é [SEU NOME]. Tô te mandando esse áudio rapidinho porque tô recrutando pessoas pra trabalhar comigo numa plataforma de delivery e marketing digital.
+
+É renda extra, trabalha de casa, no seu horário, sem meta obrigatória. Você ganha comissão por cada cliente que indicar.
+
+Se tiver interesse ou conhecer alguém que tá precisando de renda extra, me chama que eu explico melhor. Abraço!"
+\`\`\`
+
+**ÁUDIO 2 - Follow-up (15 segundos):**
+\`\`\`
+"E aí [NOME]! Tudo bem?
+
+Lembra que te mandei sobre aquela oportunidade de vendedor? Surgiu alguém que poderia se interessar?
+
+Me avisa quando puder! 😊"
+\`\`\`
+
+**ÁUDIO 3 - Fechamento (20 segundos):**
+\`\`\`
+"Oi [NOME]! Então, sobre o que conversamos...
+
+Nossos vendedores tão fazendo de R$ 2.000 a R$ 5.000 por mês trabalhando algumas horas por dia.
+
+Quer que eu te mande o link pra você se cadastrar? É rapidinho e você pode começar ainda hoje!"
+\`\`\`
+
+**ÁUDIO 4 - Após Interesse (25 segundos):**
+\`\`\`
+"Que legal que você tem interesse, [NOME]!
+
+Funciona assim: você indica restaurantes, lojas, qualquer negócio que venda produtos. Quando eles assinam, você ganha comissão - de 7 a 10% dependendo se você é PF ou PJ.
+
+O mais legal é que você ganha TODO MÊS que o cliente continuar pagando. Renda passiva de verdade.
+
+Vou te mandar o link de cadastro agora, tá?"
+\`\`\`
+
+**DICAS PARA GRAVAR:**
+- Fale naturalmente, como se fosse um amigo
+- Sorria enquanto grava (a voz transmite isso)
+- Não leia, fale de coração
+- Mantenha energia positiva
+- Áudios curtos = mais chances de serem ouvidos`;
+}
+
 // Função principal de geração do prompt
 export function generateRecruitmentPrompt(config: RecruitmentPromptConfig): string {
   const { type, plans, bonusTiers, baseUrl } = config;
@@ -945,6 +1028,8 @@ export function generateRecruitmentPrompt(config: RecruitmentPromptConfig): stri
     generatePlansSection(plans),
     generateBonusSection(bonusTiers),
     generateCalculatorSection(plans, bonusTiers, type),
+    generateFirstMonthSection(), // NOVA SEÇÃO
+    generateAudioScriptsSection(), // NOVA SEÇÃO
     generateTestimonialsSection(),
     generateIncomeComparisonSection(),
     generateMythsSection(),
@@ -966,7 +1051,7 @@ export function generateRecruitmentPrompt(config: RecruitmentPromptConfig): stri
 Este prompt foi gerado automaticamente com dados atualizados do sistema.
 Use-o com ChatGPT, Claude ou outro assistente de IA para recrutar novos vendedores.
 
-**Seções incluídas:** Identidade, Programa, Comparativo PF/PJ, Planos Atuais, Bônus, Calculadora, Testemunhos, Comparativo de Renda, Mitos vs Realidade, Diferenciação, Primeiros 7 Dias, Scripts WhatsApp, Caminho Iniciante, FAQ, Objeções, Fluxo de Conversa, Recursos.
+**Seções incluídas:** Identidade, Programa, Comparativo PF/PJ, Planos Atuais, Bônus, Calculadora, Primeiro Mês, Scripts de Áudio, Testemunhos, Comparativo de Renda, Mitos vs Realidade, Diferenciação, Primeiros 7 Dias, Scripts WhatsApp, Caminho Iniciante, FAQ, Objeções, Fluxo de Conversa, Recursos.
 ---
 
 `;
@@ -984,6 +1069,8 @@ Use-o com ChatGPT, Claude ou outro assistente de IA para recrutar novos vendedor
 5. Antecipe objeções antes de serem levantadas
 6. Conduza até o cadastro com urgência apropriada
 7. Colete dados para onboarding: nome, email, telefone, CPF ou CNPJ
+8. Use os scripts de áudio para abordagens mais pessoais
+9. Defina expectativas realistas para o primeiro mês
 
 **Links de cadastro com rastreamento:**
 - Afiliado (PF): ${baseUrl}/seja-vendedor?source=ai_recruitment&prompt_type=${type}&type=affiliate
@@ -1010,28 +1097,28 @@ export function getRecruitmentPromptTypeInfo(type: RecruitmentPromptType): {
       emoji: '❄️',
       description: 'Prospecção inicial leve. Pergunta interesse e pede indicações.',
       idealFor: 'Abordar pessoas que NÃO estão buscando trabalho',
-      sections: 18
+      sections: 20
     },
     moderate: {
       name: 'Moderado',
       emoji: '🟢',
       description: 'Tom consultivo e educador. Explica com calma, sem pressão.',
       idealFor: 'Candidatos indecisos que precisam de mais informações',
-      sections: 17
+      sections: 19
     },
     aggressive: {
       name: 'Agressivo',
       emoji: '🟡',
       description: 'Focado em números e resultados. Mostra ganhos reais.',
       idealFor: 'Candidatos motivados por dinheiro e resultados',
-      sections: 17
+      sections: 19
     },
     super_aggressive: {
       name: 'Super Agressivo',
       emoji: '🔴',
       description: 'Urgência máxima. Mostra o custo de não agir.',
       idealFor: 'Candidatos que precisam de um empurrão para decidir',
-      sections: 17
+      sections: 19
     }
   };
 

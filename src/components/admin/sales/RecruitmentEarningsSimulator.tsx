@@ -1,13 +1,15 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Calculator, TrendingUp, Award, ArrowRight, Target, Calendar, Rocket } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Calculator, TrendingUp, Award, ArrowRight, Target, Calendar, Rocket, Clock, Copy, User } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
 import { BonusTier, calculateEarnings, formatCurrency } from '@/utils/recruitmentPromptGenerator';
 import { cn } from '@/lib/utils';
+import { toast } from '@/hooks/use-toast';
 
 type Plan = Database['public']['Tables']['plans']['Row'];
 
@@ -16,24 +18,50 @@ interface RecruitmentEarningsSimulatorProps {
   bonusTiers: BonusTier[];
 }
 
-type Scenario = 'conservative' | 'moderate' | 'optimistic';
+type DedicationProfile = 'casual' | 'dedicated' | 'fulltime';
+
+const DEDICATION_PROFILES: Record<DedicationProfile, { 
+  label: string; 
+  emoji: string; 
+  hoursPerWeek: number; 
+  salesPerMonth: number;
+  description: string;
+}> = {
+  casual: { 
+    label: 'Casual', 
+    emoji: '☕', 
+    hoursPerWeek: 5, 
+    salesPerMonth: 4,
+    description: 'Algumas horas por semana'
+  },
+  dedicated: { 
+    label: 'Dedicado', 
+    emoji: '💼', 
+    hoursPerWeek: 15, 
+    salesPerMonth: 12,
+    description: 'Meio período'
+  },
+  fulltime: { 
+    label: 'Full-time', 
+    emoji: '🚀', 
+    hoursPerWeek: 30, 
+    salesPerMonth: 25,
+    description: 'Dedicação total'
+  }
+};
 
 export function RecruitmentEarningsSimulator({ plans, bonusTiers }: RecruitmentEarningsSimulatorProps) {
   const [salesPerMonth, setSalesPerMonth] = useState(10);
   const [selectedPlanId, setSelectedPlanId] = useState<string>(plans[Math.floor(plans.length / 2)]?.id || plans[0]?.id || '');
   const [affiliateType, setAffiliateType] = useState<'pf' | 'pj'>('pj');
-  const [scenario, setScenario] = useState<Scenario>('moderate');
+  const [dedicationProfile, setDedicationProfile] = useState<DedicationProfile>('dedicated');
+  const [hoursPerWeek, setHoursPerWeek] = useState(15);
 
-  const scenarioMultipliers: Record<Scenario, number> = {
-    conservative: 0.5,
-    moderate: 1,
-    optimistic: 1.5
-  };
-
-  const scenarioLabels: Record<Scenario, { label: string; emoji: string; color: string }> = {
-    conservative: { label: 'Conservador', emoji: '🐢', color: 'text-yellow-600' },
-    moderate: { label: 'Moderado', emoji: '⚖️', color: 'text-blue-600' },
-    optimistic: { label: 'Otimista', emoji: '🚀', color: 'text-green-600' }
+  // Sincronizar horas com perfil de dedicação
+  const handleProfileChange = (profile: DedicationProfile) => {
+    setDedicationProfile(profile);
+    setHoursPerWeek(DEDICATION_PROFILES[profile].hoursPerWeek);
+    setSalesPerMonth(DEDICATION_PROFILES[profile].salesPerMonth);
   };
 
   const selectedPlan = useMemo(() => 
@@ -48,32 +76,33 @@ export function RecruitmentEarningsSimulator({ plans, bonusTiers }: RecruitmentE
       : selectedPlan.price;
   }, [selectedPlan]);
 
-  // Vendas ajustadas pelo cenário
-  const adjustedSales = useMemo(() => 
-    Math.round(salesPerMonth * scenarioMultipliers[scenario]),
-    [salesPerMonth, scenario]
-  );
-
   const earnings = useMemo(() => 
-    calculateEarnings(adjustedSales, planPrice, affiliateType, bonusTiers),
-    [adjustedSales, planPrice, affiliateType, bonusTiers]
+    calculateEarnings(salesPerMonth, planPrice, affiliateType, bonusTiers),
+    [salesPerMonth, planPrice, affiliateType, bonusTiers]
   );
 
   const pfEarnings = useMemo(() => 
     affiliateType === 'pj' 
-      ? calculateEarnings(adjustedSales, planPrice, 'pf', bonusTiers)
+      ? calculateEarnings(salesPerMonth, planPrice, 'pf', bonusTiers)
       : null,
-    [adjustedSales, planPrice, affiliateType, bonusTiers]
+    [salesPerMonth, planPrice, affiliateType, bonusTiers]
   );
 
   // Ganhos anuais e 5 anos
   const annualEarnings = useMemo(() => earnings.totalQuarterly * 4, [earnings]);
   const fiveYearEarnings = useMemo(() => annualEarnings * 5, [annualEarnings]);
 
+  // Ganho por hora
+  const earningsPerHour = useMemo(() => {
+    const hoursPerMonth = hoursPerWeek * 4;
+    if (hoursPerMonth === 0) return 0;
+    return earnings.monthlyAverage / hoursPerMonth;
+  }, [earnings.monthlyAverage, hoursPerWeek]);
+
   // Determinar tier alcançado e próximo (só PJ)
   const tierInfo = useMemo(() => {
     if (affiliateType === 'pf' || !bonusTiers.length) return null;
-    const quarterlySales = adjustedSales * 3;
+    const quarterlySales = salesPerMonth * 3;
     const sortedTiers = [...bonusTiers].sort((a, b) => a.min_sales - b.min_sales);
     
     let achievedTier = null;
@@ -97,24 +126,99 @@ export function RecruitmentEarningsSimulator({ plans, bonusTiers }: RecruitmentE
     }
 
     return { achievedTier, nextTier, salesForNextTier };
-  }, [adjustedSales, affiliateType, bonusTiers]);
+  }, [salesPerMonth, affiliateType, bonusTiers]);
+
+  // Copiar resumo para área de transferência
+  const handleCopySimulation = useCallback(() => {
+    const profile = DEDICATION_PROFILES[dedicationProfile];
+    const tierName = tierInfo?.achievedTier?.tier_name || 'Nenhum';
+    
+    const text = `📊 SIMULAÇÃO DE GANHOS - VENDEDOR ${affiliateType.toUpperCase()}
+
+🎯 Perfil: ${profile.emoji} ${profile.label} (${hoursPerWeek}h/semana)
+📈 Vendas: ${salesPerMonth}/mês (${salesPerMonth * 3}/trimestre)
+💼 Plano: ${selectedPlan?.name} (${formatCurrency(planPrice)})
+
+💰 GANHOS:
+• Comissão Mensal: ${formatCurrency(earnings.monthlyCommission)}
+• Comissão Trimestral: ${formatCurrency(earnings.quarterlyCommission)}
+• Bônus Trimestral: ${earnings.quarterlyBonus > 0 ? formatCurrency(earnings.quarterlyBonus) : 'N/A (só PJ)'}
+• Total Trimestre: ${formatCurrency(earnings.totalQuarterly)}
+
+⏰ GANHO POR HORA: ${formatCurrency(earningsPerHour)}/hora
+
+📅 PROJEÇÕES:
+• Anual: ${formatCurrency(annualEarnings)}
+• 5 Anos: ${formatCurrency(fiveYearEarnings)}
+
+🏆 Tier: ${tierName}
+
+---
+Taxa: ${affiliateType === 'pf' ? '7%' : '10%'} | ${affiliateType === 'pf' ? 'Limite R$ 1.900/mês' : 'Ganhos ilimitados + bônus'}`;
+
+    navigator.clipboard.writeText(text).then(() => {
+      toast({
+        title: "Copiado!",
+        description: "Resumo da simulação copiado para a área de transferência.",
+      });
+    });
+  }, [dedicationProfile, affiliateType, hoursPerWeek, salesPerMonth, selectedPlan, planPrice, earnings, earningsPerHour, annualEarnings, fiveYearEarnings, tierInfo]);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calculator className="h-5 w-5" />
-          Simulador de Ganhos para Candidatos
-        </CardTitle>
-        <CardDescription>
-          Teste cenários de vendas e mostre projeções de curto e longo prazo
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Calculator className="h-5 w-5" />
+              Simulador de Ganhos para Candidatos
+            </CardTitle>
+            <CardDescription>
+              Escolha um perfil de dedicação e veja projeções de ganhos
+            </CardDescription>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleCopySimulation}
+          >
+            <Copy className="h-4 w-4 mr-2" />
+            Copiar Resumo
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Perfis de Dedicação */}
+        <div className="space-y-2">
+          <Label className="flex items-center gap-2">
+            <User className="h-4 w-4" />
+            Perfil de Dedicação
+          </Label>
+          <div className="grid grid-cols-3 gap-3">
+            {(Object.keys(DEDICATION_PROFILES) as DedicationProfile[]).map((profile) => (
+              <button
+                key={profile}
+                onClick={() => handleProfileChange(profile)}
+                className={cn(
+                  "p-3 rounded-lg border-2 text-center transition-all",
+                  dedicationProfile === profile
+                    ? "border-primary bg-primary/10"
+                    : "border-border hover:border-primary/50"
+                )}
+              >
+                <div className="text-2xl mb-1">{DEDICATION_PROFILES[profile].emoji}</div>
+                <div className="font-medium text-sm">{DEDICATION_PROFILES[profile].label}</div>
+                <div className="text-xs text-muted-foreground">{DEDICATION_PROFILES[profile].hoursPerWeek}h/semana</div>
+                <div className="text-xs text-muted-foreground">~{DEDICATION_PROFILES[profile].salesPerMonth} vendas/mês</div>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Inputs */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="sales">Vendas por mês (meta)</Label>
+            <Label htmlFor="sales">Vendas por mês</Label>
             <Input
               id="sales"
               type="number"
@@ -122,6 +226,21 @@ export function RecruitmentEarningsSimulator({ plans, bonusTiers }: RecruitmentE
               max={100}
               value={salesPerMonth}
               onChange={(e) => setSalesPerMonth(Math.max(1, parseInt(e.target.value) || 1))}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="hours" className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              Horas por semana
+            </Label>
+            <Input
+              id="hours"
+              type="number"
+              min={1}
+              max={60}
+              value={hoursPerWeek}
+              onChange={(e) => setHoursPerWeek(Math.max(1, parseInt(e.target.value) || 1))}
             />
           </div>
 
@@ -173,37 +292,25 @@ export function RecruitmentEarningsSimulator({ plans, bonusTiers }: RecruitmentE
               </button>
             </div>
           </div>
-
-          <div className="space-y-2">
-            <Label>Cenário</Label>
-            <Select value={scenario} onValueChange={(v) => setScenario(v as Scenario)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="conservative">🐢 Conservador (50%)</SelectItem>
-                <SelectItem value="moderate">⚖️ Moderado (100%)</SelectItem>
-                <SelectItem value="optimistic">🚀 Otimista (150%)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
         </div>
 
-        {/* Cenário atual */}
-        <div className="bg-muted/30 rounded-lg p-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className={scenarioLabels[scenario].color}>{scenarioLabels[scenario].emoji}</span>
-            <span className="text-sm">
-              Cenário <strong>{scenarioLabels[scenario].label}</strong>: 
-              {' '}<strong>{adjustedSales}</strong> vendas/mês
-              {scenario !== 'moderate' && (
-                <span className="text-muted-foreground"> (meta: {salesPerMonth})</span>
-              )}
-            </span>
+        {/* Ganho por Hora - Destaque */}
+        <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-500/20 rounded-full">
+                <Clock className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Ganho por hora investida</p>
+                <p className="text-2xl font-bold text-green-600">{formatCurrency(earningsPerHour)}/hora</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-muted-foreground">{hoursPerWeek}h/semana × 4 = {hoursPerWeek * 4}h/mês</p>
+              <p className="text-xs text-muted-foreground">{formatCurrency(earnings.monthlyAverage)} ÷ {hoursPerWeek * 4}h</p>
+            </div>
           </div>
-          <Badge variant="outline" className={scenarioLabels[scenario].color}>
-            {adjustedSales * 3} vendas/trimestre
-          </Badge>
         </div>
 
         {/* Resultados de curto prazo */}
@@ -335,8 +442,8 @@ export function RecruitmentEarningsSimulator({ plans, bonusTiers }: RecruitmentE
           <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
             <p className="text-sm text-yellow-700">
               💡 <strong>Dica:</strong> Como PJ você ganharia{' '}
-              <strong>{formatCurrency(calculateEarnings(adjustedSales, planPrice, 'pj', bonusTiers).monthlyAverage)}/mês</strong>{' '}
-              (+{formatCurrency(calculateEarnings(adjustedSales, planPrice, 'pj', bonusTiers).monthlyAverage - earnings.monthlyCommission)} a mais!)
+              <strong>{formatCurrency(calculateEarnings(salesPerMonth, planPrice, 'pj', bonusTiers).monthlyAverage)}/mês</strong>{' '}
+              (+{formatCurrency(calculateEarnings(salesPerMonth, planPrice, 'pj', bonusTiers).monthlyAverage - earnings.monthlyCommission)} a mais!)
             </p>
             <p className="text-xs text-muted-foreground mt-2">
               Abrir MEI é grátis e leva 5 minutos. Desbloqueia ganhos ilimitados + bônus trimestrais.
@@ -350,10 +457,10 @@ export function RecruitmentEarningsSimulator({ plans, bonusTiers }: RecruitmentE
             <span>
               Plano: {selectedPlan.name} ({formatCurrency(planPrice)}) • 
               Taxa: {affiliateType === 'pf' ? '7%' : '10%'} • 
-              {adjustedSales} vendas/mês = {adjustedSales * 3} vendas/trimestre
+              {salesPerMonth} vendas/mês = {salesPerMonth * 3} vendas/trimestre
             </span>
             <span className="text-muted-foreground/60">
-              Cenário {scenarioLabels[scenario].label.toLowerCase()}: {Math.round(scenarioMultipliers[scenario] * 100)}% da meta
+              Perfil: {DEDICATION_PROFILES[dedicationProfile].label} ({hoursPerWeek}h/semana)
             </span>
           </div>
         )}

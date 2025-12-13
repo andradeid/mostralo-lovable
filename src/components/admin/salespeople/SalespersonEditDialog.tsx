@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,21 +46,43 @@ export function SalespersonEditDialog({ open, onOpenChange, salesperson, onSucce
   
   // Form state
   const [formData, setFormData] = useState({
-    full_name: salesperson?.full_name || "",
-    email: salesperson?.email || "",
-    phone: salesperson?.phone || "",
-    cpf: salesperson?.cpf || "",
-    cnpj: salesperson?.cnpj || "",
-    company_name: salesperson?.company_name || "",
-    company_trade_name: salesperson?.company_trade_name || "",
-    pix_key: salesperson?.pix_key || "",
-    pix_key_type: salesperson?.pix_key_type || "",
-    qualification_score: salesperson?.qualification_score || 0,
-    qualification_level: salesperson?.qualification_level || "beginner",
-    status: salesperson?.status || "pending_approval",
-    referral_code: salesperson?.referral_code || "",
-    profile_photo_url: salesperson?.profile_photo_url || "",
+    full_name: "",
+    email: "",
+    phone: "",
+    cpf: "",
+    cnpj: "",
+    company_name: "",
+    company_trade_name: "",
+    pix_key: "",
+    pix_key_type: "",
+    qualification_score: 0,
+    qualification_level: "beginner",
+    status: "pending_approval",
+    referral_code: "",
+    profile_photo_url: "",
   });
+
+  // Sync form data when salesperson changes or dialog opens
+  useEffect(() => {
+    if (open && salesperson) {
+      setFormData({
+        full_name: salesperson.full_name || "",
+        email: salesperson.email || "",
+        phone: salesperson.phone || "",
+        cpf: salesperson.cpf || "",
+        cnpj: salesperson.cnpj || "",
+        company_name: salesperson.company_name || "",
+        company_trade_name: salesperson.company_trade_name || "",
+        pix_key: salesperson.pix_key || "",
+        pix_key_type: salesperson.pix_key_type || "",
+        qualification_score: salesperson.qualification_score || 0,
+        qualification_level: salesperson.qualification_level || "beginner",
+        status: salesperson.status || "pending_approval",
+        referral_code: salesperson.referral_code || "",
+        profile_photo_url: salesperson.profile_photo_url || "",
+      });
+    }
+  }, [open, salesperson]);
 
   const handleInputChange = (field: string, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));

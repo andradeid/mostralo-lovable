@@ -38,7 +38,8 @@ import {
   Send,
   Zap,
   Gift,
-  Map
+  Map,
+  UserPlus
 } from "lucide-react";
 
 import {
@@ -344,6 +345,7 @@ export function AdminSidebar() {
         { title: 'Configurar Bônus', url: '/dashboard/salespeople/commissions', icon: DollarSign, group: 'Vendedores' },
         { title: 'Editar Contrato', url: '/dashboard/salespeople/contract', icon: FileText, group: 'Vendedores' },
         { title: 'Prompts de Vendas', url: '/dashboard/sales-prompts', icon: MessageSquare, group: 'Vendedores' },
+        { title: 'Recrutamento', url: '/dashboard/recrutamento', icon: UserPlus, group: 'Vendedores' },
         { title: 'Faixas de Qualificação', url: '/dashboard/qualification-benefits', icon: Gift, group: 'Vendedores' },
         { title: 'Guia de Prospecção', url: '/dashboard/prospecting', icon: Target, group: 'Vendedores' },
         { title: 'Guia de Cadastro', url: '/dashboard/onboarding-guide', icon: FileText, group: 'Vendedores' },

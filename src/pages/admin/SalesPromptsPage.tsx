@@ -4,16 +4,12 @@ import { PromptTypeSelector } from '@/components/admin/sales/PromptTypeSelector'
 import { PromptPreview } from '@/components/admin/sales/PromptPreview';
 import { SavingsCalculatorDemo } from '@/components/admin/sales/SavingsCalculatorDemo';
 import { QualificationSurveyTab } from '@/components/admin/sales/QualificationSurveyTab';
-import { RecruitmentPromptSelector } from '@/components/admin/sales/RecruitmentPromptSelector';
-import { RecruitmentPromptPreview } from '@/components/admin/sales/RecruitmentPromptPreview';
-import { RecruitmentEarningsSimulator } from '@/components/admin/sales/RecruitmentEarningsSimulator';
-import { RecruitmentPostsGenerator } from '@/components/admin/sales/RecruitmentPostsGenerator';
 import { generateSalesPrompt, PromptType } from '@/utils/salesPromptGenerator';
 import { generateColdLeadPrompt, getColdLeadProfileInfo, COLD_LEAD_PROFILES, ColdLeadProfile } from '@/utils/coldLeadPromptGenerator';
-import { generateRecruitmentPrompt, RecruitmentPromptType, BonusTier } from '@/utils/recruitmentPromptGenerator';
+import { BonusTier } from '@/utils/recruitmentPromptGenerator';
 import { Database } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
-import { Loader2, RefreshCw, Database as DatabaseIcon, CheckCircle, MapPin, Copy, Check, Smile, GraduationCap, BarChart3, Zap, ClipboardList, Users, Megaphone } from 'lucide-react';
+import { Loader2, RefreshCw, Database as DatabaseIcon, CheckCircle, MapPin, Copy, Check, Smile, GraduationCap, BarChart3, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -26,13 +22,10 @@ type Plan = Database['public']['Tables']['plans']['Row'];
 export default function SalesPromptsPage() {
   const [selectedType, setSelectedType] = useState<PromptType>('intermediate');
   const [selectedColdProfile, setSelectedColdProfile] = useState<ColdLeadProfile>('fun');
-  const [selectedRecruitmentType, setSelectedRecruitmentType] = useState<RecruitmentPromptType>('aggressive');
   const [plans, setPlans] = useState<Plan[]>([]);
-  const [bonusTiers, setBonusTiers] = useState<BonusTier[]>([]);
   const [loading, setLoading] = useState(true);
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [coldLeadPrompt, setColdLeadPrompt] = useState('');
-  const [recruitmentPrompt, setRecruitmentPrompt] = useState('');
   const [copiedCold, setCopiedCold] = useState(false);
 
   useEffect(() => {
@@ -51,28 +44,13 @@ export default function SalesPromptsPage() {
     }
   }, [selectedColdProfile, plans]);
 
-  useEffect(() => {
-    if (plans.length > 0) {
-      setRecruitmentPrompt(generateRecruitmentPrompt({
-        type: selectedRecruitmentType,
-        plans,
-        bonusTiers,
-        baseUrl: window.location.origin
-      }));
-    }
-  }, [selectedRecruitmentType, plans, bonusTiers]);
-
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [plansRes, tiersRes] = await Promise.all([
-        supabase.from('plans').select('*').eq('status', 'active').order('price', { ascending: true }),
-        supabase.from('salesperson_bonus_tiers').select('*').eq('is_active', true).order('min_sales', { ascending: true })
-      ]);
+      const plansRes = await supabase.from('plans').select('*').eq('status', 'active').order('price', { ascending: true });
 
       if (plansRes.error) throw plansRes.error;
       setPlans(plansRes.data || []);
-      setBonusTiers(tiersRes.data || []);
       toast.success('Dados atualizados!');
     } catch (error) {
       console.error('Erro ao buscar dados:', error);
@@ -185,11 +163,10 @@ export default function SalesPromptsPage() {
       </Card>
 
       <Tabs defaultValue="warm" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-6">
+        <TabsList className="grid w-full grid-cols-3 mb-6">
           <TabsTrigger value="warm">🔥 Leads Quentes</TabsTrigger>
           <TabsTrigger value="cold">🗺️ Leads Frios</TabsTrigger>
           <TabsTrigger value="survey">📊 Qualificação</TabsTrigger>
-          <TabsTrigger value="recruitment" className="text-primary">🎯 Recrutamento</TabsTrigger>
         </TabsList>
 
         <TabsContent value="warm" className="space-y-6">
@@ -337,32 +314,6 @@ export default function SalesPromptsPage() {
 
         <TabsContent value="survey">
           <QualificationSurveyTab plans={plans} />
-        </TabsContent>
-
-        {/* Aba Recrutamento de Vendedores */}
-        <TabsContent value="recruitment" className="space-y-6">
-          <Tabs defaultValue="prompts" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="prompts" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                🤖 Prompts de IA
-              </TabsTrigger>
-              <TabsTrigger value="posts" className="flex items-center gap-2">
-                <Megaphone className="h-4 w-4" />
-                📣 Divulgação de Vagas
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="prompts" className="space-y-6">
-              <RecruitmentPromptSelector selectedType={selectedRecruitmentType} onSelectType={setSelectedRecruitmentType} />
-              <RecruitmentEarningsSimulator plans={plans} bonusTiers={bonusTiers} />
-              <RecruitmentPromptPreview prompt={recruitmentPrompt} type={selectedRecruitmentType} />
-            </TabsContent>
-
-            <TabsContent value="posts">
-              <RecruitmentPostsGenerator bonusTiers={bonusTiers} />
-            </TabsContent>
-          </Tabs>
         </TabsContent>
       </Tabs>
 

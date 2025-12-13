@@ -1,8 +1,9 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { Ban, LogOut, MessageCircle, Phone, Mail } from "lucide-react";
+import { Ban, LogOut, MessageCircle, Mail } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -13,15 +14,29 @@ interface SalespersonBlockedPageProps {
 
 export function SalespersonBlockedPage({ blockedReason, blockedAt }: SalespersonBlockedPageProps) {
   const navigate = useNavigate();
+  const [supportWhatsApp, setSupportWhatsApp] = useState("5514982170958");
+  const [supportEmail, setSupportEmail] = useState("suporte@mostralo.com");
+
+  useEffect(() => {
+    const fetchSupportConfig = async () => {
+      const { data } = await supabase
+        .from('subscription_payment_config')
+        .select('support_whatsapp, support_email')
+        .eq('is_active', true)
+        .single();
+      
+      if (data) {
+        if (data.support_whatsapp) setSupportWhatsApp(data.support_whatsapp);
+        if (data.support_email) setSupportEmail(data.support_email);
+      }
+    };
+    fetchSupportConfig();
+  }, []);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate("/auth");
   };
-
-  // Número de suporte - pode ser configurado via subscription_payment_config
-  const supportWhatsApp = "5561994009368";
-  const supportEmail = "suporte@mostralo.com";
 
   const openWhatsApp = () => {
     const message = encodeURIComponent(

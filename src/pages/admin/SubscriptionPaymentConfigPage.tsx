@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Save, DollarSign } from "lucide-react";
+import { Save, DollarSign, Headphones } from "lucide-react";
 
 interface PaymentConfig {
   id: string;
@@ -22,6 +22,9 @@ interface PaymentConfig {
   agency: string | null;
   account_number: string | null;
   is_active: boolean;
+  support_whatsapp: string | null;
+  support_whatsapp_message: string | null;
+  support_email: string | null;
 }
 
 export default function SubscriptionPaymentConfigPage() {
@@ -63,6 +66,9 @@ export default function SubscriptionPaymentConfigPage() {
         bank_name: config.bank_name,
         agency: config.agency,
         account_number: config.account_number,
+        support_whatsapp: config.support_whatsapp,
+        support_whatsapp_message: config.support_whatsapp_message,
+        support_email: config.support_email,
       })
       .eq('id', config.id);
 
@@ -230,6 +236,54 @@ export default function SubscriptionPaymentConfigPage() {
               onCheckedChange={(checked) => 
                 setConfig({ ...config, enable_auto_approval: checked })
               }
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Headphones className="h-5 w-5" />
+            Contato de Suporte
+          </CardTitle>
+          <CardDescription>
+            Configure os canais de atendimento para lojistas e vendedores
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label>WhatsApp de Suporte</Label>
+            <Input
+              value={config.support_whatsapp || ''}
+              onChange={(e) => setConfig({ ...config, support_whatsapp: e.target.value })}
+              placeholder="5511999999999 (com código do país)"
+            />
+            <p className="text-xs text-muted-foreground">
+              Este número será usado em todas as telas de contato do sistema
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Mensagem Padrão do WhatsApp</Label>
+            <Textarea
+              value={config.support_whatsapp_message || ''}
+              onChange={(e) => setConfig({ ...config, support_whatsapp_message: e.target.value })}
+              placeholder="Olá! Preciso de ajuda com..."
+              rows={3}
+            />
+            <p className="text-xs text-muted-foreground">
+              Variáveis disponíveis: {'{nome}'}, {'{email}'}, {'{empresa}'}, {'{telefone}'}
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label>E-mail de Suporte</Label>
+            <Input
+              type="email"
+              value={config.support_email || ''}
+              onChange={(e) => setConfig({ ...config, support_email: e.target.value })}
+              placeholder="suporte@mostralo.com"
             />
           </div>
         </CardContent>

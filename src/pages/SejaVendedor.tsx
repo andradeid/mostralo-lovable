@@ -87,6 +87,29 @@ export default function SejaVendedor() {
         </div>
       </section>
 
+      {/* Vídeo Apresentação */}
+      <section className="container mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl md:text-3xl font-bold mb-2">
+              Veja Como Funciona
+            </h2>
+            <p className="text-muted-foreground">
+              Assista ao vídeo e entenda como você pode começar a ganhar dinheiro hoje mesmo
+            </p>
+          </div>
+          <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-2xl border border-border">
+            <iframe
+              src="https://www.youtube.com/embed/BtX6j7hHwJ4"
+              title="Como ser vendedor Mostralo"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="absolute inset-0 w-full h-full"
+            />
+          </div>
+        </div>
+      </section>
+
       {/* Stats */}
       <section className="container mx-auto px-4 py-12">
         <div className="grid md:grid-cols-3 gap-6">

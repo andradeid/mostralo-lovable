@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { CheckCircle2, XCircle, Eye, User, Building2, Trophy, Star, Sparkles, Medal, Users, Target } from "lucide-react";
+import { CheckCircle2, XCircle, Eye, User, Building2, Trophy, Star, Sparkles, Medal, Users, Target, Ban } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getLevelConfig, type QualificationLevel } from "@/lib/qualificationLevels";
@@ -28,6 +28,8 @@ interface SalespersonCardProps {
     qualification_level?: string | null;
     leads_count?: number;
     clients_count?: number;
+    is_blocked?: boolean;
+    blocked_reason?: string | null;
   };
   onViewDetails: () => void;
   onApprove?: () => void;
@@ -107,7 +109,13 @@ export function SalespersonCard({
           </div>
 
           <div className="flex flex-col items-end gap-1">
-            {getStatusBadge(salesperson.status)}
+            {salesperson.is_blocked && (
+              <Badge variant="destructive" className="gap-1 text-xs">
+                <Ban className="h-3 w-3" />
+                Bloqueado
+              </Badge>
+            )}
+            {!salesperson.is_blocked && getStatusBadge(salesperson.status)}
             {isAffiliate ? (
               <Badge variant="outline" className="gap-1 text-xs">
                 <User className="h-3 w-3" />

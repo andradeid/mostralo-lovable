@@ -7,12 +7,13 @@ import { QualificationSurveyTab } from '@/components/admin/sales/QualificationSu
 import { RecruitmentPromptSelector } from '@/components/admin/sales/RecruitmentPromptSelector';
 import { RecruitmentPromptPreview } from '@/components/admin/sales/RecruitmentPromptPreview';
 import { RecruitmentEarningsSimulator } from '@/components/admin/sales/RecruitmentEarningsSimulator';
+import { RecruitmentPostsGenerator } from '@/components/admin/sales/RecruitmentPostsGenerator';
 import { generateSalesPrompt, PromptType } from '@/utils/salesPromptGenerator';
 import { generateColdLeadPrompt, getColdLeadProfileInfo, COLD_LEAD_PROFILES, ColdLeadProfile } from '@/utils/coldLeadPromptGenerator';
 import { generateRecruitmentPrompt, RecruitmentPromptType, BonusTier } from '@/utils/recruitmentPromptGenerator';
 import { Database } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
-import { Loader2, RefreshCw, Database as DatabaseIcon, CheckCircle, MapPin, Copy, Check, Smile, GraduationCap, BarChart3, Zap, ClipboardList, Users } from 'lucide-react';
+import { Loader2, RefreshCw, Database as DatabaseIcon, CheckCircle, MapPin, Copy, Check, Smile, GraduationCap, BarChart3, Zap, ClipboardList, Users, Megaphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -340,9 +341,28 @@ export default function SalesPromptsPage() {
 
         {/* Aba Recrutamento de Vendedores */}
         <TabsContent value="recruitment" className="space-y-6">
-          <RecruitmentPromptSelector selectedType={selectedRecruitmentType} onSelectType={setSelectedRecruitmentType} />
-          <RecruitmentEarningsSimulator plans={plans} bonusTiers={bonusTiers} />
-          <RecruitmentPromptPreview prompt={recruitmentPrompt} type={selectedRecruitmentType} />
+          <Tabs defaultValue="prompts" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="prompts" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                🤖 Prompts de IA
+              </TabsTrigger>
+              <TabsTrigger value="posts" className="flex items-center gap-2">
+                <Megaphone className="h-4 w-4" />
+                📣 Divulgação de Vagas
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="prompts" className="space-y-6">
+              <RecruitmentPromptSelector selectedType={selectedRecruitmentType} onSelectType={setSelectedRecruitmentType} />
+              <RecruitmentEarningsSimulator plans={plans} bonusTiers={bonusTiers} />
+              <RecruitmentPromptPreview prompt={recruitmentPrompt} type={selectedRecruitmentType} />
+            </TabsContent>
+
+            <TabsContent value="posts">
+              <RecruitmentPostsGenerator bonusTiers={bonusTiers} />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
       </Tabs>
 

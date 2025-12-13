@@ -569,6 +569,59 @@ Use estes testemunhos para criar prova social:
 💡 Adapte os testemunhos ao perfil do candidato (mãe, trabalhador CLT, autônomo, etc.)`;
 }
 
+function generateMarketComparisonSection(): string {
+  return `## 🏢 COMPARAÇÃO DE MERCADO: VENDEDORES DE PLATAFORMAS
+
+Compare com vendedores de outras plataformas de delivery:
+
+┌──────────────────────┬─────────────────────┬─────────────────────┬─────────────────────┐
+│                      │ VENDEDOR iFOOD      │ VENDEDOR RAPPI      │ VENDEDOR MOSTRALO   │
+├──────────────────────┼─────────────────────┼─────────────────────┼─────────────────────┤
+│ Modelo               │ CLT ou Autônomo     │ CLT                 │ Afiliado/Parceiro   │
+│ Ganho médio          │ R$ 2.500-4.000/mês  │ R$ 2.000-3.500/mês  │ R$ 1.000-10.000+/mês│
+│ Horário              │ Fixo (8h/dia)       │ Fixo (8h/dia)       │ ✅ Totalmente livre │
+│ Metas obrigatórias   │ ✅ Sim, rigorosas   │ ✅ Sim              │ ❌ Não              │
+│ Investimento inicial │ Processo seletivo   │ Processo seletivo   │ ❌ Zero             │
+│ Limite de ganho      │ Teto salarial       │ Teto salarial       │ ❌ Ilimitado (PJ)   │
+│ Comissão recorrente  │ ❌ Não              │ ❌ Não              │ ✅ Todo mês         │
+│ Bônus trimestrais    │ ❌ Raramente        │ ❌ Raramente        │ ✅ Até R$ 8.500     │
+│ Trabalho 100% remoto │ ❌ Visitas/presencial│ ❌ Visitas/presencial│ ✅ Home office     │
+│ Chefe/supervisor     │ ✅ Sim              │ ✅ Sim              │ ❌ Não              │
+│ Vínculo empregatício │ ✅ Dependente       │ ✅ Dependente       │ ❌ Independente     │
+│ Você vende...        │ Produto que COBRA   │ Produto que COBRA   │ Produto que LIBERTA │
+└──────────────────────┴─────────────────────┴─────────────────────┴─────────────────────┘
+
+**🎯 ARGUMENTOS POR PERFIL:**
+
+**Para EX-VENDEDOR iFOOD:**
+"Você conhece o mercado de delivery, já tem os contatos, sabe como restaurantes pensam. Agora pode usar toda essa experiência para ganhar comissão RECORRENTE, sem metas, sem supervisor, trabalhando de casa. 
+
+A diferença: quando você vendia iFood, a venda morria ali. Aqui, cada cliente que você fecha te paga TODO MÊS que ele continuar. Imagina ter 20, 30, 50 clientes te pagando comissão todo mês?"
+
+**Para EX-VENDEDOR RAPPI:**
+"Quantas vezes você bateu meta e viu seu bônus sumir no mês seguinte? Quantas vezes trabalhou fim de semana e feriado para entregar resultado?
+
+Com Mostralo é diferente: cada venda que você faz te paga TODO MÊS que o cliente continuar pagando. Não some. Não zera. Acumula. É renda passiva de verdade."
+
+**Para QUEM PENSA EM TRABALHAR COM DELIVERY:**
+"Antes de você ir trabalhar PARA o iFood ou Rappi, pensa nisso: 
+
+iFood e Rappi COBRAM 12-27% de cada venda dos restaurantes. Você estaria vendendo um produto que MACHUCA o cliente - comendo a margem de lucro deles.
+
+Com Mostralo, você oferece LIBERDADE. O restaurante para de pagar taxas abusivas e fica dono dos próprios clientes. Você ganha ajudando, não prejudicando.
+
+Moralmente é outra parada. E financeiramente? Sem limite de ganho, com comissão recorrente e bônus."
+
+**DIFERENCIAL-CHAVE A USAR:**
+"Sabe qual a grande diferença entre vender iFood/Rappi e vender Mostralo?
+
+No iFood você vende um problema - taxas abusivas, perda de clientes, dependência de algoritmo.
+
+No Mostralo você vende uma SOLUÇÃO - economia de milhares por mês, marketing incluso, clientes próprios.
+
+Qual você prefere vender?"`;
+}
+
 function generateIncomeComparisonSection(): string {
   return `## 💼 COMPARATIVO DE RENDA
 
@@ -1031,6 +1084,7 @@ export function generateRecruitmentPrompt(config: RecruitmentPromptConfig): stri
     generateFirstMonthSection(), // NOVA SEÇÃO
     generateAudioScriptsSection(), // NOVA SEÇÃO
     generateTestimonialsSection(),
+    generateMarketComparisonSection(), // NOVA SEÇÃO
     generateIncomeComparisonSection(),
     generateMythsSection(),
     generateDifferentiationSection(),
@@ -1051,7 +1105,7 @@ export function generateRecruitmentPrompt(config: RecruitmentPromptConfig): stri
 Este prompt foi gerado automaticamente com dados atualizados do sistema.
 Use-o com ChatGPT, Claude ou outro assistente de IA para recrutar novos vendedores.
 
-**Seções incluídas:** Identidade, Programa, Comparativo PF/PJ, Planos Atuais, Bônus, Calculadora, Primeiro Mês, Scripts de Áudio, Testemunhos, Comparativo de Renda, Mitos vs Realidade, Diferenciação, Primeiros 7 Dias, Scripts WhatsApp, Caminho Iniciante, FAQ, Objeções, Fluxo de Conversa, Recursos.
+**Seções incluídas:** Identidade, Programa, Comparativo PF/PJ, Planos Atuais, Bônus, Calculadora, Primeiro Mês, Scripts de Áudio, Testemunhos, Comparação de Mercado (iFood/Rappi), Comparativo de Renda, Mitos vs Realidade, Diferenciação, Primeiros 7 Dias, Scripts WhatsApp, Caminho Iniciante, FAQ, Objeções, Fluxo de Conversa, Recursos.
 ---
 
 `;
@@ -1097,28 +1151,28 @@ export function getRecruitmentPromptTypeInfo(type: RecruitmentPromptType): {
       emoji: '❄️',
       description: 'Prospecção inicial leve. Pergunta interesse e pede indicações.',
       idealFor: 'Abordar pessoas que NÃO estão buscando trabalho',
-      sections: 20
+      sections: 21
     },
     moderate: {
       name: 'Moderado',
       emoji: '🟢',
       description: 'Tom consultivo e educador. Explica com calma, sem pressão.',
       idealFor: 'Candidatos indecisos que precisam de mais informações',
-      sections: 19
+      sections: 20
     },
     aggressive: {
       name: 'Agressivo',
       emoji: '🟡',
       description: 'Focado em números e resultados. Mostra ganhos reais.',
       idealFor: 'Candidatos motivados por dinheiro e resultados',
-      sections: 19
+      sections: 20
     },
     super_aggressive: {
       name: 'Super Agressivo',
       emoji: '🔴',
       description: 'Urgência máxima. Mostra o custo de não agir.',
       idealFor: 'Candidatos que precisam de um empurrão para decidir',
-      sections: 19
+      sections: 20
     }
   };
 

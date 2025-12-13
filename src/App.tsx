@@ -124,6 +124,7 @@ import WhatsAppAutomationsPage from "./pages/admin/WhatsAppAutomationsPage";
 import WhatsAppContactsPage from "./pages/admin/WhatsAppContactsPage";
 import MerchantContractHistoryPage from "./pages/admin/MerchantContractHistoryPage";
 import NavigationGuidePage from "./pages/admin/NavigationGuidePage";
+import RecruitmentPage from "./pages/admin/RecruitmentPage";
 
 const queryClient = new QueryClient();
 
@@ -197,6 +198,13 @@ const App = () => (
               <ProtectedRoute allowedRoles={['master_admin']}>
                 <AdminLayout pageTitle="Faixas de Qualificação">
                   <QualificationBenefitsPage />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/recrutamento" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Recrutamento de Vendedores">
+                  <RecruitmentPage />
                 </AdminLayout>
               </ProtectedRoute>
             } />

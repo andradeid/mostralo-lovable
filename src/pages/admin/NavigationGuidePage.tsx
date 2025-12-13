@@ -134,6 +134,7 @@ const routeSections: RouteSection[] = [
       { path: "/dashboard/salespeople/contract", name: "Editar Contrato", component: "SalespersonContractEditPage.tsx", roles: ["master_admin"] },
       { path: "/dashboard/leads", name: "Leads", component: "LeadsPage.tsx", roles: ["master_admin"] },
       { path: "/dashboard/sales-prompts", name: "Prompts de Vendas", component: "SalesPromptsPage.tsx", roles: ["master_admin"] },
+      { path: "/dashboard/recrutamento", name: "Recrutamento de Vendedores", component: "RecruitmentPage.tsx", roles: ["master_admin"] },
       { path: "/dashboard/qualification-benefits", name: "Faixas de Qualificação", component: "QualificationBenefitsPage.tsx", roles: ["master_admin"] },
       { path: "/dashboard/prospecting", name: "Guia de Prospecção", component: "ProspectingGuidePage.tsx", roles: ["master_admin"] },
       { path: "/dashboard/onboarding-guide", name: "Guia de Cadastro", component: "OnboardingGuidePage.tsx", roles: ["master_admin"] },

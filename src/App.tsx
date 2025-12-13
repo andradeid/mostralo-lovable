@@ -123,6 +123,7 @@ import WhatsAppCampaignNewPage from "./pages/admin/WhatsAppCampaignNewPage";
 import WhatsAppAutomationsPage from "./pages/admin/WhatsAppAutomationsPage";
 import WhatsAppContactsPage from "./pages/admin/WhatsAppContactsPage";
 import MerchantContractHistoryPage from "./pages/admin/MerchantContractHistoryPage";
+import NavigationGuidePage from "./pages/admin/NavigationGuidePage";
 
 const queryClient = new QueryClient();
 
@@ -176,6 +177,13 @@ const App = () => (
             <Route path="/dashboard/metas" element={
               <ProtectedRoute allowedRoles={['master_admin']}>
                 <AdminLayout><GoalsPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/navegacao" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Guia de Navegação">
+                  <NavigationGuidePage />
+                </AdminLayout>
               </ProtectedRoute>
             } />
             <Route path="/dashboard/sales-prompts" element={

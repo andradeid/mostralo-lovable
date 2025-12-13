@@ -37,7 +37,8 @@ import {
   MessageCircle,
   Send,
   Zap,
-  Gift
+  Gift,
+  Map
 } from "lucide-react";
 
 import {
@@ -334,6 +335,7 @@ export function AdminSidebar() {
         { title: 'Dashboard', url: '/dashboard', icon: Home, group: 'Principal' },
         { title: 'Inteligência de Negócios', url: '/dashboard/business-intelligence', icon: TrendingUp, group: 'Principal' },
         { title: 'Metas', url: '/dashboard/metas', icon: Target, group: 'Principal' },
+        { title: 'Navegação', url: '/dashboard/navegacao', icon: Map, group: 'Principal' },
         { title: 'Material de Divulgação', url: '/dashboard/material-divulgacao', icon: QrCode, group: 'Prospecção' },
         { title: 'Vendedores', url: '/dashboard/salespeople', icon: Users, group: 'Vendedores' },
         { title: 'Pagamentos Vendedores', url: '/dashboard/salespeople/payouts', icon: DollarSign, group: 'Vendedores' },

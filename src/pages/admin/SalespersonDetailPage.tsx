@@ -6,12 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, CheckCircle2, XCircle, User, Building2, Trophy, Star, Sparkles, Medal, ClipboardList, Target, Users } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, User, Building2, Trophy, Star, Sparkles, Medal, ClipboardList, Target, Users, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CommissionConfigForm } from "@/components/admin/salespeople/CommissionConfigForm";
 import { ApprovalDialog } from "@/components/admin/salespeople/ApprovalDialog";
 import { RejectionDialog } from "@/components/admin/salespeople/RejectionDialog";
+import { SalespersonEditDialog } from "@/components/admin/salespeople/SalespersonEditDialog";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { getLevelConfig, type QualificationLevel } from "@/lib/qualificationLevels";
@@ -79,6 +80,7 @@ export default function SalespersonDetailPage() {
   const { toast } = useToast();
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
   const [rejectionDialogOpen, setRejectionDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const { data: salesperson, isLoading, refetch } = useQuery({
     queryKey: ["salesperson", id],
@@ -280,22 +282,30 @@ export default function SalespersonDetailPage() {
         </div>
       </div>
 
-      {salesperson.status === "pending_approval" && (
-        <div className="flex gap-4">
-          <Button className="flex-1" onClick={() => setApprovalDialogOpen(true)}>
-            <CheckCircle2 className="h-4 w-4 mr-2" />
-            Aprovar Vendedor
-          </Button>
-          <Button 
-            variant="destructive" 
-            className="flex-1"
-            onClick={() => setRejectionDialogOpen(true)}
-          >
-            <XCircle className="h-4 w-4 mr-2" />
-            Rejeitar Vendedor
-          </Button>
-        </div>
-      )}
+      {/* Botão de edição sempre visível */}
+      <div className="flex gap-4">
+        <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
+          <Pencil className="h-4 w-4 mr-2" />
+          Editar Dados
+        </Button>
+        
+        {salesperson.status === "pending_approval" && (
+          <>
+            <Button className="flex-1" onClick={() => setApprovalDialogOpen(true)}>
+              <CheckCircle2 className="h-4 w-4 mr-2" />
+              Aprovar Vendedor
+            </Button>
+            <Button 
+              variant="destructive" 
+              className="flex-1"
+              onClick={() => setRejectionDialogOpen(true)}
+            >
+              <XCircle className="h-4 w-4 mr-2" />
+              Rejeitar Vendedor
+            </Button>
+          </>
+        )}
+      </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
@@ -519,6 +529,15 @@ export default function SalespersonDetailPage() {
         onConfirm={handleReject}
         salespersonName={salesperson.full_name}
       />
+
+      {salesperson && (
+        <SalespersonEditDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          salesperson={salesperson}
+          onSuccess={() => refetch()}
+        />
+      )}
     </div>
   );
 }

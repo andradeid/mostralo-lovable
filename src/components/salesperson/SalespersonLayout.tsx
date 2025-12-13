@@ -1,17 +1,56 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { SalespersonSidebar } from "./SalespersonSidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { UserProfileHeader } from "@/components/admin/UserProfileHeader";
+import { SalespersonBlockedPage } from "@/pages/salesperson/SalespersonBlockedPage";
 
 interface SalespersonLayoutProps {
   children: ReactNode;
 }
 
+interface SalespersonData {
+  is_blocked: boolean;
+  blocked_reason: string | null;
+  blocked_at: string | null;
+}
+
 export function SalespersonLayout({ children }: SalespersonLayoutProps) {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [salespersonData, setSalespersonData] = useState<SalespersonData | null>(null);
+
+  useEffect(() => {
+    const checkSalespersonStatus = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          navigate("/auth");
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from("salespeople")
+          .select("is_blocked, blocked_reason, blocked_at")
+          .eq("user_id", user.id)
+          .single();
+
+        if (error) {
+          console.error("Erro ao buscar dados do vendedor:", error);
+        } else {
+          setSalespersonData(data);
+        }
+      } catch (error) {
+        console.error("Erro ao verificar status:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkSalespersonStatus();
+  }, [navigate]);
 
   const handleSignOut = async () => {
     try {
@@ -23,6 +62,24 @@ export function SalespersonLayout({ children }: SalespersonLayoutProps) {
       toast.error("Erro ao fazer logout");
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Carregando...</div>
+      </div>
+    );
+  }
+
+  // Se o vendedor estiver bloqueado, mostrar tela de bloqueio
+  if (salespersonData?.is_blocked) {
+    return (
+      <SalespersonBlockedPage
+        blockedReason={salespersonData.blocked_reason}
+        blockedAt={salespersonData.blocked_at}
+      />
+    );
+  }
 
   return (
     <SidebarProvider>

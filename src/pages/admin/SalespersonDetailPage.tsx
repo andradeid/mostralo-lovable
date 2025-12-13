@@ -7,13 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, CheckCircle2, XCircle, User, Building2, Trophy, Star, Sparkles, Medal, ClipboardList, Target, Users, Pencil, DollarSign, Mail, Phone, Key, CreditCard } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, User, Building2, Trophy, Star, Sparkles, Medal, ClipboardList, Target, Users, Pencil, DollarSign, Mail, Phone, Key, CreditCard, Ban } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CommissionConfigForm } from "@/components/admin/salespeople/CommissionConfigForm";
 import { ApprovalDialog } from "@/components/admin/salespeople/ApprovalDialog";
 import { RejectionDialog } from "@/components/admin/salespeople/RejectionDialog";
 import { SalespersonEditDialog } from "@/components/admin/salespeople/SalespersonEditDialog";
+import { SalespersonBlockDialog } from "@/components/admin/salespeople/SalespersonBlockDialog";
 import { SalespersonPerformanceChart } from "@/components/admin/salespeople/SalespersonPerformanceChart";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -84,6 +85,7 @@ export default function SalespersonDetailPage() {
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
   const [rejectionDialogOpen, setRejectionDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [blockDialogOpen, setBlockDialogOpen] = useState(false);
 
   const { data: salesperson, isLoading, refetch } = useQuery({
     queryKey: ["salesperson", id],
@@ -301,8 +303,35 @@ export default function SalespersonDetailPage() {
               </Button>
             </>
           )}
+          {salesperson.status === "active" && (
+            <Button 
+              size="sm" 
+              variant={salesperson.is_blocked ? "outline" : "destructive"}
+              onClick={() => setBlockDialogOpen(true)}
+            >
+              <Ban className="h-4 w-4 mr-1" />
+              {salesperson.is_blocked ? "Desbloquear" : "Bloquear"}
+            </Button>
+          )}
         </div>
       </div>
+
+      {/* Bloqueio */}
+      {salesperson.is_blocked && (
+        <Card className="border-amber-500 bg-amber-500/5">
+          <CardContent className="py-3">
+            <div className="flex items-center gap-2 text-amber-600">
+              <Ban className="h-4 w-4" />
+              <strong>Vendedor Bloqueado</strong>
+            </div>
+            {salesperson.blocked_reason && (
+              <p className="text-sm mt-1 text-muted-foreground">
+                Motivo: {salesperson.blocked_reason}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Rejeição */}
       {salesperson.status === "rejected" && salesperson.rejection_reason && (
@@ -559,6 +588,13 @@ export default function SalespersonDetailPage() {
           onSuccess={() => refetch()}
         />
       )}
+
+      <SalespersonBlockDialog
+        open={blockDialogOpen}
+        onOpenChange={setBlockDialogOpen}
+        salesperson={salesperson}
+        onSuccess={() => refetch()}
+      />
     </div>
   );
 }

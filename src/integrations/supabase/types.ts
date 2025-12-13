@@ -2806,6 +2806,9 @@ export type Database = {
         Row: {
           approved_at: string | null
           approved_by: string | null
+          blocked_at: string | null
+          blocked_by: string | null
+          blocked_reason: string | null
           bonus_eligible: boolean | null
           cnae_codes: string[]
           cnpj: string | null
@@ -2821,6 +2824,7 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          is_blocked: boolean | null
           last_earnings_reset_at: string | null
           monthly_earnings_limit: number | null
           phone: string
@@ -2840,6 +2844,9 @@ export type Database = {
         Insert: {
           approved_at?: string | null
           approved_by?: string | null
+          blocked_at?: string | null
+          blocked_by?: string | null
+          blocked_reason?: string | null
           bonus_eligible?: boolean | null
           cnae_codes?: string[]
           cnpj?: string | null
@@ -2855,6 +2862,7 @@ export type Database = {
           email: string
           full_name: string
           id?: string
+          is_blocked?: boolean | null
           last_earnings_reset_at?: string | null
           monthly_earnings_limit?: number | null
           phone: string
@@ -2874,6 +2882,9 @@ export type Database = {
         Update: {
           approved_at?: string | null
           approved_by?: string | null
+          blocked_at?: string | null
+          blocked_by?: string | null
+          blocked_reason?: string | null
           bonus_eligible?: boolean | null
           cnae_codes?: string[]
           cnpj?: string | null
@@ -2889,6 +2900,7 @@ export type Database = {
           email?: string
           full_name?: string
           id?: string
+          is_blocked?: boolean | null
           last_earnings_reset_at?: string | null
           monthly_earnings_limit?: number | null
           phone?: string
@@ -2905,7 +2917,22 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "salespeople_blocked_by_fkey"
+            columns: ["blocked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "salespeople_blocked_by_fkey"
+            columns: ["blocked_by"]
+            isOneToOne: false
+            referencedRelation: "unified_users_view"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       salesperson_bonus_achievements: {
         Row: {

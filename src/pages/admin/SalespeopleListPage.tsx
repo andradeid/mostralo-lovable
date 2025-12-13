@@ -11,7 +11,7 @@ import { RejectionDialog } from "@/components/admin/salespeople/RejectionDialog"
 import { SalespeopleAdminGuide } from "@/components/admin/salespeople/SalespeopleAdminGuide";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { Search, User, Building2 } from "lucide-react";
+import { Search, User, Building2, Ban } from "lucide-react";
 
 export default function SalespeopleListPage() {
   const { toast } = useToast();
@@ -138,8 +138,9 @@ export default function SalespeopleListPage() {
     const matchesTab =
       selectedTab === "all" ||
       (selectedTab === "pending" && s.status === "pending_approval") ||
-      (selectedTab === "active" && s.status === "active") ||
-      (selectedTab === "inactive" && s.status === "inactive");
+      (selectedTab === "active" && s.status === "active" && !s.is_blocked) ||
+      (selectedTab === "inactive" && s.status === "inactive") ||
+      (selectedTab === "blocked" && s.is_blocked);
 
     const matchesType =
       typeFilter === "all" ||
@@ -152,6 +153,7 @@ export default function SalespeopleListPage() {
   const pendingCount = salespeople?.filter((s) => s.status === "pending_approval").length || 0;
   const activeCount = salespeople?.filter((s) => s.status === "active").length || 0;
   const inactiveCount = salespeople?.filter((s) => s.status === "inactive").length || 0;
+  const blockedCount = salespeople?.filter((s) => s.is_blocked).length || 0;
   const affiliateCount = salespeople?.filter((s) => s.salesperson_type === "affiliate").length || 0;
   const partnerCount = salespeople?.filter((s) => s.salesperson_type === "partner" || !s.salesperson_type).length || 0;
 
@@ -238,6 +240,10 @@ export default function SalespeopleListPage() {
           </TabsTrigger>
           <TabsTrigger value="active">Ativos ({activeCount})</TabsTrigger>
           <TabsTrigger value="inactive">Inativos ({inactiveCount})</TabsTrigger>
+          <TabsTrigger value="blocked">
+            <Ban className="h-3 w-3 mr-1" />
+            Bloqueados {blockedCount > 0 && <Badge variant="destructive" className="ml-2">{blockedCount}</Badge>}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value={selectedTab} className="space-y-4 mt-6">

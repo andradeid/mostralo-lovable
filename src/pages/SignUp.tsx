@@ -7,11 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from '@/hooks/use-toast';
 import { usePageSEO } from '@/hooks/useSEO';
-import { Loader2, Store, ArrowLeft, Check, Info, Gift, Search, Building2, MapPin, Phone } from 'lucide-react';
+import { Loader2, Store, ArrowLeft, Check, Info, Gift, Search, Building2, MapPin, Phone, Tag, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import ContractAcceptanceStep from '@/components/signup/ContractAcceptanceStep';
+import { useCouponValidation } from '@/hooks/useCouponValidation';
 
 interface ContractAcceptances {
   termsAccepted: boolean;
@@ -85,8 +86,22 @@ const SignUp = () => {
     cep: string;
     ddd_telefone_1: string;
   } | null>(null);
+  
+  // Estados para cupom de desconto
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    id: string;
+    code: string;
+    discountAmount: number;
+    finalPrice: number;
+    discountType: 'percentage' | 'fixed';
+    discountValue: number;
+  } | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { validateCoupon, loading: couponLoading } = useCouponValidation();
 
   const [formData, setFormData] = useState<SignUpFormData>({
     email: '',
@@ -341,6 +356,58 @@ const SignUp = () => {
     } finally {
       setCnpjLoading(false);
     }
+  };
+
+  // Função para aplicar cupom de desconto
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError('Digite um código de cupom');
+      return;
+    }
+
+    if (!formData.planId) {
+      setCouponError('Selecione um plano primeiro');
+      return;
+    }
+
+    const selectedPlan = plans.find(p => p.id === formData.planId);
+    if (!selectedPlan) {
+      setCouponError('Plano não encontrado');
+      return;
+    }
+
+    setCouponError(null);
+
+    const result = await validateCoupon(
+      couponCode.trim(),
+      formData.planId,
+      selectedPlan.price
+    );
+
+    if (result.isValid && result.coupon) {
+      setAppliedCoupon({
+        id: result.coupon.id,
+        code: result.coupon.code,
+        discountAmount: result.discountAmount,
+        finalPrice: result.finalPrice,
+        discountType: result.coupon.discount_type,
+        discountValue: result.coupon.discount_value,
+      });
+      toast({
+        title: '🎉 Cupom aplicado!',
+        description: `Você economizou R$ ${result.discountAmount.toFixed(2)}`,
+      });
+    } else {
+      setCouponError(result.error || 'Cupom inválido');
+      setAppliedCoupon(null);
+    }
+  };
+
+  // Função para remover cupom
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponError(null);
   };
 
   // Verifica se é CNPJ (14 dígitos)
@@ -642,6 +709,11 @@ const SignUp = () => {
 
       // 6. Buscar dados do plano
       const selectedPlan = plans.find(p => p.id === formData.planId);
+      
+      // Calcular valor final com cupom
+      const finalPaymentAmount = appliedCoupon 
+        ? appliedCoupon.finalPrice 
+        : (selectedPlan?.price || 0);
 
       // 7. Criar registro de aprovação de pagamento
       const { error: approvalError } = await (supabase as any)
@@ -651,7 +723,7 @@ const SignUp = () => {
           store_id: storeData.id,
           plan_id: formData.planId,
           status: 'pending',
-          payment_amount: selectedPlan?.price || 0,
+          payment_amount: finalPaymentAmount,
           payment_method: 'pix',
           company_name: formData.companyName,
           company_document: formData.companyDocument,
@@ -666,6 +738,8 @@ const SignUp = () => {
           },
           expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 dias
           referred_by_salesperson_id: referredBySalespersonId, // 🎯 Salvar referência do vendedor
+          coupon_id: appliedCoupon?.id || null, // 🎁 Salvar cupom aplicado
+          coupon_discount: appliedCoupon?.discountAmount || 0, // 💰 Salvar valor do desconto
         });
 
       if (approvalError) throw approvalError;
@@ -982,8 +1056,13 @@ const SignUp = () => {
         );
 
       case 4:
+        const selectedPlanForDisplay = plans.find(p => p.id === formData.planId);
+        const displayPrice = appliedCoupon && selectedPlanForDisplay 
+          ? appliedCoupon.finalPrice 
+          : selectedPlanForDisplay?.price;
+        
         return (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="space-y-2">
               <Label>Selecione seu Plano *</Label>
               {loadingPlans ? (
@@ -992,41 +1071,131 @@ const SignUp = () => {
                 </div>
               ) : (
                 <div className="grid gap-4">
-                  {plans.map((plan) => (
-                    <Card
-                      key={plan.id}
-                      className={`cursor-pointer transition-all ${
-                        formData.planId === plan.id
-                          ? 'ring-2 ring-primary bg-primary/5'
-                          : 'hover:bg-muted/50'
-                      }`}
-                      onClick={() => updateFormData('planId', plan.id)}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-lg">{plan.name}</h3>
-                            {plan.description && (
-                              <p className="text-sm text-muted-foreground mt-1">
-                                {plan.description}
+                  {plans.map((plan) => {
+                    const isSelected = formData.planId === plan.id;
+                    const hasDiscount = isSelected && appliedCoupon;
+                    
+                    return (
+                      <Card
+                        key={plan.id}
+                        className={`cursor-pointer transition-all ${
+                          isSelected
+                            ? 'ring-2 ring-primary bg-primary/5'
+                            : 'hover:bg-muted/50'
+                        }`}
+                        onClick={() => {
+                          updateFormData('planId', plan.id);
+                          // Reset cupom quando muda de plano
+                          if (appliedCoupon) {
+                            handleRemoveCoupon();
+                          }
+                        }}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-lg">{plan.name}</h3>
+                              {plan.description && (
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  {plan.description}
+                                </p>
+                              )}
+                              <p className="text-xs text-muted-foreground mt-2">
+                                Cobrança: {plan.billing_cycle === 'monthly' ? 'Mensal' : plan.billing_cycle === 'yearly' ? 'Anual' : 'Personalizado'}
                               </p>
-                            )}
-                            <p className="text-xs text-muted-foreground mt-2">
-                              Cobrança: {plan.billing_cycle === 'monthly' ? 'Mensal' : plan.billing_cycle === 'yearly' ? 'Anual' : 'Personalizado'}
-                            </p>
+                            </div>
+                            <div className="flex flex-col items-end">
+                              {hasDiscount ? (
+                                <>
+                                  <p className="text-sm text-muted-foreground line-through">
+                                    R$ {plan.price.toFixed(2)}
+                                  </p>
+                                  <p className="text-2xl font-bold text-green-600">
+                                    R$ {appliedCoupon.finalPrice.toFixed(2)}
+                                  </p>
+                                  <span className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded-full mt-1">
+                                    -{appliedCoupon.discountType === 'percentage' 
+                                      ? `${appliedCoupon.discountValue}%`
+                                      : `R$ ${appliedCoupon.discountAmount.toFixed(2)}`}
+                                  </span>
+                                </>
+                              ) : (
+                                <p className="text-2xl font-bold text-primary">
+                                  R$ {plan.price.toFixed(2)}
+                                </p>
+                              )}
+                              {isSelected && (
+                                <Check className="w-6 h-6 text-primary mt-2" />
+                              )}
+                            </div>
                           </div>
-                          <div className="flex flex-col items-end">
-                            <p className="text-2xl font-bold text-primary">
-                              R$ {plan.price.toFixed(2)}
-                            </p>
-                            {formData.planId === plan.id && (
-                              <Check className="w-6 h-6 text-primary mt-2" />
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Campo de Cupom de Desconto */}
+            <div className="border-t pt-4">
+              <Label className="flex items-center gap-2 mb-3">
+                <Tag className="w-4 h-4" />
+                Cupom de Desconto (opcional)
+              </Label>
+              
+              {appliedCoupon ? (
+                <Alert className="bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800">
+                  <Gift className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  <AlertDescription className="flex items-center justify-between w-full">
+                    <span className="text-green-800 dark:text-green-300">
+                      Cupom <strong>{appliedCoupon.code}</strong> aplicado! 
+                      Economia de <strong>R$ {appliedCoupon.discountAmount.toFixed(2)}</strong>
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleRemoveCoupon}
+                      className="text-green-700 hover:text-green-800 hover:bg-green-100 dark:text-green-400 dark:hover:bg-green-900/40"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <Input
+                      value={couponCode}
+                      onChange={(e) => {
+                        setCouponCode(e.target.value.toUpperCase());
+                        setCouponError(null);
+                      }}
+                      placeholder="Digite o código do cupom"
+                      className="flex-1"
+                      disabled={!formData.planId}
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={handleApplyCoupon}
+                      disabled={couponLoading || !formData.planId || !couponCode.trim()}
+                    >
+                      {couponLoading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        'Aplicar'
+                      )}
+                    </Button>
+                  </div>
+                  {couponError && (
+                    <p className="text-sm text-destructive">{couponError}</p>
+                  )}
+                  {!formData.planId && (
+                    <p className="text-xs text-muted-foreground">
+                      Selecione um plano para aplicar o cupom
+                    </p>
+                  )}
                 </div>
               )}
             </div>

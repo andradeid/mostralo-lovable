@@ -1877,6 +1877,8 @@ export type Database = {
           approved_by: string | null
           company_document: string | null
           company_name: string | null
+          coupon_discount: number | null
+          coupon_id: string | null
           created_at: string | null
           expires_at: string | null
           id: string
@@ -1901,6 +1903,8 @@ export type Database = {
           approved_by?: string | null
           company_document?: string | null
           company_name?: string | null
+          coupon_discount?: number | null
+          coupon_id?: string | null
           created_at?: string | null
           expires_at?: string | null
           id?: string
@@ -1925,6 +1929,8 @@ export type Database = {
           approved_by?: string | null
           company_document?: string | null
           company_name?: string | null
+          coupon_discount?: number | null
+          coupon_id?: string | null
           created_at?: string | null
           expires_at?: string | null
           id?: string
@@ -1943,6 +1949,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "payment_approvals_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "payment_approvals_plan_id_fkey"
             columns: ["plan_id"]

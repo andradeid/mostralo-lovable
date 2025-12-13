@@ -13,7 +13,8 @@ import {
   TrendingUp,
   Clock,
   XCircle,
-  ExternalLink
+  ExternalLink,
+  Star
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -26,6 +27,7 @@ interface FunnelData {
   rejected: number;
   inactive: number;
   oldest_pending: string | null;
+  avg_score: number;
 }
 
 interface RecruitmentFunnelProps {
@@ -40,7 +42,8 @@ export function RecruitmentFunnel({ onRefresh }: RecruitmentFunnelProps) {
     active: 0,
     rejected: 0,
     inactive: 0,
-    oldest_pending: null
+    oldest_pending: null,
+    avg_score: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -53,7 +56,7 @@ export function RecruitmentFunnel({ onRefresh }: RecruitmentFunnelProps) {
       setLoading(true);
       const { data: salespeople, error } = await supabase
         .from('salespeople')
-        .select('status, created_at');
+        .select('status, created_at, qualification_score');
 
       if (error) throw error;
 
@@ -64,10 +67,13 @@ export function RecruitmentFunnel({ onRefresh }: RecruitmentFunnelProps) {
         active: 0,
         rejected: 0,
         inactive: 0,
-        oldest_pending: null
+        oldest_pending: null,
+        avg_score: 0
       };
 
       let oldestPendingDate: Date | null = null;
+      let totalScore = 0;
+      let scoreCount = 0;
 
       salespeople?.forEach(sp => {
         const status = sp.status as keyof typeof counts;
@@ -82,11 +88,19 @@ export function RecruitmentFunnel({ onRefresh }: RecruitmentFunnelProps) {
             oldestPendingDate = createdAt;
           }
         }
+
+        // Calculate average score
+        if (sp.qualification_score && sp.qualification_score > 0) {
+          totalScore += sp.qualification_score;
+          scoreCount++;
+        }
       });
 
       if (oldestPendingDate) {
         counts.oldest_pending = oldestPendingDate.toISOString();
       }
+
+      counts.avg_score = scoreCount > 0 ? Math.round(totalScore / scoreCount) : 0;
 
       setData(counts);
     } catch (error) {
@@ -263,10 +277,10 @@ export function RecruitmentFunnel({ onRefresh }: RecruitmentFunnelProps) {
           </div>
           
           <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50">
-            <XCircle className="h-4 w-4 text-muted-foreground" />
+            <Star className="h-4 w-4 text-yellow-500" />
             <div>
-              <p className="text-xs text-muted-foreground">Inativos</p>
-              <p className="font-semibold">{data.inactive}</p>
+              <p className="text-xs text-muted-foreground">Score Médio</p>
+              <p className="font-semibold">{data.avg_score > 0 ? `${data.avg_score}/100` : '-'}</p>
             </div>
           </div>
         </div>

@@ -139,14 +139,14 @@ const App = () => (
       <AuthProvider>
         <CartProvider>
           <TooltipProvider>
-            <Toaster />
-            <Sonner />
             <BrowserRouter
               future={{
                 v7_startTransition: true,
                 v7_relativeSplatPath: true,
               }}
             >
+              <Toaster />
+              <Sonner />
               <ThemeController />
               <CustomDomainRouter>
           <Routes>

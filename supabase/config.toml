@@ -107,3 +107,6 @@ verify_jwt = false
 
 [functions.google-shopping-feed]
 verify_jwt = false
+
+[functions.meta-commerce-feed]
+verify_jwt = false

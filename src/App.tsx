@@ -89,6 +89,7 @@ import FeaturesPage from './pages/public/FeaturesPage';
 import FeirantesPage from './pages/public/FeirantesPage';
 import LojistasLocaisPage from './pages/public/LojistasLocaisPage';
 import FarmaciasPage from './pages/public/FarmaciasPage';
+import SuplementosPage from './pages/public/SuplementosPage';
 import BioMundoPropostaPage from './pages/public/BioMundoPropostaPage';
 import SupermercadosPage from './pages/public/SupermercadosPage';
 import AcouguesPage from './pages/public/AcouguesPage';
@@ -156,6 +157,7 @@ const App = () => (
 <Route path="/para-feirantes" element={<FeirantesPage />} />
             <Route path="/para-lojistas" element={<LojistasLocaisPage />} />
             <Route path="/para-farmacias" element={<FarmaciasPage />} />
+            <Route path="/para-suplementos" element={<SuplementosPage />} />
             <Route path="/proposta-biomundo" element={<BioMundoPropostaPage />} />
             <Route path="/para-supermercados" element={<SupermercadosPage />} />
             <Route path="/para-acougues" element={<AcouguesPage />} />

@@ -25,10 +25,13 @@ import {
   BarChart3,
   Sparkles,
   RefreshCw,
+  Copy,
+  Check,
 } from "lucide-react";
 
 export default function SejaVendedor() {
   const [simulatedSales, setSimulatedSales] = useState(30);
+  const [copied, setCopied] = useState(false);
   const avgCommission = 50;
   const monthlyEarnings = simulatedSales * avgCommission;
   
@@ -69,6 +72,106 @@ export default function SejaVendedor() {
       console.log('✅ Código de referência capturado:', refCode);
     }
   }, []);
+
+  const copyPageText = async () => {
+    const pageContent = `
+# SEJA VENDEDOR MOSTRALO
+
+## Venda Uma Vez. Receba Todo Mês.
+Enquanto seu cliente usar a Mostralo, a comissão cai na sua conta.
+Seja o primeiro a vender a "Libertação do iFood" na sua cidade.
+
+## COMO FUNCIONA
+
+### 💵 Recorrência Real
+Venda uma vez, receba todo mês. Enquanto o cliente pagar, você ganha.
+
+### ⏰ Sem Horário Fixo
+Trabalhe quando e onde quiser, sem compromisso de horário.
+
+### 🎨 Kit de Vendas Completo
+Você não precisa ser Designer nem Copywriter.
+✅ Artes prontas por nicho (Pizzarias, Pet Shops, Açougues...)
+✅ Scripts de WhatsApp que fecham vendas
+
+### 📊 Dashboard Exclusivo
+Acompanhe suas vendas, comissões e metas em tempo real.
+
+## VOCÊ NÃO PRECISA SER "NERD" DE COMPUTADOR
+Seu trabalho é abrir a porta. Nós cuidamos do resto.
+
+1. Você encontra a loja - Te ensinamos onde e como prospectar
+2. Você mostra a solução - Te damos o vídeo e material pronto
+3. O cliente fecha - Nós cuidamos do suporte e treinamento
+
+Zero técnico: Instalação, configuração e treinamento do lojista são 100% por nossa conta. Você foca apenas em vender.
+
+## SIMULADOR DE GANHOS
+Meta: 1 venda por dia (30 vendas/mês)
+- Comissão mensal: R$ 1.500
+- Comissão trimestral (3 meses): R$ 4.500
+- Bônus Trimestral (Ouro): R$ 3.500
+- TOTAL NO TRIMESTRE: R$ 8.000
+
+Isso é mais do que muitos empregos CLT - trabalhando no seu horário, sem chefe.
+
+## BÔNUS TRIMESTRAIS (CUMULATIVOS)
+| Tier | Vendas | Bônus |
+|------|--------|-------|
+| 🥉 Bronze | 10 vendas | R$ 500 |
+| 🥈 Prata | 20 vendas | R$ 1.000 |
+| 🥇 Ouro | 30 vendas | R$ 2.000 |
+| 💎 Diamante | 50 vendas | R$ 5.000 |
+
+Os bônus são CUMULATIVOS! Se atingir Ouro, recebe Bronze + Prata + Ouro = R$ 3.500
+
+## FERRAMENTAS EXCLUSIVAS
+- Dashboard: Acompanhe vendas, comissões e clientes em tempo real
+- Link de Indicação: Seu link pessoal para compartilhar
+- Material Impresso: Artes prontas para imprimir e distribuir
+- Prompts de IA: Scripts de vendas prontos para usar
+- Guia de Prospecção: Aprenda as melhores técnicas de vendas
+- Formulário de Leads: Colete dados de potenciais clientes
+
+## BENEFÍCIOS
+- 💵 Renda Recorrente de Verdade: Venda uma vez, receba todo mês
+- 🎁 Bônus Trimestrais: Até R$ 8.500 em bônus por trimestre
+- 📈 Comissões Competitivas: Até 15% de comissão por venda
+- 🎓 Treinamento Completo: Material e suporte para você vender
+
+## CNAES COMPATÍVEIS (Para Parceiros PJ)
+- 7319-0/02 - Promoção de vendas
+- 7319-0/99 - Outras atividades de publicidade
+- 4619-2/00 - Representação comercial
+- 7311-4/00 - Agências de publicidade
+- 8299-7/99 - Outras atividades de serviços
+
+## FAQ
+
+### Preciso ter experiência em vendas?
+Não! Fornecemos todo o treinamento e material necessário para você começar.
+
+### Qual é o valor da comissão?
+A comissão média é de R$ 50 por venda aprovada, podendo variar conforme o plano vendido.
+
+### Como recebo meus pagamentos?
+Pagamentos são feitos via PIX até o dia 10 de cada mês, referente às vendas do mês anterior.
+
+### Posso ser afiliado e parceiro ao mesmo tempo?
+Não. Você deve escolher uma modalidade no momento do cadastro.
+
+## CADASTRE-SE AGORA
+Link: ${window.location.origin}/cadastro-vendedor
+    `.trim();
+
+    try {
+      await navigator.clipboard.writeText(pageContent);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 3000);
+    } catch (err) {
+      console.error('Erro ao copiar:', err);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
@@ -814,6 +917,40 @@ export default function SejaVendedor() {
             </p>
           </CardContent>
         </Card>
+      </section>
+
+      {/* Copiar Texto para IA */}
+      <section className="py-12 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <Card className="max-w-2xl mx-auto">
+            <CardContent className="p-6 text-center">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <FileText className="h-5 w-5 text-muted-foreground" />
+                <h4 className="font-semibold text-foreground">Usar com IA</h4>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Copie todo o conteúdo desta página para usar em prompts de IA como ChatGPT, Claude ou outros assistentes.
+              </p>
+              <Button 
+                onClick={copyPageText}
+                variant={copied ? "secondary" : "outline"}
+                className="gap-2"
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-4 w-4 text-green-600" />
+                    Texto Copiado!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4" />
+                    Copiar Todo o Texto da Página
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </section>
 
       {/* Footer */}

@@ -74,6 +74,7 @@ const routeSections: RouteSection[] = [
       { path: "/para-farmacias", name: "Para Farmácias", component: "ForFarmaciasPage.tsx", roles: ["public"] },
       { path: "/para-acougues", name: "Para Açougues", component: "ForAcouguesPage.tsx", roles: ["public"] },
       { path: "/para-supermercados", name: "Para Supermercados", component: "ForSupermercadosPage.tsx", roles: ["public"] },
+      { path: "/para-suplementos", name: "Para Suplementos", component: "SuplementosPage.tsx", roles: ["public"] },
       { path: "/proposta-biomundo", name: "Proposta BioMundo", component: "BioMundoProposalPage.tsx", roles: ["public"] },
     ]
   },

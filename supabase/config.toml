@@ -104,3 +104,6 @@ verify_jwt = false
 
 [functions.accept-merchant-contract]
 verify_jwt = false
+
+[functions.google-shopping-feed]
+verify_jwt = false

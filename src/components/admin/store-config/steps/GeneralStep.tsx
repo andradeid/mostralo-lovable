@@ -626,19 +626,258 @@ print(store_data)`}
                   <AccordionTrigger className="text-sm">
                     <div className="flex items-center gap-2">
                       <ShoppingCart className="w-4 h-4 text-blue-500" />
-                      <span className="font-semibold">Google Merchant Center</span>
+                      <span className="font-semibold">📖 Guia Completo: Google Merchant Center</span>
                     </div>
                   </AccordionTrigger>
-                  <AccordionContent className="space-y-2">
-                    <div className="text-xs space-y-2 p-3 bg-muted rounded">
-                      <p className="font-semibold">Passo a passo:</p>
-                      <ol className="list-decimal ml-4 space-y-1">
-                        <li>Acesse <a href="https://merchants.google.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">merchants.google.com</a></li>
-                        <li>Vá em <strong>Produtos → Feeds → Adicionar feed principal</strong></li>
-                        <li>Selecione <strong>"Busca programada"</strong> e cole a URL do feed XML</li>
-                        <li>Configure atualização <strong>diária</strong> para sincronizar preços</li>
-                        <li>Aguarde a validação do Google (pode levar algumas horas)</li>
+                  <AccordionContent className="space-y-4">
+                    {/* Seção 1: Pré-requisitos */}
+                    <div className="p-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg">
+                      <p className="font-semibold text-amber-800 dark:text-amber-200 mb-2 flex items-center gap-2">
+                        <span className="bg-amber-500 text-white px-2 py-0.5 rounded text-xs">1</span>
+                        📋 Pré-requisitos
+                      </p>
+                      <ul className="text-xs space-y-1 text-amber-700 dark:text-amber-300">
+                        <li className="flex items-center gap-2">
+                          <span className="text-green-500">✅</span> Ter conta Google (Gmail)
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <span className="text-green-500">✅</span> Ter produtos cadastrados com imagens (mínimo 100x100px)
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <span className="text-green-500">✅</span> Ter preços e descrições definidos
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <span className="text-green-500">✅</span> Loja ativa e acessível publicamente
+                        </li>
+                      </ul>
+                    </div>
+
+                    {/* Seção 2: Criar Conta */}
+                    <div className="p-3 bg-muted rounded-lg">
+                      <p className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                        <span className="bg-primary text-primary-foreground px-2 py-0.5 rounded text-xs">2</span>
+                        🏪 Criar Conta no Google Merchant Center
+                      </p>
+                      <ol className="text-xs space-y-2 list-decimal ml-4">
+                        <li>
+                          Acesse <a href="https://merchants.google.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-semibold">merchants.google.com</a>
+                        </li>
+                        <li>Clique em <strong>"Criar conta"</strong> ou <strong>"Começar agora"</strong></li>
+                        <li>Preencha as informações do negócio:
+                          <ul className="list-disc ml-4 mt-1 space-y-0.5">
+                            <li><strong>Nome da empresa:</strong> {formData.name || '[Seu nome de estabelecimento]'}</li>
+                            <li><strong>País:</strong> Brasil</li>
+                            <li><strong>Fuso horário:</strong> Brasília</li>
+                          </ul>
+                        </li>
+                        <li>Aceite os termos de serviço</li>
                       </ol>
+                    </div>
+
+                    {/* Seção 3: Verificar Loja */}
+                    <div className="p-3 bg-muted rounded-lg">
+                      <p className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                        <span className="bg-primary text-primary-foreground px-2 py-0.5 rounded text-xs">3</span>
+                        🔐 Verificar e Reivindicar sua Loja
+                      </p>
+                      <ol className="text-xs space-y-2 list-decimal ml-4">
+                        <li>No menu lateral, vá em <strong>Configurações → Informações da empresa → Website</strong></li>
+                        <li>
+                          Insira a URL da sua loja:
+                          <div className="bg-background px-2 py-1 rounded mt-1 font-mono text-[10px] break-all border">
+                            {window.location.origin}/loja/{formData.slug || '[seu-slug]'}
+                          </div>
+                        </li>
+                        <li>
+                          <strong>Método de verificação:</strong> Escolha <span className="bg-green-100 dark:bg-green-900 px-1 rounded">Tag HTML</span> (mais simples)
+                          <div className="mt-1 p-2 bg-blue-50 dark:bg-blue-950 rounded text-blue-700 dark:text-blue-300">
+                            💡 <strong>Dica:</strong> Se precisar de ajuda com a verificação, entre em contato com o suporte Mostralo
+                          </div>
+                        </li>
+                        <li>Clique em <strong>"Verificar"</strong> e aguarde confirmação</li>
+                      </ol>
+                    </div>
+
+                    {/* Seção 4: Adicionar Feed */}
+                    <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+                      <p className="font-semibold text-green-800 dark:text-green-200 mb-2 flex items-center gap-2">
+                        <span className="bg-green-500 text-white px-2 py-0.5 rounded text-xs">4</span>
+                        📦 Adicionar o Feed de Produtos
+                        <span className="bg-green-600 text-white px-1.5 py-0.5 rounded text-[10px] ml-1">IMPORTANTE</span>
+                      </p>
+                      <ol className="text-xs space-y-2 list-decimal ml-4 text-green-700 dark:text-green-300">
+                        <li>No menu lateral, clique em <strong>Produtos → Feeds</strong></li>
+                        <li>Clique no botão <strong>➕ Adicionar feed principal</strong></li>
+                        <li>Configure as opções:
+                          <ul className="list-disc ml-4 mt-1 space-y-0.5">
+                            <li><strong>País de venda:</strong> Brasil</li>
+                            <li><strong>Idioma:</strong> Português</li>
+                            <li><strong>Destinos:</strong> Marque <span className="bg-blue-100 dark:bg-blue-900 px-1 rounded">Google Shopping</span></li>
+                          </ul>
+                        </li>
+                        <li>Selecione <strong>"Busca programada"</strong> como método de envio</li>
+                        <li>
+                          <strong>Cole a URL do feed:</strong>
+                          <div className="bg-white dark:bg-gray-900 px-2 py-1 rounded mt-1 font-mono text-[10px] break-all border border-green-300 dark:border-green-700">
+                            {googleShoppingFeedUrl}
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleCopyUrl(googleShoppingFeedUrl)}
+                            className="mt-1 h-6 text-[10px]"
+                          >
+                            <Copy className="w-3 h-3 mr-1" />
+                            Copiar URL
+                          </Button>
+                        </li>
+                        <li>
+                          <strong>Nome do feed:</strong> Produtos {formData.name || '[Nome da Loja]'}
+                        </li>
+                        <li><strong>Frequência:</strong> Diária</li>
+                        <li><strong>Horário:</strong> 06:00 (recomendado)</li>
+                        <li>Clique em <strong>"Criar feed"</strong></li>
+                      </ol>
+                    </div>
+
+                    {/* Seção 5: Configurar Frete */}
+                    <div className="p-3 bg-muted rounded-lg">
+                      <p className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                        <span className="bg-primary text-primary-foreground px-2 py-0.5 rounded text-xs">5</span>
+                        🚚 Configurar Informações de Frete
+                      </p>
+                      <ol className="text-xs space-y-2 list-decimal ml-4">
+                        <li>Vá em <strong>Configurações → Frete e devoluções</strong></li>
+                        <li>Clique em <strong>➕ Adicionar serviço de frete</strong></li>
+                        <li>Configure:
+                          <ul className="list-disc ml-4 mt-1 space-y-0.5">
+                            <li><strong>Nome:</strong> Entrega Padrão</li>
+                            <li><strong>País:</strong> Brasil</li>
+                            <li><strong>Tipo:</strong> Taxa fixa OU Baseada em região</li>
+                            <li><strong>Valor:</strong> Insira seu valor médio de entrega</li>
+                          </ul>
+                        </li>
+                        <li>Salve as configurações</li>
+                      </ol>
+                    </div>
+
+                    {/* Seção 6: Aguardar Validação */}
+                    <div className="p-3 bg-muted rounded-lg">
+                      <p className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                        <span className="bg-primary text-primary-foreground px-2 py-0.5 rounded text-xs">6</span>
+                        ⏳ Aguardar Validação
+                      </p>
+                      <ul className="text-xs space-y-1 list-disc ml-4">
+                        <li>O Google processa o feed em <strong>até 24 horas</strong></li>
+                        <li>Verifique o status em <strong>Produtos → Diagnóstico</strong></li>
+                        <li className="flex items-center gap-1">
+                          <span className="text-green-500">✅</span> Produtos aprovados aparecem com check verde
+                        </li>
+                        <li className="flex items-center gap-1">
+                          <span className="text-amber-500">⚠️</span> Produtos com aviso aparecem em amarelo
+                        </li>
+                        <li className="flex items-center gap-1">
+                          <span className="text-red-500">❌</span> Produtos com erro aparecem em vermelho
+                        </li>
+                      </ul>
+                    </div>
+
+                    {/* Seção 7: Erros Comuns */}
+                    <div className="p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
+                      <p className="font-semibold text-red-800 dark:text-red-200 mb-2 flex items-center gap-2">
+                        <span className="bg-red-500 text-white px-2 py-0.5 rounded text-xs">7</span>
+                        ⚠️ Erros Comuns e Soluções
+                      </p>
+                      <div className="overflow-x-auto">
+                        <table className="text-[10px] w-full border-collapse">
+                          <thead>
+                            <tr className="bg-red-100 dark:bg-red-900">
+                              <th className="border border-red-200 dark:border-red-700 px-2 py-1 text-left">Erro</th>
+                              <th className="border border-red-200 dark:border-red-700 px-2 py-1 text-left">Causa</th>
+                              <th className="border border-red-200 dark:border-red-700 px-2 py-1 text-left">Solução</th>
+                            </tr>
+                          </thead>
+                          <tbody className="text-red-700 dark:text-red-300">
+                            <tr>
+                              <td className="border border-red-200 dark:border-red-700 px-2 py-1">"Imagem muito pequena"</td>
+                              <td className="border border-red-200 dark:border-red-700 px-2 py-1">Imagem menor que 100x100px</td>
+                              <td className="border border-red-200 dark:border-red-700 px-2 py-1">Subir imagem maior</td>
+                            </tr>
+                            <tr>
+                              <td className="border border-red-200 dark:border-red-700 px-2 py-1">"Preço inválido"</td>
+                              <td className="border border-red-200 dark:border-red-700 px-2 py-1">Preço zerado ou texto</td>
+                              <td className="border border-red-200 dark:border-red-700 px-2 py-1">Verificar campo de preço</td>
+                            </tr>
+                            <tr>
+                              <td className="border border-red-200 dark:border-red-700 px-2 py-1">"GTIN ausente"</td>
+                              <td className="border border-red-200 dark:border-red-700 px-2 py-1">Produto sem código de barras</td>
+                              <td className="border border-red-200 dark:border-red-700 px-2 py-1">Campo opcional, pode ignorar</td>
+                            </tr>
+                            <tr>
+                              <td className="border border-red-200 dark:border-red-700 px-2 py-1">"Link inválido"</td>
+                              <td className="border border-red-200 dark:border-red-700 px-2 py-1">URL do produto incorreta</td>
+                              <td className="border border-red-200 dark:border-red-700 px-2 py-1">Verificar slug da loja</td>
+                            </tr>
+                            <tr>
+                              <td className="border border-red-200 dark:border-red-700 px-2 py-1">"Feed não encontrado"</td>
+                              <td className="border border-red-200 dark:border-red-700 px-2 py-1">URL errada ou loja inativa</td>
+                              <td className="border border-red-200 dark:border-red-700 px-2 py-1">Copiar URL correta deste painel</td>
+                            </tr>
+                            <tr>
+                              <td className="border border-red-200 dark:border-red-700 px-2 py-1">"Website não verificado"</td>
+                              <td className="border border-red-200 dark:border-red-700 px-2 py-1">Loja não reivindicada</td>
+                              <td className="border border-red-200 dark:border-red-700 px-2 py-1">Completar passo 3 acima</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Seção 8: Dicas Extras */}
+                    <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+                      <p className="font-semibold text-blue-800 dark:text-blue-200 mb-2 flex items-center gap-2">
+                        <span className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs">8</span>
+                        💡 Dicas Extras
+                      </p>
+                      <ul className="text-xs space-y-2 text-blue-700 dark:text-blue-300">
+                        <li className="flex items-start gap-2">
+                          <span>🔄</span>
+                          <span><strong>Sincronização automática:</strong> O feed atualiza sozinho quando você altera produtos no painel</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span>🏷️</span>
+                          <span><strong>Promoções:</strong> Produtos em oferta aparecem com preço promocional automaticamente</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span>📦</span>
+                          <span><strong>Estoque:</strong> Produtos desativados aparecem como "out_of_stock" automaticamente</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span>⏱️</span>
+                          <span><strong>Cache:</strong> Alterações podem levar até 1 hora para refletir no feed</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span>🆓</span>
+                          <span><strong>Grátis:</strong> Listar produtos no Google Shopping é gratuito (listagens orgânicas)</span>
+                        </li>
+                      </ul>
+                    </div>
+
+                    {/* Botão de Ajuda */}
+                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                      <span className="text-xs text-muted-foreground">
+                        Precisa de ajuda? Entre em contato com nosso suporte
+                      </span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open('https://wa.me/5561994009368?text=Olá! Preciso de ajuda para configurar o Google Merchant Center', '_blank')}
+                        className="h-7 text-xs"
+                      >
+                        💬 Falar com Suporte
+                      </Button>
                     </div>
                   </AccordionContent>
                 </AccordionItem>

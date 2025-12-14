@@ -30,7 +30,7 @@ export function GeneralStep({ formData, updateFormData }: GeneralStepProps) {
   const xmlApiUrl = `${window.location.origin}/loja/${formData.slug}/info.xml`;
   const jsonApiUrl = `https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/store-info-json?slug=${formData.slug}`;
   const googleShoppingFeedUrl = `https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/google-shopping-feed?slug=${formData.slug}`;
-  const metaCommerceFeedUrl = `${window.location.origin}/loja/${formData.slug}/feed.csv`;
+  const metaCommerceFeedUrl = `https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/meta-commerce-feed?slug=${formData.slug}`;
 
   const handleCopyUrl = (url: string) => {
     navigator.clipboard.writeText(url);
@@ -886,19 +886,324 @@ print(store_data)`}
                   <AccordionTrigger className="text-sm">
                     <div className="flex items-center gap-2">
                       <Instagram className="w-4 h-4 text-pink-500" />
-                      <span className="font-semibold">Instagram / Facebook Shop</span>
+                      <span className="font-semibold">Instagram / Facebook Shop - Guia Completo</span>
                     </div>
                   </AccordionTrigger>
-                  <AccordionContent className="space-y-2">
-                    <div className="text-xs space-y-2 p-3 bg-muted rounded">
-                      <p className="font-semibold">Passo a passo:</p>
-                      <ol className="list-decimal ml-4 space-y-1">
-                        <li>Acesse <a href="https://business.facebook.com/commerce" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">business.facebook.com/commerce</a></li>
-                        <li>Clique em <strong>"Criar Catálogo"</strong> e selecione a categoria</li>
-                        <li>Vá em <strong>Fontes de dados → Feed de dados → Feed agendado</strong></li>
-                        <li>Cole a URL do feed CSV e configure atualização diária</li>
-                        <li>Vincule ao <strong>Instagram Business</strong> nas configurações do catálogo</li>
+                  <AccordionContent className="space-y-4">
+                    
+                    {/* Seção 1: Pré-requisitos */}
+                    <div className="p-3 bg-gradient-to-r from-pink-500/10 to-purple-500/10 rounded-lg border border-pink-500/20">
+                      <h4 className="font-semibold text-sm flex items-center gap-2 mb-2">
+                        📋 Seção 1: Pré-requisitos
+                        <span className="text-[10px] bg-pink-500/20 text-pink-700 dark:text-pink-300 px-1.5 py-0.5 rounded">OBRIGATÓRIO</span>
+                      </h4>
+                      <ul className="text-xs space-y-1.5">
+                        <li className="flex items-center gap-2">
+                          <span className="text-green-500">✅</span>
+                          <span>Ter conta <strong>Facebook Business</strong></span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <span className="text-green-500">✅</span>
+                          <span>Ter <strong>página do Facebook</strong> vinculada ao negócio</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <span className="text-green-500">✅</span>
+                          <span>Ter conta <strong>Instagram Business</strong> (não pessoal)</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <span className="text-green-500">✅</span>
+                          <span>Instagram conectado à página do Facebook</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <span className="text-green-500">✅</span>
+                          <span>Produtos cadastrados com imagens (mínimo <strong>500x500px</strong> para Instagram)</span>
+                        </li>
+                      </ul>
+                      <Alert className="mt-2 py-2">
+                        <AlertDescription className="text-xs">
+                          ⚠️ <strong>Importante:</strong> Conta Instagram pessoal não funciona. É necessário converter para conta Business ou Profissional nas configurações do Instagram.
+                        </AlertDescription>
+                      </Alert>
+                    </div>
+
+                    {/* Seção 2: Criar conta Meta Business */}
+                    <div className="p-3 bg-muted/50 rounded-lg border">
+                      <h4 className="font-semibold text-sm flex items-center gap-2 mb-2">
+                        🏢 Seção 2: Criar Conta no Meta Business Suite
+                      </h4>
+                      <ol className="text-xs list-decimal ml-4 space-y-2">
+                        <li>
+                          Acesse <a href="https://business.facebook.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">business.facebook.com</a> e faça login
+                        </li>
+                        <li>
+                          Clique em <strong>"Criar conta"</strong> se não tiver
+                        </li>
+                        <li>
+                          Preencha as informações do negócio:
+                          <ul className="list-disc ml-4 mt-1 text-muted-foreground">
+                            <li>Nome da empresa: <strong>{formData.name || '[nome da loja]'}</strong></li>
+                            <li>País: Brasil</li>
+                            <li>Moeda: Real Brasileiro (BRL)</li>
+                          </ul>
+                        </li>
+                        <li>
+                          Adicione sua página do Facebook existente ou crie uma nova
+                        </li>
+                        <li>
+                          Vincule a conta Instagram Business:
+                          <ul className="list-disc ml-4 mt-1 text-muted-foreground">
+                            <li>Vá em <strong>Configurações → Contas do Instagram</strong></li>
+                            <li>Clique em <strong>"Conectar conta"</strong></li>
+                            <li>Faça login no Instagram Business</li>
+                          </ul>
+                        </li>
                       </ol>
+                    </div>
+
+                    {/* Seção 3: Criar Catálogo */}
+                    <div className="p-3 bg-muted/50 rounded-lg border">
+                      <h4 className="font-semibold text-sm flex items-center gap-2 mb-2">
+                        📦 Seção 3: Criar Catálogo de Produtos
+                      </h4>
+                      <ol className="text-xs list-decimal ml-4 space-y-2">
+                        <li>
+                          Acesse <a href="https://business.facebook.com/commerce" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">business.facebook.com/commerce</a>
+                        </li>
+                        <li>
+                          Clique em <strong>"Criar Catálogo"</strong>
+                        </li>
+                        <li>
+                          Selecione o tipo: <strong>"E-commerce"</strong>
+                        </li>
+                        <li>
+                          Configure:
+                          <ul className="list-disc ml-4 mt-1 text-muted-foreground">
+                            <li>Nome do catálogo: <strong>Produtos {formData.name || '[nome da loja]'}</strong></li>
+                            <li>Selecione sua conta Business</li>
+                            <li>Vincule à sua página do Facebook</li>
+                          </ul>
+                        </li>
+                        <li>
+                          Clique em <strong>"Criar"</strong>
+                        </li>
+                      </ol>
+                    </div>
+
+                    {/* Seção 4: Adicionar Feed */}
+                    <div className="p-3 bg-gradient-to-r from-blue-500/10 to-pink-500/10 rounded-lg border border-blue-500/20">
+                      <h4 className="font-semibold text-sm flex items-center gap-2 mb-2">
+                        🔗 Seção 4: Adicionar Feed de Dados
+                        <span className="text-[10px] bg-blue-500/20 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">IMPORTANTE</span>
+                      </h4>
+                      <ol className="text-xs list-decimal ml-4 space-y-2">
+                        <li>
+                          Abra o catálogo criado no passo anterior
+                        </li>
+                        <li>
+                          No menu lateral, vá em <strong>Fontes de dados → Feed de dados</strong>
+                        </li>
+                        <li>
+                          Clique em <strong>"Adicionar feed de dados"</strong>
+                        </li>
+                        <li>
+                          Selecione <strong>"Feed agendado"</strong> (não "Upload manual")
+                        </li>
+                        <li>
+                          Cole a URL do seu feed:
+                          <div className="mt-2 p-2 bg-background rounded border flex items-center gap-2">
+                            <code className="text-[10px] flex-1 break-all font-mono text-pink-600 dark:text-pink-400">
+                              {metaCommerceFeedUrl}
+                            </code>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleCopyUrl(metaCommerceFeedUrl)}
+                              className="h-6 px-2"
+                            >
+                              <Copy className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </li>
+                        <li>
+                          Configure o feed:
+                          <ul className="list-disc ml-4 mt-1 text-muted-foreground">
+                            <li>Nome: <strong>Produtos {formData.name || '[nome da loja]'}</strong></li>
+                            <li>Moeda padrão: <strong>BRL - Real Brasileiro</strong></li>
+                            <li>Frequência: <strong>Diária</strong></li>
+                            <li>Horário: <strong>06:00</strong> (recomendado)</li>
+                          </ul>
+                        </li>
+                        <li>
+                          Clique em <strong>"Iniciar upload"</strong>
+                        </li>
+                      </ol>
+                      <Alert className="mt-3 py-2 border-green-500/30 bg-green-500/10">
+                        <AlertDescription className="text-xs">
+                          💡 <strong>Dica:</strong> O feed é atualizado automaticamente toda vez que você altera seus produtos no sistema. Não precisa fazer nada manualmente!
+                        </AlertDescription>
+                      </Alert>
+                    </div>
+
+                    {/* Seção 5: Vincular ao Instagram */}
+                    <div className="p-3 bg-muted/50 rounded-lg border">
+                      <h4 className="font-semibold text-sm flex items-center gap-2 mb-2">
+                        📱 Seção 5: Vincular ao Instagram Shopping
+                      </h4>
+                      <ol className="text-xs list-decimal ml-4 space-y-2">
+                        <li>
+                          No catálogo, vá em <strong>Configurações → Contas vinculadas</strong>
+                        </li>
+                        <li>
+                          Clique em <strong>"Vincular conta do Instagram"</strong>
+                        </li>
+                        <li>
+                          Selecione sua conta Instagram Business
+                        </li>
+                        <li>
+                          Confirme a vinculação
+                        </li>
+                        <li>
+                          No <strong>aplicativo Instagram</strong> do celular:
+                          <ul className="list-disc ml-4 mt-1 text-muted-foreground">
+                            <li>Vá em <strong>Configurações → Empresa → Compras</strong></li>
+                            <li>Selecione o catálogo que você criou</li>
+                            <li>Aguarde aprovação (1-7 dias úteis)</li>
+                          </ul>
+                        </li>
+                      </ol>
+                    </div>
+
+                    {/* Seção 6: Aguardar Aprovação */}
+                    <div className="p-3 bg-muted/50 rounded-lg border">
+                      <h4 className="font-semibold text-sm flex items-center gap-2 mb-2">
+                        ⏳ Seção 6: Aguardar Aprovação
+                      </h4>
+                      <div className="text-xs space-y-2">
+                        <p>O Meta analisa sua conta em <strong>1-7 dias úteis</strong>. Verifique o status em <strong>Catálogo → Diagnóstico</strong>.</p>
+                        <div className="grid grid-cols-2 gap-2 mt-2">
+                          <div className="p-2 bg-green-500/10 rounded border border-green-500/30 text-center">
+                            <span className="text-green-600 dark:text-green-400 font-medium">✅ Aprovado</span>
+                            <p className="text-[10px] text-muted-foreground mt-0.5">Pode marcar produtos nas fotos</p>
+                          </div>
+                          <div className="p-2 bg-yellow-500/10 rounded border border-yellow-500/30 text-center">
+                            <span className="text-yellow-600 dark:text-yellow-400 font-medium">⏳ Em análise</span>
+                            <p className="text-[10px] text-muted-foreground mt-0.5">Aguarde a verificação</p>
+                          </div>
+                          <div className="p-2 bg-orange-500/10 rounded border border-orange-500/30 text-center">
+                            <span className="text-orange-600 dark:text-orange-400 font-medium">⚠️ Ação necessária</span>
+                            <p className="text-[10px] text-muted-foreground mt-0.5">Verifique erros no catálogo</p>
+                          </div>
+                          <div className="p-2 bg-red-500/10 rounded border border-red-500/30 text-center">
+                            <span className="text-red-600 dark:text-red-400 font-medium">❌ Rejeitado</span>
+                            <p className="text-[10px] text-muted-foreground mt-0.5">Verifique motivo e recorra</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Seção 7: Erros Comuns */}
+                    <div className="p-3 bg-muted/50 rounded-lg border">
+                      <h4 className="font-semibold text-sm flex items-center gap-2 mb-2">
+                        ⚠️ Seção 7: Erros Comuns e Soluções
+                      </h4>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="border-b">
+                              <th className="text-left py-1.5 pr-2 font-semibold">Erro</th>
+                              <th className="text-left py-1.5 pr-2 font-semibold">Causa</th>
+                              <th className="text-left py-1.5 font-semibold">Solução</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y">
+                            <tr>
+                              <td className="py-1.5 pr-2 text-red-600 dark:text-red-400">"Imagem muito pequena"</td>
+                              <td className="py-1.5 pr-2 text-muted-foreground">Imagem &lt; 500x500px</td>
+                              <td className="py-1.5">Subir imagem maior (mín. 500x500)</td>
+                            </tr>
+                            <tr>
+                              <td className="py-1.5 pr-2 text-red-600 dark:text-red-400">"Link inválido"</td>
+                              <td className="py-1.5 pr-2 text-muted-foreground">URL do produto incorreta</td>
+                              <td className="py-1.5">Verificar slug da loja</td>
+                            </tr>
+                            <tr>
+                              <td className="py-1.5 pr-2 text-red-600 dark:text-red-400">"Feed não encontrado"</td>
+                              <td className="py-1.5 pr-2 text-muted-foreground">URL do feed errada</td>
+                              <td className="py-1.5">Copiar URL correta acima</td>
+                            </tr>
+                            <tr>
+                              <td className="py-1.5 pr-2 text-red-600 dark:text-red-400">"Conta não elegível"</td>
+                              <td className="py-1.5 pr-2 text-muted-foreground">Instagram é conta pessoal</td>
+                              <td className="py-1.5">Converter para Business</td>
+                            </tr>
+                            <tr>
+                              <td className="py-1.5 pr-2 text-red-600 dark:text-red-400">"Página não vinculada"</td>
+                              <td className="py-1.5 pr-2 text-muted-foreground">Instagram não conectado ao FB</td>
+                              <td className="py-1.5">Vincular no Business Suite</td>
+                            </tr>
+                            <tr>
+                              <td className="py-1.5 pr-2 text-red-600 dark:text-red-400">"Política de comércio"</td>
+                              <td className="py-1.5 pr-2 text-muted-foreground">Produto proibido pelo Meta</td>
+                              <td className="py-1.5">Verificar políticas do Meta</td>
+                            </tr>
+                            <tr>
+                              <td className="py-1.5 pr-2 text-red-600 dark:text-red-400">"Domínio não verificado"</td>
+                              <td className="py-1.5 pr-2 text-muted-foreground">Domínio não confirmado</td>
+                              <td className="py-1.5">Verificar no Business Suite</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Seção 8: Dicas Extras */}
+                    <div className="p-3 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg border border-purple-500/20">
+                      <h4 className="font-semibold text-sm flex items-center gap-2 mb-2">
+                        💡 Seção 8: Dicas Extras
+                      </h4>
+                      <ul className="text-xs space-y-1.5">
+                        <li className="flex items-start gap-2">
+                          <span>🔄</span>
+                          <span><strong>Sincronização automática:</strong> O feed atualiza sozinho quando você altera produtos</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span>🏷️</span>
+                          <span><strong>Promoções:</strong> Produtos em oferta exibem preço promocional automaticamente</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span>📦</span>
+                          <span><strong>Estoque:</strong> Produtos desativados aparecem como "out_of_stock" no catálogo</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span>📸</span>
+                          <span><strong>Stories/Reels:</strong> Marque produtos diretamente nas suas mídias após aprovação</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span>🛒</span>
+                          <span><strong>Checkout:</strong> Clientes podem visualizar e comprar sem sair do Instagram</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span>🆓</span>
+                          <span><strong>Grátis:</strong> Instagram Shopping é totalmente gratuito para usar</span>
+                        </li>
+                      </ul>
+                    </div>
+
+                    {/* Botão de Ajuda */}
+                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                      <span className="text-xs text-muted-foreground">
+                        Precisa de ajuda? Entre em contato com nosso suporte
+                      </span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open('https://wa.me/5561994009368?text=Olá! Preciso de ajuda para configurar o Instagram Shopping', '_blank')}
+                        className="h-7 text-xs"
+                      >
+                        💬 Falar com Suporte
+                      </Button>
                     </div>
                   </AccordionContent>
                 </AccordionItem>

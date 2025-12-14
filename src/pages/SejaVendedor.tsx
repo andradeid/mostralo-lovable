@@ -24,12 +24,39 @@ import {
   ClipboardList,
   BarChart3,
   Sparkles,
+  RefreshCw,
 } from "lucide-react";
 
 export default function SejaVendedor() {
-  const [simulatedSales, setSimulatedSales] = useState(15);
+  const [simulatedSales, setSimulatedSales] = useState(30);
   const avgCommission = 50;
   const monthlyEarnings = simulatedSales * avgCommission;
+  
+  // Cálculo do bônus trimestral cumulativo
+  const calculateTrimestralBonus = (salesPerMonth: number) => {
+    const trimestralSales = salesPerMonth * 3;
+    let bonus = 0;
+    let tierName = "";
+    
+    if (trimestralSales >= 50) {
+      bonus = 500 + 1000 + 2000 + 5000; // Bronze + Prata + Ouro + Diamante
+      tierName = "Diamante";
+    } else if (trimestralSales >= 30) {
+      bonus = 500 + 1000 + 2000; // Bronze + Prata + Ouro
+      tierName = "Ouro";
+    } else if (trimestralSales >= 20) {
+      bonus = 500 + 1000; // Bronze + Prata
+      tierName = "Prata";
+    } else if (trimestralSales >= 10) {
+      bonus = 500; // Bronze
+      tierName = "Bronze";
+    }
+    
+    return { bonus, tierName, trimestralSales };
+  };
+  
+  const { bonus: tierBonus, tierName, trimestralSales } = calculateTrimestralBonus(simulatedSales);
+  const totalTrimestral = (monthlyEarnings * 3) + tierBonus;
 
   // 🎯 Capturar código de referência do vendedor
   useEffect(() => {
@@ -62,20 +89,21 @@ export default function SejaVendedor() {
         </div>
       </header>
 
-      {/* Hero Section */}
+      {/* Hero Section - ATUALIZADO */}
       <section className="container mx-auto px-4 py-16 text-center">
         <Badge className="mb-4" variant="secondary">
           <Zap className="w-3 h-3 mr-1" />
           Sistema de Afiliados
         </Badge>
         <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-orange-500 bg-clip-text text-transparent">
-          Trabalhe no Seu Tempo.<br />Ganhe Renda Recorrente.
+          Venda Uma Vez.<br />Receba Todo Mês.
         </h1>
         <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-          Seja um vendedor Mostralo e construa sua renda mensal indicando 
-          lojas para nossa plataforma. Trabalhe quando quiser, de onde quiser.
+          Enquanto seu cliente usar a Mostralo, a comissão cai na sua conta.
+          <br />
+          <strong className="text-foreground">Seja o primeiro a vender a "Libertação do iFood" na sua cidade.</strong>
         </p>
-        <div className="flex gap-4 justify-center">
+        <div className="flex gap-4 justify-center flex-wrap">
           <Button size="lg" asChild>
             <a href="#cadastro">
               Começar Agora <ArrowRight className="ml-2 h-4 w-4" />
@@ -110,7 +138,7 @@ export default function SejaVendedor() {
         </div>
       </section>
 
-      {/* Stats */}
+      {/* Stats - ATUALIZADO */}
       <section className="container mx-auto px-4 py-12">
         <div className="grid md:grid-cols-3 gap-6">
           <Card>
@@ -127,17 +155,71 @@ export default function SejaVendedor() {
               <CardDescription>Você controla seu tempo</CardDescription>
             </CardHeader>
           </Card>
-          <Card>
+          <Card className="border-2 border-green-500/30 bg-green-500/5">
             <CardHeader className="text-center">
-              <DollarSign className="w-12 h-12 mx-auto mb-2 text-primary" />
-              <CardTitle>Renda Recorrente</CardTitle>
-              <CardDescription>Ganhe a cada indicação aprovada</CardDescription>
+              <RefreshCw className="w-12 h-12 mx-auto mb-2 text-green-600" />
+              <CardTitle className="text-green-600">💰 Recorrência Real</CardTitle>
+              <CardDescription className="text-base">
+                Venda uma vez, receba todo mês. Enquanto seu cliente pagar, você ganha.
+              </CardDescription>
             </CardHeader>
           </Card>
         </div>
       </section>
 
-      {/* Central de Vendas - Recursos */}
+      {/* NOVA SEÇÃO: Quebra de Objeção Técnica */}
+      <section className="container mx-auto px-4 py-12">
+        <Card className="max-w-3xl mx-auto border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-orange-500/5">
+          <CardHeader className="text-center">
+            <div className="text-4xl mb-4">🤝</div>
+            <CardTitle className="text-2xl">
+              Não Precisa Ser "Nerd" de Computador
+            </CardTitle>
+            <CardDescription className="text-lg mt-2">
+              Seu trabalho é abrir a porta. Nós cuidamos do resto.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-3 gap-6 text-center">
+              <div className="space-y-2">
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                  <Target className="w-6 h-6 text-primary" />
+                </div>
+                <p className="font-semibold">Você encontra a loja</p>
+                <p className="text-sm text-muted-foreground">
+                  Te ensinamos onde e como prospectar
+                </p>
+              </div>
+              <div className="space-y-2">
+                <div className="w-12 h-12 bg-green-500/10 rounded-full flex items-center justify-center mx-auto">
+                  <Zap className="w-6 h-6 text-green-600" />
+                </div>
+                <p className="font-semibold">Você mostra a solução</p>
+                <p className="text-sm text-muted-foreground">
+                  Te damos o vídeo e material pronto
+                </p>
+              </div>
+              <div className="space-y-2">
+                <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-6 h-6 text-blue-600" />
+                </div>
+                <p className="font-semibold">O cliente fecha</p>
+                <p className="text-sm text-muted-foreground">
+                  Nós cuidamos do suporte e treinamento
+                </p>
+              </div>
+            </div>
+            <Alert className="mt-6 bg-blue-500/10 border-blue-500/20">
+              <Info className="h-4 w-4 text-blue-600" />
+              <AlertDescription>
+                <strong>Zero técnico:</strong> Instalação, configuração e treinamento do lojista são 100% por nossa conta. Você foca apenas em vender.
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* Central de Vendas - Recursos - ATUALIZADO */}
       <section className="container mx-auto px-4 py-16">
         <div className="text-center mb-10">
           <Badge className="mb-4" variant="outline">
@@ -180,15 +262,17 @@ export default function SejaVendedor() {
             </CardHeader>
           </Card>
 
-          {/* Material de Marketing */}
-          <Card className="border-2 hover:border-primary/50 transition-colors">
+          {/* Material de Marketing - ATUALIZADO */}
+          <Card className="border-2 border-primary/30 hover:border-primary/50 transition-colors bg-gradient-to-br from-primary/5 to-orange-500/5">
             <CardHeader>
-              <div className="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center mb-3">
-                <Printer className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-3">
+                <Printer className="w-6 h-6 text-primary" />
               </div>
-              <CardTitle className="text-lg">Material de Marketing</CardTitle>
-              <CardDescription>
-                Flyers, banners e artes prontas para você baixar e compartilhar com seus leads
+              <CardTitle className="text-lg">🎨 Kit de Vendas Completo</CardTitle>
+              <CardDescription className="space-y-1">
+                <strong className="block text-foreground">Você não precisa ser Designer nem Copywriter.</strong>
+                <span className="block">✅ Artes prontas por nicho (Pizzarias, Pet Shops, Açougues...)</span>
+                <span className="block">✅ Scripts de WhatsApp que fecham vendas</span>
               </CardDescription>
             </CardHeader>
           </Card>
@@ -288,22 +372,27 @@ export default function SejaVendedor() {
         </div>
       </section>
 
-      {/* Simulador */}
+      {/* Simulador - REFORMULADO PARA FOCO TRIMESTRAL */}
       <section id="simulador" className="container mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-center mb-8">
-          Simule Seus Ganhos Mensais
-        </h2>
+        <div className="text-center mb-8">
+          <Badge variant="outline" className="mb-4">
+            <DollarSign className="w-3 h-3 mr-1" />
+            Simulador de Ganhos
+          </Badge>
+          <h2 className="text-3xl font-bold mb-2">
+            Quanto Vale o Seu Esforço?
+          </h2>
+          <p className="text-muted-foreground">
+            Veja o que acontece quando você faz <strong>1 venda por dia</strong>
+          </p>
+        </div>
+        
         <Card className="max-w-2xl mx-auto">
-          <CardHeader>
-            <CardTitle>Calculadora de Ganhos</CardTitle>
-            <CardDescription>
-              Veja quanto você pode ganhar baseado no número de vendas mensais
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="pt-6 space-y-6">
+            {/* Slider para vendas mensais */}
             <div>
               <label className="text-sm font-medium mb-2 block">
-                Vendas por mês: {simulatedSales}
+                Vendas por mês: <span className="text-primary font-bold text-lg">{simulatedSales}</span>
               </label>
               <input
                 type="range"
@@ -311,29 +400,62 @@ export default function SejaVendedor() {
                 max="50"
                 value={simulatedSales}
                 onChange={(e) => setSimulatedSales(Number(e.target.value))}
-                className="w-full"
+                className="w-full accent-primary"
               />
+              <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                <span>1/mês</span>
+                <span className="font-medium text-primary">30/mês (1/dia)</span>
+                <span>50+/mês</span>
+              </div>
             </div>
-            <div className="bg-muted p-6 rounded-lg">
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-muted-foreground">Comissão média por venda:</span>
-                <span className="text-2xl font-bold">R$ {avgCommission}</span>
+            
+            {/* Cálculos */}
+            <div className="bg-muted p-6 rounded-lg space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Comissão mensal:</span>
+                <span className="text-xl font-bold">R$ {monthlyEarnings.toLocaleString('pt-BR')}</span>
               </div>
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-muted-foreground">Vendas no mês:</span>
-                <span className="text-2xl font-bold">{simulatedSales}</span>
+              
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Comissão trimestral (3 meses):</span>
+                <span className="text-xl font-bold">R$ {(monthlyEarnings * 3).toLocaleString('pt-BR')}</span>
               </div>
-              <div className="border-t pt-4">
+              
+              {tierName && (
+                <div className="flex justify-between items-center text-green-600">
+                  <span className="flex items-center gap-2">
+                    <Gift className="w-4 h-4" />
+                    + Bônus Trimestral ({tierName}):
+                  </span>
+                  <span className="text-xl font-bold">R$ {tierBonus.toLocaleString('pt-BR')}</span>
+                </div>
+              )}
+              
+              <div className="border-t-2 border-primary pt-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold">Ganho mensal estimado:</span>
-                  <span className="text-3xl font-bold text-primary">
-                    R$ {monthlyEarnings.toLocaleString('pt-BR')}
+                  <span className="text-lg font-semibold">TOTAL NO TRIMESTRE:</span>
+                  <span className="text-4xl font-bold text-primary">
+                    R$ {totalTrimestral.toLocaleString('pt-BR')}
                   </span>
                 </div>
+                <p className="text-center text-sm text-muted-foreground mt-2">
+                  Isso é <strong className="text-foreground">R$ {Math.round(totalTrimestral / 3).toLocaleString('pt-BR')}/mês</strong> de média
+                </p>
               </div>
             </div>
-            <p className="text-sm text-muted-foreground text-center">
-              * Valores estimados. Comissões variam de acordo com o plano vendido.
+            
+            {/* Comparativo impactante */}
+            {simulatedSales >= 30 && (
+              <Alert className="bg-green-500/10 border-green-500/30">
+                <TrendingUp className="h-4 w-4 text-green-600" />
+                <AlertDescription className="text-green-700 dark:text-green-400">
+                  <strong>💡 Perspectiva:</strong> Com 1 venda por dia, você ganha mais do que muitos empregos CLT - trabalhando no seu horário, sem chefe.
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            <p className="text-xs text-muted-foreground text-center">
+              * Valores estimados com comissão média de R$ 50. Varia conforme o plano vendido.
             </p>
           </CardContent>
         </Card>
@@ -410,7 +532,7 @@ export default function SejaVendedor() {
         </Alert>
       </section>
 
-      {/* Benefícios */}
+      {/* Benefícios - ATUALIZADO */}
       <section id="beneficios" className="container mx-auto px-4 py-16">
         <h2 className="text-3xl font-bold text-center mb-8">
           Por Que Ser Vendedor Mostralo?
@@ -423,9 +545,9 @@ export default function SejaVendedor() {
               description: "Trabalhe quando e onde quiser. Sem horário fixo, sem escritório.",
             },
             {
-              icon: DollarSign,
-              title: "Renda Recorrente",
-              description: "Ganhe comissão em cada venda aprovada. Quanto mais vender, mais ganha.",
+              icon: RefreshCw,
+              title: "💵 Renda Recorrente de Verdade",
+              description: "Venda uma vez, receba todo mês. Enquanto o cliente pagar, você ganha.",
             },
             {
               icon: Gift,
@@ -601,6 +723,11 @@ export default function SejaVendedor() {
                   <li>• 7311-4/00 - Agências de publicidade</li>
                   <li>• 8299-7/99 - Outras atividades de serviços prestados</li>
                 </ul>
+                {/* NOTA TRANQUILIZADORA SOBRE CNAE */}
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-3 bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
+                  💡 <strong>Não sabe qual é o seu CNAE?</strong> Não se preocupe! 
+                  Nosso time te ajuda a verificar isso após o cadastro.
+                </p>
               </div>
             </div>
             <div className="flex items-start gap-3">

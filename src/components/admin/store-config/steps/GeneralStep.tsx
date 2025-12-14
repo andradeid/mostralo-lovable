@@ -29,7 +29,7 @@ export function GeneralStep({ formData, updateFormData }: GeneralStepProps) {
   const { toast } = useToast();
   const xmlApiUrl = `${window.location.origin}/loja/${formData.slug}/info.xml`;
   const jsonApiUrl = `https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/store-info-json?slug=${formData.slug}`;
-  const googleShoppingFeedUrl = `${window.location.origin}/loja/${formData.slug}/feed.xml`;
+  const googleShoppingFeedUrl = `https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/google-shopping-feed?slug=${formData.slug}`;
   const metaCommerceFeedUrl = `${window.location.origin}/loja/${formData.slug}/feed.csv`;
 
   const handleCopyUrl = (url: string) => {

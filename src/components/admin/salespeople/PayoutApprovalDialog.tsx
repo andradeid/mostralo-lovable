@@ -19,7 +19,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Upload, FileText, User, Building2, CheckCircle, XCircle, AlertTriangle, ExternalLink } from "lucide-react";
+import { Upload, FileText, User, Building2, CheckCircle, XCircle, AlertTriangle, Download } from "lucide-react";
 
 interface PayoutWithSalesperson {
   id: string;
@@ -69,6 +69,44 @@ export function PayoutApprovalDialog({
 
   const isAffiliate = payout.salesperson?.salesperson_type === 'affiliate';
   const isPJ = payout.salesperson?.salesperson_type === 'partner_pj';
+
+  // Detectar tipo de arquivo
+  const getFileType = (url: string): 'image' | 'pdf' => {
+    const extension = url.split('.').pop()?.toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension || '')) {
+      return 'image';
+    }
+    return 'pdf';
+  };
+
+  // Download de arquivo
+  const handleDownloadFile = async (url: string, fileName: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+      toast({
+        title: "Download iniciado",
+        description: `Baixando ${fileName}`,
+      });
+    } catch (error) {
+      console.error('Erro no download:', error);
+      toast({
+        title: "Erro no download",
+        description: "Não foi possível baixar o arquivo",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const invoiceFileType = payout.invoice_url ? getFileType(payout.invoice_url) : null;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -319,21 +357,54 @@ export function PayoutApprovalDialog({
 
           {/* NF para Parceiro PJ */}
           {isPJ && (
-            <div className="space-y-2">
-              <h4 className="font-medium">Nota Fiscal</h4>
-              {payout.invoice_url ? (
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" asChild>
-                    <a href={payout.invoice_url} target="_blank" rel="noopener noreferrer">
-                      <FileText className="w-4 h-4 mr-2" />
-                      Ver NF #{payout.invoice_number}
-                      <ExternalLink className="w-3 h-3 ml-2" />
-                    </a>
-                  </Button>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium">Nota Fiscal</h4>
+                {payout.invoice_url && (
                   <Badge className="bg-green-500">
                     <CheckCircle className="w-3 h-3 mr-1" />
                     Anexada
                   </Badge>
+                )}
+              </div>
+              {payout.invoice_url ? (
+                <div className="space-y-3">
+                  {/* Preview para imagens */}
+                  {invoiceFileType === 'image' && (
+                    <div className="border rounded-lg overflow-hidden bg-muted/30">
+                      <img 
+                        src={payout.invoice_url} 
+                        alt={`NF #${payout.invoice_number}`}
+                        className="max-h-[300px] w-auto mx-auto object-contain"
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Card para PDF */}
+                  {invoiceFileType === 'pdf' && (
+                    <div className="flex items-center gap-3 border rounded-lg p-4 bg-muted/30">
+                      <div className="bg-red-100 p-3 rounded-lg">
+                        <FileText className="w-8 h-8 text-red-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium">NF #{payout.invoice_number}</p>
+                        <p className="text-sm text-muted-foreground">Documento PDF</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Botão de download */}
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => handleDownloadFile(
+                      payout.invoice_url!, 
+                      `NF-${payout.invoice_number}.${invoiceFileType === 'image' ? 'jpg' : 'pdf'}`
+                    )}
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    {invoiceFileType === 'image' ? 'Baixar Imagem' : 'Baixar PDF'}
+                  </Button>
                 </div>
               ) : (
                 <Alert variant="destructive">

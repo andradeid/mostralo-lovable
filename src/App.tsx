@@ -11,6 +11,7 @@ import { CustomDomainRouter } from "@/components/CustomDomainRouter";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { DeliveryDriverLayout } from "@/components/delivery/DeliveryDriverLayout";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { TermsGuard } from "@/components/TermsGuard";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import SignUp from "./pages/SignUp";
@@ -153,6 +154,7 @@ const App = () => (
               <Toaster />
               <Sonner />
               <ThemeController />
+              <TermsGuard>
               <CustomDomainRouter>
           <Routes>
             <Route path="/" element={<Index />} />
@@ -730,6 +732,7 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
           </CustomDomainRouter>
+              </TermsGuard>
         </BrowserRouter>
       </TooltipProvider>
     </CartProvider>

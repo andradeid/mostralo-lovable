@@ -101,60 +101,60 @@ export default function SalespersonMyCommissionsPage() {
         </p>
       </div>
 
-      {/* Cards de resumo */}
-      <div className="grid gap-4 md:grid-cols-3">
+      {/* Cards de resumo - Grid 2+1 no mobile */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pendente</CardTitle>
-            <Clock className="h-4 w-4 text-yellow-500" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 pt-3 px-3 md:pt-6 md:px-6">
+            <CardTitle className="text-xs md:text-sm font-medium">Pendente</CardTitle>
+            <Clock className="h-3 w-3 md:h-4 md:w-4 text-yellow-500" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-500">
+          <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
+            <div className="text-lg md:text-2xl font-bold text-yellow-500">
               R$ {totalPending.toFixed(2)}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[10px] md:text-xs text-muted-foreground">
               Aguardando pagamento
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pago</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 pt-3 px-3 md:pt-6 md:px-6">
+            <CardTitle className="text-xs md:text-sm font-medium">Pago</CardTitle>
+            <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-500">
+          <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
+            <div className="text-lg md:text-2xl font-bold text-green-500">
               R$ {totalPaid.toFixed(2)}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[10px] md:text-xs text-muted-foreground">
               Total recebido
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Geral</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+        <Card className="col-span-2 md:col-span-1">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 pt-3 px-3 md:pt-6 md:px-6">
+            <CardTitle className="text-xs md:text-sm font-medium">Total Geral</CardTitle>
+            <DollarSign className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
+            <div className="text-lg md:text-2xl font-bold">
               R$ {totalGeneral.toFixed(2)}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[10px] md:text-xs text-muted-foreground">
               Todas as comissões
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Tabela de comissões */}
+      {/* Histórico de comissões */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Histórico de Comissões</CardTitle>
+        <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-2 pb-3 md:pb-6">
+          <CardTitle className="text-lg md:text-xl">Histórico de Comissões</CardTitle>
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-full md:w-[150px]">
               <SelectValue placeholder="Filtrar" />
             </SelectTrigger>
             <SelectContent>
@@ -166,55 +166,104 @@ export default function SalespersonMyCommissionsPage() {
         </CardHeader>
         <CardContent>
           {filteredCommissions.length > 0 ? (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Plano</TableHead>
-                    <TableHead className="text-right">Valor Pago</TableHead>
-                    <TableHead className="text-right">% Comissão</TableHead>
-                    <TableHead className="text-right">Comissão</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Data Pagamento</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredCommissions.map((commission) => (
-                    <TableRow key={commission.id}>
-                      <TableCell className="text-muted-foreground">
+            <>
+              {/* Mobile: Cards compactos */}
+              <div className="md:hidden space-y-3">
+                {filteredCommissions.map((commission) => (
+                  <div key={commission.id} className="p-3 rounded-lg border bg-card w-[90%] mx-auto">
+                    {/* Header: Data + Status */}
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-muted-foreground">
                         {format(new Date(commission.created_at), "dd/MM/yyyy", { locale: ptBR })}
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {commission.payment_approval?.company_name || "—"}
-                      </TableCell>
-                      <TableCell>
-                        {commission.payment_approval?.plan?.name || "—"}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        R$ {Number(commission.payment_amount).toFixed(2)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {Number(commission.commission_percentage)}%
-                      </TableCell>
-                      <TableCell className="text-right font-medium text-green-600">
-                        R$ {Number(commission.commission_amount).toFixed(2)}
-                      </TableCell>
-                      <TableCell>
-                        {getStatusBadge(commission.status)}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {commission.paid_at 
-                          ? format(new Date(commission.paid_at), "dd/MM/yyyy", { locale: ptBR })
-                          : "—"
-                        }
-                      </TableCell>
+                      </span>
+                      {getStatusBadge(commission.status)}
+                    </div>
+                    
+                    {/* Cliente + Plano */}
+                    <p className="font-medium text-sm">
+                      {commission.payment_approval?.company_name || "—"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {commission.payment_approval?.plan?.name || "—"}
+                    </p>
+                    
+                    {/* Valores */}
+                    <div className="mt-2 pt-2 border-t flex justify-between items-center">
+                      <div>
+                        <p className="text-[10px] text-muted-foreground">Valor Pago</p>
+                        <p className="text-xs">R$ {Number(commission.payment_amount).toFixed(2)}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] text-muted-foreground">
+                          Comissão ({Number(commission.commission_percentage)}%)
+                        </p>
+                        <p className="text-sm font-bold text-green-500">
+                          R$ {Number(commission.commission_amount).toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Data pagamento se pago */}
+                    {commission.paid_at && (
+                      <p className="text-[10px] text-green-600 mt-1">
+                        ✓ Pago em {format(new Date(commission.paid_at), "dd/MM/yyyy", { locale: ptBR })}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop: Tabela original */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Cliente</TableHead>
+                      <TableHead>Plano</TableHead>
+                      <TableHead className="text-right">Valor Pago</TableHead>
+                      <TableHead className="text-right">% Comissão</TableHead>
+                      <TableHead className="text-right">Comissão</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Data Pagamento</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredCommissions.map((commission) => (
+                      <TableRow key={commission.id}>
+                        <TableCell className="text-muted-foreground">
+                          {format(new Date(commission.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {commission.payment_approval?.company_name || "—"}
+                        </TableCell>
+                        <TableCell>
+                          {commission.payment_approval?.plan?.name || "—"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          R$ {Number(commission.payment_amount).toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {Number(commission.commission_percentage)}%
+                        </TableCell>
+                        <TableCell className="text-right font-medium text-green-600">
+                          R$ {Number(commission.commission_amount).toFixed(2)}
+                        </TableCell>
+                        <TableCell>
+                          {getStatusBadge(commission.status)}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {commission.paid_at 
+                            ? format(new Date(commission.paid_at), "dd/MM/yyyy", { locale: ptBR })
+                            : "—"
+                          }
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           ) : (
             <p className="text-sm text-muted-foreground text-center py-8">
               {statusFilter === "all" 

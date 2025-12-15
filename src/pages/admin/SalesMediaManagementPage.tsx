@@ -268,7 +268,7 @@ export default function SalesMediaManagementPage() {
               <div 
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
+                className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
               >
                 {filteredMedia.map((m, index) => (
                   <Draggable key={m.id} draggableId={m.id} index={index}>

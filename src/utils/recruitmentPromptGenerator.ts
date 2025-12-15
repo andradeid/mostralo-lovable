@@ -49,6 +49,10 @@ const AFFILIATE_PROGRAM = {
 // FAQ do recrutamento
 const RECRUITMENT_FAQ = [
   {
+    question: 'A comissão é só uma vez ou é recorrente?',
+    answer: 'É RECORRENTE! Você vende uma vez e recebe todo mês enquanto o cliente continuar pagando. Se o cliente ficar 2 anos, você ganha comissão por 2 anos. É renda passiva de verdade. "Venda uma vez, receba todo mês."'
+  },
+  {
     question: 'Preciso ter CNPJ para começar?',
     answer: 'Não! Você pode começar como Afiliado PF usando apenas seu CPF. Quando quiser escalar os ganhos, pode abrir um MEI gratuitamente e virar Parceiro PJ.'
   },
@@ -79,6 +83,10 @@ const RECRUITMENT_FAQ = [
   {
     question: 'Posso indicar qualquer tipo de negócio?',
     answer: 'Sim! Restaurantes, pizzarias, hamburguerias, açougues, farmácias, lojas de roupas... qualquer comércio que venda produtos online.'
+  },
+  {
+    question: 'Preciso entender de tecnologia?',
+    answer: 'NÃO! Seu trabalho é abrir a porta - nós cuidamos do resto. Instalação, configuração e treinamento do cliente são 100% por nossa conta. Você só precisa vender.'
   }
 ];
 
@@ -293,6 +301,10 @@ Fazer o candidato sentir que está PERDENDO DINHEIRO a cada dia que não começa
 function generateProgramSection(): string {
   return `## 💼 O QUE É O MOSTRALO
 
+**🔑 FRASE-CHAVE: "Venda uma vez, receba todo mês."**
+
+Enquanto seu cliente usar o Mostralo, a comissão cai na sua conta. É renda recorrente de verdade - não uma comissão única que some.
+
 O Mostralo é uma plataforma completa de **Delivery + Marketing Digital** para negócios locais.
 Enquanto iFood e outros marketplaces cobram 12-27% de cada venda, o Mostralo cobra uma mensalidade fixa.
 
@@ -304,7 +316,32 @@ Enquanto iFood e outros marketplaces cobram 12-27% de cada venda, o Mostralo cob
 
 **Seu papel:**
 Você indica comerciantes, restaurantes, lojas - qualquer negócio que venda produtos.
-Quando eles assinam, você recebe comissão. Simples assim.`;
+Quando eles assinam, você recebe comissão TODO MÊS que o cliente continuar pagando. Simples assim.`;
+}
+
+function generateNoTechSection(): string {
+  return `## 🤝 NÃO PRECISA SER "NERD" DE COMPUTADOR
+
+**Use esta seção para quebrar objeção de complexidade técnica:**
+
+Seu trabalho é ABRIR A PORTA. Nós cuidamos do resto.
+
+| Etapa | Seu Papel | Nossa Parte |
+|-------|-----------|-------------|
+| 1️⃣ Encontrar | Você encontra a loja | Te ensinamos onde e como prospectar |
+| 2️⃣ Apresentar | Você mostra a solução | Te damos vídeo e material pronto |
+| 3️⃣ Fechar | O cliente fecha | Nós cuidamos do suporte e treinamento |
+
+**Zero técnico:** Instalação, configuração e treinamento do lojista são 100% por nossa conta. Você foca apenas em vender.
+
+**Script de uso:**
+"Olha, você não precisa entender de tecnologia. A gente te dá os materiais, os vídeos, os scripts de conversa. Seu trabalho é achar a pessoa certa e mostrar. Nós fazemos todo o resto - instalação, configuração, treinamento do cliente."
+
+**Argumento forte:**
+"Não precisa ser designer pra ter artes bonitas - a gente entrega prontas.
+Não precisa ser copywriter pra ter textos que vendem - a IA escreve pra você.
+Não precisa ser técnico pra instalar - nossa equipe faz isso.
+Você só precisa CONVERSAR com quem precisa da solução."`;
 }
 
 function generateComparisonTable(): string {
@@ -384,6 +421,12 @@ function generateCalculatorSection(plans: Plan[], bonusTiers: BonusTier[], type:
   const planPrice = middlePlan?.discount_price || middlePlan?.price || 497.90;
   const planName = middlePlan?.name || 'Profissional';
 
+  // Calcular valores trimestrais
+  const quarterlyCommission30 = 30 * planPrice * 0.10; // 10 vendas/mês x 3 meses
+  const quarterlyBonus30 = 3500; // Bronze + Prata + Ouro
+  const totalQuarterly30 = quarterlyCommission30 + quarterlyBonus30;
+  const monthlyAverage30 = totalQuarterly30 / 3;
+
   const examples = {
     cold_lead: `**Exemplo rápido com ${planName} (${formatCurrency(planPrice)}):**
 
@@ -392,6 +435,7 @@ Quando a pessoa demonstrar interesse, mostre os números básicos:
 - **10 vendas/mês:** ${formatCurrency(10 * planPrice * 0.07)} a ${formatCurrency(10 * planPrice * 0.10)} + bônus
 
 "Isso trabalhando só algumas horas por semana, no seu tempo, de casa."
+"E o melhor: você vende UMA VEZ e recebe TODO MÊS enquanto o cliente pagar."
 
 Se pedir indicação, simplifique: "A pessoa pode ganhar R$ 1.000 a R$ 3.000+ por mês, trabalhando de casa."`,
 
@@ -401,10 +445,16 @@ Se você fizer 10 vendas por mês:
 - **Como PF:** 10 × ${formatCurrency(planPrice)} × 7% = ${formatCurrency(10 * planPrice * 0.07)}/mês
 - **Como PJ:** 10 × ${formatCurrency(planPrice)} × 10% = ${formatCurrency(10 * planPrice * 0.10)}/mês + bônus
 
-Em 3 meses (30 vendas como PJ):
-- Comissões: ${formatCurrency(30 * planPrice * 0.10)}
-- Bônus (Bronze + Prata + Ouro): até R$ 3.500
-- **Total: mais de R$ 6.000 no trimestre!**`,
+**💡 PERSPECTIVA TRIMESTRAL (o que realmente importa):**
+
+Com 10 vendas/mês (menos de 1 por dia útil):
+- Comissão trimestral (3 meses): ${formatCurrency(quarterlyCommission30)}
+- Bônus Ouro (30 vendas): R$ 3.500
+- **TOTAL NO TRIMESTRE: ${formatCurrency(totalQuarterly30)}**
+
+Isso é **${formatCurrency(monthlyAverage30)}/mês** de média - mais do que muitos empregos CLT, trabalhando no seu horário, sem chefe.
+
+E lembra: você vende UMA VEZ, recebe TODO MÊS. Esses clientes continuam te pagando por anos.`,
 
     aggressive: `**OLHA ESSES NÚMEROS (${planName} - ${formatCurrency(planPrice)}):**
 
@@ -414,12 +464,20 @@ Em 3 meses (30 vendas como PJ):
 | 10 | ${formatCurrency(10 * planPrice * 0.07)} | ${formatCurrency(10 * planPrice * 0.10)} + bônus | +R$ 600+ |
 | 20 | ${formatCurrency(Math.min(20 * planPrice * 0.07, 1900))} (limite) | ${formatCurrency(20 * planPrice * 0.10)} + bônus | +R$ 1.500+ |
 
-**Trimestre com Diamante (50 vendas):**
-- Comissões: ${formatCurrency(50 * planPrice * 0.10)}
-- Bônus cumulativo: R$ 8.500
-- **TOTAL: mais de R$ 13.000 em 3 meses!**
+**💰 PERSPECTIVA TRIMESTRAL (onde o dinheiro de verdade está):**
 
-E isso é SÓ COM UM PLANO. Imagina vendendo os planos mais caros?`,
+Com 10 vendas/mês durante 3 meses:
+- Comissões: ${formatCurrency(quarterlyCommission30)}
+- Bônus Ouro: R$ 3.500
+- **TOTAL: ${formatCurrency(totalQuarterly30)} em 3 meses!**
+
+Isso dá **${formatCurrency(monthlyAverage30)}/mês** de média. 
+
+Comparação rápida:
+- Salário mínimo CLT: R$ 1.412/mês
+- Vendedor Mostralo (10 vendas/mês): **${formatCurrency(monthlyAverage30)}/mês**
+
+E o melhor: você trabalha no seu horário, sem chefe, de casa. "Venda uma vez, receba todo mês."`,
 
     super_aggressive: `**ENQUANTO VOCÊ LÊ ISSO, OUTROS VENDEDORES ESTÃO GANHANDO:**
 
@@ -430,15 +488,22 @@ Com apenas 10 vendas/mês do ${planName} (${formatCurrency(planPrice)}):
 | Mês 1 | R$ 0 | ${formatCurrency(10 * planPrice * 0.10)} |
 | Mês 2 | R$ 0 | ${formatCurrency(10 * planPrice * 0.10)} |
 | Mês 3 | R$ 0 | ${formatCurrency(10 * planPrice * 0.10)} + R$ 3.500 bônus |
-| **TOTAL** | **R$ 0** | **${formatCurrency(30 * planPrice * 0.10 + 3500)}** |
+| **TOTAL** | **R$ 0** | **${formatCurrency(totalQuarterly30)}** |
 
-São mais de R$ 6.000 que você DEIXOU NA MESA em 3 meses.
-E os vendedores top? Estão fazendo R$ 13.000+ por trimestre.
+**💰 PERSPECTIVA REAL:**
+- Trimestre: **${formatCurrency(totalQuarterly30)}**
+- Média mensal: **${formatCurrency(monthlyAverage30)}**
+
+Isso é mais que muitos empregos CLT - trabalhando de casa, no seu horário, sem chefe.
+
+E sabe o que é melhor? Você vende UMA VEZ e recebe TODO MÊS. Esses clientes continuam te pagando enquanto usarem o sistema.
 
 **Cada dia que passa, você está perdendo dinheiro.**`
   };
 
-  return `## 🧮 CALCULADORA DE GANHOS
+  return `## 🧮 CALCULADORA DE GANHOS - "QUANTO VALE O SEU ESFORÇO?"
+
+**🔑 Conceito central: "Venda uma vez, receba todo mês."**
 
 Instrução: Quando o candidato perguntar quanto pode ganhar, faça cálculos em tempo real usando estes valores:
 
@@ -972,19 +1037,30 @@ ${baseUrl}/seja-vendedor${trackingParams}`
 }
 
 function generateResourcesSection(baseUrl: string): string {
-  return `## 📚 RECURSOS PARA VENDEDORES
+  return `## 📚 KIT DE VENDAS COMPLETO
 
-Quando o candidato se cadastrar, ele terá acesso a:
+**Você não precisa ser Designer nem Copywriter!** Entregamos a faca e o queijo na mão:
 
-1. **Dashboard Completo** - Acompanhar vendas e comissões em tempo real
-2. **Link Exclusivo de Indicação** - Personalizado com seu código de rastreamento
-3. **Materiais de Marketing** - Flyers, posts, apresentações prontas para download
-4. **Prompts de IA** - Assistentes inteligentes para ajudar nas conversas de venda
-5. **Guia de Prospecção** - Scripts e técnicas testadas e aprovadas
-6. **Calculadora de Economia** - Mostrar pro cliente quanto ele vai economizar
-7. **Suporte via WhatsApp** - Tiramos dúvidas rapidamente
+### ✅ Artes Prontas por Nicho
+Imagens de alta conversão para Pizzarias, Hamburguerias, Açougues, Farmácias, Pet Shops e mais.
+É só baixar e postar. Já testadas e aprovadas.
 
-"Você não vai ficar sozinho. Tem todo um sistema pra te ajudar a vender mais e melhor."`;
+### ✅ Scripts de IA que Fecham Vendas
+Copie e cole mensagens de WhatsApp que quebram objeções e fecham vendas.
+A IA faz a conversa por você - você só precisa personalizar o nome.
+
+### ✅ Ferramentas do Painel
+1. **Dashboard Completo** - Vendas e comissões em tempo real
+2. **Link Exclusivo** - Seu link pessoal de indicação
+3. **Material Impresso** - Artes para imprimir e distribuir
+4. **Prompts de IA** - Scripts prontos para usar
+5. **Guia de Prospecção** - Técnicas testadas
+6. **Calculadora de Economia** - Mostrar economia pro cliente
+7. **Suporte via WhatsApp** - Dúvidas respondidas rapidamente
+
+**"Você não precisa inventar nada. Só usar o que já funciona."**
+
+Recursos disponíveis em: ${baseUrl}/vendedor`;
 }
 
 // Novas seções: Primeiro Mês e Scripts de Áudio
@@ -1077,14 +1153,15 @@ export function generateRecruitmentPrompt(config: RecruitmentPromptConfig): stri
   const sections = [
     generateIdentitySection(type),
     generateProgramSection(),
+    generateNoTechSection(), // NOVA SEÇÃO - Não precisa ser nerd
     generateComparisonTable(),
     generatePlansSection(plans),
     generateBonusSection(bonusTiers),
     generateCalculatorSection(plans, bonusTiers, type),
-    generateFirstMonthSection(), // NOVA SEÇÃO
-    generateAudioScriptsSection(), // NOVA SEÇÃO
+    generateFirstMonthSection(),
+    generateAudioScriptsSection(),
     generateTestimonialsSection(),
-    generateMarketComparisonSection(), // NOVA SEÇÃO
+    generateMarketComparisonSection(),
     generateIncomeComparisonSection(),
     generateMythsSection(),
     generateDifferentiationSection(),

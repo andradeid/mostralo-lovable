@@ -2358,6 +2358,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          accepted_terms_version: string | null
           approval_status: string | null
           avatar_url: string | null
           blocked_at: string | null
@@ -2373,10 +2374,12 @@ export type Database = {
           is_blocked: boolean | null
           is_deleted: boolean | null
           phone: string | null
+          terms_accepted_at: string | null
           updated_at: string
           user_type: Database["public"]["Enums"]["user_type"] | null
         }
         Insert: {
+          accepted_terms_version?: string | null
           approval_status?: string | null
           avatar_url?: string | null
           blocked_at?: string | null
@@ -2392,10 +2395,12 @@ export type Database = {
           is_blocked?: boolean | null
           is_deleted?: boolean | null
           phone?: string | null
+          terms_accepted_at?: string | null
           updated_at?: string
           user_type?: Database["public"]["Enums"]["user_type"] | null
         }
         Update: {
+          accepted_terms_version?: string | null
           approval_status?: string | null
           avatar_url?: string | null
           blocked_at?: string | null
@@ -2411,6 +2416,7 @@ export type Database = {
           is_blocked?: boolean | null
           is_deleted?: boolean | null
           phone?: string | null
+          terms_accepted_at?: string | null
           updated_at?: string
           user_type?: Database["public"]["Enums"]["user_type"] | null
         }
@@ -4195,6 +4201,33 @@ export type Database = {
           support_whatsapp?: string | null
           support_whatsapp_message?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      system_terms_config: {
+        Row: {
+          config_key: string
+          config_value: string
+          description: string | null
+          id: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          config_key: string
+          config_value: string
+          description?: string | null
+          id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          config_key?: string
+          config_value?: string
+          description?: string | null
+          id?: string
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }

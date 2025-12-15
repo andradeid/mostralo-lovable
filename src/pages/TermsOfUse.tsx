@@ -16,7 +16,7 @@ export default function TermsOfUse() {
               Termos de Uso
             </h1>
             <p className="text-muted-foreground">
-              Última atualização: Dezembro de 2024
+              Última atualização: Dezembro de 2024 | <span className="font-semibold">Versão 1.1</span>
             </p>
           </div>
 
@@ -97,10 +97,31 @@ export default function TermsOfUse() {
 
             <section className="mb-8">
               <h2 className="text-2xl font-semibold mb-4">8. Alterações nos Termos</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                Reservamo-nos o direito de modificar estes termos a qualquer momento. As alterações entrarão em vigor 
-                imediatamente após a publicação. O uso continuado da plataforma constitui aceitação dos novos termos.
-              </p>
+              <div className="space-y-4 text-muted-foreground">
+                <p className="leading-relaxed">
+                  Reservamo-nos o direito de promover alterações, atualizações e melhorias nestes termos a qualquer momento, visando:
+                </p>
+                <ul className="list-disc list-inside space-y-2 ml-4">
+                  <li>A sustentabilidade operacional e financeira da empresa</li>
+                  <li>A melhoria contínua dos serviços oferecidos</li>
+                  <li>A adequação às mudanças do mercado, legislação ou tecnologia</li>
+                  <li>A proteção dos interesses legítimos de todas as partes</li>
+                  <li>O aprimoramento da experiência do usuário</li>
+                </ul>
+                <div className="mt-4 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                  <h3 className="font-semibold mb-2 text-foreground">Seus Direitos Garantidos:</h3>
+                  <ul className="list-disc list-inside space-y-2">
+                    <li><strong>Notificação prévia:</strong> Alterações serão comunicadas com antecedência mínima de 30 (trinta) dias através dos canais oficiais (e-mail, plataforma ou WhatsApp cadastrado).</li>
+                    <li><strong>Direito de rescisão:</strong> Caso você não concorde com as alterações propostas, poderá solicitar a rescisão sem multas ou penalidades, desde que manifestada no prazo de 30 dias.</li>
+                    <li><strong>Alterações financeiras:</strong> Mudanças que impactem valores ou condições financeiras serão sempre precedidas de notificação expressa e individual.</li>
+                    <li><strong>Aceite explícito:</strong> Você será solicitado a aceitar explicitamente as novas condições através de modal de aceite na plataforma antes de continuar utilizando os serviços.</li>
+                  </ul>
+                </div>
+                <p className="mt-4 leading-relaxed">
+                  O silêncio ou a continuidade do uso dos serviços após o período de notificação e confirmação de aceite 
+                  será considerado como concordância tácita das novas condições.
+                </p>
+              </div>
             </section>
 
             <section className="mb-8">

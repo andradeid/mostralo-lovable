@@ -127,10 +127,34 @@ export function PayoutEditDialog({
     }));
   }, [formData.commission_total, formData.bonus_total]);
 
+  // Sincroniza comissões individuais quando status do payout muda
+  const syncCommissions = async (newStatus: string) => {
+    const commissionStatus = newStatus === 'paid' ? 'paid' : 'pending';
+    const paidAt = newStatus === 'paid' ? new Date().toISOString() : null;
+
+    // Calcular início e fim do mês do ciclo
+    const startOfMonth = new Date(payout.cycle_year, payout.cycle_month - 1, 1);
+    const endOfMonth = new Date(payout.cycle_year, payout.cycle_month, 0, 23, 59, 59);
+
+    const { error } = await supabase
+      .from('salesperson_commissions')
+      .update({
+        status: commissionStatus,
+        paid_at: paidAt,
+      })
+      .eq('salesperson_id', payout.salesperson.id)
+      .gte('created_at', startOfMonth.toISOString())
+      .lte('created_at', endOfMonth.toISOString());
+
+    if (error) {
+      console.error('Erro ao sincronizar comissões:', error);
+    }
+  };
+
   const handleSave = async () => {
     setLoading(true);
     try {
-      const updateData: Record<string, any> = {
+      const updateData: Record<string, unknown> = {
         status: formData.status,
         cycle_month: formData.cycle_month,
         cycle_year: formData.cycle_year,
@@ -162,9 +186,14 @@ export function PayoutEditDialog({
 
       if (error) throw error;
 
+      // Sincroniza comissões se o status mudou
+      if (formData.status !== payout.status) {
+        await syncCommissions(formData.status);
+      }
+
       toast({
         title: "Payout atualizado!",
-        description: "As alterações foram salvas",
+        description: "As alterações e comissões foram sincronizadas",
       });
       onSuccess();
     } catch (error) {

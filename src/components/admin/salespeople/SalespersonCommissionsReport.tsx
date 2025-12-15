@@ -9,7 +9,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { DollarSign, Clock, CheckCircle2, Loader2, Ban } from "lucide-react";
+import { DollarSign, Clock, CheckCircle2, Loader2, Ban, Pencil } from "lucide-react";
+import { CommissionEditDialog } from "./CommissionEditDialog";
+
+interface Commission {
+  id: string;
+  salesperson_id: string;
+  payment_approval_id: string | null;
+  store_name: string | null;
+  plan_name: string | null;
+  payment_amount: number;
+  commission_amount: number;
+  commission_percentage: number | null;
+  commission_type: string;
+  status: string;
+  paid_at: string | null;
+  created_at: string;
+}
 
 interface SalespersonCommissionsReportProps {
   salespersonId: string;
@@ -19,6 +35,7 @@ export function SalespersonCommissionsReport({ salespersonId }: SalespersonCommi
   const { toast } = useToast();
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [payingId, setPayingId] = useState<string | null>(null);
+  const [editingCommission, setEditingCommission] = useState<Commission | null>(null);
 
   const { data: commissions, isLoading, refetch } = useQuery({
     queryKey: ["salesperson-commissions", salespersonId, statusFilter],
@@ -35,7 +52,7 @@ export function SalespersonCommissionsReport({ salespersonId }: SalespersonCommi
 
       const { data, error } = await query;
       if (error) throw error;
-      return data;
+      return data as Commission[];
     },
   });
 
@@ -164,7 +181,7 @@ export function SalespersonCommissionsReport({ salespersonId }: SalespersonCommi
                   <TableHead className="text-right">Valor Pago</TableHead>
                   <TableHead className="text-right">Comissão</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead></TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -202,25 +219,35 @@ export function SalespersonCommissionsReport({ salespersonId }: SalespersonCommi
                       )}
                     </TableCell>
                     <TableCell>
-                      {commission.status === "pending" && (
+                      <div className="flex items-center justify-end gap-2">
                         <Button
                           size="sm"
-                          variant="outline"
-                          onClick={() => handleMarkAsPaid(commission.id)}
-                          disabled={payingId === commission.id}
+                          variant="ghost"
+                          onClick={() => setEditingCommission(commission)}
+                          className="h-8 w-8 p-0"
                         >
-                          {payingId === commission.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            "Pagar"
-                          )}
+                          <Pencil className="h-4 w-4" />
                         </Button>
-                      )}
-                      {commission.status === "paid" && commission.paid_at && (
-                        <span className="text-xs text-muted-foreground">
-                          {format(new Date(commission.paid_at), "dd/MM/yy", { locale: ptBR })}
-                        </span>
-                      )}
+                        {commission.status === "pending" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleMarkAsPaid(commission.id)}
+                            disabled={payingId === commission.id}
+                          >
+                            {payingId === commission.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              "Pagar"
+                            )}
+                          </Button>
+                        )}
+                        {commission.status === "paid" && commission.paid_at && (
+                          <span className="text-xs text-muted-foreground">
+                            {format(new Date(commission.paid_at), "dd/MM/yy", { locale: ptBR })}
+                          </span>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -229,6 +256,19 @@ export function SalespersonCommissionsReport({ salespersonId }: SalespersonCommi
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Dialog */}
+      {editingCommission && (
+        <CommissionEditDialog
+          open={!!editingCommission}
+          onOpenChange={(open) => !open && setEditingCommission(null)}
+          commission={editingCommission}
+          onSuccess={() => {
+            setEditingCommission(null);
+            refetch();
+          }}
+        />
+      )}
     </div>
   );
 }

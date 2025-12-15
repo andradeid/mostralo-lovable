@@ -52,16 +52,29 @@ Deno.serve(async (req) => {
       throw new Error('Vendedor não encontrado');
     }
 
-    if (salesperson.status !== 'pending_contract') {
-      throw new Error('Contrato já foi aceito ou vendedor não está aprovado');
-    }
-
     // Buscar template ativo do contrato com texto completo
     const { data: template, error: templateError } = await supabase
       .from('salesperson_contract_templates')
       .select('id, version, contract_text')
       .eq('is_active', true)
       .maybeSingle();
+
+    // Verificar se já aceitou esta versão específica
+    const { data: existingContract } = await supabase
+      .from('salesperson_contracts')
+      .select('id')
+      .eq('salesperson_id', salesperson.id)
+      .eq('version', template?.version || '1.0')
+      .maybeSingle();
+
+    if (existingContract) {
+      throw new Error('Você já aceitou esta versão do contrato');
+    }
+
+    // Se status não é pending_contract e não é active, rejeitar
+    if (salesperson.status !== 'pending_contract' && salesperson.status !== 'active') {
+      throw new Error('Vendedor não está aprovado para aceitar contratos');
+    }
 
     // Obter IP e user agent
     const ip_address = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';

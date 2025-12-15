@@ -128,6 +128,7 @@ import WhatsAppCampaignNewPage from "./pages/admin/WhatsAppCampaignNewPage";
 import WhatsAppAutomationsPage from "./pages/admin/WhatsAppAutomationsPage";
 import WhatsAppContactsPage from "./pages/admin/WhatsAppContactsPage";
 import MerchantContractHistoryPage from "./pages/admin/MerchantContractHistoryPage";
+import AllContractsAcceptancePage from "./pages/admin/AllContractsAcceptancePage";
 import NavigationGuidePage from "./pages/admin/NavigationGuidePage";
 import RecruitmentPage from "./pages/admin/RecruitmentPage";
 
@@ -288,6 +289,16 @@ const App = () => (
             <Route path="/dashboard/subscription" element={
               <ProtectedRoute allowedRoles={['store_admin']}>
                 <AdminLayout><SubscriptionPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/contracts" element={
+              <ProtectedRoute allowedRoles={['store_admin']}>
+                <AdminLayout pageTitle="Meus Contratos"><MerchantContractHistoryPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/contract-acceptances" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Aceites de Contratos"><AllContractsAcceptancePage /></AdminLayout>
               </ProtectedRoute>
             } />
             <Route path="/dashboard/subscription-config" element={

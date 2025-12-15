@@ -96,6 +96,7 @@ import SupermercadosPage from './pages/public/SupermercadosPage';
 import AcouguesPage from './pages/public/AcouguesPage';
 import SalespersonSalesGuidePage from './pages/public/SalespersonSalesGuidePage';
 import SalespersonContractHistory from './pages/salesperson/SalespersonContractHistory';
+import SalespersonContractPreview from './pages/salesperson/SalespersonContractPreview';
 import SalespersonDetailPage from './pages/admin/SalespersonDetailPage';
 import SalespersonCommissionsPage from './pages/admin/SalespersonCommissionsPage';
 import SalespersonActivityRulesPage from './pages/admin/SalespersonActivityRulesPage';
@@ -576,6 +577,11 @@ const App = () => (
             <Route path="/vendedor/contratos" element={
               <ProtectedRoute allowedRoles={["salesperson"]}>
                 <SalespersonLayout><SalespersonContractHistory /></SalespersonLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/vendedor/contrato/previa" element={
+              <ProtectedRoute allowedRoles={["salesperson"]}>
+                <SalespersonContractPreview />
               </ProtectedRoute>
             } />
             <Route path="/seja-vendedor" element={<SejaVendedor />} />

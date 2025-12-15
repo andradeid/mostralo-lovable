@@ -88,6 +88,16 @@ export const useTermsReAccept = () => {
       // Capturar dados de auditoria
       const userAgent = navigator.userAgent;
       
+      // Capturar IP público do cliente
+      let ipAddress: string | null = null;
+      try {
+        const ipResponse = await fetch('https://api.ipify.org?format=json');
+        const ipData = await ipResponse.json();
+        ipAddress = ipData.ip;
+      } catch (e) {
+        console.warn('Não foi possível obter IP:', e);
+      }
+      
       // Gerar hash de verificação (simplificado - em produção usar Edge Function)
       const verificationData = `${user.id}|${state.currentVersion}|${new Date().toISOString()}`;
       const encoder = new TextEncoder();
@@ -125,6 +135,7 @@ export const useTermsReAccept = () => {
           cookies_accepted: true,
           marketing_accepted: false,
           user_agent: userAgent,
+          ip_address: ipAddress,
           verification_hash: verificationHash,
           accepted_at: new Date().toISOString(),
         });

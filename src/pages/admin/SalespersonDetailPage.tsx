@@ -11,6 +11,8 @@ import { ArrowLeft, CheckCircle2, XCircle, User, Building2, Trophy, Star, Sparkl
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CommissionConfigForm } from "@/components/admin/salespeople/CommissionConfigForm";
+import { CurrentCommissionCard } from "@/components/admin/salespeople/CurrentCommissionCard";
+import { SalespersonCommissionsReport } from "@/components/admin/salespeople/SalespersonCommissionsReport";
 import { ApprovalDialog } from "@/components/admin/salespeople/ApprovalDialog";
 import { RejectionDialog } from "@/components/admin/salespeople/RejectionDialog";
 import { SalespersonEditDialog } from "@/components/admin/salespeople/SalespersonEditDialog";
@@ -497,6 +499,14 @@ export default function SalespersonDetailPage() {
           )}
 
           {/* Configuração de Comissão */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              Comissão Atual
+            </h3>
+            <CurrentCommissionCard config={commissionConfig} />
+          </div>
+
           <CommissionConfigForm
             salespersonId={salesperson.id}
             currentConfig={commissionConfig}
@@ -560,6 +570,15 @@ export default function SalespersonDetailPage() {
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      {/* Relatório de Comissões */}
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold flex items-center gap-2">
+          <DollarSign className="h-5 w-5" />
+          Comissões
+        </h2>
+        <SalespersonCommissionsReport salespersonId={salesperson.id} />
       </div>
 
       {/* Carteira de Clientes */}

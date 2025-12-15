@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,7 @@ interface CommissionConfigFormProps {
     commission_type: string;
     commission_value: number;
     applies_to: string;
-  };
+  } | null;
   onSuccess?: () => void;
 }
 
@@ -25,9 +25,18 @@ export function CommissionConfigForm({
 }: CommissionConfigFormProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [commissionType, setCommissionType] = useState(currentConfig?.commission_type || "percentage");
-  const [commissionValue, setCommissionValue] = useState(currentConfig?.commission_value?.toString() || "");
-  const [appliesTo, setAppliesTo] = useState(currentConfig?.applies_to || "recurring");
+  const [commissionType, setCommissionType] = useState("percentage");
+  const [commissionValue, setCommissionValue] = useState("");
+  const [appliesTo, setAppliesTo] = useState("recurring");
+
+  // Sincronizar estados quando currentConfig mudar
+  useEffect(() => {
+    if (currentConfig) {
+      setCommissionType(currentConfig.commission_type || "percentage");
+      setCommissionValue(currentConfig.commission_value?.toString() || "");
+      setAppliesTo(currentConfig.applies_to || "recurring");
+    }
+  }, [currentConfig]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

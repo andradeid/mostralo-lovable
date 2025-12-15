@@ -117,21 +117,21 @@ export function SharePageContent({
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6 max-w-sm md:max-w-none mx-auto">
-            <div className="p-3 rounded-lg bg-muted/50 border">
+          <div className="flex flex-col gap-4 md:grid md:grid-cols-2 md:gap-6">
+            <div className="p-4 rounded-lg bg-muted/50 border flex justify-center">
               <QRCodeDisplay
                 url={homepageLink}
                 label="🏠 Página Inicial"
                 description="Mostra planos e benefícios"
-                size={80}
+                size={120}
               />
             </div>
-            <div className="p-3 rounded-lg bg-muted/50 border">
+            <div className="p-4 rounded-lg bg-muted/50 border flex justify-center">
               <QRCodeDisplay
                 url={signupLink}
                 label="📝 Cadastro Direto"
                 description="Vai direto para o formulário"
-                size={80}
+                size={120}
               />
             </div>
           </div>

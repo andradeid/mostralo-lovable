@@ -286,17 +286,63 @@ const DashboardHome = () => {
 
   // Dashboard Executivo para Master Admin
   if (profile?.user_type === 'master_admin' && stats) {
+    const getGreeting = () => {
+      const hour = new Date().getHours();
+      if (hour < 12) return '☀️ Bom dia';
+      if (hour < 18) return '🌤️ Boa tarde';
+      return '🌙 Boa noite';
+    };
+
+    const currentDate = new Date().toLocaleDateString('pt-BR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+
     return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Dashboard Executivo</h1>
-          <p className="text-muted-foreground">
-            Visão estratégica do negócio • Métricas financeiras e crescimento
-          </p>
+      <div className="space-y-4 md:space-y-6">
+        {/* Header Contextual */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
+              {getGreeting()}, Administrador
+            </h1>
+            <p className="text-sm text-muted-foreground capitalize">
+              {currentDate}
+            </p>
+          </div>
+          {/* Ações Rápidas como Pills */}
+          <div className="flex flex-wrap gap-2">
+            <NavLink to="/dashboard/users">
+              <Button variant="outline" size="sm" className="h-8 text-xs">
+                <Users className="w-3 h-3 mr-1" />
+                Usuários
+              </Button>
+            </NavLink>
+            <NavLink to="/dashboard/stores">
+              <Button variant="outline" size="sm" className="h-8 text-xs">
+                <Store className="w-3 h-3 mr-1" />
+                Lojas
+              </Button>
+            </NavLink>
+            <NavLink to="/dashboard/plans">
+              <Button variant="outline" size="sm" className="h-8 text-xs">
+                <Package className="w-3 h-3 mr-1" />
+                Planos
+              </Button>
+            </NavLink>
+            <NavLink to="/dashboard/reports">
+              <Button variant="outline" size="sm" className="h-8 text-xs">
+                <TrendingUp className="w-3 h-3 mr-1" />
+                Relatórios
+              </Button>
+            </NavLink>
+          </div>
         </div>
 
-        {/* KPIs + Ações Urgentes lado a lado */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* KPIs + Ações Urgentes - Responsivo */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
           <MasterAdminKPIs compact />
           <PendingActions />
         </div>
@@ -304,48 +350,11 @@ const DashboardHome = () => {
         {/* Projeções e Valuation */}
         <GrowthProjections />
 
-        {/* Atividades Recentes */}
-        <RecentActivityReal />
-
-        {/* Saúde das Lojas */}
-        <StoreHealthIndicators />
-
-        {/* Ações Rápidas */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Package className="w-5 h-5 mr-2" />
-              Ações Rápidas
-            </CardTitle>
-            <CardDescription>Funcionalidades mais utilizadas</CardDescription>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <NavLink to="/dashboard/users">
-              <Button variant="outline" className="w-full justify-start">
-                <Users className="w-4 h-4 mr-2" />
-                Usuários
-              </Button>
-            </NavLink>
-            <NavLink to="/dashboard/stores">
-              <Button variant="outline" className="w-full justify-start">
-                <Store className="w-4 h-4 mr-2" />
-                Lojas
-              </Button>
-            </NavLink>
-            <NavLink to="/dashboard/plans">
-              <Button variant="outline" className="w-full justify-start">
-                <Package className="w-4 h-4 mr-2" />
-                Planos
-              </Button>
-            </NavLink>
-            <NavLink to="/dashboard/reports">
-              <Button variant="outline" className="w-full justify-start">
-                <TrendingUp className="w-4 h-4 mr-2" />
-                Relatórios
-              </Button>
-            </NavLink>
-          </CardContent>
-        </Card>
+        {/* Atividades Recentes + Saúde das Lojas - Lado a lado no desktop */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+          <RecentActivityReal />
+          <StoreHealthIndicators />
+        </div>
       </div>
     );
   }

@@ -63,8 +63,8 @@ const AllContractsAcceptancePage = () => {
         .from('merchant_contract_acceptance')
         .select(`
           *,
-          profile:user_id (full_name, email),
-          store:store_id (name)
+          profile:profiles!merchant_contract_acceptance_user_id_fkey (full_name, email),
+          store:stores!merchant_contract_acceptance_store_id_fkey (name)
         `)
         .order('accepted_at', { ascending: false });
 

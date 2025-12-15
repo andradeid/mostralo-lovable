@@ -34,8 +34,8 @@ export function QRCodeDisplay({
   };
 
   return (
-    <div className="flex flex-col items-center gap-3">
-      <div className="bg-white p-3 rounded-lg shadow-sm">
+    <div className="flex flex-col items-center gap-2">
+      <div className="bg-white p-2 rounded-lg shadow-sm">
         {qrDataUrl ? (
           <img 
             src={qrDataUrl} 
@@ -52,35 +52,35 @@ export function QRCodeDisplay({
         )}
       </div>
       <div className="text-center">
-        <p className="font-medium text-sm">{label}</p>
+        <p className="font-medium text-xs md:text-sm">{label}</p>
         {description && (
-          <p className="text-xs text-muted-foreground">{description}</p>
+          <p className="text-[10px] md:text-xs text-muted-foreground">{description}</p>
         )}
       </div>
       {showActions && (
-        <div className="flex gap-2">
+        <div className="flex gap-1.5">
           <Button
             size="sm"
             variant="outline"
             onClick={handleCopy}
-            className="h-8"
+            className="h-7 px-2 text-xs"
           >
             {copied ? (
-              <Check className="h-3 w-3 mr-1 text-green-500" />
+              <Check className="h-3 w-3 text-green-500" />
             ) : (
-              <Copy className="h-3 w-3 mr-1" />
+              <Copy className="h-3 w-3" />
             )}
-            Copiar
+            <span className="ml-1">Copiar</span>
           </Button>
           <Button
             size="sm"
             variant="outline"
             asChild
-            className="h-8"
+            className="h-7 px-2 text-xs"
           >
             <a href={url} target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="h-3 w-3 mr-1" />
-              Abrir
+              <ExternalLink className="h-3 w-3" />
+              <span className="ml-1">Abrir</span>
             </a>
           </Button>
         </div>

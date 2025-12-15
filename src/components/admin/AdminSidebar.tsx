@@ -39,7 +39,8 @@ import {
   Zap,
   Gift,
   Map,
-  UserPlus
+  UserPlus,
+  Film
 } from "lucide-react";
 
 import {
@@ -349,6 +350,7 @@ export function AdminSidebar() {
         { title: 'Faixas de Qualificação', url: '/dashboard/qualification-benefits', icon: Gift, group: 'Vendedores' },
         { title: 'Guia de Prospecção', url: '/dashboard/prospecting', icon: Target, group: 'Vendedores' },
         { title: 'Guia de Cadastro', url: '/dashboard/onboarding-guide', icon: FileText, group: 'Vendedores' },
+        { title: 'Biblioteca de Mídias', url: '/dashboard/sales-media', icon: Film, group: 'Vendedores' },
         { title: 'Assinantes', url: '/dashboard/subscribers', icon: CreditCard, group: 'Gerenciamento' },
         { title: 'Lojas', url: '/dashboard/stores', icon: Store, group: 'Gerenciamento' },
         { title: 'Usuários', url: '/dashboard/users', icon: UserCircle, group: 'Gerenciamento' },

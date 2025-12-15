@@ -99,6 +99,7 @@ import SalespersonDetailPage from './pages/admin/SalespersonDetailPage';
 import SalespersonCommissionsPage from './pages/admin/SalespersonCommissionsPage';
 import SalespeoplePayoutsPage from './pages/admin/SalespeoplePayoutsPage';
 import AffiliateEarningsReportsPage from './pages/admin/AffiliateEarningsReportsPage';
+import SalesMediaManagementPage from './pages/admin/SalesMediaManagementPage';
 import SalespersonDashboard from "./pages/salesperson/SalespersonDashboard";
 import SalespersonMyLink from "./pages/salesperson/SalespersonMyLink";
 import SalespersonContract from "./pages/salesperson/SalespersonContract";
@@ -107,6 +108,7 @@ import SalespersonSharePage from "./pages/salesperson/SalespersonSharePage";
 import SalespersonUpgrade from "./pages/salesperson/SalespersonUpgrade";
 import SalespersonPayouts from "./pages/salesperson/SalespersonPayouts";
 import SalespersonGuidePage from "./pages/salesperson/SalespersonGuidePage";
+import SalespersonMediaPage from "./pages/salesperson/SalespersonMediaPage";
 import { SalespersonLayout } from "./components/salesperson/SalespersonLayout";
 import ProspectingGuidePage from "./pages/admin/ProspectingGuidePage";
 import BusinessIntelligencePage from "./pages/admin/BusinessIntelligencePage";
@@ -228,6 +230,13 @@ const App = () => (
               <ProtectedRoute allowedRoles={['master_admin']}>
                 <AdminLayout pageTitle="Guia de Cadastro">
                   <OnboardingGuidePage />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/sales-media" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Biblioteca de Mídias">
+                  <SalesMediaManagementPage />
                 </AdminLayout>
               </ProtectedRoute>
             } />
@@ -603,6 +612,16 @@ const App = () => (
               <ProtectedRoute allowedRoles={["salesperson"]}>
                 <SalespersonLayout>
                   <SalespersonPayouts />
+                </SalespersonLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendedor/midias"
+            element={
+              <ProtectedRoute allowedRoles={["salesperson"]}>
+                <SalespersonLayout>
+                  <SalespersonMediaPage />
                 </SalespersonLayout>
               </ProtectedRoute>
             }

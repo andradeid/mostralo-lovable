@@ -83,6 +83,7 @@ export function MediaCard({
 }: MediaCardProps) {
   const [copying, setCopying] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Cleanup do áudio ao desmontar
@@ -95,20 +96,50 @@ export function MediaCard({
     };
   }, []);
 
-  const handlePlayPause = (e: React.MouseEvent) => {
+  const handlePlayPause = async (e: React.MouseEvent) => {
     e.stopPropagation();
     
-    if (!audioRef.current) {
-      audioRef.current = new Audio(media.file_url);
-      audioRef.current.onended = () => setIsPlaying(false);
+    try {
+      if (!audioRef.current) {
+        setIsLoading(true);
+        console.log('Criando elemento de áudio:', media.file_url);
+        
+        audioRef.current = new Audio(media.file_url);
+        
+        audioRef.current.onended = () => {
+          console.log('Áudio finalizado');
+          setIsPlaying(false);
+        };
+        
+        audioRef.current.oncanplay = () => {
+          console.log('Áudio pronto para reproduzir');
+          setIsLoading(false);
+        };
+        
+        audioRef.current.onerror = (error) => {
+          console.error('Erro ao carregar áudio:', error);
+          toast.error("Erro ao carregar o áudio");
+          setIsPlaying(false);
+          setIsLoading(false);
+        };
+      }
+      
+      if (isPlaying) {
+        console.log('Pausando áudio');
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        console.log('Iniciando reprodução');
+        await audioRef.current.play();
+        console.log('Reprodução iniciada com sucesso');
+        setIsPlaying(true);
+      }
+    } catch (error) {
+      console.error('Erro ao reproduzir áudio:', error);
+      toast.error("Não foi possível reproduzir o áudio. Toque novamente.");
+      setIsPlaying(false);
+      setIsLoading(false);
     }
-    
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play();
-    }
-    setIsPlaying(!isPlaying);
   };
 
   const handleCopyLink = async () => {
@@ -135,16 +166,16 @@ export function MediaCard({
   };
 
   // Componente de waveform animado
-  const AudioWaveform = ({ playing }: { playing: boolean }) => (
+  const AudioWaveform = ({ playing, loading }: { playing: boolean; loading: boolean }) => (
     <div className="flex items-center justify-center gap-[3px] h-8">
       {[...Array(5)].map((_, i) => (
         <div
           key={i}
-          className={`w-1 bg-green-400 rounded-full transition-all ${
-            playing ? 'animate-waveform' : ''
-          }`}
+          className={`w-1 rounded-full transition-all ${
+            loading ? 'bg-green-400/50 animate-pulse' : 'bg-green-400'
+          } ${playing ? 'animate-waveform' : ''}`}
           style={{
-            animationDelay: `${i * 0.15}s`,
+            animationDelay: playing ? `${i * 0.15}s` : undefined,
             height: playing ? undefined : '8px'
           }}
         />
@@ -187,13 +218,15 @@ export function MediaCard({
           onClick={handlePlayPause}
         >
           {/* Waveform animado */}
-          <AudioWaveform playing={isPlaying} />
+          <AudioWaveform playing={isPlaying} loading={isLoading} />
           
           {/* Botão Play/Pause */}
           <div className={`h-10 w-10 rounded-full flex items-center justify-center 
                           ${isPlaying ? 'bg-green-500/40' : 'bg-green-500/30'} 
                           hover:bg-green-500/50 transition-colors`}>
-            {isPlaying ? (
+            {isLoading ? (
+              <div className="h-5 w-5 border-2 border-green-400 border-t-transparent rounded-full animate-spin" />
+            ) : isPlaying ? (
               <Pause className="h-5 w-5 text-green-400" />
             ) : (
               <Play className="h-5 w-5 text-green-400 ml-0.5" />
@@ -202,7 +235,7 @@ export function MediaCard({
           
           {/* Texto de status */}
           <p className="text-xs text-green-400/80">
-            {isPlaying ? "♪ Reproduzindo..." : "Clique para ouvir"}
+            {isLoading ? "Carregando..." : isPlaying ? "♪ Reproduzindo..." : "Clique para ouvir"}
           </p>
         </div>
       );

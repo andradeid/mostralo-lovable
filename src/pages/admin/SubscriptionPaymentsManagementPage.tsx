@@ -639,89 +639,180 @@ export default function SubscriptionPaymentsManagementPage() {
             </div>
           </CardContent>
         ) : (
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Usuário</TableHead>
-                  <TableHead>Empresa</TableHead>
-                  <TableHead>Plano</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Comprovante</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {pendingApprovals.map((approval) => (
-                  <TableRow key={approval.id}>
-                    <TableCell>
+          <CardContent className="space-y-4">
+            {/* Mobile: Cards Layout */}
+            <div className="md:hidden space-y-4">
+              {pendingApprovals.map((approval) => (
+                <Card key={approval.id} className="border-yellow-500/30 bg-card">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium truncate">{approval.profiles?.full_name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{approval.profiles?.email}</p>
+                      </div>
+                      <Badge variant="secondary" className="shrink-0">
+                        {approval.plans?.name}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pb-3 space-y-3">
+                    <div className="grid grid-cols-2 gap-2 text-sm">
                       <div>
-                        <p className="font-medium">{approval.profiles?.full_name}</p>
-                        <p className="text-xs text-muted-foreground">{approval.profiles?.email}</p>
+                        <span className="text-muted-foreground block">Empresa:</span>
+                        <span className="font-medium">{approval.company_name}</span>
                       </div>
-                    </TableCell>
-                    <TableCell>
                       <div>
-                        <p className="font-medium">{approval.company_name}</p>
-                        <p className="text-xs text-muted-foreground">{approval.company_document}</p>
+                        <span className="text-muted-foreground block">CNPJ:</span>
+                        <span className="text-xs">{approval.company_document}</span>
                       </div>
-                    </TableCell>
-                    <TableCell>{approval.plans?.name}</TableCell>
-                    <TableCell className="font-bold text-primary">
-                      R$ {approval.payment_amount.toFixed(2)}
-                    </TableCell>
-                    <TableCell>
-                      {format(new Date(approval.created_at), "dd/MM/yyyy", { locale: ptBR })}
-                    </TableCell>
-                    <TableCell>
-                      {approval.payment_proof_url ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedProofUrl(approval.payment_proof_url);
-                            setShowProofDialog(true);
-                          }}
-                        >
-                          <Eye className="w-4 h-4 mr-1" />
-                          Ver
-                        </Button>
-                      ) : (
-                        <Badge variant="secondary">Sem comprovante</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end space-x-2">
-                        <Button
-                          size="sm"
-                          variant="default"
-                          onClick={() => {
-                            setSelectedApproval(approval);
-                            setShowApprovalDialog(true);
-                          }}
-                          disabled={!approval.payment_proof_url}
-                        >
-                          <Check className="w-4 h-4 mr-1" />
-                          Aprovar
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => {
-                            setSelectedApproval(approval);
-                            setShowRejectDialog(true);
-                          }}
-                        >
-                          <X className="w-4 h-4 mr-1" />
-                          Rejeitar
-                        </Button>
+                    </div>
+                    <div className="flex justify-between items-center pt-2 border-t border-border">
+                      <div className="text-sm">
+                        <span className="text-muted-foreground">Data:</span>
+                        <span className="ml-1">{format(new Date(approval.created_at), "dd/MM/yyyy", { locale: ptBR })}</span>
                       </div>
-                    </TableCell>
+                      <div className="text-right">
+                        <span className="text-lg font-bold text-primary">
+                          R$ {approval.payment_amount.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                  <div className="px-4 pb-4 space-y-2">
+                    {approval.payment_proof_url ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => {
+                          setSelectedProofUrl(approval.payment_proof_url!);
+                          setShowProofDialog(true);
+                        }}
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        Ver Comprovante
+                      </Button>
+                    ) : (
+                      <Badge variant="secondary" className="w-full justify-center py-2">
+                        Sem comprovante anexado
+                      </Badge>
+                    )}
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        className="flex-1 bg-green-600 hover:bg-green-700"
+                        onClick={() => {
+                          setSelectedApproval(approval);
+                          setShowApprovalDialog(true);
+                        }}
+                        disabled={!approval.payment_proof_url}
+                      >
+                        <Check className="w-4 h-4 mr-1" />
+                        Aprovar
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="flex-1"
+                        onClick={() => {
+                          setSelectedApproval(approval);
+                          setShowRejectDialog(true);
+                        }}
+                      >
+                        <X className="w-4 h-4 mr-1" />
+                        Rejeitar
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+
+            {/* Desktop: Table Layout */}
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Usuário</TableHead>
+                    <TableHead>Empresa</TableHead>
+                    <TableHead>Plano</TableHead>
+                    <TableHead>Valor</TableHead>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Comprovante</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pendingApprovals.map((approval) => (
+                    <TableRow key={approval.id}>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{approval.profiles?.full_name}</p>
+                          <p className="text-xs text-muted-foreground">{approval.profiles?.email}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{approval.company_name}</p>
+                          <p className="text-xs text-muted-foreground">{approval.company_document}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>{approval.plans?.name}</TableCell>
+                      <TableCell className="font-bold text-primary">
+                        R$ {approval.payment_amount.toFixed(2)}
+                      </TableCell>
+                      <TableCell>
+                        {format(new Date(approval.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                      </TableCell>
+                      <TableCell>
+                        {approval.payment_proof_url ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedProofUrl(approval.payment_proof_url!);
+                              setShowProofDialog(true);
+                            }}
+                          >
+                            <Eye className="w-4 h-4 mr-1" />
+                            Ver
+                          </Button>
+                        ) : (
+                          <Badge variant="secondary">Sem comprovante</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end space-x-2">
+                          <Button
+                            size="sm"
+                            variant="default"
+                            onClick={() => {
+                              setSelectedApproval(approval);
+                              setShowApprovalDialog(true);
+                            }}
+                            disabled={!approval.payment_proof_url}
+                          >
+                            <Check className="w-4 h-4 mr-1" />
+                            Aprovar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => {
+                              setSelectedApproval(approval);
+                              setShowRejectDialog(true);
+                            }}
+                          >
+                            <X className="w-4 h-4 mr-1" />
+                            Rejeitar
+                          </Button>
+                        </div>
+                      </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+            </div>
           </CardContent>
         )}
       </Card>

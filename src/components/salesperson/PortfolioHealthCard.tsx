@@ -101,12 +101,24 @@ export default function PortfolioHealthCard({ salesperson }: PortfolioHealthCard
         .single();
 
       if (!error && data) {
+        // Mapear evaluation_period (texto) para dias
+        const evaluationPeriodToDays = (period: string | null): number => {
+          if (!period) return 90;
+          const periodMap: Record<string, number> = {
+            'monthly': 30,
+            'quarterly': 90,
+            'biannual': 180,
+            'annual': 365
+          };
+          return periodMap[period.toLowerCase()] || 90;
+        };
+
         // Mapear campos do banco para interface local
         setRules({
           tier_full_commission: data.tier_full_commission,
           tier_reduced_commission: data.tier_reduced_commission,
           tier_minimum_commission: data.tier_minimum_commission,
-          evaluation_period_days: parseInt(data.evaluation_period?.replace(' days', '') || '90'),
+          evaluation_period_days: evaluationPeriodToDays(data.evaluation_period),
           grace_period_days: data.grace_period_days
         });
       } else {

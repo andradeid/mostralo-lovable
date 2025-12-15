@@ -165,16 +165,22 @@ serve(async (req) => {
             continue;
           }
 
-          // Registrar avaliação
+          // Registrar avaliação - calcular período do trimestre
+          const quarterStart = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
+          const quarterEnd = new Date(quarterStart);
+          quarterEnd.setMonth(quarterEnd.getMonth() + 3);
+          quarterEnd.setDate(quarterEnd.getDate() - 1);
+
           await supabase
             .from('salesperson_portfolio_evaluations')
             .insert({
               salesperson_id: sp.id,
-              evaluation_date: now.toISOString(),
+              evaluation_period_start: quarterStart.toISOString().split('T')[0],
+              evaluation_period_end: quarterEnd.toISOString().split('T')[0],
               active_clients_count: clientCount,
               previous_tier: previousTier,
               new_tier: newTierInfo.tier,
-              commission_percentage: newTierInfo.percentage,
+              new_commission_percentage: newTierInfo.percentage,
               notes: isDowngrade 
                 ? `Rebaixamento após período de graça: ${previousTier} -> ${newTierInfo.tier}`
                 : `Promoção de faixa: ${previousTier} -> ${newTierInfo.tier}`

@@ -868,40 +868,40 @@ export default function SubscriptionPaymentsManagementPage() {
       </div>
 
       {/* Cards de Estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total de Faturas</CardTitle>
+          <CardHeader className="pb-1 pt-3 px-3 md:pb-2 md:pt-6 md:px-6">
+            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Total de Faturas</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{stats.total}</p>
+          <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
+            <p className="text-xl md:text-2xl font-bold">{stats.total}</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Pagas</CardTitle>
+          <CardHeader className="pb-1 pt-3 px-3 md:pb-2 md:pt-6 md:px-6">
+            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Pagas</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-green-500">{stats.paid}</p>
+          <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
+            <p className="text-xl md:text-2xl font-bold text-green-500">{stats.paid}</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Aguardando Aprovação</CardTitle>
+          <CardHeader className="pb-1 pt-3 px-3 md:pb-2 md:pt-6 md:px-6">
+            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Aguardando</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-yellow-500">{stats.pending}</p>
+          <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
+            <p className="text-xl md:text-2xl font-bold text-yellow-500">{stats.pending}</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Receita Total</CardTitle>
+          <CardHeader className="pb-1 pt-3 px-3 md:pb-2 md:pt-6 md:px-6">
+            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Receita Total</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-primary">
+          <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
+            <p className="text-lg md:text-2xl font-bold text-primary">
               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.totalRevenue)}
             </p>
           </CardContent>
@@ -947,7 +947,68 @@ export default function SubscriptionPaymentsManagementPage() {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* Mobile: Cards compactos para faturas */}
+          <div className="md:hidden space-y-3">
+            {filteredInvoices.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">Nenhuma fatura encontrada</p>
+            ) : (
+              filteredInvoices.map((invoice) => (
+                <div key={invoice.id} className="p-3 rounded-lg border bg-card w-[90%] mx-auto">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-sm truncate max-w-[60%]">{invoice.stores?.name || '-'}</span>
+                    {getStatusBadge(invoice.payment_status, invoice.paid_at)}
+                  </div>
+                  
+                  <p className="text-xs text-muted-foreground mt-1 truncate">
+                    {invoice.stores?.profiles?.full_name || '-'} • {invoice.stores?.profiles?.email || '-'}
+                  </p>
+                  
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-xs text-muted-foreground">
+                      {invoice.plans?.name || '-'} • {format(new Date(invoice.due_date), "dd/MM/yyyy", { locale: ptBR })}
+                    </span>
+                    <span className="font-bold text-green-500">
+                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(invoice.amount)}
+                    </span>
+                  </div>
+                  
+                  <div className="flex gap-2 mt-3 pt-2 border-t">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 h-8"
+                      onClick={() => {
+                        setSelectedInvoice(invoice);
+                        setShowDetailDialog(true);
+                      }}
+                    >
+                      <Eye className="h-3 w-3 mr-1" />
+                      Ver
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 px-3"
+                      onClick={() => openEditDialog(invoice)}
+                    >
+                      <Pencil className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="h-8 px-3"
+                      onClick={() => openDeleteDialog(invoice)}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Desktop: Tabela original */}
+          <div className="hidden md:block overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>

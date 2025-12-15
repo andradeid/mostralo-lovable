@@ -8,15 +8,149 @@ import { RecruitmentFunnel } from '@/components/admin/recruitment/RecruitmentFun
 import { generateRecruitmentPrompt, RecruitmentPromptType, BonusTier } from '@/utils/recruitmentPromptGenerator';
 import { Database } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
-import { Loader2, RefreshCw, Database as DatabaseIcon, CheckCircle, Users, Megaphone, Calculator, ExternalLink, UserPlus } from 'lucide-react';
+import { Loader2, RefreshCw, Database as DatabaseIcon, CheckCircle, Users, Megaphone, Calculator, ExternalLink, UserPlus, FlaskConical, Copy, ChevronDown, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Link } from 'react-router-dom';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 type Plan = Database['public']['Tables']['plans']['Row'];
+
+// CNPJs de Teste e CNAEs aceitos
+const TEST_CNPJS = [
+  { cnpj: '11.111.111/0001-11', empresa: 'EMPRESA TESTE LTDA', cnae: '7319002', descricao: 'Promoção de vendas' },
+  { cnpj: '00.000.000/0001-91', empresa: 'DESENVOLVEDOR MOSTRALO MEI', cnae: '4619200', descricao: 'Representação comercial' },
+];
+
+const ACCEPTED_CNAES = [
+  { code: '7319002', description: 'Promoção de vendas' },
+  { code: '7319099', description: 'Outras atividades de publicidade' },
+  { code: '4619200', description: 'Representação comercial e agentes do comércio' },
+  { code: '7311400', description: 'Agências de publicidade' },
+  { code: '8299799', description: 'Outras atividades de serviços prestados' },
+];
+
+function TestDataSection() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text.replace(/\D/g, ''));
+    toast.success(`${label} copiado!`);
+  };
+
+  return (
+    <Card className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CollapsibleTrigger asChild>
+          <CardHeader className="cursor-pointer hover:bg-amber-100/50 dark:hover:bg-amber-900/20 transition-colors">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2 text-amber-800 dark:text-amber-200">
+                <FlaskConical className="h-5 w-5" />
+                🧪 Dados de Teste (Desenvolvimento)
+              </CardTitle>
+              <ChevronDown className={cn(
+                "h-5 w-5 text-amber-600 transition-transform duration-200",
+                isOpen && "rotate-180"
+              )} />
+            </div>
+            <CardDescription className="text-amber-700 dark:text-amber-300">
+              CNPJs de teste e CNAEs aceitos para validar o cadastro de vendedores
+            </CardDescription>
+          </CardHeader>
+        </CollapsibleTrigger>
+
+        <CollapsibleContent>
+          <CardContent className="space-y-6 pt-0">
+            {/* CNPJs de Teste */}
+            <div className="space-y-3">
+              <h4 className="font-semibold text-sm text-amber-800 dark:text-amber-200">
+                CNPJs de Teste Válidos
+              </h4>
+              <div className="space-y-2">
+                {TEST_CNPJS.map((item) => (
+                  <div 
+                    key={item.cnpj} 
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-lg bg-white dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700"
+                  >
+                    <div className="flex-1 space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <code className="font-mono text-sm font-bold text-amber-900 dark:text-amber-100">
+                          {item.cnpj}
+                        </code>
+                        <Badge variant="outline" className="text-xs bg-green-100 text-green-800 border-green-300">
+                          CNAE {item.cnae} ✓
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-amber-700 dark:text-amber-300">
+                        {item.empresa} • {item.descricao}
+                      </p>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      className="border-amber-300 hover:bg-amber-100 dark:hover:bg-amber-800"
+                      onClick={() => copyToClipboard(item.cnpj, 'CNPJ')}
+                    >
+                      <Copy className="h-3 w-3 mr-1" />
+                      Copiar
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* CNAEs Aceitos */}
+            <div className="space-y-3">
+              <h4 className="font-semibold text-sm text-amber-800 dark:text-amber-200">
+                CNAEs Aceitos para Vendedores
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {ACCEPTED_CNAES.map((cnae) => (
+                  <div 
+                    key={cnae.code}
+                    className="flex items-center gap-2 p-2 rounded bg-white dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700"
+                  >
+                    <Badge variant="secondary" className="font-mono text-xs">
+                      {cnae.code}
+                    </Badge>
+                    <span className="text-xs text-amber-700 dark:text-amber-300">
+                      {cnae.description}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Instruções */}
+            <div className="space-y-3">
+              <h4 className="font-semibold text-sm text-amber-800 dark:text-amber-200">
+                Como usar
+              </h4>
+              <ol className="list-decimal list-inside space-y-1 text-sm text-amber-700 dark:text-amber-300">
+                <li>Use os CNPJs acima para testar o fluxo de cadastro em <code className="font-mono text-xs bg-amber-200 dark:bg-amber-800 px-1 rounded">/seja-vendedor</code></li>
+                <li>A validação via BrasilAPI retornará dados fictícios para esses CNPJs</li>
+                <li>Em produção, candidatos devem usar CNPJs reais com CNAEs compatíveis</li>
+              </ol>
+            </div>
+
+            {/* Alerta */}
+            <Alert className="bg-amber-100 dark:bg-amber-900/50 border-amber-300 dark:border-amber-600">
+              <AlertTriangle className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="text-amber-800 dark:text-amber-200 text-sm">
+                <strong>Atenção:</strong> CNPJs de teste funcionam apenas no ambiente de desenvolvimento. 
+                Em produção, a validação é feita diretamente na Receita Federal via BrasilAPI.
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </CollapsibleContent>
+      </Collapsible>
+    </Card>
+  );
+}
 
 export default function RecruitmentPage() {
   const [selectedRecruitmentType, setSelectedRecruitmentType] = useState<RecruitmentPromptType>('aggressive');
@@ -244,6 +378,9 @@ export default function RecruitmentPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Dados de Teste - Exclusivo Master Admin */}
+      <TestDataSection />
 
       {/* Dicas */}
       <div className="bg-muted/50 rounded-lg p-6 space-y-4">

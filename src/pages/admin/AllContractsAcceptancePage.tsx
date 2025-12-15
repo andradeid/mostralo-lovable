@@ -32,13 +32,13 @@ interface MerchantAcceptance {
 interface SalespersonContract {
   id: string;
   salesperson_id: string;
-  contract_version: string;
+  version: string;
   accepted_at: string;
   ip_address: string | null;
   user_agent: string | null;
   verification_hash: string | null;
   salesperson?: {
-    name: string | null;
+    full_name: string | null;
     email: string | null;
     company_name: string | null;
   };
@@ -72,10 +72,10 @@ const AllContractsAcceptancePage = () => {
         const userIds = merchantData.map(m => m.user_id).filter(Boolean);
         const storeIds = merchantData.map(m => m.store_id).filter(Boolean);
 
-        // Buscar profiles
+        // Buscar profiles com user_type para filtrar master_admin
         const { data: profiles } = await supabase
           .from('profiles')
-          .select('id, full_name, email')
+          .select('id, full_name, email, user_type')
           .in('id', userIds);
 
         // Buscar stores
@@ -86,18 +86,24 @@ const AllContractsAcceptancePage = () => {
         }
 
         // Mapear por ID
-        const profileMap = new Map<string, { id: string; full_name: string | null; email: string | null }>();
+        const profileMap = new Map<string, { id: string; full_name: string | null; email: string | null; user_type: string | null }>();
         profiles?.forEach(p => profileMap.set(p.id, p));
         
         const storeMap = new Map<string, { id: string; name: string }>();
         stores.forEach(s => storeMap.set(s.id, s));
 
-        // Enriquecer os dados
-        enrichedMerchantData = merchantData.map(m => ({
-          ...m,
-          profile: profileMap.get(m.user_id) || null,
-          store: m.store_id ? storeMap.get(m.store_id) || null : null
-        })) as MerchantAcceptance[];
+        // Enriquecer os dados e filtrar master_admin
+        enrichedMerchantData = merchantData
+          .filter(m => {
+            const profile = profileMap.get(m.user_id);
+            // Filtrar master_admin - não deve aparecer como lojista
+            return profile?.user_type !== 'master_admin';
+          })
+          .map(m => ({
+            ...m,
+            profile: profileMap.get(m.user_id) || null,
+            store: m.store_id ? storeMap.get(m.store_id) || null : null
+          })) as MerchantAcceptance[];
       }
 
       setMerchantAcceptances(enrichedMerchantData);
@@ -107,7 +113,7 @@ const AllContractsAcceptancePage = () => {
         .from('salesperson_contracts')
         .select(`
           *,
-          salesperson:salesperson_id (name, email, company_name)
+          salesperson:salesperson_id (full_name, email, company_name)
         `)
         .order('accepted_at', { ascending: false });
 
@@ -138,7 +144,7 @@ const AllContractsAcceptancePage = () => {
   });
 
   const filteredSalespeople = salespersonContracts.filter(s => {
-    const name = s.salesperson?.name?.toLowerCase() || '';
+    const name = s.salesperson?.full_name?.toLowerCase() || '';
     const email = s.salesperson?.email?.toLowerCase() || '';
     const company = s.salesperson?.company_name?.toLowerCase() || '';
     const search = searchTerm.toLowerCase();
@@ -370,13 +376,13 @@ const AllContractsAcceptancePage = () => {
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0 flex-1">
                               <p className="font-medium truncate">
-                                {contract.salesperson?.name || 'Nome não disponível'}
+                                {contract.salesperson?.full_name || 'Nome não disponível'}
                               </p>
                               <p className="text-sm text-muted-foreground truncate">
                                 {contract.salesperson?.company_name || contract.salesperson?.email}
                               </p>
                               <p className="text-xs text-muted-foreground mt-1">
-                                v{contract.contract_version} • {format(new Date(contract.accepted_at), "dd/MM/yyyy", { locale: ptBR })}
+                                v{contract.version} • {format(new Date(contract.accepted_at), "dd/MM/yyyy", { locale: ptBR })}
                               </p>
                             </div>
                             <Badge variant="secondary" className="bg-green-100 text-green-800 shrink-0">
@@ -396,10 +402,10 @@ const AllContractsAcceptancePage = () => {
                     <div className="flex items-start justify-between">
                       <div>
                         <CardTitle>
-                          {selectedSalesperson.salesperson?.name || 'Vendedor'}
+                          {selectedSalesperson.salesperson?.full_name || 'Vendedor'}
                         </CardTitle>
                         <CardDescription>
-                          Contrato v{selectedSalesperson.contract_version}
+                          Contrato v{selectedSalesperson.version}
                         </CardDescription>
                       </div>
                       {selectedSalesperson.verification_hash && (

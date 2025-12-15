@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { AlertCircle, Clock, Store, CreditCard } from 'lucide-react';
+import { AlertCircle, Clock, Store, CreditCard, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { NavLink } from 'react-router-dom';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface PendingData {
   pendingApprovals: number;
@@ -107,7 +107,7 @@ export function PendingActions() {
     {
       title: 'Aprovações Pendentes',
       count: data.pendingApprovals,
-      description: 'Solicitações aguardando revisão',
+      description: 'Aguardando revisão',
       icon: AlertCircle,
       color: 'text-red-600',
       bgColor: 'bg-red-100',
@@ -117,7 +117,7 @@ export function PendingActions() {
     {
       title: 'Expirando em 7 dias',
       count: data.expiringIn7Days,
-      description: 'Assinaturas próximas do vencimento',
+      description: 'Vencimento próximo',
       icon: Clock,
       color: 'text-orange-600',
       bgColor: 'bg-orange-100',
@@ -127,7 +127,7 @@ export function PendingActions() {
     {
       title: 'Expirando em 15 dias',
       count: data.expiringIn15Days,
-      description: 'Assinaturas vencendo em breve',
+      description: 'Vencendo em breve',
       icon: Clock,
       color: 'text-yellow-600',
       bgColor: 'bg-yellow-100',
@@ -137,7 +137,7 @@ export function PendingActions() {
     {
       title: 'Expirando em 30 dias',
       count: data.expiringIn30Days,
-      description: 'Assinaturas para renovação',
+      description: 'Para renovação',
       icon: Clock,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100',
@@ -147,7 +147,7 @@ export function PendingActions() {
     {
       title: 'Lojas no Free',
       count: data.freeStores,
-      description: 'Oportunidades de upgrade',
+      description: 'Oportunidades',
       icon: CreditCard,
       color: 'text-purple-600',
       bgColor: 'bg-purple-100',
@@ -172,12 +172,12 @@ export function PendingActions() {
   if (loading) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <AlertCircle className="w-5 h-5 mr-2" />
+        <CardHeader className="pb-2 p-3 md:p-4">
+          <CardTitle className="flex items-center text-sm md:text-base">
+            <AlertCircle className="w-4 h-4 mr-2" />
             Ações Urgentes
           </CardTitle>
-          <CardDescription>Carregando...</CardDescription>
+          <CardDescription className="text-xs">Carregando...</CardDescription>
         </CardHeader>
       </Card>
     );
@@ -185,50 +185,51 @@ export function PendingActions() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <AlertCircle className="w-5 h-5 mr-2" />
+      <CardHeader className="pb-2 p-3 md:p-4">
+        <CardTitle className="flex items-center text-sm md:text-base">
+          <AlertCircle className="w-4 h-4 mr-2" />
           Ações Urgentes
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-xs">
           {activeAlerts.length > 0 
             ? `${activeAlerts.length} item(ns) requer(em) atenção`
-            : 'Nenhuma ação pendente no momento'}
+            : 'Nenhuma ação pendente'}
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-3 md:p-4 pt-0">
         {activeAlerts.length === 0 ? (
-          <div className="text-center py-6">
-            <p className="text-sm text-muted-foreground">
-              ✅ Tudo em dia! Nenhuma ação urgente no momento.
+          <div className="text-center py-4">
+            <CheckCircle className="w-8 h-8 text-green-500 mx-auto mb-2" />
+            <p className="text-xs text-muted-foreground">
+              Tudo em dia!
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {activeAlerts.map((alert, index) => (
-              <NavLink key={index} to={alert.link}>
-                <div className={`flex items-center justify-between p-3 rounded-lg border hover:border-primary transition-colors cursor-pointer ${alert.bgColor} bg-opacity-10`}>
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${alert.bgColor}`}>
-                      <alert.icon className={`w-5 h-5 ${alert.color}`} />
+          <ScrollArea className="max-h-[280px] md:max-h-[320px]">
+            <div className="space-y-2">
+              {activeAlerts.map((alert, index) => (
+                <NavLink key={index} to={alert.link}>
+                  <div className={`flex items-center justify-between p-2 md:p-3 rounded-lg border hover:border-primary transition-colors cursor-pointer ${alert.bgColor} bg-opacity-10`}>
+                    <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+                      <div className={`w-8 h-8 md:w-9 md:h-9 rounded-full flex items-center justify-center flex-shrink-0 ${alert.bgColor}`}>
+                        <alert.icon className={`w-4 h-4 ${alert.color}`} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-xs md:text-sm truncate">{alert.title}</p>
+                        <p className="text-[10px] md:text-xs text-muted-foreground truncate hidden sm:block">{alert.description}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-sm">{alert.title}</p>
-                      <p className="text-xs text-muted-foreground">{alert.description}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
                     <Badge 
                       variant="default"
-                      className={`${alert.color} ${alert.bgColor} border-0`}
+                      className={`${alert.color} ${alert.bgColor} border-0 text-xs flex-shrink-0`}
                     >
                       {alert.count}
                     </Badge>
                   </div>
-                </div>
-              </NavLink>
-            ))}
-          </div>
+                </NavLink>
+              ))}
+            </div>
+          </ScrollArea>
         )}
       </CardContent>
     </Card>

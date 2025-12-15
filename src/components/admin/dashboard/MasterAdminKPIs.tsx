@@ -165,7 +165,7 @@ export function MasterAdminKPIs({ compact = false }: MasterAdminKPIsProps) {
   const kpiCards = [
     {
       title: 'MRR',
-      subtitle: 'Receita Mensal Recorrente',
+      subtitle: 'Receita Mensal',
       value: `R$ ${kpis.mrr.toFixed(2)}`,
       icon: DollarSign,
       trend: kpis.trends.mrr,
@@ -173,7 +173,7 @@ export function MasterAdminKPIs({ compact = false }: MasterAdminKPIsProps) {
     },
     {
       title: 'ARR',
-      subtitle: 'Receita Anual Recorrente',
+      subtitle: 'Receita Anual',
       value: `R$ ${kpis.arr.toFixed(2)}`,
       icon: TrendingUp,
       trend: kpis.trends.arr,
@@ -181,15 +181,15 @@ export function MasterAdminKPIs({ compact = false }: MasterAdminKPIsProps) {
     },
     {
       title: 'Ticket Médio',
-      subtitle: 'Por loja ativa',
+      subtitle: 'Por loja',
       value: `R$ ${kpis.avgTicket.toFixed(2)}`,
       icon: CreditCard,
       trend: kpis.trends.avgTicket,
       color: 'text-purple-600'
     },
     {
-      title: 'Churn Rate',
-      subtitle: 'Taxa de cancelamento',
+      title: 'Churn',
+      subtitle: 'Cancelamento',
       value: `${kpis.churnRate.toFixed(1)}%`,
       icon: AlertCircle,
       trend: kpis.trends.churn,
@@ -198,21 +198,22 @@ export function MasterAdminKPIs({ compact = false }: MasterAdminKPIsProps) {
     }
   ];
 
+  // Grid responsivo: 1 coluna no mobile, 2 colunas no compact, 4 no desktop completo
   const gridClass = compact 
-    ? 'grid grid-cols-2 gap-4' 
-    : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4';
+    ? 'grid grid-cols-1 sm:grid-cols-2 gap-3' 
+    : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4';
 
   if (loading) {
     return (
       <div className={gridClass}>
         {[...Array(4)].map((_, i) => (
           <Card key={i}>
-            <CardHeader className="pb-2">
-              <Skeleton className="h-4 w-24" />
+            <CardHeader className="pb-2 p-3 md:p-4">
+              <Skeleton className="h-3 w-16" />
             </CardHeader>
-            <CardContent>
-              <Skeleton className="h-8 w-32 mb-2" />
-              <Skeleton className="h-3 w-20" />
+            <CardContent className="p-3 md:p-4 pt-0">
+              <Skeleton className="h-6 w-24 mb-1" />
+              <Skeleton className="h-3 w-16" />
             </CardContent>
           </Card>
         ))}
@@ -223,27 +224,29 @@ export function MasterAdminKPIs({ compact = false }: MasterAdminKPIsProps) {
   return (
     <div className={gridClass}>
       {kpiCards.map((kpi, i) => (
-        <Card key={i}>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <div>
-              <CardTitle className="text-sm font-medium">{kpi.title}</CardTitle>
-              <p className="text-xs text-muted-foreground">{kpi.subtitle}</p>
+        <Card key={i} className="overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between pb-1 p-3 md:p-4 md:pb-2">
+            <div className="min-w-0 flex-1">
+              <CardTitle className="text-xs sm:text-sm font-medium truncate">{kpi.title}</CardTitle>
+              <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{kpi.subtitle}</p>
             </div>
-            <kpi.icon className={`w-5 h-5 ${kpi.color}`} />
+            <kpi.icon className={`w-4 h-4 sm:w-5 sm:h-5 ${kpi.color} flex-shrink-0`} />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{kpi.value}</div>
-            <p className={`text-xs flex items-center mt-1 ${
+          <CardContent className="p-3 md:p-4 pt-0">
+            <div className="text-lg sm:text-xl md:text-2xl font-bold truncate">{kpi.value}</div>
+            <p className={`text-[10px] sm:text-xs flex items-center mt-1 ${
               kpi.invertTrend 
                 ? (kpi.trend <= 0 ? 'text-green-600' : 'text-red-600')
                 : (kpi.trend >= 0 ? 'text-green-600' : 'text-red-600')
             }`}>
               {kpi.trend >= 0 ? (
-                <TrendingUp className="w-3 h-3 mr-1" />
+                <TrendingUp className="w-3 h-3 mr-1 flex-shrink-0" />
               ) : (
-                <TrendingDown className="w-3 h-3 mr-1" />
+                <TrendingDown className="w-3 h-3 mr-1 flex-shrink-0" />
               )}
-              {kpi.trend >= 0 ? '+' : ''}{kpi.trend.toFixed(1)}% vs mês anterior
+              <span className="truncate">
+                {kpi.trend >= 0 ? '+' : ''}{kpi.trend.toFixed(1)}% vs mês anterior
+              </span>
             </p>
           </CardContent>
         </Card>

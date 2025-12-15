@@ -85,13 +85,19 @@ export function MediaCard({
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const blobUrlRef = useRef<string | null>(null);
 
-  // Cleanup do áudio ao desmontar
+  // Cleanup do áudio e blob URL ao desmontar
   useEffect(() => {
     return () => {
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
+      }
+      // Limpar blob URL para evitar memory leak
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+        blobUrlRef.current = null;
       }
     };
   }, []);
@@ -102,10 +108,26 @@ export function MediaCard({
     try {
       if (!audioRef.current) {
         setIsLoading(true);
-        console.log('Criando elemento de áudio:', media.file_url);
+        console.log('Carregando áudio via fetch:', media.file_url);
         
-        // Criar elemento Audio sem crossOrigin - não é necessário para reprodução simples
-        audioRef.current = new Audio(media.file_url);
+        // Fazer fetch do arquivo de áudio
+        const response = await fetch(media.file_url);
+        
+        if (!response.ok) {
+          throw new Error(`Erro ao buscar áudio: ${response.status}`);
+        }
+        
+        // Converter para blob
+        const blob = await response.blob();
+        console.log('Blob criado:', blob.type, blob.size);
+        
+        // Criar URL local a partir do blob
+        const blobUrl = URL.createObjectURL(blob);
+        blobUrlRef.current = blobUrl;
+        console.log('Blob URL criado:', blobUrl);
+        
+        // Criar elemento Audio com URL local (confiável pelo navegador)
+        audioRef.current = new Audio(blobUrl);
         
         audioRef.current.onended = () => {
           console.log('Áudio finalizado');
@@ -121,8 +143,7 @@ export function MediaCard({
           const error = audioRef.current?.error;
           console.error('Erro ao carregar áudio:', {
             code: error?.code,
-            message: error?.message,
-            url: media.file_url
+            message: error?.message
           });
           
           toast.error("Erro ao carregar áudio", {
@@ -136,7 +157,6 @@ export function MediaCard({
           setIsLoading(false);
         };
         
-        // Forçar carregamento do áudio
         audioRef.current.load();
       }
       

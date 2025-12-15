@@ -1,9 +1,19 @@
 import { useState, useEffect, useRef } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { FileText, Eye, QrCode, Loader2, CheckCircle2 } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { 
+  FileText, 
+  QrCode, 
+  Loader2, 
+  CheckCircle2, 
+  Calendar, 
+  Globe, 
+  Monitor,
+  Shield,
+  ExternalLink
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -44,7 +54,7 @@ export default function SalespersonContractHistory() {
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
   const [template, setTemplate] = useState<ContractTemplate | null>(null);
-  const [showViewer, setShowViewer] = useState(false);
+  const [loadingTemplate, setLoadingTemplate] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -52,11 +62,17 @@ export default function SalespersonContractHistory() {
     }
   }, [user]);
 
+  // Auto-select first contract when loaded
+  useEffect(() => {
+    if (contracts.length > 0 && !selectedContract) {
+      handleSelectContract(contracts[0]);
+    }
+  }, [contracts]);
+
   const fetchSalespersonAndContracts = async () => {
     try {
       setLoading(true);
       
-      // Get salesperson ID
       const { data: salesperson, error: spError } = await supabase
         .from("salespeople")
         .select("id")
@@ -65,7 +81,6 @@ export default function SalespersonContractHistory() {
 
       if (spError) throw spError;
 
-      // Get contracts
       const { data: contractsData, error: contractsError } = await supabase
         .from("salesperson_contracts")
         .select("id, version, accepted_at, ip_address, user_agent, verification_hash, salesperson_name, salesperson_cnpj, contract_template_id, contract_text")
@@ -86,9 +101,11 @@ export default function SalespersonContractHistory() {
     }
   };
 
-  const handleViewContract = async (contract: Contract) => {
+  const handleSelectContract = async (contract: Contract) => {
+    setSelectedContract(contract);
+    setLoadingTemplate(true);
+    
     try {
-      // Fetch the template used for this contract
       let templateData: ContractTemplate | null = null;
 
       if (contract.contract_template_id) {
@@ -101,7 +118,6 @@ export default function SalespersonContractHistory() {
         if (!error) templateData = data;
       }
 
-      // If no specific template, get the active one
       if (!templateData) {
         const { data, error } = await supabase
           .from("salesperson_contract_templates")
@@ -113,26 +129,24 @@ export default function SalespersonContractHistory() {
       }
 
       setTemplate(templateData);
-      setSelectedContract(contract);
-      setShowViewer(true);
     } catch (error: any) {
       toast({
         title: "Erro",
-        description: "Não foi possível carregar o contrato",
+        description: "Não foi possível carregar o template do contrato",
         variant: "destructive",
       });
+    } finally {
+      setLoadingTemplate(false);
     }
   };
 
   const getFormattedContractText = () => {
     if (!selectedContract) return "";
 
-    // Use the contract's stored text if available
     if (selectedContract.contract_text) {
       return selectedContract.contract_text;
     }
 
-    // Fallback to template
     if (!template) return "";
 
     return template.contract_text
@@ -147,6 +161,27 @@ export default function SalespersonContractHistory() {
       .replace(/{data_aceite}/g, new Date(selectedContract.accepted_at).toLocaleString("pt-BR"))
       .replace(/{ip_aceite}/g, selectedContract.ip_address || "")
       .replace(/{hash_verificacao}/g, selectedContract.verification_hash || "");
+  };
+
+  const formatUserAgent = (userAgent: string | null) => {
+    if (!userAgent) return "Não disponível";
+    
+    // Simplified browser/OS detection
+    let browser = "Navegador desconhecido";
+    let os = "Sistema desconhecido";
+    
+    if (userAgent.includes("Chrome")) browser = "Chrome";
+    else if (userAgent.includes("Firefox")) browser = "Firefox";
+    else if (userAgent.includes("Safari")) browser = "Safari";
+    else if (userAgent.includes("Edge")) browser = "Edge";
+    
+    if (userAgent.includes("Windows")) os = "Windows";
+    else if (userAgent.includes("Mac")) os = "macOS";
+    else if (userAgent.includes("Linux")) os = "Linux";
+    else if (userAgent.includes("Android")) os = "Android";
+    else if (userAgent.includes("iPhone") || userAgent.includes("iPad")) os = "iOS";
+    
+    return `${browser} / ${os}`;
   };
 
   if (loading) {
@@ -177,125 +212,197 @@ export default function SalespersonContractHistory() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
-          {contracts.map((contract) => (
-            <Card key={contract.id}>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      <FileText className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-medium">
-                          Contrato v{contract.version}
-                        </h3>
-                        <Badge variant="secondary" className="text-xs">
-                          <CheckCircle2 className="h-3 w-3 mr-1" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Lista de Contratos (1/3) */}
+          <Card className="lg:col-span-1">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-medium">
+                Contratos Aceitos ({contracts.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <ScrollArea className="h-[500px]">
+                <div className="space-y-1 p-3">
+                  {contracts.map((contract) => (
+                    <button
+                      key={contract.id}
+                      onClick={() => handleSelectContract(contract)}
+                      className={`w-full text-left p-3 rounded-lg transition-colors ${
+                        selectedContract?.id === contract.id
+                          ? "bg-primary/10 border border-primary"
+                          : "hover:bg-muted border border-transparent"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-primary" />
+                          <span className="font-medium text-sm">
+                            v{contract.version}
+                          </span>
+                        </div>
+                        <Badge variant="secondary" className="text-xs h-5">
+                          <CheckCircle2 className="h-3 w-3 mr-1 text-green-500" />
                           Aceito
                         </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        Aceito em:{" "}
-                        {new Date(contract.accepted_at).toLocaleDateString("pt-BR", {
-                          day: "2-digit",
-                          month: "long",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                      <p className="text-xs text-muted-foreground mt-1 pl-6">
+                        {new Date(contract.accepted_at).toLocaleDateString("pt-BR")}
                       </p>
+                    </button>
+                  ))}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+
+          {/* Detalhes do Contrato (2/3) */}
+          <Card className="lg:col-span-2">
+            {selectedContract ? (
+              <>
+                <CardHeader className="border-b">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="h-5 w-5 text-primary" />
+                      Contrato v{selectedContract.version}
+                    </CardTitle>
+                    <div className="flex items-center gap-2">
+                      {selectedContract.verification_hash && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          asChild
+                        >
+                          <a
+                            href={`/verificar-contrato?hash=${selectedContract.verification_hash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <ExternalLink className="h-4 w-4 mr-1" />
+                            Verificar
+                          </a>
+                        </Button>
+                      )}
+                      <ContractPDFDownload
+                        contractRef={contractRef}
+                        fileName={`contrato-${selectedContract.version}`}
+                      />
                     </div>
                   </div>
+                </CardHeader>
+                <CardContent className="p-6 space-y-6">
+                  {/* Informações do Aceite */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                      <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="text-xs text-muted-foreground font-medium">Data do Aceite</p>
+                        <p className="text-sm font-medium">
+                          {new Date(selectedContract.accepted_at).toLocaleDateString("pt-BR", {
+                            day: "2-digit",
+                            month: "long",
+                            year: "numeric",
+                          })}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          às {new Date(selectedContract.accepted_at).toLocaleTimeString("pt-BR", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
+                    </div>
 
-                  <div className="flex items-center gap-2">
-                    {contract.verification_hash && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        asChild
-                      >
-                        <a
-                          href={`/verificar-contrato?hash=${contract.verification_hash}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <QrCode className="h-4 w-4 mr-1" />
-                          Verificar
-                        </a>
-                      </Button>
+                    <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                      <Globe className="h-5 w-5 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="text-xs text-muted-foreground font-medium">Endereço IP</p>
+                        <p className="text-sm font-medium font-mono">
+                          {selectedContract.ip_address || "Não disponível"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                      <Monitor className="h-5 w-5 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="text-xs text-muted-foreground font-medium">Navegador / Dispositivo</p>
+                        <p className="text-sm font-medium">
+                          {formatUserAgent(selectedContract.user_agent)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {selectedContract.verification_hash && (
+                      <div className="flex items-start gap-3 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                        <Shield className="h-5 w-5 text-green-600 mt-0.5" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs text-green-700 dark:text-green-400 font-medium">Hash de Verificação</p>
+                          <p className="text-xs font-mono text-green-800 dark:text-green-300 break-all">
+                            {selectedContract.verification_hash}
+                          </p>
+                        </div>
+                      </div>
                     )}
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={() => handleViewContract(contract)}
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      Ver
-                    </Button>
                   </div>
-                </div>
 
-                {contract.verification_hash && (
-                  <div className="mt-4 pt-4 border-t flex items-center gap-2 text-xs text-muted-foreground">
-                    <span>Hash:</span>
-                    <code className="bg-muted px-2 py-1 rounded">
-                      {contract.verification_hash.substring(0, 24)}...
-                    </code>
+                  {/* QR Code */}
+                  {selectedContract.verification_hash && (
+                    <div className="flex items-center gap-4 p-4 bg-muted/30 rounded-lg">
+                      <ContractQRCode
+                        verificationHash={selectedContract.verification_hash}
+                        size={80}
+                      />
+                      <div>
+                        <p className="text-sm font-medium">QR Code de Verificação</p>
+                        <p className="text-xs text-muted-foreground">
+                          Escaneie para verificar a autenticidade do contrato
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Visualização do Contrato */}
+                  <div className="border rounded-lg">
+                    <div className="p-3 bg-muted/50 border-b">
+                      <h4 className="text-sm font-medium flex items-center gap-2">
+                        <FileText className="h-4 w-4" />
+                        Conteúdo do Contrato
+                      </h4>
+                    </div>
+                    {loadingTemplate ? (
+                      <div className="flex items-center justify-center py-12">
+                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                      </div>
+                    ) : (
+                      <div ref={contractRef} className="max-h-[400px] overflow-y-auto">
+                        <ContractViewer
+                          contractText={getFormattedContractText()}
+                          companyName={template?.company_name || "Mostralo"}
+                          companyCnpj={template?.company_cnpj || ""}
+                          companyCity={template?.company_city || ""}
+                          companyState={template?.company_state || ""}
+                          version={selectedContract.version}
+                          salespersonName={selectedContract.salesperson_name || undefined}
+                          salespersonCnpj={selectedContract.salesperson_cnpj || undefined}
+                          acceptedAt={new Date(selectedContract.accepted_at).toLocaleString("pt-BR")}
+                          verificationHash={selectedContract.verification_hash || undefined}
+                        />
+                      </div>
+                    )}
                   </div>
-                )}
+                </CardContent>
+              </>
+            ) : (
+              <CardContent className="py-20 text-center">
+                <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">
+                  Selecione um contrato para ver os detalhes
+                </p>
               </CardContent>
-            </Card>
-          ))}
+            )}
+          </Card>
         </div>
       )}
-
-      {/* Contract Viewer Dialog */}
-      <Dialog open={showViewer} onOpenChange={setShowViewer}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Contrato v{selectedContract?.version}
-            </DialogTitle>
-          </DialogHeader>
-
-          {selectedContract && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  {selectedContract.verification_hash && (
-                    <ContractQRCode
-                      verificationHash={selectedContract.verification_hash}
-                      size={80}
-                    />
-                  )}
-                </div>
-                <ContractPDFDownload
-                  contractRef={contractRef}
-                  fileName={`contrato-${selectedContract.version}`}
-                />
-              </div>
-
-              <div ref={contractRef}>
-                <ContractViewer
-                  contractText={getFormattedContractText()}
-                  companyName={template?.company_name || "Mostralo"}
-                  companyCnpj={template?.company_cnpj || ""}
-                  companyCity={template?.company_city || ""}
-                  companyState={template?.company_state || ""}
-                  version={selectedContract.version}
-                  salespersonName={selectedContract.salesperson_name || undefined}
-                  salespersonCnpj={selectedContract.salesperson_cnpj || undefined}
-                  acceptedAt={new Date(selectedContract.accepted_at).toLocaleString("pt-BR")}
-                  verificationHash={selectedContract.verification_hash || undefined}
-                />
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

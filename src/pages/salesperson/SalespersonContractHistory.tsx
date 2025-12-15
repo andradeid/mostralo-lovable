@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +15,8 @@ import {
   Shield,
   ExternalLink,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  Eye
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -47,9 +49,16 @@ interface ContractTemplate {
   contract_text: string;
 }
 
+interface BonusTier {
+  tier_name: string;
+  min_sales: number;
+  bonus_amount: number;
+}
+
 export default function SalespersonContractHistory() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const contractRef = useRef<HTMLDivElement>(null);
   
   const [loading, setLoading] = useState(true);
@@ -59,6 +68,8 @@ export default function SalespersonContractHistory() {
   const [loadingTemplate, setLoadingTemplate] = useState(false);
   const [activeTemplateVersion, setActiveTemplateVersion] = useState<string | null>(null);
   const [acceptingContract, setAcceptingContract] = useState(false);
+  const [bonusTiers, setBonusTiers] = useState<BonusTier[]>([]);
+  const [commissionValue, setCommissionValue] = useState<number>(10);
 
   useEffect(() => {
     if (user) {
@@ -94,6 +105,7 @@ export default function SalespersonContractHistory() {
 
       if (spError) throw spError;
 
+      // Buscar contratos
       const { data: contractsData, error: contractsError } = await supabase
         .from("salesperson_contracts")
         .select("id, version, accepted_at, ip_address, user_agent, verification_hash, salesperson_name, salesperson_cnpj, contract_template_id, contract_text")
@@ -103,6 +115,24 @@ export default function SalespersonContractHistory() {
       if (contractsError) throw contractsError;
 
       setContracts(contractsData || []);
+
+      // Buscar bonus tiers
+      const { data: tiersData } = await supabase
+        .from("salesperson_bonus_tiers")
+        .select("tier_name, min_sales, bonus_amount")
+        .eq("is_active", true)
+        .order("min_sales", { ascending: true });
+      setBonusTiers(tiersData || []);
+
+      // Buscar comissão do vendedor (se configurada)
+      const { data: commissionData } = await supabase
+        .from("salesperson_commission_configs")
+        .select("commission_value")
+        .eq("salesperson_id", salesperson.id)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (commissionData) setCommissionValue(commissionData.commission_value);
+
     } catch (error: any) {
       console.error("Erro ao buscar contratos:", error);
       toast({
@@ -196,20 +226,35 @@ export default function SalespersonContractHistory() {
   const getFormattedContractText = () => {
     if (!selectedContract) return "";
 
-    if (selectedContract.contract_text) {
-      return selectedContract.contract_text;
-    }
+    // Pegar texto do contrato salvo OU do template
+    let text = selectedContract.contract_text || template?.contract_text || "";
+    
+    if (!text) return "";
 
-    if (!template) return "";
+    // Buscar valores dos tiers de bônus
+    const bronzeTier = bonusTiers.find(t => t.tier_name.toLowerCase().includes("bronze"));
+    const prataTier = bonusTiers.find(t => t.tier_name.toLowerCase().includes("prata"));
+    const ouroTier = bonusTiers.find(t => t.tier_name.toLowerCase().includes("ouro"));
+    const diamanteTier = bonusTiers.find(t => t.tier_name.toLowerCase().includes("diamante"));
 
-    return template.contract_text
-      .replace(/{empresa}/g, template.company_name)
-      .replace(/{cnpj}/g, template.company_cnpj)
-      .replace(/{cidade}/g, template.company_city)
-      .replace(/{estado}/g, template.company_state || "")
+    // SEMPRE substituir placeholders pelos dados reais
+    return text
+      .replace(/{empresa}/g, template?.company_name || "Mostralo Tecnologia LTDA")
+      .replace(/{cnpj}/g, template?.company_cnpj || "51.691.995/0001-15")
+      .replace(/{endereco}/g, template?.company_address || "")
+      .replace(/{cidade}/g, template?.company_city || "São Paulo")
+      .replace(/{estado}/g, template?.company_state || "SP")
       .replace(/{vendedor_nome}/g, selectedContract.salesperson_name || "")
       .replace(/{vendedor_cnpj}/g, selectedContract.salesperson_cnpj || "")
-      .replace(/{comissao_percentual}/g, "10")
+      .replace(/{comissao_percentual}/g, String(commissionValue))
+      .replace(/{bonus_bronze}/g, bronzeTier?.bonus_amount?.toLocaleString("pt-BR") || "500")
+      .replace(/{bonus_bronze_meta}/g, String(bronzeTier?.min_sales || 10))
+      .replace(/{bonus_prata}/g, prataTier?.bonus_amount?.toLocaleString("pt-BR") || "1.000")
+      .replace(/{bonus_prata_meta}/g, String(prataTier?.min_sales || 20))
+      .replace(/{bonus_ouro}/g, ouroTier?.bonus_amount?.toLocaleString("pt-BR") || "2.000")
+      .replace(/{bonus_ouro_meta}/g, String(ouroTier?.min_sales || 30))
+      .replace(/{bonus_diamante}/g, diamanteTier?.bonus_amount?.toLocaleString("pt-BR") || "5.000")
+      .replace(/{bonus_diamante_meta}/g, String(diamanteTier?.min_sales || 50))
       .replace(/{tabela_bonus}/g, "Conforme configuração vigente")
       .replace(/{data_aceite}/g, new Date(selectedContract.accepted_at).toLocaleString("pt-BR"))
       .replace(/{ip_aceite}/g, selectedContract.ip_address || "")
@@ -270,22 +315,32 @@ export default function SalespersonContractHistory() {
         <Alert className="border-primary/50 bg-primary/5">
           <AlertCircle className="h-4 w-4 text-primary" />
           <AlertTitle className="text-primary">Nova versão disponível!</AlertTitle>
-          <AlertDescription className="flex items-center justify-between mt-2">
-            <span>
+          <AlertDescription className="mt-2">
+            <span className="block mb-3">
               Uma nova versão do contrato (v{activeTemplateVersion}) está disponível para aceite.
             </span>
-            <Button
-              size="sm"
-              onClick={handleAcceptNewVersion}
-              disabled={acceptingContract}
-            >
-              {acceptingContract ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <CheckCircle2 className="h-4 w-4 mr-2" />
-              )}
-              Aceitar Nova Versão
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate("/vendedor/contrato/previa")}
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Ver Prévia
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleAcceptNewVersion}
+                disabled={acceptingContract}
+              >
+                {acceptingContract ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                )}
+                Aceitar Nova Versão
+              </Button>
+            </div>
           </AlertDescription>
         </Alert>
       )}

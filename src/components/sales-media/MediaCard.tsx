@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +15,9 @@ import {
   File,
   ToggleLeft,
   ToggleRight,
-  GripVertical
+  GripVertical,
+  Play,
+  Pause
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -80,6 +82,34 @@ export function MediaCard({
   onPreview 
 }: MediaCardProps) {
   const [copying, setCopying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Cleanup do áudio ao desmontar
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  const handlePlayPause = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!audioRef.current) {
+      audioRef.current = new Audio(media.file_url);
+      audioRef.current.onended = () => setIsPlaying(false);
+    }
+    
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
 
   const handleCopyLink = async () => {
     setCopying(true);
@@ -104,6 +134,24 @@ export function MediaCard({
     toast.success("Download iniciado!");
   };
 
+  // Componente de waveform animado
+  const AudioWaveform = ({ playing }: { playing: boolean }) => (
+    <div className="flex items-center justify-center gap-[3px] h-8">
+      {[...Array(5)].map((_, i) => (
+        <div
+          key={i}
+          className={`w-1 bg-green-400 rounded-full transition-all ${
+            playing ? 'animate-waveform' : ''
+          }`}
+          style={{
+            animationDelay: `${i * 0.15}s`,
+            height: playing ? undefined : '8px'
+          }}
+        />
+      ))}
+    </div>
+  );
+
   // Determine thumbnail to display
   const getThumbnail = () => {
     // If has custom thumbnail, use it
@@ -125,6 +173,38 @@ export function MediaCard({
           alt={media.title}
           className="w-full h-32 object-cover rounded-t-lg"
         />
+      );
+    }
+
+    // For audio, show player with waveform
+    if (media.category === 'audio') {
+      return (
+        <div 
+          className="w-full h-32 flex flex-col items-center justify-center gap-3 
+                     bg-gradient-to-br from-green-500/20 to-green-600/30 rounded-t-lg 
+                     cursor-pointer hover:from-green-500/30 hover:to-green-600/40 
+                     transition-all"
+          onClick={handlePlayPause}
+        >
+          {/* Waveform animado */}
+          <AudioWaveform playing={isPlaying} />
+          
+          {/* Botão Play/Pause */}
+          <div className={`h-10 w-10 rounded-full flex items-center justify-center 
+                          ${isPlaying ? 'bg-green-500/40' : 'bg-green-500/30'} 
+                          hover:bg-green-500/50 transition-colors`}>
+            {isPlaying ? (
+              <Pause className="h-5 w-5 text-green-400" />
+            ) : (
+              <Play className="h-5 w-5 text-green-400 ml-0.5" />
+            )}
+          </div>
+          
+          {/* Texto de status */}
+          <p className="text-xs text-green-400/80">
+            {isPlaying ? "♪ Reproduzindo..." : "Clique para ouvir"}
+          </p>
+        </div>
       );
     }
     

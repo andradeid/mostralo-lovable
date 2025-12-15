@@ -72,7 +72,11 @@ export default {
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
 			},
-			keyframes: {
+      keyframes: {
+        waveform: {
+          "0%, 100%": { height: "8px" },
+          "50%": { height: "24px" },
+        },
 				'accordion-down': {
 					from: {
 						height: '0'
@@ -136,7 +140,8 @@ export default {
 				'fade-in-up': 'fade-in-up 0.6s ease-out forwards',
 				'fade-in-left': 'fade-in-left 0.6s ease-out forwards',
 				'fade-in-right': 'fade-in-right 0.6s ease-out forwards',
-				'scale-in': 'scale-in 0.5s ease-out forwards'
+				'scale-in': 'scale-in 0.5s ease-out forwards',
+				'waveform': 'waveform 0.5s ease-in-out infinite'
 			}
 		}
 	},

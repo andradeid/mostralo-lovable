@@ -112,6 +112,8 @@ import SalespersonUpgrade from "./pages/salesperson/SalespersonUpgrade";
 import SalespersonPayouts from "./pages/salesperson/SalespersonPayouts";
 import SalespersonGuidePage from "./pages/salesperson/SalespersonGuidePage";
 import SalespersonMediaPage from "./pages/salesperson/SalespersonMediaPage";
+import SalespersonClientsPage from "./pages/salesperson/SalespersonClientsPage";
+import SalespersonMyCommissionsPage from "./pages/salesperson/SalespersonMyCommissionsPage";
 import { SalespersonLayout } from "./components/salesperson/SalespersonLayout";
 import ProspectingGuidePage from "./pages/admin/ProspectingGuidePage";
 import BusinessIntelligencePage from "./pages/admin/BusinessIntelligencePage";
@@ -637,6 +639,26 @@ const App = () => (
               <ProtectedRoute allowedRoles={["salesperson"]}>
                 <SalespersonLayout>
                   <SalespersonPayouts />
+                </SalespersonLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendedor/clientes"
+            element={
+              <ProtectedRoute allowedRoles={["salesperson"]}>
+                <SalespersonLayout>
+                  <SalespersonClientsPage />
+                </SalespersonLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendedor/comissoes"
+            element={
+              <ProtectedRoute allowedRoles={["salesperson"]}>
+                <SalespersonLayout>
+                  <SalespersonMyCommissionsPage />
                 </SalespersonLayout>
               </ProtectedRoute>
             }

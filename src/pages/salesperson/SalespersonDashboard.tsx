@@ -7,9 +7,18 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { DollarSign, TrendingUp, Users, AlertCircle, Sparkles, Building2, User } from "lucide-react";
+import { DollarSign, TrendingUp, Users, AlertCircle, Sparkles, Building2, User, UserCheck } from "lucide-react";
 import { toast } from "sonner";
 import PortfolioHealthCard from "@/components/salesperson/PortfolioHealthCard";
+import { SalespersonPerformanceChartSelf } from "@/components/salesperson/SalespersonPerformanceChartSelf";
+import { format, startOfQuarter } from "date-fns";
+
+interface BonusTier {
+  id: string;
+  tier_name: string;
+  min_sales: number;
+  bonus_amount: number;
+}
 
 export default function SalespersonDashboard() {
   const { user } = useAuth();
@@ -19,9 +28,11 @@ export default function SalespersonDashboard() {
   const [stats, setStats] = useState({
     totalSales: 0,
     totalCommissions: 0,
-    quarterProgress: 0,
-    nextTier: "Bronze"
+    leadsCount: 0,
+    quarterSales: 0,
   });
+  const [bonusTiers, setBonusTiers] = useState<BonusTier[]>([]);
+  const [recentClients, setRecentClients] = useState<any[]>([]);
 
   useEffect(() => {
     if (user) {
@@ -48,13 +59,37 @@ export default function SalespersonDashboard() {
         return;
       }
 
-      // Buscar estatísticas (placeholder - implementar quando houver vendas)
+      // Buscar estatísticas REAIS em paralelo
+      const quarterStart = format(startOfQuarter(new Date()), 'yyyy-MM-dd');
+      
+      const [leadsRes, clientsRes, commissionsRes, quarterClientsRes, tiersRes, recentRes] = await Promise.all([
+        // Total de leads
+        supabase.from("leads").select("id", { count: "exact" }).eq("salesperson_id", salespersonData.id),
+        // Clientes aprovados (indicados)
+        supabase.from("payment_approvals").select("id", { count: "exact" }).eq("referred_by_salesperson_id", salespersonData.id).eq("status", "approved"),
+        // Total de comissões
+        supabase.from("salesperson_commissions").select("commission_amount").eq("salesperson_id", salespersonData.id),
+        // Vendas no trimestre atual
+        supabase.from("payment_approvals").select("id", { count: "exact" }).eq("referred_by_salesperson_id", salespersonData.id).eq("status", "approved").gte("approved_at", quarterStart),
+        // Bonus tiers
+        supabase.from("salesperson_bonus_tiers").select("*").order("min_sales"),
+        // Últimos clientes
+        supabase.from("payment_approvals").select("id, company_name, created_at, status, plan:plans(name)").eq("referred_by_salesperson_id", salespersonData.id).order("created_at", { ascending: false }).limit(5),
+      ]);
+
+      const totalCommissions = commissionsRes.data?.reduce(
+        (sum, c) => sum + Number(c.commission_amount), 0
+      ) || 0;
+
       setStats({
-        totalSales: 0,
-        totalCommissions: 0,
-        quarterProgress: 0,
-        nextTier: "Bronze"
+        totalSales: clientsRes.count || 0,
+        totalCommissions: totalCommissions,
+        leadsCount: leadsRes.count || 0,
+        quarterSales: quarterClientsRes.count || 0,
       });
+
+      setBonusTiers(tiersRes.data || []);
+      setRecentClients(recentRes.data || []);
 
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
@@ -67,6 +102,10 @@ export default function SalespersonDashboard() {
   const monthlyLimitUsed = salesperson?.current_month_earnings || 0;
   const monthlyLimit = salesperson?.monthly_earnings_limit || 1900;
   const monthlyPercentage = Math.min((monthlyLimitUsed / monthlyLimit) * 100, 100);
+
+  const getProgressForTier = (minSales: number) => {
+    return Math.min((stats.quarterSales / minSales) * 100, 100);
+  };
 
   if (loading) {
     return (
@@ -135,18 +174,18 @@ export default function SalespersonDashboard() {
               <PortfolioHealthCard salesperson={salesperson} />
             )}
 
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
-                    Total de Vendas
+                    Leads
                   </CardTitle>
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalSales}</div>
+                  <div className="text-2xl font-bold">{stats.leadsCount}</div>
                   <p className="text-xs text-muted-foreground">
-                    Clientes indicados
+                    Prospectos gerados
                   </p>
                 </CardContent>
               </Card>
@@ -154,7 +193,22 @@ export default function SalespersonDashboard() {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
-                    Comissões Acumuladas
+                    Clientes
+                  </CardTitle>
+                  <UserCheck className="h-4 w-4 text-green-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">{stats.totalSales}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Convertidos
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Comissões
                   </CardTitle>
                   <DollarSign className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
@@ -163,7 +217,7 @@ export default function SalespersonDashboard() {
                     R$ {stats.totalCommissions.toFixed(2)}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Total em comissões
+                    Total acumulado
                   </p>
                 </CardContent>
               </Card>
@@ -171,7 +225,7 @@ export default function SalespersonDashboard() {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
-                    {salesperson?.salesperson_type === 'affiliate' ? 'Limite Mensal' : 'Meta Trimestral'}
+                    {salesperson?.salesperson_type === 'affiliate' ? 'Limite Mensal' : 'Vendas Trimestre'}
                   </CardTitle>
                   <TrendingUp className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
@@ -188,9 +242,9 @@ export default function SalespersonDashboard() {
                     </>
                   ) : (
                     <>
-                      <div className="text-2xl font-bold">{stats.quarterProgress}%</div>
+                      <div className="text-2xl font-bold">{stats.quarterSales}</div>
                       <p className="text-xs text-muted-foreground">
-                        Próximo: {stats.nextTier}
+                        Vendas este trimestre
                       </p>
                     </>
                   )}
@@ -198,44 +252,36 @@ export default function SalespersonDashboard() {
               </Card>
             </div>
 
+            {/* Gráfico de Performance */}
+            <SalespersonPerformanceChartSelf />
+
             {/* Progresso de bônus - apenas para Parceiros PJ */}
-            {salesperson?.salesperson_type === 'partner' && (
+            {salesperson?.salesperson_type === 'partner' && bonusTiers.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Progresso do Bônus Trimestral</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    {stats.quarterSales} vendas no trimestre atual
+                  </p>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Bronze (10 vendas)</span>
-                      <span className="text-muted-foreground">R$ 500</span>
+                  {bonusTiers.map((tier) => (
+                    <div key={tier.id} className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className={stats.quarterSales >= tier.min_sales ? "text-green-600 font-medium" : ""}>
+                          {tier.tier_name} ({tier.min_sales} vendas)
+                          {stats.quarterSales >= tier.min_sales && " ✓"}
+                        </span>
+                        <span className="text-muted-foreground">
+                          R$ {Number(tier.bonus_amount).toLocaleString('pt-BR')}
+                        </span>
+                      </div>
+                      <Progress 
+                        value={getProgressForTier(tier.min_sales)} 
+                        className={`h-2 ${stats.quarterSales >= tier.min_sales ? '[&>div]:bg-green-500' : ''}`} 
+                      />
                     </div>
-                    <Progress value={0} className="h-2" />
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Prata (20 vendas)</span>
-                      <span className="text-muted-foreground">R$ 1.000</span>
-                    </div>
-                    <Progress value={0} className="h-2" />
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Ouro (30 vendas)</span>
-                      <span className="text-muted-foreground">R$ 2.000</span>
-                    </div>
-                    <Progress value={0} className="h-2" />
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Diamante (50 vendas)</span>
-                      <span className="text-muted-foreground">R$ 5.000</span>
-                    </div>
-                    <Progress value={0} className="h-2" />
-                  </div>
+                  ))}
                 </CardContent>
               </Card>
             )}
@@ -279,14 +325,34 @@ export default function SalespersonDashboard() {
               </Card>
             )}
 
+            {/* Últimas Vendas */}
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Últimas Vendas</CardTitle>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/vendedor/clientes">Ver todos</Link>
+                </Button>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  Nenhuma venda registrada ainda
-                </p>
+                {recentClients.length > 0 ? (
+                  <div className="space-y-3">
+                    {recentClients.map((client) => (
+                      <div key={client.id} className="flex items-center justify-between py-2 border-b last:border-0">
+                        <div>
+                          <p className="font-medium">{client.company_name || "Cliente"}</p>
+                          <p className="text-sm text-muted-foreground">{client.plan?.name}</p>
+                        </div>
+                        <Badge variant={client.status === "approved" ? "default" : "secondary"}>
+                          {client.status === "approved" ? "Aprovado" : "Pendente"}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    Nenhuma venda registrada ainda. Compartilhe seu link de indicação!
+                  </p>
+                )}
               </CardContent>
             </Card>
           </>

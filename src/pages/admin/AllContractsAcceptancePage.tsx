@@ -85,6 +85,13 @@ const AllContractsAcceptancePage = () => {
           stores = storesData || [];
         }
 
+        // Buscar IDs de vendedores para filtrar da lista de lojistas
+        const { data: salespeople } = await supabase
+          .from('salespeople')
+          .select('user_id');
+        
+        const salespeopleUserIds = new Set(salespeople?.map(s => s.user_id).filter(Boolean) || []);
+
         // Mapear por ID
         const profileMap = new Map<string, { id: string; full_name: string | null; email: string | null; user_type: string | null }>();
         profiles?.forEach(p => profileMap.set(p.id, p));
@@ -92,12 +99,15 @@ const AllContractsAcceptancePage = () => {
         const storeMap = new Map<string, { id: string; name: string }>();
         stores.forEach(s => storeMap.set(s.id, s));
 
-        // Enriquecer os dados e filtrar master_admin
+        // Enriquecer os dados e filtrar master_admin e vendedores
         enrichedMerchantData = merchantData
           .filter(m => {
             const profile = profileMap.get(m.user_id);
             // Filtrar master_admin - não deve aparecer como lojista
-            return profile?.user_type !== 'master_admin';
+            if (profile?.user_type === 'master_admin') return false;
+            // Filtrar vendedores - não devem aparecer como lojistas
+            if (salespeopleUserIds.has(m.user_id)) return false;
+            return true;
           })
           .map(m => ({
             ...m,

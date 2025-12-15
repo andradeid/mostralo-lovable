@@ -362,6 +362,7 @@ export function AdminSidebar() {
         { title: 'Planos', url: '/dashboard/plans', icon: CreditCard, group: 'Financeiro' },
         { title: 'Config. Pagamentos', url: '/dashboard/subscription-config', icon: DollarSign, group: 'Financeiro' },
         { title: 'Cupons', url: '/dashboard/coupons', icon: Ticket, group: 'Sistema' },
+        { title: 'Aceites de Contratos', url: '/dashboard/contract-acceptances', icon: FileText, group: 'Sistema' },
         { title: 'Perfil', url: '/dashboard/profile', icon: User, group: 'Conta' }
       ];
     } else {
@@ -484,6 +485,7 @@ export function AdminSidebar() {
 
       menuItems.push(
         { title: 'Minha Assinatura', url: '/dashboard/subscription', icon: CreditCard, group: 'Conta' },
+        { title: 'Meus Contratos', url: '/dashboard/contracts', icon: FileText, group: 'Conta' },
         { title: 'Perfil', url: '/dashboard/profile', icon: User, group: 'Conta' }
       );
 

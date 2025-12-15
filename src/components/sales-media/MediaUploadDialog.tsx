@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -42,13 +42,13 @@ const ACCEPT_TYPES: Record<string, string> = {
 };
 
 export function MediaUploadDialog({ open, onOpenChange, onSuccess, editMedia }: MediaUploadDialogProps) {
-  const [title, setTitle] = useState(editMedia?.title || '');
-  const [description, setDescription] = useState(editMedia?.description || '');
-  const [category, setCategory] = useState(editMedia?.category || 'imagem');
-  const [niche, setNiche] = useState(editMedia?.niche || 'geral');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('imagem');
+  const [niche, setNiche] = useState('geral');
   const [file, setFile] = useState<File | null>(null);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
-  const [thumbnailPreview, setThumbnailPreview] = useState(editMedia?.thumbnail_url || '');
+  const [thumbnailPreview, setThumbnailPreview] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   
@@ -219,18 +219,22 @@ export function MediaUploadDialog({ open, onOpenChange, onSuccess, editMedia }: 
     setThumbnailPreview('');
   };
 
-  // Reset form when dialog opens with edit data
-  useState(() => {
-    if (editMedia) {
-      setTitle(editMedia.title);
-      setDescription(editMedia.description || '');
-      setCategory(editMedia.category);
-      setNiche(editMedia.niche);
-      setThumbnailPreview(editMedia.thumbnail_url || '');
-    } else {
-      resetForm();
+  // Sync form when dialog opens with edit data
+  useEffect(() => {
+    if (open) {
+      if (editMedia) {
+        setTitle(editMedia.title);
+        setDescription(editMedia.description || '');
+        setCategory(editMedia.category);
+        setNiche(editMedia.niche);
+        setThumbnailPreview(editMedia.thumbnail_url || '');
+        setFile(null);
+        setThumbnailFile(null);
+      } else {
+        resetForm();
+      }
     }
-  });
+  }, [open, editMedia]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Film, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
 import { MediaCard } from "@/components/sales-media/MediaCard";
 import { MediaFilters } from "@/components/sales-media/MediaFilters";
 import { MediaPreviewModal } from "@/components/sales-media/MediaPreviewModal";
@@ -111,6 +112,42 @@ export default function SalesMediaManagementPage() {
   const handleEdit = (mediaItem: SalesMedia) => {
     setEditMedia(mediaItem);
     setUploadDialogOpen(true);
+  };
+
+  const onDragEnd = async (result: DropResult) => {
+    const { destination, source } = result;
+    
+    if (!destination || destination.index === source.index) return;
+    
+    // Reorder locally (optimistic UI)
+    const reorderedMedia = Array.from(filteredMedia);
+    const [movedItem] = reorderedMedia.splice(source.index, 1);
+    reorderedMedia.splice(destination.index, 0, movedItem);
+    
+    // Update state
+    setMedia(prev => {
+      const newMedia = [...prev];
+      reorderedMedia.forEach((item, index) => {
+        const idx = newMedia.findIndex(m => m.id === item.id);
+        if (idx !== -1) newMedia[idx].sort_order = index;
+      });
+      return newMedia.sort((a, b) => a.sort_order - b.sort_order);
+    });
+    
+    // Persist to database
+    try {
+      for (const [index, item] of reorderedMedia.entries()) {
+        await supabase
+          .from('sales_media')
+          .update({ sort_order: index })
+          .eq('id', item.id);
+      }
+      toast.success("Ordem atualizada!");
+    } catch (error) {
+      console.error('Error reordering:', error);
+      toast.error("Erro ao salvar ordem");
+      fetchMedia(); // Revert
+    }
   };
 
   const filteredMedia = media.filter(m => {
@@ -225,25 +262,46 @@ export default function SalesMediaManagementPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {filteredMedia.map((m) => (
-            <MediaCard
-              key={m.id}
-              media={{
-                ...m,
-                description: m.description || undefined,
-                file_size: m.file_size || undefined,
-                file_type: m.file_type || undefined,
-                thumbnail_url: m.thumbnail_url || undefined,
-              }}
-              isAdmin
-              onEdit={() => handleEdit(m)}
-              onDelete={(id) => setDeleteId(id)}
-              onToggleActive={handleToggleActive}
-              onPreview={(media) => setPreviewMedia(media)}
-            />
-          ))}
-        </div>
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Droppable droppableId="media-grid" direction="horizontal">
+            {(provided) => (
+              <div 
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+                className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
+              >
+                {filteredMedia.map((m, index) => (
+                  <Draggable key={m.id} draggableId={m.id} index={index}>
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                      >
+                        <MediaCard
+                          media={{
+                            ...m,
+                            description: m.description || undefined,
+                            file_size: m.file_size || undefined,
+                            file_type: m.file_type || undefined,
+                            thumbnail_url: m.thumbnail_url || undefined,
+                          }}
+                          isAdmin
+                          dragHandleProps={provided.dragHandleProps}
+                          isDragging={snapshot.isDragging}
+                          onEdit={() => handleEdit(m)}
+                          onDelete={(id) => setDeleteId(id)}
+                          onToggleActive={handleToggleActive}
+                          onPreview={(media) => setPreviewMedia(media)}
+                        />
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
       )}
 
       {/* Upload/Edit Dialog */}

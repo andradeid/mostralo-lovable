@@ -168,6 +168,8 @@ export default function SalesMediaManagementPage() {
     active: media.filter(m => m.is_active).length,
     videos: media.filter(m => m.category === 'video').length,
     images: media.filter(m => m.category === 'imagem').length,
+    audios: media.filter(m => m.category === 'audio').length,
+    pdfs: media.filter(m => m.category === 'pdf').length,
   };
 
   if (loading) {
@@ -198,7 +200,7 @@ export default function SalesMediaManagementPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold">{stats.total}</p>
@@ -221,6 +223,18 @@ export default function SalesMediaManagementPage() {
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-blue-500">{stats.images}</p>
             <p className="text-xs text-muted-foreground">Imagens</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="text-2xl font-bold text-orange-500">{stats.audios}</p>
+            <p className="text-xs text-muted-foreground">Áudios</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="text-2xl font-bold text-red-500">{stats.pdfs}</p>
+            <p className="text-xs text-muted-foreground">PDFs</p>
           </CardContent>
         </Card>
       </div>

@@ -55,12 +55,12 @@ export function SalespersonPerformanceChart({ salespersonId }: SalespersonPerfor
         .eq("status", "approved")
         .gte("approved_at", startDateStr);
 
-      // Buscar comissões por mês (se tabela existir)
-      const { data: salesData } = await supabase
-        .from("salesperson_sales")
-        .select("sale_date, commission_amount")
+      // Buscar comissões por mês
+      const { data: commissionsData } = await supabase
+        .from("salesperson_commissions")
+        .select("created_at, commission_amount")
         .eq("salesperson_id", salespersonId)
-        .gte("sale_date", startDateStr);
+        .gte("created_at", startDateStr);
 
       // Agregar dados por mês
       const monthlyData: Record<string, { leads: number; clientes: number; comissoes: number }> = {};
@@ -91,10 +91,10 @@ export function SalespersonPerformanceChart({ salespersonId }: SalespersonPerfor
       });
 
       // Somar comissões
-      salesData?.forEach((sale) => {
-        const key = format(new Date(sale.sale_date), "yyyy-MM");
+      commissionsData?.forEach((commission) => {
+        const key = format(new Date(commission.created_at), "yyyy-MM");
         if (monthlyData[key]) {
-          monthlyData[key].comissoes += Number(sale.commission_amount) || 0;
+          monthlyData[key].comissoes += Number(commission.commission_amount) || 0;
         }
       });
 

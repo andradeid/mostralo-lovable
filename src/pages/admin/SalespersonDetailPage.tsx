@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, CheckCircle2, XCircle, User, Building2, Trophy, Star, Sparkles, Medal, ClipboardList, Target, Users, Pencil, DollarSign, Mail, Phone, Key, CreditCard, Ban } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, User, Building2, Trophy, Star, Sparkles, Medal, ClipboardList, Target, Users, Pencil, DollarSign, Mail, Phone, Key, CreditCard, Ban, UserPlus } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CommissionConfigForm } from "@/components/admin/salespeople/CommissionConfigForm";
@@ -16,6 +16,8 @@ import { RejectionDialog } from "@/components/admin/salespeople/RejectionDialog"
 import { SalespersonEditDialog } from "@/components/admin/salespeople/SalespersonEditDialog";
 import { SalespersonBlockDialog } from "@/components/admin/salespeople/SalespersonBlockDialog";
 import { SalespersonPerformanceChart } from "@/components/admin/salespeople/SalespersonPerformanceChart";
+import { AssignClientToSalespersonDialog } from "@/components/admin/salespeople/AssignClientToSalespersonDialog";
+import { SalespersonClientsTable } from "@/components/admin/salespeople/SalespersonClientsTable";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { getLevelConfig, type QualificationLevel } from "@/lib/qualificationLevels";
@@ -86,6 +88,7 @@ export default function SalespersonDetailPage() {
   const [rejectionDialogOpen, setRejectionDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [blockDialogOpen, setBlockDialogOpen] = useState(false);
+  const [assignClientDialogOpen, setAssignClientDialogOpen] = useState(false);
 
   const { data: salesperson, isLoading, refetch } = useQuery({
     queryKey: ["salesperson", id],
@@ -559,6 +562,21 @@ export default function SalespersonDetailPage() {
         </div>
       </div>
 
+      {/* Carteira de Clientes */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Carteira de Clientes</h2>
+          <Button size="sm" onClick={() => setAssignClientDialogOpen(true)}>
+            <UserPlus className="h-4 w-4 mr-2" />
+            Adicionar à Carteira
+          </Button>
+        </div>
+        <SalespersonClientsTable 
+          salespersonId={salesperson.id} 
+          onUpdate={() => refetch()} 
+        />
+      </div>
+
       {/* Dialogs */}
       <ApprovalDialog
         open={approvalDialogOpen}
@@ -593,6 +611,14 @@ export default function SalespersonDetailPage() {
         open={blockDialogOpen}
         onOpenChange={setBlockDialogOpen}
         salesperson={salesperson}
+        onSuccess={() => refetch()}
+      />
+
+      <AssignClientToSalespersonDialog
+        open={assignClientDialogOpen}
+        onOpenChange={setAssignClientDialogOpen}
+        salespersonId={salesperson.id}
+        salespersonName={salesperson.full_name}
         onSuccess={() => refetch()}
       />
     </div>

@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { DollarSign, TrendingUp, Users, AlertCircle, Sparkles, Building2, User } from "lucide-react";
 import { toast } from "sonner";
+import PortfolioHealthCard from "@/components/salesperson/PortfolioHealthCard";
 
 export default function SalespersonDashboard() {
   const { user } = useAuth();
@@ -129,6 +130,11 @@ export default function SalespersonDashboard() {
 
         {salesperson?.status === 'active' && (
           <>
+            {/* Card de saúde da carteira - apenas para Parceiros PJ */}
+            {salesperson?.salesperson_type === 'partner' && (
+              <PortfolioHealthCard salesperson={salesperson} />
+            )}
+
             <div className="grid gap-4 md:grid-cols-3">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

@@ -110,3 +110,6 @@ verify_jwt = false
 
 [functions.meta-commerce-feed]
 verify_jwt = false
+
+[functions.evaluate-salesperson-portfolios]
+verify_jwt = false

@@ -104,24 +104,42 @@ export function MediaCard({
         setIsLoading(true);
         console.log('Criando elemento de áudio:', media.file_url);
         
-        audioRef.current = new Audio(media.file_url);
+        // Criar elemento Audio com CORS habilitado para funcionar em qualquer domínio
+        audioRef.current = new Audio();
+        audioRef.current.crossOrigin = "anonymous";
+        audioRef.current.src = media.file_url;
         
         audioRef.current.onended = () => {
           console.log('Áudio finalizado');
           setIsPlaying(false);
         };
         
-        audioRef.current.oncanplay = () => {
+        audioRef.current.oncanplaythrough = () => {
           console.log('Áudio pronto para reproduzir');
           setIsLoading(false);
         };
         
-        audioRef.current.onerror = (error) => {
-          console.error('Erro ao carregar áudio:', error);
-          toast.error("Erro ao carregar o áudio");
+        audioRef.current.onerror = () => {
+          const error = audioRef.current?.error;
+          console.error('Erro ao carregar áudio:', {
+            code: error?.code,
+            message: error?.message,
+            url: media.file_url
+          });
+          
+          toast.error("Erro ao carregar áudio", {
+            action: {
+              label: "Abrir",
+              onClick: () => window.open(media.file_url, '_blank')
+            }
+          });
+          
           setIsPlaying(false);
           setIsLoading(false);
         };
+        
+        // Forçar carregamento do áudio
+        audioRef.current.load();
       }
       
       if (isPlaying) {
@@ -136,7 +154,12 @@ export function MediaCard({
       }
     } catch (error) {
       console.error('Erro ao reproduzir áudio:', error);
-      toast.error("Não foi possível reproduzir o áudio. Toque novamente.");
+      toast.error("Não foi possível reproduzir", {
+        action: {
+          label: "Abrir",
+          onClick: () => window.open(media.file_url, '_blank')
+        }
+      });
       setIsPlaying(false);
       setIsLoading(false);
     }

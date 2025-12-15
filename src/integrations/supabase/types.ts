@@ -2858,6 +2858,7 @@ export type Database = {
       }
       salespeople: {
         Row: {
+          active_clients_count: number | null
           approved_at: string | null
           approved_by: string | null
           blocked_at: string | null
@@ -2869,6 +2870,9 @@ export type Database = {
           cnpj_validated: boolean | null
           cnpj_validated_at: string | null
           cnpj_validation_data: Json | null
+          commission_percentage: number | null
+          commission_suspended_at: string | null
+          commission_tier: string | null
           company_name: string | null
           company_trade_name: string | null
           contract_accepted_at: string | null
@@ -2880,6 +2884,8 @@ export type Database = {
           id: string
           is_blocked: boolean | null
           last_earnings_reset_at: string | null
+          last_sale_at: string | null
+          last_tier_evaluation_at: string | null
           monthly_earnings_limit: number | null
           phone: string
           pix_key: string | null
@@ -2892,10 +2898,13 @@ export type Database = {
           rejection_reason: string | null
           salesperson_type: string
           status: string
+          suspension_reason: string | null
+          tier_warning_sent_at: string | null
           updated_at: string | null
           user_id: string | null
         }
         Insert: {
+          active_clients_count?: number | null
           approved_at?: string | null
           approved_by?: string | null
           blocked_at?: string | null
@@ -2907,6 +2916,9 @@ export type Database = {
           cnpj_validated?: boolean | null
           cnpj_validated_at?: string | null
           cnpj_validation_data?: Json | null
+          commission_percentage?: number | null
+          commission_suspended_at?: string | null
+          commission_tier?: string | null
           company_name?: string | null
           company_trade_name?: string | null
           contract_accepted_at?: string | null
@@ -2918,6 +2930,8 @@ export type Database = {
           id?: string
           is_blocked?: boolean | null
           last_earnings_reset_at?: string | null
+          last_sale_at?: string | null
+          last_tier_evaluation_at?: string | null
           monthly_earnings_limit?: number | null
           phone: string
           pix_key?: string | null
@@ -2930,10 +2944,13 @@ export type Database = {
           rejection_reason?: string | null
           salesperson_type?: string
           status?: string
+          suspension_reason?: string | null
+          tier_warning_sent_at?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
         Update: {
+          active_clients_count?: number | null
           approved_at?: string | null
           approved_by?: string | null
           blocked_at?: string | null
@@ -2945,6 +2962,9 @@ export type Database = {
           cnpj_validated?: boolean | null
           cnpj_validated_at?: string | null
           cnpj_validation_data?: Json | null
+          commission_percentage?: number | null
+          commission_suspended_at?: string | null
+          commission_tier?: string | null
           company_name?: string | null
           company_trade_name?: string | null
           contract_accepted_at?: string | null
@@ -2956,6 +2976,8 @@ export type Database = {
           id?: string
           is_blocked?: boolean | null
           last_earnings_reset_at?: string | null
+          last_sale_at?: string | null
+          last_tier_evaluation_at?: string | null
           monthly_earnings_limit?: number | null
           phone?: string
           pix_key?: string | null
@@ -2968,6 +2990,8 @@ export type Database = {
           rejection_reason?: string | null
           salesperson_type?: string
           status?: string
+          suspension_reason?: string | null
+          tier_warning_sent_at?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -2987,6 +3011,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      salesperson_activity_rules: {
+        Row: {
+          allow_reactivation: boolean
+          created_at: string
+          created_by: string | null
+          evaluation_period: string
+          full_commission_percentage: number
+          grace_period_days: number
+          id: string
+          is_active: boolean
+          minimum_commission_percentage: number
+          notify_days_before: number
+          reactivation_requires_new_sale: boolean
+          reduced_commission_percentage: number
+          tier_full_commission: number
+          tier_minimum_commission: number
+          tier_reduced_commission: number
+          updated_at: string
+        }
+        Insert: {
+          allow_reactivation?: boolean
+          created_at?: string
+          created_by?: string | null
+          evaluation_period?: string
+          full_commission_percentage?: number
+          grace_period_days?: number
+          id?: string
+          is_active?: boolean
+          minimum_commission_percentage?: number
+          notify_days_before?: number
+          reactivation_requires_new_sale?: boolean
+          reduced_commission_percentage?: number
+          tier_full_commission?: number
+          tier_minimum_commission?: number
+          tier_reduced_commission?: number
+          updated_at?: string
+        }
+        Update: {
+          allow_reactivation?: boolean
+          created_at?: string
+          created_by?: string | null
+          evaluation_period?: string
+          full_commission_percentage?: number
+          grace_period_days?: number
+          id?: string
+          is_active?: boolean
+          minimum_commission_percentage?: number
+          notify_days_before?: number
+          reactivation_requires_new_sale?: boolean
+          reduced_commission_percentage?: number
+          tier_full_commission?: number
+          tier_minimum_commission?: number
+          tier_reduced_commission?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       salesperson_bonus_achievements: {
         Row: {
@@ -3334,6 +3415,68 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "salesperson_payouts_salesperson_id_fkey"
+            columns: ["salesperson_id"]
+            isOneToOne: false
+            referencedRelation: "salespeople"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      salesperson_portfolio_evaluations: {
+        Row: {
+          active_clients_count: number
+          churned_clients_count: number
+          created_at: string
+          evaluated_at: string
+          evaluated_by: string | null
+          evaluation_period_end: string
+          evaluation_period_start: string
+          id: string
+          new_commission_percentage: number
+          new_sales_count: number
+          new_tier: string
+          notes: string | null
+          previous_commission_percentage: number | null
+          previous_tier: string | null
+          salesperson_id: string
+        }
+        Insert: {
+          active_clients_count?: number
+          churned_clients_count?: number
+          created_at?: string
+          evaluated_at?: string
+          evaluated_by?: string | null
+          evaluation_period_end: string
+          evaluation_period_start: string
+          id?: string
+          new_commission_percentage: number
+          new_sales_count?: number
+          new_tier: string
+          notes?: string | null
+          previous_commission_percentage?: number | null
+          previous_tier?: string | null
+          salesperson_id: string
+        }
+        Update: {
+          active_clients_count?: number
+          churned_clients_count?: number
+          created_at?: string
+          evaluated_at?: string
+          evaluated_by?: string | null
+          evaluation_period_end?: string
+          evaluation_period_start?: string
+          id?: string
+          new_commission_percentage?: number
+          new_sales_count?: number
+          new_tier?: string
+          notes?: string | null
+          previous_commission_percentage?: number | null
+          previous_tier?: string | null
+          salesperson_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salesperson_portfolio_evaluations_salesperson_id_fkey"
             columns: ["salesperson_id"]
             isOneToOne: false
             referencedRelation: "salespeople"

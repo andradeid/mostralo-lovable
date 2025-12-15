@@ -97,6 +97,7 @@ import SalespersonSalesGuidePage from './pages/public/SalespersonSalesGuidePage'
 import SalespersonContractHistory from './pages/salesperson/SalespersonContractHistory';
 import SalespersonDetailPage from './pages/admin/SalespersonDetailPage';
 import SalespersonCommissionsPage from './pages/admin/SalespersonCommissionsPage';
+import SalespersonActivityRulesPage from './pages/admin/SalespersonActivityRulesPage';
 import SalespeoplePayoutsPage from './pages/admin/SalespeoplePayoutsPage';
 import AffiliateEarningsReportsPage from './pages/admin/AffiliateEarningsReportsPage';
 import SalesMediaManagementPage from './pages/admin/SalesMediaManagementPage';
@@ -260,6 +261,11 @@ const App = () => (
             <Route path="/dashboard/salespeople/commissions" element={
               <ProtectedRoute allowedRoles={['master_admin']}>
                 <AdminLayout><SalespersonCommissionsPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/salespeople/activity-rules" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout><SalespersonActivityRulesPage /></AdminLayout>
               </ProtectedRoute>
             } />
             <Route path="/dashboard/salespeople/payouts" element={

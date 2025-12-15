@@ -344,6 +344,7 @@ export function AdminSidebar() {
         { title: 'Relatórios Afiliados', url: '/dashboard/salespeople/affiliate-reports', icon: BarChart3, group: 'Vendedores' },
         { title: 'Leads', url: '/dashboard/leads', icon: UserCircle, group: 'Vendedores' },
         { title: 'Configurar Bônus', url: '/dashboard/salespeople/commissions', icon: DollarSign, group: 'Vendedores' },
+        { title: 'Regras de Atividade', url: '/dashboard/salespeople/activity-rules', icon: Target, group: 'Vendedores' },
         { title: 'Editar Contrato', url: '/dashboard/salespeople/contract', icon: FileText, group: 'Vendedores' },
         { title: 'Prompts de Vendas', url: '/dashboard/sales-prompts', icon: MessageSquare, group: 'Vendedores' },
         { title: 'Recrutamento', url: '/dashboard/recrutamento', icon: UserPlus, group: 'Vendedores' },

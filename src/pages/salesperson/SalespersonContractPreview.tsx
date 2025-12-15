@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ContractViewer } from "@/components/contract/ContractViewer";
-import { Loader2, Building2, User, Percent, Trophy, FileText, CheckCircle, RefreshCw } from "lucide-react";
+import { Loader2, Building2, User, Percent, Trophy, FileText, CheckCircle, RefreshCw, Users, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { SalespersonLayout } from "@/components/salesperson/SalespersonLayout";
 
@@ -14,6 +14,17 @@ interface BonusTier {
   tier_name: string;
   min_sales: number;
   bonus_amount: number;
+}
+
+interface ActivityRules {
+  tier_full_commission: number;
+  tier_reduced_commission: number;
+  tier_minimum_commission: number;
+  full_commission_percentage: number;
+  reduced_commission_percentage: number;
+  minimum_commission_percentage: number;
+  grace_period_days: number;
+  evaluation_period: string;
 }
 
 interface ContractTemplate {
@@ -33,6 +44,7 @@ interface Salesperson {
   cnpj: string | null;
   company_name: string | null;
   status: string;
+  salesperson_type: string | null;
 }
 
 export default function SalespersonContractPreview() {
@@ -45,6 +57,7 @@ export default function SalespersonContractPreview() {
   const [salesperson, setSalesperson] = useState<Salesperson | null>(null);
   const [bonusTiers, setBonusTiers] = useState<BonusTier[]>([]);
   const [commissionValue, setCommissionValue] = useState<number>(10);
+  const [activityRules, setActivityRules] = useState<ActivityRules | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -58,7 +71,7 @@ export default function SalespersonContractPreview() {
       // Fetch salesperson data
       const { data: spData, error: spError } = await supabase
         .from("salespeople")
-        .select("id, full_name, cnpj, company_name, status")
+        .select("id, full_name, cnpj, company_name, status, salesperson_type")
         .eq("user_id", user?.id)
         .maybeSingle();
 
@@ -68,6 +81,14 @@ export default function SalespersonContractPreview() {
         return;
       }
       setSalesperson(spData);
+
+      // Fetch activity rules for maintenance tiers
+      const { data: rulesData } = await supabase
+        .from("salesperson_activity_rules")
+        .select("tier_full_commission, tier_reduced_commission, tier_minimum_commission, full_commission_percentage, reduced_commission_percentage, minimum_commission_percentage, grace_period_days, evaluation_period")
+        .eq("is_active", true)
+        .maybeSingle();
+      setActivityRules(rulesData);
 
       // Fetch active template
       const { data: templateData, error: templateError } = await supabase
@@ -110,6 +131,26 @@ export default function SalespersonContractPreview() {
     }
   };
 
+  const generateBonusTable = () => {
+    if (bonusTiers.length === 0) return "";
+    let table = "| Faixa | Meta de Vendas | Bônus |\n|-------|----------------|-------|\n";
+    bonusTiers.forEach(tier => {
+      table += `| ${tier.tier_name} | ${tier.min_sales} vendas | R$ ${tier.bonus_amount.toLocaleString("pt-BR")} |\n`;
+    });
+    return table;
+  };
+
+  const generateMaintenanceTable = () => {
+    if (!activityRules) return "";
+    const r = activityRules;
+    let table = "| Clientes Ativos | Comissão |\n|-----------------|----------|\n";
+    table += `| ${r.tier_full_commission}+ clientes | ${r.full_commission_percentage}% (integral) |\n`;
+    table += `| ${r.tier_reduced_commission}-${r.tier_full_commission - 1} clientes | ${r.reduced_commission_percentage}% (reduzida) |\n`;
+    table += `| ${r.tier_minimum_commission}-${r.tier_reduced_commission - 1} clientes | ${r.minimum_commission_percentage}% (mínima) |\n`;
+    table += `| 0 clientes | 0% (suspensa) |\n`;
+    return table;
+  };
+
   const getFormattedContractText = () => {
     if (!template?.contract_text) return "";
 
@@ -135,6 +176,8 @@ export default function SalespersonContractPreview() {
       .replace(/{bonus_ouro_meta}/g, ouroTier ? String(ouroTier.min_sales) : "30")
       .replace(/{bonus_diamante}/g, diamanteTier ? diamanteTier.bonus_amount.toLocaleString("pt-BR") : "5.000")
       .replace(/{bonus_diamante_meta}/g, diamanteTier ? String(diamanteTier.min_sales) : "50")
+      .replace(/{tabela_bonus}/g, generateBonusTable())
+      .replace(/{faixas_manutencao}/g, generateMaintenanceTable())
       .replace(/{data_aceite}/g, new Date().toLocaleString("pt-BR"))
       .replace(/{ip_aceite}/g, "[será registrado ao aceitar]")
       .replace(/{hash_verificacao}/g, "[será gerado ao aceitar]");
@@ -333,7 +376,51 @@ export default function SalespersonContractPreview() {
           </Card>
         )}
 
-        {/* Full Contract */}
+        {/* Maintenance Tiers Card - Only for partner_pj */}
+        {activityRules && salesperson?.salesperson_type === "partner_pj" && (
+          <Card className="border-amber-500/30">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Users className="h-5 w-5 text-amber-500" />
+                Manutenção de Carteira
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-start gap-2 p-3 bg-amber-500/10 rounded-lg">
+                <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+                <p className="text-sm text-muted-foreground">
+                  Sua comissão depende do número de clientes ativos na carteira. 
+                  Avaliação: <strong>{activityRules.evaluation_period}</strong>. 
+                  Período de graça: <strong>{activityRules.grace_period_days} dias</strong>.
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="text-center p-3 rounded-lg border bg-green-500/10 border-green-500/30">
+                  <p className="text-2xl font-bold text-green-500">{activityRules.full_commission_percentage}%</p>
+                  <p className="text-xs text-muted-foreground">Integral</p>
+                  <p className="text-sm font-medium">{activityRules.tier_full_commission}+ clientes</p>
+                </div>
+                <div className="text-center p-3 rounded-lg border bg-yellow-500/10 border-yellow-500/30">
+                  <p className="text-2xl font-bold text-yellow-500">{activityRules.reduced_commission_percentage}%</p>
+                  <p className="text-xs text-muted-foreground">Reduzida</p>
+                  <p className="text-sm font-medium">{activityRules.tier_reduced_commission}-{activityRules.tier_full_commission - 1} clientes</p>
+                </div>
+                <div className="text-center p-3 rounded-lg border bg-orange-500/10 border-orange-500/30">
+                  <p className="text-2xl font-bold text-orange-500">{activityRules.minimum_commission_percentage}%</p>
+                  <p className="text-xs text-muted-foreground">Mínima</p>
+                  <p className="text-sm font-medium">{activityRules.tier_minimum_commission}-{activityRules.tier_reduced_commission - 1} clientes</p>
+                </div>
+                <div className="text-center p-3 rounded-lg border bg-red-500/10 border-red-500/30">
+                  <p className="text-2xl font-bold text-red-500">0%</p>
+                  <p className="text-xs text-muted-foreground">Suspensa</p>
+                  <p className="text-sm font-medium">0 clientes</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

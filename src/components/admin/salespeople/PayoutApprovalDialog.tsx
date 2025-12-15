@@ -68,7 +68,7 @@ export function PayoutApprovalDialog({
   const [paymentProofFile, setPaymentProofFile] = useState<File | null>(null);
 
   const isAffiliate = payout.salesperson?.salesperson_type === 'affiliate';
-  const isPJ = payout.salesperson?.salesperson_type === 'pj_partner';
+  const isPJ = payout.salesperson?.salesperson_type === 'partner_pj';
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {

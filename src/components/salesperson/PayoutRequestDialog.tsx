@@ -58,7 +58,7 @@ export function PayoutRequestDialog({
   const [invoiceNumber, setInvoiceNumber] = useState("");
 
   const isAffiliate = salesperson.salesperson_type === "affiliate";
-  const isPJ = salesperson.salesperson_type === "pj_partner";
+  const isPJ = salesperson.salesperson_type === "partner_pj";
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {

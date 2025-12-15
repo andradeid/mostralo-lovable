@@ -5,10 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Wallet, Clock, CheckCircle, XCircle, FileText, User, Building2, DollarSign } from "lucide-react";
+import { Wallet, Clock, CheckCircle, XCircle, FileText, User, Building2, DollarSign, Plus, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { PayoutApprovalDialog } from "@/components/admin/salespeople/PayoutApprovalDialog";
+import { PayoutEditDialog } from "@/components/admin/salespeople/PayoutEditDialog";
+import { PayoutCreateDialog } from "@/components/admin/salespeople/PayoutCreateDialog";
 
 interface PayoutWithSalesperson {
   id: string;
@@ -45,6 +47,8 @@ export default function SalespeoplePayoutsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedPayout, setSelectedPayout] = useState<PayoutWithSalesperson | null>(null);
   const [showApprovalDialog, setShowApprovalDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("requested");
 
   useEffect(() => {
@@ -153,6 +157,11 @@ export default function SalespeoplePayoutsPage() {
     setShowApprovalDialog(true);
   };
 
+  const handleOpenEdit = (payout: PayoutWithSalesperson) => {
+    setSelectedPayout(payout);
+    setShowEditDialog(true);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -163,9 +172,15 @@ export default function SalespeoplePayoutsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Pagamentos de Vendedores</h1>
-        <p className="text-muted-foreground">Gerencie solicitações de pagamento de afiliados e parceiros</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Pagamentos de Vendedores</h1>
+          <p className="text-muted-foreground">Gerencie solicitações de pagamento de afiliados e parceiros</p>
+        </div>
+        <Button onClick={() => setShowCreateDialog(true)}>
+          <Plus className="w-4 h-4 mr-2" />
+          Criar Payout Manual
+        </Button>
       </div>
 
       {/* Cards de resumo */}
@@ -332,6 +347,17 @@ export default function SalespeoplePayoutsPage() {
                             </a>
                           </Button>
                         )}
+
+                        {/* Botão de edição */}
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleOpenEdit(payout)}
+                          className="text-muted-foreground"
+                        >
+                          <Pencil className="w-4 h-4 mr-1" />
+                          Editar
+                        </Button>
                       </div>
                     </div>
                   ))}
@@ -355,6 +381,30 @@ export default function SalespeoplePayoutsPage() {
           }}
         />
       )}
+
+      {/* Dialog de edição */}
+      {selectedPayout && (
+        <PayoutEditDialog
+          open={showEditDialog}
+          onOpenChange={setShowEditDialog}
+          payout={selectedPayout}
+          onSuccess={() => {
+            setShowEditDialog(false);
+            setSelectedPayout(null);
+            fetchPayouts();
+          }}
+        />
+      )}
+
+      {/* Dialog de criação */}
+      <PayoutCreateDialog
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+        onSuccess={() => {
+          setShowCreateDialog(false);
+          fetchPayouts();
+        }}
+      />
     </div>
   );
 }

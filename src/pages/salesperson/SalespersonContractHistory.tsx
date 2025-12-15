@@ -55,6 +55,17 @@ interface BonusTier {
   bonus_amount: number;
 }
 
+interface ActivityRules {
+  tier_full_commission: number;
+  tier_reduced_commission: number;
+  tier_minimum_commission: number;
+  full_commission_percentage: number;
+  reduced_commission_percentage: number;
+  minimum_commission_percentage: number;
+  grace_period_days: number;
+  evaluation_period: string;
+}
+
 export default function SalespersonContractHistory() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -70,6 +81,7 @@ export default function SalespersonContractHistory() {
   const [acceptingContract, setAcceptingContract] = useState(false);
   const [bonusTiers, setBonusTiers] = useState<BonusTier[]>([]);
   const [commissionValue, setCommissionValue] = useState<number>(10);
+  const [activityRules, setActivityRules] = useState<ActivityRules | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -132,6 +144,14 @@ export default function SalespersonContractHistory() {
         .eq("is_active", true)
         .maybeSingle();
       if (commissionData) setCommissionValue(commissionData.commission_value);
+
+      // Buscar regras de manutenção de carteira
+      const { data: rulesData } = await supabase
+        .from("salesperson_activity_rules")
+        .select("tier_full_commission, tier_reduced_commission, tier_minimum_commission, full_commission_percentage, reduced_commission_percentage, minimum_commission_percentage, grace_period_days, evaluation_period")
+        .eq("is_active", true)
+        .maybeSingle();
+      setActivityRules(rulesData);
 
     } catch (error: any) {
       console.error("Erro ao buscar contratos:", error);
@@ -223,6 +243,26 @@ export default function SalespersonContractHistory() {
     }
   };
 
+  const generateBonusTable = () => {
+    if (bonusTiers.length === 0) return "";
+    let table = "| Faixa | Meta de Vendas | Bônus |\n|-------|----------------|-------|\n";
+    bonusTiers.forEach(tier => {
+      table += `| ${tier.tier_name} | ${tier.min_sales} vendas | R$ ${tier.bonus_amount.toLocaleString("pt-BR")} |\n`;
+    });
+    return table;
+  };
+
+  const generateMaintenanceTable = () => {
+    if (!activityRules) return "";
+    const r = activityRules;
+    let table = "| Clientes Ativos | Comissão |\n|-----------------|----------|\n";
+    table += `| ${r.tier_full_commission}+ clientes | ${r.full_commission_percentage}% (integral) |\n`;
+    table += `| ${r.tier_reduced_commission}-${r.tier_full_commission - 1} clientes | ${r.reduced_commission_percentage}% (reduzida) |\n`;
+    table += `| ${r.tier_minimum_commission}-${r.tier_reduced_commission - 1} clientes | ${r.minimum_commission_percentage}% (mínima) |\n`;
+    table += `| 0 clientes | 0% (suspensa) |\n`;
+    return table;
+  };
+
   const getFormattedContractText = () => {
     if (!selectedContract) return "";
 
@@ -255,7 +295,8 @@ export default function SalespersonContractHistory() {
       .replace(/{bonus_ouro_meta}/g, String(ouroTier?.min_sales || 30))
       .replace(/{bonus_diamante}/g, diamanteTier?.bonus_amount?.toLocaleString("pt-BR") || "5.000")
       .replace(/{bonus_diamante_meta}/g, String(diamanteTier?.min_sales || 50))
-      .replace(/{tabela_bonus}/g, "Conforme configuração vigente")
+      .replace(/{tabela_bonus}/g, generateBonusTable())
+      .replace(/{faixas_manutencao}/g, generateMaintenanceTable())
       .replace(/{data_aceite}/g, new Date(selectedContract.accepted_at).toLocaleString("pt-BR"))
       .replace(/{ip_aceite}/g, selectedContract.ip_address || "")
       .replace(/{hash_verificacao}/g, selectedContract.verification_hash || "");

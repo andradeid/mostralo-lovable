@@ -78,53 +78,53 @@ export default function SalespersonClientsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Meus Clientes</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl md:text-3xl font-bold">Meus Clientes</h1>
+        <p className="text-sm md:text-base text-muted-foreground">
           Todos os clientes que você indicou para a plataforma
         </p>
       </div>
 
       {/* Cards de resumo */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Clientes</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 pt-3 px-3 md:pt-6 md:px-6">
+            <CardTitle className="text-xs md:text-sm font-medium">Total de Clientes</CardTitle>
+            <Users className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalClients}</div>
+          <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
+            <div className="text-lg md:text-2xl font-bold">{totalClients}</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Aprovados</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 pt-3 px-3 md:pt-6 md:px-6">
+            <CardTitle className="text-xs md:text-sm font-medium">Aprovados</CardTitle>
+            <CheckCircle className="h-3 w-3 md:h-4 md:w-4 text-green-500" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-500">{approvedClients}</div>
+          <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
+            <div className="text-lg md:text-2xl font-bold text-green-500">{approvedClients}</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
-            <Clock className="h-4 w-4 text-yellow-500" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 pt-3 px-3 md:pt-6 md:px-6">
+            <CardTitle className="text-xs md:text-sm font-medium">Pendentes</CardTitle>
+            <Clock className="h-3 w-3 md:h-4 md:w-4 text-yellow-500" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-500">{pendingClients}</div>
+          <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
+            <div className="text-lg md:text-2xl font-bold text-yellow-500">{pendingClients}</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Rejeitados</CardTitle>
-            <XCircle className="h-4 w-4 text-destructive" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 pt-3 px-3 md:pt-6 md:px-6">
+            <CardTitle className="text-xs md:text-sm font-medium">Rejeitados</CardTitle>
+            <XCircle className="h-3 w-3 md:h-4 md:w-4 text-destructive" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-destructive">{rejectedClients}</div>
+          <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
+            <div className="text-lg md:text-2xl font-bold text-destructive">{rejectedClients}</div>
           </CardContent>
         </Card>
       </div>
@@ -132,51 +132,79 @@ export default function SalespersonClientsPage() {
       {/* Tabela de clientes */}
       <Card>
         <CardHeader>
-          <CardTitle>Lista de Clientes Indicados</CardTitle>
+          <CardTitle className="text-base md:text-lg">Lista de Clientes Indicados</CardTitle>
         </CardHeader>
         <CardContent>
           {clients && clients.length > 0 ? (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Empresa</TableHead>
-                    <TableHead>CNPJ</TableHead>
-                    <TableHead>Plano</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Data Cadastro</TableHead>
-                    <TableHead>Aprovação</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {clients.map((client) => (
-                    <TableRow key={client.id}>
-                      <TableCell className="font-medium">
+            <>
+              {/* Mobile: Cards compactos */}
+              <div className="md:hidden space-y-3">
+                {clients.map((client) => (
+                  <div key={client.id} className="p-3 rounded-lg border bg-card w-[90%] mx-auto">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-sm truncate max-w-[60%]">
                         {client.company_name || "—"}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {client.company_document || "—"}
-                      </TableCell>
-                      <TableCell>
-                        {client.plan?.name || "—"}
-                      </TableCell>
-                      <TableCell>
-                        {getStatusBadge(client.status)}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {format(new Date(client.created_at), "dd/MM/yyyy", { locale: ptBR })}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {client.approved_at 
-                          ? format(new Date(client.approved_at), "dd/MM/yyyy", { locale: ptBR })
-                          : "—"
-                        }
-                      </TableCell>
+                      </span>
+                      {getStatusBadge(client.status)}
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-1">
+                      {client.plan?.name || "—"}
+                    </p>
+                    <div className="flex justify-between mt-2 pt-2 border-t text-[10px] text-muted-foreground">
+                      <span>Cadastro: {format(new Date(client.created_at), "dd/MM/yyyy", { locale: ptBR })}</span>
+                      {client.approved_at && (
+                        <span className="text-green-600">
+                          ✓ {format(new Date(client.approved_at), "dd/MM/yyyy", { locale: ptBR })}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop: Tabela original */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Empresa</TableHead>
+                      <TableHead>CNPJ</TableHead>
+                      <TableHead>Plano</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Data Cadastro</TableHead>
+                      <TableHead>Aprovação</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {clients.map((client) => (
+                      <TableRow key={client.id}>
+                        <TableCell className="font-medium">
+                          {client.company_name || "—"}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {client.company_document || "—"}
+                        </TableCell>
+                        <TableCell>
+                          {client.plan?.name || "—"}
+                        </TableCell>
+                        <TableCell>
+                          {getStatusBadge(client.status)}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {format(new Date(client.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {client.approved_at 
+                            ? format(new Date(client.approved_at), "dd/MM/yyyy", { locale: ptBR })
+                            : "—"
+                          }
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           ) : (
             <p className="text-sm text-muted-foreground text-center py-8">
               Nenhum cliente indicado ainda. Compartilhe seu link de indicação!

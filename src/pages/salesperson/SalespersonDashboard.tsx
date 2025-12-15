@@ -116,11 +116,11 @@ export default function SalespersonDashboard() {
   }
 
   return (
-    <div className="space-y-6">
-        <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
           <div>
-            <h1 className="text-3xl font-bold">Dashboard</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl md:text-3xl font-bold">Dashboard</h1>
+            <p className="text-sm md:text-base text-muted-foreground">
               Bem-vindo(a), {salesperson?.full_name}!
             </p>
           </div>
@@ -152,13 +152,13 @@ export default function SalespersonDashboard() {
         {salesperson?.salesperson_type === 'affiliate' && salesperson?.status === 'active' && (
           <Alert className="bg-gradient-to-r from-primary/10 to-orange-500/10 border-primary">
             <Sparkles className="h-4 w-4 text-primary" />
-            <AlertTitle>Quer ganhar mais?</AlertTitle>
-            <AlertDescription className="flex items-center justify-between">
-              <span>
+            <AlertTitle className="text-sm md:text-base">Quer ganhar mais?</AlertTitle>
+            <AlertDescription className="flex flex-col md:flex-row md:items-center justify-between gap-2">
+              <span className="text-xs md:text-sm">
                 Como afiliado, você tem limite de R$ 1.900/mês. Abrindo um MEI (gratuito), 
                 você vira Parceiro PJ com comissão de 10% e ganhos ilimitados!
               </span>
-              <Button variant="outline" size="sm" className="ml-4 shrink-0" asChild>
+              <Button variant="outline" size="sm" className="shrink-0 w-full md:w-auto" asChild>
                 <Link to="/vendedor/upgrade">
                   Fazer Upgrade
                 </Link>
@@ -174,76 +174,76 @@ export default function SalespersonDashboard() {
               <PortfolioHealthCard salesperson={salesperson} />
             )}
 
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 pt-3 px-3 md:pt-6 md:px-6">
+                  <CardTitle className="text-xs md:text-sm font-medium">
                     Leads
                   </CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <Users className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.leadsCount}</div>
-                  <p className="text-xs text-muted-foreground">
+                <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
+                  <div className="text-lg md:text-2xl font-bold">{stats.leadsCount}</div>
+                  <p className="text-[10px] md:text-xs text-muted-foreground">
                     Prospectos gerados
                   </p>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 pt-3 px-3 md:pt-6 md:px-6">
+                  <CardTitle className="text-xs md:text-sm font-medium">
                     Clientes
                   </CardTitle>
-                  <UserCheck className="h-4 w-4 text-green-500" />
+                  <UserCheck className="h-3 w-3 md:h-4 md:w-4 text-green-500" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-600">{stats.totalSales}</div>
-                  <p className="text-xs text-muted-foreground">
+                <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
+                  <div className="text-lg md:text-2xl font-bold text-green-600">{stats.totalSales}</div>
+                  <p className="text-[10px] md:text-xs text-muted-foreground">
                     Convertidos
                   </p>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 pt-3 px-3 md:pt-6 md:px-6">
+                  <CardTitle className="text-xs md:text-sm font-medium">
                     Comissões
                   </CardTitle>
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  <DollarSign className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
+                <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
+                  <div className="text-lg md:text-2xl font-bold">
                     R$ {stats.totalCommissions.toFixed(2)}
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[10px] md:text-xs text-muted-foreground">
                     Total acumulado
                   </p>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 pt-3 px-3 md:pt-6 md:px-6">
+                  <CardTitle className="text-xs md:text-sm font-medium">
                     {salesperson?.salesperson_type === 'affiliate' ? 'Limite Mensal' : 'Vendas Trimestre'}
                   </CardTitle>
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                  <TrendingUp className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
                 </CardHeader>
-                <CardContent>
+                <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
                   {salesperson?.salesperson_type === 'affiliate' ? (
                     <>
-                      <div className="text-2xl font-bold">
+                      <div className="text-lg md:text-2xl font-bold">
                         R$ {monthlyLimitUsed.toFixed(2)}
                       </div>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-[10px] md:text-xs text-muted-foreground">
                         de R$ {monthlyLimit.toFixed(2)}
                       </p>
                       <Progress value={monthlyPercentage} className="h-2 mt-2" />
                     </>
                   ) : (
                     <>
-                      <div className="text-2xl font-bold">{stats.quarterSales}</div>
-                      <p className="text-xs text-muted-foreground">
+                      <div className="text-lg md:text-2xl font-bold">{stats.quarterSales}</div>
+                      <p className="text-[10px] md:text-xs text-muted-foreground">
                         Vendas este trimestre
                       </p>
                     </>

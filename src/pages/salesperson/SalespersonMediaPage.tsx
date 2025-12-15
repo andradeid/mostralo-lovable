@@ -85,21 +85,21 @@ export default function SalespersonMediaPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Film className="h-6 w-6" />
+        <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
+          <Film className="h-5 w-5 md:h-6 md:w-6" />
           Mídias de Divulgação
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-sm md:text-base text-muted-foreground">
           Materiais prontos para usar nas suas vendas
         </p>
       </div>
 
       {/* Filters */}
       <Card>
-        <CardContent className="p-4">
+        <CardContent className="p-3 md:p-4">
           <MediaFilters
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}

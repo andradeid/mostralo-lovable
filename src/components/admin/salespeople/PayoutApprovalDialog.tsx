@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import {
@@ -19,7 +19,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Upload, FileText, User, Building2, CheckCircle, XCircle, AlertTriangle, Download, Loader2 } from "lucide-react";
+import { Upload, FileText, User, Building2, CheckCircle, XCircle, AlertTriangle, Download, Loader2, RefreshCw } from "lucide-react";
 
 interface PayoutWithSalesperson {
   id: string;
@@ -70,32 +70,43 @@ export function PayoutApprovalDialog({
   // Estados para URL assinada
   const [signedInvoiceUrl, setSignedInvoiceUrl] = useState<string | null>(null);
   const [loadingSignedUrl, setLoadingSignedUrl] = useState(false);
+  const [signedUrlError, setSignedUrlError] = useState(false);
 
   const isAffiliate = payout.salesperson?.salesperson_type === 'affiliate';
   const isPJ = payout.salesperson?.salesperson_type === 'partner_pj';
 
   // Detectar tipo de arquivo
   const getFileType = (url: string): 'image' | 'pdf' => {
-    const extension = url.split('.').pop()?.toLowerCase();
+    const cleanUrl = url.split('?')[0]; // Remove query params
+    const extension = cleanUrl.split('.').pop()?.toLowerCase();
     if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension || '')) {
       return 'image';
     }
     return 'pdf';
   };
 
+  // Extrair extensão original do arquivo
+  const getFileExtension = (url: string): string => {
+    const cleanUrl = url.split('?')[0]; // Remove query params
+    return cleanUrl.split('.').pop()?.toLowerCase() || 'jpg';
+  };
+
   // Extrair path relativo do Storage a partir da URL
   const extractStoragePath = (url: string): string | null => {
-    const match = url.match(/\/salesperson-invoices\/(.+)$/);
+    const cleanUrl = url.split('?')[0]; // Remove query params
+    const match = cleanUrl.match(/\/salesperson-invoices\/(.+)$/);
     return match ? match[1] : null;
   };
 
   // Gerar URL assinada temporária (1 hora)
-  const generateSignedUrl = async (invoiceUrl: string) => {
+  const generateSignedUrl = useCallback(async (invoiceUrl: string) => {
     setLoadingSignedUrl(true);
+    setSignedUrlError(false);
     try {
       const path = extractStoragePath(invoiceUrl);
       if (!path) {
         console.error('Caminho inválido:', invoiceUrl);
+        setSignedUrlError(true);
         return;
       }
       
@@ -107,6 +118,7 @@ export function PayoutApprovalDialog({
       setSignedInvoiceUrl(data.signedUrl);
     } catch (error) {
       console.error('Erro ao gerar URL assinada:', error);
+      setSignedUrlError(true);
       toast({
         title: "Erro ao carregar NF",
         description: "Não foi possível gerar URL de acesso",
@@ -115,7 +127,7 @@ export function PayoutApprovalDialog({
     } finally {
       setLoadingSignedUrl(false);
     }
-  };
+  }, [toast]);
 
   // Gerar URL assinada quando o dialog abrir
   useEffect(() => {
@@ -124,34 +136,41 @@ export function PayoutApprovalDialog({
     }
     if (!open) {
       setSignedInvoiceUrl(null);
+      setSignedUrlError(false);
     }
-  }, [open, payout.invoice_url, isPJ]);
+  }, [open, payout.invoice_url, isPJ, generateSignedUrl]);
 
   // Download de arquivo usando URL assinada
   const handleDownloadFile = async () => {
-    if (!signedInvoiceUrl) return;
+    if (!signedInvoiceUrl || !payout.invoice_url) return;
+    
+    const fileName = payout.invoice_number || payout.id.substring(0, 8);
+    const extension = getFileExtension(payout.invoice_url);
     
     try {
       const response = await fetch(signedInvoiceUrl);
+      if (!response.ok) throw new Error('Falha no download');
+      
       const blob = await response.blob();
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = downloadUrl;
-      link.download = `NF-${payout.invoice_number}.${invoiceFileType === 'image' ? 'jpg' : 'pdf'}`;
+      link.download = `NF-${fileName}.${extension}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(downloadUrl);
       toast({
         title: "Download iniciado",
-        description: `Baixando NF #${payout.invoice_number}`,
+        description: `Baixando NF #${fileName}`,
       });
     } catch (error) {
       console.error('Erro no download:', error);
+      // Fallback: abrir em nova aba para download manual
+      window.open(signedInvoiceUrl, '_blank');
       toast({
-        title: "Erro no download",
-        description: "Não foi possível baixar o arquivo",
-        variant: "destructive",
+        title: "Download alternativo",
+        description: "A NF foi aberta em nova aba para download manual",
       });
     }
   };
@@ -427,24 +446,42 @@ export function PayoutApprovalDialog({
                     </div>
                   )}
                   
+                  {/* Erro ao carregar URL assinada */}
+                  {!loadingSignedUrl && signedUrlError && (
+                    <Alert variant="destructive">
+                      <AlertTriangle className="h-4 w-4" />
+                      <AlertDescription className="flex items-center justify-between">
+                        <span>Não foi possível carregar a nota fiscal.</span>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => payout.invoice_url && generateSignedUrl(payout.invoice_url)}
+                        >
+                          <RefreshCw className="w-4 h-4 mr-1" />
+                          Tentar novamente
+                        </Button>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  
                   {/* Preview para imagens */}
-                  {!loadingSignedUrl && invoiceFileType === 'image' && signedInvoiceUrl && (
+                  {!loadingSignedUrl && !signedUrlError && invoiceFileType === 'image' && signedInvoiceUrl && (
                     <div className="border rounded-lg overflow-hidden bg-muted/30">
                       <img 
                         src={signedInvoiceUrl} 
-                        alt={`NF #${payout.invoice_number}`}
+                        alt={`NF #${payout.invoice_number || payout.id.substring(0, 8)}`}
                         className="max-h-[300px] w-auto mx-auto object-contain"
                       />
                     </div>
                   )}
                   
                   {/* Preview para PDF */}
-                  {!loadingSignedUrl && invoiceFileType === 'pdf' && signedInvoiceUrl && (
+                  {!loadingSignedUrl && !signedUrlError && invoiceFileType === 'pdf' && signedInvoiceUrl && (
                     <div className="border rounded-lg overflow-hidden bg-muted/30">
                       <iframe 
                         src={`${signedInvoiceUrl}#view=FitH`}
                         className="w-full h-[300px] border-0"
-                        title={`NF #${payout.invoice_number}`}
+                        title={`NF #${payout.invoice_number || payout.id.substring(0, 8)}`}
                       />
                     </div>
                   )}
@@ -454,7 +491,7 @@ export function PayoutApprovalDialog({
                     variant="outline" 
                     className="w-full"
                     onClick={handleDownloadFile}
-                    disabled={!signedInvoiceUrl || loadingSignedUrl}
+                    disabled={!signedInvoiceUrl || loadingSignedUrl || signedUrlError}
                   >
                     <Download className="w-4 h-4 mr-2" />
                     {invoiceFileType === 'image' ? 'Baixar Imagem' : 'Baixar PDF'}

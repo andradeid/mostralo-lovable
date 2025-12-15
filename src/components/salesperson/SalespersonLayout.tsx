@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { UserProfileHeader } from "@/components/admin/UserProfileHeader";
 import { SalespersonBlockedPage } from "@/pages/salesperson/SalespersonBlockedPage";
+import { SalespersonContractReAcceptModal } from "./SalespersonContractReAcceptModal";
+import { useSalespersonContractReAccept } from "@/hooks/useSalespersonContractReAccept";
 
 interface SalespersonLayoutProps {
   children: ReactNode;
@@ -21,6 +23,14 @@ export function SalespersonLayout({ children }: SalespersonLayoutProps) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [salespersonData, setSalespersonData] = useState<SalespersonData | null>(null);
+  
+  // Hook para verificar re-aceite de contrato
+  const { 
+    needsReAccept, 
+    isLoading: contractLoading, 
+    currentVersion, 
+    acceptContract 
+  } = useSalespersonContractReAccept();
 
   useEffect(() => {
     const checkSalespersonStatus = async () => {
@@ -63,7 +73,8 @@ export function SalespersonLayout({ children }: SalespersonLayoutProps) {
     }
   };
 
-  if (loading) {
+  // Loading combinado
+  if (loading || contractLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse text-muted-foreground">Carregando...</div>
@@ -77,6 +88,17 @@ export function SalespersonLayout({ children }: SalespersonLayoutProps) {
       <SalespersonBlockedPage
         blockedReason={salespersonData.blocked_reason}
         blockedAt={salespersonData.blocked_at}
+      />
+    );
+  }
+
+  // Se precisa re-aceitar contrato (apenas para Parceiros PJ)
+  if (needsReAccept && currentVersion) {
+    return (
+      <SalespersonContractReAcceptModal
+        open={true}
+        currentVersion={currentVersion}
+        onAccept={acceptContract}
       />
     );
   }

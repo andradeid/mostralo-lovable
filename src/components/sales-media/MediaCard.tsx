@@ -84,20 +84,28 @@ export function MediaCard({
   const [copying, setCopying] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const blobUrlRef = useRef<string | null>(null);
 
-  // Cleanup do áudio e blob URL ao desmontar
+  // Web Audio API refs para contornar restrições de segurança do navegador
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
+  const audioBufferRef = useRef<AudioBuffer | null>(null);
+  const startTimeRef = useRef<number>(0);
+  const pauseTimeRef = useRef<number>(0);
+
+  // Cleanup da Web Audio API ao desmontar
   useEffect(() => {
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
+      if (audioSourceRef.current) {
+        try {
+          audioSourceRef.current.stop();
+        } catch (e) {
+          // Ignorar erro se já parou
+        }
+        audioSourceRef.current = null;
       }
-      // Limpar blob URL para evitar memory leak
-      if (blobUrlRef.current) {
-        URL.revokeObjectURL(blobUrlRef.current);
-        blobUrlRef.current = null;
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+        audioContextRef.current = null;
       }
     };
   }, []);
@@ -106,67 +114,61 @@ export function MediaCard({
     e.stopPropagation();
     
     try {
-      if (!audioRef.current) {
+      // Inicializar AudioContext se necessário
+      if (!audioContextRef.current) {
+        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
+
+      // Carregar áudio se ainda não foi carregado
+      if (!audioBufferRef.current) {
         setIsLoading(true);
-        console.log('Carregando áudio via fetch:', media.file_url);
+        console.log('Carregando áudio via Web Audio API:', media.file_url);
         
-        // Fazer fetch do arquivo de áudio
         const response = await fetch(media.file_url);
         
         if (!response.ok) {
           throw new Error(`Erro ao buscar áudio: ${response.status}`);
         }
         
-        // Converter para blob
-        const blob = await response.blob();
-        console.log('Blob criado:', blob.type, blob.size);
+        const arrayBuffer = await response.arrayBuffer();
+        console.log('ArrayBuffer carregado:', arrayBuffer.byteLength, 'bytes');
         
-        // Criar URL local a partir do blob
-        const blobUrl = URL.createObjectURL(blob);
-        blobUrlRef.current = blobUrl;
-        console.log('Blob URL criado:', blobUrl);
+        // Decodificar o áudio
+        audioBufferRef.current = await audioContextRef.current.decodeAudioData(arrayBuffer);
+        console.log('Áudio decodificado:', audioBufferRef.current.duration, 'segundos');
         
-        // Criar elemento Audio com URL local (confiável pelo navegador)
-        audioRef.current = new Audio(blobUrl);
-        
-        audioRef.current.onended = () => {
-          console.log('Áudio finalizado');
-          setIsPlaying(false);
-        };
-        
-        audioRef.current.oncanplaythrough = () => {
-          console.log('Áudio pronto para reproduzir');
-          setIsLoading(false);
-        };
-        
-        audioRef.current.onerror = () => {
-          const error = audioRef.current?.error;
-          console.error('Erro ao carregar áudio:', {
-            code: error?.code,
-            message: error?.message
-          });
-          
-          toast.error("Erro ao carregar áudio", {
-            action: {
-              label: "Abrir",
-              onClick: () => window.open(media.file_url, '_blank')
-            }
-          });
-          
-          setIsPlaying(false);
-          setIsLoading(false);
-        };
-        
-        audioRef.current.load();
+        setIsLoading(false);
       }
       
       if (isPlaying) {
+        // Pausar
         console.log('Pausando áudio');
-        audioRef.current.pause();
+        if (audioSourceRef.current) {
+          pauseTimeRef.current = audioContextRef.current!.currentTime - startTimeRef.current;
+          audioSourceRef.current.stop();
+          audioSourceRef.current = null;
+        }
         setIsPlaying(false);
       } else {
+        // Reproduzir
         console.log('Iniciando reprodução');
-        await audioRef.current.play();
+        
+        // Criar novo source node (necessário a cada play)
+        audioSourceRef.current = audioContextRef.current!.createBufferSource();
+        audioSourceRef.current.buffer = audioBufferRef.current;
+        audioSourceRef.current.connect(audioContextRef.current!.destination);
+        
+        audioSourceRef.current.onended = () => {
+          console.log('Áudio finalizado');
+          setIsPlaying(false);
+          pauseTimeRef.current = 0;
+        };
+        
+        // Retomar do ponto onde parou
+        const offset = pauseTimeRef.current || 0;
+        startTimeRef.current = audioContextRef.current!.currentTime - offset;
+        audioSourceRef.current.start(0, offset);
+        
         console.log('Reprodução iniciada com sucesso');
         setIsPlaying(true);
       }

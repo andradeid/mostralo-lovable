@@ -36,6 +36,7 @@ const PLACEHOLDERS = [
   { key: "{vendedor_cnpj}", description: "CNPJ do vendedor" },
   { key: "{comissao_percentual}", description: "Percentual de comissão" },
   { key: "{tabela_bonus}", description: "Tabela de bônus do banco" },
+  { key: "{faixas_manutencao}", description: "Faixas de manutenção de carteira" },
   { key: "{data_aceite}", description: "Data/hora do aceite" },
   { key: "{ip_aceite}", description: "IP do aceite" },
   { key: "{hash_verificacao}", description: "Hash de verificação" },

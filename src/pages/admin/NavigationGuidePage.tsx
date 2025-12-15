@@ -140,6 +140,8 @@ const routeSections: RouteSection[] = [
       { path: "/dashboard/prospecting", name: "Guia de Prospecção", component: "ProspectingGuidePage.tsx", roles: ["master_admin"] },
       { path: "/dashboard/onboarding-guide", name: "Guia de Cadastro", component: "OnboardingGuidePage.tsx", roles: ["master_admin"] },
       { path: "/dashboard/material-divulgacao", name: "Material de Divulgação", component: "MarketingMaterialPage.tsx", roles: ["master_admin"] },
+      { path: "/dashboard/salespeople/activity-rules", name: "Regras de Atividade", component: "SalespersonActivityRulesPage.tsx", roles: ["master_admin"] },
+      { path: "/dashboard/salespeople/contract", name: "Editar Contrato PJ", component: "ContractTemplateEditPage.tsx", roles: ["master_admin"] },
     ]
   },
   {

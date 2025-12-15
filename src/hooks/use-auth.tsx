@@ -10,6 +10,8 @@ interface Profile {
   user_type: 'master_admin' | 'store_admin';
   avatar_url?: string;
   approval_status?: string | null;
+  accepted_terms_version?: string | null;
+  terms_accepted_at?: string | null;
 }
 
 interface AuthContextType {

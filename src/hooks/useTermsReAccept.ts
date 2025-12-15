@@ -96,6 +96,24 @@ export const useTermsReAccept = () => {
       const hashArray = Array.from(new Uint8Array(hashBuffer));
       const verificationHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
+      // Verificar se já existe aceite para esta versão (evitar duplicação)
+      const { data: existingAcceptance } = await supabase
+        .from('merchant_contract_acceptance')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('contract_version', state.currentVersion)
+        .maybeSingle();
+
+      if (existingAcceptance) {
+        console.log('Aceite já existe para esta versão, atualizando estado local');
+        setState(prev => ({
+          ...prev,
+          needsReAccept: false,
+          userVersion: state.currentVersion,
+        }));
+        return true;
+      }
+
       // Registrar aceite em merchant_contract_acceptance
       const { error: acceptError } = await supabase
         .from('merchant_contract_acceptance')

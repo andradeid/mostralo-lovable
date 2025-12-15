@@ -11,9 +11,10 @@ interface ContractVerification {
   id: string;
   version: string;
   accepted_at: string;
-  salesperson_name: string | null;
-  salesperson_cnpj: string | null;
+  holder_name: string | null;
+  holder_document: string | null;
   ip_address: string | null;
+  contract_type: 'merchant' | 'salesperson';
 }
 
 export default function VerifyContractPage() {
@@ -37,22 +38,62 @@ export default function VerifyContractPage() {
     try {
       setLoading(true);
       
-      const { data, error: fetchError } = await supabase
-        .from("salesperson_contracts")
-        .select("id, version, accepted_at, salesperson_name, salesperson_cnpj, ip_address")
+      // Primeiro, buscar em merchant_contract_acceptance (lojistas)
+      const { data: merchantData, error: merchantError } = await supabase
+        .from("merchant_contract_acceptance")
+        .select("id, contract_version, accepted_at, ip_address, user_id")
         .eq("verification_hash", hash)
-        .single();
+        .maybeSingle();
 
-      if (fetchError) {
-        if (fetchError.code === "PGRST116") {
-          setError("Contrato não encontrado ou hash inválido");
-        } else {
-          throw fetchError;
-        }
+      if (merchantData) {
+        // Buscar dados do profile para exibir nome
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("full_name, email")
+          .eq("id", merchantData.user_id)
+          .maybeSingle();
+
+        // Buscar dados da loja se existir
+        const { data: storeData } = await supabase
+          .from("stores")
+          .select("responsible_cpf, name")
+          .eq("owner_id", merchantData.user_id)
+          .maybeSingle();
+
+        setContract({
+          id: merchantData.id,
+          version: merchantData.contract_version,
+          accepted_at: merchantData.accepted_at,
+          holder_name: profileData?.full_name || storeData?.name || null,
+          holder_document: storeData?.responsible_cpf || null,
+          ip_address: merchantData.ip_address,
+          contract_type: 'merchant'
+        });
         return;
       }
 
-      setContract(data);
+      // Se não encontrou em merchant, buscar em salesperson_contracts
+      const { data: salespersonData, error: salespersonError } = await supabase
+        .from("salesperson_contracts")
+        .select("id, version, accepted_at, salesperson_name, salesperson_cnpj, ip_address")
+        .eq("verification_hash", hash)
+        .maybeSingle();
+
+      if (salespersonData) {
+        setContract({
+          id: salespersonData.id,
+          version: salespersonData.version,
+          accepted_at: salespersonData.accepted_at,
+          holder_name: salespersonData.salesperson_name,
+          holder_document: salespersonData.salesperson_cnpj,
+          ip_address: salespersonData.ip_address,
+          contract_type: 'salesperson'
+        });
+        return;
+      }
+
+      // Não encontrou em nenhuma tabela
+      setError("Contrato não encontrado ou hash inválido");
     } catch (err: any) {
       console.error("Erro ao verificar:", err);
       setError(err.message || "Erro ao verificar contrato");
@@ -61,9 +102,14 @@ export default function VerifyContractPage() {
     }
   };
 
-  const maskCnpj = (cnpj: string | null) => {
-    if (!cnpj) return "***";
-    return cnpj.replace(/^(\d{2})\.\d{3}\.\d{3}\/\d{4}-(\d{2})$/, "$1.***.***/**** -$2");
+  const maskDocument = (doc: string | null) => {
+    if (!doc) return "***";
+    // Tentar mascarar como CNPJ
+    if (doc.length >= 14) {
+      return doc.replace(/^(\d{2})[\d.\/\-]+(\d{2})$/, "$1.***.***/**** -$2");
+    }
+    // CPF ou outro documento
+    return doc.substring(0, 3) + "***" + doc.substring(doc.length - 2);
   };
 
   const maskName = (name: string | null) => {
@@ -71,6 +117,10 @@ export default function VerifyContractPage() {
     const parts = name.split(" ");
     if (parts.length === 1) return `${parts[0].charAt(0)}***`;
     return `${parts[0]} ***`;
+  };
+
+  const getContractTypeLabel = (type: 'merchant' | 'salesperson') => {
+    return type === 'merchant' ? 'Lojista' : 'Vendedor PJ';
   };
 
   return (
@@ -139,16 +189,23 @@ export default function VerifyContractPage() {
                   </div>
 
                   <div className="flex items-center justify-between py-2 border-b">
+                    <span className="text-sm text-muted-foreground">Tipo</span>
+                    <Badge variant="outline">
+                      {getContractTypeLabel(contract.contract_type)}
+                    </Badge>
+                  </div>
+
+                  <div className="flex items-center justify-between py-2 border-b">
                     <span className="text-sm text-muted-foreground">Contratado</span>
                     <span className="font-medium">
-                      {maskName(contract.salesperson_name)}
+                      {maskName(contract.holder_name)}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between py-2 border-b">
-                    <span className="text-sm text-muted-foreground">CNPJ</span>
+                    <span className="text-sm text-muted-foreground">Documento</span>
                     <span className="font-mono text-sm">
-                      {maskCnpj(contract.salesperson_cnpj)}
+                      {maskDocument(contract.holder_document)}
                     </span>
                   </div>
 

@@ -123,6 +123,8 @@ export default function SalespeoplePayoutsPage() {
 
   const filteredPayouts = payouts.filter(p => {
     switch (activeTab) {
+      case 'pending':
+        return p.status === 'pending';
       case 'requested':
         return p.status === 'requested';
       case 'approved':
@@ -138,6 +140,10 @@ export default function SalespeoplePayoutsPage() {
 
   // Estatísticas
   const stats = {
+    pending: payouts.filter(p => p.status === 'pending').length,
+    totalPending: payouts
+      .filter(p => p.status === 'pending')
+      .reduce((sum, p) => sum + Number(p.grand_total), 0),
     requested: payouts.filter(p => p.status === 'requested').length,
     totalRequested: payouts
       .filter(p => p.status === 'requested')
@@ -184,8 +190,21 @@ export default function SalespeoplePayoutsPage() {
       </div>
 
       {/* Cards de resumo */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card className="border-slate-200 dark:border-slate-700">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
+            <Clock className="h-4 w-4 text-slate-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-slate-600 dark:text-slate-400">{stats.pending}</div>
+            <p className="text-xs text-muted-foreground">
+              R$ {stats.totalPending.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} • Aguarda vendedor
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-amber-200 dark:border-amber-800">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Aguardando Aprovação</CardTitle>
             <Clock className="h-4 w-4 text-amber-500" />
@@ -193,7 +212,7 @@ export default function SalespeoplePayoutsPage() {
           <CardContent>
             <div className="text-2xl font-bold text-amber-600">{stats.requested}</div>
             <p className="text-xs text-muted-foreground">
-              R$ {stats.totalRequested.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} total
+              R$ {stats.totalRequested.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} • Sua ação
             </p>
           </CardContent>
         </Card>
@@ -215,7 +234,7 @@ export default function SalespeoplePayoutsPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Solicitações</CardTitle>
+            <CardTitle className="text-sm font-medium">Total de Payouts</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -235,7 +254,15 @@ export default function SalespeoplePayoutsPage() {
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
+              <TabsTrigger value="pending" className="relative">
+                Pendentes
+                {stats.pending > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-slate-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {stats.pending}
+                  </span>
+                )}
+              </TabsTrigger>
               <TabsTrigger value="requested" className="relative">
                 Solicitados
                 {stats.requested > 0 && (

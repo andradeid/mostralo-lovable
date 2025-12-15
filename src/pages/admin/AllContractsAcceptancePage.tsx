@@ -58,18 +58,49 @@ const AllContractsAcceptancePage = () => {
 
   const fetchData = async () => {
     try {
-      // Fetch merchant contract acceptances
+      // Fetch merchant contract acceptances (sem embedding - busca separada)
       const { data: merchantData, error: merchantError } = await supabase
         .from('merchant_contract_acceptance')
-        .select(`
-          *,
-          profile:profiles!merchant_contract_acceptance_user_id_fkey (full_name, email),
-          store:stores!merchant_contract_acceptance_store_id_fkey (name)
-        `)
+        .select('*')
         .order('accepted_at', { ascending: false });
 
       if (merchantError) throw merchantError;
-      setMerchantAcceptances((merchantData || []) as unknown as MerchantAcceptance[]);
+
+      // Buscar profiles separadamente
+      let enrichedMerchantData: MerchantAcceptance[] = [];
+      if (merchantData && merchantData.length > 0) {
+        const userIds = merchantData.map(m => m.user_id).filter(Boolean);
+        const storeIds = merchantData.map(m => m.store_id).filter(Boolean);
+
+        // Buscar profiles
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .in('id', userIds);
+
+        // Buscar stores
+        let stores: { id: string; name: string }[] = [];
+        if (storeIds.length > 0) {
+          const { data: storesData } = await supabase.from('stores').select('id, name').in('id', storeIds);
+          stores = storesData || [];
+        }
+
+        // Mapear por ID
+        const profileMap = new Map<string, { id: string; full_name: string | null; email: string | null }>();
+        profiles?.forEach(p => profileMap.set(p.id, p));
+        
+        const storeMap = new Map<string, { id: string; name: string }>();
+        stores.forEach(s => storeMap.set(s.id, s));
+
+        // Enriquecer os dados
+        enrichedMerchantData = merchantData.map(m => ({
+          ...m,
+          profile: profileMap.get(m.user_id) || null,
+          store: m.store_id ? storeMap.get(m.store_id) || null : null
+        })) as MerchantAcceptance[];
+      }
+
+      setMerchantAcceptances(enrichedMerchantData);
 
       // Fetch salesperson contracts
       const { data: salespersonData, error: salespersonError } = await supabase
@@ -83,8 +114,8 @@ const AllContractsAcceptancePage = () => {
       if (salespersonError) throw salespersonError;
       setSalespersonContracts((salespersonData || []) as unknown as SalespersonContract[]);
 
-      if (merchantData && merchantData.length > 0) {
-        setSelectedMerchant(merchantData[0] as unknown as MerchantAcceptance);
+      if (enrichedMerchantData.length > 0) {
+        setSelectedMerchant(enrichedMerchantData[0]);
       }
     } catch (error) {
       console.error('Error fetching contract data:', error);

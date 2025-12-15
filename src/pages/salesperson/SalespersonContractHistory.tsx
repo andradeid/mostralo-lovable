@@ -3,16 +3,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { 
   FileText, 
-  QrCode, 
   Loader2, 
   CheckCircle2, 
   Calendar, 
   Globe, 
   Monitor,
   Shield,
-  ExternalLink
+  ExternalLink,
+  AlertCircle,
+  RefreshCw
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -55,6 +57,8 @@ export default function SalespersonContractHistory() {
   const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
   const [template, setTemplate] = useState<ContractTemplate | null>(null);
   const [loadingTemplate, setLoadingTemplate] = useState(false);
+  const [activeTemplateVersion, setActiveTemplateVersion] = useState<string | null>(null);
+  const [acceptingContract, setAcceptingContract] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -72,6 +76,15 @@ export default function SalespersonContractHistory() {
   const fetchSalespersonAndContracts = async () => {
     try {
       setLoading(true);
+      
+      // Buscar versão ativa do template
+      const { data: activeTemplate } = await supabase
+        .from("salesperson_contract_templates")
+        .select("version")
+        .eq("is_active", true)
+        .single();
+      
+      setActiveTemplateVersion(activeTemplate?.version || null);
       
       const { data: salesperson, error: spError } = await supabase
         .from("salespeople")
@@ -91,6 +104,7 @@ export default function SalespersonContractHistory() {
 
       setContracts(contractsData || []);
     } catch (error: any) {
+      console.error("Erro ao buscar contratos:", error);
       toast({
         title: "Erro",
         description: error.message,
@@ -98,6 +112,45 @@ export default function SalespersonContractHistory() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const hasNewVersionAvailable = () => {
+    if (!activeTemplateVersion || contracts.length === 0) return false;
+    return !contracts.some(c => c.version === activeTemplateVersion);
+  };
+
+  const handleAcceptNewVersion = async () => {
+    try {
+      setAcceptingContract(true);
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Sessão expirada");
+
+      const response = await supabase.functions.invoke("accept-salesperson-contract", {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (response.error) throw response.error;
+      if (!response.data?.success) throw new Error(response.data?.error || "Erro ao aceitar contrato");
+
+      toast({
+        title: "Sucesso!",
+        description: "Nova versão do contrato aceita com sucesso",
+      });
+
+      // Recarregar contratos
+      fetchSalespersonAndContracts();
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setAcceptingContract(false);
     }
   };
 
@@ -194,12 +247,48 @@ export default function SalespersonContractHistory() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Histórico de Contratos</h1>
-        <p className="text-muted-foreground">
-          Visualize e baixe os contratos que você aceitou
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Histórico de Contratos</h1>
+          <p className="text-muted-foreground">
+            Visualize e baixe os contratos que você aceitou
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={fetchSalespersonAndContracts}
+          disabled={loading}
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+          Atualizar
+        </Button>
       </div>
+
+      {/* Alerta de nova versão disponível */}
+      {hasNewVersionAvailable() && (
+        <Alert className="border-primary/50 bg-primary/5">
+          <AlertCircle className="h-4 w-4 text-primary" />
+          <AlertTitle className="text-primary">Nova versão disponível!</AlertTitle>
+          <AlertDescription className="flex items-center justify-between mt-2">
+            <span>
+              Uma nova versão do contrato (v{activeTemplateVersion}) está disponível para aceite.
+            </span>
+            <Button
+              size="sm"
+              onClick={handleAcceptNewVersion}
+              disabled={acceptingContract}
+            >
+              {acceptingContract ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+              )}
+              Aceitar Nova Versão
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {contracts.length === 0 ? (
         <Card>

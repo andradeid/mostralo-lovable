@@ -2,11 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, FileText, Shield, AlertTriangle } from 'lucide-react';
+import { Loader2, FileText, Shield, AlertTriangle, ChevronDown } from 'lucide-react';
 
 interface ContractAcceptances {
   termsAccepted: boolean;
@@ -64,10 +64,20 @@ const ContractAcceptanceStep = ({
   };
 
   const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
-    const target = event.target as HTMLDivElement;
+    const target = event.currentTarget;
     const scrollPercentage = (target.scrollTop + target.clientHeight) / target.scrollHeight;
-    if (scrollPercentage > 0.95) {
+    // Threshold reduzido para 85% para facilitar detecção no mobile
+    if (scrollPercentage > 0.85) {
       setHasScrolledToEnd(true);
+    }
+  };
+
+  const scrollToEnd = () => {
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTo({
+        top: scrollAreaRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
     }
   };
 
@@ -108,20 +118,31 @@ const ContractAcceptanceStep = ({
       {contract && (
         <Card>
           <CardContent className="p-0">
-            <ScrollArea 
-              className="h-[300px] p-4"
-              onScrollCapture={handleScroll}
+            {/* Usando div nativa em vez de ScrollArea para melhor compatibilidade mobile */}
+            <div 
+              ref={scrollAreaRef}
+              onScroll={handleScroll}
+              className="h-[180px] sm:h-[250px] md:h-[320px] overflow-y-auto p-4 scroll-smooth"
             >
-              <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap text-sm">
+              <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap text-sm pb-8">
                 {contract.content}
               </div>
-            </ScrollArea>
+            </div>
             {!hasScrolledToEnd && (
-              <div className="px-4 py-2 bg-amber-50 dark:bg-amber-950/20 border-t border-amber-200 dark:border-amber-900">
+              <div className="px-4 py-3 bg-amber-50 dark:bg-amber-950/20 border-t border-amber-200 dark:border-amber-900 flex items-center justify-between gap-2">
                 <p className="text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4" />
-                  Role até o final do contrato para habilitar os aceites
+                  <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+                  <span>Role até o final para habilitar os aceites</span>
                 </p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={scrollToEnd}
+                  className="text-xs whitespace-nowrap flex-shrink-0 h-7 px-2"
+                >
+                  <ChevronDown className="h-3 w-3 mr-1" />
+                  Ir ao final
+                </Button>
               </div>
             )}
           </CardContent>

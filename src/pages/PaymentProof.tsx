@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,7 @@ const PaymentProof = () => {
   const [approval, setApproval] = useState<PaymentApproval | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -366,27 +367,29 @@ const PaymentProof = () => {
 
               {!approval?.payment_proof_url && (
                 <div className="space-y-4">
-                  <Label
-                    htmlFor="file-upload"
-                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted"
+                  {/* Input oculto com ref para controle programático */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    className="sr-only"
+                    accept="image/jpeg,image/jpg,image/png,image/webp,application/pdf"
+                    capture="environment"
+                    onChange={handleFileSelect}
+                  />
+                  
+                  {/* Área clicável para selecionar arquivo */}
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted active:bg-muted/80 transition-colors"
                   >
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">
-                        <span className="font-semibold">Clique para selecionar</span> ou arraste
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        PNG, JPG, WEBP ou PDF (max. 5MB)
-                      </p>
-                    </div>
-                    <input
-                      id="file-upload"
-                      type="file"
-                      className="hidden"
-                      accept="image/jpeg,image/jpg,image/png,image/webp,application/pdf"
-                      onChange={handleFileSelect}
-                    />
-                  </Label>
+                    <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground text-center px-4">
+                      <span className="font-semibold">Toque para selecionar</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      PNG, JPG, WEBP ou PDF (max. 5MB)
+                    </p>
+                  </div>
 
                   {selectedFile && (
                     <div className="flex items-center justify-between p-3 rounded-md bg-muted">

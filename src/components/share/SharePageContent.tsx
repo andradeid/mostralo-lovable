@@ -96,42 +96,42 @@ export function SharePageContent({
   const showDownloadButtons = selectedTemplate !== 'whatsapp';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold">Material de Divulgação</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl md:text-3xl font-bold">Material de Divulgação</h1>
+        <p className="text-sm md:text-base text-muted-foreground">
           Imprima e distribua para seus leads
         </p>
       </div>
 
       {/* Links com QR Code */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <QrCode className="h-5 w-5" />
+        <CardHeader className="pb-2 md:pb-4">
+          <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+            <QrCode className="h-4 w-4 md:h-5 md:w-5" />
             Seus Links de Referência
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-xs md:text-sm">
             QR Codes e links prontos para usar
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="p-4 rounded-lg bg-muted/50 border">
+        <CardContent className="pt-0">
+          <div className="grid md:grid-cols-2 gap-3 md:gap-6">
+            <div className="p-3 md:p-4 rounded-lg bg-muted/50 border">
               <QRCodeDisplay
                 url={homepageLink}
                 label="🏠 Página Inicial"
                 description="Mostra planos e benefícios"
-                size={150}
+                size={100}
               />
             </div>
-            <div className="p-4 rounded-lg bg-muted/50 border">
+            <div className="p-3 md:p-4 rounded-lg bg-muted/50 border">
               <QRCodeDisplay
                 url={signupLink}
                 label="📝 Cadastro Direto"
                 description="Vai direto para o formulário"
-                size={150}
+                size={100}
               />
             </div>
           </div>
@@ -140,27 +140,29 @@ export function SharePageContent({
 
       {/* Personalização */}
       <Card className="no-print">
-        <CardHeader>
-          <CardTitle>Personalização (Opcional)</CardTitle>
-          <CardDescription>
+        <CardHeader className="pb-2 md:pb-4">
+          <CardTitle className="text-base md:text-lg">Personalização (Opcional)</CardTitle>
+          <CardDescription className="text-xs md:text-sm">
             Adicione suas informações ao material
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="sellerName">Seu Nome</Label>
+        <CardContent className="pt-0">
+          <div className="grid md:grid-cols-2 gap-3 md:gap-4">
+            <div className="space-y-1 md:space-y-2">
+              <Label htmlFor="sellerName" className="text-xs md:text-sm">Seu Nome</Label>
               <Input
                 id="sellerName"
+                className="h-9 md:h-10 text-sm"
                 value={sellerName}
                 onChange={(e) => setSellerName(e.target.value)}
                 placeholder="Ex: João Silva"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="sellerPhone">Seu Telefone</Label>
+            <div className="space-y-1 md:space-y-2">
+              <Label htmlFor="sellerPhone" className="text-xs md:text-sm">Seu Telefone</Label>
               <Input
                 id="sellerPhone"
+                className="h-9 md:h-10 text-sm"
                 value={sellerPhone}
                 onChange={(e) => setSellerPhone(e.target.value)}
                 placeholder="Ex: (11) 99999-9999"
@@ -172,44 +174,44 @@ export function SharePageContent({
 
       {/* Templates */}
       <Card>
-        <CardHeader className="no-print">
-          <CardTitle>Escolha o Modelo</CardTitle>
-          <CardDescription>
+        <CardHeader className="no-print pb-2 md:pb-4">
+          <CardTitle className="text-base md:text-lg">Escolha o Modelo</CardTitle>
+          <CardDescription className="text-xs md:text-sm">
             Selecione o formato ideal para sua divulgação
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs value={selectedTemplate} onValueChange={setSelectedTemplate} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-6 no-print">
-              <TabsTrigger value="flyer" className="flex items-center gap-1 text-xs sm:text-sm">
+          <Tabs value={selectedTemplate} onValueChange={setSelectedTemplate} className="space-y-4 md:space-y-6">
+            <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 h-auto gap-1 no-print">
+              <TabsTrigger value="flyer" className="flex flex-col md:flex-row items-center gap-0.5 md:gap-1 text-[10px] md:text-sm py-2 md:py-1.5 px-1 md:px-3">
                 <FileText className="h-4 w-4" />
-                <span className="hidden sm:inline">Flyer</span>
+                <span>Flyer</span>
               </TabsTrigger>
-              <TabsTrigger value="card" className="flex items-center gap-1 text-xs sm:text-sm">
+              <TabsTrigger value="card" className="flex flex-col md:flex-row items-center gap-0.5 md:gap-1 text-[10px] md:text-sm py-2 md:py-1.5 px-1 md:px-3">
                 <CreditCard className="h-4 w-4" />
-                <span className="hidden sm:inline">Cartões</span>
+                <span>Cartões</span>
               </TabsTrigger>
-              <TabsTrigger value="mini" className="flex items-center gap-1 text-xs sm:text-sm">
+              <TabsTrigger value="mini" className="flex flex-col md:flex-row items-center gap-0.5 md:gap-1 text-[10px] md:text-sm py-2 md:py-1.5 px-1 md:px-3">
                 <QrCode className="h-4 w-4" />
-                <span className="hidden sm:inline">Mini QR</span>
+                <span>Mini QR</span>
               </TabsTrigger>
-              <TabsTrigger value="presentation" className="flex items-center gap-1 text-xs sm:text-sm">
+              <TabsTrigger value="presentation" className="flex flex-col md:flex-row items-center gap-0.5 md:gap-1 text-[10px] md:text-sm py-2 md:py-1.5 px-1 md:px-3">
                 <Presentation className="h-4 w-4" />
-                <span className="hidden sm:inline">Apresentação</span>
+                <span>Apresentação</span>
               </TabsTrigger>
-              <TabsTrigger value="whatsapp" className="flex items-center gap-1 text-xs sm:text-sm">
+              <TabsTrigger value="whatsapp" className="flex flex-col md:flex-row items-center gap-0.5 md:gap-1 text-[10px] md:text-sm py-2 md:py-1.5 px-1 md:px-3">
                 <MessageSquare className="h-4 w-4" />
-                <span className="hidden sm:inline">WhatsApp</span>
+                <span>WhatsApp</span>
               </TabsTrigger>
-              <TabsTrigger value="story" className="flex items-center gap-1 text-xs sm:text-sm">
+              <TabsTrigger value="story" className="flex flex-col md:flex-row items-center gap-0.5 md:gap-1 text-[10px] md:text-sm py-2 md:py-1.5 px-1 md:px-3">
                 <Instagram className="h-4 w-4" />
-                <span className="hidden sm:inline">Story</span>
+                <span>Story</span>
               </TabsTrigger>
             </TabsList>
 
             {/* Botões de Download - logo após tabs (exceto WhatsApp que tem seus próprios botões) */}
             {showDownloadButtons && getCurrentRef() && (
-              <div className="flex justify-center gap-4 no-print">
+              <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-4 no-print">
                 <DownloadButtons
                   targetRef={getCurrentRef()!}
                   filename={getFilename()}
@@ -290,19 +292,19 @@ export function SharePageContent({
 
       {/* Dicas */}
       <Card className="no-print">
-        <CardHeader>
-          <CardTitle>💡 Dicas de Uso</CardTitle>
+        <CardHeader className="pb-2 md:pb-4">
+          <CardTitle className="text-base md:text-lg">💡 Dicas de Uso</CardTitle>
         </CardHeader>
-        <CardContent>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>📄 <strong>Flyer:</strong> Ideal para panfletagem rápida (A5)</li>
-            <li>💳 <strong>Cartões:</strong> Perfeito para entrega pessoal e networking</li>
-            <li>🏷️ <strong>Mini QR:</strong> Recorte e cole em mesas, vitrines e sacolas</li>
-            <li>📊 <strong>Apresentação:</strong> Ideal para reuniões e impressão frente/verso</li>
-            <li>💬 <strong>WhatsApp:</strong> 7 imagens com WhatsApp Marketing para carrossel</li>
-            <li>📱 <strong>Story:</strong> Compartilhe no Instagram e WhatsApp Status</li>
-            <li>🖨️ Use papel de qualidade para melhor resultado na impressão</li>
-            <li className="text-[#25D366] font-medium">🎯 <strong>Destaque:</strong> WhatsApp Marketing é um diferencial exclusivo! 23% dos clientes inativos voltam a comprar.</li>
+        <CardContent className="pt-0">
+          <ul className="space-y-1.5 md:space-y-2 text-xs md:text-sm text-muted-foreground">
+            <li>📄 <strong>Flyer:</strong> Ideal para panfletagem (A5)</li>
+            <li>💳 <strong>Cartões:</strong> Para entrega pessoal</li>
+            <li>🏷️ <strong>Mini QR:</strong> Cole em mesas e vitrines</li>
+            <li>📊 <strong>Apresentação:</strong> Para reuniões</li>
+            <li>💬 <strong>WhatsApp:</strong> 7 imagens para carrossel</li>
+            <li>📱 <strong>Story:</strong> Instagram e WhatsApp Status</li>
+            <li>🖨️ Use papel de qualidade</li>
+            <li className="text-[#25D366] font-medium">🎯 <strong>Destaque:</strong> WhatsApp Marketing = 23% clientes voltam!</li>
           </ul>
         </CardContent>
       </Card>

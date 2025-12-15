@@ -3228,6 +3228,101 @@ export type Database = {
           },
         ]
       }
+      salesperson_commissions: {
+        Row: {
+          applies_to: string
+          commission_amount: number
+          commission_fixed_amount: number | null
+          commission_percentage: number | null
+          commission_type: string
+          created_at: string | null
+          id: string
+          paid_at: string | null
+          paid_by: string | null
+          payment_amount: number
+          payment_approval_id: string
+          payment_reference: string | null
+          payment_sequence: number | null
+          plan_name: string | null
+          salesperson_id: string
+          status: string
+          store_id: string | null
+          store_name: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          applies_to: string
+          commission_amount: number
+          commission_fixed_amount?: number | null
+          commission_percentage?: number | null
+          commission_type: string
+          created_at?: string | null
+          id?: string
+          paid_at?: string | null
+          paid_by?: string | null
+          payment_amount: number
+          payment_approval_id: string
+          payment_reference?: string | null
+          payment_sequence?: number | null
+          plan_name?: string | null
+          salesperson_id: string
+          status?: string
+          store_id?: string | null
+          store_name?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          applies_to?: string
+          commission_amount?: number
+          commission_fixed_amount?: number | null
+          commission_percentage?: number | null
+          commission_type?: string
+          created_at?: string | null
+          id?: string
+          paid_at?: string | null
+          paid_by?: string | null
+          payment_amount?: number
+          payment_approval_id?: string
+          payment_reference?: string | null
+          payment_sequence?: number | null
+          plan_name?: string | null
+          salesperson_id?: string
+          status?: string
+          store_id?: string | null
+          store_name?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salesperson_commissions_payment_approval_id_fkey"
+            columns: ["payment_approval_id"]
+            isOneToOne: false
+            referencedRelation: "payment_approvals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "salesperson_commissions_salesperson_id_fkey"
+            columns: ["salesperson_id"]
+            isOneToOne: false
+            referencedRelation: "salespeople"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "salesperson_commissions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "salesperson_commissions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       salesperson_contract_templates: {
         Row: {
           company_address: string | null

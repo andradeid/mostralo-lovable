@@ -14,7 +14,8 @@ import {
   FileText,
   File,
   ToggleLeft,
-  ToggleRight
+  ToggleRight,
+  GripVertical
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -33,6 +34,8 @@ interface MediaCardProps {
     is_active: boolean;
   };
   isAdmin?: boolean;
+  dragHandleProps?: any;
+  isDragging?: boolean;
   onEdit?: (media: any) => void;
   onDelete?: (id: string) => void;
   onToggleActive?: (id: string, isActive: boolean) => void;
@@ -68,7 +71,9 @@ const formatFileSize = (bytes?: number) => {
 
 export function MediaCard({ 
   media, 
-  isAdmin = false, 
+  isAdmin = false,
+  dragHandleProps,
+  isDragging = false,
   onEdit, 
   onDelete, 
   onToggleActive,
@@ -132,9 +137,19 @@ export function MediaCard({
   };
 
   return (
-    <Card className={`overflow-hidden transition-all hover:shadow-lg ${!media.is_active && isAdmin ? 'opacity-60' : ''}`}>
+    <Card className={`overflow-hidden transition-all hover:shadow-lg ${!media.is_active && isAdmin ? 'opacity-60' : ''} ${isDragging ? 'ring-2 ring-primary shadow-xl scale-105' : ''}`}>
       <div className="relative">
         {getThumbnail()}
+        
+        {/* Drag handle (admin only) */}
+        {isAdmin && dragHandleProps && (
+          <div 
+            {...dragHandleProps}
+            className="absolute top-2 right-2 cursor-grab active:cursor-grabbing bg-background/80 rounded p-1 z-10"
+          >
+            <GripVertical className="h-4 w-4 text-muted-foreground" />
+          </div>
+        )}
         
         {/* Category badge */}
         <Badge className={`absolute top-2 left-2 ${getCategoryColor(media.category)}`}>
@@ -143,7 +158,7 @@ export function MediaCard({
         
         {/* Active status (admin only) */}
         {isAdmin && !media.is_active && (
-          <Badge variant="destructive" className="absolute top-2 right-2">
+          <Badge variant="destructive" className="absolute top-10 right-2">
             Inativo
           </Badge>
         )}

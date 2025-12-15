@@ -69,79 +69,80 @@ export default function SalespersonProfile() {
   const cnpjData = salesperson?.cnpj_validation_data;
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-4 md:space-y-6 max-w-2xl">
         <div>
-          <h1 className="text-3xl font-bold">Meu Perfil</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl md:text-3xl font-bold">Meu Perfil</h1>
+          <p className="text-sm md:text-base text-muted-foreground">
             Gerencie suas informações pessoais
           </p>
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Informações Pessoais</CardTitle>
-            <CardDescription>Seus dados cadastrais</CardDescription>
+          <CardHeader className="pb-2 md:pb-4">
+            <CardTitle className="text-base md:text-lg">Informações Pessoais</CardTitle>
+            <CardDescription className="text-xs md:text-sm">Seus dados cadastrais</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-2">
-              <Label>Nome Completo</Label>
-              <Input value={salesperson?.full_name || ""} disabled />
+          <CardContent className="space-y-3 md:space-y-4">
+            <div className="grid gap-1 md:gap-2">
+              <Label className="text-xs md:text-sm">Nome Completo</Label>
+              <Input value={salesperson?.full_name || ""} disabled className="h-9 md:h-10 text-sm" />
             </div>
 
-            <div className="grid gap-2">
-              <Label>Email</Label>
-              <Input value={salesperson?.email || ""} disabled />
+            <div className="grid gap-1 md:gap-2">
+              <Label className="text-xs md:text-sm">Email</Label>
+              <Input value={salesperson?.email || ""} disabled className="h-9 md:h-10 text-sm" />
             </div>
 
-            <div className="grid gap-2">
-              <Label>Telefone</Label>
-              <Input value={salesperson?.phone || ""} disabled />
+            <div className="grid gap-1 md:gap-2">
+              <Label className="text-xs md:text-sm">Telefone</Label>
+              <Input value={salesperson?.phone || ""} disabled className="h-9 md:h-10 text-sm" />
             </div>
 
-            <div className="grid gap-2">
-              <Label>Código de Referência</Label>
+            <div className="grid gap-1 md:gap-2">
+              <Label className="text-xs md:text-sm">Código de Referência</Label>
               <Input 
                 value={salesperson?.referral_code || ""} 
                 disabled 
-                className="font-mono"
+                className="font-mono h-9 md:h-10 text-sm"
               />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Dados do CNPJ</CardTitle>
-            <CardDescription>Informações da Receita Federal</CardDescription>
+          <CardHeader className="pb-2 md:pb-4">
+            <CardTitle className="text-base md:text-lg">Dados do CNPJ</CardTitle>
+            <CardDescription className="text-xs md:text-sm">Informações da Receita Federal</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-2">
-              <Label>CNPJ</Label>
-              <Input value={salesperson?.cnpj || ""} disabled />
+          <CardContent className="space-y-3 md:space-y-4">
+            <div className="grid gap-1 md:gap-2">
+              <Label className="text-xs md:text-sm">CNPJ</Label>
+              <Input value={salesperson?.cnpj || ""} disabled className="h-9 md:h-10 text-sm" />
             </div>
 
             {cnpjData && (
               <>
-                <div className="grid gap-2">
-                  <Label>Razão Social</Label>
-                  <Input value={cnpjData.razao_social || ""} disabled />
+                <div className="grid gap-1 md:gap-2">
+                  <Label className="text-xs md:text-sm">Razão Social</Label>
+                  <Input value={cnpjData.razao_social || ""} disabled className="h-9 md:h-10 text-sm" />
                 </div>
 
-                <div className="grid gap-2">
-                  <Label>Nome Fantasia</Label>
-                  <Input value={cnpjData.nome_fantasia || ""} disabled />
+                <div className="grid gap-1 md:gap-2">
+                  <Label className="text-xs md:text-sm">Nome Fantasia</Label>
+                  <Input value={cnpjData.nome_fantasia || ""} disabled className="h-9 md:h-10 text-sm" />
                 </div>
 
-                <div className="grid gap-2">
-                  <Label>Situação Cadastral</Label>
-                  <Input value={cnpjData.situacao_cadastral || ""} disabled />
+                <div className="grid gap-1 md:gap-2">
+                  <Label className="text-xs md:text-sm">Situação Cadastral</Label>
+                  <Input value={cnpjData.situacao_cadastral || ""} disabled className="h-9 md:h-10 text-sm" />
                 </div>
 
-                <div className="grid gap-2">
-                  <Label>CNAEs</Label>
+                <div className="grid gap-1 md:gap-2">
+                  <Label className="text-xs md:text-sm">CNAEs</Label>
                   <Input 
                     value={salesperson?.cnae_codes?.join(', ') || ""} 
                     disabled 
+                    className="h-9 md:h-10 text-sm"
                   />
                 </div>
               </>
@@ -150,26 +151,28 @@ export default function SalespersonProfile() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Chave PIX para Pagamentos</CardTitle>
-            <CardDescription>
+          <CardHeader className="pb-2 md:pb-4">
+            <CardTitle className="text-base md:text-lg">Chave PIX para Pagamentos</CardTitle>
+            <CardDescription className="text-xs md:text-sm">
               Informe sua chave PIX para receber as comissões
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="pix-key">Chave PIX</Label>
+          <CardContent className="space-y-3 md:space-y-4">
+            <div className="grid gap-1 md:gap-2">
+              <Label htmlFor="pix-key" className="text-xs md:text-sm">Chave PIX</Label>
               <Input
                 id="pix-key"
                 value={pixKey}
                 onChange={(e) => setPixKey(e.target.value)}
-                placeholder="Digite sua chave PIX (CPF, CNPJ, email, telefone ou chave aleatória)"
+                placeholder="CPF, CNPJ, email, telefone ou chave aleatória"
+                className="h-9 md:h-10 text-sm"
               />
             </div>
 
             <Button
               onClick={handleSavePixKey}
               disabled={saving || !pixKey}
+              className="w-full md:w-auto"
             >
               {saving ? 'Salvando...' : 'Salvar Chave PIX'}
             </Button>

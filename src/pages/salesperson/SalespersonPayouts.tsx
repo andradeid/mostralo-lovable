@@ -129,14 +129,14 @@ export default function SalespersonPayouts() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Meus Pagamentos</h1>
-        <p className="text-muted-foreground">Gerencie suas comissões e solicite pagamentos</p>
+        <h1 className="text-xl md:text-2xl font-bold">Meus Pagamentos</h1>
+        <p className="text-sm md:text-base text-muted-foreground">Gerencie suas comissões e solicite pagamentos</p>
       </div>
 
       {/* Badge do tipo */}
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {isAffiliate ? (
           <Badge variant="outline" className="border-blue-500 text-blue-600">
             👤 Afiliado (CPF)
@@ -157,7 +157,7 @@ export default function SalespersonPayouts() {
       {isAffiliate && (
         <Alert className={limitReached ? "border-red-500 bg-red-50" : "border-amber-500 bg-amber-50"}>
           <AlertTriangle className={`h-4 w-4 ${limitReached ? "text-red-600" : "text-amber-600"}`} />
-          <AlertDescription className={limitReached ? "text-red-700" : "text-amber-700"}>
+          <AlertDescription className={`text-xs md:text-sm ${limitReached ? "text-red-700" : "text-amber-700"}`}>
             {limitReached ? (
               <>
                 <strong>Limite mensal atingido!</strong> Você atingiu o limite de R$ {monthlyLimit.toLocaleString('pt-BR')}/mês. 
@@ -174,47 +174,47 @@ export default function SalespersonPayouts() {
       )}
 
       {/* Cards de resumo */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Disponível para Saque</CardTitle>
-            <Wallet className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 pt-3 px-3 md:pt-6 md:px-6">
+            <CardTitle className="text-xs md:text-sm font-medium">Disponível</CardTitle>
+            <Wallet className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+          <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
+            <div className="text-lg md:text-2xl font-bold text-green-600">
               R$ {availableToRequest.reduce((sum, p) => sum + Number(p.grand_total), 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </div>
-            <p className="text-xs text-muted-foreground">
-              {availableToRequest.length} período(s) disponível(is)
+            <p className="text-[10px] md:text-xs text-muted-foreground">
+              {availableToRequest.length} período(s)
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Solicitado/Pendente</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 pt-3 px-3 md:pt-6 md:px-6">
+            <CardTitle className="text-xs md:text-sm font-medium">Pendente</CardTitle>
+            <Clock className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-amber-600">
+          <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
+            <div className="text-lg md:text-2xl font-bold text-amber-600">
               R$ {totalPending.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Aguardando aprovação
+            <p className="text-[10px] md:text-xs text-muted-foreground">
+              Aguardando
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Recebido</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+        <Card className="col-span-2 md:col-span-1">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 pt-3 px-3 md:pt-6 md:px-6">
+            <CardTitle className="text-xs md:text-sm font-medium">Total Recebido</CardTitle>
+            <TrendingUp className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
+            <div className="text-lg md:text-2xl font-bold">
               R$ {totalPaid.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[10px] md:text-xs text-muted-foreground">
               Desde o início
             </p>
           </CardContent>
@@ -223,24 +223,23 @@ export default function SalespersonPayouts() {
 
       {/* Instruções por tipo */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Como Funciona</CardTitle>
+        <CardHeader className="pb-2 md:pb-4">
+          <CardTitle className="text-base md:text-lg">Como Funciona</CardTitle>
         </CardHeader>
         <CardContent>
           {isAffiliate ? (
-            <div className="space-y-2 text-sm">
+            <div className="space-y-1 md:space-y-2 text-xs md:text-sm">
               <p>✅ <strong>Sem nota fiscal:</strong> Como afiliado, você não precisa emitir NF</p>
-              <p>⚠️ <strong>Limite mensal:</strong> R$ {monthlyLimit.toLocaleString('pt-BR')}/mês (legislação brasileira)</p>
-              <p>💳 <strong>Pagamento via PIX:</strong> Diretamente na sua conta cadastrada</p>
-              <p>📅 <strong>Prazo:</strong> Até 5 dias úteis após aprovação</p>
+              <p>⚠️ <strong>Limite mensal:</strong> R$ {monthlyLimit.toLocaleString('pt-BR')}/mês</p>
+              <p>💳 <strong>Pagamento via PIX:</strong> Direto na sua conta</p>
+              <p>📅 <strong>Prazo:</strong> Até 5 dias úteis</p>
             </div>
           ) : (
-            <div className="space-y-2 text-sm">
-              <p>📄 <strong>Nota fiscal obrigatória:</strong> Anexe a NF ao solicitar pagamento</p>
-              <p>♾️ <strong>Sem limite:</strong> Receba valores ilimitados</p>
+            <div className="space-y-1 md:space-y-2 text-xs md:text-sm">
+              <p>📄 <strong>Nota fiscal obrigatória:</strong> Anexe a NF ao solicitar</p>
+              <p>♾️ <strong>Sem limite:</strong> Valores ilimitados</p>
               <p>🏆 <strong>Bônus:</strong> Elegível para bônus trimestrais</p>
               <p>💳 <strong>Pagamento via PIX:</strong> Após verificação da NF</p>
-              <p>📅 <strong>Prazo:</strong> Até 5 dias úteis após aprovação da NF</p>
             </div>
           )}
         </CardContent>
@@ -248,80 +247,79 @@ export default function SalespersonPayouts() {
 
       {/* Lista de pagamentos */}
       <Card>
-        <CardHeader>
-          <CardTitle>Histórico de Pagamentos</CardTitle>
-          <CardDescription>Todos os seus períodos de comissão</CardDescription>
+        <CardHeader className="pb-2 md:pb-4">
+          <CardTitle className="text-base md:text-lg">Histórico de Pagamentos</CardTitle>
+          <CardDescription className="text-xs md:text-sm">Todos os seus períodos de comissão</CardDescription>
         </CardHeader>
         <CardContent>
           {payouts.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              <DollarSign className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p>Nenhum pagamento registrado ainda</p>
-              <p className="text-sm">Suas comissões aparecerão aqui quando você realizar vendas</p>
+              <DollarSign className="h-10 w-10 md:h-12 md:w-12 mx-auto mb-3 opacity-50" />
+              <p className="text-sm md:text-base">Nenhum pagamento registrado ainda</p>
+              <p className="text-xs md:text-sm">Suas comissões aparecerão aqui quando você realizar vendas</p>
             </div>
           ) : (
             <div className="space-y-3">
               {payouts.map((payout) => (
                 <div
                   key={payout.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex flex-col md:flex-row md:items-center justify-between p-3 md:p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                 >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">
+                  <div className="space-y-1 mb-3 md:mb-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium text-sm md:text-base">
                         {format(new Date(payout.cycle_year, payout.cycle_month - 1), 'MMMM yyyy', { locale: ptBR })}
                       </span>
                       {getStatusBadge(payout.status)}
                     </div>
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-xs md:text-sm text-muted-foreground">
                       {payout.total_sales} venda(s) • Comissão: R$ {Number(payout.commission_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       {Number(payout.bonus_total) > 0 && (
                         <> • Bônus: R$ {Number(payout.bonus_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</>
                       )}
                     </div>
                     {payout.status === 'rejected' && payout.rejection_reason && (
-                      <p className="text-sm text-red-600">Motivo: {payout.rejection_reason}</p>
+                      <p className="text-xs text-red-600">Motivo: {payout.rejection_reason}</p>
                     )}
                     {payout.paid_at && (
-                      <p className="text-sm text-green-600">
+                      <p className="text-xs text-green-600">
                         Pago em {format(new Date(payout.paid_at), "dd/MM/yyyy")}
                       </p>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <p className="font-bold text-lg">
-                        R$ {Number(payout.grand_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </p>
+                  <div className="flex items-center justify-between md:gap-3">
+                    <p className="font-bold text-base md:text-lg">
+                      R$ {Number(payout.grand_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+
+                    <div className="flex gap-2">
+                      {payout.status === 'pending' && (
+                        <Button
+                          size="sm"
+                          onClick={() => handleRequestPayout(payout)}
+                          disabled={!salesperson?.pix_key || (isAffiliate && limitReached)}
+                        >
+                          Solicitar
+                        </Button>
+                      )}
+
+                      {payout.invoice_url && (
+                        <Button variant="outline" size="sm" asChild>
+                          <a href={payout.invoice_url} target="_blank" rel="noopener noreferrer">
+                            <FileText className="w-4 h-4" />
+                          </a>
+                        </Button>
+                      )}
+
+                      {payout.payment_proof_url && (
+                        <Button variant="outline" size="sm" asChild>
+                          <a href={payout.payment_proof_url} target="_blank" rel="noopener noreferrer">
+                            <CheckCircle className="w-4 h-4" />
+                          </a>
+                        </Button>
+                      )}
                     </div>
-
-                    {payout.status === 'pending' && (
-                      <Button
-                        onClick={() => handleRequestPayout(payout)}
-                        disabled={!salesperson?.pix_key || (isAffiliate && limitReached)}
-                      >
-                        Solicitar
-                      </Button>
-                    )}
-
-                    {payout.invoice_url && (
-                      <Button variant="outline" size="sm" asChild>
-                        <a href={payout.invoice_url} target="_blank" rel="noopener noreferrer">
-                          <FileText className="w-4 h-4 mr-1" />
-                          NF
-                        </a>
-                      </Button>
-                    )}
-
-                    {payout.payment_proof_url && (
-                      <Button variant="outline" size="sm" asChild>
-                        <a href={payout.payment_proof_url} target="_blank" rel="noopener noreferrer">
-                          <CheckCircle className="w-4 h-4 mr-1" />
-                          Comprovante
-                        </a>
-                      </Button>
-                    )}
                   </div>
                 </div>
               ))}

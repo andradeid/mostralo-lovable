@@ -262,58 +262,58 @@ export default function SalespersonLeadsPage() {
       <LeadRemindersAlert onLeadClick={handleLeadClick} salespersonId={salespersonId || undefined} />
 
       {/* Estatísticas */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500/10 rounded-lg">
-                <Users className="w-5 h-5 text-blue-500" />
+          <CardContent className="pt-3 pb-3 px-3 md:pt-6 md:pb-6 md:px-6">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="p-1.5 md:p-2 bg-blue-500/10 rounded-lg">
+                <Users className="w-4 h-4 md:w-5 md:h-5 text-blue-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{stats.total}</p>
-                <p className="text-sm text-muted-foreground">Meus Leads</p>
+                <p className="text-lg md:text-2xl font-bold">{stats.total}</p>
+                <p className="text-[10px] md:text-sm text-muted-foreground">Meus Leads</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-500/10 rounded-lg">
-                <UserPlus className="w-5 h-5 text-green-500" />
+          <CardContent className="pt-3 pb-3 px-3 md:pt-6 md:pb-6 md:px-6">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="p-1.5 md:p-2 bg-green-500/10 rounded-lg">
+                <UserPlus className="w-4 h-4 md:w-5 md:h-5 text-green-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{stats.new}</p>
-                <p className="text-sm text-muted-foreground">Novos</p>
+                <p className="text-lg md:text-2xl font-bold">{stats.new}</p>
+                <p className="text-[10px] md:text-sm text-muted-foreground">Novos</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-500/10 rounded-lg">
-                <TrendingUp className="w-5 h-5 text-purple-500" />
+          <CardContent className="pt-3 pb-3 px-3 md:pt-6 md:pb-6 md:px-6">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="p-1.5 md:p-2 bg-purple-500/10 rounded-lg">
+                <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-purple-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{stats.conversionRate}%</p>
-                <p className="text-sm text-muted-foreground">Conversão</p>
+                <p className="text-lg md:text-2xl font-bold">{stats.conversionRate}%</p>
+                <p className="text-[10px] md:text-sm text-muted-foreground">Conversão</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-amber-500/10 rounded-lg">
-                <MessageSquare className="w-5 h-5 text-amber-500" />
+          <CardContent className="pt-3 pb-3 px-3 md:pt-6 md:pb-6 md:px-6">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="p-1.5 md:p-2 bg-amber-500/10 rounded-lg">
+                <MessageSquare className="w-4 h-4 md:w-5 md:h-5 text-amber-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{stats.converted}</p>
-                <p className="text-sm text-muted-foreground">Convertidos</p>
+                <p className="text-lg md:text-2xl font-bold">{stats.converted}</p>
+                <p className="text-[10px] md:text-sm text-muted-foreground">Convertidos</p>
               </div>
             </div>
           </CardContent>
@@ -322,36 +322,38 @@ export default function SalespersonLeadsPage() {
 
       {/* Tabela */}
       <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <CardTitle>Meus Leads</CardTitle>
-            <div className="flex flex-wrap gap-2">
+        <CardHeader className="pb-3 md:pb-6">
+          <div className="flex flex-col gap-3">
+            <CardTitle className="text-base md:text-lg">Meus Leads</CardTitle>
+            <div className="flex flex-col sm:flex-row gap-2">
               <Input
                 placeholder="Buscar..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-48"
+                className="w-full sm:w-48"
               />
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  {STATUS_OPTIONS.map(status => (
-                    <SelectItem key={status.value} value={status.value}>
-                      {status.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button variant="outline" size="icon" onClick={fetchLeads}>
-                <RefreshCw className="w-4 h-4" />
-              </Button>
-              <Button variant="outline" onClick={exportToCSV}>
-                <Download className="w-4 h-4 mr-2" />
-                Exportar
-              </Button>
+              <div className="flex gap-2 flex-wrap">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-full sm:w-32">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    {STATUS_OPTIONS.map(status => (
+                      <SelectItem key={status.value} value={status.value}>
+                        {status.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" size="icon" onClick={fetchLeads} className="shrink-0">
+                  <RefreshCw className="w-4 h-4" />
+                </Button>
+                <Button variant="outline" onClick={exportToCSV} className="flex-1 sm:flex-initial">
+                  <Download className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">Exportar</span>
+                </Button>
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -360,28 +362,129 @@ export default function SalespersonLeadsPage() {
             <div className="flex items-center justify-center py-8">
               <Loader2 className="w-6 h-6 animate-spin" />
             </div>
+          ) : filteredLeads.length === 0 ? (
+            <p className="text-center py-8 text-muted-foreground text-sm">
+              Nenhum lead encontrado
+            </p>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Empresa</TableHead>
-                    <TableHead>Contato</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredLeads.length === 0 ? (
+            <>
+              {/* Mobile: Cards compactos */}
+              <div className="md:hidden space-y-3">
+                {filteredLeads.map((lead) => (
+                  <div key={lead.id} className={`p-3 rounded-lg border bg-card w-[90%] mx-auto ${getRowClassName(lead.updated_at, lead.status)}`}>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span className="font-medium text-sm truncate">{lead.name}</span>
+                        <StaleLeadBadge updatedAt={lead.updated_at} status={lead.status} />
+                      </div>
+                      <Select
+                        value={lead.status}
+                        onValueChange={(value) => handleUpdateLeadStatus(lead.id, value)}
+                      >
+                        <SelectTrigger className="w-24 h-7 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {STATUS_OPTIONS.map(status => (
+                            <SelectItem key={status.value} value={status.value}>
+                              {status.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Building2 className="w-3 h-3" />{lead.company_name}
+                    </p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <MapPin className="w-3 h-3" />{lead.city}
+                    </p>
+                    <div className="flex justify-between items-center mt-2 pt-2 border-t">
+                      <div className="text-xs space-y-0.5">
+                        <p className="flex items-center gap-1"><Phone className="w-3 h-3" />{lead.phone}</p>
+                        <p className="flex items-center gap-1 text-muted-foreground truncate max-w-[150px]"><Mail className="w-3 h-3" />{lead.email}</p>
+                      </div>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => {
+                              setSelectedLead(lead);
+                              setLeadNotes(lead.notes || '');
+                            }}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Detalhes do Lead</DialogTitle>
+                            <DialogDescription>
+                              Visualize e adicione notas sobre este lead.
+                            </DialogDescription>
+                          </DialogHeader>
+                          {selectedLead && (
+                            <div className="space-y-4">
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <Label className="text-muted-foreground">Nome</Label>
+                                  <p className="font-medium">{selectedLead.name}</p>
+                                </div>
+                                <div>
+                                  <Label className="text-muted-foreground">Empresa</Label>
+                                  <p className="font-medium">{selectedLead.company_name}</p>
+                                </div>
+                                <div>
+                                  <Label className="text-muted-foreground">Email</Label>
+                                  <p className="font-medium">{selectedLead.email}</p>
+                                </div>
+                                <div>
+                                  <Label className="text-muted-foreground">Telefone</Label>
+                                  <p className="font-medium">{selectedLead.phone}</p>
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Anotações</Label>
+                                <Textarea
+                                  value={leadNotes}
+                                  onChange={(e) => setLeadNotes(e.target.value)}
+                                  placeholder="Adicione suas observações..."
+                                  rows={4}
+                                />
+                              </div>
+                              <Button onClick={handleSaveNotes} disabled={updatingLead} className="w-full">
+                                {updatingLead ? (
+                                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                ) : (
+                                  <Save className="w-4 h-4 mr-2" />
+                                )}
+                                Salvar Notas
+                              </Button>
+                            </div>
+                          )}
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop: Tabela original */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                        Nenhum lead encontrado
-                      </TableCell>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>Empresa</TableHead>
+                      <TableHead>Contato</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Ações</TableHead>
                     </TableRow>
-                  ) : (
-                    filteredLeads.map((lead) => (
+                  </TableHeader>
+                  <TableBody>
+                    {filteredLeads.map((lead) => (
                       <TableRow key={lead.id} className={getRowClassName(lead.updated_at, lead.status)}>
                         <TableCell>
                           <div>
@@ -514,11 +617,11 @@ export default function SalespersonLeadsPage() {
                           </Dialog>
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

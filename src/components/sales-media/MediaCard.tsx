@@ -104,10 +104,8 @@ export function MediaCard({
         setIsLoading(true);
         console.log('Criando elemento de áudio:', media.file_url);
         
-        // Criar elemento Audio com CORS habilitado para funcionar em qualquer domínio
-        audioRef.current = new Audio();
-        audioRef.current.crossOrigin = "anonymous";
-        audioRef.current.src = media.file_url;
+        // Criar elemento Audio sem crossOrigin - não é necessário para reprodução simples
+        audioRef.current = new Audio(media.file_url);
         
         audioRef.current.onended = () => {
           console.log('Áudio finalizado');

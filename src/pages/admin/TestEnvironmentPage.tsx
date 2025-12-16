@@ -281,60 +281,58 @@ export default function TestEnvironmentPage() {
   const hasInstance = !!config?.test_instance_name;
 
   return (
-    <div className="container mx-auto p-4 md:p-6 space-y-6">
+    <div className="container mx-auto p-4 md:p-6 space-y-4 sm:space-y-6">
       <div className="flex items-center gap-3">
-        <FlaskConical className="h-8 w-8 text-primary" />
+        <FlaskConical className="h-6 sm:h-8 w-6 sm:w-8 text-primary" />
         <div>
-          <h1 className="text-2xl font-bold">Ambiente de Testes</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-xl sm:text-2xl font-bold">Ambiente de Testes</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Teste o Bot IA antes de liberar para lojistas
           </p>
         </div>
       </div>
 
       <Tabs defaultValue="docs" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="docs" className="gap-2">
-            <BookOpen className="h-4 w-4" />
-            <span className="hidden sm:inline">Como Funciona</span>
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 h-auto gap-1">
+          <TabsTrigger value="docs" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3">
+            <BookOpen className="h-4 w-4 shrink-0" />
+            <span className="truncate">Docs</span>
           </TabsTrigger>
-          <TabsTrigger value="instance" className="gap-2">
-            <Smartphone className="h-4 w-4" />
-            <span className="hidden sm:inline">Instância</span>
+          <TabsTrigger value="instance" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3">
+            <Smartphone className="h-4 w-4 shrink-0" />
+            <span className="truncate">Instância</span>
           </TabsTrigger>
-          <TabsTrigger value="sandbox" className="gap-2">
-            <Store className="h-4 w-4" />
-            <span className="hidden sm:inline">Loja Sandbox</span>
+          <TabsTrigger value="sandbox" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3">
+            <Store className="h-4 w-4 shrink-0" />
+            <span className="truncate">Sandbox</span>
           </TabsTrigger>
-          <TabsTrigger value="bot" className="gap-2">
-            <Bot className="h-4 w-4" />
-            <span className="hidden sm:inline">Bot IA</span>
+          <TabsTrigger value="bot" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3">
+            <Bot className="h-4 w-4 shrink-0" />
+            <span className="truncate">Bot IA</span>
           </TabsTrigger>
-          <TabsTrigger value="logs" className="gap-2">
-            <FileText className="h-4 w-4" />
-            <span className="hidden sm:inline">Logs</span>
+          <TabsTrigger value="logs" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 px-2 sm:px-3 col-span-2 sm:col-span-1">
+            <FileText className="h-4 w-4 shrink-0" />
+            <span className="truncate">Logs</span>
           </TabsTrigger>
         </TabsList>
 
         {/* Tab: Documentação */}
         <TabsContent value="docs">
           <div className="grid gap-4 lg:grid-cols-2">
-            <div className="space-y-4">
-              <HowItWorksCard />
-            </div>
-            <div className="space-y-4">
-              <OpenAIConfigCard />
-              <TestPromptPreviewCard
-                storeName={storeName}
-                storeDescription={storeDescription}
-                products={products}
-                categories={categories}
-                whatsapp={config?.sandbox_whatsapp}
-                address={config?.sandbox_address}
-                onRefresh={fetchConfig}
-                loading={loading}
-              />
-            </div>
+            <OpenAIConfigCard />
+            <HowItWorksCard />
+          </div>
+          <div className="mt-4">
+            <TestPromptPreviewCard
+              storeName={storeName}
+              storeDescription={storeDescription}
+              products={products}
+              categories={categories}
+              whatsapp={config?.sandbox_whatsapp}
+              address={config?.sandbox_address}
+              onRefresh={fetchConfig}
+              loading={loading}
+            />
           </div>
         </TabsContent>
 

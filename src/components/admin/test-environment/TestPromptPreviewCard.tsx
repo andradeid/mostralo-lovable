@@ -131,20 +131,20 @@ ENCERRAMENTO:
   return (
     <Card>
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="text-base sm:text-lg flex items-center gap-2">
               📋 Preview do Prompt de Teste
             </CardTitle>
-            <CardDescription className="mt-1">
+            <CardDescription className="mt-1 text-xs sm:text-sm">
               Este é o prompt que será enviado à OpenAI via Evolution
             </CardDescription>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="font-normal">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge variant="secondary" className="font-normal text-xs">
               {products.length} produtos
             </Badge>
-            <Badge variant="secondary" className="font-normal">
+            <Badge variant="secondary" className="font-normal text-xs">
               {categories.length} categorias
             </Badge>
           </div>
@@ -152,8 +152,8 @@ ENCERRAMENTO:
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="relative">
-          <ScrollArea className={showFull ? 'h-[400px]' : 'h-[200px]'}>
-            <div className="text-sm font-mono bg-muted/50 p-4 rounded-lg border space-y-0">
+          <ScrollArea className={showFull ? 'h-[300px] sm:h-[400px]' : 'h-[150px] sm:h-[200px]'}>
+            <div className="text-xs sm:text-sm font-mono bg-muted/50 p-3 sm:p-4 rounded-lg border space-y-0">
               {formatPromptWithHighlights(prompt)}
             </div>
           </ScrollArea>
@@ -163,11 +163,12 @@ ENCERRAMENTO:
           )}
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowFull(!showFull)}
+            className="w-full sm:w-auto"
           >
             {showFull ? (
               <>
@@ -189,15 +190,17 @@ ENCERRAMENTO:
                 size="sm"
                 onClick={onRefresh}
                 disabled={loading}
+                className="flex-1 sm:flex-none"
               >
                 <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                Atualizar
+                <span className="hidden sm:inline">Atualizar</span>
               </Button>
             )}
             <Button
               variant="outline"
               size="sm"
               onClick={handleCopy}
+              className="flex-1 sm:flex-none"
             >
               {copied ? (
                 <Check className="h-4 w-4 mr-2 text-green-500" />

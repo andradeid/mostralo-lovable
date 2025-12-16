@@ -73,7 +73,9 @@ export function OpenAIConfigCard() {
   };
 
   const handleTestKey = async () => {
-    if (!apiKey.trim()) {
+    const testWithSavedKey = !apiKey.trim() && hasOpenAI;
+    
+    if (!apiKey.trim() && !hasOpenAI) {
       toast.error('Digite a chave da API');
       return;
     }
@@ -92,7 +94,8 @@ export function OpenAIConfigCard() {
           },
           body: JSON.stringify({
             action: 'test',
-            openaiApiKey: apiKey,
+            openaiApiKey: testWithSavedKey ? undefined : apiKey,
+            useSavedKey: testWithSavedKey,
           }),
         }
       );
@@ -336,7 +339,7 @@ export function OpenAIConfigCard() {
             variant="outline"
             size="sm"
             onClick={handleTestKey}
-            disabled={testingKey || (!apiKey.trim() && !isEditing)}
+            disabled={testingKey || (!apiKey.trim() && !hasOpenAI)}
             className="flex-1"
           >
             {testingKey ? (

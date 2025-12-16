@@ -69,6 +69,7 @@ import {
   BotPersonalityCard,
   BotTimezoneCard,
   BotTrainingExamplesCard,
+  BotGreetingPreviewCard,
 } from "@/components/admin/bot";
 
 interface Template {
@@ -1328,6 +1329,12 @@ export default function WhatsAppInstancePage() {
                     />
                   </div>
                 </div>
+
+                <BotGreetingPreviewCard
+                  storeName={storeName}
+                  storeSlug={storeSlug}
+                  isOpen={true}
+                />
 
                 <BotPromptPreviewCard
                   promptData={promptData}

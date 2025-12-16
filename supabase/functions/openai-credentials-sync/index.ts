@@ -184,11 +184,14 @@ serve(async (req) => {
     }
 
     if (action === 'save') {
-      // Apenas salvar no banco sem sincronizar
+      // Gerar um ID local se ainda não existir (para visual de "Conectado")
+      const credsId = evolutionConfig.openai_creds_id || crypto.randomUUID();
+      
       const { error: updateError } = await supabaseClient
         .from('evolution_config')
         .update({
           openai_api_key: openaiApiKey,
+          openai_creds_id: credsId,
           openai_default_model: model || 'gpt-4-turbo',
           openai_max_tokens: maxTokens || 1000,
           updated_at: new Date().toISOString(),
@@ -205,7 +208,7 @@ serve(async (req) => {
         });
       }
 
-      return new Response(JSON.stringify({ success: true, message: 'Configuração salva!' }), {
+      return new Response(JSON.stringify({ success: true, message: 'Configuração salva!', credsId }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }

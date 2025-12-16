@@ -876,6 +876,10 @@ serve(async (req) => {
         personalitySettings
       );
 
+      // Calcular storeLink para usar no assistantMessages (few-shot learning)
+      const baseUrl = getStoreBaseUrl(store, origin);
+      const storeLink = `${baseUrl}/loja/${store.slug}`;
+
       steps.push({
         step: 'prompt_generate',
         status: 'success',
@@ -909,14 +913,16 @@ serve(async (req) => {
         model: model,
         maxTokens: evolutionConfig.openai_max_tokens || 1000,
         systemMessages: [systemPrompt],
-        assistantMessages: [],
-        userMessages: [],
+        assistantMessages: [
+          `Olá! 👋 Seja bem-vindo(a) à ${store.name}! Como posso ajudar?\n\n📱 Confira nosso cardápio completo: ${storeLink}`
+        ],
+        userMessages: ['Oi', 'Olá', 'Boa tarde', 'Boa noite', 'Bom dia'],
         triggerType: config.triggerType || 'all',
         triggerOperator: config.triggerOperator || 'contains',
         triggerValue: config.triggerValue || '',
         expire: config.expireMinutes || 20,
         keywordFinish: config.keywordFinish || '#SAIR',
-        delayMessage: config.delayMessage || 1500,
+        delayMessage: config.delayMessage || 4000, // Aumentado para dar tempo ao WhatsApp gerar preview do link
         unknownMessage: config.unknownMessage || 'Desculpe, não entendi. Digite #SAIR para encerrar ou acesse nosso cardápio online.',
         listeningFromMe: config.listeningFromMe || false,
         stopBotFromMe: config.stopBotFromMe !== undefined ? config.stopBotFromMe : true,

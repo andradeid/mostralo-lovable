@@ -15,7 +15,7 @@ import {
   QrCode, Wifi, WifiOff, Plus, Trash2, RefreshCw,
   Play, Pause, Save, Loader2, Check, X, Settings2, BookOpen
 } from 'lucide-react';
-import { HowItWorksCard, TestPromptPreviewCard, OpenAIConfigCard } from '@/components/admin/test-environment';
+import { HowItWorksCard, TestPromptPreviewCard, OpenAIConfigCard, OperationProgressCard, type OperationStep } from '@/components/admin/test-environment';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -60,6 +60,8 @@ export default function TestEnvironmentPage() {
   const [loading, setLoading] = useState(true);
   const [config, setConfig] = useState<TestConfig | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [operationSteps, setOperationSteps] = useState<OperationStep[]>([]);
+  const [showProgress, setShowProgress] = useState(false);
   
   // Form states
   const [storeName, setStoreName] = useState('Pizzaria Teste');
@@ -173,6 +175,9 @@ export default function TestEnvironmentPage() {
     }
 
     setActionLoading('sync_bot');
+    setShowProgress(true);
+    setOperationSteps([{ step: 'init', status: 'running', message: 'Iniciando sincronização...' }]);
+    
     try {
       const { data, error } = await supabase.functions.invoke('master-test-bot-sync', {
         body: { 
@@ -193,6 +198,11 @@ export default function TestEnvironmentPage() {
 
       if (error) throw error;
       
+      // Atualizar steps com o resultado
+      if (data?.steps) {
+        setOperationSteps(data.steps);
+      }
+      
       if (data?.success) {
         toast.success('Bot de teste sincronizado!');
         await fetchConfig();
@@ -202,6 +212,7 @@ export default function TestEnvironmentPage() {
     } catch (error) {
       console.error('Erro:', error);
       toast.error('Erro ao sincronizar bot');
+      setOperationSteps(prev => [...prev, { step: 'error', status: 'error', message: 'Erro inesperado', details: String(error) }]);
     } finally {
       setActionLoading(null);
     }
@@ -664,6 +675,15 @@ export default function TestEnvironmentPage() {
                   )}
                   {config?.bot_evolution_id ? 'Atualizar Bot' : 'Criar Bot'}
                 </Button>
+
+                {/* Progresso da Operação */}
+                {showProgress && operationSteps.length > 0 && (
+                  <OperationProgressCard 
+                    title="Sincronização do Bot"
+                    steps={operationSteps}
+                    isRunning={actionLoading === 'sync_bot'}
+                  />
+                )}
 
                 {!hasInstance && (
                   <p className="text-sm text-amber-600 text-center">

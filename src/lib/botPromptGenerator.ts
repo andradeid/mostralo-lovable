@@ -30,7 +30,8 @@ export interface BotPromptData {
 export function generateBotPromptPreview(
   store: Store,
   products: Product[],
-  categories: Category[]
+  categories: Category[],
+  botName?: string
 ): BotPromptData {
   const availableProducts = products.filter(p => p.is_available);
   const activeCategories = categories.filter(c => c.is_active);
@@ -45,7 +46,11 @@ export function generateBotPromptPreview(
 
   const storeLink = `${window.location.origin}/loja/${store.slug}`;
 
-  const prompt = `Você é ${store.name ? `o assistente virtual da ${store.name}` : 'um assistente virtual de delivery'}.
+  const assistantName = botName || 'Assistente Virtual';
+
+  const prompt = `Você é ${assistantName}, o assistente virtual da ${store.name || 'loja'}.
+
+Quando o cliente perguntar seu nome, responda: "Meu nome é ${assistantName}! 😊"
 
 INFORMAÇÕES DA LOJA:
 - Nome: ${store.name || 'Loja'}

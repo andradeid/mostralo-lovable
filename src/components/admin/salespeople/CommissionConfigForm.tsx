@@ -96,34 +96,36 @@ export function CommissionConfigForm({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Configuração de Comissão</CardTitle>
-        <CardDescription>
-          Configure como este vendedor receberá comissões pelas vendas
+      <CardHeader className="p-4 md:p-6">
+        <CardTitle className="text-base md:text-lg">Configuração de Comissão</CardTitle>
+        <CardDescription className="text-xs md:text-sm">
+          Configure como este vendedor receberá comissões
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-3">
-            <Label>Tipo de Comissão</Label>
-            <RadioGroup value={commissionType} onValueChange={setCommissionType}>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="percentage" id="percentage" />
-                <Label htmlFor="percentage" className="font-normal cursor-pointer">
-                  Percentual sobre o valor da venda
+      <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
+        <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+          <div className="space-y-2 md:space-y-3">
+            <Label className="text-sm">Tipo de Comissão</Label>
+            <RadioGroup value={commissionType} onValueChange={setCommissionType} className="space-y-2">
+              <div className="flex items-start space-x-2">
+                <RadioGroupItem value="percentage" id="percentage" className="mt-0.5" />
+                <Label htmlFor="percentage" className="font-normal cursor-pointer text-xs md:text-sm leading-tight">
+                  <span className="md:hidden">% sobre o valor</span>
+                  <span className="hidden md:inline">Percentual sobre o valor da venda</span>
                 </Label>
               </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="fixed" id="fixed" />
-                <Label htmlFor="fixed" className="font-normal cursor-pointer">
-                  Valor fixo por venda
+              <div className="flex items-start space-x-2">
+                <RadioGroupItem value="fixed" id="fixed" className="mt-0.5" />
+                <Label htmlFor="fixed" className="font-normal cursor-pointer text-xs md:text-sm leading-tight">
+                  <span className="md:hidden">Valor fixo</span>
+                  <span className="hidden md:inline">Valor fixo por venda</span>
                 </Label>
               </div>
             </RadioGroup>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="commission-value">
+          <div className="space-y-1.5 md:space-y-2">
+            <Label htmlFor="commission-value" className="text-sm">
               {commissionType === "percentage" ? "Percentual (%)" : "Valor Fixo (R$)"}
             </Label>
             <Input
@@ -136,30 +138,34 @@ export function CommissionConfigForm({
               onChange={(e) => setCommissionValue(e.target.value)}
               placeholder={commissionType === "percentage" ? "Ex: 10" : "Ex: 50.00"}
               required
+              className="h-9 md:h-10 text-sm"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="applies-to">Aplica-se a</Label>
+          <div className="space-y-1.5 md:space-y-2">
+            <Label htmlFor="applies-to" className="text-sm">Aplica-se a</Label>
             <Select value={appliesTo} onValueChange={setAppliesTo}>
-              <SelectTrigger id="applies-to">
+              <SelectTrigger id="applies-to" className="h-9 md:h-10 text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="first_payment">
-                  Apenas primeiro pagamento
+                <SelectItem value="first_payment" className="text-xs md:text-sm">
+                  <span className="md:hidden">1º pagamento</span>
+                  <span className="hidden md:inline">Apenas primeiro pagamento</span>
                 </SelectItem>
-                <SelectItem value="recurring">
-                  Pagamentos recorrentes (mensal)
+                <SelectItem value="recurring" className="text-xs md:text-sm">
+                  <span className="md:hidden">Recorrente</span>
+                  <span className="hidden md:inline">Pagamentos recorrentes (mensal)</span>
                 </SelectItem>
-                <SelectItem value="all">
-                  Todos os pagamentos
+                <SelectItem value="all" className="text-xs md:text-sm">
+                  <span className="md:hidden">Todos</span>
+                  <span className="hidden md:inline">Todos os pagamentos</span>
                 </SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          <Button type="submit" disabled={loading} className="w-full">
+          <Button type="submit" disabled={loading} className="w-full h-9 md:h-10 text-sm">
             {loading ? "Salvando..." : "Salvar Configuração"}
           </Button>
         </form>

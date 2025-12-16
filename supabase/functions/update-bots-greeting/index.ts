@@ -1,5 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { 
+  getRandomGreeting, 
+  getPeriodFromHour, 
+  getSimpleGreeting,
+  getPeriodEmoji,
+  type Period 
+} from "./greeting-templates.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -95,8 +102,14 @@ function getNextOpeningTime(businessHours: any, timezone: string): string | null
   return null;
 }
 
-// Função para calcular saudação baseada no horário
-function getGreetingForTime(timezone: string): { greeting: string; currentTime: string; hour: number } {
+// Função para calcular saudação e período baseado no horário
+function getGreetingContext(timezone: string): { 
+  greeting: string; 
+  currentTime: string; 
+  hour: number; 
+  period: Period;
+  emoji: string;
+} {
   const now = new Date();
   const formatter = new Intl.DateTimeFormat('pt-BR', {
     timeZone: timezone,
@@ -107,13 +120,11 @@ function getGreetingForTime(timezone: string): { greeting: string; currentTime: 
 
   const currentTime = formatter.format(now);
   const hour = parseInt(currentTime.split(':')[0]);
+  const period = getPeriodFromHour(hour);
+  const greeting = getSimpleGreeting(hour);
+  const emoji = getPeriodEmoji(period);
 
-  let greeting = 'Olá';
-  if (hour >= 5 && hour < 12) greeting = 'Bom dia';
-  else if (hour >= 12 && hour < 18) greeting = 'Boa tarde';
-  else greeting = 'Boa noite';
-
-  return { greeting, currentTime, hour };
+  return { greeting, currentTime, hour, period, emoji };
 }
 
 serve(async (req) => {
@@ -219,7 +230,7 @@ serve(async (req) => {
 
       try {
         const timezone = store.timezone || 'America/Sao_Paulo';
-        const { greeting, currentTime, hour } = getGreetingForTime(timezone);
+        const { greeting, currentTime, hour, period, emoji } = getGreetingContext(timezone);
         const isOpen = isStoreOpenNow(store.business_hours, timezone);
         const nextOpening = !isOpen ? getNextOpeningTime(store.business_hours, timezone) : null;
 
@@ -244,19 +255,24 @@ serve(async (req) => {
           .eq('store_id', store.id)
           .eq('is_active', true);
 
-        // Gerar contexto de status atual
+        // Gerar contexto de status atual com instruções humanizadas
         const statusContext = `
 [CONTEXTO ATUAL - ${currentTime} (${timezone})]
 - Horário da loja: ${currentTime}
+- Período do dia: ${period} ${emoji}
 - Saudação apropriada: "${greeting}"
 - STATUS: ${isOpen ? '✅ ABERTO AGORA' : `❌ FECHADO${nextOpening ? ` - Abre ${nextOpening}` : ''}`}
 ${!isOpen && nextOpening ? `- Próxima abertura: ${nextOpening}` : ''}
 
-INSTRUÇÕES DE STATUS:
-- Se cliente perguntar se está aberto: Responda "${isOpen ? 'Sim, estamos abertos!' : `No momento estamos fechados. ${nextOpening ? `Abrimos ${nextOpening}.` : ''}`}"
+INSTRUÇÕES DE STATUS (responda de forma natural e acolhedora):
+${isOpen 
+  ? `- Quando perguntarem se está aberto: Confirme de forma amigável que está funcionando, sem usar frases robóticas como "Sim, estamos abertos!"
+- Seja acolhedor e convide para ver o cardápio`
+  : `- Quando perguntarem se está aberto: Informe de forma gentil que está fechado${nextOpening ? ` e mencione que abrirá ${nextOpening}` : ''}
+- Ofereça o cardápio para o cliente já ir escolhendo: ${storeLink}`}
 - NUNCA diga que está aberto se o STATUS mostrar FECHADO
 - Use a saudação "${greeting}" nas interações
-- Mesmo fechado, ofereça o cardápio: "Enquanto isso, confira nosso cardápio: ${storeLink}"`;
+- ${period === 'madrugada' ? 'De madrugada, seja especialmente acolhedor com quem está acordado nesse horário!' : ''}`;
 
         // Montar systemPrompt atualizado (simplificado para o CRON)
         const productList = (products || [])
@@ -268,10 +284,14 @@ INSTRUÇÕES DE STATUS:
         // Atualizar bot na Evolution API
         const botId = botConfig.evolution_bot_id;
         
-        // Montar saudação dinâmica para few-shot
-        const dynamicGreeting = isOpen
-          ? `${greeting}! 👋 Estamos abertos e prontos para atender! Seja bem-vindo(a) à ${store.name}!\n\n📱 Confira nosso cardápio: ${storeLink}`
-          : `${greeting}! 👋 No momento estamos fechados${nextOpening ? `, mas abrimos ${nextOpening}` : ''}. Seja bem-vindo(a) à ${store.name}!\n\n📱 Enquanto isso, confira nosso cardápio: ${storeLink}`;
+        // Usar sistema de templates humanizados (60 variações)
+        const dynamicGreeting = getRandomGreeting(
+          period,
+          isOpen,
+          store.name,
+          storeLink,
+          nextOpening
+        );
 
         // Payload de atualização
         const updatePayload = {
@@ -364,11 +384,12 @@ INSTRUÇÕES:
               .eq('id', botConfig.id);
           }
 
-          console.log(`✅ Bot atualizado: ${store.name} | ${greeting} | ${isOpen ? 'ABERTO' : 'FECHADO'}`);
+          console.log(`✅ Bot atualizado: ${store.name} | ${period} ${emoji} | ${greeting} | ${isOpen ? 'ABERTO' : 'FECHADO'}`);
           results.push({
             store: store.name,
             success: true,
             greeting,
+            period,
             isOpen,
             currentTime,
             nextOpening

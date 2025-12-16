@@ -4229,6 +4229,7 @@ export type Database = {
           status: Database["public"]["Enums"]["store_status"]
           subscription_expires_at: string | null
           theme_colors: Json | null
+          timezone: string | null
           updated_at: string
           website: string | null
           whatsapp: string | null
@@ -4278,6 +4279,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["store_status"]
           subscription_expires_at?: string | null
           theme_colors?: Json | null
+          timezone?: string | null
           updated_at?: string
           website?: string | null
           whatsapp?: string | null
@@ -4327,6 +4329,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["store_status"]
           subscription_expires_at?: string | null
           theme_colors?: Json | null
+          timezone?: string | null
           updated_at?: string
           website?: string | null
           whatsapp?: string | null

@@ -67,7 +67,7 @@ serve(async (req) => {
       
       console.log(`📱 Mensagem de: ${senderPhone} (${senderName})`);
 
-      // Buscar instância e loja associada
+      // Buscar instância e loja associada (com timezone)
       const { data: instance, error: instanceError } = await supabase
         .from('whatsapp_instances')
         .select('store_id, id')
@@ -80,6 +80,39 @@ serve(async (req) => {
         return new Response(JSON.stringify({ success: false, error: 'Instance not found' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
+      }
+
+      // Buscar timezone da loja
+      const { data: storeData } = await supabase
+        .from('stores')
+        .select('timezone')
+        .eq('id', instance.store_id)
+        .single();
+      
+      const timezone = storeData?.timezone || 'America/Sao_Paulo';
+      
+      // Calcular horário atual no timezone da loja
+      const now = new Date();
+      let currentTime = '';
+      let greeting = 'Olá';
+      
+      try {
+        const formatter = new Intl.DateTimeFormat('pt-BR', {
+          timeZone: timezone,
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
+        currentTime = formatter.format(now);
+        const hour = parseInt(currentTime.split(':')[0]);
+        
+        if (hour >= 5 && hour < 12) greeting = 'Bom dia';
+        else if (hour >= 12 && hour < 18) greeting = 'Boa tarde';
+        else greeting = 'Boa noite';
+        
+        console.log(`🕐 Horário da loja (${timezone}): ${currentTime} - Saudação: ${greeting}`);
+      } catch (e) {
+        console.log('⚠️ Erro ao calcular horário:', e);
       }
 
       console.log(`🏪 Loja encontrada: ${instance.store_id}`);
@@ -139,7 +172,7 @@ serve(async (req) => {
       if (count === 0 || count === null) {
         console.log('👋 Primeiro contato! Disparando saudação automática...');
         
-        // Chamar whatsapp-auto-send para enviar saudação (agora com dados do cliente)
+        // Chamar whatsapp-auto-send para enviar saudação (agora com dados do cliente e horário)
         const { data: sendResult, error: sendError } = await supabase.functions.invoke('whatsapp-auto-send', {
           body: {
             storeId: instance.store_id,
@@ -152,7 +185,13 @@ serve(async (req) => {
               lastOrderAt: customerStoreData.last_order_at,
               totalOrders: customerStoreData.total_orders,
               totalSpent: customerStoreData.total_spent
-            } : null
+            } : null,
+            // CONTEXTO DE HORÁRIO para o bot
+            timeContext: {
+              currentTime,
+              greeting,
+              timezone
+            }
           }
         });
 

@@ -21,17 +21,27 @@ function normalizePhoneForWhatsApp(phone: string): string {
   return normalized;
 }
 
-// ========== SAUDAÇÃO POR HORÁRIO (Brasília UTC-3) ==========
-function getGreetingByTime(): string {
-  const now = new Date();
-  // Ajustar para horário de Brasília (UTC-3)
-  const brasiliaHour = new Date(now.getTime() - (3 * 60 * 60 * 1000)).getUTCHours();
-  
-  if (brasiliaHour >= 5 && brasiliaHour < 12) {
-    return 'Bom dia';
-  } else if (brasiliaHour >= 12 && brasiliaHour < 18) {
-    return 'Boa tarde';
-  } else {
+// ========== SAUDAÇÃO POR HORÁRIO (fallback se não receber contexto) ==========
+function getGreetingByTime(timezone: string = 'America/Sao_Paulo'): string {
+  try {
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat('pt-BR', {
+      timeZone: timezone,
+      hour: '2-digit',
+      hour12: false
+    });
+    const hour = parseInt(formatter.format(now));
+    
+    if (hour >= 5 && hour < 12) return 'Bom dia';
+    if (hour >= 12 && hour < 18) return 'Boa tarde';
+    return 'Boa noite';
+  } catch {
+    // Fallback para cálculo UTC-3
+    const now = new Date();
+    const brasiliaHour = new Date(now.getTime() - (3 * 60 * 60 * 1000)).getUTCHours();
+    
+    if (brasiliaHour >= 5 && brasiliaHour < 12) return 'Bom dia';
+    if (brasiliaHour >= 12 && brasiliaHour < 18) return 'Boa tarde';
     return 'Boa noite';
   }
 }
@@ -194,7 +204,9 @@ serve(async (req) => {
       baseUrl,
       // NOVOS PARÂMETROS para saudação inteligente
       isKnownCustomer = false,
-      customerData = null
+      customerData = null,
+      // CONTEXTO DE HORÁRIO do webhook
+      timeContext = null
     } = await req.json();
 
     console.log(`[whatsapp-auto-send] Event: ${eventType}, Store: ${storeId}, Phone: ${phoneNumber}, isTest: ${isTest}, isKnownCustomer: ${isKnownCustomer}`);
@@ -281,10 +293,11 @@ serve(async (req) => {
     }
 
     // ========== LÓGICA DE SAUDAÇÃO INTELIGENTE ==========
-    const greeting = getGreetingByTime();
+    // Usar saudação do timeContext (calculada pelo webhook com timezone correto) ou fallback
+    const greeting = timeContext?.greeting || getGreetingByTime(timeContext?.timezone);
     const classification = classifyCustomer(isKnownCustomer, customerData);
     
-    console.log(`[whatsapp-auto-send] Classificação: ${classification.type}, Dias sem pedir: ${classification.daysSinceOrder}`);
+    console.log(`[whatsapp-auto-send] Classificação: ${classification.type}, Dias sem pedir: ${classification.daysSinceOrder}, Saudação: ${greeting}, TimeContext: ${JSON.stringify(timeContext)}`);
 
     // Determinar mensagem final
     let finalMessage: string;

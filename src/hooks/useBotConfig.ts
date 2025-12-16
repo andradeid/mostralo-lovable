@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { generateBotPromptPreview, BotPromptData } from "@/lib/botPromptGenerator";
@@ -53,6 +53,10 @@ export function useBotConfig(storeId: string | null) {
   const [syncing, setSyncing] = useState(false);
   const [promptData, setPromptData] = useState<BotPromptData | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [hasUnsyncedChanges, setHasUnsyncedChanges] = useState(false);
+  
+  // Guardar config sincronizada para comparar
+  const lastSyncedConfig = useRef<BotConfig | null>(null);
 
   const fetchConfig = useCallback(async () => {
     if (!storeId) return;
@@ -66,12 +70,19 @@ export function useBotConfig(storeId: string | null) {
         .single();
 
       if (data) {
-        setConfig(data as unknown as BotConfig);
+        const loadedConfig = data as unknown as BotConfig;
+        setConfig(loadedConfig);
+        lastSyncedConfig.current = { ...loadedConfig };
+        setHasUnsyncedChanges(false);
       } else {
-        setConfig({ ...defaultBotConfig, store_id: storeId });
+        const newConfig = { ...defaultBotConfig, store_id: storeId };
+        setConfig(newConfig);
+        lastSyncedConfig.current = null;
       }
     } catch (error) {
-      setConfig({ ...defaultBotConfig, store_id: storeId });
+      const newConfig = { ...defaultBotConfig, store_id: storeId };
+      setConfig(newConfig);
+      lastSyncedConfig.current = null;
     } finally {
       setLoading(false);
     }
@@ -82,7 +93,11 @@ export function useBotConfig(storeId: string | null) {
 
     try {
       const [storeResult, productsResult, categoriesResult] = await Promise.all([
-        supabase.from('stores').select('name, description, address, whatsapp, slug').eq('id', storeId).single(),
+        supabase.from('stores').select(`
+          name, description, address, whatsapp, slug,
+          google_maps_link, business_hours, delivery_fee, min_order_value,
+          accepts_cash, accepts_card, accepts_pix, city, state
+        `).eq('id', storeId).single(),
         supabase.from('products').select('id, name, price, description, is_available').eq('store_id', storeId).eq('is_available', true),
         supabase.from('categories').select('id, name, is_active').eq('store_id', storeId).eq('is_active', true),
       ]);
@@ -112,6 +127,29 @@ export function useBotConfig(storeId: string | null) {
       fetchPromptPreview(config.bot_name);
     }
   }, [config?.bot_name, fetchPromptPreview]);
+
+  // Detectar mudanças não sincronizadas
+  const checkForUnsyncedChanges = useCallback((newConfig: BotConfig) => {
+    if (!lastSyncedConfig.current) {
+      // Se nunca sincronizou e está habilitado, há mudanças
+      setHasUnsyncedChanges(newConfig.enabled);
+      return;
+    }
+    
+    // Campos que requerem sincronização quando alterados
+    const syncFields: (keyof BotConfig)[] = [
+      'bot_name', 'stop_bot_from_me', 'listening_from_me', 'delay_message',
+      'expire_minutes', 'keyword_finish', 'unknown_message', 'keep_open',
+      'debounce_time', 'trigger_type', 'trigger_operator', 'trigger_value',
+      'split_messages', 'time_per_char'
+    ];
+    
+    const hasChanges = syncFields.some(field => 
+      newConfig[field] !== lastSyncedConfig.current?.[field]
+    );
+    
+    setHasUnsyncedChanges(hasChanges && newConfig.enabled);
+  }, []);
 
   const saveConfig = useDebouncedCallback(async (newConfig: Partial<BotConfig>) => {
     if (!storeId || !config) return;
@@ -159,6 +197,7 @@ export function useBotConfig(storeId: string | null) {
     const newConfig = { ...config, ...updates };
     setConfig(newConfig);
     saveConfig(updates);
+    checkForUnsyncedChanges(newConfig);
   };
 
   const syncWithEvolution = async (action: 'create' | 'update' | 'delete') => {
@@ -213,8 +252,13 @@ export function useBotConfig(storeId: string | null) {
           title: action === 'delete' ? "Bot desativado" : "Bot sincronizado",
           description: response.data.message || "Operação realizada com sucesso!",
         });
+        
+        // Atualizar config sincronizada
+        lastSyncedConfig.current = { ...config };
+        setHasUnsyncedChanges(false);
+        
         await fetchConfig();
-        return { success: true };
+        return { success: true, steps: response.data.steps };
       } else {
         throw new Error(response.data?.error || 'Falha na sincronização');
       }
@@ -236,6 +280,7 @@ export function useBotConfig(storeId: string | null) {
     syncing,
     promptData,
     lastUpdated,
+    hasUnsyncedChanges,
     updateConfig,
     syncWithEvolution,
     refreshPrompt: () => fetchPromptPreview(config?.bot_name),

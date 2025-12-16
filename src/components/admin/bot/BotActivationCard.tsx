@@ -4,13 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bot, Loader2, RefreshCw, Power, PowerOff } from "lucide-react";
+import { Bot, Loader2, RefreshCw, Power, PowerOff, AlertTriangle } from "lucide-react";
 import { BotConfig } from "@/hooks/useBotConfig";
 
 interface BotActivationCardProps {
   config: BotConfig;
   syncing: boolean;
   isConnected: boolean;
+  hasUnsyncedChanges?: boolean;
   onUpdate: (updates: Partial<BotConfig>) => void;
   onSync: (action: 'create' | 'update' | 'delete') => Promise<{ success: boolean } | undefined>;
 }
@@ -19,6 +20,7 @@ export function BotActivationCard({
   config, 
   syncing, 
   isConnected,
+  hasUnsyncedChanges = false,
   onUpdate, 
   onSync 
 }: BotActivationCardProps) {
@@ -80,6 +82,23 @@ export function BotActivationCard({
           </div>
         )}
 
+        {/* Alerta de mudanças não sincronizadas */}
+        {hasUnsyncedChanges && config.enabled && (
+          <div className="p-2.5 sm:p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg overflow-hidden">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs sm:text-sm text-amber-600 dark:text-amber-400 font-medium">
+                  Mudanças pendentes
+                </p>
+                <p className="text-[10px] sm:text-xs text-amber-600/80 dark:text-amber-400/80 mt-0.5">
+                  Clique em "Atualizar Bot" para aplicar as alterações
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center justify-between gap-3">
           <div className="space-y-0.5 min-w-0 flex-1">
             <Label htmlFor="bot-enabled" className="text-sm">Ativar Assistente</Label>
@@ -113,15 +132,15 @@ export function BotActivationCard({
 
         {config.enabled && (
           <Button 
-            variant="outline" 
-            className="w-full text-xs sm:text-sm"
+            variant={hasUnsyncedChanges ? "default" : "outline"}
+            className={`w-full text-xs sm:text-sm ${hasUnsyncedChanges ? "animate-pulse" : ""}`}
             onClick={handleForceSync}
             disabled={syncing}
           >
             {syncing ? (
               <><Loader2 className="h-4 w-4 mr-2 animate-spin shrink-0" /> Sincronizando...</>
             ) : (
-              <><RefreshCw className="h-4 w-4 mr-2 shrink-0" /> Atualizar Bot</>
+              <><RefreshCw className="h-4 w-4 mr-2 shrink-0" /> {hasUnsyncedChanges ? "Aplicar Mudanças" : "Atualizar Bot"}</>
             )}
           </Button>
         )}

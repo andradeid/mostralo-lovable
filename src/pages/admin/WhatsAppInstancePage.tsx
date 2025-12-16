@@ -65,6 +65,7 @@ import {
   BotTriggerCard,
   BotPromptPreviewCard,
   BotPromptSettingsCard,
+  BotSyncFloatingAlert,
 } from "@/components/admin/bot";
 
 interface Template {
@@ -1313,6 +1314,15 @@ export default function WhatsAppInstancePage() {
                   lastUpdated={lastUpdated}
                   onRefresh={refreshPrompt}
                   loading={botLoading}
+                  hasUnsyncedChanges={hasUnsyncedChanges}
+                  onSync={() => syncWithEvolution('update')}
+                  syncing={botSyncing}
+                />
+                
+                <BotSyncFloatingAlert
+                  visible={hasUnsyncedChanges && botConfig.enabled}
+                  onSync={() => syncWithEvolution('update')}
+                  syncing={botSyncing}
                 />
               </>
             )}

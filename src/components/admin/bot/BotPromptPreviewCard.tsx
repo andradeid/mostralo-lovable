@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FileText, RefreshCw, Copy, ExternalLink, Package, FolderOpen } from "lucide-react";
+import { FileText, RefreshCw, Copy, ExternalLink, Package, FolderOpen, Upload, Loader2 } from "lucide-react";
 import { BotPromptData } from "@/lib/botPromptGenerator";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
@@ -13,13 +13,19 @@ interface BotPromptPreviewCardProps {
   lastUpdated: Date | null;
   onRefresh: () => void;
   loading?: boolean;
+  hasUnsyncedChanges?: boolean;
+  onSync?: () => void;
+  syncing?: boolean;
 }
 
 export function BotPromptPreviewCard({ 
   promptData, 
   lastUpdated, 
   onRefresh,
-  loading 
+  loading,
+  hasUnsyncedChanges,
+  onSync,
+  syncing
 }: BotPromptPreviewCardProps) {
   const { toast } = useToast();
 
@@ -132,6 +138,26 @@ export function BotPromptPreviewCard({
         </div>
 
         <div className="flex flex-col gap-2">
+          {hasUnsyncedChanges && onSync && (
+            <Button 
+              onClick={onSync}
+              disabled={syncing}
+              size="sm"
+              className="w-full text-xs sm:text-sm bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              {syncing ? (
+                <>
+                  <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 mr-2 shrink-0 animate-spin" />
+                  Aplicando...
+                </>
+              ) : (
+                <>
+                  <Upload className="h-3 w-3 sm:h-4 sm:w-4 mr-2 shrink-0" />
+                  Aplicar no Bot
+                </>
+              )}
+            </Button>
+          )}
           <Button 
             variant="outline" 
             size="sm"

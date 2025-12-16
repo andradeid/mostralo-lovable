@@ -130,27 +130,45 @@ serve(async (req) => {
     }
 
     // Buscar config de teste
-    const { data: testConfig } = await supabaseClient
+    let { data: testConfig } = await supabaseClient
       .from('master_admin_test_config')
       .select('*')
       .eq('admin_user_id', user.id)
       .single();
 
+    // Se não existe config, criar uma para o usuário (permite salvar sandbox antes de criar instância)
     if (!testConfig) {
-      return new Response(JSON.stringify({ error: 'Configure a instância de teste primeiro' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      const { data: newConfig, error: insertError } = await supabaseClient
+        .from('master_admin_test_config')
+        .insert({
+          admin_user_id: user.id,
+          sandbox_store_name: 'Pizzaria Teste',
+          sandbox_store_description: 'Loja fictícia para testes',
+          sandbox_whatsapp: '5561999999999',
+          sandbox_address: 'Rua das Pizzas, 123',
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        return new Response(JSON.stringify({ error: 'Erro ao criar configuração de teste' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      testConfig = newConfig;
     }
 
-    if (!testConfig.test_instance_name) {
+    const evolutionUrl = evolutionConfig.api_url.replace(/\/$/, '');
+
+    // Ações que requerem instância de teste
+    const actionsRequiringInstance = ['create', 'update', 'toggle', 'delete'];
+    if (actionsRequiringInstance.includes(action) && !testConfig.test_instance_name) {
       return new Response(JSON.stringify({ error: 'Crie uma instância de teste primeiro' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-
-    const evolutionUrl = evolutionConfig.api_url.replace(/\/$/, '');
 
     if (action === 'create' || action === 'update') {
       // Gerar prompt com dados da loja sandbox

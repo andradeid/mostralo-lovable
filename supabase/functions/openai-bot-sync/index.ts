@@ -180,10 +180,67 @@ serve(async (req) => {
       .single();
 
     if (action === 'create' || action === 'update') {
+      // Garantir que credenciais OpenAI existam para esta instância
+      // Evolution API requer credenciais por instância
+      console.log(`Verificando credenciais OpenAI para instância: ${config.instanceName}`);
+      
+      let credsId = evolutionConfig.openai_creds_id;
+      
+      // Verificar se credenciais já existem para esta instância
+      const credsCheckResp = await fetch(`${evolutionUrl}/openai/creds/${config.instanceName}`, {
+        method: 'GET',
+        headers: { 'apikey': evolutionConfig.api_key },
+      });
+      
+      if (!credsCheckResp.ok || credsCheckResp.status === 404) {
+        // Criar credenciais para esta instância
+        console.log(`Criando credenciais OpenAI para instância: ${config.instanceName}`);
+        
+        const credsPayload = {
+          name: 'mostralo-openai',
+          apiKey: evolutionConfig.openai_api_key,
+        };
+        
+        const createCredsResp = await fetch(`${evolutionUrl}/openai/creds/${config.instanceName}`, {
+          method: 'POST',
+          headers: {
+            'apikey': evolutionConfig.api_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(credsPayload),
+        });
+        
+        if (createCredsResp.ok) {
+          const credsData = await createCredsResp.json();
+          credsId = credsData.id || credsData.openaiCreds?.id;
+          console.log(`Credenciais criadas com ID: ${credsId}`);
+        } else {
+          const credsError = await createCredsResp.text();
+          console.error('Erro ao criar credenciais:', credsError);
+          return new Response(JSON.stringify({ 
+            success: false, 
+            error: `Falha ao criar credenciais OpenAI: ${credsError}` 
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      } else {
+        // Credenciais já existem, buscar o ID
+        const existingCreds = await credsCheckResp.json();
+        if (Array.isArray(existingCreds) && existingCreds.length > 0) {
+          credsId = existingCreds[0].id;
+          console.log(`Credenciais existentes encontradas: ${credsId}`);
+        } else if (existingCreds?.id) {
+          credsId = existingCreds.id;
+          console.log(`Credencial existente encontrada: ${credsId}`);
+        }
+      }
+
       // Payload para criar bot na Evolution
       const botPayload: any = {
         enabled: true,
-        openaiCredsId: evolutionConfig.openai_creds_id,
+        openaiCredsId: credsId,
         botType: 'chatCompletion',
         model: evolutionConfig.openai_default_model || 'gpt-4o-mini',
         maxTokens: evolutionConfig.openai_max_tokens || 1000,
@@ -196,7 +253,7 @@ serve(async (req) => {
         expire: config.expireMinutes || 20,
         keywordFinish: config.keywordFinish || '#SAIR',
         delayMessage: config.delayMessage || 1500,
-        unknownMessage: config.unknownMessage || 'Desculpe, não entendi. Digite #SAIR para encerrar.',
+        unknownMessage: config.unknownMessage || 'Desculpe, não entendi. Digite #SAIR para encerrar ou acesse nosso cardápio online.',
         listeningFromMe: config.listeningFromMe || false,
         stopBotFromMe: config.stopBotFromMe !== undefined ? config.stopBotFromMe : true,
         keepOpen: config.keepOpen || false,

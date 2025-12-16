@@ -1245,16 +1245,16 @@ export default function WhatsAppInstancePage() {
 
         <TabsContent value="bot" className="space-y-4 sm:space-y-6">
           {(!instance || !isConnected) && (
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 sm:p-4 flex flex-col sm:flex-row items-start gap-2 sm:gap-3">
-              <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 shrink-0" />
-              <div className="space-y-1">
-                <p className="text-xs sm:text-sm font-medium leading-tight">
+<div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 sm:p-4 flex flex-col sm:flex-row items-start gap-2 sm:gap-3">
+              <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 shrink-0 mt-0.5" />
+              <div className="space-y-1 min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium leading-tight break-words">
                   {!instance 
                     ? "Crie uma instância WhatsApp na aba 'Conexão' para ativar o assistente."
                     : "Conecte seu WhatsApp para que o assistente funcione."
                   }
                 </p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground">
+                <p className="text-[10px] sm:text-xs text-muted-foreground break-words">
                   Você pode configurar tudo agora e ativar depois.
                 </p>
               </div>
@@ -1268,7 +1268,7 @@ export default function WhatsAppInstancePage() {
           ) : botConfig && (
               <>
                 <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
-                  <div className="space-y-6">
+                  <div className="space-y-4 sm:space-y-6 min-w-0">
                     <BotActivationCard
                       config={botConfig}
                       syncing={botSyncing}
@@ -1282,7 +1282,7 @@ export default function WhatsAppInstancePage() {
                       disabled={!isConnected}
                     />
                   </div>
-                  <div className="space-y-6">
+                  <div className="space-y-4 sm:space-y-6 min-w-0">
                     <BotBehaviorCard
                       config={botConfig}
                       onUpdate={updateBotConfig}

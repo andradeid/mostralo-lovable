@@ -24,7 +24,7 @@ interface BotConfig {
   ignoreJids: string[];
 }
 
-function generateSystemPrompt(store: any, products: any[], categories: any[]): string {
+function generateSystemPrompt(botName: string, store: any, products: any[], categories: any[]): string {
   const productList = products
     .filter(p => p.is_available)
     .map(p => `- ${p.name}: R$ ${p.price?.toFixed(2)} - ${p.description || 'Sem descrição'}`)
@@ -37,7 +37,9 @@ function generateSystemPrompt(store: any, products: any[], categories: any[]): s
 
   const storeLink = `https://mostralo.com.br/loja/${store.slug}`;
 
-  return `Você é ${store.name ? `o assistente virtual da ${store.name}` : 'um assistente virtual de delivery'}.
+  return `Você é ${botName}, o assistente virtual da ${store.name || 'loja'}.
+
+Quando o cliente perguntar seu nome, responda: "Meu nome é ${botName}! 😊"
 
 INFORMAÇÕES DA LOJA:
 - Nome: ${store.name || 'Loja'}
@@ -164,8 +166,9 @@ serve(async (req) => {
       .eq('store_id', config.storeId)
       .eq('is_active', true);
 
-    // Gerar system prompt
-    const systemPrompt = generateSystemPrompt(store, products || [], categories || []);
+    // Gerar system prompt com botName
+    const botName = config.botName || 'Assistente';
+    const systemPrompt = generateSystemPrompt(botName, store, products || [], categories || []);
 
     const evolutionUrl = evolutionConfig.api_url.replace(/\/$/, '');
 
@@ -177,12 +180,12 @@ serve(async (req) => {
       .single();
 
     if (action === 'create' || action === 'update') {
-      // Payload para criar/atualizar bot na Evolution
+      // Payload para criar bot na Evolution
       const botPayload: any = {
         enabled: true,
         openaiCredsId: evolutionConfig.openai_creds_id,
-        botType: 'assistant',
-        model: evolutionConfig.openai_default_model || 'gpt-4-turbo',
+        botType: 'chatCompletion',
+        model: evolutionConfig.openai_default_model || 'gpt-4o-mini',
         maxTokens: evolutionConfig.openai_max_tokens || 1000,
         systemMessages: [systemPrompt],
         assistantMessages: [],
@@ -199,34 +202,42 @@ serve(async (req) => {
         keepOpen: config.keepOpen || false,
         debounceTime: config.debounceTime || 10,
         ignoreJids: config.ignoreJids || [],
-        splitMessages: false,
+        splitMessages: true,
         timePerChar: 0,
       };
 
       let botId = existingBotConfig?.evolution_bot_id;
-      let response;
 
+      // Estratégia delete+create para garantir que model seja persistido
+      // Se existe bot, deletar primeiro
       if (botId) {
-        // Atualizar bot existente
-        response = await fetch(`${evolutionUrl}/openai/update/${config.instanceName}/${botId}`, {
-          method: 'PUT',
-          headers: {
-            'apikey': evolutionConfig.api_key,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(botPayload),
-        });
-      } else {
-        // Criar novo bot
-        response = await fetch(`${evolutionUrl}/openai/create/${config.instanceName}`, {
-          method: 'POST',
-          headers: {
-            'apikey': evolutionConfig.api_key,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(botPayload),
-        });
+        console.log(`Deletando bot existente: ${botId}`);
+        try {
+          const deleteResp = await fetch(`${evolutionUrl}/openai/delete/${botId}/${config.instanceName}`, {
+            method: 'DELETE',
+            headers: {
+              'apikey': evolutionConfig.api_key,
+            },
+          });
+          console.log(`Resposta delete: ${deleteResp.status}`);
+        } catch (e) {
+          console.log('Erro ao deletar bot (continuando):', e);
+        }
+        botId = null;
       }
+
+      // Criar novo bot (garantindo que model seja persistido)
+      console.log(`Criando bot para instância: ${config.instanceName}`);
+      console.log(`Payload:`, JSON.stringify(botPayload, null, 2));
+      
+      const response = await fetch(`${evolutionUrl}/openai/create/${config.instanceName}`, {
+        method: 'POST',
+        headers: {
+          'apikey': evolutionConfig.api_key,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(botPayload),
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -241,7 +252,8 @@ serve(async (req) => {
       }
 
       const botData = await response.json();
-      botId = botData.id || botData.openaiBot?.id || botId;
+      console.log('Resposta criação bot:', JSON.stringify(botData));
+      botId = botData.id || botData.openaiBot?.id;
 
       // Salvar no banco
       const botConfigData = {
@@ -288,8 +300,8 @@ serve(async (req) => {
 
     if (action === 'delete') {
       if (existingBotConfig?.evolution_bot_id) {
-        // Deletar da Evolution
-        await fetch(`${evolutionUrl}/openai/delete/${config.instanceName}/${existingBotConfig.evolution_bot_id}`, {
+        // Deletar da Evolution (URL correta: /delete/{botId}/{instanceName})
+        await fetch(`${evolutionUrl}/openai/delete/${existingBotConfig.evolution_bot_id}/${config.instanceName}`, {
           method: 'DELETE',
           headers: {
             'apikey': evolutionConfig.api_key,

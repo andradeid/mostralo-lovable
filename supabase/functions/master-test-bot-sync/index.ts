@@ -179,28 +179,85 @@ serve(async (req) => {
 
     const instanceName = testConfig.test_instance_name;
 
-    // Helper: criar/buscar openaiCredsId na instância
-    async function ensureOpenAiCreds(): Promise<string | null> {
-      // Primeiro, tentar buscar credenciais existentes
-      const fetchResp = await fetch(`${evolutionUrl}/openai/fetch/${instanceName}`, {
-        method: 'GET',
-        headers: { 'apikey': evolutionConfig.api_key },
-      });
-      
-      if (fetchResp.ok) {
-        const fetchData = await fetchResp.json();
-        console.log('Fetch creds response:', JSON.stringify(fetchData));
-        // Se já existe credencial, retornar o ID
-        if (fetchData?.openaiCredsId || fetchData?.id) {
-          return fetchData.openaiCredsId || fetchData.id;
-        }
-        // Se retornou lista, pegar o primeiro
-        if (Array.isArray(fetchData) && fetchData.length > 0) {
-          return fetchData[0].openaiCredsId || fetchData[0].id;
-        }
+    const isUuidLike = (value: string) =>
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+
+    const pickOpenAiCredsId = (payload: any): string | null => {
+      if (!payload) return null;
+
+      if (typeof payload === 'string') return payload;
+
+      if (typeof payload?.openaiCredsId === 'string') return payload.openaiCredsId;
+      if (typeof payload?.id === 'string') return payload.id;
+
+      // Alguns endpoints retornam dados embrulhados
+      if (payload?.data) return pickOpenAiCredsId(payload.data);
+      if (payload?.openaiCreds) return pickOpenAiCredsId(payload.openaiCreds);
+
+      if (Array.isArray(payload)) {
+        const byName = payload.find((c) => c?.name === 'mostralo-openai');
+        return pickOpenAiCredsId(byName ?? payload[0]);
       }
 
-      // Criar nova credencial com endpoint por instância
+      return null;
+    };
+
+    // Helper: obter openaiCredsId de forma idempotente (Evolution rejeita registrar a mesma API key 2x)
+    async function ensureOpenAiCreds(): Promise<string | null> {
+      const existing = typeof evolutionConfig.openai_creds_id === 'string'
+        ? (evolutionConfig.openai_creds_id as string)
+        : null;
+
+      // Se já temos um id "da Evolution" (não-UUID), usa direto
+      if (existing && !isUuidLike(existing)) {
+        return existing;
+      }
+
+      if (!openaiApiKey) {
+        return null;
+      }
+
+      const tryGet = async (url: string) => {
+        const resp = await fetch(url, {
+          method: 'GET',
+          headers: { 'apikey': evolutionConfig.api_key },
+        });
+
+        const text = await resp.text();
+
+        if (!resp.ok) {
+          console.log('Creds GET fail:', url, resp.status, text);
+          return null;
+        }
+
+        try {
+          return pickOpenAiCredsId(JSON.parse(text));
+        } catch {
+          console.log('Creds GET non-json:', url, resp.status);
+          return null;
+        }
+      };
+
+      // Tentar descobrir credencial existente (a API pode variar por versão)
+      const foundId =
+        (await tryGet(`${evolutionUrl}/openai/fetch/${instanceName}`)) ??
+        (await tryGet(`${evolutionUrl}/openai/creds/${instanceName}`)) ??
+        (await tryGet(`${evolutionUrl}/openai/creds`));
+
+      if (foundId) {
+        // Persistir o id real da Evolution para não recriar novamente
+        await supabaseClient
+          .from('evolution_config')
+          .update({
+            openai_creds_id: foundId,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', evolutionConfig.id);
+
+        return foundId;
+      }
+
+      // Criar nova credencial na instância (primeira vez)
       console.log('Criando credencial OpenAI na instância...');
       const createResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
         method: 'POST',
@@ -215,19 +272,53 @@ serve(async (req) => {
       });
 
       const createText = await createResp.text();
-      console.log('Create creds response:', createResp.status, createText);
 
       if (!createResp.ok) {
-        console.error('Falha ao criar credenciais:', createText);
+        // Não logar payload/segredos. Só status + mensagem.
+        console.error('Falha ao criar credenciais:', createResp.status, createText);
+
+        // Se a key já está registrada, precisamos apenas ENCONTRAR o id existente (não recriar).
+        if (createResp.status === 400 && createText.includes('already registered')) {
+          const afterConflictId =
+            (await tryGet(`${evolutionUrl}/openai/creds/${instanceName}`)) ??
+            (await tryGet(`${evolutionUrl}/openai/creds`));
+
+          if (afterConflictId) {
+            await supabaseClient
+              .from('evolution_config')
+              .update({
+                openai_creds_id: afterConflictId,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', evolutionConfig.id);
+
+            return afterConflictId;
+          }
+        }
+
         return null;
       }
 
+      let createdId: string | null = null;
       try {
-        const createData = JSON.parse(createText);
-        return createData.openaiCredsId || createData.id || null;
+        createdId = pickOpenAiCredsId(JSON.parse(createText));
       } catch {
-        return null;
+        createdId = null;
       }
+
+      if (createdId) {
+        await supabaseClient
+          .from('evolution_config')
+          .update({
+            openai_creds_id: createdId,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', evolutionConfig.id);
+
+        console.log('Credencial OpenAI criada na Evolution (id):', createdId);
+      }
+
+      return createdId;
     }
 
     if (action === 'create' || action === 'update') {

@@ -13,8 +13,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { 
   FlaskConical, Smartphone, Store, Bot, FileText, 
   QrCode, Wifi, WifiOff, Plus, Trash2, RefreshCw,
-  Play, Pause, Save, Loader2, Check, X, Settings2
+  Play, Pause, Save, Loader2, Check, X, Settings2, BookOpen
 } from 'lucide-react';
+import { HowItWorksCard, TestPromptPreviewCard, OpenAIConfigCard } from '@/components/admin/test-environment';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -291,8 +292,12 @@ export default function TestEnvironmentPage() {
         </div>
       </div>
 
-      <Tabs defaultValue="instance" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="docs" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="docs" className="gap-2">
+            <BookOpen className="h-4 w-4" />
+            <span className="hidden sm:inline">Como Funciona</span>
+          </TabsTrigger>
           <TabsTrigger value="instance" className="gap-2">
             <Smartphone className="h-4 w-4" />
             <span className="hidden sm:inline">Instância</span>
@@ -310,6 +315,28 @@ export default function TestEnvironmentPage() {
             <span className="hidden sm:inline">Logs</span>
           </TabsTrigger>
         </TabsList>
+
+        {/* Tab: Documentação */}
+        <TabsContent value="docs">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="space-y-4">
+              <HowItWorksCard />
+            </div>
+            <div className="space-y-4">
+              <OpenAIConfigCard />
+              <TestPromptPreviewCard
+                storeName={storeName}
+                storeDescription={storeDescription}
+                products={products}
+                categories={categories}
+                whatsapp={config?.sandbox_whatsapp}
+                address={config?.sandbox_address}
+                onRefresh={fetchConfig}
+                loading={loading}
+              />
+            </div>
+          </div>
+        </TabsContent>
 
         {/* Tab: Instância de Teste */}
         <TabsContent value="instance">

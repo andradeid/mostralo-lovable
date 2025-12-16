@@ -6,4 +6,5 @@ export { BotPromptPreviewCard } from './BotPromptPreviewCard';
 export { BotPromptSettingsCard } from './BotPromptSettingsCard';
 export { BotSyncFloatingAlert } from './BotSyncFloatingAlert';
 export { BotPersonalityCard } from './BotPersonalityCard';
+export { BotTimezoneCard } from './BotTimezoneCard';
 export type { PersonalitySettings, PersonalityType, EmojiLevel } from './BotPersonalityCard';

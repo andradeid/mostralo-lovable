@@ -4,6 +4,14 @@ import { useToast } from "@/hooks/use-toast";
 import { generateBotPromptPreview, BotPromptData } from "@/lib/botPromptGenerator";
 import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
 
+export interface PromptSettings {
+  includeLocation: boolean;
+  includeBusinessHours: boolean;
+  includePaymentMethods: boolean;
+  includeDeliveryFee: boolean;
+  includeMinOrder: boolean;
+}
+
 export interface BotConfig {
   id?: string;
   store_id: string;
@@ -46,6 +54,14 @@ const defaultBotConfig: Omit<BotConfig, 'store_id'> = {
   time_per_char: 0,
 };
 
+const defaultPromptSettings: PromptSettings = {
+  includeLocation: true,
+  includeBusinessHours: true,
+  includePaymentMethods: true,
+  includeDeliveryFee: true,
+  includeMinOrder: true,
+};
+
 export function useBotConfig(storeId: string | null) {
   const { toast } = useToast();
   const [config, setConfig] = useState<BotConfig | null>(null);
@@ -54,6 +70,7 @@ export function useBotConfig(storeId: string | null) {
   const [promptData, setPromptData] = useState<BotPromptData | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [hasUnsyncedChanges, setHasUnsyncedChanges] = useState(false);
+  const [promptSettings, setPromptSettings] = useState<PromptSettings>(defaultPromptSettings);
   
   // Guardar config sincronizada para comparar
   const lastSyncedConfig = useRef<BotConfig | null>(null);
@@ -88,8 +105,10 @@ export function useBotConfig(storeId: string | null) {
     }
   }, [storeId]);
 
-  const fetchPromptPreview = useCallback(async (botName?: string) => {
+  const fetchPromptPreview = useCallback(async (botName?: string, settings?: PromptSettings) => {
     if (!storeId) return;
+
+    const currentSettings = settings || promptSettings;
 
     try {
       const [storeResult, productsResult, categoriesResult] = await Promise.all([
@@ -107,7 +126,8 @@ export function useBotConfig(storeId: string | null) {
           storeResult.data,
           productsResult.data || [],
           categoriesResult.data || [],
-          botName
+          botName,
+          currentSettings
         );
         setPromptData(preview);
         setLastUpdated(new Date());
@@ -115,7 +135,7 @@ export function useBotConfig(storeId: string | null) {
     } catch (error) {
       console.error('Erro ao gerar preview do prompt:', error);
     }
-  }, [storeId]);
+  }, [storeId, promptSettings]);
 
   useEffect(() => {
     fetchConfig();
@@ -124,9 +144,9 @@ export function useBotConfig(storeId: string | null) {
   // Atualizar preview quando config carregar ou bot_name mudar
   useEffect(() => {
     if (config?.bot_name) {
-      fetchPromptPreview(config.bot_name);
+      fetchPromptPreview(config.bot_name, promptSettings);
     }
-  }, [config?.bot_name, fetchPromptPreview]);
+  }, [config?.bot_name, fetchPromptPreview, promptSettings]);
 
   // Detectar mudanças não sincronizadas
   const checkForUnsyncedChanges = useCallback((newConfig: BotConfig) => {
@@ -191,6 +211,13 @@ export function useBotConfig(storeId: string | null) {
       });
     }
   }, 1000);
+
+  const updatePromptSettings = (newSettings: PromptSettings) => {
+    setPromptSettings(newSettings);
+    if (config?.enabled) {
+      setHasUnsyncedChanges(true);
+    }
+  };
 
   const updateConfig = (updates: Partial<BotConfig>) => {
     if (!config) return;
@@ -281,9 +308,11 @@ export function useBotConfig(storeId: string | null) {
     promptData,
     lastUpdated,
     hasUnsyncedChanges,
+    promptSettings,
     updateConfig,
+    updatePromptSettings,
     syncWithEvolution,
-    refreshPrompt: () => fetchPromptPreview(config?.bot_name),
+    refreshPrompt: () => fetchPromptPreview(config?.bot_name, promptSettings),
     refetch: fetchConfig,
   };
 }

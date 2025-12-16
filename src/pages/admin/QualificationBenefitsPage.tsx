@@ -11,7 +11,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Loader2, Save, Zap, Scale, Briefcase, History, Calculator, Gift, Tag, RefreshCw, Eye, Copy, Check } from 'lucide-react';
+import { Loader2, Save, Zap, Scale, Briefcase, History, Calculator, Gift, Tag, RefreshCw, Eye, Copy, Check, Pencil, X } from 'lucide-react';
+import { ScrollBar } from '@/components/ui/scroll-area';
 import { useQualificationTiers } from '@/hooks/useQualificationTiers';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -197,75 +198,84 @@ ${couponValue > 0 ? `\nE com o cupom: mais ${formatCurrency(couponValue)} de des
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Faixas de Qualificação</h1>
-        <p className="text-muted-foreground">
-          Configure os benefícios oferecidos para cada faixa de qualificação de leads
+        <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
+          <Gift className="h-5 w-5 md:h-6 md:w-6 text-primary" />
+          <span className="hidden sm:inline">Faixas de </span>Qualificação
+        </h1>
+        <p className="text-xs md:text-sm text-muted-foreground">
+          Configure os benefícios para cada faixa
         </p>
       </div>
 
-      <Tabs defaultValue="tiers" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="tiers" className="gap-2">
-            <Gift className="h-4 w-4" />
-            Faixas
-          </TabsTrigger>
-          <TabsTrigger value="templates" className="gap-2">
-            <RefreshCw className="h-4 w-4" />
-            Templates
-          </TabsTrigger>
-          <TabsTrigger value="calculator" className="gap-2">
-            <Calculator className="h-4 w-4" />
-            Calculadora
-          </TabsTrigger>
-          <TabsTrigger value="history" className="gap-2">
-            <History className="h-4 w-4" />
-            Histórico
-          </TabsTrigger>
-        </TabsList>
+      <Tabs defaultValue="tiers" className="space-y-4 md:space-y-6">
+        <ScrollArea className="w-full">
+          <TabsList className="w-max md:w-auto flex md:grid md:grid-cols-4 gap-1 p-1">
+            <TabsTrigger value="tiers" className="shrink-0 text-xs md:text-sm px-2.5 md:px-4 py-2 gap-1 md:gap-2">
+              <Gift className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              <span className="hidden xs:inline">Faixas</span>
+            </TabsTrigger>
+            <TabsTrigger value="templates" className="shrink-0 text-xs md:text-sm px-2.5 md:px-4 py-2 gap-1 md:gap-2">
+              <RefreshCw className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              <span className="hidden xs:inline">Templates</span>
+            </TabsTrigger>
+            <TabsTrigger value="calculator" className="shrink-0 text-xs md:text-sm px-2.5 md:px-4 py-2 gap-1 md:gap-2">
+              <Calculator className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              <span className="hidden xs:inline">Calc.</span>
+            </TabsTrigger>
+            <TabsTrigger value="history" className="shrink-0 text-xs md:text-sm px-2.5 md:px-4 py-2 gap-1 md:gap-2">
+              <History className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              <span className="hidden xs:inline">Hist.</span>
+            </TabsTrigger>
+          </TabsList>
+          <ScrollBar orientation="horizontal" className="md:hidden" />
+        </ScrollArea>
 
         {/* TAB: FAIXAS */}
-        <TabsContent value="tiers" className="space-y-4">
-          <div className="grid gap-4">
+        <TabsContent value="tiers" className="space-y-3 md:space-y-4">
+          <div className="grid gap-3 md:gap-4">
             {tiers.map((tier) => {
               const isEditing = editingTierId === tier.id;
               const promotion = getPromotionById(tier.promotion_id);
               
               return (
                 <Card key={tier.id} className={isEditing ? 'ring-2 ring-primary' : ''}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{tier.emoji}</span>
-                        <div>
-                          <CardTitle className="text-lg">{tier.tier_name}</CardTitle>
-                          <CardDescription>
-                            {tier.min_points} - {tier.max_points} pontos
+                  <CardHeader className="p-3 md:p-6 pb-2 md:pb-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3">
+                      <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                        <span className="text-xl md:text-2xl shrink-0">{tier.emoji}</span>
+                        <div className="min-w-0">
+                          <CardTitle className="text-base md:text-lg truncate">{tier.tier_name}</CardTitle>
+                          <CardDescription className="text-xs md:text-sm">
+                            {tier.min_points} - {tier.max_points} pts
                           </CardDescription>
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 self-end sm:self-auto">
                         {promotion && (
-                          <Badge variant="secondary" className="gap-1">
-                            <Tag className="h-3 w-3" />
-                            {promotion.code || promotion.name}
+                          <Badge variant="secondary" className="text-[10px] md:text-xs gap-1 shrink-0">
+                            <Tag className="h-2.5 w-2.5 md:h-3 md:w-3" />
+                            <span className="hidden sm:inline">{promotion.code || promotion.name}</span>
+                            <span className="sm:hidden">{(promotion.code || promotion.name).slice(0, 6)}</span>
                           </Badge>
                         )}
                         
                         {!isEditing ? (
-                          <Button variant="outline" size="sm" onClick={() => startEditing(tier)}>
-                            Editar
+                          <Button variant="outline" size="sm" onClick={() => startEditing(tier)} className="h-7 md:h-8 text-xs md:text-sm">
+                            <Pencil className="h-3.5 w-3.5 md:mr-1" />
+                            <span className="hidden md:inline">Editar</span>
                           </Button>
                         ) : (
-                          <div className="flex gap-2">
-                            <Button variant="ghost" size="sm" onClick={cancelEditing}>
-                              Cancelar
+                          <div className="flex gap-1.5 md:gap-2">
+                            <Button variant="ghost" size="sm" onClick={cancelEditing} className="h-7 md:h-8 text-xs">
+                              <X className="h-3.5 w-3.5 md:mr-1" />
+                              <span className="hidden sm:inline">Cancelar</span>
                             </Button>
-                            <Button size="sm" onClick={saveEditing} disabled={saving}>
-                              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                              Salvar
+                            <Button size="sm" onClick={saveEditing} disabled={saving} className="h-7 md:h-8 text-xs">
+                              {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5 md:mr-1" />}
+                              <span className="hidden sm:inline">Salvar</span>
                             </Button>
                           </div>
                         )}
@@ -273,99 +283,106 @@ ${couponValue > 0 ? `\nE com o cupom: mais ${formatCurrency(couponValue)} de des
                     </div>
                   </CardHeader>
                   
-                  <CardContent>
+                  <CardContent className="p-3 md:p-6 pt-0">
                     {!isEditing ? (
-                      <div className="space-y-3">
-                        <p className="text-sm">{tier.benefit_description}</p>
+                      <div className="space-y-2 md:space-y-3">
+                        <p className="text-xs md:text-sm">{tier.benefit_description}</p>
                         
-                        <div className="flex flex-wrap gap-2 text-xs">
+                        <div className="flex flex-wrap gap-1.5 md:gap-2">
                           {tier.free_days > 0 && (
-                            <Badge variant="outline">{tier.free_days} dias grátis</Badge>
+                            <Badge variant="outline" className="text-[10px] md:text-xs">{tier.free_days}d grátis</Badge>
                           )}
                           {tier.include_consulting && (
-                            <Badge variant="outline">Consultoria</Badge>
+                            <Badge variant="outline" className="text-[10px] md:text-xs">Consultoria</Badge>
                           )}
                           {tier.include_followup && (
-                            <Badge variant="outline">{tier.followup_days}d acompanhamento</Badge>
+                            <Badge variant="outline" className="text-[10px] md:text-xs">{tier.followup_days}d acomp.</Badge>
                           )}
                         </div>
                       </div>
                     ) : (
-                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        <div className="space-y-2">
-                          <Label>Nome da Faixa</Label>
+                      <div className="grid gap-3 md:gap-4 grid-cols-2 md:grid-cols-3">
+                        <div className="space-y-1.5">
+                          <Label className="text-xs md:text-sm">Nome</Label>
                           <Input
+                            className="h-8 md:h-10 text-sm"
                             value={editValues.tier_name || ''}
                             onChange={(e) => setEditValues({ ...editValues, tier_name: e.target.value })}
                           />
                         </div>
                         
-                        <div className="space-y-2">
-                          <Label>Emoji</Label>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs md:text-sm">Emoji</Label>
                           <Input
+                            className="h-8 md:h-10 text-sm"
                             value={editValues.emoji || ''}
                             onChange={(e) => setEditValues({ ...editValues, emoji: e.target.value })}
                             maxLength={4}
                           />
                         </div>
                         
-                        <div className="space-y-2">
-                          <Label>Pontuação Mínima</Label>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs md:text-sm">Pts Mín.</Label>
                           <Input
                             type="number"
+                            className="h-8 md:h-10 text-sm"
                             value={editValues.min_points || 0}
                             onChange={(e) => setEditValues({ ...editValues, min_points: parseInt(e.target.value) })}
                           />
                         </div>
                         
-                        <div className="space-y-2">
-                          <Label>Pontuação Máxima</Label>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs md:text-sm">Pts Máx.</Label>
                           <Input
                             type="number"
+                            className="h-8 md:h-10 text-sm"
                             value={editValues.max_points || 0}
                             onChange={(e) => setEditValues({ ...editValues, max_points: parseInt(e.target.value) })}
                           />
                         </div>
                         
-                        <div className="space-y-2">
-                          <Label>Dias Grátis</Label>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs md:text-sm">Dias Grátis</Label>
                           <Input
                             type="number"
+                            className="h-8 md:h-10 text-sm"
                             value={editValues.free_days || 0}
                             onChange={(e) => setEditValues({ ...editValues, free_days: parseInt(e.target.value) })}
                           />
                         </div>
                         
-                        <div className="space-y-2">
-                          <Label>Dias de Acompanhamento</Label>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs md:text-sm">Dias Acomp.</Label>
                           <Input
                             type="number"
+                            className="h-8 md:h-10 text-sm"
                             value={editValues.followup_days || 0}
                             onChange={(e) => setEditValues({ ...editValues, followup_days: parseInt(e.target.value) })}
                           />
                         </div>
                         
-                        <div className="space-y-2 md:col-span-2">
-                          <Label>Descrição do Benefício</Label>
+                        <div className="col-span-2 md:col-span-3 space-y-1.5">
+                          <Label className="text-xs md:text-sm">Descrição</Label>
                           <Textarea
+                            className="text-sm min-h-[60px] md:min-h-[80px]"
                             value={editValues.benefit_description || ''}
                             onChange={(e) => setEditValues({ ...editValues, benefit_description: e.target.value })}
                           />
                         </div>
                         
-                        <div className="space-y-2">
-                          <Label>Cupom/Promoção</Label>
+                        <div className="col-span-2 md:col-span-1 space-y-1.5">
+                          <Label className="text-xs md:text-sm">Cupom</Label>
                           <Select
                             value={editValues.promotion_id || 'none'}
                             onValueChange={(val) => setEditValues({ ...editValues, promotion_id: val })}
                           >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione um cupom" />
+                            <SelectTrigger className="h-8 md:h-10 text-sm">
+                              <SelectValue placeholder="Cupom" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="none">Nenhum cupom</SelectItem>
+                              <SelectItem value="none" className="text-xs md:text-sm">Nenhum</SelectItem>
                               {promotions.map((promo) => (
-                                <SelectItem key={promo.id} value={promo.id}>
+                                <SelectItem key={promo.id} value={promo.id} className="text-xs md:text-sm">
                                   {promo.name} ({promo.discount_type === 'percentage' ? `${promo.discount_value}%` : formatCurrency(promo.discount_value)})
                                 </SelectItem>
                               ))}
@@ -373,13 +390,13 @@ ${couponValue > 0 ? `\nE com o cupom: mais ${formatCurrency(couponValue)} de des
                           </Select>
                         </div>
                         
-                        <div className="flex items-center gap-4 md:col-span-3">
+                        <div className="col-span-2 md:col-span-3 flex flex-wrap items-center gap-3 md:gap-4 pt-2 border-t">
                           <div className="flex items-center gap-2">
                             <Switch
                               checked={editValues.include_consulting || false}
                               onCheckedChange={(val) => setEditValues({ ...editValues, include_consulting: val })}
                             />
-                            <Label>Consultoria</Label>
+                            <Label className="text-xs md:text-sm">Consultoria</Label>
                           </div>
                           
                           <div className="flex items-center gap-2">
@@ -387,34 +404,34 @@ ${couponValue > 0 ? `\nE com o cupom: mais ${formatCurrency(couponValue)} de des
                               checked={editValues.include_followup || false}
                               onCheckedChange={(val) => setEditValues({ ...editValues, include_followup: val })}
                             />
-                            <Label>Acompanhamento</Label>
+                            <Label className="text-xs md:text-sm">Acompanhamento</Label>
                           </div>
                         </div>
 
                         {/* PREVIEW EM TEMPO REAL */}
                         {generateTierPreview() && (
-                          <div className="md:col-span-3 mt-4 border-t pt-4">
-                            <div className="flex items-center gap-2 mb-3">
-                              <Eye className="h-4 w-4 text-primary" />
-                              <span className="font-medium text-sm">Preview do Prompt</span>
-                              <Badge variant="secondary" className="text-xs">Tempo Real</Badge>
+                          <div className="col-span-2 md:col-span-3 mt-3 md:mt-4 border-t pt-3 md:pt-4">
+                            <div className="flex items-center gap-2 mb-2 md:mb-3">
+                              <Eye className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary" />
+                              <span className="font-medium text-xs md:text-sm">Preview</span>
+                              <Badge variant="secondary" className="text-[10px] md:text-xs">Real-time</Badge>
                             </div>
                             
                             <Tabs defaultValue="table" className="w-full">
-                              <TabsList className="grid w-full grid-cols-2">
-                                <TabsTrigger value="table" className="text-xs">Tabela</TabsTrigger>
-                                <TabsTrigger value="script" className="text-xs">Script do Agente</TabsTrigger>
+                              <TabsList className="grid w-full grid-cols-2 h-8">
+                                <TabsTrigger value="table" className="text-[10px] md:text-xs h-7">Tabela</TabsTrigger>
+                                <TabsTrigger value="script" className="text-[10px] md:text-xs h-7">Script</TabsTrigger>
                               </TabsList>
                               
                               <TabsContent value="table" className="mt-2">
                                 <div className="relative">
-                                  <pre className="bg-muted/50 border rounded-md p-3 text-xs font-mono overflow-x-auto whitespace-pre-wrap">
+                                  <pre className="bg-muted/50 border rounded-md p-2 md:p-3 text-[10px] md:text-xs font-mono overflow-x-auto whitespace-pre-wrap">
                                     {generateTierPreview()?.tableRow}
                                   </pre>
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="absolute top-1 right-1 h-7 w-7 p-0"
+                                    className="absolute top-1 right-1 h-6 w-6 p-0"
                                     onClick={() => copyToClipboard(generateTierPreview()?.tableRow || '', 'table')}
                                   >
                                     {copiedPreview === 'table' ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
@@ -424,13 +441,13 @@ ${couponValue > 0 ? `\nE com o cupom: mais ${formatCurrency(couponValue)} de des
                               
                               <TabsContent value="script" className="mt-2">
                                 <div className="relative">
-                                  <pre className="bg-muted/50 border rounded-md p-3 text-xs font-mono overflow-x-auto whitespace-pre-wrap max-h-64 overflow-y-auto">
+                                  <pre className="bg-muted/50 border rounded-md p-2 md:p-3 text-[10px] md:text-xs font-mono overflow-x-auto whitespace-pre-wrap max-h-48 md:max-h-64 overflow-y-auto">
                                     {generateTierPreview()?.agentScript}
                                   </pre>
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="absolute top-1 right-1 h-7 w-7 p-0"
+                                    className="absolute top-1 right-1 h-6 w-6 p-0"
                                     onClick={() => copyToClipboard(generateTierPreview()?.agentScript || '', 'script')}
                                   >
                                     {copiedPreview === 'script' ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
@@ -450,59 +467,58 @@ ${couponValue > 0 ? `\nE com o cupom: mais ${formatCurrency(couponValue)} de des
         </TabsContent>
 
         {/* TAB: TEMPLATES */}
-        <TabsContent value="templates" className="space-y-4">
+        <TabsContent value="templates" className="space-y-3 md:space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Templates Pré-definidos</CardTitle>
-              <CardDescription>
-                Aplique configurações prontas para todas as faixas de uma vez
+            <CardHeader className="p-4 md:p-6">
+              <CardTitle className="text-base md:text-lg">Templates Pré-definidos</CardTitle>
+              <CardDescription className="text-xs md:text-sm">
+                Aplique configurações prontas
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-3">
+            <CardContent className="p-4 md:p-6 pt-0">
+              <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {templates.map((template) => (
                   <Card 
                     key={template.id} 
                     className={`cursor-pointer transition-all ${getTemplateColor(template.template_type)}`}
                   >
-                    <CardHeader className="pb-3">
+                    <CardHeader className="p-3 md:p-4 pb-2">
                       <div className="flex items-center gap-2">
                         {getTemplateIcon(template.template_type)}
-                        <CardTitle className="text-base">{template.template_name}</CardTitle>
+                        <CardTitle className="text-sm md:text-base truncate">{template.template_name}</CardTitle>
                         {template.is_default && (
-                          <Badge variant="secondary" className="text-xs">Padrão</Badge>
+                          <Badge variant="secondary" className="text-[10px] shrink-0">Padrão</Badge>
                         )}
                       </div>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <p className="text-sm text-muted-foreground">{template.description}</p>
+                    <CardContent className="p-3 md:p-4 pt-0 space-y-3">
+                      <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">{template.description}</p>
                       
-                      <div className="space-y-1 text-xs">
+                      <div className="space-y-0.5 text-[10px] md:text-xs">
                         {(template.tier_configs as any[]).slice(0, 3).map((config, i) => (
                           <div key={i} className="flex justify-between">
                             <span>{config.emoji} {config.tier_name}</span>
-                            <span className="text-muted-foreground">{config.free_days}d grátis</span>
+                            <span className="text-muted-foreground">{config.free_days}d</span>
                           </div>
                         ))}
                       </div>
                       
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="sm" className="w-full">
-                            Aplicar Template
+                          <Button variant="outline" size="sm" className="w-full h-8 text-xs">
+                            Aplicar
                           </Button>
                         </AlertDialogTrigger>
-                        <AlertDialogContent>
+                        <AlertDialogContent className="max-w-[90vw] md:max-w-lg">
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Aplicar template "{template.template_name}"?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Isso irá sobrescrever as configurações atuais de todas as 5 faixas.
-                              Os cupons vinculados não serão alterados.
+                            <AlertDialogTitle className="text-base md:text-lg">Aplicar "{template.template_name}"?</AlertDialogTitle>
+                            <AlertDialogDescription className="text-xs md:text-sm">
+                              Isso irá sobrescrever todas as 5 faixas. Cupons não serão alterados.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleApplyTemplate(template)}>
+                          <AlertDialogFooter className="gap-2">
+                            <AlertDialogCancel className="text-xs md:text-sm">Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleApplyTemplate(template)} className="text-xs md:text-sm">
                               Aplicar
                             </AlertDialogAction>
                           </AlertDialogFooter>
@@ -517,64 +533,70 @@ ${couponValue > 0 ? `\nE com o cupom: mais ${formatCurrency(couponValue)} de des
         </TabsContent>
 
         {/* TAB: CALCULADORA */}
-        <TabsContent value="calculator" className="space-y-4">
+        <TabsContent value="calculator" className="space-y-3 md:space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Calculadora de Economia</CardTitle>
-              <CardDescription>
-                Simule a economia para cada faixa baseado no faturamento do lead
+            <CardHeader className="p-4 md:p-6">
+              <CardTitle className="text-base md:text-lg flex items-center gap-2">
+                <Calculator className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+                Calculadora de Economia
+              </CardTitle>
+              <CardDescription className="text-xs md:text-sm">
+                Simule a economia por faixa
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-end gap-4">
-                <div className="space-y-2 flex-1 max-w-xs">
-                  <Label>Faturamento Mensal do Lead</Label>
+            <CardContent className="p-4 md:p-6 pt-0 space-y-4 md:space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-end gap-3 md:gap-4">
+                <div className="space-y-1.5 flex-1 max-w-xs">
+                  <Label className="text-xs md:text-sm">Faturamento Mensal</Label>
                   <Input
                     type="number"
                     value={simulatedRevenue}
                     onChange={(e) => setSimulatedRevenue(Number(e.target.value))}
                     placeholder="Ex: 15000"
+                    className="h-9 md:h-10 text-sm"
                   />
                 </div>
-                <p className="text-sm text-muted-foreground pb-2">
-                  Taxa iFood (25%): {formatCurrency(simulatedRevenue * 0.25)}/mês
-                </p>
+                <div className="p-2 md:pb-2 bg-destructive/10 rounded-lg">
+                  <p className="text-xs md:text-sm text-destructive font-medium">
+                    Taxa iFood (25%): {formatCurrency(simulatedRevenue * 0.25)}/mês
+                  </p>
+                </div>
               </div>
               
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {tiers.filter(t => t.free_days > 0).map((tier) => {
                   const economy = calculateEconomy(tier);
                   const promotion = getPromotionById(tier.promotion_id);
                   
                   return (
                     <Card key={tier.id} className="bg-muted/30">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-base flex items-center gap-2">
+                      <CardHeader className="p-3 md:p-4 pb-2">
+                        <CardTitle className="text-sm md:text-base flex items-center gap-2">
                           <span>{tier.emoji}</span>
                           {tier.tier_name}
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="space-y-2 text-sm">
+                      <CardContent className="p-3 md:p-4 pt-0 space-y-1.5 text-xs md:text-sm">
                         <div className="flex justify-between">
-                          <span>Economia mensal em taxas:</span>
+                          <span>Economia/mês:</span>
                           <span className="font-medium text-green-600">{formatCurrency(economy.monthlyEconomy)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>Economia anual:</span>
+                          <span>Economia/ano:</span>
                           <span className="font-medium text-green-600">{formatCurrency(economy.yearlyEconomy)}</span>
                         </div>
-                        <hr className="my-2" />
+                        <hr className="my-1.5" />
                         <div className="flex justify-between">
-                          <span>{tier.free_days} dias grátis:</span>
+                          <span>{tier.free_days}d grátis:</span>
                           <span className="font-medium">{formatCurrency(economy.freeDaysValue)}</span>
                         </div>
                         {promotion && (
                           <div className="flex justify-between">
-                            <span>Cupom {promotion.code || promotion.name}:</span>
+                            <span className="truncate mr-2">Cupom {(promotion.code || promotion.name).slice(0, 8)}:</span>
                             <span className="font-medium">{formatCurrency(economy.couponValue)}</span>
                           </div>
                         )}
-                        <hr className="my-2" />
+                        <hr className="my-1.5" />
                         <div className="flex justify-between font-bold">
                           <span>Total 1º ano:</span>
                           <span className="text-green-600">{formatCurrency(economy.totalFirstYear)}</span>
@@ -589,63 +611,104 @@ ${couponValue > 0 ? `\nE com o cupom: mais ${formatCurrency(couponValue)} de des
         </TabsContent>
 
         {/* TAB: HISTÓRICO */}
-        <TabsContent value="history" className="space-y-4">
+        <TabsContent value="history" className="space-y-3 md:space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Histórico de Alterações</CardTitle>
-              <CardDescription>
-                Auditoria de todas as modificações nas faixas de benefícios
+            <CardHeader className="p-4 md:p-6">
+              <CardTitle className="text-base md:text-lg flex items-center gap-2">
+                <History className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+                Histórico de Alterações
+              </CardTitle>
+              <CardDescription className="text-xs md:text-sm">
+                Auditoria de modificações
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[500px]">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Alterações</TableHead>
-                      <TableHead>Cupom Alterado</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {history.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center text-muted-foreground">
-                          Nenhuma alteração registrada
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      history.map((item) => (
-                        <TableRow key={item.id}>
-                          <TableCell className="whitespace-nowrap">
-                            {format(new Date(item.edited_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={item.change_type === 'template_apply' ? 'default' : 'outline'}>
-                              {item.change_type === 'template_apply' ? `Template: ${item.template_applied}` : item.change_type}
+            <CardContent className="p-4 md:p-6 pt-0">
+              {history.length === 0 ? (
+                <p className="text-center text-muted-foreground text-sm py-8">
+                  Nenhuma alteração registrada
+                </p>
+              ) : (
+                <>
+                  {/* Mobile: Cards */}
+                  <ScrollArea className="h-[400px] md:hidden">
+                    <div className="space-y-3 pr-2">
+                      {history.map((item) => (
+                        <div key={item.id} className="p-3 border rounded-lg space-y-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-xs text-muted-foreground">
+                              {format(new Date(item.edited_at), "dd/MM/yy HH:mm", { locale: ptBR })}
+                            </span>
+                            <Badge 
+                              variant={item.change_type === 'template_apply' ? 'default' : 'outline'}
+                              className="text-[10px]"
+                            >
+                              {item.change_type === 'template_apply' 
+                                ? `Tmpl: ${item.template_applied?.slice(0, 8)}` 
+                                : item.change_type}
                             </Badge>
-                          </TableCell>
-                          <TableCell className="max-w-[300px]">
-                            {item.new_values && (
-                              <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                                {JSON.stringify(item.new_values).slice(0, 80)}...
+                          </div>
+                          
+                          {item.new_values && (
+                            <div className="bg-muted/50 rounded p-2">
+                              <code className="text-[10px] break-all">
+                                {JSON.stringify(item.new_values).slice(0, 100)}...
                               </code>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {item.promotion_changed ? (
-                              <Badge variant="secondary">Sim</Badge>
-                            ) : (
-                              <span className="text-muted-foreground">-</span>
-                            )}
-                          </TableCell>
+                            </div>
+                          )}
+                          
+                          {item.promotion_changed && (
+                            <Badge variant="secondary" className="text-[10px]">
+                              Cupom alterado
+                            </Badge>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                  
+                  {/* Desktop: Tabela */}
+                  <ScrollArea className="h-[500px] hidden md:block">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-xs">Data</TableHead>
+                          <TableHead className="text-xs">Tipo</TableHead>
+                          <TableHead className="text-xs">Alterações</TableHead>
+                          <TableHead className="text-xs">Cupom</TableHead>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </ScrollArea>
+                      </TableHeader>
+                      <TableBody>
+                        {history.map((item) => (
+                          <TableRow key={item.id}>
+                            <TableCell className="whitespace-nowrap text-xs">
+                              {format(new Date(item.edited_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={item.change_type === 'template_apply' ? 'default' : 'outline'} className="text-xs">
+                                {item.change_type === 'template_apply' ? `Template: ${item.template_applied}` : item.change_type}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="max-w-[300px]">
+                              {item.new_values && (
+                                <code className="text-xs bg-muted px-1 py-0.5 rounded">
+                                  {JSON.stringify(item.new_values).slice(0, 80)}...
+                                </code>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {item.promotion_changed ? (
+                                <Badge variant="secondary" className="text-xs">Sim</Badge>
+                              ) : (
+                                <span className="text-muted-foreground text-xs">-</span>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </ScrollArea>
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

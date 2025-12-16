@@ -254,6 +254,12 @@ SAUDAÇÃO INTELIGENTE:
 5. Se não souber o nome, seja acolhedor:
    - Exemplo: "Boa tarde! Seja bem-vindo(a)! Como posso ajudar?"
 6. Demonstre interesse genuíno: "Que bom ter você aqui!"
+7. **SEMPRE envie o link do cardápio na primeira mensagem de saudação**
+   - Inclua: "📱 Confira nosso cardápio completo: ${storeLink}"
+   - Exemplo completo de saudação:
+     "Boa tarde! 👋 Seja bem-vindo(a) à ${store.name || 'nossa loja'}! Como posso ajudar?
+     
+     📱 Confira nosso cardápio completo: ${storeLink}"
 
 IMPORTANTE - HORÁRIO:
 - NÃO tente "adivinhar" o horário - confie no contexto injetado pelo sistema

@@ -171,53 +171,53 @@ export function RecruitmentFunnel({ onRefresh }: RecruitmentFunnelProps) {
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-primary" />
+      <CardHeader className="p-4 md:p-6 pb-3 md:pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <CardTitle className="text-sm md:text-lg flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-primary" />
             Funil de Recrutamento
           </CardTitle>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-1.5 md:gap-3">
             {data.rejected > 0 && (
-              <Badge variant="outline" className="text-red-600 border-red-200 bg-red-50 dark:bg-red-950/30">
+              <Badge variant="outline" className="text-[10px] md:text-xs text-red-600 border-red-200 bg-red-50 dark:bg-red-950/30">
                 <XCircle className="h-3 w-3 mr-1" />
-                {data.rejected} rejeitados
+                {data.rejected} rej.
               </Badge>
             )}
-            <Badge variant="secondary" className="text-base px-3 py-1">
-              📊 {conversionRate}% conversão
+            <Badge variant="secondary" className="text-xs md:text-base px-2 md:px-3 py-0.5 md:py-1">
+              📊 {conversionRate}%
             </Badge>
           </div>
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-6">
+      <CardContent className="p-4 md:p-6 pt-0 md:pt-0 space-y-4 md:space-y-6">
         {/* Funnel Stages */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
           {stages.map((stage, index) => {
             const Icon = stage.icon;
             return (
               <div key={stage.id} className="relative">
                 <div className={cn(
-                  "p-4 rounded-xl border-2 transition-all hover:shadow-md",
+                  "p-3 md:p-4 rounded-xl border-2 transition-all hover:shadow-md",
                   stage.bgColor,
                   stage.borderColor
                 )}>
                   {/* Stage Header */}
-                  <div className="flex items-center justify-between mb-3">
-                    <div className={cn("p-2 rounded-lg", stage.color)}>
-                      <Icon className="h-5 w-5 text-white" />
+                  <div className="flex items-center justify-between mb-2 md:mb-3">
+                    <div className={cn("p-1.5 md:p-2 rounded-lg", stage.color)}>
+                      <Icon className="h-4 w-4 md:h-5 md:w-5 text-white" />
                     </div>
                     {index < stages.length - 1 && (
-                      <ArrowRight className="h-5 w-5 text-muted-foreground hidden md:block absolute -right-4 top-1/2 -translate-y-1/2 z-10" />
+                      <ArrowRight className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground hidden md:block absolute -right-4 top-1/2 -translate-y-1/2 z-10" />
                     )}
                   </div>
                   
                   {/* Count */}
-                  <p className={cn("text-4xl font-bold mb-1", stage.textColor)}>
+                  <p className={cn("text-2xl md:text-4xl font-bold mb-0.5 md:mb-1", stage.textColor)}>
                     {loading ? '-' : stage.count}
                   </p>
-                  <p className="text-sm font-medium text-muted-foreground mb-3">
+                  <p className="text-xs md:text-sm font-medium text-muted-foreground mb-2 md:mb-3">
                     {stage.label}
                   </p>
                   
@@ -226,11 +226,11 @@ export function RecruitmentFunnel({ onRefresh }: RecruitmentFunnelProps) {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="w-full text-xs"
+                      className="w-full text-[10px] md:text-xs h-7 md:h-8"
                       disabled={stage.count === 0}
                     >
-                      {stage.action.label}
-                      <ExternalLink className="h-3 w-3 ml-1" />
+                      <span className="truncate">{stage.action.label}</span>
+                      <ExternalLink className="h-3 w-3 ml-1 shrink-0" />
                     </Button>
                   </Link>
                 </div>
@@ -240,47 +240,47 @@ export function RecruitmentFunnel({ onRefresh }: RecruitmentFunnelProps) {
         </div>
 
         {/* Metrics Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4 border-t">
-          <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50">
-            <TrendingUp className="h-4 w-4 text-green-500" />
-            <div>
-              <p className="text-xs text-muted-foreground">Conversão</p>
-              <p className="font-semibold">{conversionRate}%</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 pt-3 md:pt-4 border-t">
+          <div className="flex items-center gap-2 p-2 md:p-3 rounded-lg bg-muted/50">
+            <TrendingUp className="h-4 w-4 text-green-500 shrink-0" />
+            <div className="min-w-0">
+              <p className="text-[10px] md:text-xs text-muted-foreground">Conversão</p>
+              <p className="font-semibold text-sm md:text-base">{conversionRate}%</p>
             </div>
           </div>
           
-          <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50">
-            <Users className="h-4 w-4 text-primary" />
-            <div>
-              <p className="text-xs text-muted-foreground">Total no Funil</p>
-              <p className="font-semibold">{totalCandidates}</p>
+          <div className="flex items-center gap-2 p-2 md:p-3 rounded-lg bg-muted/50">
+            <Users className="h-4 w-4 text-primary shrink-0" />
+            <div className="min-w-0">
+              <p className="text-[10px] md:text-xs text-muted-foreground">Total</p>
+              <p className="font-semibold text-sm md:text-base">{totalCandidates}</p>
             </div>
           </div>
           
           <div className={cn(
-            "flex items-center gap-2 p-3 rounded-lg",
+            "flex items-center gap-2 p-2 md:p-3 rounded-lg",
             oldestPendingDays > 7 ? "bg-red-500/10" : "bg-muted/50"
           )}>
             <Clock className={cn(
-              "h-4 w-4",
+              "h-4 w-4 shrink-0",
               oldestPendingDays > 7 ? "text-red-500" : "text-muted-foreground"
             )} />
-            <div>
-              <p className="text-xs text-muted-foreground">Pendente mais antigo</p>
+            <div className="min-w-0">
+              <p className="text-[10px] md:text-xs text-muted-foreground truncate">Pend. antigo</p>
               <p className={cn(
-                "font-semibold",
+                "font-semibold text-sm md:text-base",
                 oldestPendingDays > 7 && "text-red-600"
               )}>
-                {data.oldest_pending ? `${oldestPendingDays} dias` : '-'}
+                {data.oldest_pending ? `${oldestPendingDays}d` : '-'}
               </p>
             </div>
           </div>
           
-          <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50">
-            <Star className="h-4 w-4 text-yellow-500" />
-            <div>
-              <p className="text-xs text-muted-foreground">Score Médio</p>
-              <p className="font-semibold">{data.avg_score > 0 ? `${data.avg_score}/100` : '-'}</p>
+          <div className="flex items-center gap-2 p-2 md:p-3 rounded-lg bg-muted/50">
+            <Star className="h-4 w-4 text-yellow-500 shrink-0" />
+            <div className="min-w-0">
+              <p className="text-[10px] md:text-xs text-muted-foreground">Score</p>
+              <p className="font-semibold text-sm md:text-base">{data.avg_score > 0 ? `${data.avg_score}` : '-'}</p>
             </div>
           </div>
         </div>
@@ -289,37 +289,41 @@ export function RecruitmentFunnel({ onRefresh }: RecruitmentFunnelProps) {
         {(data.pending_approval > 0 || oldestPendingDays > 7) && (
           <div className="space-y-2">
             {data.pending_approval > 0 && (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
-                <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                <p className="text-sm text-yellow-700 dark:text-yellow-400">
-                  <strong>{data.pending_approval}</strong> candidato(s) aguardando análise
-                </p>
-                <Link to="/dashboard/salespeople?status=pending_approval" className="ml-auto">
-                  <Button variant="outline" size="sm" className="text-xs">
-                    Analisar Agora
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 p-2 md:p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <AlertTriangle className="h-4 w-4 text-yellow-600 shrink-0" />
+                  <p className="text-xs md:text-sm text-yellow-700 dark:text-yellow-400">
+                    <strong>{data.pending_approval}</strong> aguardando
+                  </p>
+                </div>
+                <Link to="/dashboard/salespeople?status=pending_approval">
+                  <Button variant="outline" size="sm" className="text-xs h-7 w-full sm:w-auto">
+                    Analisar
                   </Button>
                 </Link>
               </div>
             )}
             
             {oldestPendingDays > 7 && (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/30">
-                <AlertTriangle className="h-4 w-4 text-red-600" />
-                <p className="text-sm text-red-700 dark:text-red-400">
-                  Candidato há <strong>{oldestPendingDays} dias</strong> sem resposta - risco de perder interesse!
+              <div className="flex items-center gap-2 p-2 md:p-3 rounded-lg bg-red-500/10 border border-red-500/30">
+                <AlertTriangle className="h-4 w-4 text-red-600 shrink-0" />
+                <p className="text-xs md:text-sm text-red-700 dark:text-red-400">
+                  Candidato há <strong>{oldestPendingDays}d</strong> sem resposta!
                 </p>
               </div>
             )}
             
             {data.pending_contract > 0 && (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
-                <FileText className="h-4 w-4 text-blue-600" />
-                <p className="text-sm text-blue-700 dark:text-blue-400">
-                  <strong>{data.pending_contract}</strong> vendedor(es) aprovado(s) aguardando assinatura do contrato
-                </p>
-                <Link to="/dashboard/salespeople?status=pending_contract" className="ml-auto">
-                  <Button variant="outline" size="sm" className="text-xs">
-                    Cobrar Contrato
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 p-2 md:p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <FileText className="h-4 w-4 text-blue-600 shrink-0" />
+                  <p className="text-xs md:text-sm text-blue-700 dark:text-blue-400">
+                    <strong>{data.pending_contract}</strong> aguardando contrato
+                  </p>
+                </div>
+                <Link to="/dashboard/salespeople?status=pending_contract">
+                  <Button variant="outline" size="sm" className="text-xs h-7 w-full sm:w-auto">
+                    Cobrar
                   </Button>
                 </Link>
               </div>

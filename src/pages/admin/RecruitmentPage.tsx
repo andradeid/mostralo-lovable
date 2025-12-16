@@ -221,22 +221,23 @@ export default function RecruitmentPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-8">
+    <div className="container mx-auto p-4 md:p-6 space-y-6 md:space-y-8">
       {/* Header */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
-            <UserPlus className="h-8 w-8 text-primary" />
-            Recrutamento de Vendedores
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 md:gap-4">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold mb-1 md:mb-2 flex items-center gap-2 md:gap-3">
+            <UserPlus className="h-5 w-5 md:h-6 md:w-6 lg:h-8 lg:w-8 text-primary shrink-0" />
+            <span className="truncate">Recrutamento</span>
+            <span className="hidden sm:inline truncate">de Vendedores</span>
           </h1>
-          <p className="text-muted-foreground">
-            Ferramentas completas para recrutar novos vendedores: prompts de IA, simulador de ganhos e textos de divulgação.
+          <p className="text-xs md:text-sm text-muted-foreground line-clamp-2 md:line-clamp-none">
+            Ferramentas para recrutar novos vendedores
           </p>
         </div>
         
-        <Button variant="outline" onClick={fetchData} disabled={loading}>
-          <RefreshCw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />
-          Atualizar Dados
+        <Button variant="outline" onClick={fetchData} disabled={loading} size="sm" className="h-8 md:h-9 shrink-0">
+          <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
+          <span className="hidden md:inline ml-2">Atualizar Dados</span>
         </Button>
       </div>
 
@@ -245,60 +246,61 @@ export default function RecruitmentPage() {
 
       {/* Planos Carregados */}
       <Card className="bg-muted/30">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <DatabaseIcon className="h-5 w-5" />
-            Planos Carregados do Sistema
+        <CardHeader className="p-4 md:p-6">
+          <CardTitle className="text-sm md:text-lg flex items-center gap-2">
+            <DatabaseIcon className="h-4 w-4 md:h-5 md:w-5" />
+            <span className="hidden sm:inline">Planos Carregados do Sistema</span>
+            <span className="sm:hidden">Planos</span>
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
             {plans.map((plan) => {
               const hasPromotion = plan.promotion_active && plan.discount_price;
               const displayPrice = hasPromotion ? plan.discount_price : plan.price;
               
               return (
-                <div key={plan.id} className="p-4 rounded-lg border bg-background">
+                <div key={plan.id} className="p-3 md:p-4 rounded-lg border bg-background">
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-semibold">{plan.name}</h4>
-                    {plan.is_popular && <Badge>Popular</Badge>}
+                    <h4 className="font-semibold text-sm md:text-base truncate">{plan.name}</h4>
+                    {plan.is_popular && <Badge className="text-[10px] md:text-xs shrink-0">Popular</Badge>}
                   </div>
                   
-                  <div className="space-y-1 mb-3">
+                  <div className="space-y-0.5 mb-2 md:mb-3">
                     {hasPromotion ? (
                       <>
-                        <p className="text-sm line-through text-muted-foreground">
+                        <p className="text-xs md:text-sm line-through text-muted-foreground">
                           {formatCurrency(plan.price)}
                         </p>
-                        <div className="flex items-center gap-2">
-                          <p className="text-xl font-bold text-green-600">
+                        <div className="flex items-center gap-1.5 md:gap-2">
+                          <p className="text-lg md:text-xl font-bold text-green-600">
                             {formatCurrency(displayPrice!)}
                           </p>
                           {plan.discount_percentage && (
-                            <Badge variant="destructive">
+                            <Badge variant="destructive" className="text-[10px] md:text-xs">
                               -{plan.discount_percentage}%
                             </Badge>
                           )}
                         </div>
                       </>
                     ) : (
-                      <p className="text-xl font-bold">{formatCurrency(plan.price)}</p>
+                      <p className="text-lg md:text-xl font-bold">{formatCurrency(plan.price)}</p>
                     )}
                   </div>
                   
-                  <div className="space-y-1">
+                  <div className="space-y-0.5 md:space-y-1 hidden sm:block">
                     {(Array.isArray(plan.features) ? plan.features as string[] : [])
-                      .slice(0, 4)
+                      .slice(0, 3)
                       .map((feature, i) => (
-                        <p key={i} className="text-xs text-muted-foreground flex items-center gap-1">
+                        <p key={i} className="text-[10px] md:text-xs text-muted-foreground flex items-center gap-1">
                           <CheckCircle className="h-3 w-3 text-green-500 flex-shrink-0" />
-                          {feature}
+                          <span className="truncate">{feature}</span>
                         </p>
                       ))}
-                    {(Array.isArray(plan.features) ? plan.features as string[] : []).length > 4 && (
-                      <p className="text-xs text-primary">
-                        +{(plan.features as string[]).length - 4} recursos
+                    {(Array.isArray(plan.features) ? plan.features as string[] : []).length > 3 && (
+                      <p className="text-[10px] md:text-xs text-primary">
+                        +{(plan.features as string[]).length - 3} recursos
                       </p>
                     )}
                   </div>
@@ -307,26 +309,32 @@ export default function RecruitmentPage() {
             })}
           </div>
           
-          <p className="text-xs text-muted-foreground mt-4">
-            Última atualização: {new Date().toLocaleString('pt-BR')}
+          <p className="text-[10px] md:text-xs text-muted-foreground mt-3 md:mt-4">
+            Atualizado: {new Date().toLocaleString('pt-BR')}
           </p>
         </CardContent>
       </Card>
 
       {/* Tabs Principais */}
       <Tabs defaultValue="prompts" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="prompts" className="flex items-center gap-2">
+        <TabsList className="w-full h-auto flex overflow-x-auto scrollbar-hide md:grid md:grid-cols-3 gap-1 p-1 mb-4 md:mb-6">
+          <TabsTrigger value="prompts" className="shrink-0 text-xs md:text-sm px-3 md:px-4 py-2 flex items-center gap-1.5">
             <Users className="h-4 w-4" />
-            🤖 Prompts de IA
+            <span className="hidden xs:inline">🤖</span>
+            <span className="md:hidden">Prompts</span>
+            <span className="hidden md:inline">🤖 Prompts de IA</span>
           </TabsTrigger>
-          <TabsTrigger value="simulator" className="flex items-center gap-2">
+          <TabsTrigger value="simulator" className="shrink-0 text-xs md:text-sm px-3 md:px-4 py-2 flex items-center gap-1.5">
             <Calculator className="h-4 w-4" />
-            💰 Simulador de Ganhos
+            <span className="hidden xs:inline">💰</span>
+            <span className="md:hidden">Simulador</span>
+            <span className="hidden md:inline">💰 Simulador de Ganhos</span>
           </TabsTrigger>
-          <TabsTrigger value="posts" className="flex items-center gap-2">
+          <TabsTrigger value="posts" className="shrink-0 text-xs md:text-sm px-3 md:px-4 py-2 flex items-center gap-1.5">
             <Megaphone className="h-4 w-4" />
-            📣 Divulgação de Vagas
+            <span className="hidden xs:inline">📣</span>
+            <span className="md:hidden">Posts</span>
+            <span className="hidden md:inline">📣 Divulgação de Vagas</span>
           </TabsTrigger>
         </TabsList>
 

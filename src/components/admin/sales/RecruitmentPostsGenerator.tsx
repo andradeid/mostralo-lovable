@@ -662,28 +662,30 @@ Comenta "EU QUERO" 👇${getRecruiterInfo()}`,
 
       {/* Abas por Plataforma */}
       <Tabs defaultValue="facebook" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="facebook" className="flex items-center gap-1">
-            <Facebook className="h-4 w-4" />
-            <span className="hidden md:inline">Facebook</span>
-          </TabsTrigger>
-          <TabsTrigger value="linkedin" className="flex items-center gap-1">
-            <Linkedin className="h-4 w-4" />
-            <span className="hidden md:inline">LinkedIn</span>
-          </TabsTrigger>
-          <TabsTrigger value="olx" className="flex items-center gap-1">
-            <ShoppingBag className="h-4 w-4" />
-            <span className="hidden md:inline">OLX</span>
-          </TabsTrigger>
-          <TabsTrigger value="whatsapp" className="flex items-center gap-1">
-            <MessageCircle className="h-4 w-4" />
-            <span className="hidden md:inline">WhatsApp</span>
-          </TabsTrigger>
-          <TabsTrigger value="instagram" className="flex items-center gap-1">
-            <Instagram className="h-4 w-4" />
-            <span className="hidden md:inline">Instagram</span>
-          </TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+          <TabsList className="w-max md:w-full flex md:grid md:grid-cols-5 h-auto p-1 gap-1">
+            <TabsTrigger value="facebook" className="shrink-0 text-xs px-3 py-2 flex items-center gap-1">
+              <Facebook className="h-4 w-4" />
+              <span className="hidden sm:inline">Facebook</span>
+            </TabsTrigger>
+            <TabsTrigger value="linkedin" className="shrink-0 text-xs px-3 py-2 flex items-center gap-1">
+              <Linkedin className="h-4 w-4" />
+              <span className="hidden sm:inline">LinkedIn</span>
+            </TabsTrigger>
+            <TabsTrigger value="olx" className="shrink-0 text-xs px-3 py-2 flex items-center gap-1">
+              <ShoppingBag className="h-4 w-4" />
+              <span className="hidden sm:inline">OLX</span>
+            </TabsTrigger>
+            <TabsTrigger value="whatsapp" className="shrink-0 text-xs px-3 py-2 flex items-center gap-1">
+              <MessageCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">WhatsApp</span>
+            </TabsTrigger>
+            <TabsTrigger value="instagram" className="shrink-0 text-xs px-3 py-2 flex items-center gap-1">
+              <Instagram className="h-4 w-4" />
+              <span className="hidden sm:inline">Instagram</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="facebook" className="mt-6">
           <div className="mb-4">

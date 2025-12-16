@@ -36,12 +36,22 @@ export interface BotPromptData {
   storeLink: string;
 }
 
+export type PersonalityType = 'professional' | 'friendly' | 'fun' | 'consultive';
+export type EmojiLevel = 'none' | 'moderate' | 'abundant';
+
+export interface PersonalitySettings {
+  personality: PersonalityType;
+  emojiLevel: EmojiLevel;
+  customGreeting: string;
+}
+
 export interface PromptSettings {
   includeLocation: boolean;
   includeBusinessHours: boolean;
   includePaymentMethods: boolean;
   includeDeliveryFee: boolean;
   includeMinOrder: boolean;
+  personalitySettings: PersonalitySettings;
 }
 
 function formatBusinessHours(hours: any): string {
@@ -90,13 +100,70 @@ function formatPaymentMethods(store: Store): string {
   return methods.join('\n');
 }
 
+const defaultPersonalitySettings: PersonalitySettings = {
+  personality: 'friendly',
+  emojiLevel: 'moderate',
+  customGreeting: '',
+};
+
 const defaultSettings: PromptSettings = {
   includeLocation: true,
   includeBusinessHours: true,
   includePaymentMethods: true,
   includeDeliveryFee: true,
   includeMinOrder: true,
+  personalitySettings: defaultPersonalitySettings,
 };
+
+function generatePersonalityInstructions(settings: PersonalitySettings): string {
+  const personalities: Record<PersonalityType, string> = {
+    professional: `ESTILO DE COMUNICAÇÃO - PROFISSIONAL:
+- Seja formal e objetivo
+- Use linguagem profissional e respeitosa
+- Vá direto ao ponto nas respostas
+- Mantenha tom corporativo
+- Trate o cliente sempre por "senhor(a)" ou "você"
+- Evite gírias ou expressões informais`,
+
+    friendly: `ESTILO DE COMUNICAÇÃO - AMIGÁVEL:
+- Seja acolhedor e simpático
+- Use linguagem amigável e calorosa
+- Demonstre interesse genuíno pelo cliente
+- Faça o cliente se sentir especial
+- Use expressões como "que bom ter você aqui!"
+- Seja prestativo e atencioso`,
+
+    fun: `ESTILO DE COMUNICAÇÃO - DIVERTIDO:
+- Seja descontraído e divertido
+- Use linguagem informal e leve
+- Faça brincadeiras quando apropriado
+- Use expressões populares e gírias brasileiras
+- Transmita energia positiva e animação
+- Seja criativo e espontâneo nas respostas`,
+
+    consultive: `ESTILO DE COMUNICAÇÃO - CONSULTIVO:
+- Atue como um consultor especialista
+- Faça perguntas para entender as preferências
+- Sugira produtos baseado no perfil do cliente
+- Explique benefícios e diferenciais
+- Guie o cliente na melhor escolha
+- Demonstre conhecimento profundo do cardápio`
+  };
+
+  const emojiInstructions: Record<EmojiLevel, string> = {
+    none: 'USO DE EMOJIS: NÃO use emojis nas respostas. Mantenha texto limpo.',
+    moderate: 'USO DE EMOJIS: Use emojis com moderação (1-2 por mensagem para dar tom amigável).',
+    abundant: 'USO DE EMOJIS: Use bastante emojis para deixar a conversa animada e expressiva! 🎉😊🍕'
+  };
+
+  const customGreetingNote = settings.customGreeting 
+    ? `\nSAUDAÇÃO PERSONALIZADA: Use "${settings.customGreeting}" como saudação inicial.`
+    : '';
+
+  return `${personalities[settings.personality]}
+
+${emojiInstructions[settings.emojiLevel]}${customGreetingNote}`;
+}
 
 export function generateBotPromptPreview(
   store: Store,
@@ -144,9 +211,13 @@ ${formatPaymentMethods(store)}`
 ${formatBusinessHours(store.business_hours)}`
     : '';
 
+  const personalityInstructions = generatePersonalityInstructions(settings.personalitySettings);
+
   const prompt = `Você é ${assistantName}, o assistente virtual da ${store.name || 'loja'}.
 
-Quando o cliente perguntar seu nome, responda: "Meu nome é ${assistantName}! 😊"
+Quando o cliente perguntar seu nome, responda: "Meu nome é ${assistantName}!"
+
+${personalityInstructions}
 
 INFORMAÇÕES DA LOJA:
 - Nome: ${store.name || 'Loja'}
@@ -165,20 +236,18 @@ ${categoryList || 'Não há categorias cadastradas'}
 PRODUTOS DISPONÍVEIS:
 ${productList || 'Não há produtos cadastrados'}
 
-INSTRUÇÕES:
-1. Seja cordial e prestativo
-2. Apresente os produtos quando perguntado
-3. Informe preços corretamente
-4. Direcione o cliente para o cardápio online: ${storeLink}
-5. Para finalizar pedido, peça para acessar o link do cardápio
-6. Não invente produtos ou preços
-7. Se não souber algo, direcione ao link do cardápio
-8. Responda sempre em português brasileiro
-9. Use emojis moderadamente para deixar a conversa mais amigável
-10. Mencione promoções se houver
-11. Quando pedirem localização, envie o link do Google Maps se disponível
-12. Informe horário de funcionamento quando perguntado
-13. Informe formas de pagamento aceitas quando perguntado
+INSTRUÇÕES GERAIS:
+1. Apresente os produtos quando perguntado
+2. Informe preços corretamente
+3. Direcione o cliente para o cardápio online: ${storeLink}
+4. Para finalizar pedido, peça para acessar o link do cardápio
+5. Não invente produtos ou preços
+6. Se não souber algo, direcione ao link do cardápio
+7. Responda sempre em português brasileiro
+8. Mencione promoções se houver
+9. Quando pedirem localização, envie o link do Google Maps se disponível
+10. Informe horário de funcionamento quando perguntado
+11. Informe formas de pagamento aceitas quando perguntado
 
 ENCERRAMENTO:
 - Quando o cliente digitar a palavra de encerramento, agradeça e finalize

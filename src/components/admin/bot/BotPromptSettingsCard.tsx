@@ -2,14 +2,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Settings2, MapPin, Clock, CreditCard, Truck, DollarSign } from "lucide-react";
+import { PromptSettings } from "@/lib/botPromptGenerator";
 
-interface PromptSettings {
-  includeLocation: boolean;
-  includeBusinessHours: boolean;
-  includePaymentMethods: boolean;
-  includeDeliveryFee: boolean;
-  includeMinOrder: boolean;
-}
+type SettingKey = 'includeLocation' | 'includeBusinessHours' | 'includePaymentMethods' | 'includeDeliveryFee' | 'includeMinOrder';
 
 interface BotPromptSettingsCardProps {
   settings: PromptSettings;
@@ -22,7 +17,7 @@ export function BotPromptSettingsCard({
   onSettingsChange, 
   disabled = false 
 }: BotPromptSettingsCardProps) {
-  const handleChange = (key: keyof PromptSettings, value: boolean) => {
+  const handleChange = (key: SettingKey, value: boolean) => {
     onSettingsChange({ ...settings, [key]: value });
   };
 

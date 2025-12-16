@@ -1,16 +1,17 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { generateBotPromptPreview, BotPromptData } from "@/lib/botPromptGenerator";
+import { generateBotPromptPreview, BotPromptData, PromptSettings, PersonalitySettings } from "@/lib/botPromptGenerator";
 import { useDebouncedCallback } from "@/hooks/useDebouncedCallback";
 
-export interface PromptSettings {
-  includeLocation: boolean;
-  includeBusinessHours: boolean;
-  includePaymentMethods: boolean;
-  includeDeliveryFee: boolean;
-  includeMinOrder: boolean;
-}
+// Re-export types for convenience
+export type { PromptSettings, PersonalitySettings } from "@/lib/botPromptGenerator";
+
+const defaultPersonalitySettings: PersonalitySettings = {
+  personality: 'friendly',
+  emojiLevel: 'moderate',
+  customGreeting: '',
+};
 
 export interface BotConfig {
   id?: string;
@@ -60,6 +61,7 @@ const defaultPromptSettings: PromptSettings = {
   includePaymentMethods: true,
   includeDeliveryFee: true,
   includeMinOrder: true,
+  personalitySettings: defaultPersonalitySettings,
 };
 
 export function useBotConfig(storeId: string | null) {

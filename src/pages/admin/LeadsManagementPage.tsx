@@ -8,11 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { LeadQualificationGuide } from '@/components/leads/LeadQualificationGuide';
 import { LeadRemindersAlert } from '@/components/leads/LeadRemindersAlert';
 import { StaleLeadBadge, getRowClassName } from '@/components/leads/StaleLeadBadge';
+import { LeadCard } from '@/components/leads/LeadCard';
 import { 
   Users, 
   TrendingUp, 
@@ -28,7 +31,8 @@ import {
   Eye,
   RefreshCw,
   Download,
-  Settings
+  Settings,
+  ChevronDown
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -74,6 +78,7 @@ export default function LeadsManagementPage() {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [leadNotes, setLeadNotes] = useState('');
   const [updatingLead, setUpdatingLead] = useState(false);
+  const [whatsappConfigOpen, setWhatsappConfigOpen] = useState(false);
 
   // Estatísticas
   const [stats, setStats] = useState({
@@ -300,193 +305,233 @@ export default function LeadsManagementPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Guia de Qualificação */}
       <LeadQualificationGuide />
 
       {/* Alertas de Leads Parados */}
       <LeadRemindersAlert onLeadClick={handleLeadClick} />
 
-      {/* Configuração do WhatsApp */}
+      {/* Configuração do WhatsApp - Colapsável */}
       <Card className="border-primary/20 bg-primary/5">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Settings className="w-5 h-5" />
-            Configuração do WhatsApp de Suporte
-          </CardTitle>
-          <CardDescription>
-            Este número receberá os leads após preencherem o formulário.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="whatsapp-number" className="text-sm font-medium mb-2 block">
-              Número do WhatsApp
-            </Label>
-            <Input
-              id="whatsapp-number"
-              placeholder="5511999999999"
-              value={supportWhatsapp}
-              onChange={(e) => setSupportWhatsapp(e.target.value)}
-            />
-          </div>
+        <Collapsible open={whatsappConfigOpen} onOpenChange={setWhatsappConfigOpen}>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="pb-3 cursor-pointer hover:bg-primary/5 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Settings className="w-4 h-4 md:w-5 md:h-5" />
+                  <CardTitle className="text-sm md:text-lg">Config WhatsApp</CardTitle>
+                </div>
+                <ChevronDown className={`w-4 h-4 transition-transform ${whatsappConfigOpen ? 'rotate-180' : ''}`} />
+              </div>
+              <CardDescription className="text-xs md:text-sm">
+                Número que receberá os leads do formulário
+              </CardDescription>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="space-y-3 md:space-y-4 pt-0">
+              <div>
+                <Label htmlFor="whatsapp-number" className="text-xs md:text-sm font-medium mb-1.5 block">
+                  Número do WhatsApp
+                </Label>
+                <Input
+                  id="whatsapp-number"
+                  placeholder="5511999999999"
+                  value={supportWhatsapp}
+                  onChange={(e) => setSupportWhatsapp(e.target.value)}
+                  className="h-9 text-sm"
+                />
+              </div>
 
-          <div>
-            <Label htmlFor="whatsapp-message" className="text-sm font-medium mb-2 block">
-              Mensagem Personalizada
-            </Label>
-            <p className="text-xs text-muted-foreground mb-2">
-              Use os campos abaixo para personalizar. Serão substituídos automaticamente:
-            </p>
-            <div className="flex flex-wrap gap-2 mb-3">
-              <Badge variant="outline" className="cursor-pointer hover:bg-primary/10" onClick={() => setWhatsappMessage(prev => prev + '{nome}')}>
-                {'{nome}'}
-              </Badge>
-              <Badge variant="outline" className="cursor-pointer hover:bg-primary/10" onClick={() => setWhatsappMessage(prev => prev + '{email}')}>
-                {'{email}'}
-              </Badge>
-              <Badge variant="outline" className="cursor-pointer hover:bg-primary/10" onClick={() => setWhatsappMessage(prev => prev + '{telefone}')}>
-                {'{telefone}'}
-              </Badge>
-              <Badge variant="outline" className="cursor-pointer hover:bg-primary/10" onClick={() => setWhatsappMessage(prev => prev + '{empresa}')}>
-                {'{empresa}'}
-              </Badge>
-              <Badge variant="outline" className="cursor-pointer hover:bg-primary/10" onClick={() => setWhatsappMessage(prev => prev + '{cidade}')}>
-                {'{cidade}'}
-              </Badge>
-              <Badge variant="outline" className="cursor-pointer hover:bg-primary/10" onClick={() => setWhatsappMessage(prev => prev + '{ifood}')}>
-                {'{ifood}'}
-              </Badge>
-            </div>
-            <Textarea
-              id="whatsapp-message"
-              placeholder="Digite a mensagem..."
-              value={whatsappMessage}
-              onChange={(e) => setWhatsappMessage(e.target.value)}
-              rows={3}
-            />
-          </div>
+              <div>
+                <Label htmlFor="whatsapp-message" className="text-xs md:text-sm font-medium mb-1.5 block">
+                  Mensagem Personalizada
+                </Label>
+                <p className="text-[10px] md:text-xs text-muted-foreground mb-2">
+                  Campos disponíveis (clique para adicionar):
+                </p>
+                <ScrollArea className="w-full whitespace-nowrap">
+                  <div className="flex gap-1.5 pb-2">
+                    {['{nome}', '{email}', '{telefone}', '{empresa}', '{cidade}', '{ifood}'].map((placeholder) => (
+                      <Badge 
+                        key={placeholder}
+                        variant="outline" 
+                        className="cursor-pointer hover:bg-primary/10 shrink-0 text-[10px] md:text-xs" 
+                        onClick={() => setWhatsappMessage(prev => prev + placeholder)}
+                      >
+                        {placeholder}
+                      </Badge>
+                    ))}
+                  </div>
+                  <ScrollBar orientation="horizontal" className="md:hidden" />
+                </ScrollArea>
+                <Textarea
+                  id="whatsapp-message"
+                  placeholder="Digite a mensagem..."
+                  value={whatsappMessage}
+                  onChange={(e) => setWhatsappMessage(e.target.value)}
+                  rows={3}
+                  className="text-sm"
+                />
+              </div>
 
-          <div className="bg-muted/50 rounded-lg p-3">
-            <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
-              💡 Modelos de mensagens (clique para usar):
-            </p>
-            <div className="space-y-2">
-              {MESSAGE_TEMPLATES.map((template, index) => (
-                <button
-                  key={index}
-                  type="button"
-                  onClick={() => setWhatsappMessage(template)}
-                  className="w-full text-left text-xs p-2 rounded bg-background hover:bg-primary/10 transition-colors border border-transparent hover:border-primary/20"
-                >
-                  "{template}"
-                </button>
-              ))}
-            </div>
-          </div>
+              {/* Templates - Colapsáveis no mobile */}
+              <Collapsible className="md:hidden">
+                <CollapsibleTrigger className="text-xs font-medium text-primary flex items-center gap-1">
+                  💡 Ver modelos de mensagens
+                  <ChevronDown className="w-3 h-3" />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="space-y-1.5 mt-2">
+                    {MESSAGE_TEMPLATES.map((template, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => setWhatsappMessage(template)}
+                        className="w-full text-left text-[10px] p-2 rounded bg-background hover:bg-primary/10 transition-colors border"
+                      >
+                        "{template}"
+                      </button>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
 
-          <Button onClick={handleSaveWhatsapp} disabled={savingWhatsapp} className="w-full sm:w-auto">
-            {savingWhatsapp ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Save className="w-4 h-4 mr-2" />
-            )}
-            Salvar Configurações
-          </Button>
-        </CardContent>
+              {/* Templates - Sempre visíveis no desktop */}
+              <div className="hidden md:block bg-muted/50 rounded-lg p-3">
+                <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                  💡 Modelos de mensagens (clique para usar):
+                </p>
+                <div className="space-y-2">
+                  {MESSAGE_TEMPLATES.map((template, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => setWhatsappMessage(template)}
+                      className="w-full text-left text-xs p-2 rounded bg-background hover:bg-primary/10 transition-colors border border-transparent hover:border-primary/20"
+                    >
+                      "{template}"
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <Button onClick={handleSaveWhatsapp} disabled={savingWhatsapp} className="w-full sm:w-auto h-9 text-sm">
+                {savingWhatsapp ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4 mr-2" />
+                )}
+                Salvar
+              </Button>
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
       </Card>
 
-      {/* Estatísticas */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Estatísticas - Compactas */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500/10 rounded-lg">
-                <Users className="w-5 h-5 text-blue-500" />
+          <CardContent className="p-3 md:pt-6 md:p-6">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="p-1.5 md:p-2 bg-blue-500/10 rounded-lg shrink-0">
+                <Users className="w-4 h-4 md:w-5 md:h-5 text-blue-500" />
               </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.total}</p>
-                <p className="text-sm text-muted-foreground">Total de Leads</p>
+              <div className="min-w-0">
+                <p className="text-lg md:text-2xl font-bold">{stats.total}</p>
+                <p className="text-[10px] md:text-sm text-muted-foreground truncate">
+                  <span className="md:hidden">Total</span>
+                  <span className="hidden md:inline">Total de Leads</span>
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-500/10 rounded-lg">
-                <UserPlus className="w-5 h-5 text-green-500" />
+          <CardContent className="p-3 md:pt-6 md:p-6">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="p-1.5 md:p-2 bg-green-500/10 rounded-lg shrink-0">
+                <UserPlus className="w-4 h-4 md:w-5 md:h-5 text-green-500" />
               </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.new}</p>
-                <p className="text-sm text-muted-foreground">Novos Hoje</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-500/10 rounded-lg">
-                <TrendingUp className="w-5 h-5 text-purple-500" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.conversionRate}%</p>
-                <p className="text-sm text-muted-foreground">Taxa Conversão</p>
+              <div className="min-w-0">
+                <p className="text-lg md:text-2xl font-bold">{stats.new}</p>
+                <p className="text-[10px] md:text-sm text-muted-foreground truncate">
+                  <span className="md:hidden">Novos</span>
+                  <span className="hidden md:inline">Novos Hoje</span>
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-amber-500/10 rounded-lg">
-                <MessageSquare className="w-5 h-5 text-amber-500" />
+          <CardContent className="p-3 md:pt-6 md:p-6">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="p-1.5 md:p-2 bg-purple-500/10 rounded-lg shrink-0">
+                <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-purple-500" />
               </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.converted}</p>
-                <p className="text-sm text-muted-foreground">Convertidos</p>
+              <div className="min-w-0">
+                <p className="text-lg md:text-2xl font-bold">{stats.conversionRate}%</p>
+                <p className="text-[10px] md:text-sm text-muted-foreground truncate">
+                  <span className="md:hidden">Conversão</span>
+                  <span className="hidden md:inline">Taxa Conversão</span>
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-3 md:pt-6 md:p-6">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="p-1.5 md:p-2 bg-amber-500/10 rounded-lg shrink-0">
+                <MessageSquare className="w-4 h-4 md:w-5 md:h-5 text-amber-500" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-lg md:text-2xl font-bold">{stats.converted}</p>
+                <p className="text-[10px] md:text-sm text-muted-foreground truncate">Convertidos</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filtros e Tabela */}
+      {/* Filtros e Lista */}
       <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <CardTitle>Leads</CardTitle>
-            <div className="flex flex-wrap gap-2">
+        <CardHeader className="pb-3 md:pb-6">
+          <div className="flex flex-col gap-3">
+            <CardTitle className="text-lg md:text-xl">Leads</CardTitle>
+            <div className="flex flex-col sm:flex-row gap-2">
               <Input
                 placeholder="Buscar..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-48"
+                className="w-full sm:w-40 md:w-48 h-9 text-sm"
               />
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  {STATUS_OPTIONS.map(status => (
-                    <SelectItem key={status.value} value={status.value}>
-                      {status.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button variant="outline" size="icon" onClick={fetchLeads}>
-                <RefreshCw className="w-4 h-4" />
-              </Button>
-              <Button variant="outline" onClick={exportToCSV}>
-                <Download className="w-4 h-4 mr-2" />
-                Exportar
-              </Button>
+              <div className="flex gap-2">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="flex-1 sm:w-32 md:w-40 h-9 text-sm">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    {STATUS_OPTIONS.map(status => (
+                      <SelectItem key={status.value} value={status.value}>
+                        {status.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" size="icon" onClick={fetchLeads} className="h-9 w-9 shrink-0">
+                  <RefreshCw className="w-4 h-4" />
+                </Button>
+                <Button variant="outline" onClick={exportToCSV} className="h-9 shrink-0">
+                  <Download className="w-4 h-4 md:mr-2" />
+                  <span className="hidden md:inline">Exportar</span>
+                </Button>
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -495,29 +540,107 @@ export default function LeadsManagementPage() {
             <div className="flex items-center justify-center py-8">
               <Loader2 className="w-6 h-6 animate-spin" />
             </div>
+          ) : filteredLeads.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              Nenhum lead encontrado
+            </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Empresa</TableHead>
-                    <TableHead>Contato</TableHead>
-                    <TableHead>Vendedor</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredLeads.length === 0 ? (
+            <>
+              {/* Mobile: Cards */}
+              <div className="space-y-3 md:hidden">
+                {filteredLeads.map((lead) => (
+                  <Dialog key={lead.id}>
+                    <LeadCard
+                      lead={lead}
+                      statusOptions={STATUS_OPTIONS}
+                      onStatusChange={handleUpdateLeadStatus}
+                      onViewDetails={() => {
+                        setSelectedLead(lead);
+                        setLeadNotes(lead.notes || '');
+                      }}
+                    />
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Detalhes do Lead</DialogTitle>
+                        <DialogDescription>
+                          Visualize e adicione notas sobre este lead.
+                        </DialogDescription>
+                      </DialogHeader>
+                      {selectedLead && selectedLead.id === lead.id && (
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <Label className="text-xs text-muted-foreground">Nome</Label>
+                              <p className="font-medium text-sm">{selectedLead.name}</p>
+                            </div>
+                            <div>
+                              <Label className="text-xs text-muted-foreground">Empresa</Label>
+                              <p className="font-medium text-sm">{selectedLead.company_name}</p>
+                            </div>
+                            <div>
+                              <Label className="text-xs text-muted-foreground">Email</Label>
+                              <p className="font-medium text-sm truncate">{selectedLead.email}</p>
+                            </div>
+                            <div>
+                              <Label className="text-xs text-muted-foreground">Telefone</Label>
+                              <p className="font-medium text-sm">{selectedLead.phone}</p>
+                            </div>
+                            <div>
+                              <Label className="text-xs text-muted-foreground">Cidade</Label>
+                              <p className="font-medium text-sm">{selectedLead.city}</p>
+                            </div>
+                            <div>
+                              <Label className="text-xs text-muted-foreground">Usa iFood?</Label>
+                              <p className="font-medium text-sm">
+                                {selectedLead.uses_ifood === true ? 'Sim' : selectedLead.uses_ifood === false ? 'Não' : '—'}
+                              </p>
+                            </div>
+                          </div>
+                          <div>
+                            <Label className="text-sm">Notas</Label>
+                            <Textarea
+                              value={leadNotes}
+                              onChange={(e) => setLeadNotes(e.target.value)}
+                              placeholder="Adicione observações sobre este lead..."
+                              rows={3}
+                              className="text-sm"
+                            />
+                          </div>
+                          <Button 
+                            onClick={handleSaveNotes} 
+                            disabled={updatingLead}
+                            className="w-full h-9"
+                          >
+                            {updatingLead ? (
+                              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                            ) : (
+                              <Save className="w-4 h-4 mr-2" />
+                            )}
+                            Salvar Notas
+                          </Button>
+                        </div>
+                      )}
+                    </DialogContent>
+                  </Dialog>
+                ))}
+              </div>
+
+              {/* Desktop: Tabela */}
+              <div className="hidden md:block overflow-x-auto">
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                        Nenhum lead encontrado
-                      </TableCell>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>Empresa</TableHead>
+                      <TableHead>Contato</TableHead>
+                      <TableHead>Vendedor</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Ações</TableHead>
                     </TableRow>
-                  ) : (
-                    filteredLeads.map((lead) => (
+                  </TableHeader>
+                  <TableBody>
+                    {filteredLeads.map((lead) => (
                       <TableRow key={lead.id} className={getRowClassName(lead.updated_at, lead.status)}>
                         <TableCell>
                           <div>
@@ -655,11 +778,11 @@ export default function LeadsManagementPage() {
                           </Dialog>
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

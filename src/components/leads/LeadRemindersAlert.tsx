@@ -74,7 +74,6 @@ export function LeadRemindersAlert({ onLeadClick, salespersonId }: LeadReminders
   }
 
   const urgentCount = staleLeads.filter(l => l.daysStale >= 7).length;
-  const alertCount = staleLeads.filter(l => l.daysStale >= 5 && l.daysStale < 7).length;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -96,62 +95,66 @@ export function LeadRemindersAlert({ onLeadClick, salespersonId }: LeadReminders
 
   const getStaleBadge = (daysStale: number) => {
     if (daysStale >= 7) {
-      return <Badge className="bg-red-500 text-white animate-pulse">URGENTE! ({daysStale}d)</Badge>;
+      return <Badge className="bg-red-500 text-white animate-pulse text-[10px] md:text-xs h-5">URGENTE! ({daysStale}d)</Badge>;
     }
     if (daysStale >= 5) {
-      return <Badge className="bg-orange-500 text-white">Alerta ({daysStale}d)</Badge>;
+      return <Badge className="bg-orange-500 text-white text-[10px] md:text-xs h-5">Alerta ({daysStale}d)</Badge>;
     }
-    return <Badge className="bg-yellow-500 text-black">Atenção ({daysStale}d)</Badge>;
+    return <Badge className="bg-yellow-500 text-black text-[10px] md:text-xs h-5">Atenção ({daysStale}d)</Badge>;
   };
 
   return (
-    <Card className="mb-6 border-amber-500/50 bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-red-500/10">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-full bg-amber-500/20">
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
+    <Card className="mb-4 md:mb-6 border-amber-500/50 bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-red-500/10">
+      <CardContent className="p-3 md:p-4">
+        {/* Header Responsivo */}
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+          <div className="flex items-start gap-2 md:gap-3">
+            <div className="p-1.5 md:p-2 rounded-full bg-amber-500/20 shrink-0">
+              <AlertTriangle className="h-4 w-4 md:h-5 md:w-5 text-amber-500" />
             </div>
-            <div>
-              <h3 className="font-semibold text-lg flex items-center gap-2">
-                ⚠️ {staleLeads.length} lead{staleLeads.length > 1 ? 's' : ''} precisa{staleLeads.length > 1 ? 'm' : ''} de follow-up!
+            <div className="min-w-0">
+              <h3 className="font-semibold text-sm md:text-lg flex flex-wrap items-center gap-1 md:gap-2">
+                <span>⚠️ {staleLeads.length} lead{staleLeads.length > 1 ? 's' : ''}</span>
                 {urgentCount > 0 && (
-                  <Badge variant="destructive" className="animate-pulse">
+                  <Badge variant="destructive" className="animate-pulse text-[10px] md:text-xs">
                     {urgentCount} urgente{urgentCount > 1 ? 's' : ''}
                   </Badge>
                 )}
               </h3>
-              <p className="text-sm text-muted-foreground">
-                Leads sem atualização há mais de 3 dias. Faça contato agora!
+              <p className="text-xs md:text-sm text-muted-foreground">
+                Sem atualização há +3 dias
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 self-end sm:self-start shrink-0">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setIsExpanded(!isExpanded)}
+              className="h-7 md:h-8 text-xs"
             >
-              <Eye className="h-4 w-4 mr-1" />
-              {isExpanded ? 'Ocultar' : 'Ver todos'}
+              <Eye className="h-3.5 w-3.5 md:mr-1" />
+              <span className="hidden sm:inline">{isExpanded ? 'Ocultar' : 'Ver todos'}</span>
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setIsDismissed(true)}
+              className="h-7 md:h-8 w-7 md:w-8 p-0"
             >
               <X className="h-4 w-4" />
             </Button>
           </div>
         </div>
 
+        {/* Lista Expandida */}
         {isExpanded && (
-          <ScrollArea className="mt-4 max-h-64">
+          <ScrollArea className="mt-3 md:mt-4 max-h-64">
             <div className="space-y-2">
               {staleLeads.map((lead) => (
                 <div
                   key={lead.id}
-                  className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                  className={`p-2 md:p-3 rounded-lg border cursor-pointer transition-colors ${
                     lead.daysStale >= 7 
                       ? 'bg-red-500/10 border-red-500/30 hover:bg-red-500/20' 
                       : lead.daysStale >= 5
@@ -160,25 +163,22 @@ export function LeadRemindersAlert({ onLeadClick, salespersonId }: LeadReminders
                   }`}
                   onClick={() => onLeadClick?.(lead.id)}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-2 h-2 rounded-full ${getStatusColor(lead.status)}`} />
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{lead.name}</span>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start gap-2 min-w-0 flex-1">
+                      <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${getStatusColor(lead.status)}`} />
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-1 md:gap-2">
+                          <span className="font-medium text-xs md:text-sm truncate">{lead.name}</span>
                           {getStaleBadge(lead.daysStale)}
                         </div>
-                        <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
-                          <span className="flex items-center gap-1">
-                            <Building2 className="h-3 w-3" />
+                        {/* Info em coluna no mobile */}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-3 text-[10px] md:text-sm text-muted-foreground mt-1">
+                          <span className="flex items-center gap-1 truncate">
+                            <Building2 className="h-3 w-3 shrink-0" />
                             {lead.company_name}
                           </span>
                           <span className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
-                            {lead.city}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
+                            <Clock className="h-3 w-3 shrink-0" />
                             {formatDistanceToNow(new Date(lead.updated_at), { 
                               addSuffix: true, 
                               locale: ptBR 
@@ -187,14 +187,15 @@ export function LeadRemindersAlert({ onLeadClick, salespersonId }: LeadReminders
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs">
+                    {/* Botões */}
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Badge variant="outline" className="text-[10px] hidden sm:inline-flex h-5">
                         {getStatusLabel(lead.status)}
                       </Badge>
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-8"
+                        className="h-7 w-7 p-0"
                         onClick={(e) => {
                           e.stopPropagation();
                           const formattedPhone = lead.phone.replace(/\D/g, '');
@@ -211,24 +212,25 @@ export function LeadRemindersAlert({ onLeadClick, salespersonId }: LeadReminders
           </ScrollArea>
         )}
 
+        {/* Preview quando fechado */}
         {!isExpanded && staleLeads.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-2 md:mt-3 flex flex-wrap gap-1.5 md:gap-2">
             {staleLeads.slice(0, 3).map((lead) => (
               <div
                 key={lead.id}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-background/50 border cursor-pointer hover:bg-background/80"
+                className="flex items-center gap-1.5 px-2 md:px-3 py-1 md:py-1.5 rounded-full bg-background/50 border cursor-pointer hover:bg-background/80"
                 onClick={() => onLeadClick?.(lead.id)}
               >
-                <div className={`w-2 h-2 rounded-full ${
+                <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${
                   lead.daysStale >= 7 ? 'bg-red-500 animate-pulse' : 
                   lead.daysStale >= 5 ? 'bg-orange-500' : 'bg-yellow-500'
                 }`} />
-                <span className="text-sm font-medium">{lead.name}</span>
-                <span className="text-xs text-muted-foreground">({lead.daysStale}d)</span>
+                <span className="text-xs md:text-sm font-medium truncate max-w-[80px] md:max-w-none">{lead.name}</span>
+                <span className="text-[10px] md:text-xs text-muted-foreground">({lead.daysStale}d)</span>
               </div>
             ))}
             {staleLeads.length > 3 && (
-              <span className="text-sm text-muted-foreground self-center">
+              <span className="text-xs md:text-sm text-muted-foreground self-center">
                 +{staleLeads.length - 3} mais...
               </span>
             )}

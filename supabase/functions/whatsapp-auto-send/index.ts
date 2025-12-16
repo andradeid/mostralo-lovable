@@ -99,25 +99,28 @@ function getSmartGreetingTemplate(
   greeting: string,
   storeName: string
 ): string {
+  // Link do cardápio adicionado em todas as saudações
+  const menuLink = `\n\n📱 Confira nosso cardápio: {link_loja}`;
+  
   switch (classification.type) {
     case 'vip':
-      return `${greeting}, {primeiro_nome}! 🌟 Nosso cliente especial! Que bom ter você de volta na ${storeName}! Como posso ajudar hoje?`;
+      return `${greeting}, {primeiro_nome}! 🌟 Nosso cliente especial! Que bom ter você de volta na ${storeName}! Como posso ajudar hoje?${menuLink}`;
     
     case 'frequent':
-      return `${greeting}, {primeiro_nome}! 😊 Que bom ver você de novo! Como posso ajudar?`;
+      return `${greeting}, {primeiro_nome}! 😊 Que bom ver você de novo! Como posso ajudar?${menuLink}`;
     
     case 'returning':
-      return `${greeting}, {primeiro_nome}! Que bom ter você de volta! 😊 Faz ${classification.daysSinceOrder} dias que não nos vemos... Como posso ajudar?`;
+      return `${greeting}, {primeiro_nome}! Que bom ter você de volta! 😊 Faz ${classification.daysSinceOrder} dias que não nos vemos... Como posso ajudar?${menuLink}`;
     
     case 'missed':
-      return `${greeting}, {primeiro_nome}! Que saudade! 💕 Já faz ${classification.daysSinceOrder} dias desde seu último pedido... Temos novidades te esperando! Como posso ajudar?`;
+      return `${greeting}, {primeiro_nome}! Que saudade! 💕 Já faz ${classification.daysSinceOrder} dias desde seu último pedido... Temos novidades te esperando! Como posso ajudar?${menuLink}`;
     
     case 'first_time':
-      return `${greeting}, {primeiro_nome}! 👋 Seja bem-vindo(a) à ${storeName}! Primeira vez por aqui? Como posso ajudar?`;
+      return `${greeting}, {primeiro_nome}! 👋 Seja bem-vindo(a) à ${storeName}! Primeira vez por aqui? Como posso ajudar?${menuLink}`;
     
     case 'new':
     default:
-      return `${greeting}! 👋 Seja bem-vindo(a) à ${storeName}! Como posso ajudar?`;
+      return `${greeting}! 👋 Seja bem-vindo(a) à ${storeName}! Como posso ajudar?${menuLink}`;
   }
 }
 

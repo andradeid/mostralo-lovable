@@ -214,10 +214,27 @@ serve(async (req) => {
       });
 
       if (!statusResponse.ok) {
+        // Instância não existe mais na Evolution - limpar dados órfãos do banco
+        console.log('Instância não encontrada na Evolution - limpando dados do banco');
+        
+        await supabaseClient
+          .from('master_admin_test_config')
+          .update({
+            test_instance_name: null,
+            test_instance_id: null,
+            test_instance_status: 'not_found',
+            test_instance_qr_code: null,
+            test_phone_number: null,
+            bot_evolution_id: null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', testConfig.id);
+
         return new Response(JSON.stringify({ 
           success: true,
-          status: 'error',
+          status: 'not_found',
           connected: false,
+          message: 'Instância não encontrada na Evolution - dados limpos',
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });

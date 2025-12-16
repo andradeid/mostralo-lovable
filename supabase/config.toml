@@ -128,3 +128,6 @@ verify_jwt = true
 
 [functions.master-test-bot-sync]
 verify_jwt = true
+
+[functions.update-bots-greeting]
+verify_jwt = false

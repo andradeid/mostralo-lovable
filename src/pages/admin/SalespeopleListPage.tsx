@@ -162,55 +162,62 @@ export default function SalespeopleListPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
+      {/* Header compacto */}
       <div>
-        <h1 className="text-3xl font-bold">Vendedores / Afiliados</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">Vendedores / Afiliados</h1>
+        <p className="text-xs md:text-sm text-muted-foreground">
           Gerencie os vendedores e afiliados do sistema
         </p>
       </div>
 
       <SalespeopleAdminGuide />
 
-      {/* Stats por tipo */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-4 rounded-lg border bg-card">
-          <div className="text-sm text-muted-foreground">Total</div>
-          <div className="text-2xl font-bold">{salespeople?.length || 0}</div>
+      {/* Stats compactos */}
+      <div className="grid grid-cols-4 gap-2 md:gap-4">
+        <div className="p-2 md:p-4 rounded-lg border bg-card">
+          <div className="text-[10px] md:text-sm text-muted-foreground truncate">Total</div>
+          <div className="text-lg md:text-2xl font-bold">{salespeople?.length || 0}</div>
         </div>
-        <div className="p-4 rounded-lg border bg-card">
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <User className="h-3 w-3" />
-            Afiliados (CPF)
+        <div className="p-2 md:p-4 rounded-lg border bg-card">
+          <div className="flex items-center gap-1 text-[10px] md:text-sm text-muted-foreground truncate">
+            <User className="h-3 w-3 hidden md:block" />
+            <span className="md:hidden">Afil.</span>
+            <span className="hidden md:inline">Afiliados</span>
           </div>
-          <div className="text-2xl font-bold">{affiliateCount}</div>
+          <div className="text-lg md:text-2xl font-bold">{affiliateCount}</div>
         </div>
-        <div className="p-4 rounded-lg border bg-card">
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <Building2 className="h-3 w-3" />
-            Parceiros PJ
+        <div className="p-2 md:p-4 rounded-lg border bg-card">
+          <div className="flex items-center gap-1 text-[10px] md:text-sm text-muted-foreground truncate">
+            <Building2 className="h-3 w-3 hidden md:block" />
+            <span className="md:hidden">PJ</span>
+            <span className="hidden md:inline">Parceiros PJ</span>
           </div>
-          <div className="text-2xl font-bold">{partnerCount}</div>
+          <div className="text-lg md:text-2xl font-bold">{partnerCount}</div>
         </div>
-        <div className="p-4 rounded-lg border bg-card">
-          <div className="text-sm text-muted-foreground">Pendentes</div>
-          <div className="text-2xl font-bold text-amber-500">{pendingCount}</div>
+        <div className="p-2 md:p-4 rounded-lg border bg-card">
+          <div className="text-[10px] md:text-sm text-muted-foreground truncate">
+            <span className="md:hidden">Pend.</span>
+            <span className="hidden md:inline">Pendentes</span>
+          </div>
+          <div className="text-lg md:text-2xl font-bold text-amber-500">{pendingCount}</div>
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4">
+      {/* Busca e filtro responsivos */}
+      <div className="flex flex-col sm:flex-row gap-2 md:gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por nome, CNPJ, CPF ou código..."
+            placeholder="Buscar..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-9 h-9 md:h-10 text-sm"
           />
         </div>
         <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-full md:w-[200px]">
-            <SelectValue placeholder="Tipo de vendedor" />
+          <SelectTrigger className="w-full sm:w-[180px] h-9 md:h-10 text-sm">
+            <SelectValue placeholder="Tipo" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os tipos</SelectItem>
@@ -230,25 +237,42 @@ export default function SalespeopleListPage() {
         </Select>
       </div>
 
+      {/* Tabs com scroll horizontal */}
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-        <TabsList>
-          <TabsTrigger value="all">
-            Todos ({salespeople?.length || 0})
-          </TabsTrigger>
-          <TabsTrigger value="pending">
-            Pendentes {pendingCount > 0 && <Badge className="ml-2">{pendingCount}</Badge>}
-          </TabsTrigger>
-          <TabsTrigger value="active">Ativos ({activeCount})</TabsTrigger>
-          <TabsTrigger value="inactive">Inativos ({inactiveCount})</TabsTrigger>
-          <TabsTrigger value="blocked">
-            <Ban className="h-3 w-3 mr-1" />
-            Bloqueados {blockedCount > 0 && <Badge variant="destructive" className="ml-2">{blockedCount}</Badge>}
-          </TabsTrigger>
-        </TabsList>
+        <div className="w-full overflow-x-auto pb-1">
+          <TabsList className="w-max min-w-full md:w-auto h-auto p-1 gap-1">
+            <TabsTrigger value="all" className="text-xs md:text-sm px-2 md:px-3 py-1.5 shrink-0">
+              <span className="md:hidden">Todos</span>
+              <span className="hidden md:inline">Todos ({salespeople?.length || 0})</span>
+            </TabsTrigger>
+            <TabsTrigger value="pending" className="text-xs md:text-sm px-2 md:px-3 py-1.5 shrink-0">
+              <span className="md:hidden">Pend.</span>
+              <span className="hidden md:inline">Pendentes</span>
+              {pendingCount > 0 && (
+                <Badge className="ml-1 text-[10px] h-4 px-1">{pendingCount}</Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="active" className="text-xs md:text-sm px-2 md:px-3 py-1.5 shrink-0">
+              <span className="md:hidden">Ativos</span>
+              <span className="hidden md:inline">Ativos ({activeCount})</span>
+            </TabsTrigger>
+            <TabsTrigger value="inactive" className="text-xs md:text-sm px-2 md:px-3 py-1.5 shrink-0">
+              <span className="md:hidden">Inat.</span>
+              <span className="hidden md:inline">Inativos ({inactiveCount})</span>
+            </TabsTrigger>
+            <TabsTrigger value="blocked" className="text-xs md:text-sm px-2 md:px-3 py-1.5 shrink-0">
+              <Ban className="h-3 w-3 mr-1" />
+              <span className="hidden md:inline">Bloq.</span>
+              {blockedCount > 0 && (
+                <Badge variant="destructive" className="ml-1 text-[10px] h-4 px-1">{blockedCount}</Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-        <TabsContent value={selectedTab} className="space-y-4 mt-6">
+        <TabsContent value={selectedTab} className="space-y-4 mt-4 md:mt-6">
           {filteredSalespeople && filteredSalespeople.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 md:gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filteredSalespeople.map((salesperson) => (
                 <SalespersonCard
                   key={salesperson.id}
@@ -274,7 +298,7 @@ export default function SalespeopleListPage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12 text-muted-foreground">
+            <div className="text-center py-8 md:py-12 text-muted-foreground text-sm">
               Nenhum vendedor encontrado
             </div>
           )}

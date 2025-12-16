@@ -184,12 +184,20 @@ serve(async (req) => {
         testConfig.sandbox_address
       );
 
+      // Validar modelo - usar fallback se modelo não for reconhecido
+      const validModels = ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-3.5-turbo', 'gpt-4'];
+      let model = evolutionConfig.openai_default_model || 'gpt-4o-mini';
+      if (!validModels.includes(model)) {
+        console.log(`Modelo ${model} não reconhecido, usando gpt-4o-mini como fallback`);
+        model = 'gpt-4o-mini';
+      }
+
       // Payload para criar/atualizar bot
       const botPayload: any = {
         enabled: true,
         openaiCredsId: evolutionConfig.openai_creds_id,
-        botType: 'chatCompletion', // Usar chatCompletion para API direta, não 'assistant' que requer Assistant ID
-        model: evolutionConfig.openai_default_model || 'gpt-4-turbo',
+        botType: 'chatCompletion',
+        model: model,
         maxTokens: evolutionConfig.openai_max_tokens || 1000,
         systemMessages: [systemPrompt],
         assistantMessages: [],
@@ -210,12 +218,17 @@ serve(async (req) => {
         timePerChar: 0,
       };
 
+      console.log('Criando bot com payload:', JSON.stringify(botPayload, null, 2));
+      console.log('Instance name:', testConfig.test_instance_name);
+
       let botId = testConfig.bot_evolution_id;
       let response;
 
       if (botId) {
         // Atualizar bot existente
-        response = await fetch(`${evolutionUrl}/openai/update/${testConfig.test_instance_name}/${botId}`, {
+        const updateUrl = `${evolutionUrl}/openai/update/${testConfig.test_instance_name}/${botId}`;
+        console.log('Atualizando bot em:', updateUrl);
+        response = await fetch(updateUrl, {
           method: 'PUT',
           headers: {
             'apikey': evolutionConfig.api_key,
@@ -225,7 +238,9 @@ serve(async (req) => {
         });
       } else {
         // Criar novo bot
-        response = await fetch(`${evolutionUrl}/openai/create/${testConfig.test_instance_name}`, {
+        const createUrl = `${evolutionUrl}/openai/create/${testConfig.test_instance_name}`;
+        console.log('Criando bot em:', createUrl);
+        response = await fetch(createUrl, {
           method: 'POST',
           headers: {
             'apikey': evolutionConfig.api_key,
@@ -235,19 +250,21 @@ serve(async (req) => {
         });
       }
 
+      const responseText = await response.text();
+      console.log('Resposta Evolution:', response.status, responseText);
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Erro Evolution:', errorText);
+        console.error('Erro Evolution:', responseText);
         return new Response(JSON.stringify({ 
           success: false, 
-          error: `Falha na Evolution: ${errorText}` 
+          error: `Falha na Evolution: ${responseText}` 
         }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
-      const botData = await response.json();
+      const botData = JSON.parse(responseText);
       botId = botData.id || botData.openaiBot?.id || botId;
 
       // Atualizar config

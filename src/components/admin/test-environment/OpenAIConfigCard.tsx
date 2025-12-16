@@ -1,9 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Sparkles, Check, X, ExternalLink, Settings } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Loader2, Sparkles, Check, X, ExternalLink, Eye, EyeOff, TestTube, Save, RefreshCw } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface EvolutionConfig {
   id: string;
@@ -14,31 +18,175 @@ interface EvolutionConfig {
   is_active: boolean;
 }
 
+const AVAILABLE_MODELS = [
+  { value: 'gpt-4-turbo', label: 'GPT-4 Turbo (Recomendado)' },
+  { value: 'gpt-4o', label: 'GPT-4o' },
+  { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
+  { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' },
+];
+
 export function OpenAIConfigCard() {
   const [config, setConfig] = useState<EvolutionConfig | null>(null);
   const [loading, setLoading] = useState(true);
+  const [apiKey, setApiKey] = useState('');
+  const [model, setModel] = useState('gpt-4-turbo');
+  const [maxTokens, setMaxTokens] = useState(1000);
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [testingKey, setTestingKey] = useState(false);
+  const [savingKey, setSavingKey] = useState(false);
+  const [syncingKey, setSyncingKey] = useState(false);
 
   useEffect(() => {
-    const fetchConfig = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('evolution_config')
-          .select('id, api_url, openai_creds_id, openai_default_model, openai_max_tokens, is_active')
-          .eq('is_active', true)
-          .single();
-
-        if (!error && data) {
-          setConfig(data);
-        }
-      } catch (err) {
-        console.error('Erro ao buscar config:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchConfig();
   }, []);
+
+  const fetchConfig = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('evolution_config')
+        .select('id, api_url, openai_creds_id, openai_default_model, openai_max_tokens, is_active')
+        .eq('is_active', true)
+        .single();
+
+      if (!error && data) {
+        setConfig(data);
+        if (data.openai_default_model) setModel(data.openai_default_model);
+        if (data.openai_max_tokens) setMaxTokens(data.openai_max_tokens);
+      }
+    } catch (err) {
+      console.error('Erro ao buscar config:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTestKey = async () => {
+    if (!apiKey.trim()) {
+      toast.error('Digite a chave da API');
+      return;
+    }
+
+    setTestingKey(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/openai-credentials-sync`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            action: 'test',
+            openaiApiKey: apiKey,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        toast.success('✅ Chave válida! A API da OpenAI está funcionando.');
+      } else {
+        toast.error(result.error || 'Chave inválida');
+      }
+    } catch (error) {
+      console.error('Erro ao testar chave:', error);
+      toast.error('Erro ao testar a chave');
+    } finally {
+      setTestingKey(false);
+    }
+  };
+
+  const handleSaveKey = async () => {
+    if (!apiKey.trim()) {
+      toast.error('Digite a chave da API');
+      return;
+    }
+
+    setSavingKey(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/openai-credentials-sync`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            action: 'save',
+            openaiApiKey: apiKey,
+            model,
+            maxTokens,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        toast.success('✅ Configurações salvas com sucesso!');
+        setApiKey('');
+        fetchConfig();
+      } else {
+        toast.error(result.error || 'Erro ao salvar');
+      }
+    } catch (error) {
+      console.error('Erro ao salvar:', error);
+      toast.error('Erro ao salvar configurações');
+    } finally {
+      setSavingKey(false);
+    }
+  };
+
+  const handleSyncEvolution = async () => {
+    if (!apiKey.trim()) {
+      toast.error('Digite a chave da API para sincronizar');
+      return;
+    }
+
+    setSyncingKey(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/openai-credentials-sync`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            action: 'sync',
+            openaiApiKey: apiKey,
+            model,
+            maxTokens,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        toast.success('✅ Sincronizado com Evolution API! Creds ID: ' + (result.openaiCredsId || 'N/A'));
+        setApiKey('');
+        fetchConfig();
+      } else {
+        toast.error(result.error || 'Erro ao sincronizar');
+      }
+    } catch (error) {
+      console.error('Erro ao sincronizar:', error);
+      toast.error('Erro ao sincronizar com Evolution');
+    } finally {
+      setSyncingKey(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -55,84 +203,192 @@ export function OpenAIConfigCard() {
   return (
     <Card className={hasOpenAI ? 'border-green-500/20' : 'border-amber-500/20'}>
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center gap-2">
+        <CardTitle className="text-base sm:text-lg flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-green-500" />
-          Configurações OpenAI
+          Configurar OpenAI
         </CardTitle>
-        <CardDescription>
-          Status da integração com a Evolution API
+        <CardDescription className="text-xs sm:text-sm">
+          Configure e sincronize suas credenciais da OpenAI
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Status Principal */}
-        <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-          <div className="flex items-center gap-2">
-            {hasOpenAI ? (
-              <Check className="h-5 w-5 text-green-500" />
-            ) : (
-              <X className="h-5 w-5 text-amber-500" />
-            )}
-            <span className="font-medium">
-              {hasOpenAI ? 'Credenciais Configuradas' : 'Credenciais Pendentes'}
-            </span>
+        {/* Formulário de Configuração */}
+        <div className="space-y-4">
+          {/* API Key */}
+          <div className="space-y-2">
+            <Label htmlFor="apiKey" className="text-sm">API Key da OpenAI *</Label>
+            <div className="relative">
+              <Input
+                id="apiKey"
+                type={showApiKey ? 'text' : 'password'}
+                placeholder="sk-proj-xxxxxxxxxxxxxxxxxxxx"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                className="pr-10 text-sm"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                onClick={() => setShowApiKey(!showApiKey)}
+              >
+                {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Obtenha em{' '}
+              <a 
+                href="https://platform.openai.com/api-keys" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                platform.openai.com/api-keys
+              </a>
+            </p>
           </div>
-          <Badge variant={hasOpenAI ? 'default' : 'secondary'}>
-            {hasOpenAI ? '✅ Pronto' : '⚠️ Configurar'}
-          </Badge>
-        </div>
 
-        {/* Grid de Configurações */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="p-3 bg-muted/30 rounded-lg">
-            <p className="text-xs text-muted-foreground">Modelo</p>
-            <p className="font-medium text-sm">
-              {config?.openai_default_model || 'gpt-4-turbo'}
-            </p>
+          {/* Modelo e Max Tokens */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="model" className="text-sm">Modelo</Label>
+              <Select value={model} onValueChange={setModel}>
+                <SelectTrigger className="text-sm">
+                  <SelectValue placeholder="Selecione o modelo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {AVAILABLE_MODELS.map((m) => (
+                    <SelectItem key={m.value} value={m.value}>
+                      {m.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="maxTokens" className="text-sm">Max Tokens</Label>
+              <Input
+                id="maxTokens"
+                type="number"
+                min={100}
+                max={4000}
+                value={maxTokens}
+                onChange={(e) => setMaxTokens(Number(e.target.value))}
+                className="text-sm"
+              />
+            </div>
           </div>
-          <div className="p-3 bg-muted/30 rounded-lg">
-            <p className="text-xs text-muted-foreground">Max Tokens</p>
-            <p className="font-medium text-sm">
-              {config?.openai_max_tokens || 1000}
-            </p>
-          </div>
-          <div className="p-3 bg-muted/30 rounded-lg">
-            <p className="text-xs text-muted-foreground">Creds ID</p>
-            <p className="font-mono text-xs truncate">
-              {config?.openai_creds_id ? `${config.openai_creds_id.slice(0, 8)}...` : 'Não configurado'}
-            </p>
-          </div>
-          <div className="p-3 bg-muted/30 rounded-lg">
-            <p className="text-xs text-muted-foreground">Status</p>
-            <p className="font-medium text-sm flex items-center gap-1">
-              {config?.is_active ? (
-                <>
-                  <span className="w-2 h-2 rounded-full bg-green-500" />
-                  Ativo
-                </>
+
+          {/* Botões de Ação */}
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleTestKey}
+              disabled={testingKey || !apiKey.trim()}
+              className="flex-1"
+            >
+              {testingKey ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
-                <>
-                  <span className="w-2 h-2 rounded-full bg-red-500" />
-                  Inativo
-                </>
+                <TestTube className="h-4 w-4 mr-2" />
               )}
-            </p>
+              Testar Chave
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSaveKey}
+              disabled={savingKey || !apiKey.trim()}
+              className="flex-1"
+            >
+              {savingKey ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              Salvar
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleSyncEvolution}
+              disabled={syncingKey || !apiKey.trim()}
+              className="flex-1"
+            >
+              {syncingKey ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4 mr-2" />
+              )}
+              Sincronizar Evolution
+            </Button>
           </div>
         </div>
 
-        {/* Explicação */}
-        <div className="p-3 bg-primary/5 rounded-lg border border-primary/10 space-y-2">
-          <p className="text-sm font-medium">ℹ️ Como funciona a integração:</p>
-          <ol className="text-xs text-muted-foreground space-y-1">
-            <li>1. A chave da OpenAI é cadastrada na <strong>Evolution API</strong></li>
-            <li>2. A Evolution retorna um <code className="bg-muted px-1 rounded">openai_creds_id</code></li>
-            <li>3. Ao criar um bot, usamos esse ID para vincular às credenciais</li>
-            <li>4. A Evolution faz as chamadas à OpenAI automaticamente</li>
-          </ol>
+        {/* Divisor */}
+        <div className="border-t pt-4">
+          <p className="text-xs font-medium text-muted-foreground mb-3">Status Atual</p>
+          
+          {/* Status Principal */}
+          <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg mb-3">
+            <div className="flex items-center gap-2">
+              {hasOpenAI ? (
+                <Check className="h-5 w-5 text-green-500" />
+              ) : (
+                <X className="h-5 w-5 text-amber-500" />
+              )}
+              <span className="font-medium text-sm">
+                {hasOpenAI ? 'Credenciais Configuradas' : 'Credenciais Pendentes'}
+              </span>
+            </div>
+            <Badge variant={hasOpenAI ? 'default' : 'secondary'} className="text-xs">
+              {hasOpenAI ? '✅ Pronto' : '⚠️ Configurar'}
+            </Badge>
+          </div>
+
+          {/* Grid de Configurações */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="p-2 sm:p-3 bg-muted/30 rounded-lg">
+              <p className="text-xs text-muted-foreground">Modelo</p>
+              <p className="font-medium text-xs sm:text-sm truncate">
+                {config?.openai_default_model || 'gpt-4-turbo'}
+              </p>
+            </div>
+            <div className="p-2 sm:p-3 bg-muted/30 rounded-lg">
+              <p className="text-xs text-muted-foreground">Max Tokens</p>
+              <p className="font-medium text-xs sm:text-sm">
+                {config?.openai_max_tokens || 1000}
+              </p>
+            </div>
+            <div className="p-2 sm:p-3 bg-muted/30 rounded-lg">
+              <p className="text-xs text-muted-foreground">Creds ID</p>
+              <p className="font-mono text-xs truncate">
+                {config?.openai_creds_id ? `${config.openai_creds_id.slice(0, 8)}...` : 'Não configurado'}
+              </p>
+            </div>
+            <div className="p-2 sm:p-3 bg-muted/30 rounded-lg">
+              <p className="text-xs text-muted-foreground">Status</p>
+              <p className="font-medium text-xs sm:text-sm flex items-center gap-1">
+                {config?.is_active ? (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-green-500" />
+                    Ativo
+                  </>
+                ) : (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-red-500" />
+                    Inativo
+                  </>
+                )}
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Link para Evolution */}
         {config?.api_url && (
-          <Button variant="outline" size="sm" className="w-full" asChild>
+          <Button variant="outline" size="sm" className="w-full text-xs" asChild>
             <a href={config.api_url} target="_blank" rel="noopener noreferrer">
               <ExternalLink className="h-4 w-4 mr-2" />
               Abrir Evolution API
@@ -143,8 +399,8 @@ export function OpenAIConfigCard() {
         {!hasOpenAI && (
           <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
             <p className="text-xs text-amber-700 dark:text-amber-400">
-              <strong>⚠️ Ação necessária:</strong> Configure as credenciais da OpenAI na Evolution API 
-              para que o bot possa responder mensagens.
+              <strong>⚠️ Ação necessária:</strong> Insira sua chave da OpenAI acima e clique em 
+              "Sincronizar Evolution" para habilitar o bot.
             </p>
           </div>
         )}

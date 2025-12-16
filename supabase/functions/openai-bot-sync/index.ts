@@ -240,6 +240,7 @@ serve(async (req) => {
       }
 
       // Payload para criar bot na Evolution
+      // Nota: splitMessages e timePerChar não são suportados pela Evolution API atual
       const botPayload: any = {
         enabled: true,
         openaiCredsId: credsId,
@@ -261,8 +262,6 @@ serve(async (req) => {
         keepOpen: config.keepOpen || false,
         debounceTime: config.debounceTime || 10,
         ignoreJids: config.ignoreJids || [],
-        splitMessages: config.splitMessages !== undefined ? config.splitMessages : true,
-        timePerChar: config.timePerChar || 0,
       };
 
       let botId = existingBotConfig?.evolution_bot_id;

@@ -19,10 +19,20 @@ interface EvolutionConfig {
 }
 
 const AVAILABLE_MODELS = [
+  // Mais Recentes (2025)
+  { value: 'gpt-5-2025-08-07', label: '🚀 GPT-5 (Mais Poderoso)' },
+  { value: 'gpt-5-mini-2025-08-07', label: '⚡ GPT-5 Mini (Rápido)' },
+  { value: 'gpt-5-nano-2025-08-07', label: '💨 GPT-5 Nano (Ultra Rápido)' },
+  // GPT-4.1 (2025)
+  { value: 'gpt-4.1-2025-04-14', label: '🎯 GPT-4.1 (Abril 2025)' },
+  { value: 'gpt-4.1-mini-2025-04-14', label: 'GPT-4.1 Mini' },
+  // Reasoning Models
+  { value: 'o3-2025-04-16', label: '🧠 O3 (Raciocínio Avançado)' },
+  { value: 'o4-mini-2025-04-16', label: '🧠 O4 Mini (Raciocínio)' },
+  // Modelos Clássicos
   { value: 'gpt-4-turbo', label: 'GPT-4 Turbo (Recomendado)' },
   { value: 'gpt-4o', label: 'GPT-4o' },
   { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
-  { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' },
 ];
 
 export function OpenAIConfigCard() {
@@ -244,41 +254,53 @@ export function OpenAIConfigCard() {
       <CardContent className="space-y-4">
         {/* Formulário de Configuração */}
         <div className="space-y-4">
-          {/* API Key */}
+          {/* API Key - Campo Verde Completo quando Configurado */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="apiKey" className="text-sm">API Key da OpenAI *</Label>
-              {hasOpenAI && !apiKey && (
-                <div className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-                  <Check className="h-3 w-3" />
-                  Chave já configurada
+            <Label htmlFor="apiKey" className="text-sm">API Key da OpenAI *</Label>
+            
+            {/* Campo Verde com Badge quando Configurado */}
+            {hasOpenAI && !apiKey ? (
+              <div className="relative">
+                <div className="flex items-center gap-3 p-3 bg-green-500/10 border-2 border-green-500 rounded-lg transition-all duration-300">
+                  <div className="flex items-center justify-center w-8 h-8 bg-green-500 rounded-full">
+                    <Check className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-green-700 dark:text-green-400">✅ Chave Configurada</p>
+                    <p className="text-xs text-green-600 dark:text-green-500">Sua chave está salva com segurança</p>
+                  </div>
                 </div>
-              )}
-            </div>
-            <div className="relative">
-              <Input
-                id="apiKey"
-                type={showApiKey ? 'text' : 'password'}
-                placeholder={hasOpenAI ? "•••• Chave já salva (digite nova para alterar)" : "sk-proj-xxxxxxxxxxxxxxxxxxxx"}
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                className={`pr-10 text-sm ${hasOpenAI && !apiKey ? 'border-green-500/30 bg-green-500/5' : ''}`}
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                onClick={() => setShowApiKey(!showApiKey)}
-              >
-                {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </Button>
-            </div>
-            {hasOpenAI && !apiKey && (
-              <p className="text-xs text-green-600 dark:text-green-400">
-                ✓ Sua chave está salva com segurança. Digite uma nova apenas se quiser substituí-la.
-              </p>
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={() => setApiKey(' ')}
+                  className="text-xs text-muted-foreground mt-1 p-0 h-auto"
+                >
+                  Alterar chave →
+                </Button>
+              </div>
+            ) : (
+              <div className="relative">
+                <Input
+                  id="apiKey"
+                  type={showApiKey ? 'text' : 'password'}
+                  placeholder="sk-proj-xxxxxxxxxxxxxxxxxxxx"
+                  value={apiKey === ' ' ? '' : apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  className="pr-10 text-sm"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                  onClick={() => setShowApiKey(!showApiKey)}
+                >
+                  {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
             )}
+            
             <p className="text-xs text-muted-foreground">
               Obtenha em{' '}
               <a 
@@ -325,25 +347,33 @@ export function OpenAIConfigCard() {
 
           {/* Botões de Ação */}
           <div className="flex flex-col sm:flex-row gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleTestKey}
-              disabled={testingKey || !apiKey.trim()}
-              className="flex-1"
-            >
-              {testingKey ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <TestTube className="h-4 w-4 mr-2" />
-              )}
-              Testar Chave
-            </Button>
+            {/* Botão de Teste - Verde quando configurado */}
+            {hasOpenAI && !apiKey ? (
+              <div className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-green-500/10 border-2 border-green-500 rounded-md transition-all duration-300">
+                <Check className="h-4 w-4 text-green-600" />
+                <span className="text-sm font-medium text-green-700 dark:text-green-400">✓ Chave Válida</span>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleTestKey}
+                disabled={testingKey || !apiKey.trim() || apiKey === ' '}
+                className="flex-1"
+              >
+                {testingKey ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <TestTube className="h-4 w-4 mr-2" />
+                )}
+                Testar Chave
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
               onClick={handleSaveKey}
-              disabled={savingKey || !apiKey.trim()}
+              disabled={savingKey || !apiKey.trim() || apiKey === ' '}
               className="flex-1"
             >
               {savingKey ? (
@@ -356,7 +386,7 @@ export function OpenAIConfigCard() {
             <Button
               size="sm"
               onClick={handleSyncEvolution}
-              disabled={syncingKey || !apiKey.trim()}
+              disabled={syncingKey || !apiKey.trim() || apiKey === ' '}
               className="flex-1"
             >
               {syncingKey ? (
@@ -373,49 +403,66 @@ export function OpenAIConfigCard() {
         <div className="border-t pt-4">
           <p className="text-xs font-medium text-muted-foreground mb-3">Status Atual</p>
           
-          {/* Status Principal */}
-          <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg mb-3">
+          {/* Status Principal com Animação */}
+          <div className={`flex items-center justify-between p-3 rounded-lg mb-3 transition-all duration-500 ${
+            hasOpenAI 
+              ? 'bg-green-500/10 border border-green-500/30' 
+              : 'bg-amber-500/10 border border-amber-500/30'
+          }`}>
             <div className="flex items-center gap-2">
               {hasOpenAI ? (
-                <Check className="h-5 w-5 text-green-500" />
+                <div className="flex items-center justify-center w-6 h-6 bg-green-500 rounded-full animate-scale-in">
+                  <Check className="h-4 w-4 text-white" />
+                </div>
               ) : (
                 <X className="h-5 w-5 text-amber-500" />
               )}
-              <span className="font-medium text-sm">
+              <span className={`font-medium text-sm ${hasOpenAI ? 'text-green-700 dark:text-green-400' : ''}`}>
                 {hasOpenAI ? 'Credenciais Configuradas' : 'Credenciais Pendentes'}
               </span>
             </div>
-            <Badge variant={hasOpenAI ? 'default' : 'secondary'} className="text-xs">
+            <Badge 
+              variant={hasOpenAI ? 'default' : 'secondary'} 
+              className={`text-xs transition-all duration-300 ${hasOpenAI ? 'bg-green-500 hover:bg-green-600' : ''}`}
+            >
               {hasOpenAI ? '✅ Pronto' : '⚠️ Configurar'}
             </Badge>
           </div>
 
-          {/* Grid de Configurações */}
+          {/* Grid de Configurações com Animações */}
           <div className="grid grid-cols-2 gap-2">
-            <div className="p-2 sm:p-3 bg-muted/30 rounded-lg">
+            <div className={`p-2 sm:p-3 rounded-lg transition-all duration-300 ${
+              hasOpenAI ? 'bg-green-500/5 border border-green-500/20' : 'bg-muted/30'
+            }`}>
               <p className="text-xs text-muted-foreground">Modelo</p>
-              <p className="font-medium text-xs sm:text-sm truncate">
+              <p className={`font-medium text-xs sm:text-sm truncate ${hasOpenAI ? 'text-green-700 dark:text-green-400' : ''}`}>
                 {config?.openai_default_model || 'gpt-4-turbo'}
               </p>
             </div>
-            <div className="p-2 sm:p-3 bg-muted/30 rounded-lg">
+            <div className={`p-2 sm:p-3 rounded-lg transition-all duration-300 ${
+              hasOpenAI ? 'bg-green-500/5 border border-green-500/20' : 'bg-muted/30'
+            }`}>
               <p className="text-xs text-muted-foreground">Max Tokens</p>
-              <p className="font-medium text-xs sm:text-sm">
+              <p className={`font-medium text-xs sm:text-sm ${hasOpenAI ? 'text-green-700 dark:text-green-400' : ''}`}>
                 {config?.openai_max_tokens || 1000}
               </p>
             </div>
-            <div className="p-2 sm:p-3 bg-muted/30 rounded-lg">
+            <div className={`p-2 sm:p-3 rounded-lg transition-all duration-300 ${
+              hasOpenAI ? 'bg-green-500/5 border border-green-500/20' : 'bg-muted/30'
+            }`}>
               <p className="text-xs text-muted-foreground">Creds ID</p>
-              <p className="font-mono text-xs truncate">
+              <p className={`font-mono text-xs truncate ${hasOpenAI ? 'text-green-700 dark:text-green-400' : ''}`}>
                 {config?.openai_creds_id ? `${config.openai_creds_id.slice(0, 8)}...` : 'Não configurado'}
               </p>
             </div>
-            <div className="p-2 sm:p-3 bg-muted/30 rounded-lg">
+            <div className={`p-2 sm:p-3 rounded-lg transition-all duration-300 ${
+              hasOpenAI ? 'bg-green-500/5 border border-green-500/20' : 'bg-muted/30'
+            }`}>
               <p className="text-xs text-muted-foreground">Status</p>
-              <p className="font-medium text-xs sm:text-sm flex items-center gap-1">
+              <p className={`font-medium text-xs sm:text-sm flex items-center gap-1 ${hasOpenAI ? 'text-green-700 dark:text-green-400' : ''}`}>
                 {config?.is_active ? (
                   <>
-                    <span className="w-2 h-2 rounded-full bg-green-500" />
+                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                     Ativo
                   </>
                 ) : (

@@ -498,7 +498,10 @@ serve(async (req) => {
           });
 
           try {
-            const updateUrl = `${evolutionUrl}/openai/update/${instanceName}/${testConfig.bot_evolution_id}`;
+            // Evolution API v2: PUT /openai/settings/{instance}/{botId}
+            const updateUrl = `${evolutionUrl}/openai/settings/${instanceName}/${testConfig.bot_evolution_id}`;
+            console.log('URL update bot:', updateUrl);
+            
             const updateResp = await fetch(updateUrl, {
               method: 'PUT',
               headers: {
@@ -567,7 +570,10 @@ serve(async (req) => {
         });
 
         try {
-          const updateUrl = `${evolutionUrl}/openai/update/${instanceName}/${mostraloBot.id}`;
+          // Evolution API v2: PUT /openai/settings/{instance}/{botId}
+          const updateUrl = `${evolutionUrl}/openai/settings/${instanceName}/${mostraloBot.id}`;
+          console.log('URL update bot existente:', updateUrl);
+          
           const updateResp = await fetch(updateUrl, {
             method: 'PUT',
             headers: {

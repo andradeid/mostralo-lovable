@@ -21,6 +21,8 @@ export interface BotConfig {
   trigger_operator: string;
   trigger_value: string;
   ignore_jids: string[];
+  split_messages: boolean;
+  time_per_char: number;
   evolution_bot_id?: string;
   evolution_bot_status?: string;
 }
@@ -40,6 +42,8 @@ const defaultBotConfig: Omit<BotConfig, 'store_id'> = {
   trigger_operator: 'contains',
   trigger_value: '',
   ignore_jids: [],
+  split_messages: true,
+  time_per_char: 0,
 };
 
 export function useBotConfig(storeId: string | null) {
@@ -189,6 +193,8 @@ export function useBotConfig(storeId: string | null) {
             triggerOperator: config.trigger_operator,
             triggerValue: config.trigger_value,
             ignoreJids: config.ignore_jids,
+            splitMessages: config.split_messages,
+            timePerChar: config.time_per_char,
           },
         },
       });

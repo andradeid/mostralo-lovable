@@ -22,6 +22,8 @@ interface BotConfig {
   triggerOperator: string;
   triggerValue: string;
   ignoreJids: string[];
+  splitMessages?: boolean;
+  timePerChar?: number;
 }
 
 function generateSystemPrompt(botName: string, store: any, products: any[], categories: any[]): string {
@@ -259,8 +261,8 @@ serve(async (req) => {
         keepOpen: config.keepOpen || false,
         debounceTime: config.debounceTime || 10,
         ignoreJids: config.ignoreJids || [],
-        splitMessages: true,
-        timePerChar: 0,
+        splitMessages: config.splitMessages !== undefined ? config.splitMessages : true,
+        timePerChar: config.timePerChar || 0,
       };
 
       let botId = existingBotConfig?.evolution_bot_id;
@@ -330,6 +332,8 @@ serve(async (req) => {
         trigger_operator: config.triggerOperator,
         trigger_value: config.triggerValue,
         ignore_jids: config.ignoreJids,
+        bot_split_messages: config.splitMessages !== undefined ? config.splitMessages : true,
+        bot_time_per_char: config.timePerChar || 0,
         evolution_bot_id: botId,
         evolution_bot_status: 'active',
         updated_at: new Date().toISOString(),

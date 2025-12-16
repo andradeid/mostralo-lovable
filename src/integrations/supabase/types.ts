@@ -3884,6 +3884,8 @@ export type Database = {
       store_bot_config: {
         Row: {
           bot_name: string | null
+          bot_split_messages: boolean | null
+          bot_time_per_char: number | null
           created_at: string | null
           debounce_time: number | null
           delay_message: number | null
@@ -3907,6 +3909,8 @@ export type Database = {
         }
         Insert: {
           bot_name?: string | null
+          bot_split_messages?: boolean | null
+          bot_time_per_char?: number | null
           created_at?: string | null
           debounce_time?: number | null
           delay_message?: number | null
@@ -3930,6 +3934,8 @@ export type Database = {
         }
         Update: {
           bot_name?: string | null
+          bot_split_messages?: boolean | null
+          bot_time_per_char?: number | null
           created_at?: string | null
           debounce_time?: number | null
           delay_message?: number | null

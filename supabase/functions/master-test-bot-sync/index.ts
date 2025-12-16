@@ -448,7 +448,29 @@ serve(async (req) => {
     }
 
     // ========================================
-    // FUNÇÃO: Garantir bot com consulta prévia
+    // FUNÇÃO: Deletar bot existente na Evolution
+    // ========================================
+    async function deleteExistingBot(instanceName: string, botId: string): Promise<boolean> {
+      try {
+        console.log('Deletando bot:', botId, 'da instância:', instanceName);
+        const deleteResp = await fetch(`${evolutionUrl}/openai/delete/${botId}/${instanceName}`, {
+          method: 'DELETE',
+          headers: { 'apikey': evolutionConfig.api_key },
+        });
+        
+        const deleteText = await deleteResp.text();
+        console.log('Resposta delete bot:', deleteResp.status, deleteText);
+        
+        return deleteResp.ok || deleteResp.status === 404; // 404 = já não existe, ok
+      } catch (e) {
+        console.log('Erro ao deletar bot:', e);
+        return false;
+      }
+    }
+
+    // ========================================
+    // FUNÇÃO: Garantir bot com estratégia DELETE + CREATE
+    // (Evolution API PUT não persiste 'model', então usamos delete+create)
     // ========================================
     async function ensureOpenAiBot(
       instanceName: string,
@@ -476,6 +498,42 @@ serve(async (req) => {
             .map((b) => `${b.description || b.id?.slice(0, 8) || 'sem-id'}`)
             .join(', '),
         });
+
+        // ESTRATÉGIA DELETE + CREATE: Deletar bots existentes para recriar com todas as configs
+        for (const bot of existingBots) {
+          if (bot.id) {
+            steps.push({
+              step: 'bot_delete',
+              status: 'success',
+              message: 'Removendo bot existente para recriar com configurações atualizadas...',
+              details: `Bot ID: ${bot.id.slice(0, 8)}...`,
+            });
+
+            const deleted = await deleteExistingBot(instanceName, bot.id);
+            
+            if (deleted) {
+              steps.push({
+                step: 'bot_deleted',
+                status: 'success',
+                message: 'Bot removido com sucesso',
+                details: `ID: ${bot.id.slice(0, 8)}...`,
+              });
+            } else {
+              steps.push({
+                step: 'bot_delete',
+                status: 'warning',
+                message: 'Falha ao remover bot (tentando continuar)',
+                details: `ID: ${bot.id.slice(0, 8)}...`,
+              });
+            }
+          }
+        }
+
+        // Limpar ID do banco local
+        await supabaseClient
+          .from('master_admin_test_config')
+          .update({ bot_evolution_id: null, updated_at: new Date().toISOString() })
+          .eq('id', testConfig.id);
       } else {
         steps.push({
           step: 'bot_list',
@@ -484,142 +542,12 @@ serve(async (req) => {
         });
       }
 
-      const pickCandidateBotId = (): string | null => {
-        // 1) Prioridade: bot salvo no nosso banco
-        if (testConfig.bot_evolution_id) {
-          const found = existingBots.find((b) => b.id === testConfig.bot_evolution_id);
-          if (found?.id) return found.id;
-        }
-
-        // 2) Bot identificado pela description
-        const byDescription = existingBots.find((b) =>
-          (b.description || '').includes('Bot Mostralo') ||
-          (b.description || '').includes(storeName)
-        );
-        if (byDescription?.id) return byDescription.id;
-
-        // 3) Se a Evolution só permite 1 bot por instância, usar o único existente
-        if (existingBots.length === 1 && existingBots[0]?.id) return existingBots[0].id;
-
-        return null;
-      };
-
-      const tryUpdateBot = async (botId: string) => {
-        // Observação: a Evolution muda endpoints entre versões; tentamos 2 formas conhecidas.
-        const candidates = [
-          // V2 observada nos logs: o servidor interpreta o 2º parâmetro como instanceName
-          { kind: 'update', url: `${evolutionUrl}/openai/update/${botId}/${instanceName}` },
-          // Algumas instalações usam /openai/settings/{instance}/{botId}
-          { kind: 'settings', url: `${evolutionUrl}/openai/settings/${instanceName}/${botId}` },
-        ];
-
-        let lastStatus = 0;
-        let lastText = '';
-
-        for (const c of candidates) {
-          try {
-            console.log('Tentando update bot:', c.kind, c.url);
-            const resp = await fetch(c.url, {
-              method: 'PUT',
-              headers: {
-                'apikey': evolutionConfig.api_key,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(botPayload),
-            });
-
-            const text = await resp.text();
-            lastStatus = resp.status;
-            lastText = text;
-
-            steps.push({
-              step: 'bot_update_try',
-              status: resp.ok ? 'success' : 'warning',
-              message: resp.ok
-                ? `Update OK (${c.kind})`
-                : `Update falhou (${c.kind})`,
-              details: `Status: ${resp.status} - ${text.slice(0, 140)}`,
-            });
-
-            if (resp.ok) {
-              return { ok: true as const };
-            }
-          } catch (e) {
-            steps.push({
-              step: 'bot_update_try',
-              status: 'warning',
-              message: `Erro no update (${c.kind})`,
-              details: String(e).slice(0, 140),
-            });
-          }
-        }
-
-        return { ok: false as const, status: lastStatus, text: lastText };
-      };
-
-      // Se temos bot salvo e ele não existe mais na Evolution, limpamos (para evitar loop ruim)
+      // Se temos bot salvo que não estava na lista, também limpar
       if (testConfig.bot_evolution_id) {
-        const existsInEvolution = existingBots.some((b) => b.id === testConfig.bot_evolution_id);
-        if (!existsInEvolution) {
-          steps.push({
-            step: 'bot_invalid',
-            status: 'warning',
-            message: 'Bot salvo não existe mais na Evolution (limpando ID local)',
-            details: `ID antigo: ${testConfig.bot_evolution_id.slice(0, 8)}...`,
-          });
-
-          await supabaseClient
-            .from('master_admin_test_config')
-            .update({ bot_evolution_id: null, updated_at: new Date().toISOString() })
-            .eq('id', testConfig.id);
-        }
-      }
-
-      // 1) Se já existe bot na instância, NUNCA tenta criar (a Evolution pode bloquear com "already exists")
-      if (existingBots.length > 0) {
-        const candidateBotId = pickCandidateBotId();
-
-        if (!candidateBotId) {
-          steps.push({
-            step: 'bot_target',
-            status: 'error',
-            message: 'Existe bot na instância, mas não consegui identificar qual atualizar',
-          });
-          return { success: false, botId: null, created: false };
-        }
-
-        steps.push({
-          step: 'bot_target',
-          status: 'success',
-          message: 'Bot alvo definido para atualização',
-          details: `Bot ID: ${candidateBotId.slice(0, 8)}...`,
-        });
-
-        const updateRes = await tryUpdateBot(candidateBotId);
-        if (!updateRes.ok) {
-          steps.push({
-            step: 'bot_update',
-            status: 'error',
-            message: 'Não foi possível atualizar o bot existente',
-            details: `Último status: ${updateRes.status} - ${String(updateRes.text || '').slice(0, 160)}`,
-          });
-          return { success: false, botId: null, created: false };
-        }
-
-        // Persistir botId no banco (se ainda não estiver)
         await supabaseClient
           .from('master_admin_test_config')
-          .update({ bot_evolution_id: candidateBotId, updated_at: new Date().toISOString() })
+          .update({ bot_evolution_id: null, updated_at: new Date().toISOString() })
           .eq('id', testConfig.id);
-
-        steps.push({
-          step: 'bot_update',
-          status: 'success',
-          message: 'Bot existente atualizado!',
-          details: `ID: ${candidateBotId.slice(0, 8)}...`,
-        });
-
-        return { success: true, botId: candidateBotId, created: false };
       }
 
       // 2) Se não existe nenhum bot, criar
@@ -644,34 +572,55 @@ serve(async (req) => {
         console.log('Resposta criação bot:', createResp.status, createText);
 
         if (!createResp.ok) {
-          // Se a Evolution diz que já existe, refaz o find e tenta atualizar o primeiro
+          // Se a Evolution diz que já existe, deletar e tentar criar novamente
           const alreadyExists = createText.includes('already exists') || createText.includes('already');
           if (alreadyExists) {
             steps.push({
               step: 'bot_create',
               status: 'warning',
-              message: 'A Evolution informou que o bot já existe; tentando recuperar e atualizar...',
+              message: 'A Evolution informou que o bot já existe; deletando e recriando...',
               details: createText.slice(0, 140),
             });
 
             const botsAfter = await findExistingBots(instanceName);
-            const fallbackId = (botsAfter[0] && botsAfter[0].id) ? botsAfter[0].id : null;
-            if (fallbackId) {
-              const updateRes = await tryUpdateBot(fallbackId);
-              if (updateRes.ok) {
-                await supabaseClient
-                  .from('master_admin_test_config')
-                  .update({ bot_evolution_id: fallbackId, updated_at: new Date().toISOString() })
-                  .eq('id', testConfig.id);
+            
+            // Deletar todos os bots encontrados
+            for (const bot of botsAfter) {
+              if (bot.id) {
+                await deleteExistingBot(instanceName, bot.id);
+              }
+            }
 
+            // Tentar criar novamente
+            const retryResp = await fetch(createUrl, {
+              method: 'POST',
+              headers: {
+                'apikey': evolutionConfig.api_key,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(botPayload),
+            });
+
+            const retryText = await retryResp.text();
+            console.log('Resposta retry criação bot:', retryResp.status, retryText);
+
+            if (retryResp.ok) {
+              let retryData: any = {};
+              try {
+                retryData = JSON.parse(retryText);
+              } catch {
+                retryData = {};
+              }
+
+              const retryBotId = retryData.id || retryData.openaiBot?.id || null;
+              if (retryBotId) {
                 steps.push({
-                  step: 'bot_update',
+                  step: 'bot_created',
                   status: 'success',
-                  message: 'Bot recuperado e atualizado!',
-                  details: `ID: ${fallbackId.slice(0, 8)}...`,
+                  message: 'Bot recriado com sucesso!',
+                  details: `ID: ${retryBotId.slice(0, 8)}...`,
                 });
-
-                return { success: true, botId: fallbackId, created: false };
+                return { success: true, botId: retryBotId, created: true };
               }
             }
           }

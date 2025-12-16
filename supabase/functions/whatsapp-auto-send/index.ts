@@ -413,7 +413,8 @@ serve(async (req) => {
     const endpoint = `${evolutionConfig.api_url}/message/sendText/${instance.instance_name}`;
     const payload = {
       number: formattedPhone,
-      text: finalMessage
+      text: finalMessage,
+      linkPreview: true  // Força geração de rich preview no WhatsApp
     };
 
     console.log(`[whatsapp-auto-send] Enviando para: ${formattedPhone}`);

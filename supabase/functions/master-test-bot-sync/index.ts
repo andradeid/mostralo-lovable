@@ -237,27 +237,25 @@ serve(async (req) => {
 
     const instanceName = testConfig.test_instance_name;
 
-    // Helper: obter openaiCredsId com validação robusta
-    // Evolution API v2 requer o nome da instância nos endpoints de credenciais
+    // ========================================
+    // FUNÇÃO: Consultar e garantir credenciais OpenAI
+    // ========================================
     async function ensureOpenAiCreds(instanceName: string): Promise<string | null> {
       steps.push({
         step: 'openai_creds_check',
         status: 'success',
-        message: 'Verificando credenciais OpenAI na Evolution...',
+        message: 'Consultando credenciais OpenAI na Evolution...',
         details: `Instância: ${instanceName}`,
       });
 
-      // 1. Listar credenciais existentes na Evolution para esta instância
+      // 1. Listar credenciais existentes
       console.log('Buscando credenciais OpenAI para instância:', instanceName);
       let existingCreds: any[] = [];
       
       try {
-        // Evolution API v2: GET /openai/creds/{instance}
         const listResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
           method: 'GET',
-          headers: {
-            'apikey': evolutionConfig.api_key,
-          },
+          headers: { 'apikey': evolutionConfig.api_key },
         });
 
         if (listResp.ok) {
@@ -269,15 +267,14 @@ serve(async (req) => {
             step: 'openai_creds_list',
             status: 'success',
             message: `${existingCreds.length} credencial(is) encontrada(s)`,
-            details: existingCreds.map(c => c.name || c.id).join(', ') || 'Nenhuma',
+            details: existingCreds.map(c => `${c.name || 'sem-nome'} (${c.id?.slice(0, 8)}...)`).join(', ') || 'Nenhuma',
           });
         } else {
-          console.log('Falha ao listar credenciais:', listResp.status);
-          // Se não encontrou, não é erro - pode ser que não tenha nenhuma ainda
+          console.log('Nenhuma credencial encontrada:', listResp.status);
           steps.push({
             step: 'openai_creds_list',
             status: 'warning',
-            message: 'Nenhuma credencial encontrada para esta instância',
+            message: 'Nenhuma credencial encontrada',
             details: `Status: ${listResp.status}`,
           });
         }
@@ -286,7 +283,7 @@ serve(async (req) => {
         steps.push({
           step: 'openai_creds_list',
           status: 'warning',
-          message: 'Erro ao listar credenciais',
+          message: 'Erro ao consultar credenciais',
           details: String(e),
         });
       }
@@ -295,7 +292,7 @@ serve(async (req) => {
       if (evolutionConfig.openai_creds_id) {
         const found = existingCreds.find(c => c.id === evolutionConfig.openai_creds_id);
         if (found) {
-          console.log('ID salvo é válido:', evolutionConfig.openai_creds_id);
+          console.log('Credencial salva é válida:', evolutionConfig.openai_creds_id);
           steps.push({
             step: 'openai_creds_validate',
             status: 'success',
@@ -305,12 +302,12 @@ serve(async (req) => {
           return evolutionConfig.openai_creds_id;
         }
         
-        // ID não existe mais - limpar do banco
-        console.log('ID salvo não é mais válido, limpando...');
+        // ID não existe mais - limpar
+        console.log('ID salvo não é válido, limpando...');
         steps.push({
           step: 'openai_creds_invalid',
           status: 'warning',
-          message: 'Credencial salva não existe mais na Evolution',
+          message: 'Credencial salva não existe mais',
           details: `ID antigo: ${evolutionConfig.openai_creds_id.slice(0, 8)}...`,
         });
         
@@ -320,18 +317,17 @@ serve(async (req) => {
           .eq('id', evolutionConfig.id);
       }
 
-      // 3. Buscar credencial existente chamada "mostralo-openai"
+      // 3. Buscar credencial existente "mostralo-openai"
       const mostraloCredential = existingCreds.find(c => c.name === 'mostralo-openai');
       if (mostraloCredential?.id) {
-        console.log('Usando credencial existente:', mostraloCredential.id);
+        console.log('Reutilizando credencial existente:', mostraloCredential.id);
         steps.push({
           step: 'openai_creds_reuse',
           status: 'success',
-          message: 'Reutilizando credencial "mostralo-openai" existente',
+          message: 'Reutilizando credencial "mostralo-openai"',
           details: `ID: ${mostraloCredential.id.slice(0, 8)}...`,
         });
         
-        // Salvar no banco para uso futuro
         await supabaseClient
           .from('evolution_config')
           .update({ openai_creds_id: mostraloCredential.id, updated_at: new Date().toISOString() })
@@ -342,16 +338,15 @@ serve(async (req) => {
 
       // 4. Criar nova credencial
       if (!openaiApiKey) {
-        console.log('Sem openai_api_key configurada');
         steps.push({
           step: 'openai_creds_create',
           status: 'error',
-          message: 'Chave OpenAI não configurada para criar credencial',
+          message: 'Chave OpenAI necessária para criar credencial',
         });
         return null;
       }
 
-      console.log('Criando nova credencial OpenAI na Evolution...');
+      console.log('Criando nova credencial OpenAI...');
       steps.push({
         step: 'openai_creds_creating',
         status: 'success',
@@ -359,7 +354,6 @@ serve(async (req) => {
       });
 
       try {
-        // Evolution API v2: POST /openai/creds/{instance}
         const createResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
           method: 'POST',
           headers: {
@@ -376,12 +370,11 @@ serve(async (req) => {
         console.log('Resposta criação credencial:', createResp.status, createText);
 
         if (!createResp.ok) {
-          console.error('Falha ao criar credenciais:', createResp.status, createText);
           steps.push({
             step: 'openai_creds_create',
             status: 'error',
-            message: 'Falha ao criar credencial na Evolution',
-            details: `Status: ${createResp.status} - ${createText}`,
+            message: 'Falha ao criar credencial',
+            details: `Status: ${createResp.status}`,
           });
           return null;
         }
@@ -395,20 +388,15 @@ serve(async (req) => {
         }
 
         if (createdId) {
-          // Salvar o ID para uso futuro
           await supabaseClient
             .from('evolution_config')
-            .update({
-              openai_creds_id: createdId,
-              updated_at: new Date().toISOString(),
-            })
+            .update({ openai_creds_id: createdId, updated_at: new Date().toISOString() })
             .eq('id', evolutionConfig.id);
 
-          console.log('Credencial OpenAI criada:', createdId);
           steps.push({
             step: 'openai_creds_created',
             status: 'success',
-            message: 'Nova credencial criada com sucesso!',
+            message: 'Nova credencial criada!',
             details: `ID: ${createdId.slice(0, 8)}...`,
           });
           return createdId;
@@ -417,12 +405,11 @@ serve(async (req) => {
         steps.push({
           step: 'openai_creds_create',
           status: 'error',
-          message: 'ID da credencial não retornado pela Evolution',
-          details: createText,
+          message: 'ID não retornado pela Evolution',
+          details: createText.slice(0, 100),
         });
         return null;
       } catch (e) {
-        console.error('Erro ao criar credencial:', e);
         steps.push({
           step: 'openai_creds_create',
           status: 'error',
@@ -433,19 +420,267 @@ serve(async (req) => {
       }
     }
 
+    // ========================================
+    // FUNÇÃO: Consultar bots existentes na Evolution
+    // ========================================
+    async function findExistingBots(instanceName: string): Promise<any[]> {
+      console.log('Consultando bots existentes para instância:', instanceName);
+      
+      try {
+        const findResp = await fetch(`${evolutionUrl}/openai/find/${instanceName}`, {
+          method: 'GET',
+          headers: { 'apikey': evolutionConfig.api_key },
+        });
+
+        if (findResp.ok) {
+          const data = await findResp.json();
+          const bots = Array.isArray(data) ? data : (data?.bots || data?.data || []);
+          console.log('Bots encontrados:', bots.length);
+          return bots;
+        }
+        
+        console.log('Falha ao buscar bots:', findResp.status);
+        return [];
+      } catch (e) {
+        console.log('Erro ao buscar bots:', e);
+        return [];
+      }
+    }
+
+    // ========================================
+    // FUNÇÃO: Garantir bot com consulta prévia
+    // ========================================
+    async function ensureOpenAiBot(
+      instanceName: string, 
+      openaiCredsId: string, 
+      botPayload: any,
+      storeName: string
+    ): Promise<{ success: boolean; botId: string | null; created: boolean }> {
+      
+      // Adicionar description ao payload
+      botPayload.description = `Bot Mostralo - ${storeName}`;
+      
+      steps.push({
+        step: 'bot_search',
+        status: 'success',
+        message: 'Consultando bots existentes na Evolution...',
+      });
+
+      // 1. Buscar bots existentes
+      const existingBots = await findExistingBots(instanceName);
+      
+      if (existingBots.length > 0) {
+        steps.push({
+          step: 'bot_list',
+          status: 'success',
+          message: `${existingBots.length} bot(s) encontrado(s)`,
+          details: existingBots.map(b => `${b.description || b.id?.slice(0, 8) || 'sem-id'}`).join(', '),
+        });
+      } else {
+        steps.push({
+          step: 'bot_list',
+          status: 'warning',
+          message: 'Nenhum bot encontrado na instância',
+        });
+      }
+
+      // 2. Se temos bot_evolution_id salvo, verificar se ainda existe
+      if (testConfig.bot_evolution_id) {
+        const foundBot = existingBots.find(b => b.id === testConfig.bot_evolution_id);
+        
+        if (foundBot) {
+          // Bot existe - atualizar via PUT
+          steps.push({
+            step: 'bot_validate',
+            status: 'success',
+            message: 'Bot salvo encontrado, atualizando...',
+            details: `ID: ${testConfig.bot_evolution_id.slice(0, 8)}...`,
+          });
+
+          try {
+            const updateUrl = `${evolutionUrl}/openai/update/${instanceName}/${testConfig.bot_evolution_id}`;
+            const updateResp = await fetch(updateUrl, {
+              method: 'PUT',
+              headers: {
+                'apikey': evolutionConfig.api_key,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(botPayload),
+            });
+
+            const updateText = await updateResp.text();
+            console.log('Resposta update bot:', updateResp.status, updateText);
+
+            if (updateResp.ok) {
+              steps.push({
+                step: 'bot_update',
+                status: 'success',
+                message: 'Bot atualizado com sucesso!',
+                details: `ID: ${testConfig.bot_evolution_id.slice(0, 8)}...`,
+              });
+              return { success: true, botId: testConfig.bot_evolution_id, created: false };
+            }
+
+            // Falhou ao atualizar, tentar criar novo
+            steps.push({
+              step: 'bot_update',
+              status: 'warning',
+              message: 'Falha ao atualizar, tentando criar novo...',
+              details: `Status: ${updateResp.status}`,
+            });
+          } catch (e) {
+            steps.push({
+              step: 'bot_update',
+              status: 'warning',
+              message: 'Erro ao atualizar, tentando criar novo...',
+              details: String(e),
+            });
+          }
+        } else {
+          // Bot não existe mais na Evolution - limpar ID
+          steps.push({
+            step: 'bot_invalid',
+            status: 'warning',
+            message: 'Bot salvo não existe mais na Evolution',
+            details: `ID antigo: ${testConfig.bot_evolution_id.slice(0, 8)}...`,
+          });
+
+          await supabaseClient
+            .from('master_admin_test_config')
+            .update({ bot_evolution_id: null, updated_at: new Date().toISOString() })
+            .eq('id', testConfig.id);
+        }
+      }
+
+      // 3. Buscar bot existente "mostralo" pela description
+      const mostraloBot = existingBots.find(b => 
+        b.description?.includes('Bot Mostralo') || 
+        b.description?.includes(storeName)
+      );
+      
+      if (mostraloBot?.id) {
+        steps.push({
+          step: 'bot_reuse',
+          status: 'success',
+          message: 'Bot Mostralo existente encontrado, atualizando...',
+          details: `ID: ${mostraloBot.id.slice(0, 8)}...`,
+        });
+
+        try {
+          const updateUrl = `${evolutionUrl}/openai/update/${instanceName}/${mostraloBot.id}`;
+          const updateResp = await fetch(updateUrl, {
+            method: 'PUT',
+            headers: {
+              'apikey': evolutionConfig.api_key,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(botPayload),
+          });
+
+          if (updateResp.ok) {
+            // Salvar ID para uso futuro
+            await supabaseClient
+              .from('master_admin_test_config')
+              .update({ bot_evolution_id: mostraloBot.id, updated_at: new Date().toISOString() })
+              .eq('id', testConfig.id);
+
+            steps.push({
+              step: 'bot_update',
+              status: 'success',
+              message: 'Bot existente atualizado!',
+              details: `ID: ${mostraloBot.id.slice(0, 8)}...`,
+            });
+            return { success: true, botId: mostraloBot.id, created: false };
+          }
+        } catch (e) {
+          console.log('Erro ao atualizar bot existente:', e);
+        }
+      }
+
+      // 4. Criar novo bot
+      steps.push({
+        step: 'bot_creating',
+        status: 'success',
+        message: 'Criando novo bot na Evolution...',
+      });
+
+      try {
+        const createUrl = `${evolutionUrl}/openai/create/${instanceName}`;
+        const createResp = await fetch(createUrl, {
+          method: 'POST',
+          headers: {
+            'apikey': evolutionConfig.api_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(botPayload),
+        });
+
+        const createText = await createResp.text();
+        console.log('Resposta criação bot:', createResp.status, createText);
+
+        if (!createResp.ok) {
+          steps.push({
+            step: 'bot_create',
+            status: 'error',
+            message: 'Falha ao criar bot',
+            details: `Status: ${createResp.status} - ${createText.slice(0, 100)}`,
+          });
+          return { success: false, botId: null, created: false };
+        }
+
+        let botData;
+        try {
+          botData = JSON.parse(createText);
+        } catch {
+          botData = {};
+        }
+
+        const botId = botData.id || botData.openaiBot?.id || null;
+
+        if (botId) {
+          steps.push({
+            step: 'bot_created',
+            status: 'success',
+            message: 'Novo bot criado com sucesso!',
+            details: `ID: ${botId.slice(0, 8)}...`,
+          });
+          return { success: true, botId, created: true };
+        }
+
+        steps.push({
+          step: 'bot_create',
+          status: 'error',
+          message: 'ID do bot não retornado',
+          details: createText.slice(0, 100),
+        });
+        return { success: false, botId: null, created: false };
+      } catch (e) {
+        steps.push({
+          step: 'bot_create',
+          status: 'error',
+          message: 'Erro ao criar bot',
+          details: String(e),
+        });
+        return { success: false, botId: null, created: false };
+      }
+    }
+
+    // ========================================
+    // AÇÕES: create / update
+    // ========================================
     if (action === 'create' || action === 'update') {
       steps.push({
         step: 'action_start',
         status: 'success',
-        message: `Iniciando ${action === 'create' ? 'criação' : 'atualização'} do bot...`,
+        message: `Iniciando sincronização do bot...`,
       });
 
-      // Garantir que temos openaiCredsId (passa o nome da instância para os endpoints da Evolution API v2)
+      // 1. Garantir credenciais OpenAI
       const openaiCredsId = await ensureOpenAiCreds(testConfig.test_instance_name);
       if (!openaiCredsId) {
         return new Response(JSON.stringify({
           success: false,
-          error: 'Não foi possível obter/criar credenciais OpenAI na Evolution',
+          error: 'Não foi possível obter/criar credenciais OpenAI',
           steps,
         }), {
           status: 500,
@@ -455,12 +690,13 @@ serve(async (req) => {
 
       console.log('Usando openaiCredsId:', openaiCredsId);
 
-      // Gerar prompt com dados da loja sandbox
+      // 2. Gerar prompt com dados da loja sandbox
       const products = (testConfig.sandbox_products || []) as SandboxProduct[];
       const categories = (testConfig.sandbox_categories || []) as SandboxCategory[];
+      const storeName = config?.storeName || testConfig.sandbox_store_name;
       
       const systemPrompt = generateTestSystemPrompt(
-        config?.storeName || testConfig.sandbox_store_name,
+        storeName,
         config?.storeDescription || testConfig.sandbox_store_description,
         products,
         categories,
@@ -475,7 +711,7 @@ serve(async (req) => {
         details: `${products.length} produto(s), ${categories.length} categoria(s)`,
       });
 
-      // Validar modelo
+      // 3. Validar modelo
       const validModels = ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-3.5-turbo', 'gpt-4'];
       let model = evolutionConfig.openai_default_model || 'gpt-4o-mini';
       if (!validModels.includes(model)) {
@@ -489,11 +725,11 @@ serve(async (req) => {
         steps.push({
           step: 'model_validate',
           status: 'success',
-          message: `Modelo selecionado: ${model}`,
+          message: `Modelo: ${model}`,
         });
       }
 
-      // Payload com openaiCredsId
+      // 4. Montar payload do bot
       const botPayload: any = {
         enabled: true,
         openaiCredsId: openaiCredsId,
@@ -521,58 +757,13 @@ serve(async (req) => {
 
       console.log('Payload do bot:', JSON.stringify(botPayload, null, 2));
 
-      let botId = testConfig.bot_evolution_id;
-      let response;
+      // 5. Garantir bot com consulta prévia
+      const botResult = await ensureOpenAiBot(instanceName, openaiCredsId, botPayload, storeName);
 
-      if (botId) {
-        steps.push({
-          step: 'evolution_sync',
-          status: 'success',
-          message: 'Atualizando bot existente na Evolution...',
-          details: `Bot ID: ${botId.slice(0, 8)}...`,
-        });
-
-        const updateUrl = `${evolutionUrl}/openai/update/${testConfig.test_instance_name}/${botId}`;
-        response = await fetch(updateUrl, {
-          method: 'PUT',
-          headers: {
-            'apikey': evolutionConfig.api_key,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(botPayload),
-        });
-      } else {
-        steps.push({
-          step: 'evolution_sync',
-          status: 'success',
-          message: 'Criando novo bot na Evolution...',
-        });
-
-        const createUrl = `${evolutionUrl}/openai/create/${testConfig.test_instance_name}`;
-        response = await fetch(createUrl, {
-          method: 'POST',
-          headers: {
-            'apikey': evolutionConfig.api_key,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(botPayload),
-        });
-      }
-
-      const responseText = await response.text();
-      console.log('Resposta Evolution:', response.status, responseText);
-
-      if (!response.ok) {
-        console.error('Erro Evolution:', responseText);
-        steps.push({
-          step: 'evolution_response',
-          status: 'error',
-          message: 'Falha na Evolution API',
-          details: responseText.slice(0, 100),
-        });
-        return new Response(JSON.stringify({ 
-          success: false, 
-          error: `Falha na Evolution: ${responseText}`,
+      if (!botResult.success || !botResult.botId) {
+        return new Response(JSON.stringify({
+          success: false,
+          error: 'Não foi possível criar/atualizar o bot na Evolution',
           steps,
         }), {
           status: 500,
@@ -580,17 +771,7 @@ serve(async (req) => {
         });
       }
 
-      const botData = JSON.parse(responseText);
-      botId = botData.id || botData.openaiBot?.id || botId;
-
-      steps.push({
-        step: 'evolution_response',
-        status: 'success',
-        message: 'Bot sincronizado com Evolution!',
-        details: `Bot ID: ${botId?.slice(0, 8)}...`,
-      });
-
-      // Atualizar config
+      // 6. Salvar configuração no banco
       await supabaseClient
         .from('master_admin_test_config')
         .update({
@@ -603,7 +784,7 @@ serve(async (req) => {
           bot_keyword_finish: config?.keywordFinish || testConfig.bot_keyword_finish,
           bot_trigger_type: config?.triggerType || testConfig.bot_trigger_type,
           bot_trigger_value: config?.triggerValue || testConfig.bot_trigger_value,
-          bot_evolution_id: botId,
+          bot_evolution_id: botResult.botId,
           sandbox_store_name: config?.storeName || testConfig.sandbox_store_name,
           sandbox_store_description: config?.storeDescription || testConfig.sandbox_store_description,
           updated_at: new Date().toISOString(),
@@ -613,19 +794,24 @@ serve(async (req) => {
       steps.push({
         step: 'save_config',
         status: 'success',
-        message: 'Configuração salva no banco de dados',
+        message: 'Configuração salva no banco',
+        details: `Bot ID: ${botResult.botId.slice(0, 8)}...`,
       });
 
       return new Response(JSON.stringify({ 
         success: true, 
-        message: 'Bot de teste sincronizado!',
-        botId,
+        message: botResult.created ? 'Bot criado com sucesso!' : 'Bot atualizado com sucesso!',
+        botId: botResult.botId,
+        created: botResult.created,
         steps,
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
+    // ========================================
+    // AÇÃO: toggle
+    // ========================================
     if (action === 'toggle') {
       if (!testConfig.bot_evolution_id) {
         steps.push({
@@ -660,7 +846,7 @@ serve(async (req) => {
         steps.push({
           step: 'toggle_response',
           status: 'error',
-          message: 'Falha ao alterar status na Evolution',
+          message: 'Falha ao alterar status',
         });
         return new Response(JSON.stringify({ 
           success: false, 
@@ -696,6 +882,9 @@ serve(async (req) => {
       });
     }
 
+    // ========================================
+    // AÇÃO: delete
+    // ========================================
     if (action === 'delete') {
       steps.push({
         step: 'delete_start',
@@ -729,14 +918,17 @@ serve(async (req) => {
       steps.push({
         step: 'delete_complete',
         status: 'success',
-        message: 'Bot de teste removido!',
+        message: 'Bot removido!',
       });
 
-      return new Response(JSON.stringify({ success: true, message: 'Bot de teste removido!', steps }), {
+      return new Response(JSON.stringify({ success: true, message: 'Bot removido!', steps }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
+    // ========================================
+    // AÇÃO: save_sandbox
+    // ========================================
     if (action === 'save_sandbox') {
       steps.push({
         step: 'save_sandbox',

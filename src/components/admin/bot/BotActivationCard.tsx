@@ -47,42 +47,43 @@ export function BotActivationCard({
   };
 
   return (
-    <Card>
-      <CardHeader className="pb-2 sm:pb-3 p-4 sm:p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <Bot className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-            <CardTitle className="text-base sm:text-lg">Assistente IA</CardTitle>
+    <Card className="overflow-hidden">
+      <CardHeader className="!p-3 !pb-2 sm:!p-6 sm:!pb-3">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-2 min-w-0">
+              <Bot className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
+              <CardTitle className="text-base sm:text-lg">Assistente IA</CardTitle>
+            </div>
+            <Badge 
+              variant={isActive ? "default" : "secondary"} 
+              className={`${isActive ? "bg-green-500" : ""} shrink-0 text-xs`}
+            >
+              {isActive ? (
+                <><Power className="h-3 w-3 mr-1" /> Ativo</>
+              ) : (
+                <><PowerOff className="h-3 w-3 mr-1" /> Inativo</>
+              )}
+            </Badge>
           </div>
-          <Badge 
-            variant={isActive ? "default" : "secondary"} 
-            className={`${isActive ? "bg-green-500" : ""} self-start sm:self-auto text-xs`}
-          >
-            {isActive ? (
-              <><Power className="h-3 w-3 mr-1" /> Ativo</>
-            ) : (
-              <><PowerOff className="h-3 w-3 mr-1" /> Inativo</>
-            )}
-          </Badge>
+          <CardDescription className="text-xs sm:text-sm break-words hyphens-auto">
+            Ative o assistente para responder seus clientes automaticamente
+          </CardDescription>
         </div>
-        <CardDescription className="text-xs sm:text-sm mt-1 break-words">
-          Ative o assistente para responder seus clientes automaticamente
-        </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
+      <CardContent className="!p-3 !pt-0 sm:!p-6 sm:!pt-0 space-y-3 sm:space-y-4">
         {!isConnected && (
-          <div className="p-2.5 sm:p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg text-xs sm:text-sm text-orange-600 dark:text-orange-400 leading-relaxed">
-            <span className="flex items-start gap-2">
-              <span className="shrink-0">⚠️</span>
-              <span>Conecte seu WhatsApp primeiro para ativar o assistente</span>
-            </span>
+          <div className="p-2.5 sm:p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg overflow-hidden">
+            <p className="text-xs sm:text-sm text-orange-600 dark:text-orange-400 break-words hyphens-auto">
+              ⚠️ Conecte seu WhatsApp primeiro para ativar o assistente
+            </p>
           </div>
         )}
 
         <div className="flex items-center justify-between gap-3">
           <div className="space-y-0.5 min-w-0 flex-1">
             <Label htmlFor="bot-enabled" className="text-sm">Ativar Assistente</Label>
-            <p className="text-[10px] sm:text-xs text-muted-foreground">
+            <p className="text-[10px] sm:text-xs text-muted-foreground break-words">
               O bot responderá automaticamente seus clientes
             </p>
           </div>
@@ -91,6 +92,7 @@ export function BotActivationCard({
             checked={config.enabled}
             onCheckedChange={handleToggle}
             disabled={!isConnected || syncing}
+            className="shrink-0"
           />
         </div>
 
@@ -104,7 +106,7 @@ export function BotActivationCard({
             disabled={!isConnected}
             className="text-sm"
           />
-          <p className="text-[10px] sm:text-xs text-muted-foreground">
+          <p className="text-[10px] sm:text-xs text-muted-foreground break-words">
             Como o bot se apresentará aos clientes
           </p>
         </div>
@@ -112,14 +114,14 @@ export function BotActivationCard({
         {config.enabled && (
           <Button 
             variant="outline" 
-            className="w-full text-sm"
+            className="w-full text-xs sm:text-sm"
             onClick={handleForceSync}
             disabled={syncing}
           >
             {syncing ? (
-              <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sincronizando...</>
+              <><Loader2 className="h-4 w-4 mr-2 animate-spin shrink-0" /> Sincronizando...</>
             ) : (
-              <><RefreshCw className="h-4 w-4 mr-2" /> Atualizar Bot na Evolution</>
+              <><RefreshCw className="h-4 w-4 mr-2 shrink-0" /> Atualizar Bot</>
             )}
           </Button>
         )}

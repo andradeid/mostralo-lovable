@@ -90,33 +90,35 @@ export default function SalespeoplePayoutsPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />Pendente</Badge>;
+        return <Badge variant="secondary" className="text-[10px] md:text-xs h-5"><Clock className="w-3 h-3 mr-1" />Pendente</Badge>;
       case 'requested':
-        return <Badge variant="outline" className="border-amber-500 text-amber-600"><Clock className="w-3 h-3 mr-1" />Solicitado</Badge>;
+        return <Badge variant="outline" className="border-amber-500 text-amber-600 text-[10px] md:text-xs h-5"><Clock className="w-3 h-3 mr-1" />Solicitado</Badge>;
       case 'approved':
-        return <Badge variant="outline" className="border-blue-500 text-blue-600"><CheckCircle className="w-3 h-3 mr-1" />Aprovado</Badge>;
+        return <Badge variant="outline" className="border-blue-500 text-blue-600 text-[10px] md:text-xs h-5"><CheckCircle className="w-3 h-3 mr-1" />Aprovado</Badge>;
       case 'paid':
-        return <Badge className="bg-green-500"><CheckCircle className="w-3 h-3 mr-1" />Pago</Badge>;
+        return <Badge className="bg-green-500 text-[10px] md:text-xs h-5"><CheckCircle className="w-3 h-3 mr-1" />Pago</Badge>;
       case 'rejected':
-        return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Rejeitado</Badge>;
+        return <Badge variant="destructive" className="text-[10px] md:text-xs h-5"><XCircle className="w-3 h-3 mr-1" />Rejeitado</Badge>;
       default:
-        return <Badge variant="secondary">{status}</Badge>;
+        return <Badge variant="secondary" className="text-[10px] md:text-xs h-5">{status}</Badge>;
     }
   };
 
   const getTypeBadge = (type: string) => {
     if (type === 'affiliate') {
       return (
-        <Badge variant="outline" className="border-blue-500 text-blue-600">
+        <Badge variant="outline" className="border-blue-500 text-blue-600 text-[10px] md:text-xs h-5">
           <User className="w-3 h-3 mr-1" />
-          Afiliado
+          <span className="hidden md:inline">Afiliado</span>
+          <span className="md:hidden">Afil.</span>
         </Badge>
       );
     }
     return (
-      <Badge variant="outline" className="border-orange-500 text-orange-600">
+      <Badge variant="outline" className="border-orange-500 text-orange-600 text-[10px] md:text-xs h-5">
         <Building2 className="w-3 h-3 mr-1" />
-        Parceiro PJ
+        <span className="hidden md:inline">Parceiro PJ</span>
+        <span className="md:hidden">PJ</span>
       </Badge>
     );
   };
@@ -177,70 +179,81 @@ export default function SalespeoplePayoutsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-4 md:space-y-6">
+      {/* Header Responsivo */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Pagamentos de Vendedores</h1>
-          <p className="text-muted-foreground">Gerencie solicitações de pagamento de afiliados e parceiros</p>
+          <h1 className="text-xl md:text-2xl font-bold">Pagamentos</h1>
+          <p className="text-xs md:text-sm text-muted-foreground">Gerencie pagamentos de vendedores</p>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Criar Payout Manual
+        <Button onClick={() => setShowCreateDialog(true)} className="h-9 md:h-10">
+          <Plus className="w-4 h-4 md:mr-2" />
+          <span className="hidden md:inline">Criar Payout Manual</span>
+          <span className="md:hidden">Novo</span>
         </Button>
       </div>
 
-      {/* Cards de resumo */}
-      <div className="grid gap-4 md:grid-cols-4">
+      {/* Cards de resumo - 2x2 no mobile */}
+      <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
         <Card className="border-slate-200 dark:border-slate-700">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
-            <Clock className="h-4 w-4 text-slate-500" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 p-3 md:p-6">
+            <CardTitle className="text-[10px] md:text-sm font-medium truncate">
+              <span className="md:hidden">Pend.</span>
+              <span className="hidden md:inline">Pendentes</span>
+            </CardTitle>
+            <Clock className="h-3.5 w-3.5 md:h-4 md:w-4 text-slate-500 shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-slate-600 dark:text-slate-400">{stats.pending}</div>
-            <p className="text-xs text-muted-foreground">
-              R$ {stats.totalPending.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} • Aguarda vendedor
+          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+            <div className="text-lg md:text-2xl font-bold text-slate-600 dark:text-slate-400">{stats.pending}</div>
+            <p className="text-[10px] md:text-xs text-muted-foreground truncate">
+              R$ {stats.totalPending.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </p>
           </CardContent>
         </Card>
 
         <Card className="border-amber-200 dark:border-amber-800">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Aguardando Aprovação</CardTitle>
-            <Clock className="h-4 w-4 text-amber-500" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 p-3 md:p-6">
+            <CardTitle className="text-[10px] md:text-sm font-medium truncate">
+              <span className="md:hidden">Solic.</span>
+              <span className="hidden md:inline">Aguardando</span>
+            </CardTitle>
+            <Clock className="h-3.5 w-3.5 md:h-4 md:w-4 text-amber-500 shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-amber-600">{stats.requested}</div>
-            <p className="text-xs text-muted-foreground">
-              R$ {stats.totalRequested.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} • Sua ação
+          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+            <div className="text-lg md:text-2xl font-bold text-amber-600">{stats.requested}</div>
+            <p className="text-[10px] md:text-xs text-muted-foreground truncate">
+              R$ {stats.totalRequested.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pago Este Mês</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 p-3 md:p-6">
+            <CardTitle className="text-[10px] md:text-sm font-medium truncate">
+              <span className="md:hidden">Pago</span>
+              <span className="hidden md:inline">Pago Este Mês</span>
+            </CardTitle>
+            <CheckCircle className="h-3.5 w-3.5 md:h-4 md:w-4 text-green-500 shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+            <div className="text-lg md:text-2xl font-bold text-green-600 truncate">
               R$ {stats.paidThisMonth.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Em {format(new Date(), "MMMM", { locale: ptBR })}
+            <p className="text-[10px] md:text-xs text-muted-foreground truncate">
+              {format(new Date(), "MMM", { locale: ptBR })}
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Payouts</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 p-3 md:p-6">
+            <CardTitle className="text-[10px] md:text-sm font-medium truncate">Total</CardTitle>
+            <DollarSign className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground shrink-0" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{payouts.length}</div>
-            <p className="text-xs text-muted-foreground">
-              Desde o início
+          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+            <div className="text-lg md:text-2xl font-bold">{payouts.length}</div>
+            <p className="text-[10px] md:text-xs text-muted-foreground truncate">
+              Payouts
             </p>
           </CardContent>
         </Card>
@@ -248,142 +261,187 @@ export default function SalespeoplePayoutsPage() {
 
       {/* Tabs de filtro */}
       <Card>
-        <CardHeader>
-          <CardTitle>Solicitações</CardTitle>
-          <CardDescription>Gerencie as solicitações de pagamento</CardDescription>
+        <CardHeader className="p-3 md:p-6">
+          <CardTitle className="text-base md:text-lg">Solicitações</CardTitle>
+          <CardDescription className="text-xs md:text-sm">Gerencie pagamentos</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-6">
-              <TabsTrigger value="pending" className="relative">
-                Pendentes
+            {/* Tabs com scroll horizontal */}
+            <TabsList className="h-auto p-1 w-full overflow-x-auto flex justify-start gap-1">
+              <TabsTrigger value="pending" className="shrink-0 text-xs md:text-sm px-2 md:px-3 py-1.5">
+                <span className="md:hidden">Pend.</span>
+                <span className="hidden md:inline">Pendentes</span>
                 {stats.pending > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-slate-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  <Badge variant="secondary" className="ml-1 h-4 min-w-4 text-[10px] px-1">
                     {stats.pending}
-                  </span>
+                  </Badge>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="requested" className="relative">
-                Solicitados
+              <TabsTrigger value="requested" className="shrink-0 text-xs md:text-sm px-2 md:px-3 py-1.5">
+                <span className="md:hidden">Solic.</span>
+                <span className="hidden md:inline">Solicitados</span>
                 {stats.requested > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-amber-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  <Badge className="ml-1 h-4 min-w-4 text-[10px] px-1 bg-amber-500">
                     {stats.requested}
-                  </span>
+                  </Badge>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="approved">Aprovados</TabsTrigger>
-              <TabsTrigger value="paid">Pagos</TabsTrigger>
-              <TabsTrigger value="rejected">Rejeitados</TabsTrigger>
-              <TabsTrigger value="all">Todos</TabsTrigger>
+              <TabsTrigger value="approved" className="shrink-0 text-xs md:text-sm px-2 md:px-3 py-1.5">
+                <span className="md:hidden">Aprov.</span>
+                <span className="hidden md:inline">Aprovados</span>
+              </TabsTrigger>
+              <TabsTrigger value="paid" className="shrink-0 text-xs md:text-sm px-2 md:px-3 py-1.5">
+                Pagos
+              </TabsTrigger>
+              <TabsTrigger value="rejected" className="shrink-0 text-xs md:text-sm px-2 md:px-3 py-1.5">
+                <span className="md:hidden">Rej.</span>
+                <span className="hidden md:inline">Rejeitados</span>
+              </TabsTrigger>
+              <TabsTrigger value="all" className="shrink-0 text-xs md:text-sm px-2 md:px-3 py-1.5">
+                Todos
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value={activeTab} className="mt-4">
               {filteredPayouts.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  <Wallet className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                  <p>Nenhuma solicitação {activeTab !== 'all' ? 'neste status' : ''}</p>
+                  <Wallet className="h-10 w-10 md:h-12 md:w-12 mx-auto mb-3 opacity-50" />
+                  <p className="text-sm">Nenhuma solicitação {activeTab !== 'all' ? 'neste status' : ''}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {filteredPayouts.map((payout) => (
                     <div
                       key={payout.id}
-                      className="flex items-start justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                      className="p-3 md:p-4 border rounded-lg hover:bg-muted/50 transition-colors space-y-3"
                     >
-                      <div className="space-y-2 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-medium">{payout.salesperson?.full_name || 'Vendedor'}</span>
-                          {getTypeBadge(payout.salesperson?.salesperson_type || 'affiliate')}
-                          {getStatusBadge(payout.status)}
+                      {/* Header: Nome + Badges + Valor (desktop) */}
+                      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm md:text-base truncate">
+                            {payout.salesperson?.full_name || 'Vendedor'}
+                          </p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {getTypeBadge(payout.salesperson?.salesperson_type || 'affiliate')}
+                            {getStatusBadge(payout.status)}
+                          </div>
                         </div>
                         
-                        <div className="text-sm text-muted-foreground space-y-1">
-                          <p>
-                            {payout.salesperson?.salesperson_type === 'affiliate' 
-                              ? `CPF: ${payout.salesperson?.cpf || 'N/A'}`
-                              : `CNPJ: ${payout.salesperson?.cnpj || 'N/A'} - ${payout.salesperson?.company_name || ''}`
-                            }
+                        {/* Valor - Desktop Only */}
+                        <div className="hidden md:block text-right shrink-0">
+                          <p className="font-bold text-xl">
+                            R$ {Number(payout.grand_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                           </p>
-                          <p>
-                            Período: {format(new Date(payout.cycle_year, payout.cycle_month - 1), "MMMM/yyyy", { locale: ptBR })}
-                            {' • '}{payout.total_sales} venda(s)
-                          </p>
-                          {payout.requested_at && (
-                            <p>Solicitado em: {format(new Date(payout.requested_at), "dd/MM/yyyy HH:mm")}</p>
-                          )}
-                          {payout.pix_key && (
-                            <p>PIX: <span className="font-mono">{payout.pix_key}</span> ({payout.pix_key_type})</p>
-                          )}
-                        </div>
-
-                        {/* NF para Parceiro PJ */}
-                        {payout.salesperson?.salesperson_type === 'pj_partner' && (
-                          <div className="flex items-center gap-2 mt-2">
-                            {payout.invoice_url ? (
-                              <Button variant="outline" size="sm" asChild>
-                                <a href={payout.invoice_url} target="_blank" rel="noopener noreferrer">
-                                  <FileText className="w-4 h-4 mr-1 text-green-500" />
-                                  Ver NF #{payout.invoice_number}
-                                </a>
-                              </Button>
-                            ) : (
-                              <Badge variant="destructive">
-                                <XCircle className="w-3 h-3 mr-1" />
-                                NF não anexada
-                              </Badge>
+                          <div className="text-xs text-muted-foreground">
+                            <p>Comissão: R$ {Number(payout.commission_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                            {Number(payout.bonus_total) > 0 && (
+                              <p className="text-green-600">Bônus: R$ {Number(payout.bonus_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                             )}
                           </div>
-                        )}
+                        </div>
+                      </div>
 
-                        {payout.status === 'rejected' && payout.rejection_reason && (
-                          <p className="text-sm text-red-600 mt-2">
-                            <strong>Motivo:</strong> {payout.rejection_reason}
-                          </p>
+                      {/* Info Compacta */}
+                      <div className="text-xs md:text-sm text-muted-foreground space-y-0.5">
+                        <p className="truncate">
+                          {payout.salesperson?.salesperson_type === 'affiliate' 
+                            ? `CPF: ${payout.salesperson?.cpf || 'N/A'}`
+                            : `${payout.salesperson?.company_name || ''} • ${payout.salesperson?.cnpj || 'N/A'}`
+                          }
+                        </p>
+                        <p>
+                          {format(new Date(payout.cycle_year, payout.cycle_month - 1), "MMM/yyyy", { locale: ptBR })}
+                          {' • '}{payout.total_sales} venda(s)
+                        </p>
+                        {payout.requested_at && (
+                          <p className="hidden md:block">Solicitado: {format(new Date(payout.requested_at), "dd/MM/yyyy HH:mm")}</p>
+                        )}
+                        {payout.pix_key && (
+                          <p className="truncate">PIX: <span className="font-mono">{payout.pix_key}</span></p>
                         )}
                       </div>
 
-                      <div className="flex flex-col items-end gap-2">
-                        <p className="font-bold text-xl">
-                          R$ {Number(payout.grand_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                        </p>
-                        
-                        <div className="text-xs text-muted-foreground text-right">
+                      {/* Valor Total - Mobile Only */}
+                      <div className="flex items-center justify-between md:hidden p-2 bg-muted/50 rounded-lg">
+                        <div className="text-xs">
                           <p>Comissão: R$ {Number(payout.commission_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                           {Number(payout.bonus_total) > 0 && (
                             <p className="text-green-600">Bônus: R$ {Number(payout.bonus_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                           )}
                         </div>
+                        <div className="text-right">
+                          <p className="font-bold text-lg">R$ {Number(payout.grand_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                          <p className="text-[10px] text-muted-foreground">Total</p>
+                        </div>
+                      </div>
 
+                      {/* NF para Parceiro PJ */}
+                      {payout.salesperson?.salesperson_type === 'pj_partner' && (
+                        <div className="flex items-center gap-2">
+                          {payout.invoice_url ? (
+                            <Button variant="outline" size="sm" asChild className="h-7 md:h-8 text-xs">
+                              <a href={payout.invoice_url} target="_blank" rel="noopener noreferrer">
+                                <FileText className="w-3.5 h-3.5 mr-1 text-green-500" />
+                                NF #{payout.invoice_number}
+                              </a>
+                            </Button>
+                          ) : (
+                            <Badge variant="destructive" className="text-[10px] h-5">
+                              <XCircle className="w-3 h-3 mr-1" />
+                              NF não anexada
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+
+                      {payout.status === 'rejected' && payout.rejection_reason && (
+                        <p className="text-xs text-red-600">
+                          <strong>Motivo:</strong> {payout.rejection_reason}
+                        </p>
+                      )}
+
+                      {/* Botões de Ação */}
+                      <div className="flex flex-wrap gap-2 pt-1">
                         {payout.status === 'requested' && (
-                          <Button onClick={() => handleOpenApproval(payout)}>
-                            Analisar
+                          <Button 
+                            size="sm" 
+                            onClick={() => handleOpenApproval(payout)} 
+                            className="flex-1 md:flex-none h-8"
+                          >
+                            <CheckCircle className="w-4 h-4 md:mr-1" />
+                            <span className="hidden md:inline">Analisar</span>
                           </Button>
                         )}
 
                         {payout.status === 'approved' && (
-                          <Button onClick={() => handleOpenApproval(payout)} variant="outline">
-                            Marcar como Pago
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => handleOpenApproval(payout)} 
+                            className="flex-1 md:flex-none h-8"
+                          >
+                            <DollarSign className="w-4 h-4 md:mr-1" />
+                            <span className="hidden md:inline">Marcar Pago</span>
                           </Button>
                         )}
 
                         {payout.payment_proof_url && (
-                          <Button variant="ghost" size="sm" asChild>
+                          <Button variant="outline" size="sm" asChild className="h-8">
                             <a href={payout.payment_proof_url} target="_blank" rel="noopener noreferrer">
-                              <CheckCircle className="w-4 h-4 mr-1" />
-                              Ver Comprovante
+                              <CheckCircle className="w-4 h-4 md:mr-1 text-green-500" />
+                              <span className="hidden md:inline">Comprovante</span>
                             </a>
                           </Button>
                         )}
 
-                        {/* Botão de edição */}
                         <Button 
                           variant="ghost" 
                           size="sm"
                           onClick={() => handleOpenEdit(payout)}
-                          className="text-muted-foreground"
+                          className="h-8"
                         >
-                          <Pencil className="w-4 h-4 mr-1" />
-                          Editar
+                          <Pencil className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>

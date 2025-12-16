@@ -89,13 +89,35 @@ export function useBotConfig(storeId: string | null) {
         .single();
 
       if (data) {
-        const loadedConfig = data as unknown as BotConfig;
+        const dbData = data as any;
+        // Mapear campos do banco para interface TypeScript
+        const loadedConfig: BotConfig = {
+          id: dbData.id,
+          store_id: dbData.store_id,
+          enabled: dbData.enabled ?? false,
+          bot_name: dbData.bot_name ?? 'Assistente Virtual',
+          stop_bot_from_me: dbData.stop_bot_from_me ?? true,
+          listening_from_me: dbData.listening_from_me ?? false,
+          delay_message: dbData.delay_message ?? 1500,
+          expire_minutes: dbData.expire_minutes ?? 20,
+          keyword_finish: dbData.keyword_finish ?? '#SAIR',
+          unknown_message: dbData.unknown_message ?? '',
+          keep_open: dbData.keep_open ?? false,
+          debounce_time: dbData.debounce_time ?? 10,
+          trigger_type: dbData.trigger_type ?? 'all',
+          trigger_operator: dbData.trigger_operator ?? 'contains',
+          trigger_value: dbData.trigger_value ?? '',
+          ignore_jids: dbData.ignore_jids || [],
+          split_messages: dbData.bot_split_messages ?? true,      // Mapeamento correto
+          time_per_char: dbData.bot_time_per_char ?? 0,           // Mapeamento correto
+          evolution_bot_id: dbData.evolution_bot_id,
+          evolution_bot_status: dbData.evolution_bot_status,
+        };
         setConfig(loadedConfig);
         lastSyncedConfig.current = { ...loadedConfig };
         setHasUnsyncedChanges(false);
         
-        // Carregar promptSettings do banco
-        const dbData = data as any;
+        // Carregar promptSettings do banco (usando mesmo dbData já declarado)
         setPromptSettings({
           includeLocation: dbData.include_location ?? true,
           includeBusinessHours: dbData.include_business_hours ?? true,
@@ -198,9 +220,27 @@ export function useBotConfig(storeId: string | null) {
       const updatedConfig = { ...config, ...newConfig };
       const settingsToSave = newPromptSettings || promptSettings;
       
-      // Preparar dados incluindo campos de personalidade
+      // Preparar dados com mapeamento correto dos nomes de campos
       const dataToSave = {
-        ...updatedConfig,
+        store_id: updatedConfig.store_id,
+        enabled: updatedConfig.enabled,
+        bot_name: updatedConfig.bot_name,
+        stop_bot_from_me: updatedConfig.stop_bot_from_me,
+        listening_from_me: updatedConfig.listening_from_me,
+        delay_message: updatedConfig.delay_message,
+        expire_minutes: updatedConfig.expire_minutes,
+        keyword_finish: updatedConfig.keyword_finish,
+        unknown_message: updatedConfig.unknown_message,
+        keep_open: updatedConfig.keep_open,
+        debounce_time: updatedConfig.debounce_time,
+        trigger_type: updatedConfig.trigger_type,
+        trigger_operator: updatedConfig.trigger_operator,
+        trigger_value: updatedConfig.trigger_value,
+        ignore_jids: updatedConfig.ignore_jids,
+        bot_split_messages: updatedConfig.split_messages,    // Mapeamento correto para o banco
+        bot_time_per_char: updatedConfig.time_per_char,      // Mapeamento correto para o banco
+        evolution_bot_id: updatedConfig.evolution_bot_id,
+        evolution_bot_status: updatedConfig.evolution_bot_status,
         updated_at: new Date().toISOString(),
         personality: settingsToSave.personalitySettings.personality,
         emoji_level: settingsToSave.personalitySettings.emojiLevel,

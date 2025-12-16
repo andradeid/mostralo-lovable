@@ -64,35 +64,35 @@ export function BotPromptPreviewCard({
 
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
+<CardHeader className="pb-2 sm:pb-3 p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-primary" />
-            <CardTitle className="text-lg">Preview do Comportamento</CardTitle>
+            <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+            <CardTitle className="text-base sm:text-lg">Preview do Comportamento</CardTitle>
           </div>
           {promptData && (
-            <div className="flex gap-1">
-              <Badge variant="outline" className="gap-1">
+            <div className="flex flex-wrap gap-1">
+              <Badge variant="outline" className="gap-1 text-[10px] sm:text-xs">
                 <Package className="h-3 w-3" />
                 {promptData.productsCount} produtos
               </Badge>
-              <Badge variant="outline" className="gap-1">
+              <Badge variant="outline" className="gap-1 text-[10px] sm:text-xs">
                 <FolderOpen className="h-3 w-3" />
                 {promptData.categoriesCount} categorias
               </Badge>
             </div>
           )}
         </div>
-        <CardDescription>
+        <CardDescription className="text-xs sm:text-sm leading-relaxed break-words">
           Este é o prompt que a IA usa para responder seus clientes. Gerado automaticamente com base nos produtos e configurações da sua loja.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="p-3 bg-muted/50 border rounded-lg text-xs text-muted-foreground">
+      <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
+        <div className="p-2.5 sm:p-3 bg-muted/50 border rounded-lg text-[10px] sm:text-xs text-muted-foreground leading-relaxed">
           💡 <strong>Dica:</strong> Adicione mais produtos e categorias para enriquecer as respostas do bot. O prompt atualiza automaticamente.
         </div>
 
-        <ScrollArea className="h-[350px] w-full rounded-lg border bg-muted/30 p-4">
+        <ScrollArea className="h-[250px] sm:h-[350px] w-full rounded-lg border bg-muted/30 p-3 sm:p-4">
           {promptData ? (
             <pre 
               className="text-sm whitespace-pre-wrap font-mono"
@@ -107,8 +107,8 @@ export function BotPromptPreviewCard({
           )}
         </ScrollArea>
 
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-[10px] sm:text-xs text-muted-foreground">
+          <span className="break-words">
             {lastUpdated && (
               <>🔄 Atualizado {formatDistanceToNow(lastUpdated, { addSuffix: true, locale: ptBR })}</>
             )}
@@ -127,24 +127,24 @@ export function BotPromptPreviewCard({
           )}
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Button 
             variant="outline" 
-            className="flex-1"
+            className="flex-1 text-xs sm:text-sm"
             onClick={onRefresh}
             disabled={loading}
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Atualizar Preview
+            Atualizar
           </Button>
           <Button 
             variant="outline" 
-            className="flex-1"
+            className="flex-1 text-xs sm:text-sm"
             onClick={handleCopy}
             disabled={!promptData}
           >
             <Copy className="h-4 w-4 mr-2" />
-            Copiar Prompt
+            Copiar
           </Button>
         </div>
       </CardContent>

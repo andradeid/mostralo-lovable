@@ -65,7 +65,7 @@ export function BotActivationCard({
             )}
           </Badge>
         </div>
-        <CardDescription className="text-xs sm:text-sm mt-1">
+        <CardDescription className="text-xs sm:text-sm mt-1 break-words">
           Ative o assistente para responder seus clientes automaticamente
         </CardDescription>
       </CardHeader>

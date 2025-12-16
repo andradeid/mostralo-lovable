@@ -7,6 +7,8 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log('[openai-credentials-sync] Requisição recebida:', req.method);
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -52,6 +54,7 @@ serve(async (req) => {
     }
 
     const { action, openaiApiKey, model, maxTokens } = await req.json();
+    console.log('[openai-credentials-sync] Action:', action);
 
     // Buscar config da Evolution
     const { data: evolutionConfig, error: configError } = await supabaseClient

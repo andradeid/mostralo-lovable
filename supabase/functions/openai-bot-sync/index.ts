@@ -78,8 +78,31 @@ function formatPaymentMethods(store: any): string {
   return methods.join('\n');
 }
 
-function generateSystemPrompt(botName: string, store: any, products: any[], categories: any[]): string {
-  const storeLink = `https://mostralo.com.br/loja/${store.slug}`;
+// Determinar domínio correto para links da loja
+function getStoreBaseUrl(store: any, origin?: string): string {
+  // 1º Prioridade: Domínio customizado VERIFICADO da loja
+  if (store.custom_domain && store.custom_domain_verified) {
+    return `https://${store.custom_domain}`;
+  }
+  
+  // 2º Prioridade: Domínio de origem da requisição (se não for dev)
+  if (origin) {
+    const devDomains = ['localhost', 'lovable.app', 'lovable.dev', 'gptengineer.run', 'webcontainer.io', 'stackblitz.io', 'codesandbox.io'];
+    const isDevDomain = devDomains.some(d => origin.includes(d));
+    
+    if (!isDevDomain) {
+      // Remove trailing slash e retorna origem
+      return origin.replace(/\/$/, '');
+    }
+  }
+  
+  // 3º Prioridade: Fallback padrão
+  return 'https://mostralo.com.br';
+}
+
+function generateSystemPrompt(botName: string, store: any, products: any[], categories: any[], origin?: string): string {
+  const baseUrl = getStoreBaseUrl(store, origin);
+  const storeLink = `${baseUrl}/loja/${store.slug}`;
   
   const productList = products
     .filter(p => p.is_available)
@@ -215,15 +238,16 @@ serve(async (req) => {
       });
     }
 
-    const { action, config } = await req.json() as { action: string; config: BotConfig };
+    const { action, config, origin } = await req.json() as { action: string; config: BotConfig; origin?: string };
 
-    // Buscar loja do usuário com todos os campos necessários
+    // Buscar loja do usuário com todos os campos necessários (incluindo domínio customizado)
     const { data: store, error: storeError } = await supabaseClient
       .from('stores')
       .select(`
         *, 
         google_maps_link, business_hours, delivery_fee, min_order_value,
-        accepts_cash, accepts_card, accepts_pix, city, state
+        accepts_cash, accepts_card, accepts_pix, city, state,
+        custom_domain, custom_domain_verified
       `)
       .eq('id', config.storeId)
       .single();
@@ -746,9 +770,9 @@ serve(async (req) => {
 
       console.log('Usando openaiCredsId:', openaiCredsId);
 
-      // 2. Gerar prompt com dados da loja (agora com todos os campos)
+      // 2. Gerar prompt com dados da loja (com detecção automática de domínio)
       const botName = config.botName || 'Assistente';
-      const systemPrompt = generateSystemPrompt(botName, store, products || [], categories || []);
+      const systemPrompt = generateSystemPrompt(botName, store, products || [], categories || [], origin);
 
       steps.push({
         step: 'prompt_generate',

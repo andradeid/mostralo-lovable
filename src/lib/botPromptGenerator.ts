@@ -13,6 +13,30 @@ interface Store {
   accepts_pix?: boolean;
   city?: string;
   state?: string;
+  custom_domain?: string;
+  custom_domain_verified?: boolean;
+}
+
+// Determinar domínio correto para links da loja (preview)
+function getPreviewBaseUrl(store: Store): string {
+  // 1º Prioridade: Domínio customizado VERIFICADO da loja
+  if (store.custom_domain && store.custom_domain_verified) {
+    return `https://${store.custom_domain}`;
+  }
+  
+  // 2º Prioridade: Domínio de origem atual (se não for dev)
+  if (typeof window !== 'undefined') {
+    const origin = window.location.origin;
+    const devDomains = ['localhost', 'lovable.app', 'lovable.dev', 'gptengineer.run', 'webcontainer.io', 'stackblitz.io', 'codesandbox.io'];
+    const isDevDomain = devDomains.some(d => origin.includes(d));
+    
+    if (!isDevDomain) {
+      return origin;
+    }
+  }
+  
+  // 3º Prioridade: Fallback padrão
+  return 'https://mostralo.com.br';
 }
 
 interface Product {
@@ -176,7 +200,8 @@ export function generateBotPromptPreview(
   const availableProducts = products.filter(p => p.is_available);
   const activeCategories = categories.filter(c => c.is_active);
 
-  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://mostralo.com.br';
+  // Usar função de detecção de domínio com prioridade correta
+  const baseUrl = getPreviewBaseUrl(store);
   const storeLink = `${baseUrl}/loja/${store.slug}`;
 
   const productList = availableProducts

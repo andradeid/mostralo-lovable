@@ -134,6 +134,7 @@ import MerchantContractHistoryPage from "./pages/admin/MerchantContractHistoryPa
 import AllContractsAcceptancePage from "./pages/admin/AllContractsAcceptancePage";
 import NavigationGuidePage from "./pages/admin/NavigationGuidePage";
 import RecruitmentPage from "./pages/admin/RecruitmentPage";
+import TestEnvironmentPage from "./pages/admin/TestEnvironmentPage";
 
 const queryClient = new QueryClient();
 
@@ -251,6 +252,13 @@ const App = () => (
               <ProtectedRoute allowedRoles={['master_admin']}>
                 <AdminLayout pageTitle="Inteligência de Negócios">
                   <BusinessIntelligencePage />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/test-environment" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Ambiente de Testes">
+                  <TestEnvironmentPage />
                 </AdminLayout>
               </ProtectedRoute>
             } />

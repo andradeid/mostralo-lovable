@@ -202,16 +202,12 @@ serve(async (req) => {
       return null;
     };
 
-    // Helper: obter openaiCredsId de forma idempotente (Evolution rejeita registrar a mesma API key 2x)
+    // Helper: obter openaiCredsId para a INSTÂNCIA ATUAL (credenciais são vinculadas a instâncias)
+    // IMPORTANTE: Na Evolution API, cada instância tem suas próprias credenciais OpenAI.
+    // Não podemos reutilizar IDs de instâncias antigas/deletadas.
     async function ensureOpenAiCreds(): Promise<string | null> {
-      const existing = typeof evolutionConfig.openai_creds_id === 'string'
-        ? (evolutionConfig.openai_creds_id as string)
-        : null;
-
-      // Se já temos um id "da Evolution" (não-UUID), usa direto
-      if (existing && !isUuidLike(existing)) {
-        return existing;
-      }
+      // NÃO usar evolution_config.openai_creds_id - ele pode pertencer a uma instância antiga
+      // Sempre buscar/criar credenciais para a instância ATUAL
 
       if (!openaiApiKey) {
         return null;

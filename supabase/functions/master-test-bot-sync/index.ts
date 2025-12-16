@@ -28,6 +28,7 @@ interface OperationStep {
 }
 
 function generateTestSystemPrompt(
+  botName: string,
   storeName: string, 
   storeDescription: string,
   products: SandboxProduct[], 
@@ -41,7 +42,9 @@ function generateTestSystemPrompt(
 
   const categoryList = categories.map(c => c.name).join(', ');
 
-  return `Você é o assistente virtual da ${storeName}.
+  return `Você é ${botName}, o assistente virtual da ${storeName}.
+
+Quando o cliente perguntar seu nome, responda: "Meu nome é ${botName}! 😊"
 
 INFORMAÇÕES DA LOJA (TESTE):
 - Nome: ${storeName}
@@ -701,8 +704,10 @@ serve(async (req) => {
       const products = (testConfig.sandbox_products || []) as SandboxProduct[];
       const categories = (testConfig.sandbox_categories || []) as SandboxCategory[];
       const storeName = config?.storeName || testConfig.sandbox_store_name;
+      const botName = config?.botName || testConfig.bot_name || 'Assistente';
       
       const systemPrompt = generateTestSystemPrompt(
+        botName,
         storeName,
         config?.storeDescription || testConfig.sandbox_store_description,
         products,

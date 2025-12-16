@@ -167,61 +167,9 @@ serve(async (req) => {
 
     const evolutionUrl = evolutionConfig.api_url.replace(/\/$/, '');
 
-    const looksLikeUuid = (value: string) =>
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
-
-    let openaiCredsId = evolutionConfig.openai_creds_id as string | null;
-
-    // Se não existe (ou parece UUID local), criar credencial real na Evolution
-    if (!openaiCredsId || looksLikeUuid(openaiCredsId)) {
-      console.log('Criando credencial OpenAI na Evolution (fallback automático)...');
-
-      const createCredsResp = await fetch(`${evolutionUrl}/openai/creds`, {
-        method: 'POST',
-        headers: {
-          'apikey': evolutionConfig.api_key,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: 'mostralo-openai-creds',
-          apiKey: evolutionConfig.openai_api_key,
-        }),
-      });
-
-      const createCredsText = await createCredsResp.text();
-      console.log('Resposta create creds:', createCredsResp.status, createCredsText);
-
-      if (!createCredsResp.ok) {
-        return new Response(JSON.stringify({
-          success: false,
-          error: `Falha ao criar credencial OpenAI na Evolution: ${createCredsText}`,
-        }), {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      const credsData = JSON.parse(createCredsText);
-      openaiCredsId = credsData.id || credsData.openaiCredsId || credsData.openai_creds_id || null;
-
-      if (!openaiCredsId) {
-        return new Response(JSON.stringify({
-          success: false,
-          error: 'Evolution não retornou openaiCredsId ao criar credenciais',
-        }), {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      await supabaseClient
-        .from('evolution_config')
-        .update({
-          openai_creds_id: openaiCredsId,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', evolutionConfig.id);
-    }
+    // Evolution API 2.3.7 não tem endpoint separado para credenciais OpenAI
+    // A apiKey é passada diretamente no payload do bot
+    const openaiApiKey = evolutionConfig.openai_api_key;
 
     // Ações que requerem instância de teste
     const actionsRequiringInstance = ['create', 'update', 'toggle', 'delete'];
@@ -254,10 +202,10 @@ serve(async (req) => {
         model = 'gpt-4o-mini';
       }
 
-      // Payload para criar/atualizar bot
+      // Payload para criar/atualizar bot - Evolution API 2.3.7 usa apiKey diretamente
       const botPayload: any = {
         enabled: true,
-        openaiCredsId: openaiCredsId,
+        apiKey: openaiApiKey,
         botType: 'chatCompletion',
         model: model,
         maxTokens: evolutionConfig.openai_max_tokens || 1000,

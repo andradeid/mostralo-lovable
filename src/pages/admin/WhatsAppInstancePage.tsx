@@ -1243,20 +1243,22 @@ export default function WhatsAppInstancePage() {
           )}
         </TabsContent>
 
-        <TabsContent value="bot" className="space-y-4 sm:space-y-6">
+        <TabsContent value="bot" className="space-y-4 sm:space-y-6 overflow-hidden">
           {(!instance || !isConnected) && (
-<div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 sm:p-4 flex flex-col sm:flex-row items-start gap-2 sm:gap-3">
-              <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 shrink-0 mt-0.5" />
-              <div className="space-y-1 min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium leading-tight break-words">
-                  {!instance 
-                    ? "Crie uma instância WhatsApp na aba 'Conexão' para ativar o assistente."
-                    : "Conecte seu WhatsApp para que o assistente funcione."
-                  }
-                </p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground break-words">
-                  Você pode configurar tudo agora e ativar depois.
-                </p>
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 overflow-hidden">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs sm:text-sm font-medium break-words hyphens-auto">
+                    {!instance 
+                      ? "Crie uma instância na aba 'Conexão' para ativar o assistente."
+                      : "Conecte seu WhatsApp para que o assistente funcione."
+                    }
+                  </p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 break-words">
+                    Configure agora e ative depois.
+                  </p>
+                </div>
               </div>
             </div>
           )}

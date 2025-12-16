@@ -92,9 +92,15 @@ export function OpenAIConfigCard() {
       } else {
         toast.error(result.error || 'Chave inválida');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao testar chave:', error);
-      toast.error('Erro ao testar a chave');
+      if (error.name === 'AbortError') {
+        toast.error('Timeout: A requisição demorou muito');
+      } else if (error.message?.includes('Failed to fetch')) {
+        toast.error('Erro de conexão: Verifique sua internet ou tente novamente');
+      } else {
+        toast.error('Erro ao testar a chave: ' + (error.message || 'Erro desconhecido'));
+      }
     } finally {
       setTestingKey(false);
     }
@@ -110,6 +116,9 @@ export function OpenAIConfigCard() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      
       const response = await fetch(
         'https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/openai-credentials-sync',
         {
@@ -124,8 +133,11 @@ export function OpenAIConfigCard() {
             model,
             maxTokens,
           }),
+          signal: controller.signal,
         }
       );
+      
+      clearTimeout(timeoutId);
 
       const result = await response.json();
 
@@ -136,9 +148,15 @@ export function OpenAIConfigCard() {
       } else {
         toast.error(result.error || 'Erro ao salvar');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao salvar:', error);
-      toast.error('Erro ao salvar configurações');
+      if (error.name === 'AbortError') {
+        toast.error('Timeout: A requisição demorou muito');
+      } else if (error.message?.includes('Failed to fetch')) {
+        toast.error('Erro de conexão: Verifique sua internet ou tente novamente');
+      } else {
+        toast.error('Erro ao salvar: ' + (error.message || 'Erro desconhecido'));
+      }
     } finally {
       setSavingKey(false);
     }
@@ -154,6 +172,9 @@ export function OpenAIConfigCard() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      
       const response = await fetch(
         'https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/openai-credentials-sync',
         {
@@ -168,8 +189,11 @@ export function OpenAIConfigCard() {
             model,
             maxTokens,
           }),
+          signal: controller.signal,
         }
       );
+      
+      clearTimeout(timeoutId);
 
       const result = await response.json();
 
@@ -180,9 +204,15 @@ export function OpenAIConfigCard() {
       } else {
         toast.error(result.error || 'Erro ao sincronizar');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao sincronizar:', error);
-      toast.error('Erro ao sincronizar com Evolution');
+      if (error.name === 'AbortError') {
+        toast.error('Timeout: A requisição demorou muito');
+      } else if (error.message?.includes('Failed to fetch')) {
+        toast.error('Erro de conexão: Verifique sua internet ou tente novamente');
+      } else {
+        toast.error('Erro ao sincronizar: ' + (error.message || 'Erro desconhecido'));
+      }
     } finally {
       setSyncingKey(false);
     }

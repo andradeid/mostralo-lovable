@@ -198,9 +198,9 @@ serve(async (req) => {
     // Buscar instâncias WhatsApp
     const { data: instances } = await supabaseClient
       .from('whatsapp_instances')
-      .select('id, name, store_id');
+      .select('id, instance_name, store_id');
 
-    const instanceMap = new Map(instances?.map(i => [i.store_id, i.name]) || []);
+    const instanceMap = new Map(instances?.map(i => [i.store_id, i.instance_name]) || []);
 
     // Processar cada bot
     for (const botConfig of activeBots) {

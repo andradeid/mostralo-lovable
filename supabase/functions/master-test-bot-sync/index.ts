@@ -1067,11 +1067,11 @@ serve(async (req) => {
       }
 
       try {
-        // Endpoint correto: /openai/fetchSessions/{instanceName}/{botId}
-        console.log(`Buscando sessões: ${evolutionUrl}/openai/fetchSessions/${testConfig.test_instance_name}/${botEvolutionId}`);
+        // Endpoint correto: /openai/fetchSessions/{botId}/{instanceName}
+        console.log(`Buscando sessões: ${evolutionUrl}/openai/fetchSessions/${botEvolutionId}/${testConfig.test_instance_name}`);
         
         const sessionsResp = await fetch(
-          `${evolutionUrl}/openai/fetchSessions/${testConfig.test_instance_name}/${botEvolutionId}`,
+          `${evolutionUrl}/openai/fetchSessions/${botEvolutionId}/${testConfig.test_instance_name}`,
           {
             method: 'GET',
             headers: { 'apikey': evolutionConfig.api_key },

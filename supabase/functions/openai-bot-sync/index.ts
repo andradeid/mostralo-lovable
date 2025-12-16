@@ -26,6 +26,67 @@ interface BotConfig {
   timePerChar?: number;
 }
 
+// Tipos de personalidade do bot
+type PersonalityType = 'professional' | 'friendly' | 'fun' | 'consultive';
+type EmojiLevel = 'none' | 'moderate' | 'abundant';
+
+interface PersonalitySettings {
+  personality: PersonalityType;
+  emojiLevel: EmojiLevel;
+  customGreeting: string;
+}
+
+// Função para gerar instruções de personalidade
+function generatePersonalityInstructions(settings: PersonalitySettings): string {
+  const personalities: Record<PersonalityType, string> = {
+    professional: `ESTILO DE COMUNICAÇÃO - PROFISSIONAL:
+- Seja formal e objetivo
+- Use linguagem profissional e respeitosa
+- Vá direto ao ponto nas respostas
+- Mantenha tom corporativo
+- Trate o cliente sempre por "senhor(a)" ou "você"
+- Evite gírias ou expressões informais`,
+
+    friendly: `ESTILO DE COMUNICAÇÃO - AMIGÁVEL:
+- Seja acolhedor e simpático
+- Use linguagem amigável e calorosa
+- Demonstre interesse genuíno pelo cliente
+- Faça o cliente se sentir especial
+- Use expressões como "que bom ter você aqui!"
+- Seja prestativo e atencioso`,
+
+    fun: `ESTILO DE COMUNICAÇÃO - DIVERTIDO:
+- Seja descontraído e divertido
+- Use linguagem informal e leve
+- Faça brincadeiras quando apropriado
+- Use expressões populares e gírias brasileiras
+- Transmita energia positiva e animação
+- Seja criativo e espontâneo nas respostas`,
+
+    consultive: `ESTILO DE COMUNICAÇÃO - CONSULTIVO:
+- Atue como um consultor especialista
+- Faça perguntas para entender as preferências
+- Sugira produtos baseado no perfil do cliente
+- Explique benefícios e diferenciais
+- Guie o cliente na melhor escolha
+- Demonstre conhecimento profundo do cardápio`
+  };
+
+  const emojiInstructions: Record<EmojiLevel, string> = {
+    none: 'USO DE EMOJIS: NÃO use emojis nas respostas. Mantenha texto limpo e profissional.',
+    moderate: 'USO DE EMOJIS: Use emojis com moderação (1-2 por mensagem para dar tom amigável).',
+    abundant: 'USO DE EMOJIS: Use bastante emojis para deixar a conversa animada e expressiva! 🎉😊🍕🔥✨'
+  };
+
+  const customGreetingNote = settings.customGreeting 
+    ? `\nSAUDAÇÃO PERSONALIZADA: Use "${settings.customGreeting}" como saudação inicial quando o cliente mandar a primeira mensagem.`
+    : '';
+
+  return `${personalities[settings.personality]}
+
+${emojiInstructions[settings.emojiLevel]}${customGreetingNote}`;
+}
+
 interface OperationStep {
   step: string;
   status: 'success' | 'warning' | 'error';
@@ -100,7 +161,14 @@ function getStoreBaseUrl(store: any, origin?: string): string {
   return 'https://mostralo.com.br';
 }
 
-function generateSystemPrompt(botName: string, store: any, products: any[], categories: any[], origin?: string): string {
+function generateSystemPrompt(
+  botName: string, 
+  store: any, 
+  products: any[], 
+  categories: any[], 
+  origin?: string,
+  personalitySettings?: PersonalitySettings
+): string {
   const baseUrl = getStoreBaseUrl(store, origin);
   const storeLink = `${baseUrl}/loja/${store.slug}`;
   
@@ -143,9 +211,22 @@ ${formatPaymentMethods(store)}`;
   const hoursSection = `\nHORÁRIO DE FUNCIONAMENTO:
 ${formatBusinessHours(store.business_hours)}`;
 
+  // Gerar instruções de personalidade dinâmicas
+  const defaultPersonality: PersonalitySettings = {
+    personality: 'friendly',
+    emojiLevel: 'moderate',
+    customGreeting: ''
+  };
+  
+  const personalityInstructions = generatePersonalityInstructions(
+    personalitySettings || defaultPersonality
+  );
+
   return `Você é ${botName}, o assistente virtual da ${store.name || 'loja'}.
 
-Quando o cliente perguntar seu nome, responda: "Meu nome é ${botName}! 😊"
+Quando o cliente perguntar seu nome, responda: "Meu nome é ${botName}!"
+
+${personalityInstructions}
 
 INFORMAÇÕES DA LOJA:
 - Nome: ${store.name || 'Loja'}
@@ -179,21 +260,19 @@ IMPORTANTE - HORÁRIO:
 - O webhook do WhatsApp sempre envia o horário correto da loja
 - Se não houver contexto, use "Olá" como saudação neutra
 
-INSTRUÇÕES:
-1. Seja cordial e prestativo
-2. Apresente os produtos quando perguntado
-3. Informe preços corretamente
-4. SEMPRE inclua o link do produto quando falar sobre ele
-5. Direcione o cliente para o cardápio online: ${storeLink}
-6. Para finalizar pedido, peça para acessar o link do produto ou cardápio
-7. Não invente produtos ou preços
-8. Se não souber algo, direcione ao link do cardápio
-9. Responda sempre em português brasileiro
-10. Use emojis moderadamente para deixar a conversa mais amigável
-11. Mencione promoções se houver
-12. Quando pedirem localização, envie o link do Google Maps se disponível
-13. Informe horário de funcionamento quando perguntado
-14. Informe formas de pagamento aceitas quando perguntado
+INSTRUÇÕES GERAIS:
+1. Apresente os produtos quando perguntado
+2. Informe preços corretamente
+3. SEMPRE inclua o link do produto quando falar sobre ele
+4. Direcione o cliente para o cardápio online: ${storeLink}
+5. Para finalizar pedido, peça para acessar o link do produto ou cardápio
+6. Não invente produtos ou preços
+7. Se não souber algo, direcione ao link do cardápio
+8. Responda sempre em português brasileiro
+9. Mencione promoções se houver
+10. Quando pedirem localização, envie o link do Google Maps se disponível
+11. Informe horário de funcionamento quando perguntado
+12. Informe formas de pagamento aceitas quando perguntado
 
 LINKS DE PRODUTOS:
 - Quando o cliente perguntar sobre um produto específico, SEMPRE envie o link do produto
@@ -770,15 +849,32 @@ serve(async (req) => {
 
       console.log('Usando openaiCredsId:', openaiCredsId);
 
-      // 2. Gerar prompt com dados da loja (com detecção automática de domínio)
+      // 2. Gerar prompt com dados da loja (com detecção automática de domínio e personalidade)
       const botName = config.botName || 'Assistente';
-      const systemPrompt = generateSystemPrompt(botName, store, products || [], categories || [], origin);
+      
+      // Buscar configurações de personalidade do banco
+      const personalitySettings: PersonalitySettings = {
+        personality: (existingBotConfig?.personality || 'friendly') as PersonalityType,
+        emojiLevel: (existingBotConfig?.emoji_level || 'moderate') as EmojiLevel,
+        customGreeting: existingBotConfig?.custom_greeting || ''
+      };
+      
+      console.log('Personalidade do bot:', personalitySettings);
+      
+      const systemPrompt = generateSystemPrompt(
+        botName, 
+        store, 
+        products || [], 
+        categories || [], 
+        origin,
+        personalitySettings
+      );
 
       steps.push({
         step: 'prompt_generate',
         status: 'success',
         message: 'Prompt gerado com dados da loja',
-        details: `${products?.length || 0} produto(s), ${categories?.length || 0} categoria(s), localização: ${store.google_maps_link ? 'sim' : 'não'}`,
+        details: `${products?.length || 0} produto(s), ${categories?.length || 0} categoria(s), personalidade: ${personalitySettings.personality}, emojis: ${personalitySettings.emojiLevel}`,
       });
 
       // 3. Validar modelo

@@ -8,4 +8,5 @@ export { BotSyncFloatingAlert } from './BotSyncFloatingAlert';
 export { BotPersonalityCard } from './BotPersonalityCard';
 export { BotTimezoneCard } from './BotTimezoneCard';
 export { BotTrainingExamplesCard } from './BotTrainingExamplesCard';
+export { BotGreetingPreviewCard } from './BotGreetingPreviewCard';
 export type { PersonalitySettings, PersonalityType, EmojiLevel } from './BotPersonalityCard';

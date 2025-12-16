@@ -113,3 +113,18 @@ verify_jwt = false
 
 [functions.evaluate-salesperson-portfolios]
 verify_jwt = false
+
+[functions.openai-credentials-sync]
+verify_jwt = true
+
+[functions.openai-bot-sync]
+verify_jwt = true
+
+[functions.openai-bot-toggle]
+verify_jwt = true
+
+[functions.master-test-instance]
+verify_jwt = true
+
+[functions.master-test-bot-sync]
+verify_jwt = true

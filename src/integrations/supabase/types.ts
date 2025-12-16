@@ -1313,6 +1313,10 @@ export type Database = {
           created_by: string | null
           id: string
           is_active: boolean | null
+          openai_api_key: string | null
+          openai_creds_id: string | null
+          openai_default_model: string | null
+          openai_max_tokens: number | null
           updated_at: string | null
         }
         Insert: {
@@ -1322,6 +1326,10 @@ export type Database = {
           created_by?: string | null
           id?: string
           is_active?: boolean | null
+          openai_api_key?: string | null
+          openai_creds_id?: string | null
+          openai_default_model?: string | null
+          openai_max_tokens?: number | null
           updated_at?: string | null
         }
         Update: {
@@ -1331,6 +1339,10 @@ export type Database = {
           created_by?: string | null
           id?: string
           is_active?: boolean | null
+          openai_api_key?: string | null
+          openai_creds_id?: string | null
+          openai_default_model?: string | null
+          openai_max_tokens?: number | null
           updated_at?: string | null
         }
         Relationships: []
@@ -1488,6 +1500,102 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      master_admin_test_config: {
+        Row: {
+          admin_user_id: string
+          bot_delay_message: number | null
+          bot_enabled: boolean | null
+          bot_evolution_id: string | null
+          bot_expire_minutes: number | null
+          bot_keyword_finish: string | null
+          bot_name: string | null
+          bot_stop_from_me: boolean | null
+          bot_system_prompt: string | null
+          bot_trigger_type: string | null
+          bot_trigger_value: string | null
+          created_at: string | null
+          id: string
+          last_test_at: string | null
+          sandbox_address: string | null
+          sandbox_business_hours: Json | null
+          sandbox_categories: Json | null
+          sandbox_products: Json | null
+          sandbox_store_description: string | null
+          sandbox_store_name: string | null
+          sandbox_whatsapp: string | null
+          test_instance_id: string | null
+          test_instance_name: string | null
+          test_instance_qr_code: string | null
+          test_instance_status: string | null
+          test_logs: Json | null
+          test_messages_count: number | null
+          test_phone_number: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          admin_user_id: string
+          bot_delay_message?: number | null
+          bot_enabled?: boolean | null
+          bot_evolution_id?: string | null
+          bot_expire_minutes?: number | null
+          bot_keyword_finish?: string | null
+          bot_name?: string | null
+          bot_stop_from_me?: boolean | null
+          bot_system_prompt?: string | null
+          bot_trigger_type?: string | null
+          bot_trigger_value?: string | null
+          created_at?: string | null
+          id?: string
+          last_test_at?: string | null
+          sandbox_address?: string | null
+          sandbox_business_hours?: Json | null
+          sandbox_categories?: Json | null
+          sandbox_products?: Json | null
+          sandbox_store_description?: string | null
+          sandbox_store_name?: string | null
+          sandbox_whatsapp?: string | null
+          test_instance_id?: string | null
+          test_instance_name?: string | null
+          test_instance_qr_code?: string | null
+          test_instance_status?: string | null
+          test_logs?: Json | null
+          test_messages_count?: number | null
+          test_phone_number?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          admin_user_id?: string
+          bot_delay_message?: number | null
+          bot_enabled?: boolean | null
+          bot_evolution_id?: string | null
+          bot_expire_minutes?: number | null
+          bot_keyword_finish?: string | null
+          bot_name?: string | null
+          bot_stop_from_me?: boolean | null
+          bot_system_prompt?: string | null
+          bot_trigger_type?: string | null
+          bot_trigger_value?: string | null
+          created_at?: string | null
+          id?: string
+          last_test_at?: string | null
+          sandbox_address?: string | null
+          sandbox_business_hours?: Json | null
+          sandbox_categories?: Json | null
+          sandbox_products?: Json | null
+          sandbox_store_description?: string | null
+          sandbox_store_name?: string | null
+          sandbox_whatsapp?: string | null
+          test_instance_id?: string | null
+          test_instance_name?: string | null
+          test_instance_qr_code?: string | null
+          test_instance_status?: string | null
+          test_logs?: Json | null
+          test_messages_count?: number | null
+          test_phone_number?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       merchant_contract_acceptance: {
         Row: {
@@ -3754,6 +3862,100 @@ export type Database = {
           user_role?: string | null
         }
         Relationships: []
+      }
+      store_bot_config: {
+        Row: {
+          bot_name: string | null
+          created_at: string | null
+          debounce_time: number | null
+          delay_message: number | null
+          enabled: boolean | null
+          evolution_bot_id: string | null
+          evolution_bot_status: string | null
+          expire_minutes: number | null
+          id: string
+          ignore_jids: string[] | null
+          keep_open: boolean | null
+          keyword_finish: string | null
+          listening_from_me: boolean | null
+          stop_bot_from_me: boolean | null
+          store_id: string
+          trigger_operator: string | null
+          trigger_type: string | null
+          trigger_value: string | null
+          unknown_message: string | null
+          updated_at: string | null
+          whatsapp_instance_id: string | null
+        }
+        Insert: {
+          bot_name?: string | null
+          created_at?: string | null
+          debounce_time?: number | null
+          delay_message?: number | null
+          enabled?: boolean | null
+          evolution_bot_id?: string | null
+          evolution_bot_status?: string | null
+          expire_minutes?: number | null
+          id?: string
+          ignore_jids?: string[] | null
+          keep_open?: boolean | null
+          keyword_finish?: string | null
+          listening_from_me?: boolean | null
+          stop_bot_from_me?: boolean | null
+          store_id: string
+          trigger_operator?: string | null
+          trigger_type?: string | null
+          trigger_value?: string | null
+          unknown_message?: string | null
+          updated_at?: string | null
+          whatsapp_instance_id?: string | null
+        }
+        Update: {
+          bot_name?: string | null
+          created_at?: string | null
+          debounce_time?: number | null
+          delay_message?: number | null
+          enabled?: boolean | null
+          evolution_bot_id?: string | null
+          evolution_bot_status?: string | null
+          expire_minutes?: number | null
+          id?: string
+          ignore_jids?: string[] | null
+          keep_open?: boolean | null
+          keyword_finish?: string | null
+          listening_from_me?: boolean | null
+          stop_bot_from_me?: boolean | null
+          store_id?: string
+          trigger_operator?: string | null
+          trigger_type?: string | null
+          trigger_value?: string | null
+          unknown_message?: string | null
+          updated_at?: string | null
+          whatsapp_instance_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_bot_config_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_bot_config_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_bot_config_whatsapp_instance_id_fkey"
+            columns: ["whatsapp_instance_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_instances"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       store_configurations: {
         Row: {

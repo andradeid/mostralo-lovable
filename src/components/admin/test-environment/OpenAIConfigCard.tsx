@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, Sparkles, Check, CheckCircle, Eye, EyeOff, TestTube, Save, RefreshCw, Key } from 'lucide-react';
+import { Loader2, Sparkles, CheckCircle, Eye, EyeOff, TestTube, Save, Key, Info } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -46,7 +45,6 @@ export function OpenAIConfigCard() {
   const [isEditing, setIsEditing] = useState(false);
   const [testingKey, setTestingKey] = useState(false);
   const [savingKey, setSavingKey] = useState(false);
-  const [syncingKey, setSyncingKey] = useState(false);
 
   useEffect(() => {
     fetchConfig();
@@ -157,51 +155,6 @@ export function OpenAIConfigCard() {
       toast.error('Erro ao salvar configuração');
     } finally {
       setSavingKey(false);
-    }
-  };
-
-  const handleSyncEvolution = async () => {
-    if (!apiKey.trim()) {
-      toast.error('Digite a chave da API para sincronizar');
-      return;
-    }
-
-    setSyncingKey(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      const response = await fetch(
-        'https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/openai-credentials-sync',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session?.access_token}`,
-          },
-          body: JSON.stringify({
-            action: 'sync',
-            openaiApiKey: apiKey,
-            model,
-            maxTokens,
-          }),
-        }
-      );
-
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        toast.success('✅ Sincronizado com Evolution!');
-        setApiKey('');
-        setIsEditing(false);
-        fetchConfig();
-      } else {
-        toast.error(result.error || 'Erro ao sincronizar');
-      }
-    } catch (error: any) {
-      console.error('Erro ao sincronizar:', error);
-      toast.error('Erro ao sincronizar');
-    } finally {
-      setSyncingKey(false);
     }
   };
 
@@ -364,21 +317,13 @@ export function OpenAIConfigCard() {
           </Button>
         </div>
 
-        {/* Botão Sincronizar Evolution - Separado */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleSyncEvolution}
-          disabled={syncingKey || (!apiKey.trim() && !isEditing)}
-          className="w-full"
-        >
-          {syncingKey ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <RefreshCw className="h-4 w-4 mr-2" />
-          )}
-          Sincronizar com Evolution
-        </Button>
+        {/* Info explicativo */}
+        <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+          <Info className="h-4 w-4 mt-0.5 shrink-0" />
+          <p className="text-xs">
+            A credencial será criada automaticamente na Evolution quando você ativar o bot na aba "🤖 Bot".
+          </p>
+        </div>
 
         {/* Info de configuração atual */}
         {hasOpenAI && (

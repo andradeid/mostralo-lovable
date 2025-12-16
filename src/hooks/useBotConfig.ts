@@ -134,7 +134,8 @@ export function useBotConfig(storeId: string | null) {
         supabase.from('stores').select(`
           name, description, address, whatsapp, slug,
           google_maps_link, business_hours, delivery_fee, min_order_value,
-          accepts_cash, accepts_card, accepts_pix, city, state
+          accepts_cash, accepts_card, accepts_pix, city, state,
+          custom_domain, custom_domain_verified
         `).eq('id', storeId).single(),
         supabase.from('products').select('id, name, price, description, is_available').eq('store_id', storeId).eq('is_available', true),
         supabase.from('categories').select('id, name, is_active').eq('store_id', storeId).eq('is_active', true),
@@ -283,6 +284,7 @@ export function useBotConfig(storeId: string | null) {
       const response = await supabase.functions.invoke('openai-bot-sync', {
         body: {
           action,
+          origin: window.location.origin, // Enviar domínio de origem para detecção automática
           config: {
             storeId,
             instanceName: instance.instance_name,

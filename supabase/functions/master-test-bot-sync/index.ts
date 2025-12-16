@@ -188,7 +188,7 @@ serve(async (req) => {
       const botPayload: any = {
         enabled: true,
         openaiCredsId: evolutionConfig.openai_creds_id,
-        botType: 'assistant',
+        botType: 'chatCompletion', // Usar chatCompletion para API direta, não 'assistant' que requer Assistant ID
         model: evolutionConfig.openai_default_model || 'gpt-4-turbo',
         maxTokens: evolutionConfig.openai_max_tokens || 1000,
         systemMessages: [systemPrompt],

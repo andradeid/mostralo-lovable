@@ -32,12 +32,12 @@ export function AffiliateLimitCard({ affiliate }: AffiliateLimitCardProps) {
 
   const getStatusBadge = () => {
     if (percentage >= 100) {
-      return <Badge variant="destructive">Limite Atingido</Badge>;
+      return <Badge variant="destructive" className="text-[10px] md:text-xs h-5">Limite Atingido</Badge>;
     }
     if (percentage >= 80) {
-      return <Badge className="bg-orange-500 hover:bg-orange-600">Próximo do Limite</Badge>;
+      return <Badge className="bg-orange-500 hover:bg-orange-600 text-[10px] md:text-xs h-5">Próximo</Badge>;
     }
-    return <Badge variant="secondary">Normal</Badge>;
+    return <Badge variant="secondary" className="text-[10px] md:text-xs h-5">Normal</Badge>;
   };
 
   const formatCPF = (cpf: string | null): string => {
@@ -50,34 +50,41 @@ export function AffiliateLimitCard({ affiliate }: AffiliateLimitCardProps) {
   return (
     <Card className="overflow-hidden">
       <div className={`h-1 ${getStatusColor()}`} />
-      <CardContent className="pt-4 space-y-4">
+      <CardContent className="p-3 md:pt-4 md:p-4 space-y-3 md:space-y-4">
         {/* Header */}
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-full bg-muted">
-              <User className="h-5 w-5 text-muted-foreground" />
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="p-1.5 md:p-2 rounded-full bg-muted shrink-0">
+              <User className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
             </div>
-            <div>
-              <p className="font-medium text-sm line-clamp-1">{affiliate.full_name}</p>
-              <p className="text-xs text-muted-foreground">{formatCPF(affiliate.cpf)}</p>
+            <div className="min-w-0 flex-1">
+              <p className="font-medium text-xs md:text-sm truncate">{affiliate.full_name}</p>
+              <p className="text-[10px] md:text-xs text-muted-foreground">{formatCPF(affiliate.cpf)}</p>
             </div>
+            {/* Badge visível apenas no desktop ao lado */}
+            <div className="hidden md:block shrink-0">{getStatusBadge()}</div>
           </div>
-          {getStatusBadge()}
+          {/* Badge visível no mobile abaixo */}
+          <div className="md:hidden">{getStatusBadge()}</div>
         </div>
 
         {/* Progress */}
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Ganhos do Mês</span>
-            <span className="font-medium">
-              R$ {affiliate.current_month_earnings.toFixed(2)} / R$ {affiliate.monthly_earnings_limit.toFixed(2)}
+        <div className="space-y-1.5 md:space-y-2">
+          <div className="flex justify-between text-xs md:text-sm">
+            <span className="text-muted-foreground">Ganhos</span>
+            <span className="font-medium text-right">
+              <span className="md:hidden">R$ {affiliate.current_month_earnings.toFixed(0)} / {affiliate.monthly_earnings_limit.toFixed(0)}</span>
+              <span className="hidden md:inline">R$ {affiliate.current_month_earnings.toFixed(2)} / R$ {affiliate.monthly_earnings_limit.toFixed(2)}</span>
             </span>
           </div>
-          <Progress value={Math.min(percentage, 100)} className="h-2" />
-          <div className="flex justify-between text-xs">
-            <span className="text-muted-foreground">{percentage.toFixed(1)}% utilizado</span>
+          <Progress value={Math.min(percentage, 100)} className="h-1.5 md:h-2" />
+          <div className="flex justify-between text-[10px] md:text-xs">
+            <span className="text-muted-foreground">{percentage.toFixed(0)}%</span>
             {remaining > 0 ? (
-              <span className="text-green-600">R$ {remaining.toFixed(2)} disponível</span>
+              <span className="text-green-600">
+                <span className="md:hidden">R$ {remaining.toFixed(0)} disp.</span>
+                <span className="hidden md:inline">R$ {remaining.toFixed(2)} disponível</span>
+              </span>
             ) : (
               <span className="text-destructive">Limite atingido</span>
             )}
@@ -85,12 +92,12 @@ export function AffiliateLimitCard({ affiliate }: AffiliateLimitCardProps) {
         </div>
 
         {/* Last Reset */}
-        <div className="flex items-center gap-2 text-xs text-muted-foreground pt-2 border-t">
-          <Calendar className="h-3 w-3" />
-          <span>
-            Último reset:{' '}
+        <div className="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-xs text-muted-foreground pt-2 border-t">
+          <Calendar className="h-3 w-3 shrink-0" />
+          <span className="truncate">
+            Reset:{' '}
             {affiliate.last_earnings_reset_at
-              ? format(new Date(affiliate.last_earnings_reset_at), "dd/MM/yyyy", { locale: ptBR })
+              ? format(new Date(affiliate.last_earnings_reset_at), "dd/MM/yy", { locale: ptBR })
               : 'Nunca'}
           </span>
         </div>

@@ -288,10 +288,13 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Determinar URL base
-    const baseUrl = url.origin.includes('supabase.co') 
-      ? 'https://mostralo.me' 
-      : url.origin;
+    // Determinar URL base - usa parâmetro domain se disponível (passado pelo nginx)
+    const domainParam = url.searchParams.get('domain');
+    const baseUrl = domainParam || (url.origin.includes('supabase.co') 
+      ? 'https://mostralo.com.br'  // fallback padrão
+      : url.origin);
+    
+    console.log(`[store-og-preview] Domain param: ${domainParam}, Final baseUrl: ${baseUrl}`);
 
     // Se tem productSlug, buscar produto
     if (productSlug) {

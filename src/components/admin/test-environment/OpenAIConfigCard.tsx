@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Sparkles, Check, X, ExternalLink, Eye, EyeOff, TestTube, Save, RefreshCw } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Loader2, Sparkles, Check, CheckCircle, Eye, EyeOff, TestTube, Save, RefreshCw, Key } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -42,6 +43,7 @@ export function OpenAIConfigCard() {
   const [model, setModel] = useState('gpt-4-turbo');
   const [maxTokens, setMaxTokens] = useState(1000);
   const [showApiKey, setShowApiKey] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [testingKey, setTestingKey] = useState(false);
   const [savingKey, setSavingKey] = useState(false);
   const [syncingKey, setSyncingKey] = useState(false);
@@ -104,13 +106,7 @@ export function OpenAIConfigCard() {
       }
     } catch (error: any) {
       console.error('Erro ao testar chave:', error);
-      if (error.name === 'AbortError') {
-        toast.error('Timeout: A requisição demorou muito');
-      } else if (error.message?.includes('Failed to fetch')) {
-        toast.error('Erro de conexão: Verifique sua internet ou tente novamente');
-      } else {
-        toast.error('Erro ao testar a chave: ' + (error.message || 'Erro desconhecido'));
-      }
+      toast.error('Erro ao testar a chave');
     } finally {
       setTestingKey(false);
     }
@@ -126,9 +122,6 @@ export function OpenAIConfigCard() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
-      
       const response = await fetch(
         'https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/openai-credentials-sync',
         {
@@ -143,30 +136,22 @@ export function OpenAIConfigCard() {
             model,
             maxTokens,
           }),
-          signal: controller.signal,
         }
       );
-      
-      clearTimeout(timeoutId);
 
       const result = await response.json();
 
       if (response.ok && result.success) {
-        toast.success('✅ Chave salva com sucesso! Campo limpo por segurança.');
+        toast.success('✅ Configuração salva!');
         setApiKey('');
+        setIsEditing(false);
         fetchConfig();
       } else {
         toast.error(result.error || 'Erro ao salvar');
       }
     } catch (error: any) {
       console.error('Erro ao salvar:', error);
-      if (error.name === 'AbortError') {
-        toast.error('Timeout: A requisição demorou muito');
-      } else if (error.message?.includes('Failed to fetch')) {
-        toast.error('Erro de conexão: Verifique sua internet ou tente novamente');
-      } else {
-        toast.error('Erro ao salvar: ' + (error.message || 'Erro desconhecido'));
-      }
+      toast.error('Erro ao salvar configuração');
     } finally {
       setSavingKey(false);
     }
@@ -182,9 +167,6 @@ export function OpenAIConfigCard() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
-      
       const response = await fetch(
         'https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/openai-credentials-sync',
         {
@@ -199,30 +181,22 @@ export function OpenAIConfigCard() {
             model,
             maxTokens,
           }),
-          signal: controller.signal,
         }
       );
-      
-      clearTimeout(timeoutId);
 
       const result = await response.json();
 
       if (response.ok && result.success) {
-        toast.success('✅ Sincronizado com Evolution! Campo limpo por segurança.');
+        toast.success('✅ Sincronizado com Evolution!');
         setApiKey('');
+        setIsEditing(false);
         fetchConfig();
       } else {
         toast.error(result.error || 'Erro ao sincronizar');
       }
     } catch (error: any) {
       console.error('Erro ao sincronizar:', error);
-      if (error.name === 'AbortError') {
-        toast.error('Timeout: A requisição demorou muito');
-      } else if (error.message?.includes('Failed to fetch')) {
-        toast.error('Erro de conexão: Verifique sua internet ou tente novamente');
-      } else {
-        toast.error('Erro ao sincronizar: ' + (error.message || 'Erro desconhecido'));
-      }
+      toast.error('Erro ao sincronizar');
     } finally {
       setSyncingKey(false);
     }
@@ -241,257 +215,182 @@ export function OpenAIConfigCard() {
   const hasOpenAI = !!config?.openai_creds_id;
 
   return (
-    <Card className={hasOpenAI ? 'border-green-500/20' : 'border-amber-500/20'}>
+    <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-green-500" />
+          <Sparkles className="h-5 w-5 text-primary" />
           Configurar OpenAI
         </CardTitle>
         <CardDescription className="text-xs sm:text-sm">
-          Configure e sincronize suas credenciais da OpenAI
+          Configure suas credenciais da OpenAI para o bot
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Formulário de Configuração */}
-        <div className="space-y-4">
-          {/* API Key - Campo Verde Completo quando Configurado */}
-          <div className="space-y-2">
-            <Label htmlFor="apiKey" className="text-sm">API Key da OpenAI *</Label>
-            
-            {/* Campo Verde com Badge quando Configurado */}
-            {hasOpenAI && !apiKey ? (
-              <div className="relative">
-                <div className="flex items-center gap-3 p-3 bg-green-500/10 border-2 border-green-500 rounded-lg transition-all duration-300">
-                  <div className="flex items-center justify-center w-8 h-8 bg-green-500 rounded-full">
-                    <Check className="h-5 w-5 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-green-700 dark:text-green-400">✅ Chave Configurada</p>
-                    <p className="text-xs text-green-600 dark:text-green-500">Sua chave está salva com segurança</p>
-                  </div>
-                </div>
-                <Button
-                  variant="link"
-                  size="sm"
-                  onClick={() => setApiKey(' ')}
-                  className="text-xs text-muted-foreground mt-1 p-0 h-auto"
-                >
-                  Alterar chave →
-                </Button>
-              </div>
-            ) : (
-              <div className="relative">
-                <Input
-                  id="apiKey"
-                  type={showApiKey ? 'text' : 'password'}
-                  placeholder="sk-proj-xxxxxxxxxxxxxxxxxxxx"
-                  value={apiKey === ' ' ? '' : apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  className="pr-10 text-sm"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                  onClick={() => setShowApiKey(!showApiKey)}
-                >
-                  {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
-              </div>
-            )}
-            
-            <p className="text-xs text-muted-foreground">
-              Obtenha em{' '}
-              <a 
-                href="https://platform.openai.com/api-keys" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
-                platform.openai.com/api-keys
-              </a>
-            </p>
-          </div>
-
-          {/* Modelo e Max Tokens */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="model" className="text-sm">Modelo</Label>
-              <Select value={model} onValueChange={setModel}>
-                <SelectTrigger className="text-sm">
-                  <SelectValue placeholder="Selecione o modelo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {AVAILABLE_MODELS.map((m) => (
-                    <SelectItem key={m.value} value={m.value}>
-                      {m.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="maxTokens" className="text-sm">Max Tokens</Label>
-              <Input
-                id="maxTokens"
-                type="number"
-                min={100}
-                max={4000}
-                value={maxTokens}
-                onChange={(e) => setMaxTokens(Number(e.target.value))}
-                className="text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Botões de Ação */}
-          <div className="flex flex-col sm:flex-row gap-2">
-            {/* Botão de Teste - Verde quando configurado */}
-            {hasOpenAI && !apiKey ? (
-              <div className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-green-500/10 border-2 border-green-500 rounded-md transition-all duration-300">
-                <Check className="h-4 w-4 text-green-600" />
-                <span className="text-sm font-medium text-green-700 dark:text-green-400">✓ Chave Válida</span>
-              </div>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleTestKey}
-                disabled={testingKey || !apiKey.trim() || apiKey === ' '}
-                className="flex-1"
-              >
-                {testingKey ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <TestTube className="h-4 w-4 mr-2" />
-                )}
-                Testar Chave
-              </Button>
-            )}
+        {/* Campo de API Key - Igual Evolution */}
+        <div className="space-y-1.5">
+          <Label className="flex items-center gap-2 text-sm">
+            <Key className="h-4 w-4" />
+            API Key *
+          </Label>
+          <div className="relative">
+            <Input
+              type={showApiKey ? 'text' : 'password'}
+              placeholder={hasOpenAI && !isEditing ? '' : 'sk-proj-xxxxxxxxxxxxxxxxxxxx'}
+              value={hasOpenAI && !isEditing ? '●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●' : apiKey}
+              onChange={(e) => {
+                setApiKey(e.target.value);
+                setIsEditing(true);
+              }}
+              className="pr-10 text-sm"
+              readOnly={hasOpenAI && !isEditing}
+            />
             <Button
-              variant="outline"
+              type="button"
+              variant="ghost"
               size="sm"
-              onClick={handleSaveKey}
-              disabled={savingKey || !apiKey.trim() || apiKey === ' '}
-              className="flex-1"
+              className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+              onClick={() => {
+                if (hasOpenAI && !isEditing) {
+                  setIsEditing(true);
+                  setApiKey('');
+                } else {
+                  setShowApiKey(!showApiKey);
+                }
+              }}
             >
-              {savingKey ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              {hasOpenAI && !isEditing ? (
+                <Eye className="h-4 w-4" />
+              ) : showApiKey ? (
+                <EyeOff className="h-4 w-4" />
               ) : (
-                <Save className="h-4 w-4 mr-2" />
+                <Eye className="h-4 w-4" />
               )}
-              Salvar
-            </Button>
-            <Button
-              size="sm"
-              onClick={handleSyncEvolution}
-              disabled={syncingKey || !apiKey.trim() || apiKey === ' '}
-              className="flex-1"
-            >
-              {syncingKey ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <RefreshCw className="h-4 w-4 mr-2" />
-              )}
-              Sincronizar Evolution
             </Button>
           </div>
-        </div>
-
-        {/* Divisor */}
-        <div className="border-t pt-4">
-          <p className="text-xs font-medium text-muted-foreground mb-3">Status Atual</p>
-          
-          {/* Status Principal com Animação */}
-          <div className={`flex items-center justify-between p-3 rounded-lg mb-3 transition-all duration-500 ${
-            hasOpenAI 
-              ? 'bg-green-500/10 border border-green-500/30' 
-              : 'bg-amber-500/10 border border-amber-500/30'
-          }`}>
-            <div className="flex items-center gap-2">
-              {hasOpenAI ? (
-                <div className="flex items-center justify-center w-6 h-6 bg-green-500 rounded-full animate-scale-in">
-                  <Check className="h-4 w-4 text-white" />
-                </div>
-              ) : (
-                <X className="h-5 w-5 text-amber-500" />
-              )}
-              <span className={`font-medium text-sm ${hasOpenAI ? 'text-green-700 dark:text-green-400' : ''}`}>
-                {hasOpenAI ? 'Credenciais Configuradas' : 'Credenciais Pendentes'}
-              </span>
-            </div>
-            <Badge 
-              variant={hasOpenAI ? 'default' : 'secondary'} 
-              className={`text-xs transition-all duration-300 ${hasOpenAI ? 'bg-green-500 hover:bg-green-600' : ''}`}
+          <p className="text-xs text-muted-foreground">
+            Token da API da OpenAI -{' '}
+            <a 
+              href="https://platform.openai.com/api-keys" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
             >
-              {hasOpenAI ? '✅ Pronto' : '⚠️ Configurar'}
-            </Badge>
-          </div>
-
-          {/* Grid de Configurações com Animações */}
-          <div className="grid grid-cols-2 gap-2">
-            <div className={`p-2 sm:p-3 rounded-lg transition-all duration-300 ${
-              hasOpenAI ? 'bg-green-500/5 border border-green-500/20' : 'bg-muted/30'
-            }`}>
-              <p className="text-xs text-muted-foreground">Modelo</p>
-              <p className={`font-medium text-xs sm:text-sm truncate ${hasOpenAI ? 'text-green-700 dark:text-green-400' : ''}`}>
-                {config?.openai_default_model || 'gpt-4-turbo'}
-              </p>
-            </div>
-            <div className={`p-2 sm:p-3 rounded-lg transition-all duration-300 ${
-              hasOpenAI ? 'bg-green-500/5 border border-green-500/20' : 'bg-muted/30'
-            }`}>
-              <p className="text-xs text-muted-foreground">Max Tokens</p>
-              <p className={`font-medium text-xs sm:text-sm ${hasOpenAI ? 'text-green-700 dark:text-green-400' : ''}`}>
-                {config?.openai_max_tokens || 1000}
-              </p>
-            </div>
-            <div className={`p-2 sm:p-3 rounded-lg transition-all duration-300 ${
-              hasOpenAI ? 'bg-green-500/5 border border-green-500/20' : 'bg-muted/30'
-            }`}>
-              <p className="text-xs text-muted-foreground">Creds ID</p>
-              <p className={`font-mono text-xs truncate ${hasOpenAI ? 'text-green-700 dark:text-green-400' : ''}`}>
-                {config?.openai_creds_id ? `${config.openai_creds_id.slice(0, 8)}...` : 'Não configurado'}
-              </p>
-            </div>
-            <div className={`p-2 sm:p-3 rounded-lg transition-all duration-300 ${
-              hasOpenAI ? 'bg-green-500/5 border border-green-500/20' : 'bg-muted/30'
-            }`}>
-              <p className="text-xs text-muted-foreground">Status</p>
-              <p className={`font-medium text-xs sm:text-sm flex items-center gap-1 ${hasOpenAI ? 'text-green-700 dark:text-green-400' : ''}`}>
-                {config?.is_active ? (
-                  <>
-                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                    Ativo
-                  </>
-                ) : (
-                  <>
-                    <span className="w-2 h-2 rounded-full bg-red-500" />
-                    Inativo
-                  </>
-                )}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Link para Evolution */}
-        {config?.api_url && (
-          <Button variant="outline" size="sm" className="w-full text-xs" asChild>
-            <a href={config.api_url} target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Abrir Evolution API
+              Obter chave
             </a>
-          </Button>
+          </p>
+        </div>
+
+        {/* Modelo e Max Tokens */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label className="text-sm">Modelo</Label>
+            <Select value={model} onValueChange={setModel}>
+              <SelectTrigger className="text-sm">
+                <SelectValue placeholder="Selecione o modelo" />
+              </SelectTrigger>
+              <SelectContent>
+                {AVAILABLE_MODELS.map((m) => (
+                  <SelectItem key={m.value} value={m.value}>
+                    {m.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-sm">Max Tokens</Label>
+            <Input
+              type="number"
+              min={100}
+              max={4000}
+              value={maxTokens}
+              onChange={(e) => setMaxTokens(Number(e.target.value))}
+              className="text-sm"
+            />
+          </div>
+        </div>
+
+        {/* Switch Status da Integração - Igual Evolution */}
+        <div className="flex items-center justify-between gap-4 p-3 rounded-lg bg-muted/30">
+          <div className="space-y-0.5">
+            <Label className="text-sm">Status da Integração</Label>
+            <p className="text-xs text-muted-foreground">Ativar/desativar</p>
+          </div>
+          <Switch
+            checked={config?.is_active || false}
+            disabled
+          />
+        </div>
+
+        {/* Badge Conectado! - Igual Evolution */}
+        {hasOpenAI && (
+          <div className="p-3 md:p-4 rounded-lg flex items-center gap-2 text-sm bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+            <CheckCircle className="h-5 w-5" />
+            <span className="font-medium">Conectado!</span>
+          </div>
         )}
 
-        {!hasOpenAI && (
-          <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-            <p className="text-xs text-amber-700 dark:text-amber-400">
-              <strong>⚠️ Ação necessária:</strong> Insira sua chave da OpenAI acima e clique em 
-              "Sincronizar Evolution" para habilitar o bot.
-            </p>
+        {/* Botões de Ação - Empilhados Mobile */}
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleTestKey}
+            disabled={testingKey || (!apiKey.trim() && !isEditing)}
+            className="flex-1"
+          >
+            {testingKey ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <TestTube className="h-4 w-4 mr-2" />
+            )}
+            Testar
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleSaveKey}
+            disabled={savingKey || (!apiKey.trim() && !isEditing)}
+            className="flex-1"
+          >
+            {savingKey ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4 mr-2" />
+            )}
+            Salvar
+          </Button>
+        </div>
+
+        {/* Botão Sincronizar Evolution - Separado */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleSyncEvolution}
+          disabled={syncingKey || (!apiKey.trim() && !isEditing)}
+          className="w-full"
+        >
+          {syncingKey ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <RefreshCw className="h-4 w-4 mr-2" />
+          )}
+          Sincronizar com Evolution
+        </Button>
+
+        {/* Info de configuração atual */}
+        {hasOpenAI && (
+          <div className="pt-3 border-t">
+            <p className="text-xs font-medium text-muted-foreground mb-2">Configuração Atual</p>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="p-2 rounded bg-muted/30">
+                <span className="text-muted-foreground">Modelo:</span>
+                <p className="font-medium truncate">{config?.openai_default_model || 'gpt-4-turbo'}</p>
+              </div>
+              <div className="p-2 rounded bg-muted/30">
+                <span className="text-muted-foreground">Max Tokens:</span>
+                <p className="font-medium">{config?.openai_max_tokens || 1000}</p>
+              </div>
+            </div>
           </div>
         )}
       </CardContent>

@@ -66,6 +66,7 @@ import {
   BotPromptPreviewCard,
   BotPromptSettingsCard,
   BotSyncFloatingAlert,
+  BotPersonalityCard,
 } from "@/components/admin/bot";
 
 interface Template {
@@ -1299,6 +1300,13 @@ export default function WhatsAppInstancePage() {
                     <BotSessionCard
                       config={botConfig}
                       onUpdate={updateBotConfig}
+                      disabled={!isConnected}
+                    />
+                    <BotPersonalityCard
+                      settings={promptSettings.personalitySettings}
+                      onSettingsChange={(personalitySettings) => 
+                        updatePromptSettings({ ...promptSettings, personalitySettings })
+                      }
                       disabled={!isConnected}
                     />
                     <BotPromptSettingsCard

@@ -64,6 +64,7 @@ import {
   BotSessionCard,
   BotTriggerCard,
   BotPromptPreviewCard,
+  BotPromptSettingsCard,
 } from "@/components/admin/bot";
 
 interface Template {
@@ -108,7 +109,10 @@ export default function WhatsAppInstancePage() {
     syncing: botSyncing,
     promptData,
     lastUpdated,
+    hasUnsyncedChanges,
+    promptSettings,
     updateConfig: updateBotConfig,
+    updatePromptSettings,
     syncWithEvolution,
     refreshPrompt,
   } = useBotConfig(storeId);
@@ -1275,6 +1279,7 @@ export default function WhatsAppInstancePage() {
                       config={botConfig}
                       syncing={botSyncing}
                       isConnected={isConnected}
+                      hasUnsyncedChanges={hasUnsyncedChanges}
                       onUpdate={updateBotConfig}
                       onSync={syncWithEvolution}
                     />
@@ -1293,6 +1298,11 @@ export default function WhatsAppInstancePage() {
                     <BotSessionCard
                       config={botConfig}
                       onUpdate={updateBotConfig}
+                      disabled={!isConnected}
+                    />
+                    <BotPromptSettingsCard
+                      settings={promptSettings}
+                      onSettingsChange={updatePromptSettings}
                       disabled={!isConnected}
                     />
                   </div>

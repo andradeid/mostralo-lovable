@@ -36,6 +36,14 @@ export interface BotPromptData {
   storeLink: string;
 }
 
+export interface PromptSettings {
+  includeLocation: boolean;
+  includeBusinessHours: boolean;
+  includePaymentMethods: boolean;
+  includeDeliveryFee: boolean;
+  includeMinOrder: boolean;
+}
+
 function formatBusinessHours(hours: any): string {
   if (!hours) return 'Não informado';
   
@@ -82,11 +90,20 @@ function formatPaymentMethods(store: Store): string {
   return methods.join('\n');
 }
 
+const defaultSettings: PromptSettings = {
+  includeLocation: true,
+  includeBusinessHours: true,
+  includePaymentMethods: true,
+  includeDeliveryFee: true,
+  includeMinOrder: true,
+};
+
 export function generateBotPromptPreview(
   store: Store,
   products: Product[],
   categories: Category[],
-  botName?: string
+  botName?: string,
+  settings: PromptSettings = defaultSettings
 ): BotPromptData {
   const availableProducts = products.filter(p => p.is_available);
   const activeCategories = categories.filter(c => c.is_active);
@@ -103,7 +120,7 @@ export function generateBotPromptPreview(
 
   const assistantName = botName || 'Assistente Virtual';
   
-  const locationSection = store.google_maps_link 
+  const locationSection = settings.includeLocation && store.google_maps_link 
     ? `\nLOCALIZAÇÃO:
 - Endereço: ${store.address || 'Não informado'}
 - Cidade/Estado: ${store.city || ''}${store.city && store.state ? '/' : ''}${store.state || ''}
@@ -111,15 +128,21 @@ export function generateBotPromptPreview(
 - Quando cliente pedir localização, SEMPRE envie o link acima`
     : '';
 
-  const paymentSection = `\nFORMAS DE PAGAMENTO:
-${formatPaymentMethods(store)}`;
+  const paymentSection = settings.includePaymentMethods 
+    ? `\nFORMAS DE PAGAMENTO:
+${formatPaymentMethods(store)}`
+    : '';
 
-  const deliverySection = `\nDELIVERY:
-- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}
-- Pedido mínimo: ${store.min_order_value ? `R$ ${store.min_order_value.toFixed(2)}` : 'Sem valor mínimo'}`;
+  const deliverySection = (settings.includeDeliveryFee || settings.includeMinOrder)
+    ? `\nDELIVERY:${settings.includeDeliveryFee ? `
+- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}` : ''}${settings.includeMinOrder ? `
+- Pedido mínimo: ${store.min_order_value ? `R$ ${store.min_order_value.toFixed(2)}` : 'Sem valor mínimo'}` : ''}`
+    : '';
 
-  const hoursSection = `\nHORÁRIO DE FUNCIONAMENTO:
-${formatBusinessHours(store.business_hours)}`;
+  const hoursSection = settings.includeBusinessHours 
+    ? `\nHORÁRIO DE FUNCIONAMENTO:
+${formatBusinessHours(store.business_hours)}`
+    : '';
 
   const prompt = `Você é ${assistantName}, o assistente virtual da ${store.name || 'loja'}.
 

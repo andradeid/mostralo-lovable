@@ -99,6 +99,19 @@ interface MessageLog {
 export default function WhatsAppInstancePage() {
   const { toast } = useToast();
   const { storeId } = useStoreAccess();
+  
+  // Hook para configuração do bot - DEVE estar antes de qualquer early return
+  const {
+    config: botConfig,
+    loading: botLoading,
+    syncing: botSyncing,
+    promptData,
+    lastUpdated,
+    updateConfig: updateBotConfig,
+    syncWithEvolution,
+    refreshPrompt,
+  } = useBotConfig(storeId);
+
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [instance, setInstance] = useState<any>(null);
@@ -552,18 +565,6 @@ export default function WhatsAppInstancePage() {
       </div>
     );
   }
-
-  // Hook para configuração do bot
-  const {
-    config: botConfig,
-    loading: botLoading,
-    syncing: botSyncing,
-    promptData,
-    lastUpdated,
-    updateConfig: updateBotConfig,
-    syncWithEvolution,
-    refreshPrompt,
-  } = useBotConfig(storeId);
 
   const isConnected = instance?.status === 'connected';
 

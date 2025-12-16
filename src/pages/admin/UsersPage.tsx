@@ -337,37 +337,37 @@ const UsersPage = () => {
 
   const statsCards = [
     {
-      title: 'Total de Usuários',
+      title: 'Total',
       value: users.filter(u => !u.is_deleted).length,
-      description: 'Usuários ativos e bloqueados',
+      description: 'Ativos + bloqueados',
       icon: Users,
       color: 'text-blue-600'
     },
     {
-      title: 'Usuários Ativos',
+      title: 'Ativos',
       value: users.filter(u => !u.is_blocked && !u.is_deleted).length,
-      description: 'Com acesso ao sistema',
+      description: 'Com acesso',
       icon: CheckCircle,
       color: 'text-green-600'
     },
     {
       title: 'Bloqueados',
       value: users.filter(u => u.is_blocked).length,
-      description: 'Sem acesso temporário',
+      description: 'Sem acesso',
       icon: Ban,
       color: 'text-red-600'
     },
     {
-      title: 'Donos de Loja',
+      title: 'Lojas',
       value: users.filter(u => u.user_type === 'store_admin' && u.hasStore).length,
-      description: 'Com lojas ativas',
+      description: 'Donos de loja',
       icon: Store,
       color: 'text-blue-600'
     },
     {
       title: 'Vendedores',
       value: users.filter(u => u.roles?.some(r => r.role === 'salesperson')).length,
-      description: 'Afiliados e parceiros',
+      description: 'Afiliados',
       icon: Briefcase,
       color: 'text-yellow-600'
     }
@@ -382,30 +382,34 @@ const UsersPage = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Gerenciar Usuários</h1>
-        <p className="text-muted-foreground mt-2">
-          Visualize, edite e gerencie todos os usuários da plataforma
+        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold tracking-tight flex items-center gap-2">
+          <Users className="h-5 w-5 md:h-6 md:w-6 text-primary" />
+          <span className="hidden sm:inline">Gerenciar </span>Usuários
+        </h1>
+        <p className="text-xs md:text-sm text-muted-foreground mt-1 md:mt-2">
+          <span className="hidden sm:inline">Visualize, edite e gerencie todos os usuários da plataforma</span>
+          <span className="sm:hidden">Gerencie todos os usuários</span>
         </p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-2 md:gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
         {statsCards.map((card, index) => {
           const IconComponent = card.icon;
           return (
-            <Card key={index}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
+            <Card key={index} className="p-3 md:p-4">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 p-0 pb-1 md:pb-2">
+                <CardTitle className="text-xs md:text-sm font-medium truncate">
                   {card.title}
                 </CardTitle>
-                <IconComponent className={`h-4 w-4 ${card.color}`} />
+                <IconComponent className={`h-3.5 w-3.5 md:h-4 md:w-4 ${card.color} shrink-0`} />
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{card.value}</div>
-                <p className="text-xs text-muted-foreground">
+              <CardContent className="p-0">
+                <div className="text-xl md:text-2xl font-bold">{card.value}</div>
+                <p className="text-[10px] md:text-xs text-muted-foreground line-clamp-1">
                   {card.description}
                 </p>
               </CardContent>
@@ -416,26 +420,29 @@ const UsersPage = () => {
 
       {/* Filters */}
       <Card>
-        <CardHeader>
-          <CardTitle>Filtros e Busca</CardTitle>
+        <CardHeader className="p-3 md:p-6 pb-2 md:pb-4">
+          <CardTitle className="text-sm md:text-lg flex items-center gap-2">
+            <Search className="h-4 w-4 text-muted-foreground" />
+            Filtros
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-4">
+        <CardContent className="p-3 md:p-6 pt-0">
+          <div className="flex flex-col gap-3 md:gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar por email ou nome..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-9 h-9 md:h-10 text-sm"
               />
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Status</label>
+            <div className="grid grid-cols-3 gap-2 md:gap-4">
+              <div className="space-y-1 md:space-y-2">
+                <label className="text-xs md:text-sm font-medium">Status</label>
                 <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-8 md:h-10 text-xs md:text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -447,16 +454,16 @@ const UsersPage = () => {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Tipo</label>
+              <div className="space-y-1 md:space-y-2">
+                <label className="text-xs md:text-sm font-medium">Tipo</label>
                 <Select value={typeFilter} onValueChange={setTypeFilter}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-8 md:h-10 text-xs md:text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="master_admin">Master Admin</SelectItem>
-                    <SelectItem value="store_admin">Dono de Loja</SelectItem>
+                    <SelectItem value="master_admin">Master</SelectItem>
+                    <SelectItem value="store_admin">Lojista</SelectItem>
                     <SelectItem value="delivery_driver">Entregador</SelectItem>
                     <SelectItem value="salesperson">Vendedor</SelectItem>
                     <SelectItem value="customer">Cliente</SelectItem>
@@ -464,16 +471,16 @@ const UsersPage = () => {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Exibir</label>
+              <div className="space-y-1 md:space-y-2">
+                <label className="text-xs md:text-sm font-medium">Exibir</label>
                 <Select value={String(itemsPerPage)} onValueChange={(value) => setItemsPerPage(Number(value))}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-8 md:h-10 text-xs md:text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="10">10 por página</SelectItem>
-                    <SelectItem value="20">20 por página</SelectItem>
-                    <SelectItem value="50">50 por página</SelectItem>
+                    <SelectItem value="10">10/pág</SelectItem>
+                    <SelectItem value="20">20/pág</SelectItem>
+                    <SelectItem value="50">50/pág</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -484,26 +491,26 @@ const UsersPage = () => {
 
       {/* Users List */}
       <Card>
-        <CardHeader>
-          <CardTitle>Lista de Usuários ({filteredUsers.length})</CardTitle>
-          <CardDescription>
+        <CardHeader className="p-3 md:p-6 pb-2 md:pb-4">
+          <CardTitle className="text-sm md:text-lg">Lista de Usuários ({filteredUsers.length})</CardTitle>
+          <CardDescription className="text-xs md:text-sm">
             {filteredUsers.length > 0 
-              ? `Mostrando ${startIndex}-${endIndex} de ${filteredUsers.length} usuários`
+              ? `Mostrando ${startIndex}-${endIndex} de ${filteredUsers.length}`
               : 'Nenhum usuário encontrado'
             }
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 md:p-6 pt-0">
           {filteredUsers.length === 0 ? (
-            <div className="text-center py-8">
-              <Users className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Nenhum usuário encontrado</h3>
-              <p className="text-muted-foreground">
+            <div className="text-center py-6 md:py-8">
+              <Users className="mx-auto h-10 w-10 md:h-12 md:w-12 text-muted-foreground mb-3 md:mb-4" />
+              <h3 className="text-base md:text-lg font-semibold mb-2">Nenhum usuário encontrado</h3>
+              <p className="text-xs md:text-sm text-muted-foreground">
                 Tente ajustar os filtros ou termos de busca.
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2 md:space-y-3">
               {paginatedUsers.map((user) => {
                 const userTypeInfo = getUserTypeInfo(user);
                 const TypeIcon = userTypeInfo.icon;
@@ -512,124 +519,135 @@ const UsersPage = () => {
                 return (
                   <div
                     key={user.id}
-                    className={`flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors gap-4 ${
+                    className={`flex flex-col gap-2 md:gap-3 p-3 md:p-4 border rounded-lg hover:bg-muted/50 transition-colors ${
                       isSalesperson ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800' : ''
                     }`}
                   >
-                    <div className="flex items-center space-x-4 flex-1">
-                      <div className={`p-2 rounded-full bg-muted ${userTypeInfo.color} shrink-0`}>
-                        <TypeIcon className="w-5 h-5" />
+                    {/* Header: Ícone + Nome + Badge + Ações */}
+                    <div className="flex items-start gap-2 md:gap-3">
+                      <div className={`p-1.5 md:p-2 rounded-full bg-muted ${userTypeInfo.color} shrink-0`}>
+                        <TypeIcon className="w-4 h-4 md:w-5 md:h-5" />
                       </div>
                       
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2 flex-wrap">
-                          <h4 className="font-semibold truncate">
+                        <div className="flex items-center gap-1.5 md:gap-2 flex-wrap">
+                          <h4 className="font-semibold text-sm md:text-base truncate">
                             {user.full_name || 'Nome não informado'}
                           </h4>
-                          <Badge variant={userTypeInfo.variant}>
+                          <Badge variant={userTypeInfo.variant} className="text-[10px] md:text-xs shrink-0">
                             {userTypeInfo.label}
                           </Badge>
-                          {user.roles && user.roles.length > 0 && (
-                            user.roles.map((role: any, idx: number) => (
-                              <Badge key={idx} variant="outline" className="text-xs">
-                                {role.role === 'delivery_driver' ? 'Entregador' : 'Cliente'}
-                                {role.store_name && ` (${role.store_name})`}
-                              </Badge>
-                            ))
-                          )}
                         </div>
                         
-                        <div className="flex flex-col md:flex-row md:items-center md:space-x-4 text-sm text-muted-foreground mt-1 gap-1">
-                          <div className="flex items-center space-x-1">
+                        {/* Email e Data */}
+                        <div className="flex flex-col text-xs md:text-sm text-muted-foreground mt-1 gap-0.5">
+                          <div className="flex items-center gap-1.5 truncate">
                             <Mail className="w-3 h-3 shrink-0" />
                             <span className="truncate">{user.email}</span>
                           </div>
-                          <div className="flex items-center space-x-1">
+                          <div className="flex items-center gap-1.5">
                             <Calendar className="w-3 h-3 shrink-0" />
-                            <span>
-                              {new Date(user.created_at).toLocaleDateString('pt-BR')}
-                            </span>
+                            <span>{new Date(user.created_at).toLocaleDateString('pt-BR')}</span>
                           </div>
                         </div>
-
-                        {user.blocked_reason && (
-                          <p className="text-xs text-destructive mt-1">
-                            Motivo: {user.blocked_reason}
-                          </p>
+                      </div>
+                      
+                      {/* Ações */}
+                      <div className="flex items-center gap-1 md:gap-1.5 shrink-0">
+                        {!user.is_blocked && !user.is_deleted && (
+                          <ImpersonationButton 
+                            user={{
+                              id: user.id,
+                              email: user.email,
+                              full_name: user.full_name || '',
+                              user_type: user.user_type,
+                              roles: user.roles,
+                              avatar_url: user.avatar_url || undefined
+                            }}
+                            size="sm"
+                            variant="outline"
+                          />
                         )}
+                        
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setEditUser(user)}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Editar
+                            </DropdownMenuItem>
+                            
+                            <DropdownMenuItem onClick={() => setResetPasswordUser(user)}>
+                              <Key className="h-4 w-4 mr-2" />
+                              Resetar Senha
+                            </DropdownMenuItem>
+                            
+                            <DropdownMenuItem onClick={() => setFixLoginEmail(user.email)}>
+                              <Wrench className="h-4 w-4 mr-2" />
+                              Diagnosticar Login
+                            </DropdownMenuItem>
+                            
+                            <DropdownMenuSeparator />
+                            
+                            <DropdownMenuItem onClick={() => setBlockUser(user)}>
+                              {user.is_blocked ? (
+                                <>
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  Desbloquear
+                                </>
+                              ) : (
+                                <>
+                                  <Ban className="h-4 w-4 mr-2" />
+                                  Bloquear
+                                </>
+                              )}
+                            </DropdownMenuItem>
+                            
+                            {!user.is_deleted && (
+                              <DropdownMenuItem onClick={() => setDeleteUser(user)}>
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Excluir
+                              </DropdownMenuItem>
+                            )}
+                            
+                            <DropdownMenuSeparator />
+                            
+                            <DropdownMenuItem onClick={() => setAuditUserId(user.id)}>
+                              <History className="h-4 w-4 mr-2" />
+                              Ver Histórico
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </div>
+                    
+                    {/* Roles Extras - Scroll Horizontal */}
+                    {user.roles && user.roles.length > 0 && (
+                      <div className="overflow-x-auto scrollbar-hide -mx-1 px-1">
+                        <div className="flex gap-1.5 pb-1">
+                          {user.roles.map((role: any, idx: number) => (
+                            <Badge key={idx} variant="outline" className="text-[10px] md:text-xs shrink-0">
+                              {role.role === 'delivery_driver' ? 'Entregador' : 
+                               role.role === 'salesperson' ? 'Vendedor' : 'Cliente'}
+                              {role.store_name && (
+                                <span className="hidden sm:inline ml-1">({role.store_name})</span>
+                              )}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-                    <div className="flex items-center gap-2 shrink-0">
-                      {!user.is_blocked && !user.is_deleted && (
-                        <ImpersonationButton 
-                          user={{
-                            id: user.id,
-                            email: user.email,
-                            full_name: user.full_name || '',
-                            user_type: user.user_type,
-                            roles: user.roles,
-                            avatar_url: user.avatar_url || undefined
-                          }}
-                          size="sm"
-                          variant="outline"
-                        />
-                      )}
-                      
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setEditUser(user)}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Editar
-                          </DropdownMenuItem>
-                          
-                          <DropdownMenuItem onClick={() => setResetPasswordUser(user)}>
-                            <Key className="h-4 w-4 mr-2" />
-                            Resetar Senha
-                          </DropdownMenuItem>
-                          
-                          <DropdownMenuItem onClick={() => setFixLoginEmail(user.email)}>
-                            <Wrench className="h-4 w-4 mr-2" />
-                            Diagnosticar Login
-                          </DropdownMenuItem>
-                          
-                          <DropdownMenuSeparator />
-                          
-                          <DropdownMenuItem onClick={() => setBlockUser(user)}>
-                            {user.is_blocked ? (
-                              <>
-                                <CheckCircle className="h-4 w-4 mr-2" />
-                                Desbloquear
-                              </>
-                            ) : (
-                              <>
-                                <Ban className="h-4 w-4 mr-2" />
-                                Bloquear
-                              </>
-                            )}
-                          </DropdownMenuItem>
-                          
-                          {!user.is_deleted && (
-                            <DropdownMenuItem onClick={() => setDeleteUser(user)}>
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Excluir
-                            </DropdownMenuItem>
-                          )}
-                          
-                          <DropdownMenuSeparator />
-                          
-                          <DropdownMenuItem onClick={() => setAuditUserId(user.id)}>
-                            <History className="h-4 w-4 mr-2" />
-                            Ver Histórico
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+                    {/* Motivo do bloqueio */}
+                    {user.blocked_reason && (
+                      <p className="text-xs text-destructive line-clamp-2">
+                        Motivo: {user.blocked_reason}
+                      </p>
+                    )}
                   </div>
                 );
               })}
@@ -638,34 +656,35 @@ const UsersPage = () => {
 
           {/* Controles de Paginação */}
           {filteredUsers.length > 0 && totalPages > 1 && (
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-6 pt-4 border-t">
-              <p className="text-sm text-muted-foreground">
-                Página {currentPage} de {totalPages}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 md:mt-6 pt-3 md:pt-4 border-t">
+              <p className="text-xs md:text-sm text-muted-foreground order-2 sm:order-1">
+                Pág. {currentPage}/{totalPages}
               </p>
               
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 md:gap-2 order-1 sm:order-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
+                  className="h-8 px-2 md:px-3"
                 >
-                  <ChevronLeft className="h-4 w-4 mr-1" />
-                  Anterior
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="hidden sm:inline ml-1">Anterior</span>
                 </Button>
                 
-                {/* Números de página */}
+                {/* Números de página - Menos no mobile */}
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  {Array.from({ length: Math.min(totalPages <= 3 ? totalPages : 3, totalPages) }, (_, i) => {
                     let pageNum;
-                    if (totalPages <= 5) {
+                    if (totalPages <= 3) {
                       pageNum = i + 1;
-                    } else if (currentPage <= 3) {
+                    } else if (currentPage <= 2) {
                       pageNum = i + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      pageNum = totalPages - 4 + i;
+                    } else if (currentPage >= totalPages - 1) {
+                      pageNum = totalPages - 2 + i;
                     } else {
-                      pageNum = currentPage - 2 + i;
+                      pageNum = currentPage - 1 + i;
                     }
                     
                     return (
@@ -673,7 +692,7 @@ const UsersPage = () => {
                         key={pageNum}
                         variant={currentPage === pageNum ? "default" : "outline"}
                         size="sm"
-                        className="w-9 h-9 p-0"
+                        className="w-8 h-8 p-0 text-xs md:text-sm"
                         onClick={() => setCurrentPage(pageNum)}
                       >
                         {pageNum}
@@ -687,9 +706,10 @@ const UsersPage = () => {
                   size="sm"
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
+                  className="h-8 px-2 md:px-3"
                 >
-                  Próximo
-                  <ChevronRight className="h-4 w-4 ml-1" />
+                  <span className="hidden sm:inline mr-1">Próximo</span>
+                  <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </div>

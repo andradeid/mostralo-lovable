@@ -139,6 +139,115 @@ function formatPaymentMethods(store: any): string {
   return methods.join('\n');
 }
 
+// Função para verificar se loja está aberta agora
+function isStoreOpenNow(businessHours: any, timezone: string): boolean {
+  if (!businessHours) return false;
+  if (businessHours.service_paused === true || businessHours.service_paused === 'true') {
+    return false;
+  }
+
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    weekday: 'long',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+
+  const parts = formatter.formatToParts(now);
+  const weekdayEn = parts.find(p => p.type === 'weekday')?.value?.toLowerCase() || '';
+  const hour = parts.find(p => p.type === 'hour')?.value || '00';
+  const minute = parts.find(p => p.type === 'minute')?.value || '00';
+  const currentTime = `${hour}:${minute}`;
+
+  const dayMap: Record<string, string> = {
+    'sunday': 'sunday',
+    'monday': 'monday',
+    'tuesday': 'tuesday',
+    'wednesday': 'wednesday',
+    'thursday': 'thursday',
+    'friday': 'friday',
+    'saturday': 'saturday',
+  };
+
+  const dayKey = dayMap[weekdayEn];
+  if (!dayKey) return false;
+
+  const dayHours = businessHours[dayKey];
+  if (!dayHours || dayHours.closed) return false;
+
+  return currentTime >= dayHours.open && currentTime <= dayHours.close;
+}
+
+// Função para calcular próxima abertura
+function getNextOpeningTime(businessHours: any, timezone: string): string | null {
+  if (!businessHours) return null;
+
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    weekday: 'long',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+
+  const parts = formatter.formatToParts(now);
+  const weekdayEn = parts.find(p => p.type === 'weekday')?.value?.toLowerCase() || '';
+  const hour = parts.find(p => p.type === 'hour')?.value || '00';
+  const minute = parts.find(p => p.type === 'minute')?.value || '00';
+  const currentTime = `${hour}:${minute}`;
+
+  const dayNamesEn = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  const dayNamesPt = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+
+  const currentDayIndex = dayNamesEn.indexOf(weekdayEn);
+  if (currentDayIndex === -1) return null;
+
+  // Verificar se abre ainda hoje
+  const todayHours = businessHours[dayNamesEn[currentDayIndex]];
+  if (todayHours && !todayHours.closed && currentTime < todayHours.open) {
+    return `hoje às ${todayHours.open}`;
+  }
+
+  // Procurar próximo dia aberto
+  for (let i = 1; i <= 7; i++) {
+    const nextDayIndex = (currentDayIndex + i) % 7;
+    const nextDayHours = businessHours[dayNamesEn[nextDayIndex]];
+
+    if (nextDayHours && !nextDayHours.closed) {
+      if (i === 1) {
+        return `amanhã às ${nextDayHours.open}`;
+      }
+      return `${dayNamesPt[nextDayIndex]} às ${nextDayHours.open}`;
+    }
+  }
+
+  return null;
+}
+
+// Função para calcular saudação baseada no horário
+function getGreetingForTime(timezone: string): { greeting: string; currentTime: string; hour: number } {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('pt-BR', {
+    timeZone: timezone,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+
+  const currentTime = formatter.format(now);
+  const hour = parseInt(currentTime.split(':')[0]);
+
+  let greeting = 'Olá';
+  if (hour >= 5 && hour < 12) greeting = 'Bom dia';
+  else if (hour >= 12 && hour < 18) greeting = 'Boa tarde';
+  else greeting = 'Boa noite';
+
+  return { greeting, currentTime, hour };
+}
+
 // Determinar domínio correto para links da loja
 function getStoreBaseUrl(store: any, origin?: string): string {
   // 1º Prioridade: Domínio customizado VERIFICADO da loja
@@ -161,16 +270,44 @@ function getStoreBaseUrl(store: any, origin?: string): string {
   return 'https://mostralo.com.br';
 }
 
+interface StoreStatusContext {
+  greeting: string;
+  currentTime: string;
+  isOpen: boolean;
+  nextOpening: string | null;
+  timezone: string;
+}
+
 function generateSystemPrompt(
   botName: string, 
   store: any, 
   products: any[], 
   categories: any[], 
   origin?: string,
-  personalitySettings?: PersonalitySettings
+  personalitySettings?: PersonalitySettings,
+  statusContext?: StoreStatusContext
 ): string {
   const baseUrl = getStoreBaseUrl(store, origin);
   const storeLink = `${baseUrl}/loja/${store.slug}`;
+  
+  // Gerar seção de contexto atual (horário + status)
+  let statusSection = '';
+  if (statusContext) {
+    const { greeting, currentTime, isOpen, nextOpening, timezone } = statusContext;
+    statusSection = `
+
+[CONTEXTO ATUAL - ${currentTime} (${timezone})]
+- Horário da loja: ${currentTime}
+- Saudação apropriada: "${greeting}"
+- STATUS: ${isOpen ? '✅ ABERTO AGORA' : `❌ FECHADO${nextOpening ? ` - Abre ${nextOpening}` : ''}`}
+${!isOpen && nextOpening ? `- Próxima abertura: ${nextOpening}` : ''}
+
+INSTRUÇÕES DE STATUS:
+- Se cliente perguntar se está aberto: Responda "${isOpen ? 'Sim, estamos abertos!' : `No momento estamos fechados. ${nextOpening ? `Abrimos ${nextOpening}.` : ''}`}"
+- NUNCA diga que está aberto se o STATUS mostrar FECHADO
+- Use a saudação "${greeting}" nas interações
+- Mesmo fechado, ofereça o cardápio: "Enquanto isso, confira nosso cardápio: ${storeLink}"`;
+  }
   
   const productList = products
     .filter(p => p.is_available)
@@ -227,6 +364,7 @@ ${formatBusinessHours(store.business_hours)}`;
 Quando o cliente perguntar seu nome, responda: "Meu nome é ${botName}!"
 
 ${personalityInstructions}
+${statusSection}
 
 INFORMAÇÕES DA LOJA:
 - Nome: ${store.name || 'Loja'}
@@ -246,25 +384,10 @@ PRODUTOS DISPONÍVEIS:
 ${productList || 'Não há produtos cadastrados'}
 
 SAUDAÇÃO INTELIGENTE:
-1. O sistema irá informar o horário atual da loja no contexto da mensagem
-2. Procure por [CONTEXTO: Horário: HH:MM | Saudação: "X"] no início das mensagens
-3. USE SEMPRE a saudação informada no contexto (Bom dia/Boa tarde/Boa noite)
-4. Se o cliente informar o nome, USE o nome nas respostas seguintes
-   - Exemplo: "Boa tarde, Maria! Como posso ajudar?"
-5. Se não souber o nome, seja acolhedor:
-   - Exemplo: "Boa tarde! Seja bem-vindo(a)! Como posso ajudar?"
-6. Demonstre interesse genuíno: "Que bom ter você aqui!"
-7. **SEMPRE envie o link do cardápio na primeira mensagem de saudação**
-   - Inclua: "📱 Confira nosso cardápio completo: ${storeLink}"
-   - Exemplo completo de saudação:
-     "Boa tarde! 👋 Seja bem-vindo(a) à ${store.name || 'nossa loja'}! Como posso ajudar?
-     
-     📱 Confira nosso cardápio completo: ${storeLink}"
-
-IMPORTANTE - HORÁRIO:
-- NÃO tente "adivinhar" o horário - confie no contexto injetado pelo sistema
-- O webhook do WhatsApp sempre envia o horário correto da loja
-- Se não houver contexto, use "Olá" como saudação neutra
+1. USE a saudação do [CONTEXTO ATUAL] acima (Bom dia/Boa tarde/Boa noite)
+2. Se o cliente informar o nome, USE o nome nas respostas seguintes
+3. Se não souber o nome, seja acolhedor
+4. **SEMPRE envie o link do cardápio na primeira mensagem**
 
 INSTRUÇÕES GERAIS:
 1. Apresente os produtos quando perguntado
@@ -279,11 +402,11 @@ INSTRUÇÕES GERAIS:
 10. Quando pedirem localização, envie o link do Google Maps se disponível
 11. Informe horário de funcionamento quando perguntado
 12. Informe formas de pagamento aceitas quando perguntado
+13. SE CLIENTE PERGUNTAR SE ESTÁ ABERTO - USE O STATUS DO [CONTEXTO ATUAL]
 
 LINKS DE PRODUTOS:
 - Quando o cliente perguntar sobre um produto específico, SEMPRE envie o link do produto
 - Use o formato: "Você pode ver mais detalhes e pedir aqui: [link]"
-- Se o cliente mostrar interesse, envie o link imediatamente
 
 ENCERRAMENTO:
 - Quando o cliente digitar a palavra de encerramento, agradeça e finalize
@@ -867,24 +990,43 @@ serve(async (req) => {
       
       console.log('Personalidade do bot:', personalitySettings);
       
+      // Calcular storeLink para usar no assistantMessages (few-shot learning)
+      const baseUrl = getStoreBaseUrl(store, origin);
+      const storeLink = `${baseUrl}/loja/${store.slug}`;
+      
+      // ==============================
+      // CONTEXTO DE HORÁRIO E STATUS
+      // ==============================
+      const timezone = store.timezone || 'America/Sao_Paulo';
+      const { greeting, currentTime, hour } = getGreetingForTime(timezone);
+      const isOpen = isStoreOpenNow(store.business_hours, timezone);
+      const nextOpening = !isOpen ? getNextOpeningTime(store.business_hours, timezone) : null;
+      
+      const statusContext: StoreStatusContext = {
+        greeting,
+        currentTime,
+        isOpen,
+        nextOpening,
+        timezone
+      };
+      
+      console.log('Contexto de status:', statusContext);
+      
       const systemPrompt = generateSystemPrompt(
         botName, 
         store, 
         products || [], 
         categories || [], 
         origin,
-        personalitySettings
+        personalitySettings,
+        statusContext
       );
-
-      // Calcular storeLink para usar no assistantMessages (few-shot learning)
-      const baseUrl = getStoreBaseUrl(store, origin);
-      const storeLink = `${baseUrl}/loja/${store.slug}`;
 
       steps.push({
         step: 'prompt_generate',
         status: 'success',
         message: 'Prompt gerado com dados da loja',
-        details: `${products?.length || 0} produto(s), ${categories?.length || 0} categoria(s), personalidade: ${personalitySettings.personality}, emojis: ${personalitySettings.emojiLevel}`,
+        details: `${products?.length || 0} produto(s), ${categories?.length || 0} categoria(s), ${greeting}, ${isOpen ? 'ABERTO' : 'FECHADO'}`,
       });
 
       // 3. Validar modelo
@@ -905,7 +1047,12 @@ serve(async (req) => {
         });
       }
 
-      // 4. Montar payload do bot
+      // 4. Montar saudação dinâmica para few-shot learning
+      const dynamicGreeting = isOpen
+        ? `${greeting}! 👋 Estamos abertos e prontos para atender! Seja bem-vindo(a) à ${store.name}!\n\n📱 Confira nosso cardápio: ${storeLink}`
+        : `${greeting}! 👋 No momento estamos fechados${nextOpening ? `, mas abrimos ${nextOpening}` : ''}. Seja bem-vindo(a) à ${store.name}!\n\n📱 Enquanto isso, confira nosso cardápio: ${storeLink}`;
+
+      // 5. Montar payload do bot
       const botPayload: any = {
         enabled: true,
         openaiCredsId: openaiCredsId,
@@ -913,16 +1060,14 @@ serve(async (req) => {
         model: model,
         maxTokens: evolutionConfig.openai_max_tokens || 1000,
         systemMessages: [systemPrompt],
-        assistantMessages: [
-          `Olá! 👋 Seja bem-vindo(a) à ${store.name}! Como posso ajudar?\n\n📱 Confira nosso cardápio completo: ${storeLink}`
-        ],
-        userMessages: ['Oi', 'Olá', 'Boa tarde', 'Boa noite', 'Bom dia'],
+        assistantMessages: [dynamicGreeting],
+        userMessages: ['Oi', 'Olá', 'Boa tarde', 'Boa noite', 'Bom dia', 'Vocês estão abertos?', 'Está aberto?'],
         triggerType: config.triggerType || 'all',
         triggerOperator: config.triggerOperator || 'contains',
         triggerValue: config.triggerValue || '',
         expire: config.expireMinutes || 20,
         keywordFinish: config.keywordFinish || '#SAIR',
-        delayMessage: config.delayMessage || 4000, // Aumentado para dar tempo ao WhatsApp gerar preview do link
+        delayMessage: config.delayMessage || 4000,
         unknownMessage: config.unknownMessage || 'Desculpe, não entendi. Digite #SAIR para encerrar ou acesse nosso cardápio online.',
         listeningFromMe: config.listeningFromMe || false,
         stopBotFromMe: config.stopBotFromMe !== undefined ? config.stopBotFromMe : true,

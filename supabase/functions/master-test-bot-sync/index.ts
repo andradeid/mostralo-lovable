@@ -1026,7 +1026,7 @@ serve(async (req) => {
     }
 
     // ========================================
-    // AÇÃO: get_sessions
+    // AÇÃO: get_sessions - Buscar sessões ativas do bot
     // ========================================
     if (action === 'get_sessions') {
       steps.push({
@@ -1047,9 +1047,31 @@ serve(async (req) => {
         });
       }
 
+      // Verificar se o bot está ativado
+      const botEvolutionId = testConfig.bot_evolution_id;
+      if (!botEvolutionId) {
+        steps.push({
+          step: 'sessions_check',
+          status: 'warning',
+          message: 'Bot não está ativado',
+          details: 'Ative o bot primeiro para ver sessões',
+        });
+        return new Response(JSON.stringify({ 
+          success: true, 
+          sessions: [], 
+          steps,
+          message: 'Bot não está ativado. Ative primeiro para ver sessões.',
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       try {
+        // Endpoint correto: /openai/fetchSessions/{instanceName}/{botId}
+        console.log(`Buscando sessões: ${evolutionUrl}/openai/fetchSessions/${testConfig.test_instance_name}/${botEvolutionId}`);
+        
         const sessionsResp = await fetch(
-          `${evolutionUrl}/openai/session/${testConfig.test_instance_name}`,
+          `${evolutionUrl}/openai/fetchSessions/${testConfig.test_instance_name}/${botEvolutionId}`,
           {
             method: 'GET',
             headers: { 'apikey': evolutionConfig.api_key },
@@ -1058,11 +1080,31 @@ serve(async (req) => {
 
         if (!sessionsResp.ok) {
           const errorText = await sessionsResp.text();
+          console.log('Resposta sessões:', sessionsResp.status, errorText);
+          
+          // Se 404, o endpoint pode não existir nesta versão da API
+          if (sessionsResp.status === 404) {
+            steps.push({
+              step: 'sessions_fetch',
+              status: 'warning',
+              message: 'Endpoint de sessões não disponível',
+              details: 'Esta versão da Evolution API pode não suportar listagem de sessões',
+            });
+            return new Response(JSON.stringify({ 
+              success: true, 
+              sessions: [],
+              steps,
+              message: 'Listagem de sessões não disponível nesta versão da API',
+            }), {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+          
           steps.push({
             step: 'sessions_fetch',
             status: 'error',
             message: 'Falha ao consultar sessões',
-            details: `Status: ${sessionsResp.status} - ${errorText.slice(0, 100)}`,
+            details: `Status: ${sessionsResp.status}`,
           });
           return new Response(JSON.stringify({ 
             success: false, 
@@ -1094,6 +1136,7 @@ serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       } catch (e) {
+        console.error('Erro ao consultar sessões:', e);
         steps.push({
           step: 'sessions_error',
           status: 'error',

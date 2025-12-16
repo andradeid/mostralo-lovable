@@ -53,7 +53,7 @@ serve(async (req) => {
       });
     }
 
-    const { action, openaiApiKey, model, maxTokens } = await req.json();
+    const { action, openaiApiKey, model, maxTokens, useSavedKey } = await req.json();
     console.log('[openai-credentials-sync] Action:', action);
 
     // Buscar config da Evolution
@@ -71,10 +71,28 @@ serve(async (req) => {
     }
 
     if (action === 'test') {
+      // Determinar qual chave testar
+      let keyToTest = openaiApiKey;
+      
+      // Se não recebeu chave mas pediu para usar a salva
+      if (!keyToTest && useSavedKey) {
+        keyToTest = evolutionConfig?.openai_api_key;
+      }
+      
+      if (!keyToTest) {
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: 'Nenhuma chave para testar' 
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       // Testar API Key da OpenAI
       const testResponse = await fetch('https://api.openai.com/v1/models', {
         headers: {
-          'Authorization': `Bearer ${openaiApiKey}`,
+          'Authorization': `Bearer ${keyToTest}`,
         },
       });
 

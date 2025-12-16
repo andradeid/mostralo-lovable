@@ -1243,18 +1243,18 @@ export default function WhatsAppInstancePage() {
           )}
         </TabsContent>
 
-        <TabsContent value="bot" className="space-y-6">
+        <TabsContent value="bot" className="space-y-4 sm:space-y-6">
           {(!instance || !isConnected) && (
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium">
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 sm:p-4 flex flex-col sm:flex-row items-start gap-2 sm:gap-3">
+              <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 shrink-0" />
+              <div className="space-y-1">
+                <p className="text-xs sm:text-sm font-medium leading-tight">
                   {!instance 
                     ? "Crie uma instância WhatsApp na aba 'Conexão' para ativar o assistente."
                     : "Conecte seu WhatsApp para que o assistente funcione."
                   }
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-[10px] sm:text-xs text-muted-foreground">
                   Você pode configurar tudo agora e ativar depois.
                 </p>
               </div>
@@ -1267,7 +1267,7 @@ export default function WhatsAppInstancePage() {
             </div>
           ) : botConfig && (
               <>
-                <div className="grid gap-6 lg:grid-cols-2">
+                <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
                   <div className="space-y-6">
                     <BotActivationCard
                       config={botConfig}

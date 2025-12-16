@@ -48,13 +48,16 @@ export function BotActivationCard({
 
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
+      <CardHeader className="pb-2 sm:pb-3 p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div className="flex items-center gap-2">
-            <Bot className="h-5 w-5 text-primary" />
-            <CardTitle className="text-lg">Assistente IA</CardTitle>
+            <Bot className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+            <CardTitle className="text-base sm:text-lg">Assistente IA</CardTitle>
           </div>
-          <Badge variant={isActive ? "default" : "secondary"} className={isActive ? "bg-green-500" : ""}>
+          <Badge 
+            variant={isActive ? "default" : "secondary"} 
+            className={`${isActive ? "bg-green-500" : ""} self-start sm:self-auto text-xs`}
+          >
             {isActive ? (
               <><Power className="h-3 w-3 mr-1" /> Ativo</>
             ) : (
@@ -62,21 +65,24 @@ export function BotActivationCard({
             )}
           </Badge>
         </div>
-        <CardDescription>
+        <CardDescription className="text-xs sm:text-sm mt-1">
           Ative o assistente para responder seus clientes automaticamente
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0">
         {!isConnected && (
-          <div className="p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg text-sm text-orange-600 dark:text-orange-400">
-            ⚠️ Conecte seu WhatsApp primeiro para ativar o assistente
+          <div className="p-2.5 sm:p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg text-xs sm:text-sm text-orange-600 dark:text-orange-400 leading-relaxed">
+            <span className="flex items-start gap-2">
+              <span className="shrink-0">⚠️</span>
+              <span>Conecte seu WhatsApp primeiro para ativar o assistente</span>
+            </span>
           </div>
         )}
 
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label htmlFor="bot-enabled">Ativar Assistente</Label>
-            <p className="text-xs text-muted-foreground">
+        <div className="flex items-center justify-between gap-3">
+          <div className="space-y-0.5 min-w-0 flex-1">
+            <Label htmlFor="bot-enabled" className="text-sm">Ativar Assistente</Label>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">
               O bot responderá automaticamente seus clientes
             </p>
           </div>
@@ -89,15 +95,16 @@ export function BotActivationCard({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="bot-name">Nome do Assistente</Label>
+          <Label htmlFor="bot-name" className="text-sm">Nome do Assistente</Label>
           <Input
             id="bot-name"
             value={config.bot_name}
             onChange={(e) => onUpdate({ bot_name: e.target.value })}
             placeholder="Ex: Assistente da Pizzaria"
             disabled={!isConnected}
+            className="text-sm"
           />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[10px] sm:text-xs text-muted-foreground">
             Como o bot se apresentará aos clientes
           </p>
         </div>
@@ -105,7 +112,7 @@ export function BotActivationCard({
         {config.enabled && (
           <Button 
             variant="outline" 
-            className="w-full"
+            className="w-full text-sm"
             onClick={handleForceSync}
             disabled={syncing}
           >

@@ -22,6 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   Accordion,
   AccordionContent,
@@ -49,7 +50,7 @@ const routeSections: RouteSection[] = [
   {
     id: "public-landing",
     title: "Páginas Públicas (Landing)",
-    icon: <Globe className="h-5 w-5" />,
+    icon: <Globe className="h-4 w-4 md:h-5 md:w-5" />,
     badgeColor: "bg-green-500",
     routes: [
       { path: "/", name: "Home / Landing Page", component: "Index.tsx", roles: ["public"] },
@@ -66,7 +67,7 @@ const routeSections: RouteSection[] = [
   {
     id: "public-verticals",
     title: "Verticais por Segmento",
-    icon: <BarChart3 className="h-5 w-5" />,
+    icon: <BarChart3 className="h-4 w-4 md:h-5 md:w-5" />,
     badgeColor: "bg-green-500",
     routes: [
       { path: "/para-feirantes", name: "Para Feirantes", component: "ForFeirantesPage.tsx", roles: ["public"] },
@@ -81,7 +82,7 @@ const routeSections: RouteSection[] = [
   {
     id: "public-recruitment",
     title: "Recrutamento",
-    icon: <Briefcase className="h-5 w-5" />,
+    icon: <Briefcase className="h-4 w-4 md:h-5 md:w-5" />,
     badgeColor: "bg-green-500",
     routes: [
       { path: "/seja-vendedor", name: "Seja Vendedor (Landing)", component: "BecomeSalespersonPage.tsx", roles: ["public"] },
@@ -93,7 +94,7 @@ const routeSections: RouteSection[] = [
   {
     id: "store-customer",
     title: "Loja / Cliente",
-    icon: <ShoppingCart className="h-5 w-5" />,
+    icon: <ShoppingCart className="h-4 w-4 md:h-5 md:w-5" />,
     badgeColor: "bg-blue-500",
     routes: [
       { path: "/loja/:slug", name: "Vitrine da Loja", component: "Store.tsx", roles: ["public"] },
@@ -110,7 +111,7 @@ const routeSections: RouteSection[] = [
   {
     id: "master-admin",
     title: "Master Admin",
-    icon: <Crown className="h-5 w-5" />,
+    icon: <Crown className="h-4 w-4 md:h-5 md:w-5" />,
     badgeColor: "bg-purple-500",
     routes: [
       { path: "/dashboard", name: "Dashboard Principal", component: "AdminDashboard.tsx", roles: ["master_admin"] },
@@ -147,7 +148,7 @@ const routeSections: RouteSection[] = [
   {
     id: "store-admin",
     title: "Store Admin (Lojista)",
-    icon: <Store className="h-5 w-5" />,
+    icon: <Store className="h-4 w-4 md:h-5 md:w-5" />,
     badgeColor: "bg-yellow-500",
     routes: [
       { path: "/dashboard", name: "Dashboard da Loja", component: "StoreAdminDashboard.tsx", roles: ["store_admin"] },
@@ -183,7 +184,7 @@ const routeSections: RouteSection[] = [
   {
     id: "salesperson",
     title: "Painel do Vendedor",
-    icon: <Briefcase className="h-5 w-5" />,
+    icon: <Briefcase className="h-4 w-4 md:h-5 md:w-5" />,
     badgeColor: "bg-orange-500",
     routes: [
       { path: "/vendedor", name: "Dashboard Vendedor", component: "SalespersonDashboard.tsx", roles: ["salesperson"] },
@@ -204,7 +205,7 @@ const routeSections: RouteSection[] = [
   {
     id: "delivery-driver",
     title: "Painel do Entregador",
-    icon: <Bike className="h-5 w-5" />,
+    icon: <Bike className="h-4 w-4 md:h-5 md:w-5" />,
     badgeColor: "bg-gray-500",
     routes: [
       { path: "/entregador", name: "Dashboard Entregador", component: "DeliveryDriverDashboard.tsx", roles: ["delivery_driver"] },
@@ -217,7 +218,7 @@ const routeSections: RouteSection[] = [
   {
     id: "error-pages",
     title: "Páginas de Erro",
-    icon: <AlertTriangle className="h-5 w-5" />,
+    icon: <AlertTriangle className="h-4 w-4 md:h-5 md:w-5" />,
     badgeColor: "bg-red-500",
     routes: [
       { path: "/404", name: "Página Não Encontrada", component: "NotFound.tsx", roles: ["public"] },
@@ -227,22 +228,24 @@ const routeSections: RouteSection[] = [
   },
 ];
 
+// Role config com iniciais para mobile
+const roleConfig: Record<string, { label: string; initial: string; className: string }> = {
+  public: { label: "Público", initial: "P", className: "bg-green-500/20 text-green-400 border-green-500/30" },
+  authenticated: { label: "Autenticado", initial: "A", className: "bg-blue-500/20 text-blue-400 border-blue-500/30" },
+  master_admin: { label: "Master Admin", initial: "M", className: "bg-purple-500/20 text-purple-400 border-purple-500/30" },
+  store_admin: { label: "Lojista", initial: "L", className: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" },
+  salesperson: { label: "Vendedor", initial: "V", className: "bg-orange-500/20 text-orange-400 border-orange-500/30" },
+  delivery_driver: { label: "Entregador", initial: "E", className: "bg-gray-500/20 text-gray-400 border-gray-500/30" },
+  customer: { label: "Cliente", initial: "C", className: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30" },
+  attendant: { label: "Atendente", initial: "At", className: "bg-pink-500/20 text-pink-400 border-pink-500/30" },
+};
+
 const getRoleBadge = (role: string) => {
-  const roleConfig: Record<string, { label: string; className: string }> = {
-    public: { label: "Público", className: "bg-green-500/20 text-green-400 border-green-500/30" },
-    authenticated: { label: "Autenticado", className: "bg-blue-500/20 text-blue-400 border-blue-500/30" },
-    master_admin: { label: "Master Admin", className: "bg-purple-500/20 text-purple-400 border-purple-500/30" },
-    store_admin: { label: "Lojista", className: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" },
-    salesperson: { label: "Vendedor", className: "bg-orange-500/20 text-orange-400 border-orange-500/30" },
-    delivery_driver: { label: "Entregador", className: "bg-gray-500/20 text-gray-400 border-gray-500/30" },
-    customer: { label: "Cliente", className: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30" },
-    attendant: { label: "Atendente", className: "bg-pink-500/20 text-pink-400 border-pink-500/30" },
-  };
-  
-  const config = roleConfig[role] || { label: role, className: "bg-gray-500/20 text-gray-400 border-gray-500/30" };
+  const config = roleConfig[role] || { label: role, initial: role[0]?.toUpperCase() || "?", className: "bg-gray-500/20 text-gray-400 border-gray-500/30" };
   return (
-    <Badge variant="outline" className={`text-xs ${config.className}`}>
-      {config.label}
+    <Badge variant="outline" className={`text-[10px] md:text-xs shrink-0 ${config.className}`}>
+      <span className="md:hidden">{config.initial}</span>
+      <span className="hidden md:inline">{config.label}</span>
     </Badge>
   );
 };
@@ -292,6 +295,11 @@ export default function NavigationGuidePage() {
     })).filter(section => section.routes.length > 0);
   }, [searchTerm]);
 
+  // Contar rotas filtradas
+  const filteredCount = useMemo(() => {
+    return filteredSections.reduce((acc, section) => acc + section.routes.length, 0);
+  }, [filteredSections]);
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({
@@ -308,104 +316,83 @@ export default function NavigationGuidePage() {
     }
   };
 
+  const statsCards = [
+    { value: stats.totalRoutes, label: "Total", className: "bg-card border-border", valueClass: "text-foreground" },
+    { value: stats.publicRoutes, label: "Públicas", className: "bg-green-500/10 border-green-500/30", valueClass: "text-green-400" },
+    { value: stats.protectedRoutes, label: "Protegidas", className: "bg-blue-500/10 border-blue-500/30", valueClass: "text-blue-400" },
+    { value: stats.masterAdminRoutes, label: "Master", className: "bg-purple-500/10 border-purple-500/30", valueClass: "text-purple-400" },
+    { value: stats.storeAdminRoutes, label: "Lojista", className: "bg-yellow-500/10 border-yellow-500/30", valueClass: "text-yellow-400" },
+    { value: stats.salespersonRoutes, label: "Vendedor", className: "bg-orange-500/10 border-orange-500/30", valueClass: "text-orange-400" },
+    { value: stats.deliveryDriverRoutes, label: "Entregador", className: "bg-gray-500/10 border-gray-500/30", valueClass: "text-gray-400" },
+    { value: stats.customerRoutes, label: "Cliente", className: "bg-cyan-500/10 border-cyan-500/30", valueClass: "text-cyan-400" },
+  ];
+
   return (
-    <div className="min-h-screen bg-background p-4 md:p-6">
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <Map className="h-8 w-8 text-primary" />
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+    <div className="min-h-screen bg-background p-3 md:p-6">
+      {/* Header Compacto */}
+      <div className="mb-4 md:mb-6">
+        <div className="flex items-center gap-2 md:gap-3 mb-1 md:mb-2">
+          <Map className="h-6 w-6 md:h-8 md:w-8 text-primary" />
+          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground">
             Guia de Navegação
           </h1>
         </div>
-        <p className="text-muted-foreground">
-          Índice completo de todas as rotas do sistema organizadas por área funcional.
+        <p className="text-xs md:text-sm text-muted-foreground">
+          Índice completo de todas as rotas do sistema.
         </p>
       </div>
 
-      {/* Estatísticas */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-6">
-        <Card className="bg-card border-border">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-foreground">{stats.totalRoutes}</div>
-            <div className="text-xs text-muted-foreground">Total</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-green-500/10 border-green-500/30">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-400">{stats.publicRoutes}</div>
-            <div className="text-xs text-green-400/70">Públicas</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-blue-500/10 border-blue-500/30">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-blue-400">{stats.protectedRoutes}</div>
-            <div className="text-xs text-blue-400/70">Protegidas</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-purple-500/10 border-purple-500/30">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-purple-400">{stats.masterAdminRoutes}</div>
-            <div className="text-xs text-purple-400/70">Master Admin</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-yellow-500/10 border-yellow-500/30">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-yellow-400">{stats.storeAdminRoutes}</div>
-            <div className="text-xs text-yellow-400/70">Lojista</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-orange-500/10 border-orange-500/30">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-orange-400">{stats.salespersonRoutes}</div>
-            <div className="text-xs text-orange-400/70">Vendedor</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gray-500/10 border-gray-500/30">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-gray-400">{stats.deliveryDriverRoutes}</div>
-            <div className="text-xs text-gray-400/70">Entregador</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-cyan-500/10 border-cyan-500/30">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-cyan-400">{stats.customerRoutes}</div>
-            <div className="text-xs text-cyan-400/70">Cliente</div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Estatísticas - Scroll Horizontal no Mobile */}
+      <ScrollArea className="w-full mb-4 md:mb-6">
+        <div className="flex gap-2 pb-2 md:grid md:grid-cols-4 lg:grid-cols-8 md:gap-3 md:pb-0">
+          {statsCards.map((stat, idx) => (
+            <Card key={idx} className={`${stat.className} min-w-[70px] md:min-w-0 shrink-0`}>
+              <CardContent className="p-2 md:p-4 text-center">
+                <div className={`text-lg md:text-2xl font-bold ${stat.valueClass}`}>{stat.value}</div>
+                <div className="text-[10px] md:text-xs text-muted-foreground truncate">{stat.label}</div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <ScrollBar orientation="horizontal" className="md:hidden" />
+      </ScrollArea>
 
       {/* Barra de busca e controles */}
-      <div className="flex flex-col md:flex-row gap-3 mb-6">
+      <div className="flex gap-2 mb-4 md:mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por nome, caminho ou componente..."
+            placeholder="Buscar..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-card border-border"
+            className="pl-10 bg-card border-border text-sm h-9 md:h-10"
           />
         </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => toggleAllSections(true)}
-            className="flex items-center gap-1"
-          >
-            <ChevronDown className="h-4 w-4" />
-            Expandir
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => toggleAllSections(false)}
-            className="flex items-center gap-1"
-          >
-            <ChevronUp className="h-4 w-4" />
-            Colapsar
-          </Button>
-        </div>
+        {searchTerm && (
+          <Badge variant="secondary" className="h-9 md:h-10 px-2 flex items-center text-[10px] md:text-xs shrink-0">
+            {filteredCount}
+          </Badge>
+        )}
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => toggleAllSections(true)}
+          className="h-9 w-9 md:h-10 md:w-auto md:px-3 shrink-0"
+          title="Expandir tudo"
+        >
+          <ChevronDown className="h-4 w-4" />
+          <span className="hidden md:inline ml-1">Expandir</span>
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => toggleAllSections(false)}
+          className="h-9 w-9 md:h-10 md:w-auto md:px-3 shrink-0"
+          title="Colapsar tudo"
+        >
+          <ChevronUp className="h-4 w-4" />
+          <span className="hidden md:inline ml-1">Colapsar</span>
+        </Button>
       </div>
 
       {/* Lista de rotas */}
@@ -413,7 +400,7 @@ export default function NavigationGuidePage() {
         type="multiple"
         value={expandedSections}
         onValueChange={setExpandedSections}
-        className="space-y-3"
+        className="space-y-2 md:space-y-3"
       >
         {filteredSections.map((section) => (
           <AccordionItem
@@ -421,69 +408,76 @@ export default function NavigationGuidePage() {
             value={section.id}
             className="border border-border rounded-lg bg-card overflow-hidden"
           >
-            <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-muted/50">
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${section.badgeColor}/20`}>
+            <AccordionTrigger className="px-3 md:px-4 py-2 md:py-3 hover:no-underline hover:bg-muted/50">
+              <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                <div className={`p-1.5 md:p-2 rounded-lg ${section.badgeColor}/20 shrink-0`}>
                   {section.icon}
                 </div>
-                <span className="font-semibold text-foreground">{section.title}</span>
-                <Badge variant="secondary" className="ml-2">
-                  {section.routes.length} rotas
+                <span className="font-semibold text-foreground text-sm md:text-base truncate">{section.title}</span>
+                <Badge variant="secondary" className="text-[10px] md:text-xs shrink-0">
+                  {section.routes.length}
                 </Badge>
               </div>
             </AccordionTrigger>
-            <AccordionContent className="px-4 pb-4">
+            <AccordionContent className="px-2 md:px-4 pb-3 md:pb-4">
               <div className="space-y-2 mt-2">
                 {section.routes.map((route, idx) => (
                   <div
                     key={idx}
-                    className="flex flex-col md:flex-row md:items-center justify-between gap-2 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+                    className="p-2 md:p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
                   >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium text-foreground">{route.name}</span>
-                        {route.roles.map((role, roleIdx) => (
-                          <span key={roleIdx}>{getRoleBadge(role)}</span>
-                        ))}
-                      </div>
-                      <div className="flex items-center gap-2 mt-1 text-sm">
-                        <code className="text-primary bg-primary/10 px-2 py-0.5 rounded">
-                          {route.path}
-                        </code>
-                        {route.component && (
-                          <span className="text-muted-foreground text-xs">
-                            → {route.component}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => copyToClipboard(route.path)}
-                        title="Copiar caminho"
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                      {!route.path.includes(':') && !route.path.includes('*') && (
+                    {/* Linha 1: Nome + Botões */}
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-medium text-foreground text-sm md:text-base truncate flex-1 min-w-0">
+                        {route.name}
+                      </span>
+                      <div className="flex items-center gap-1 shrink-0">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8"
-                          asChild
+                          className="h-7 w-7 md:h-8 md:w-8"
+                          onClick={() => copyToClipboard(route.path)}
+                          title="Copiar caminho"
                         >
-                          <a
-                            href={route.path}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title="Abrir em nova aba"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </a>
+                          <Copy className="h-3.5 w-3.5 md:h-4 md:w-4" />
                         </Button>
+                        {!route.path.includes(':') && !route.path.includes('*') && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 md:h-8 md:w-8"
+                            asChild
+                          >
+                            <a
+                              href={route.path}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Abrir em nova aba"
+                            >
+                              <ExternalLink className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                            </a>
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Linha 2: Path + Componente */}
+                    <div className="flex items-center gap-2 mt-1">
+                      <code className="text-xs md:text-sm text-primary bg-primary/10 px-1.5 md:px-2 py-0.5 rounded truncate max-w-[200px] md:max-w-none">
+                        {route.path}
+                      </code>
+                      {route.component && (
+                        <span className="hidden md:inline text-muted-foreground text-xs truncate">
+                          → {route.component}
+                        </span>
                       )}
+                    </div>
+                    
+                    {/* Linha 3: Badges de roles */}
+                    <div className="flex items-center gap-1 mt-1.5 overflow-x-auto pb-1">
+                      {route.roles.map((role, roleIdx) => (
+                        <span key={roleIdx}>{getRoleBadge(role)}</span>
+                      ))}
                     </div>
                   </div>
                 ))}
@@ -494,9 +488,9 @@ export default function NavigationGuidePage() {
       </Accordion>
 
       {filteredSections.length === 0 && (
-        <div className="text-center py-12 text-muted-foreground">
-          <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-          <p>Nenhuma rota encontrada para "{searchTerm}"</p>
+        <div className="text-center py-8 md:py-12 text-muted-foreground">
+          <FileText className="h-10 w-10 md:h-12 md:w-12 mx-auto mb-3 md:mb-4 opacity-50" />
+          <p className="text-sm md:text-base">Nenhuma rota encontrada para "{searchTerm}"</p>
         </div>
       )}
     </div>

@@ -77,43 +77,76 @@ export default function ProspectingGuidePage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-8">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">📋 Guia Completo de Prospecção</h1>
-          <p className="text-muted-foreground">
-            Tudo que você precisa para prospectar, qualificar e fechar vendas com confiança.
+    <div className="container mx-auto p-3 md:p-6 space-y-4 md:space-y-8">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 md:gap-4">
+        <div className="min-w-0">
+          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold mb-1 md:mb-2">
+            📋 <span className="hidden sm:inline">Guia Completo de </span>Prospecção
+          </h1>
+          <p className="text-xs md:text-sm text-muted-foreground">
+            <span className="hidden sm:inline">Tudo que você precisa para prospectar, qualificar e fechar vendas com confiança.</span>
+            <span className="sm:hidden">Ferramentas completas de vendas</span>
           </p>
         </div>
         
-        <div className="flex items-center gap-3">
-          <p className="text-xs text-muted-foreground">
-            Atualizado: {new Date().toLocaleTimeString('pt-BR')}
+        <div className="flex items-center gap-2 md:gap-3 self-end md:self-auto">
+          <p className="text-[10px] md:text-xs text-muted-foreground hidden sm:block">
+            {new Date().toLocaleTimeString('pt-BR')}
           </p>
           <Button 
             variant="outline" 
             size="sm"
             onClick={fetchPlans}
             disabled={loading}
+            className="h-8 md:h-9"
           >
-            <RefreshCw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />
-            Atualizar
+            <RefreshCw className={cn("h-4 w-4 md:mr-2", loading && "animate-spin")} />
+            <span className="hidden md:inline">Atualizar</span>
           </Button>
         </div>
       </div>
 
       <Tabs defaultValue="como-prospectar" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9">
-          <TabsTrigger value="como-prospectar">Como Prospectar</TabsTrigger>
-          <TabsTrigger value="leads-frios" className="text-primary font-semibold">🗺️ Leads Frios</TabsTrigger>
-          <TabsTrigger value="pesquisa" className="text-primary">📊 Pesquisa</TabsTrigger>
-          <TabsTrigger value="scripts">Scripts</TabsTrigger>
-          <TabsTrigger value="qualificacao">Qualificação</TabsTrigger>
-          <TabsTrigger value="apresentacao">Apresentação</TabsTrigger>
-          <TabsTrigger value="whatsapp" className="text-[#25D366]">💬 WhatsApp</TabsTrigger>
-          <TabsTrigger value="objecoes">Objeções</TabsTrigger>
-          <TabsTrigger value="fechamento">Fechamento</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto scrollbar-hide -mx-3 px-3 md:mx-0 md:px-0">
+          <TabsList className="w-max md:w-full flex md:grid md:grid-cols-9 gap-1 p-1 min-w-max">
+            <TabsTrigger value="como-prospectar" className="shrink-0 text-xs md:text-sm px-2 md:px-3 py-2">
+              <Target className="h-3.5 w-3.5 md:mr-1.5" />
+              <span className="hidden sm:inline">Prospectar</span>
+            </TabsTrigger>
+            <TabsTrigger value="leads-frios" className="shrink-0 text-xs md:text-sm px-2 md:px-3 py-2 text-primary font-semibold">
+              <MapPin className="h-3.5 w-3.5 md:mr-1.5" />
+              <span className="hidden sm:inline">🗺️ Frios</span>
+            </TabsTrigger>
+            <TabsTrigger value="pesquisa" className="shrink-0 text-xs md:text-sm px-2 md:px-3 py-2 text-primary">
+              <CheckCircle className="h-3.5 w-3.5 md:mr-1.5" />
+              <span className="hidden sm:inline">📊 Pesquisa</span>
+            </TabsTrigger>
+            <TabsTrigger value="scripts" className="shrink-0 text-xs md:text-sm px-2 md:px-3 py-2">
+              <MessageSquare className="h-3.5 w-3.5 md:mr-1.5" />
+              <span className="hidden sm:inline">Scripts</span>
+            </TabsTrigger>
+            <TabsTrigger value="qualificacao" className="shrink-0 text-xs md:text-sm px-2 md:px-3 py-2">
+              <CheckCircle className="h-3.5 w-3.5 md:mr-1.5" />
+              <span className="hidden sm:inline">Qualif.</span>
+            </TabsTrigger>
+            <TabsTrigger value="apresentacao" className="shrink-0 text-xs md:text-sm px-2 md:px-3 py-2">
+              <TrendingUp className="h-3.5 w-3.5 md:mr-1.5" />
+              <span className="hidden sm:inline">Valor</span>
+            </TabsTrigger>
+            <TabsTrigger value="whatsapp" className="shrink-0 text-xs md:text-sm px-2 md:px-3 py-2 text-[#25D366]">
+              <MessageSquare className="h-3.5 w-3.5 md:mr-1.5" />
+              <span className="hidden sm:inline">💬 WhatsApp</span>
+            </TabsTrigger>
+            <TabsTrigger value="objecoes" className="shrink-0 text-xs md:text-sm px-2 md:px-3 py-2">
+              <Shield className="h-3.5 w-3.5 md:mr-1.5" />
+              <span className="hidden sm:inline">Objeções</span>
+            </TabsTrigger>
+            <TabsTrigger value="fechamento" className="shrink-0 text-xs md:text-sm px-2 md:px-3 py-2">
+              <Target className="h-3.5 w-3.5 md:mr-1.5" />
+              <span className="hidden sm:inline">Fechar</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
         
         {/* SEÇÃO: LEADS FRIOS */}
         <TabsContent value="leads-frios">
@@ -605,18 +638,18 @@ Em 1 ano, são R$ [DIFERENÇA × 12] no seu bolso!"`}
               <CardDescription>Use esses dados para criar consciência da dor</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid md:grid-cols-3 gap-4">
-                <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-center">
-                  <p className="text-4xl font-bold text-red-600 dark:text-red-400">68%</p>
-                  <p className="text-sm text-muted-foreground mt-1">dos clientes compram UMA VEZ e nunca mais voltam</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-4">
+                <div className="p-3 md:p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-center">
+                  <p className="text-2xl md:text-4xl font-bold text-red-600 dark:text-red-400">68%</p>
+                  <p className="text-xs md:text-sm text-muted-foreground mt-1">compram UMA VEZ e nunca mais voltam</p>
                 </div>
-                <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-center">
-                  <p className="text-4xl font-bold text-red-600 dark:text-red-400">R$ 2.400</p>
-                  <p className="text-sm text-muted-foreground mt-1">perdidos por mês em média por não reconquistar clientes</p>
+                <div className="p-3 md:p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-center">
+                  <p className="text-2xl md:text-4xl font-bold text-red-600 dark:text-red-400">R$ 2.400</p>
+                  <p className="text-xs md:text-sm text-muted-foreground mt-1">perdidos/mês por não reconquistar</p>
                 </div>
-                <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-center">
-                  <p className="text-4xl font-bold text-red-600 dark:text-red-400">15 dias</p>
-                  <p className="text-sm text-muted-foreground mt-1">tempo médio para um cliente "esquecer" do restaurante</p>
+                <div className="p-3 md:p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-center">
+                  <p className="text-2xl md:text-4xl font-bold text-red-600 dark:text-red-400">15 dias</p>
+                  <p className="text-xs md:text-sm text-muted-foreground mt-1">tempo para cliente "esquecer"</p>
                 </div>
               </div>
               <Button 
@@ -643,61 +676,61 @@ Em 1 ano, são R$ [DIFERENÇA × 12] no seu bolso!"`}
               <CardDescription>8 recursos que transformam o WhatsApp em máquina de vendas</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-                  <Users className="h-5 w-5 text-[#25D366] mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium">Gestão de Contatos Inteligente</p>
-                    <p className="text-sm text-muted-foreground">Sincroniza e organiza todos os contatos automaticamente</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-4">
+                <div className="flex items-start gap-2 md:gap-3 p-2 md:p-3 rounded-lg bg-muted/30">
+                  <Users className="h-4 w-4 md:h-5 md:w-5 text-[#25D366] mt-0.5 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm md:text-base">Gestão de Contatos</p>
+                    <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">Sincroniza contatos automaticamente</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-                  <Tags className="h-5 w-5 text-[#25D366] mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium">Etiquetas Coloridas</p>
-                    <p className="text-sm text-muted-foreground">Segmentação visual por tipo de cliente (VIP, Inativo, Novo...)</p>
+                <div className="flex items-start gap-2 md:gap-3 p-2 md:p-3 rounded-lg bg-muted/30">
+                  <Tags className="h-4 w-4 md:h-5 md:w-5 text-[#25D366] mt-0.5 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm md:text-base">Etiquetas Coloridas</p>
+                    <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">Segmentação visual (VIP, Inativo...)</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-                  <Zap className="h-5 w-5 text-[#25D366] mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium">Recuperação Automática</p>
-                    <p className="text-sm text-muted-foreground">Identifica inativos e envia mensagem personalizada 24/7</p>
+                <div className="flex items-start gap-2 md:gap-3 p-2 md:p-3 rounded-lg bg-muted/30">
+                  <Zap className="h-4 w-4 md:h-5 md:w-5 text-[#25D366] mt-0.5 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm md:text-base">Recuperação Automática</p>
+                    <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">Identifica inativos e envia mensagem 24/7</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-                  <MessageSquare className="h-5 w-5 text-[#25D366] mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium">Templates com Variáveis</p>
-                    <p className="text-sm text-muted-foreground">{'{nome}, {último_pedido}, {dias_sem_comprar}'} personalizados</p>
+                <div className="flex items-start gap-2 md:gap-3 p-2 md:p-3 rounded-lg bg-muted/30">
+                  <MessageSquare className="h-4 w-4 md:h-5 md:w-5 text-[#25D366] mt-0.5 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm md:text-base">Templates Variáveis</p>
+                    <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">{'{nome}, {último_pedido}'} personalizados</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-                  <Clock className="h-5 w-5 text-[#25D366] mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium">Campanhas Agendadas</p>
-                    <p className="text-sm text-muted-foreground">Programe envios em massa com proteção anti-bloqueio</p>
+                <div className="flex items-start gap-2 md:gap-3 p-2 md:p-3 rounded-lg bg-muted/30">
+                  <Clock className="h-4 w-4 md:h-5 md:w-5 text-[#25D366] mt-0.5 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm md:text-base">Campanhas Agendadas</p>
+                    <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">Envios em massa com proteção anti-bloqueio</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-                  <BarChart3 className="h-5 w-5 text-[#25D366] mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium">Métricas em Tempo Real</p>
-                    <p className="text-sm text-muted-foreground">Acompanhe taxa de entrega, abertura e conversão</p>
+                <div className="flex items-start gap-2 md:gap-3 p-2 md:p-3 rounded-lg bg-muted/30">
+                  <BarChart3 className="h-4 w-4 md:h-5 md:w-5 text-[#25D366] mt-0.5 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm md:text-base">Métricas em Tempo Real</p>
+                    <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">Taxa de entrega, abertura e conversão</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-                  <UsersRound className="h-5 w-5 text-[#25D366] mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium">Integração com Grupos</p>
-                    <p className="text-sm text-muted-foreground">Extrai membros de grupos e transforma em contatos</p>
+                <div className="flex items-start gap-2 md:gap-3 p-2 md:p-3 rounded-lg bg-muted/30">
+                  <UsersRound className="h-4 w-4 md:h-5 md:w-5 text-[#25D366] mt-0.5 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm md:text-base">Integração com Grupos</p>
+                    <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">Extrai membros e transforma em contatos</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-                  <Link2 className="h-5 w-5 text-[#25D366] mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium">Link com Clientes</p>
-                    <p className="text-sm text-muted-foreground">Vincula contatos com histórico de pedidos automaticamente</p>
+                <div className="flex items-start gap-2 md:gap-3 p-2 md:p-3 rounded-lg bg-muted/30">
+                  <Link2 className="h-4 w-4 md:h-5 md:w-5 text-[#25D366] mt-0.5 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm md:text-base">Link com Clientes</p>
+                    <p className="text-xs md:text-sm text-muted-foreground line-clamp-2">Vincula contatos com histórico de pedidos</p>
                   </div>
                 </div>
               </div>
@@ -725,22 +758,22 @@ Em 1 ano, são R$ [DIFERENÇA × 12] no seu bolso!"`}
               <CardDescription>Use esses números para convencer o lead</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid md:grid-cols-4 gap-4">
-                <div className="p-4 rounded-lg bg-background border text-center">
-                  <p className="text-3xl font-bold text-[#25D366]">23%</p>
-                  <p className="text-sm text-muted-foreground mt-1">Taxa de recuperação de clientes inativos</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+                <div className="p-3 md:p-4 rounded-lg bg-background border text-center">
+                  <p className="text-xl md:text-3xl font-bold text-[#25D366]">23%</p>
+                  <p className="text-[10px] md:text-sm text-muted-foreground mt-1">Taxa recuperação</p>
                 </div>
-                <div className="p-4 rounded-lg bg-background border text-center">
-                  <p className="text-3xl font-bold text-[#25D366]">R$ 2.400</p>
-                  <p className="text-sm text-muted-foreground mt-1">Aumento médio mensal em vendas recuperadas</p>
+                <div className="p-3 md:p-4 rounded-lg bg-background border text-center">
+                  <p className="text-xl md:text-3xl font-bold text-[#25D366]">R$ 2.400</p>
+                  <p className="text-[10px] md:text-sm text-muted-foreground mt-1">Aumento/mês</p>
                 </div>
-                <div className="p-4 rounded-lg bg-background border text-center">
-                  <p className="text-3xl font-bold text-[#25D366]">8h/mês</p>
-                  <p className="text-sm text-muted-foreground mt-1">Economizadas em trabalho manual</p>
+                <div className="p-3 md:p-4 rounded-lg bg-background border text-center">
+                  <p className="text-xl md:text-3xl font-bold text-[#25D366]">8h/mês</p>
+                  <p className="text-[10px] md:text-sm text-muted-foreground mt-1">Economizadas</p>
                 </div>
-                <div className="p-4 rounded-lg bg-background border text-center">
-                  <p className="text-3xl font-bold text-[#25D366]">98%</p>
-                  <p className="text-sm text-muted-foreground mt-1">Taxa de abertura das mensagens</p>
+                <div className="p-3 md:p-4 rounded-lg bg-background border text-center">
+                  <p className="text-xl md:text-3xl font-bold text-[#25D366]">98%</p>
+                  <p className="text-[10px] md:text-sm text-muted-foreground mt-1">Taxa abertura</p>
                 </div>
               </div>
               <Button 

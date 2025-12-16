@@ -54,20 +54,20 @@ export function ColdLeadsGuideTab() {
             </div>
           </div>
           
-          <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
-            <h4 className="font-semibold text-blue-600 dark:text-blue-400 mb-2">💡 Estimativa de Faturamento por Avaliações</h4>
-            <div className="grid grid-cols-3 gap-4 text-sm">
+          <div className="p-3 md:p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
+            <h4 className="font-semibold text-blue-600 dark:text-blue-400 mb-2 text-sm md:text-base">💡 Estimativa de Faturamento</h4>
+            <div className="grid grid-cols-3 gap-2 md:gap-4 text-xs md:text-sm">
               <div className="text-center">
-                <p className="font-bold">50-100 reviews</p>
-                <p className="text-muted-foreground">~R$ 8-12k/mês</p>
+                <p className="font-bold text-xs md:text-sm">50-100</p>
+                <p className="text-muted-foreground text-[10px] md:text-sm">~R$ 8-12k</p>
               </div>
               <div className="text-center">
-                <p className="font-bold">100-300 reviews</p>
-                <p className="text-muted-foreground">~R$ 15-25k/mês</p>
+                <p className="font-bold text-xs md:text-sm">100-300</p>
+                <p className="text-muted-foreground text-[10px] md:text-sm">~R$ 15-25k</p>
               </div>
               <div className="text-center">
-                <p className="font-bold">300+ reviews</p>
-                <p className="text-muted-foreground">~R$ 30k+/mês</p>
+                <p className="font-bold text-xs md:text-sm">300+</p>
+                <p className="text-muted-foreground text-[10px] md:text-sm">~R$ 30k+</p>
               </div>
             </div>
           </div>
@@ -257,8 +257,28 @@ Agradeço muito! 🙏`}
           <Separator />
 
           <div>
-            <h4 className="font-semibold mb-3">🛡️ Tabela de Objeções do Gatekeeper</h4>
-            <div className="overflow-x-auto">
+            <h4 className="font-semibold mb-3 text-sm md:text-base">🛡️ Objeções do Gatekeeper</h4>
+            
+            {/* Mobile: Cards empilhados */}
+            <div className="space-y-2 md:hidden">
+              {[
+                { says: '"Não passamos contato"', response: '"Entendo! Qual o melhor horário que eu ligo e ele atende?"' },
+                { says: '"Manda por email"', response: '"Claro! Qual o email? E o nome do responsável pra eu direcionar?"' },
+                { says: '"Ele não está"', response: '"Sem problema! Você sabe que horas ele costuma chegar?"' },
+                { says: '"Não temos interesse"', response: '"Compreendo! Só uma curiosidade: vocês usam iFood hoje?"' },
+                { says: '"Qual o assunto?"', response: '"É sobre uma forma de economizar nas taxas do iFood."' },
+              ].map((obj, i) => (
+                <div key={i} className="p-3 rounded-lg border bg-muted/30">
+                  <p className="text-[10px] text-muted-foreground mb-1">Funcionário diz:</p>
+                  <p className="text-sm font-medium mb-2">{obj.says}</p>
+                  <p className="text-[10px] text-muted-foreground mb-1">Você responde:</p>
+                  <p className="text-sm text-primary">{obj.response}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: Tabela */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b">

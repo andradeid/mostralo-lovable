@@ -87,22 +87,22 @@ export function QualificationSurveyTab({ plans }: QualificationSurveyTabProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 rounded-lg bg-muted/50">
-              <div className="text-3xl font-bold text-primary">10</div>
-              <div className="text-sm text-muted-foreground">Perguntas</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+            <div className="text-center p-3 md:p-4 rounded-lg bg-muted/50">
+              <div className="text-2xl md:text-3xl font-bold text-primary">10</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Perguntas</div>
             </div>
-            <div className="text-center p-4 rounded-lg bg-muted/50">
-              <div className="text-3xl font-bold text-primary">{maxPoints}</div>
-              <div className="text-sm text-muted-foreground">Pontos Máx.</div>
+            <div className="text-center p-3 md:p-4 rounded-lg bg-muted/50">
+              <div className="text-2xl md:text-3xl font-bold text-primary">{maxPoints}</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Pts Máx.</div>
             </div>
-            <div className="text-center p-4 rounded-lg bg-muted/50">
-              <div className="text-3xl font-bold text-primary">5</div>
-              <div className="text-sm text-muted-foreground">Faixas</div>
+            <div className="text-center p-3 md:p-4 rounded-lg bg-muted/50">
+              <div className="text-2xl md:text-3xl font-bold text-primary">5</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Faixas</div>
             </div>
-            <div className="text-center p-4 rounded-lg bg-muted/50">
-              <div className="text-3xl font-bold text-primary">~3min</div>
-              <div className="text-sm text-muted-foreground">Duração</div>
+            <div className="text-center p-3 md:p-4 rounded-lg bg-muted/50">
+              <div className="text-2xl md:text-3xl font-bold text-primary">~3min</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Duração</div>
             </div>
           </div>
         </CardContent>
@@ -120,15 +120,15 @@ export function QualificationSurveyTab({ plans }: QualificationSurveyTabProps) {
           {tiersLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-              <span className="ml-2 text-muted-foreground">Carregando faixas...</span>
+              <span className="ml-2 text-muted-foreground text-sm">Carregando...</span>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 md:gap-3">
               {dynamicTiers.map((tier, index) => (
                 <div 
                   key={tier.classification}
                   className={cn(
-                    "p-4 rounded-lg border text-center",
+                    "p-3 md:p-4 rounded-lg border text-center",
                     index === 0 && "bg-yellow-500/10 border-yellow-500/30",
                     index === 1 && "bg-orange-500/10 border-orange-500/30",
                     index === 2 && "bg-blue-500/10 border-blue-500/30",
@@ -136,15 +136,15 @@ export function QualificationSurveyTab({ plans }: QualificationSurveyTabProps) {
                     index >= 4 && "bg-muted/50 border-border"
                   )}
                 >
-                  <div className="text-2xl mb-2">{tier.emoji}</div>
-                  <div className="font-semibold text-sm">{tier.classification}</div>
-                  <Badge variant="outline" className="mt-2">
-                    {tier.minPoints}-{tier.maxPoints} pts
+                  <div className="text-xl md:text-2xl mb-1 md:mb-2">{tier.emoji}</div>
+                  <div className="font-semibold text-xs md:text-sm truncate">{tier.classification}</div>
+                  <Badge variant="outline" className="mt-1.5 md:mt-2 text-[10px] md:text-xs">
+                    {tier.minPoints}-{tier.maxPoints}
                   </Badge>
-                  <p className="text-xs text-muted-foreground mt-2">{tier.benefit}</p>
+                  <p className="text-[10px] md:text-xs text-muted-foreground mt-1.5 md:mt-2 line-clamp-2">{tier.benefit}</p>
                   {tier.promotionCode && (
-                    <Badge variant="secondary" className="mt-2 text-xs">
-                      🎁 {tier.promotionCode}
+                    <Badge variant="secondary" className="mt-1.5 md:mt-2 text-[10px] md:text-xs">
+                      🎁 {tier.promotionCode.slice(0, 8)}
                     </Badge>
                   )}
                 </div>
@@ -289,15 +289,17 @@ export function QualificationSurveyTab({ plans }: QualificationSurveyTabProps) {
           <ScrollArea className="h-[400px] w-full rounded-md border p-4 bg-muted/30">
             <pre className="text-sm whitespace-pre-wrap font-mono">{prompt}</pre>
           </ScrollArea>
-          <div className="mt-4 flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">
+          <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+            <span className="text-[10px] md:text-xs text-muted-foreground">
               {prompt.length.toLocaleString()} caracteres
             </span>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline">Lead Scoring</Badge>
-              <Badge variant="outline">10 Perguntas</Badge>
-              <Badge variant="outline">5 Faixas</Badge>
-              <Badge variant="outline">Fechamento Completo</Badge>
+            <div className="overflow-x-auto scrollbar-hide w-full sm:w-auto">
+              <div className="flex items-center gap-1.5 md:gap-2 pb-1">
+                <Badge variant="outline" className="text-[10px] md:text-xs shrink-0">Lead Scoring</Badge>
+                <Badge variant="outline" className="text-[10px] md:text-xs shrink-0">10 Perguntas</Badge>
+                <Badge variant="outline" className="text-[10px] md:text-xs shrink-0">5 Faixas</Badge>
+                <Badge variant="outline" className="text-[10px] md:text-xs shrink-0">Fechamento</Badge>
+              </div>
             </div>
           </div>
         </CardContent>

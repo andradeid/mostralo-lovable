@@ -19,6 +19,7 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
+  AlertTriangle,
   Send,
   Search,
   TestTube,
@@ -577,52 +578,48 @@ export default function WhatsAppInstancePage() {
         </p>
       </div>
 
-      {!instance ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Smartphone className="h-5 w-5" />
-              Nenhuma Instância Configurada
-            </CardTitle>
-            <CardDescription>
-              Crie uma instância para conectar seu WhatsApp e começar a enviar mensagens
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={createInstance} disabled={actionLoading === 'create'}>
-              {actionLoading === 'create' ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Criando...
-                </>
-              ) : (
-                <>
-                  <Power className="h-4 w-4 mr-2" />
-                  Criar Instância
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <Tabs defaultValue="connection" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="connection" className="gap-2">
-              <Smartphone className="h-4 w-4" />
-              <span className="hidden sm:inline">Conexão</span>
-            </TabsTrigger>
-            <TabsTrigger value="bot" disabled={!isConnected} className="gap-2">
-              <Bot className="h-4 w-4" />
-              <span className="hidden sm:inline">Assistente IA</span>
-              {!isConnected && (
-                <Badge variant="secondary" className="ml-1 text-[10px] px-1">
-                  Conecte primeiro
-                </Badge>
-              )}
-            </TabsTrigger>
-          </TabsList>
+      <Tabs defaultValue="connection" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="connection" className="gap-2">
+            <Smartphone className="h-4 w-4" />
+            <span className="hidden sm:inline">Conexão</span>
+          </TabsTrigger>
+          <TabsTrigger value="bot" className="gap-2">
+            <Bot className="h-4 w-4" />
+            <span className="hidden sm:inline">Assistente IA</span>
+          </TabsTrigger>
+        </TabsList>
 
-          <TabsContent value="connection" className="space-y-6">
+        <TabsContent value="connection" className="space-y-6">
+          {!instance ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Smartphone className="h-5 w-5" />
+                  Nenhuma Instância Configurada
+                </CardTitle>
+                <CardDescription>
+                  Crie uma instância para conectar seu WhatsApp e começar a enviar mensagens
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button onClick={createInstance} disabled={actionLoading === 'create'}>
+                  {actionLoading === 'create' ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Criando...
+                    </>
+                  ) : (
+                    <>
+                      <Power className="h-4 w-4 mr-2" />
+                      Criar Instância
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
             <div className="grid gap-6 md:grid-cols-2">
             {/* Card de Status */}
             <Card>
@@ -1242,14 +1239,33 @@ export default function WhatsAppInstancePage() {
               </CardContent>
             </Card>
           )}
-          </TabsContent>
+          </>
+          )}
+        </TabsContent>
 
-          <TabsContent value="bot" className="space-y-6">
-            {botLoading ? (
-              <div className="flex items-center justify-center h-64">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <TabsContent value="bot" className="space-y-6">
+          {(!instance || !isConnected) && (
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium">
+                  {!instance 
+                    ? "Crie uma instância WhatsApp na aba 'Conexão' para ativar o assistente."
+                    : "Conecte seu WhatsApp para que o assistente funcione."
+                  }
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Você pode configurar tudo agora e ativar depois.
+                </p>
               </div>
-            ) : botConfig && (
+            </div>
+          )}
+          
+          {botLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : botConfig && (
               <>
                 <div className="grid gap-6 lg:grid-cols-2">
                   <div className="space-y-6">
@@ -1288,9 +1304,8 @@ export default function WhatsAppInstancePage() {
                 />
               </>
             )}
-          </TabsContent>
-        </Tabs>
-      )}
+        </TabsContent>
+      </Tabs>
 
       <Card>
         <CardHeader>

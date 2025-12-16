@@ -122,8 +122,14 @@ serve(async (req) => {
       });
     }
 
-    if (!evolutionConfig.openai_creds_id) {
-      return new Response(JSON.stringify({ error: 'Credenciais OpenAI não configuradas' }), {
+    // A credencial da OpenAI na Evolution (openai_creds_id) pode estar vazia ou ter sido
+    // gerada localmente (UUID) no modo "salvar". Nesse caso, vamos criar/sincronizar
+    // automaticamente a credencial na Evolution para evitar erro "Error setting default settings".
+    const hasOpenAiCredsId = !!evolutionConfig.openai_creds_id;
+    const hasOpenAiApiKey = !!evolutionConfig.openai_api_key;
+
+    if (!hasOpenAiCredsId && !hasOpenAiApiKey) {
+      return new Response(JSON.stringify({ error: 'Chave OpenAI não configurada' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -161,6 +167,62 @@ serve(async (req) => {
 
     const evolutionUrl = evolutionConfig.api_url.replace(/\/$/, '');
 
+    const looksLikeUuid = (value: string) =>
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+
+    let openaiCredsId = evolutionConfig.openai_creds_id as string | null;
+
+    // Se não existe (ou parece UUID local), criar credencial real na Evolution
+    if (!openaiCredsId || looksLikeUuid(openaiCredsId)) {
+      console.log('Criando credencial OpenAI na Evolution (fallback automático)...');
+
+      const createCredsResp = await fetch(`${evolutionUrl}/openai/creds`, {
+        method: 'POST',
+        headers: {
+          'apikey': evolutionConfig.api_key,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: 'mostralo-openai-creds',
+          apiKey: evolutionConfig.openai_api_key,
+        }),
+      });
+
+      const createCredsText = await createCredsResp.text();
+      console.log('Resposta create creds:', createCredsResp.status, createCredsText);
+
+      if (!createCredsResp.ok) {
+        return new Response(JSON.stringify({
+          success: false,
+          error: `Falha ao criar credencial OpenAI na Evolution: ${createCredsText}`,
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const credsData = JSON.parse(createCredsText);
+      openaiCredsId = credsData.id || credsData.openaiCredsId || credsData.openai_creds_id || null;
+
+      if (!openaiCredsId) {
+        return new Response(JSON.stringify({
+          success: false,
+          error: 'Evolution não retornou openaiCredsId ao criar credenciais',
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      await supabaseClient
+        .from('evolution_config')
+        .update({
+          openai_creds_id: openaiCredsId,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', evolutionConfig.id);
+    }
+
     // Ações que requerem instância de teste
     const actionsRequiringInstance = ['create', 'update', 'toggle', 'delete'];
     if (actionsRequiringInstance.includes(action) && !testConfig.test_instance_name) {
@@ -195,7 +257,7 @@ serve(async (req) => {
       // Payload para criar/atualizar bot
       const botPayload: any = {
         enabled: true,
-        openaiCredsId: evolutionConfig.openai_creds_id,
+        openaiCredsId: openaiCredsId,
         botType: 'chatCompletion',
         model: model,
         maxTokens: evolutionConfig.openai_max_tokens || 1000,

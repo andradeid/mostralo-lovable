@@ -166,9 +166,6 @@ serve(async (req) => {
     }
 
     const evolutionUrl = evolutionConfig.api_url.replace(/\/$/, '');
-
-    // Evolution API 2.3.7 não tem endpoint separado para credenciais OpenAI
-    // A apiKey é passada diretamente no payload do bot
     const openaiApiKey = evolutionConfig.openai_api_key;
 
     // Ações que requerem instância de teste
@@ -180,7 +177,74 @@ serve(async (req) => {
       });
     }
 
+    const instanceName = testConfig.test_instance_name;
+
+    // Helper: criar/buscar openaiCredsId na instância
+    async function ensureOpenAiCreds(): Promise<string | null> {
+      // Primeiro, tentar buscar credenciais existentes
+      const fetchResp = await fetch(`${evolutionUrl}/openai/fetch/${instanceName}`, {
+        method: 'GET',
+        headers: { 'apikey': evolutionConfig.api_key },
+      });
+      
+      if (fetchResp.ok) {
+        const fetchData = await fetchResp.json();
+        console.log('Fetch creds response:', JSON.stringify(fetchData));
+        // Se já existe credencial, retornar o ID
+        if (fetchData?.openaiCredsId || fetchData?.id) {
+          return fetchData.openaiCredsId || fetchData.id;
+        }
+        // Se retornou lista, pegar o primeiro
+        if (Array.isArray(fetchData) && fetchData.length > 0) {
+          return fetchData[0].openaiCredsId || fetchData[0].id;
+        }
+      }
+
+      // Criar nova credencial com endpoint por instância
+      console.log('Criando credencial OpenAI na instância...');
+      const createResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
+        method: 'POST',
+        headers: {
+          'apikey': evolutionConfig.api_key,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: 'mostralo-openai',
+          apiKey: openaiApiKey,
+        }),
+      });
+
+      const createText = await createResp.text();
+      console.log('Create creds response:', createResp.status, createText);
+
+      if (!createResp.ok) {
+        console.error('Falha ao criar credenciais:', createText);
+        return null;
+      }
+
+      try {
+        const createData = JSON.parse(createText);
+        return createData.openaiCredsId || createData.id || null;
+      } catch {
+        return null;
+      }
+    }
+
     if (action === 'create' || action === 'update') {
+      // Garantir que temos openaiCredsId
+      const openaiCredsId = await ensureOpenAiCreds();
+      if (!openaiCredsId) {
+        return new Response(JSON.stringify({
+          success: false,
+          error: 'Não foi possível obter/criar credenciais OpenAI na Evolution',
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      console.log('Usando openaiCredsId:', openaiCredsId);
+
       // Gerar prompt com dados da loja sandbox
       const products = (testConfig.sandbox_products || []) as SandboxProduct[];
       const categories = (testConfig.sandbox_categories || []) as SandboxCategory[];
@@ -202,10 +266,10 @@ serve(async (req) => {
         model = 'gpt-4o-mini';
       }
 
-      // Payload para criar/atualizar bot - Evolution API 2.3.7 usa apiKey diretamente
+      // Payload com openaiCredsId (obrigatório na Evolution API)
       const botPayload: any = {
         enabled: true,
-        apiKey: openaiApiKey,
+        openaiCredsId: openaiCredsId,
         botType: 'chatCompletion',
         model: model,
         maxTokens: evolutionConfig.openai_max_tokens || 1000,

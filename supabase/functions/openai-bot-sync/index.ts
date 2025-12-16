@@ -79,17 +79,24 @@ function formatPaymentMethods(store: any): string {
 }
 
 function generateSystemPrompt(botName: string, store: any, products: any[], categories: any[]): string {
+  const storeLink = `https://mostralo.com.br/loja/${store.slug}`;
+  
   const productList = products
     .filter(p => p.is_available)
-    .map(p => `- ${p.name}: R$ ${p.price?.toFixed(2)} - ${p.description || 'Sem descrição'}`)
-    .join('\n');
+    .map(p => {
+      const productLink = p.slug 
+        ? `${storeLink}/produto/${p.slug}`
+        : storeLink;
+      return `- ${p.name}: R$ ${p.price?.toFixed(2)}
+    Descrição: ${p.description || 'Sem descrição'}
+    📎 Ver produto: ${productLink}`;
+    })
+    .join('\n\n');
 
   const categoryList = categories
     .filter(c => c.is_active)
     .map(c => c.name)
     .join(', ');
-
-  const storeLink = `https://mostralo.com.br/loja/${store.slug}`;
   
   // Seção de localização
   const locationSection = store.google_maps_link 
@@ -138,16 +145,22 @@ INSTRUÇÕES:
 1. Seja cordial e prestativo
 2. Apresente os produtos quando perguntado
 3. Informe preços corretamente
-4. Direcione o cliente para o cardápio online: ${storeLink}
-5. Para finalizar pedido, peça para acessar o link do cardápio
-6. Não invente produtos ou preços
-7. Se não souber algo, direcione ao link do cardápio
-8. Responda sempre em português brasileiro
-9. Use emojis moderadamente para deixar a conversa mais amigável
-10. Mencione promoções se houver
-11. Quando pedirem localização, envie o link do Google Maps se disponível
-12. Informe horário de funcionamento quando perguntado
-13. Informe formas de pagamento aceitas quando perguntado
+4. SEMPRE inclua o link do produto quando falar sobre ele
+5. Direcione o cliente para o cardápio online: ${storeLink}
+6. Para finalizar pedido, peça para acessar o link do produto ou cardápio
+7. Não invente produtos ou preços
+8. Se não souber algo, direcione ao link do cardápio
+9. Responda sempre em português brasileiro
+10. Use emojis moderadamente para deixar a conversa mais amigável
+11. Mencione promoções se houver
+12. Quando pedirem localização, envie o link do Google Maps se disponível
+13. Informe horário de funcionamento quando perguntado
+14. Informe formas de pagamento aceitas quando perguntado
+
+LINKS DE PRODUTOS:
+- Quando o cliente perguntar sobre um produto específico, SEMPRE envie o link do produto
+- Use o formato: "Você pode ver mais detalhes e pedir aqui: [link]"
+- Se o cliente mostrar interesse, envie o link imediatamente
 
 ENCERRAMENTO:
 - Quando o cliente digitar a palavra de encerramento, agradeça e finalize
@@ -258,10 +271,10 @@ serve(async (req) => {
     const evolutionUrl = evolutionConfig.api_url.replace(/\/$/, '');
     const openaiApiKey = evolutionConfig.openai_api_key;
 
-    // Buscar produtos e categorias
+    // Buscar produtos e categorias (incluindo slug para links)
     const { data: products } = await supabaseClient
       .from('products')
-      .select('*')
+      .select('*, slug')
       .eq('store_id', config.storeId)
       .eq('is_available', true);
 

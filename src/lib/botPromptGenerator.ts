@@ -21,6 +21,7 @@ interface Product {
   price: number;
   description?: string;
   is_available: boolean;
+  slug?: string;
 }
 
 interface Category {
@@ -175,15 +176,23 @@ export function generateBotPromptPreview(
   const availableProducts = products.filter(p => p.is_available);
   const activeCategories = categories.filter(c => c.is_active);
 
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://mostralo.com.br';
+  const storeLink = `${baseUrl}/loja/${store.slug}`;
+
   const productList = availableProducts
-    .map(p => `- ${p.name}: R$ ${p.price?.toFixed(2)} - ${p.description || 'Sem descrição'}`)
-    .join('\n');
+    .map(p => {
+      const productLink = p.slug 
+        ? `${baseUrl}/loja/${store.slug}/produto/${p.slug}`
+        : storeLink;
+      return `- ${p.name}: R$ ${p.price?.toFixed(2)}
+    Descrição: ${p.description || 'Sem descrição'}
+    📎 Ver produto: ${productLink}`;
+    })
+    .join('\n\n');
 
   const categoryList = activeCategories
     .map(c => c.name)
     .join(', ');
-
-  const storeLink = `${window.location.origin}/loja/${store.slug}`;
 
   const assistantName = botName || 'Assistente Virtual';
   
@@ -239,15 +248,21 @@ ${productList || 'Não há produtos cadastrados'}
 INSTRUÇÕES GERAIS:
 1. Apresente os produtos quando perguntado
 2. Informe preços corretamente
-3. Direcione o cliente para o cardápio online: ${storeLink}
-4. Para finalizar pedido, peça para acessar o link do cardápio
-5. Não invente produtos ou preços
-6. Se não souber algo, direcione ao link do cardápio
-7. Responda sempre em português brasileiro
-8. Mencione promoções se houver
-9. Quando pedirem localização, envie o link do Google Maps se disponível
-10. Informe horário de funcionamento quando perguntado
-11. Informe formas de pagamento aceitas quando perguntado
+3. SEMPRE inclua o link do produto quando falar sobre ele
+4. Direcione o cliente para o cardápio online: ${storeLink}
+5. Para finalizar pedido, peça para acessar o link do produto ou cardápio
+6. Não invente produtos ou preços
+7. Se não souber algo, direcione ao link do cardápio
+8. Responda sempre em português brasileiro
+9. Mencione promoções se houver
+10. Quando pedirem localização, envie o link do Google Maps se disponível
+11. Informe horário de funcionamento quando perguntado
+12. Informe formas de pagamento aceitas quando perguntado
+
+LINKS DE PRODUTOS:
+- Quando o cliente perguntar sobre um produto específico, SEMPRE envie o link do produto
+- Use o formato: "Você pode ver mais detalhes e pedir aqui: [link]"
+- Se o cliente mostrar interesse, envie o link imediatamente
 
 ENCERRAMENTO:
 - Quando o cliente digitar a palavra de encerramento, agradeça e finalize

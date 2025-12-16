@@ -6,6 +6,32 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Normaliza telefone para busca no banco (remove DDI e variações do 9º dígito)
+function normalizePhoneForSearch(phone: string): string[] {
+  const digits = phone.replace(/\D/g, '');
+  const variants: string[] = [];
+  
+  // Telefone original
+  variants.push(digits);
+  
+  // Sem DDI 55
+  if (digits.startsWith('55')) {
+    const withoutDDI = digits.slice(2);
+    variants.push(withoutDDI);
+    
+    // Com/sem 9º dígito (números celulares brasileiros)
+    if (withoutDDI.length === 11 && withoutDDI[2] === '9') {
+      // Remove 9º dígito: 61999999999 -> 6199999999
+      variants.push(withoutDDI.slice(0, 2) + withoutDDI.slice(3));
+    } else if (withoutDDI.length === 10) {
+      // Adiciona 9º dígito: 6199999999 -> 61999999999
+      variants.push(withoutDDI.slice(0, 2) + '9' + withoutDDI.slice(2));
+    }
+  }
+  
+  return [...new Set(variants)];
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -58,6 +84,43 @@ serve(async (req) => {
 
       console.log(`🏪 Loja encontrada: ${instance.store_id}`);
 
+      // ========== BUSCAR CLIENTE PELO TELEFONE ==========
+      const phoneVariants = normalizePhoneForSearch(senderPhone);
+      console.log(`🔍 Buscando cliente com variantes: ${phoneVariants.join(', ')}`);
+
+      // Buscar cliente pelo telefone (com variantes)
+      const { data: customer, error: customerError } = await supabase
+        .from('customers')
+        .select('id, name, phone')
+        .in('phone', phoneVariants)
+        .limit(1)
+        .maybeSingle();
+
+      let customerStoreData = null;
+      let isKnownCustomer = false;
+
+      if (customer) {
+        isKnownCustomer = true;
+        console.log(`✅ Cliente encontrado: ${customer.name} (ID: ${customer.id})`);
+
+        // Buscar dados específicos da relação com a loja
+        const { data: storeRelation, error: storeRelationError } = await supabase
+          .from('customer_stores')
+          .select('last_order_at, total_orders, total_spent')
+          .eq('customer_id', customer.id)
+          .eq('store_id', instance.store_id)
+          .maybeSingle();
+
+        if (storeRelation) {
+          customerStoreData = storeRelation;
+          console.log(`📊 Dados do cliente na loja: ${customerStoreData.total_orders} pedidos, R$ ${customerStoreData.total_spent}, último: ${customerStoreData.last_order_at}`);
+        } else {
+          console.log(`ℹ️ Cliente conhecido, mas sem histórico nesta loja`);
+        }
+      } else {
+        console.log(`👤 Novo visitante (não encontrado no banco)`);
+      }
+
       // Verificar se já enviamos mensagem para este número (evitar saudação repetida)
       const { count, error: countError } = await supabase
         .from('whatsapp_messages')
@@ -76,13 +139,20 @@ serve(async (req) => {
       if (count === 0 || count === null) {
         console.log('👋 Primeiro contato! Disparando saudação automática...');
         
-        // Chamar whatsapp-auto-send para enviar saudação
+        // Chamar whatsapp-auto-send para enviar saudação (agora com dados do cliente)
         const { data: sendResult, error: sendError } = await supabase.functions.invoke('whatsapp-auto-send', {
           body: {
             storeId: instance.store_id,
             eventType: 'greeting',
             phoneNumber: senderPhone,
-            customerName: senderName
+            customerName: customer?.name || senderName,
+            // NOVOS DADOS para saudação inteligente:
+            isKnownCustomer: isKnownCustomer,
+            customerData: customerStoreData ? {
+              lastOrderAt: customerStoreData.last_order_at,
+              totalOrders: customerStoreData.total_orders,
+              totalSpent: customerStoreData.total_spent
+            } : null
           }
         });
 
@@ -98,8 +168,9 @@ serve(async (req) => {
       return new Response(JSON.stringify({ 
         success: true, 
         isNewContact: count === 0 || count === null,
+        isKnownCustomer,
         senderPhone,
-        senderName
+        senderName: customer?.name || senderName
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

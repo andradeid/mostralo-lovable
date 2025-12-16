@@ -21,6 +21,96 @@ function normalizePhoneForWhatsApp(phone: string): string {
   return normalized;
 }
 
+// ========== SAUDAÇÃO POR HORÁRIO (Brasília UTC-3) ==========
+function getGreetingByTime(): string {
+  const now = new Date();
+  // Ajustar para horário de Brasília (UTC-3)
+  const brasiliaHour = new Date(now.getTime() - (3 * 60 * 60 * 1000)).getUTCHours();
+  
+  if (brasiliaHour >= 5 && brasiliaHour < 12) {
+    return 'Bom dia';
+  } else if (brasiliaHour >= 12 && brasiliaHour < 18) {
+    return 'Boa tarde';
+  } else {
+    return 'Boa noite';
+  }
+}
+
+// ========== CLASSIFICAÇÃO DE CLIENTE ==========
+interface CustomerClassification {
+  type: 'new' | 'first_time' | 'frequent' | 'returning' | 'missed' | 'vip';
+  daysSinceOrder: number | null;
+  totalOrders: number;
+  totalSpent: number;
+}
+
+function classifyCustomer(isKnownCustomer: boolean, customerData: any): CustomerClassification {
+  // Visitante completamente novo (não está no banco)
+  if (!isKnownCustomer) {
+    return { type: 'new', daysSinceOrder: null, totalOrders: 0, totalSpent: 0 };
+  }
+  
+  // Cliente existe mas sem histórico nesta loja específica
+  if (!customerData) {
+    return { type: 'first_time', daysSinceOrder: null, totalOrders: 0, totalSpent: 0 };
+  }
+  
+  const { lastOrderAt, totalOrders, totalSpent } = customerData;
+  const daysSinceOrder = lastOrderAt 
+    ? Math.floor((Date.now() - new Date(lastOrderAt).getTime()) / (1000 * 60 * 60 * 24))
+    : null;
+  
+  // VIP: gastou mais de R$ 500 nesta loja
+  if (totalSpent >= 500) {
+    return { type: 'vip', daysSinceOrder, totalOrders, totalSpent };
+  }
+  
+  // Frequente: pediu nos últimos 7 dias
+  if (daysSinceOrder !== null && daysSinceOrder < 7) {
+    return { type: 'frequent', daysSinceOrder, totalOrders, totalSpent };
+  }
+  
+  // Retornando: 7-30 dias desde último pedido
+  if (daysSinceOrder !== null && daysSinceOrder <= 30) {
+    return { type: 'returning', daysSinceOrder, totalOrders, totalSpent };
+  }
+  
+  // Ausente: mais de 30 dias sem pedir
+  if (daysSinceOrder !== null && daysSinceOrder > 30) {
+    return { type: 'missed', daysSinceOrder, totalOrders, totalSpent };
+  }
+  
+  return { type: 'first_time', daysSinceOrder, totalOrders, totalSpent };
+}
+
+// ========== TEMPLATES DE SAUDAÇÃO POR TIPO ==========
+function getSmartGreetingTemplate(
+  classification: CustomerClassification, 
+  greeting: string,
+  storeName: string
+): string {
+  switch (classification.type) {
+    case 'vip':
+      return `${greeting}, {primeiro_nome}! 🌟 Nosso cliente especial! Que bom ter você de volta na ${storeName}! Como posso ajudar hoje?`;
+    
+    case 'frequent':
+      return `${greeting}, {primeiro_nome}! 😊 Que bom ver você de novo! Como posso ajudar?`;
+    
+    case 'returning':
+      return `${greeting}, {primeiro_nome}! Que bom ter você de volta! 😊 Faz ${classification.daysSinceOrder} dias que não nos vemos... Como posso ajudar?`;
+    
+    case 'missed':
+      return `${greeting}, {primeiro_nome}! Que saudade! 💕 Já faz ${classification.daysSinceOrder} dias desde seu último pedido... Temos novidades te esperando! Como posso ajudar?`;
+    
+    case 'first_time':
+      return `${greeting}, {primeiro_nome}! 👋 Seja bem-vindo(a) à ${storeName}! Primeira vez por aqui? Como posso ajudar?`;
+    
+    case 'new':
+    default:
+      return `${greeting}! 👋 Seja bem-vindo(a) à ${storeName}! Como posso ajudar?`;
+  }
+}
+
 // Substituir variáveis na mensagem
 function replaceVariables(template: string, data: {
   customerName?: string;
@@ -35,32 +125,35 @@ function replaceVariables(template: string, data: {
   orderId?: string;
   storePhone?: string;
   baseUrl?: string;
+  // Novas variáveis
+  greeting?: string;
+  daysSinceOrder?: number | null;
+  totalOrders?: number;
+  totalSpent?: number;
 }): string {
   let message = template;
   
   const firstName = data.customerName?.split(' ')[0] || '';
   const formattedTotal = data.orderTotal ? data.orderTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '';
+  const formattedTotalSpent = data.totalSpent ? data.totalSpent.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00';
   
   // Lógica de links dinâmicos
-  // Prioridade: 1. Domínio customizado, 2. baseUrl do frontend, 3. PUBLIC_URL, 4. Fallback
   let storeLink = '';
   let orderLink = '';
   
   if (data.storeCustomDomain && data.storeCustomDomainVerified) {
-    // Loja com domínio customizado verificado
     storeLink = `https://${data.storeCustomDomain}`;
     orderLink = data.orderId ? `https://${data.storeCustomDomain}/pedido/${data.orderId}` : '';
   } else if (data.baseUrl) {
-    // URL passada pelo frontend (testes/dev)
     storeLink = data.storeSlug ? `${data.baseUrl}/loja/${data.storeSlug}` : '';
     orderLink = data.orderId ? `${data.baseUrl}/pedido/${data.orderId}` : '';
   } else {
-    // Fallback: ENV ou padrão
     const defaultUrl = Deno.env.get('PUBLIC_URL') || 'https://mostralo.com.br';
     storeLink = data.storeSlug ? `${defaultUrl}/loja/${data.storeSlug}` : '';
     orderLink = data.orderId ? `${defaultUrl}/pedido/${data.orderId}` : '';
   }
   
+  // Variáveis existentes
   message = message.replace(/{nome}/g, data.customerName || '');
   message = message.replace(/{primeiro_nome}/g, firstName);
   message = message.replace(/{loja}/g, data.storeName || '');
@@ -71,6 +164,12 @@ function replaceVariables(template: string, data: {
   message = message.replace(/{tipo_entrega}/g, data.deliveryType === 'delivery' ? 'Delivery' : 'Retirada no Balcão');
   message = message.replace(/{link_pedido}/g, orderLink);
   message = message.replace(/{whatsapp_loja}/g, data.storePhone || '');
+  
+  // Novas variáveis
+  message = message.replace(/{saudacao}/g, data.greeting || getGreetingByTime());
+  message = message.replace(/{dias_sem_pedir}/g, data.daysSinceOrder !== null && data.daysSinceOrder !== undefined ? String(data.daysSinceOrder) : '');
+  message = message.replace(/{total_pedidos}/g, String(data.totalOrders || 0));
+  message = message.replace(/{total_gasto}/g, formattedTotalSpent);
   
   return message;
 }
@@ -87,15 +186,18 @@ serve(async (req) => {
 
     const { 
       storeId, 
-      eventType, // 'greeting' | 'order_received' | 'order_confirmed' | 'order_ready' | 'order_in_transit' | 'order_completed' | 'order_cancelled'
+      eventType,
       phoneNumber,
       customerName,
       orderId,
-      isTest = false, // Modo teste - ignora verificações de habilitação
-      baseUrl // URL base passada pelo frontend para links dinâmicos
+      isTest = false,
+      baseUrl,
+      // NOVOS PARÂMETROS para saudação inteligente
+      isKnownCustomer = false,
+      customerData = null
     } = await req.json();
 
-    console.log(`[whatsapp-auto-send] Event: ${eventType}, Store: ${storeId}, Phone: ${phoneNumber}, isTest: ${isTest}`);
+    console.log(`[whatsapp-auto-send] Event: ${eventType}, Store: ${storeId}, Phone: ${phoneNumber}, isTest: ${isTest}, isKnownCustomer: ${isKnownCustomer}`);
 
     // Buscar configuração de mensagens automáticas
     const { data: autoConfig, error: configError } = await supabase
@@ -151,7 +253,7 @@ serve(async (req) => {
       });
     }
 
-    // Buscar dados da loja (incluindo domínio customizado)
+    // Buscar dados da loja
     const { data: store, error: storeError } = await supabase
       .from('stores')
       .select('name, slug, phone, custom_domain, custom_domain_verified')
@@ -178,22 +280,78 @@ serve(async (req) => {
       orderData = order;
     }
 
-    // Montar mensagem
-    const messageTemplate = autoConfig[messageField];
-    const finalMessage = replaceVariables(messageTemplate, {
-      customerName: customerName || orderData?.customer_name,
-      storeName: store.name,
-      storeSlug: store.slug,
-      storeCustomDomain: store.custom_domain,
-      storeCustomDomainVerified: store.custom_domain_verified,
-      orderNumber: orderData?.order_number,
-      orderTotal: orderData?.total,
-      deliveryAddress: orderData?.customer_address,
-      deliveryType: orderData?.delivery_type,
-      orderId: orderId,
-      storePhone: store.phone,
-      baseUrl: baseUrl
-    });
+    // ========== LÓGICA DE SAUDAÇÃO INTELIGENTE ==========
+    const greeting = getGreetingByTime();
+    const classification = classifyCustomer(isKnownCustomer, customerData);
+    
+    console.log(`[whatsapp-auto-send] Classificação: ${classification.type}, Dias sem pedir: ${classification.daysSinceOrder}`);
+
+    // Determinar mensagem final
+    let finalMessage: string;
+    
+    if (eventType === 'greeting') {
+      // Para saudações, usar template inteligente se não houver template customizado
+      const customTemplate = autoConfig[messageField];
+      
+      if (customTemplate && customTemplate.trim() !== '') {
+        // Lojista configurou template customizado - usar ele
+        finalMessage = replaceVariables(customTemplate, {
+          customerName: customerName || orderData?.customer_name,
+          storeName: store.name,
+          storeSlug: store.slug,
+          storeCustomDomain: store.custom_domain,
+          storeCustomDomainVerified: store.custom_domain_verified,
+          orderNumber: orderData?.order_number,
+          orderTotal: orderData?.total,
+          deliveryAddress: orderData?.customer_address,
+          deliveryType: orderData?.delivery_type,
+          orderId: orderId,
+          storePhone: store.phone,
+          baseUrl: baseUrl,
+          greeting: greeting,
+          daysSinceOrder: classification.daysSinceOrder,
+          totalOrders: classification.totalOrders,
+          totalSpent: classification.totalSpent
+        });
+      } else {
+        // Usar template inteligente baseado no tipo de cliente
+        const smartTemplate = getSmartGreetingTemplate(classification, greeting, store.name);
+        finalMessage = replaceVariables(smartTemplate, {
+          customerName: customerName || orderData?.customer_name,
+          storeName: store.name,
+          storeSlug: store.slug,
+          storeCustomDomain: store.custom_domain,
+          storeCustomDomainVerified: store.custom_domain_verified,
+          storePhone: store.phone,
+          baseUrl: baseUrl,
+          greeting: greeting,
+          daysSinceOrder: classification.daysSinceOrder,
+          totalOrders: classification.totalOrders,
+          totalSpent: classification.totalSpent
+        });
+      }
+    } else {
+      // Outros eventos - usar template configurado normalmente
+      const messageTemplate = autoConfig[messageField];
+      finalMessage = replaceVariables(messageTemplate, {
+        customerName: customerName || orderData?.customer_name,
+        storeName: store.name,
+        storeSlug: store.slug,
+        storeCustomDomain: store.custom_domain,
+        storeCustomDomainVerified: store.custom_domain_verified,
+        orderNumber: orderData?.order_number,
+        orderTotal: orderData?.total,
+        deliveryAddress: orderData?.customer_address,
+        deliveryType: orderData?.delivery_type,
+        orderId: orderId,
+        storePhone: store.phone,
+        baseUrl: baseUrl,
+        greeting: greeting,
+        daysSinceOrder: classification.daysSinceOrder,
+        totalOrders: classification.totalOrders,
+        totalSpent: classification.totalSpent
+      });
+    }
 
     // Buscar configuração da Evolution API
     const { data: evolutionConfig, error: evolutionError } = await supabase
@@ -246,6 +404,7 @@ serve(async (req) => {
     };
 
     console.log(`[whatsapp-auto-send] Enviando para: ${formattedPhone}`);
+    console.log(`[whatsapp-auto-send] Mensagem: ${finalMessage}`);
 
     const sendResponse = await fetch(endpoint, {
       method: 'POST',
@@ -289,7 +448,9 @@ serve(async (req) => {
       success: true,
       messageId: sendData.key?.id,
       eventType,
-      phone: formattedPhone
+      phone: formattedPhone,
+      customerType: classification.type,
+      greeting: greeting
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

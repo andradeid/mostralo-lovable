@@ -142,7 +142,7 @@ export function OpenAIConfigCard() {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        toast.success('✅ Configurações salvas com sucesso!');
+        toast.success('✅ Chave salva com sucesso! Campo limpo por segurança.');
         setApiKey('');
         fetchConfig();
       } else {
@@ -198,7 +198,7 @@ export function OpenAIConfigCard() {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        toast.success('✅ Sincronizado com Evolution API! Creds ID: ' + (result.openaiCredsId || 'N/A'));
+        toast.success('✅ Sincronizado com Evolution! Campo limpo por segurança.');
         setApiKey('');
         fetchConfig();
       } else {
@@ -246,15 +246,23 @@ export function OpenAIConfigCard() {
         <div className="space-y-4">
           {/* API Key */}
           <div className="space-y-2">
-            <Label htmlFor="apiKey" className="text-sm">API Key da OpenAI *</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="apiKey" className="text-sm">API Key da OpenAI *</Label>
+              {hasOpenAI && !apiKey && (
+                <div className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                  <Check className="h-3 w-3" />
+                  Chave já configurada
+                </div>
+              )}
+            </div>
             <div className="relative">
               <Input
                 id="apiKey"
                 type={showApiKey ? 'text' : 'password'}
-                placeholder="sk-proj-xxxxxxxxxxxxxxxxxxxx"
+                placeholder={hasOpenAI ? "•••• Chave já salva (digite nova para alterar)" : "sk-proj-xxxxxxxxxxxxxxxxxxxx"}
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                className="pr-10 text-sm"
+                className={`pr-10 text-sm ${hasOpenAI && !apiKey ? 'border-green-500/30 bg-green-500/5' : ''}`}
               />
               <Button
                 type="button"
@@ -266,6 +274,11 @@ export function OpenAIConfigCard() {
                 {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </Button>
             </div>
+            {hasOpenAI && !apiKey && (
+              <p className="text-xs text-green-600 dark:text-green-400">
+                ✓ Sua chave está salva com segurança. Digite uma nova apenas se quiser substituí-la.
+              </p>
+            )}
             <p className="text-xs text-muted-foreground">
               Obtenha em{' '}
               <a 

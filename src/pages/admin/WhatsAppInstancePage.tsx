@@ -68,6 +68,7 @@ import {
   BotSyncFloatingAlert,
   BotPersonalityCard,
   BotTimezoneCard,
+  BotTrainingExamplesCard,
 } from "@/components/admin/bot";
 
 interface Template {
@@ -1320,6 +1321,10 @@ export default function WhatsAppInstancePage() {
                       settings={promptSettings}
                       onSettingsChange={updatePromptSettings}
                       disabled={!isConnected}
+                    />
+                    <BotTrainingExamplesCard
+                      storeName={storeName}
+                      storeSlug={storeSlug}
                     />
                   </div>
                 </div>

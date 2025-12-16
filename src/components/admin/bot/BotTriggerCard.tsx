@@ -2,7 +2,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Zap } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Zap, HelpCircle } from "lucide-react";
 import { BotConfig } from "@/hooks/useBotConfig";
 
 interface BotTriggerCardProps {
@@ -13,17 +14,37 @@ interface BotTriggerCardProps {
 
 export function BotTriggerCard({ config, onUpdate, disabled }: BotTriggerCardProps) {
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="!p-3 !pb-2 sm:!p-6 sm:!pb-3">
+    <Card className="overflow-hidden border-amber-500/30">
+      <CardHeader className="!p-3 !pb-2 sm:!p-6 sm:!pb-3 bg-amber-500/5">
         <div className="flex items-center gap-2">
-          <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
+          <div className="p-1.5 rounded-md bg-amber-500/10">
+            <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500 shrink-0" />
+          </div>
           <CardTitle className="text-base sm:text-lg">Gatilho de Ativação</CardTitle>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help hover:text-amber-500 transition-colors" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs p-3">
+                <p className="font-semibold text-amber-500 flex items-center gap-1.5 mb-1">
+                  <Zap className="h-3.5 w-3.5" />
+                  Filtro de Ativação
+                </p>
+                <p className="text-xs leading-relaxed">
+                  Define <strong>QUANDO</strong> o bot responde. Funciona como um filtro: 
+                  se configurado para "Palavras-chave", o bot <strong>ignora</strong> mensagens 
+                  que não contenham essas palavras.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
         <CardDescription className="text-xs sm:text-sm break-words hyphens-auto">
-          Defina quando o bot deve responder
+          Define quando o bot deve responder (filtro)
         </CardDescription>
       </CardHeader>
-      <CardContent className="!p-3 !pt-0 sm:!p-6 sm:!pt-0 space-y-3 sm:space-y-4">
+      <CardContent className="!p-3 !pt-3 sm:!p-6 sm:!pt-4 space-y-3 sm:space-y-4">
         <RadioGroup
           value={config.trigger_type}
           onValueChange={(value) => onUpdate({ trigger_type: value })}
@@ -52,7 +73,7 @@ export function BotTriggerCard({ config, onUpdate, disabled }: BotTriggerCardPro
         </RadioGroup>
 
         {config.trigger_type === 'keyword' && (
-          <div className="space-y-2 pl-3 sm:pl-4 border-l-2 border-primary/30">
+          <div className="space-y-2 pl-3 sm:pl-4 border-l-2 border-amber-500/30">
             <Label htmlFor="trigger-value" className="text-sm">Palavras-chave</Label>
             <Input
               id="trigger-value"

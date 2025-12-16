@@ -2,7 +2,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Settings2 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Settings2, HelpCircle } from "lucide-react";
 import { BotConfig } from "@/hooks/useBotConfig";
 
 interface BotBehaviorCardProps {
@@ -58,7 +59,23 @@ export function BotBehaviorCard({ config, onUpdate, disabled }: BotBehaviorCardP
 
         <div className="space-y-2 sm:space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <Label className="text-sm min-w-0">Delay entre Mensagens</Label>
+            <div className="flex items-center gap-1.5">
+              <Label className="text-sm min-w-0">Delay entre Mensagens</Label>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help hover:text-primary transition-colors" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs p-3">
+                    <p className="font-semibold mb-1">⏱️ Delay de Resposta</p>
+                    <p className="text-xs leading-relaxed">
+                      Tempo que o bot aguarda antes de enviar a resposta. 
+                      Um delay maior (3-4s) permite que o WhatsApp <strong>gere preview de links</strong> corretamente.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <span className="text-xs sm:text-sm font-medium shrink-0">{(config.delay_message / 1000).toFixed(1)}s</span>
           </div>
           <Slider
@@ -76,7 +93,23 @@ export function BotBehaviorCard({ config, onUpdate, disabled }: BotBehaviorCardP
 
         <div className="space-y-2 sm:space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <Label className="text-sm min-w-0">Tempo de Debounce</Label>
+            <div className="flex items-center gap-1.5">
+              <Label className="text-sm min-w-0">Tempo de Debounce</Label>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help hover:text-primary transition-colors" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs p-3">
+                    <p className="font-semibold mb-1">⏳ Debounce</p>
+                    <p className="text-xs leading-relaxed">
+                      Se o cliente enviar <strong>várias mensagens seguidas</strong>, o bot aguarda 
+                      esse tempo para responder tudo de uma vez, evitando respostas fragmentadas.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <span className="text-xs sm:text-sm font-medium shrink-0">{config.debounce_time}s</span>
           </div>
           <Slider
@@ -110,7 +143,23 @@ export function BotBehaviorCard({ config, onUpdate, disabled }: BotBehaviorCardP
 
         <div className="space-y-2 sm:space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <Label className="text-sm min-w-0">Tempo por Caractere</Label>
+            <div className="flex items-center gap-1.5">
+              <Label className="text-sm min-w-0">Tempo por Caractere</Label>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help hover:text-primary transition-colors" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs p-3">
+                    <p className="font-semibold mb-1">⌨️ Simulação de Digitação</p>
+                    <p className="text-xs leading-relaxed">
+                      Adiciona um delay proporcional ao tamanho da mensagem, 
+                      simulando digitação humana mais <strong>realista</strong>. Use 0 para desativar.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <span className="text-xs sm:text-sm font-medium shrink-0">{config.time_per_char}ms</span>
           </div>
           <Slider

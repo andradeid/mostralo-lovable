@@ -1277,6 +1277,7 @@ export default function WhatsAppInstancePage() {
           ) : botConfig && (
               <>
                 <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+                  {/* Coluna Esquerda - 4 cards */}
                   <div className="space-y-4 sm:space-y-6 min-w-0">
                     <BotActivationCard
                       config={botConfig}
@@ -1291,7 +1292,19 @@ export default function WhatsAppInstancePage() {
                       onUpdate={updateBotConfig}
                       disabled={!isConnected}
                     />
+                    <BotPersonalityCard
+                      settings={promptSettings.personalitySettings}
+                      onSettingsChange={(personalitySettings) => 
+                        updatePromptSettings({ ...promptSettings, personalitySettings })
+                      }
+                      disabled={!isConnected}
+                    />
+                    <BotTimezoneCard
+                      storeId={storeId}
+                      disabled={!isConnected}
+                    />
                   </div>
+                  {/* Coluna Direita - 3 cards */}
                   <div className="space-y-4 sm:space-y-6 min-w-0">
                     <BotBehaviorCard
                       config={botConfig}
@@ -1303,20 +1316,9 @@ export default function WhatsAppInstancePage() {
                       onUpdate={updateBotConfig}
                       disabled={!isConnected}
                     />
-                    <BotPersonalityCard
-                      settings={promptSettings.personalitySettings}
-                      onSettingsChange={(personalitySettings) => 
-                        updatePromptSettings({ ...promptSettings, personalitySettings })
-                      }
-                      disabled={!isConnected}
-                    />
                     <BotPromptSettingsCard
                       settings={promptSettings}
                       onSettingsChange={updatePromptSettings}
-                      disabled={!isConnected}
-                    />
-                    <BotTimezoneCard
-                      storeId={storeId}
                       disabled={!isConnected}
                     />
                   </div>

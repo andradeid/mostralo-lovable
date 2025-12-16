@@ -3887,17 +3887,25 @@ export type Database = {
           bot_split_messages: boolean | null
           bot_time_per_char: number | null
           created_at: string | null
+          custom_greeting: string | null
           debounce_time: number | null
           delay_message: number | null
+          emoji_level: string | null
           enabled: boolean | null
           evolution_bot_id: string | null
           evolution_bot_status: string | null
           expire_minutes: number | null
           id: string
           ignore_jids: string[] | null
+          include_business_hours: boolean | null
+          include_delivery_fee: boolean | null
+          include_location: boolean | null
+          include_min_order: boolean | null
+          include_payment_methods: boolean | null
           keep_open: boolean | null
           keyword_finish: string | null
           listening_from_me: boolean | null
+          personality: string | null
           stop_bot_from_me: boolean | null
           store_id: string
           trigger_operator: string | null
@@ -3912,17 +3920,25 @@ export type Database = {
           bot_split_messages?: boolean | null
           bot_time_per_char?: number | null
           created_at?: string | null
+          custom_greeting?: string | null
           debounce_time?: number | null
           delay_message?: number | null
+          emoji_level?: string | null
           enabled?: boolean | null
           evolution_bot_id?: string | null
           evolution_bot_status?: string | null
           expire_minutes?: number | null
           id?: string
           ignore_jids?: string[] | null
+          include_business_hours?: boolean | null
+          include_delivery_fee?: boolean | null
+          include_location?: boolean | null
+          include_min_order?: boolean | null
+          include_payment_methods?: boolean | null
           keep_open?: boolean | null
           keyword_finish?: string | null
           listening_from_me?: boolean | null
+          personality?: string | null
           stop_bot_from_me?: boolean | null
           store_id: string
           trigger_operator?: string | null
@@ -3937,17 +3953,25 @@ export type Database = {
           bot_split_messages?: boolean | null
           bot_time_per_char?: number | null
           created_at?: string | null
+          custom_greeting?: string | null
           debounce_time?: number | null
           delay_message?: number | null
+          emoji_level?: string | null
           enabled?: boolean | null
           evolution_bot_id?: string | null
           evolution_bot_status?: string | null
           expire_minutes?: number | null
           id?: string
           ignore_jids?: string[] | null
+          include_business_hours?: boolean | null
+          include_delivery_fee?: boolean | null
+          include_location?: boolean | null
+          include_min_order?: boolean | null
+          include_payment_methods?: boolean | null
           keep_open?: boolean | null
           keyword_finish?: string | null
           listening_from_me?: boolean | null
+          personality?: string | null
           stop_bot_from_me?: boolean | null
           store_id?: string
           trigger_operator?: string | null

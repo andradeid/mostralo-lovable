@@ -93,15 +93,32 @@ export function useBotConfig(storeId: string | null) {
         setConfig(loadedConfig);
         lastSyncedConfig.current = { ...loadedConfig };
         setHasUnsyncedChanges(false);
+        
+        // Carregar promptSettings do banco
+        const dbData = data as any;
+        setPromptSettings({
+          includeLocation: dbData.include_location ?? true,
+          includeBusinessHours: dbData.include_business_hours ?? true,
+          includePaymentMethods: dbData.include_payment_methods ?? true,
+          includeDeliveryFee: dbData.include_delivery_fee ?? true,
+          includeMinOrder: dbData.include_min_order ?? true,
+          personalitySettings: {
+            personality: dbData.personality ?? 'friendly',
+            emojiLevel: dbData.emoji_level ?? 'moderate',
+            customGreeting: dbData.custom_greeting ?? '',
+          },
+        });
       } else {
         const newConfig = { ...defaultBotConfig, store_id: storeId };
         setConfig(newConfig);
         lastSyncedConfig.current = null;
+        setPromptSettings(defaultPromptSettings);
       }
     } catch (error) {
       const newConfig = { ...defaultBotConfig, store_id: storeId };
       setConfig(newConfig);
       lastSyncedConfig.current = null;
+      setPromptSettings(defaultPromptSettings);
     } finally {
       setLoading(false);
     }
@@ -173,25 +190,37 @@ export function useBotConfig(storeId: string | null) {
     setHasUnsyncedChanges(hasChanges && newConfig.enabled);
   }, []);
 
-  const saveConfig = useDebouncedCallback(async (newConfig: Partial<BotConfig>) => {
+  const saveConfig = useDebouncedCallback(async (newConfig: Partial<BotConfig>, newPromptSettings?: PromptSettings) => {
     if (!storeId || !config) return;
 
     try {
       const updatedConfig = { ...config, ...newConfig };
+      const settingsToSave = newPromptSettings || promptSettings;
+      
+      // Preparar dados incluindo campos de personalidade
+      const dataToSave = {
+        ...updatedConfig,
+        updated_at: new Date().toISOString(),
+        personality: settingsToSave.personalitySettings.personality,
+        emoji_level: settingsToSave.personalitySettings.emojiLevel,
+        custom_greeting: settingsToSave.personalitySettings.customGreeting,
+        include_location: settingsToSave.includeLocation,
+        include_business_hours: settingsToSave.includeBusinessHours,
+        include_payment_methods: settingsToSave.includePaymentMethods,
+        include_delivery_fee: settingsToSave.includeDeliveryFee,
+        include_min_order: settingsToSave.includeMinOrder,
+      };
       
       if (config.id) {
         await supabase
           .from('store_bot_config')
-          .update({
-            ...updatedConfig,
-            updated_at: new Date().toISOString(),
-          })
+          .update(dataToSave)
           .eq('id', config.id);
       } else {
         const { data } = await supabase
           .from('store_bot_config')
           .insert({
-            ...updatedConfig,
+            ...dataToSave,
             store_id: storeId,
           })
           .select()
@@ -216,6 +245,8 @@ export function useBotConfig(storeId: string | null) {
 
   const updatePromptSettings = (newSettings: PromptSettings) => {
     setPromptSettings(newSettings);
+    // Salvar no banco de dados
+    saveConfig({}, newSettings);
     if (config?.enabled) {
       setHasUnsyncedChanges(true);
     }

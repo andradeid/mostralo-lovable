@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useStoreAccess } from "@/hooks/useStoreAccess";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Loader2, 
   Smartphone, 
@@ -26,7 +27,8 @@ import {
   Phone,
   History,
   HelpCircle,
-  ArrowRight
+  ArrowRight,
+  Bot
 } from "lucide-react";
 import {
   Accordion,
@@ -54,6 +56,14 @@ import {
 } from "@/components/ui/select";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useBotConfig } from "@/hooks/useBotConfig";
+import {
+  BotActivationCard,
+  BotBehaviorCard,
+  BotSessionCard,
+  BotTriggerCard,
+  BotPromptPreviewCard,
+} from "@/components/admin/bot";
 
 interface Template {
   id: string;
@@ -543,6 +553,20 @@ export default function WhatsAppInstancePage() {
     );
   }
 
+  // Hook para configuração do bot
+  const {
+    config: botConfig,
+    loading: botLoading,
+    syncing: botSyncing,
+    promptData,
+    lastUpdated,
+    updateConfig: updateBotConfig,
+    syncWithEvolution,
+    refreshPrompt,
+  } = useBotConfig(storeId);
+
+  const isConnected = instance?.status === 'connected';
+
   return (
     <div className="space-y-6">
       <div>
@@ -580,8 +604,25 @@ export default function WhatsAppInstancePage() {
           </CardContent>
         </Card>
       ) : (
-        <>
-          <div className="grid gap-6 md:grid-cols-2">
+        <Tabs defaultValue="connection" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="connection" className="gap-2">
+              <Smartphone className="h-4 w-4" />
+              <span className="hidden sm:inline">Conexão</span>
+            </TabsTrigger>
+            <TabsTrigger value="bot" disabled={!isConnected} className="gap-2">
+              <Bot className="h-4 w-4" />
+              <span className="hidden sm:inline">Assistente IA</span>
+              {!isConnected && (
+                <Badge variant="secondary" className="ml-1 text-[10px] px-1">
+                  Conecte primeiro
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="connection" className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
             {/* Card de Status */}
             <Card>
               <CardHeader>
@@ -1200,7 +1241,54 @@ export default function WhatsAppInstancePage() {
               </CardContent>
             </Card>
           )}
-        </>
+          </TabsContent>
+
+          <TabsContent value="bot" className="space-y-6">
+            {botLoading ? (
+              <div className="flex items-center justify-center h-64">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : botConfig && (
+              <>
+                <div className="grid gap-6 lg:grid-cols-2">
+                  <div className="space-y-6">
+                    <BotActivationCard
+                      config={botConfig}
+                      syncing={botSyncing}
+                      isConnected={isConnected}
+                      onUpdate={updateBotConfig}
+                      onSync={syncWithEvolution}
+                    />
+                    <BotTriggerCard
+                      config={botConfig}
+                      onUpdate={updateBotConfig}
+                      disabled={!isConnected}
+                    />
+                  </div>
+                  <div className="space-y-6">
+                    <BotBehaviorCard
+                      config={botConfig}
+                      onUpdate={updateBotConfig}
+                      disabled={!isConnected}
+                    />
+                    <BotSessionCard
+                      config={botConfig}
+                      onUpdate={updateBotConfig}
+                      disabled={!isConnected}
+                    />
+                  </div>
+                </div>
+
+                <BotPromptPreviewCard
+                  promptData={promptData}
+                  lastUpdated={lastUpdated}
+                  onRefresh={refreshPrompt}
+                  loading={botLoading}
+                />
+              </>
+            )}
+          </TabsContent>
+        </Tabs>
       )}
 
       <Card>

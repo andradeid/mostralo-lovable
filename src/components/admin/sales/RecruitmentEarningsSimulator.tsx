@@ -166,59 +166,62 @@ Taxa: ${affiliateType === 'pf' ? '7%' : '10%'} | ${affiliateType === 'pf' ? 'Lim
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Calculator className="h-5 w-5" />
-              Simulador de Ganhos para Candidatos
+      <CardHeader className="p-4 md:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+          <div className="min-w-0">
+            <CardTitle className="text-sm md:text-base flex items-center gap-2">
+              <Calculator className="h-4 w-4 md:h-5 md:w-5" />
+              Simulador de Ganhos
             </CardTitle>
-            <CardDescription>
-              Escolha um perfil de dedicação e veja projeções de ganhos
+            <CardDescription className="text-xs md:text-sm">
+              Escolha um perfil e veja projeções
             </CardDescription>
           </div>
           <Button 
             variant="outline" 
             size="sm" 
             onClick={handleCopySimulation}
+            className="h-8 shrink-0"
           >
-            <Copy className="h-4 w-4 mr-2" />
-            Copiar Resumo
+            <Copy className="h-4 w-4" />
+            <span className="hidden md:inline ml-2">Copiar</span>
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Perfis de Dedicação */}
+      <CardContent className="p-4 md:p-6 pt-0 md:pt-0 space-y-4 md:space-y-6">
+        {/* Perfis de Dedicação - Scroll horizontal no mobile */}
         <div className="space-y-2">
-          <Label className="flex items-center gap-2">
+          <Label className="flex items-center gap-2 text-xs md:text-sm">
             <User className="h-4 w-4" />
             Perfil de Dedicação
           </Label>
-          <div className="grid grid-cols-3 gap-3">
-            {(Object.keys(DEDICATION_PROFILES) as DedicationProfile[]).map((profile) => (
-              <button
-                key={profile}
-                onClick={() => handleProfileChange(profile)}
-                className={cn(
-                  "p-3 rounded-lg border-2 text-center transition-all",
-                  dedicationProfile === profile
-                    ? "border-primary bg-primary/10"
-                    : "border-border hover:border-primary/50"
-                )}
-              >
-                <div className="text-2xl mb-1">{DEDICATION_PROFILES[profile].emoji}</div>
-                <div className="font-medium text-sm">{DEDICATION_PROFILES[profile].label}</div>
-                <div className="text-xs text-muted-foreground">{DEDICATION_PROFILES[profile].hoursPerWeek}h/semana</div>
-                <div className="text-xs text-muted-foreground">~{DEDICATION_PROFILES[profile].salesPerMonth} vendas/mês</div>
-              </button>
-            ))}
+          <div className="overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:overflow-visible">
+            <div className="flex gap-2 md:grid md:grid-cols-3 md:gap-3 min-w-max md:min-w-0">
+              {(Object.keys(DEDICATION_PROFILES) as DedicationProfile[]).map((profile) => (
+                <button
+                  key={profile}
+                  onClick={() => handleProfileChange(profile)}
+                  className={cn(
+                    "p-2 md:p-3 rounded-lg border-2 text-center transition-all min-w-[100px] md:min-w-0 shrink-0 md:shrink",
+                    dedicationProfile === profile
+                      ? "border-primary bg-primary/10"
+                      : "border-border hover:border-primary/50"
+                  )}
+                >
+                  <div className="text-lg md:text-2xl mb-0.5 md:mb-1">{DEDICATION_PROFILES[profile].emoji}</div>
+                  <div className="font-medium text-xs md:text-sm">{DEDICATION_PROFILES[profile].label}</div>
+                  <div className="text-[10px] md:text-xs text-muted-foreground">{DEDICATION_PROFILES[profile].hoursPerWeek}h/sem</div>
+                  <div className="text-[10px] md:text-xs text-muted-foreground hidden md:block">~{DEDICATION_PROFILES[profile].salesPerMonth} vendas</div>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Inputs */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="sales">Vendas por mês</Label>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          <div className="space-y-1.5 md:space-y-2">
+            <Label htmlFor="sales" className="text-xs md:text-sm">Vendas/mês</Label>
             <Input
               id="sales"
               type="number"
@@ -226,13 +229,15 @@ Taxa: ${affiliateType === 'pf' ? '7%' : '10%'} | ${affiliateType === 'pf' ? 'Lim
               max={100}
               value={salesPerMonth}
               onChange={(e) => setSalesPerMonth(Math.max(1, parseInt(e.target.value) || 1))}
+              className="h-9 md:h-10 text-sm"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="hours" className="flex items-center gap-1">
+          <div className="space-y-1.5 md:space-y-2">
+            <Label htmlFor="hours" className="flex items-center gap-1 text-xs md:text-sm">
               <Clock className="h-3 w-3" />
-              Horas por semana
+              <span className="md:hidden">Horas/sem</span>
+              <span className="hidden md:inline">Horas por semana</span>
             </Label>
             <Input
               id="hours"
@@ -241,14 +246,15 @@ Taxa: ${affiliateType === 'pf' ? '7%' : '10%'} | ${affiliateType === 'pf' ? 'Lim
               max={60}
               value={hoursPerWeek}
               onChange={(e) => setHoursPerWeek(Math.max(1, parseInt(e.target.value) || 1))}
+              className="h-9 md:h-10 text-sm"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>Plano médio</Label>
+          <div className="space-y-1.5 md:space-y-2">
+            <Label className="text-xs md:text-sm">Plano</Label>
             <Select value={selectedPlanId} onValueChange={setSelectedPlanId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um plano" />
+              <SelectTrigger className="h-9 md:h-10 text-xs md:text-sm">
+                <SelectValue placeholder="Selecione" />
               </SelectTrigger>
               <SelectContent>
                 {plans.map((plan) => {
@@ -256,8 +262,9 @@ Taxa: ${affiliateType === 'pf' ? '7%' : '10%'} | ${affiliateType === 'pf' ? 'Lim
                     ? plan.discount_price 
                     : plan.price;
                   return (
-                    <SelectItem key={plan.id} value={plan.id}>
-                      {plan.name} - {formatCurrency(price)}
+                    <SelectItem key={plan.id} value={plan.id} className="text-xs md:text-sm">
+                      <span className="md:hidden">{plan.name}</span>
+                      <span className="hidden md:inline">{plan.name} - {formatCurrency(price)}</span>
                     </SelectItem>
                   );
                 })}
@@ -265,50 +272,49 @@ Taxa: ${affiliateType === 'pf' ? '7%' : '10%'} | ${affiliateType === 'pf' ? 'Lim
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label>Tipo de afiliado</Label>
-            <div className="flex gap-2">
+          <div className="space-y-1.5 md:space-y-2">
+            <Label className="text-xs md:text-sm">Tipo</Label>
+            <div className="flex gap-1.5 md:gap-2">
               <button
                 onClick={() => setAffiliateType('pf')}
                 className={cn(
-                  "flex-1 py-2 px-3 rounded-lg border-2 text-sm font-medium transition-all",
+                  "flex-1 py-1.5 md:py-2 px-2 md:px-3 rounded-lg border-2 text-xs md:text-sm font-medium transition-all",
                   affiliateType === 'pf'
                     ? "border-green-500 bg-green-500/10 text-green-700"
                     : "border-border hover:border-green-500/50"
                 )}
               >
-                PF (CPF)
+                PF
               </button>
               <button
                 onClick={() => setAffiliateType('pj')}
                 className={cn(
-                  "flex-1 py-2 px-3 rounded-lg border-2 text-sm font-medium transition-all",
+                  "flex-1 py-1.5 md:py-2 px-2 md:px-3 rounded-lg border-2 text-xs md:text-sm font-medium transition-all",
                   affiliateType === 'pj'
                     ? "border-primary bg-primary/10 text-primary"
                     : "border-border hover:border-primary/50"
                 )}
               >
-                PJ (CNPJ)
+                PJ
               </button>
             </div>
           </div>
         </div>
 
         {/* Ganho por Hora - Destaque */}
-        <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-500/20 rounded-full">
-                <Clock className="h-5 w-5 text-green-600" />
+        <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-lg p-3 md:p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="p-1.5 md:p-2 bg-green-500/20 rounded-full shrink-0">
+                <Clock className="h-4 w-4 md:h-5 md:w-5 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Ganho por hora investida</p>
-                <p className="text-2xl font-bold text-green-600">{formatCurrency(earningsPerHour)}/hora</p>
+                <p className="text-xs md:text-sm text-muted-foreground">Ganho/hora</p>
+                <p className="text-xl md:text-2xl font-bold text-green-600">{formatCurrency(earningsPerHour)}</p>
               </div>
             </div>
-            <div className="text-right">
-              <p className="text-xs text-muted-foreground">{hoursPerWeek}h/semana × 4 = {hoursPerWeek * 4}h/mês</p>
-              <p className="text-xs text-muted-foreground">{formatCurrency(earnings.monthlyAverage)} ÷ {hoursPerWeek * 4}h</p>
+            <div className="text-right text-[10px] md:text-xs text-muted-foreground">
+              <p>{hoursPerWeek}h/sem × 4 = {hoursPerWeek * 4}h/mês</p>
             </div>
           </div>
         </div>

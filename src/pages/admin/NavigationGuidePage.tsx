@@ -16,7 +16,8 @@ import {
   AlertTriangle,
   BarChart3,
   ShoppingCart,
-  FileText
+  FileText,
+  Check
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -253,6 +254,7 @@ const getRoleBadge = (role: string) => {
 export default function NavigationGuidePage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedSections, setExpandedSections] = useState<string[]>(routeSections.map(s => s.id));
+  const [copiedPath, setCopiedPath] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Calcular estatísticas
@@ -431,21 +433,30 @@ export default function NavigationGuidePage() {
                       <span className="font-medium text-foreground text-sm md:text-base truncate flex-1 min-w-0">
                         {route.name}
                       </span>
-                      <div className="flex items-center gap-1 shrink-0">
+                      <div className="flex items-center gap-1.5 shrink-0">
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="icon"
-                          className="h-7 w-7 md:h-8 md:w-8"
-                          onClick={() => copyToClipboard(route.path)}
+                          className="h-8 w-8 md:h-9 md:w-9 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/30 border-blue-200 dark:border-blue-800/50"
+                          onClick={() => {
+                            navigator.clipboard.writeText(route.path);
+                            setCopiedPath(route.path);
+                            toast({ title: "Copiado!", description: route.path });
+                            setTimeout(() => setCopiedPath(null), 2000);
+                          }}
                           title="Copiar caminho"
                         >
-                          <Copy className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                          {copiedPath === route.path ? (
+                            <Check className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <Copy className="h-4 w-4" />
+                          )}
                         </Button>
                         {!route.path.includes(':') && !route.path.includes('*') && (
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="icon"
-                            className="h-7 w-7 md:h-8 md:w-8"
+                            className="h-8 w-8 md:h-9 md:w-9 text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-950/30 border-green-200 dark:border-green-800/50"
                             asChild
                           >
                             <a
@@ -454,7 +465,7 @@ export default function NavigationGuidePage() {
                               rel="noopener noreferrer"
                               title="Abrir em nova aba"
                             >
-                              <ExternalLink className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                              <ExternalLink className="h-4 w-4" />
                             </a>
                           </Button>
                         )}

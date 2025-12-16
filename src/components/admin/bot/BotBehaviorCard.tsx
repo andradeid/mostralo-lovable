@@ -91,6 +91,40 @@ export function BotBehaviorCard({ config, onUpdate, disabled }: BotBehaviorCardP
             Aguarda mais mensagens antes de responder
           </p>
         </div>
+
+        <div className="flex items-center justify-between gap-3">
+          <div className="space-y-0.5 min-w-0 flex-1">
+            <Label htmlFor="split-messages" className="text-sm">Dividir Mensagens</Label>
+            <p className="text-[10px] sm:text-xs text-muted-foreground break-words">
+              Divide respostas longas em múltiplas mensagens
+            </p>
+          </div>
+          <Switch
+            id="split-messages"
+            checked={config.split_messages}
+            onCheckedChange={(checked) => onUpdate({ split_messages: checked })}
+            disabled={disabled}
+            className="shrink-0"
+          />
+        </div>
+
+        <div className="space-y-2 sm:space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <Label className="text-sm min-w-0">Tempo por Caractere</Label>
+            <span className="text-xs sm:text-sm font-medium shrink-0">{config.time_per_char}ms</span>
+          </div>
+          <Slider
+            value={[config.time_per_char]}
+            onValueChange={([value]) => onUpdate({ time_per_char: value })}
+            min={0}
+            max={100}
+            step={5}
+            disabled={disabled}
+          />
+          <p className="text-[10px] sm:text-xs text-muted-foreground break-words">
+            Simula digitação mais realista (0 = desativado)
+          </p>
+        </div>
       </CardContent>
     </Card>
   );

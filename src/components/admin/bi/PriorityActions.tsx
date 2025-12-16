@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Target } from "lucide-react";
 
 const priorityActions = [
@@ -48,56 +49,68 @@ const priorityActions = [
   }
 ];
 
+const getPriorityConfig = (priority: string) => {
+  switch (priority) {
+    case "high":
+      return { badge: "🔴", label: "Alta", variant: "destructive" as const };
+    case "medium":
+      return { badge: "🟡", label: "Média", variant: "default" as const };
+    default:
+      return { badge: "🟢", label: "Baixa", variant: "secondary" as const };
+  }
+};
+
 export function PriorityActions() {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Target className="h-5 w-5" />
+      <CardHeader className="p-3 pb-2 md:p-6 md:pb-4">
+        <CardTitle className="flex items-center gap-1.5 text-sm md:text-base">
+          <Target className="h-4 w-4 md:h-5 md:w-5" />
           Ações Prioritárias
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-xs md:text-sm">
           Checklist estratégico para os próximos 90 dias
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {priorityActions.map((action) => (
-            <div key={action.id} className="flex items-start space-x-3 p-3 rounded-lg border">
-              <Checkbox id={action.id} className="mt-1" />
-              <div className="flex-1 space-y-1">
-                <label
-                  htmlFor={action.id}
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+      <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+        <ScrollArea className="h-[280px] md:h-[350px]">
+          <div className="space-y-2">
+            {priorityActions.map((action) => {
+              const config = getPriorityConfig(action.priority);
+              return (
+                <div 
+                  key={action.id} 
+                  className="flex items-start space-x-2 md:space-x-3 p-2 md:p-3 rounded-lg border"
                 >
-                  {action.label}
-                  <Badge 
-                    variant={
-                      action.priority === "high" ? "destructive" : 
-                      action.priority === "medium" ? "default" : 
-                      "secondary"
-                    }
-                    className="ml-2"
-                  >
-                    {action.priority === "high" ? "Alta" : 
-                     action.priority === "medium" ? "Média" : 
-                     "Baixa"}
-                  </Badge>
-                </label>
-                <p className="text-sm text-muted-foreground">
-                  {action.description}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
+                  <Checkbox id={action.id} className="mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <label
+                      htmlFor={action.id}
+                      className="text-xs md:text-sm font-medium leading-tight cursor-pointer flex flex-wrap items-center gap-1"
+                    >
+                      <span className="truncate">{action.label}</span>
+                      <span className="text-[10px] md:hidden">{config.badge}</span>
+                      <Badge 
+                        variant={config.variant}
+                        className="hidden md:inline-flex text-[10px] md:text-xs"
+                      >
+                        {config.label}
+                      </Badge>
+                    </label>
+                    <p className="text-[10px] md:text-xs text-muted-foreground mt-0.5 line-clamp-1 md:line-clamp-none">
+                      {action.description}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </ScrollArea>
 
-        <div className="mt-6 p-4 bg-muted rounded-lg">
-          <h4 className="font-semibold mb-2">🎯 Foco Atual</h4>
-          <p className="text-sm text-muted-foreground">
-            Priorize as ações marcadas como "Alta". Elas têm o maior impacto no crescimento 
-            da plataforma neste momento. As ações de prioridade "Média" e "Baixa" podem ser 
-            executadas conforme capacidade do time.
+        <div className="mt-3 md:mt-4 p-2 md:p-3 bg-muted rounded-lg">
+          <h4 className="font-semibold text-xs mb-1">🎯 Foco Atual</h4>
+          <p className="text-[10px] md:text-xs text-muted-foreground">
+            Priorize as ações marcadas como "Alta" (🔴) para maior impacto.
           </p>
         </div>
       </CardContent>

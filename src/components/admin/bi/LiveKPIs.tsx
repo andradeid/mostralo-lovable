@@ -93,15 +93,15 @@ export function LiveKPIs() {
 
   if (loading) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-2 md:gap-3 grid-cols-2 lg:grid-cols-4">
         {[...Array(8)].map((_, i) => (
           <Card key={i} className="animate-pulse">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="h-4 bg-muted rounded w-24" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-1 md:p-4 md:pb-2">
+              <div className="h-3 md:h-4 bg-muted rounded w-16 md:w-24" />
             </CardHeader>
-            <CardContent>
-              <div className="h-8 bg-muted rounded w-32 mb-2" />
-              <div className="h-3 bg-muted rounded w-20" />
+            <CardContent className="p-3 pt-0 md:p-4 md:pt-0">
+              <div className="h-5 md:h-8 bg-muted rounded w-20 md:w-32 mb-1 md:mb-2" />
+              <div className="h-2 md:h-3 bg-muted rounded w-12 md:w-20" />
             </CardContent>
           </Card>
         ))}
@@ -111,119 +111,73 @@ export function LiveKPIs() {
 
   if (!kpis) return null;
 
+  const kpiCards = [
+    {
+      title: "Lojas Ativas",
+      value: kpis.activeStores.toString(),
+      subtitle: `Churn: ${kpis.churnRate.toFixed(1)}%`,
+      icon: Store
+    },
+    {
+      title: "MRR Atual",
+      value: `R$ ${kpis.currentMRR.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
+      subtitle: "Receita Mensal",
+      icon: DollarSign
+    },
+    {
+      title: "ARR Projetado",
+      value: `R$ ${kpis.projectedARR.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
+      subtitle: "Receita Anual",
+      icon: TrendingUp
+    },
+    {
+      title: "Ticket Médio",
+      value: `R$ ${kpis.avgTicket.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
+      subtitle: "Por loja/mês",
+      icon: Target
+    },
+    {
+      title: "Vendedores",
+      value: kpis.activeSalespeople.toString(),
+      subtitle: `${kpis.pendingSalespeople} pendentes`,
+      icon: UserCheck
+    },
+    {
+      title: "Total Vendedores",
+      value: kpis.totalSalespeople.toString(),
+      subtitle: "Cadastrados",
+      icon: Users
+    },
+    {
+      title: "Conversão",
+      value: `${kpis.conversionRate.toFixed(1)}%`,
+      subtitle: "Leads aprovados",
+      icon: TrendingUp
+    },
+    {
+      title: "Valuation",
+      value: `R$ ${(kpis.projectedARR * 5).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
+      subtitle: "5x ARR",
+      icon: DollarSign
+    }
+  ];
+
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Lojas Ativas</CardTitle>
-          <Store className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{kpis.activeStores}</div>
-          <p className="text-xs text-muted-foreground">
-            Churn: {kpis.churnRate.toFixed(1)}%
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">MRR Atual</CardTitle>
-          <DollarSign className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            R$ {kpis.currentMRR.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Receita Mensal Recorrente
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">ARR Projetado</CardTitle>
-          <TrendingUp className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            R$ {kpis.projectedARR.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Receita Anual Recorrente
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Ticket Médio</CardTitle>
-          <Target className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            R$ {kpis.avgTicket.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Por loja/mês
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Vendedores Ativos</CardTitle>
-          <UserCheck className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{kpis.activeSalespeople}</div>
-          <p className="text-xs text-muted-foreground">
-            {kpis.pendingSalespeople} pendentes
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Vendedores</CardTitle>
-          <Users className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{kpis.totalSalespeople}</div>
-          <p className="text-xs text-muted-foreground">
-            Cadastrados no sistema
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Conversão de Leads</CardTitle>
-          <TrendingUp className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{kpis.conversionRate.toFixed(1)}%</div>
-          <p className="text-xs text-muted-foreground">
-            Aprovados vs Total
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Valuation (5x ARR)</CardTitle>
-          <DollarSign className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">
-            R$ {(kpis.projectedARR * 5).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Avaliação estimada
-          </p>
-        </CardContent>
-      </Card>
+    <div className="grid gap-2 md:gap-3 grid-cols-2 lg:grid-cols-4">
+      {kpiCards.map((kpi, index) => (
+        <Card key={index}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 pb-1 md:p-4 md:pb-2">
+            <CardTitle className="text-[10px] md:text-xs font-medium truncate">{kpi.title}</CardTitle>
+            <kpi.icon className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground shrink-0" />
+          </CardHeader>
+          <CardContent className="p-3 pt-0 md:p-4 md:pt-0">
+            <div className="text-base md:text-xl lg:text-2xl font-bold truncate">{kpi.value}</div>
+            <p className="text-[10px] md:text-xs text-muted-foreground truncate">
+              {kpi.subtitle}
+            </p>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }

@@ -4,8 +4,42 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Copy, QrCode, Users, TrendingUp, Target, Lightbulb } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Copy, Users, Target, Lightbulb } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+const tactics = [
+  {
+    icon: "💼",
+    title: "LinkedIn",
+    potential: "Alto",
+    description: "Buscar representantes comerciais e profissionais com CNPJ ativo."
+  },
+  {
+    icon: "📱",
+    title: "Instagram/TikTok",
+    potential: "Viral",
+    description: "Criar conteúdo sobre renda extra para PJs."
+  },
+  {
+    icon: "🤝",
+    title: "Parcerias",
+    potential: "Escalável",
+    description: "Contabilidades, grupos de empreendedores, associações."
+  },
+  {
+    icon: "💰",
+    title: "Indicação",
+    potential: "Incentivo",
+    description: "Bônus para vendedores que indicarem outros ativos."
+  },
+  {
+    icon: "📢",
+    title: "Anúncios",
+    potential: "Pago",
+    description: "Google/Facebook Ads para renda extra e trabalho autônomo."
+  }
+];
 
 export function RecruitmentStrategy() {
   const [monthlyGoal, setMonthlyGoal] = useState(10);
@@ -24,156 +58,120 @@ export function RecruitmentStrategy() {
     navigator.clipboard.writeText(recruitmentLink);
     toast({
       title: "Link copiado!",
-      description: "Link de recrutamento copiado para a área de transferência."
+      description: "Link de recrutamento copiado."
     });
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <Card>
-        <CardHeader>
-          <CardTitle>Estratégia de Recrutamento de Vendedores</CardTitle>
-          <CardDescription>
-            Calcule o impacto de recrutar vendedores ativos no crescimento da plataforma
+        <CardHeader className="p-3 pb-2 md:p-6 md:pb-4">
+          <CardTitle className="text-sm md:text-base">Estratégia de Recrutamento</CardTitle>
+          <CardDescription className="text-xs md:text-sm">
+            Calcule o impacto de recrutar vendedores
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Calculadora de Impacto */}
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="monthlyGoal">Meta de Vendedores por Mês</Label>
+        <CardContent className="p-3 pt-0 md:p-6 md:pt-0 space-y-4">
+          {/* Calculator */}
+          <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="monthlyGoal" className="text-xs md:text-sm">Meta Vendedores/Mês</Label>
               <Input
                 id="monthlyGoal"
                 type="number"
                 value={monthlyGoal}
                 onChange={(e) => setMonthlyGoal(Number(e.target.value))}
                 min={1}
+                className="h-8 md:h-10 text-sm"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="storesPerSalesperson">Lojas por Vendedor/Mês</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="storesPerSalesperson" className="text-xs md:text-sm">Lojas/Vendedor/Mês</Label>
               <Input
                 id="storesPerSalesperson"
                 type="number"
                 value={storesPerSalesperson}
                 onChange={(e) => setStoresPerSalesperson(Number(e.target.value))}
                 min={1}
+                className="h-8 md:h-10 text-sm"
               />
             </div>
           </div>
 
-          {/* Resultado do Impacto */}
-          <div className="p-4 bg-primary/10 rounded-lg border-2 border-primary/20">
-            <h4 className="font-semibold mb-3 flex items-center gap-2">
-              <Target className="h-5 w-5" />
+          {/* Impact Results */}
+          <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
+            <h4 className="font-semibold text-xs md:text-sm mb-2 flex items-center gap-1.5">
+              <Target className="h-3.5 w-3.5 md:h-4 md:w-4" />
               Impacto Projetado
             </h4>
-            <div className="grid gap-3 md:grid-cols-3">
-              <div>
-                <p className="text-xs text-muted-foreground">Novas Lojas/Mês</p>
-                <p className="text-2xl font-bold text-primary">
+            <div className="grid gap-2 grid-cols-3">
+              <div className="text-center">
+                <p className="text-[10px] md:text-xs text-muted-foreground">Lojas/Mês</p>
+                <p className="text-base md:text-xl font-bold text-primary">
                   {calculatedImpact.newStoresPerMonth}
                 </p>
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Novo MRR/Mês</p>
-                <p className="text-2xl font-bold text-primary">
-                  R$ {calculatedImpact.newMRRPerMonth.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
+              <div className="text-center">
+                <p className="text-[10px] md:text-xs text-muted-foreground">MRR/Mês</p>
+                <p className="text-base md:text-xl font-bold text-primary">
+                  R$ {(calculatedImpact.newMRRPerMonth / 1000).toFixed(1)}k
                 </p>
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Novo ARR/Ano</p>
-                <p className="text-2xl font-bold text-primary">
-                  R$ {calculatedImpact.newARRPerYear.toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
+              <div className="text-center">
+                <p className="text-[10px] md:text-xs text-muted-foreground">ARR/Ano</p>
+                <p className="text-base md:text-xl font-bold text-primary">
+                  R$ {(calculatedImpact.newARRPerYear / 1000).toFixed(0)}k
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Canais de Recrutamento */}
-          <div className="space-y-3">
-            <h4 className="font-semibold flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Canais de Recrutamento
+          {/* Recruitment Link */}
+          <div className="space-y-1.5">
+            <h4 className="font-semibold text-xs md:text-sm flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              Link de Recrutamento
             </h4>
             <div className="flex gap-2">
-              <Input value={recruitmentLink} readOnly className="flex-1" />
-              <Button onClick={copyLink} variant="outline" size="icon">
-                <Copy className="h-4 w-4" />
+              <Input 
+                value={recruitmentLink} 
+                readOnly 
+                className="flex-1 text-xs md:text-sm h-8 md:h-10 truncate" 
+              />
+              <Button onClick={copyLink} variant="outline" size="icon" className="h-8 w-8 md:h-10 md:w-10 shrink-0">
+                <Copy className="h-3.5 w-3.5 md:h-4 md:w-4" />
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Compartilhe este link em redes sociais, grupos de WhatsApp, e com contatos profissionais
-            </p>
           </div>
         </CardContent>
       </Card>
 
-      {/* Estratégias Sugeridas */}
+      {/* Tactics */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Lightbulb className="h-5 w-5" />
+        <CardHeader className="p-3 pb-2 md:p-6 md:pb-4">
+          <CardTitle className="flex items-center gap-1.5 text-sm md:text-base">
+            <Lightbulb className="h-4 w-4 md:h-5 md:w-5" />
             Táticas de Recrutamento
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-3">
-            <div className="p-3 border rounded-lg">
-              <h5 className="font-semibold mb-1 flex items-center gap-2">
-                💼 LinkedIn
-                <Badge variant="secondary">Alto Potencial</Badge>
-              </h5>
-              <p className="text-sm text-muted-foreground">
-                Buscar representantes comerciais, consultores de vendas, e profissionais com CNPJ ativo. 
-                Filtrar por "representante comercial" ou "vendedor autônomo".
-              </p>
+        <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+          <ScrollArea className="h-[200px] md:h-auto md:max-h-none">
+            <div className="space-y-2">
+              {tactics.map((tactic, index) => (
+                <div key={index} className="p-2 md:p-3 border rounded-lg">
+                  <h5 className="font-semibold text-xs md:text-sm flex items-center gap-1.5">
+                    {tactic.icon} {tactic.title}
+                    <Badge variant="secondary" className="text-[10px] md:text-xs px-1.5">
+                      {tactic.potential}
+                    </Badge>
+                  </h5>
+                  <p className="text-[10px] md:text-sm text-muted-foreground mt-1 line-clamp-2 md:line-clamp-none">
+                    {tactic.description}
+                  </p>
+                </div>
+              ))}
             </div>
-
-            <div className="p-3 border rounded-lg">
-              <h5 className="font-semibold mb-1 flex items-center gap-2">
-                📱 Instagram/TikTok
-                <Badge variant="secondary">Viral</Badge>
-              </h5>
-              <p className="text-sm text-muted-foreground">
-                Criar conteúdo sobre renda extra para PJs, vídeos mostrando comissões reais, 
-                e depoimentos de vendedores ativos (quando disponível).
-              </p>
-            </div>
-
-            <div className="p-3 border rounded-lg">
-              <h5 className="font-semibold mb-1 flex items-center gap-2">
-                🤝 Parcerias Estratégicas
-                <Badge variant="secondary">Escalável</Badge>
-              </h5>
-              <p className="text-sm text-muted-foreground">
-                Contabilidades que atendem MEIs, grupos de empreendedores, associações comerciais, 
-                e cursos de vendas/marketing.
-              </p>
-            </div>
-
-            <div className="p-3 border rounded-lg">
-              <h5 className="font-semibold mb-1 flex items-center gap-2">
-                💰 Programa de Indicação
-                <Badge variant="secondary">Incentivo</Badge>
-              </h5>
-              <p className="text-sm text-muted-foreground">
-                Oferecer bônus extra para vendedores que indicarem outros vendedores ativos 
-                (ex: R$ 200 por vendedor indicado que feche 3+ vendas).
-              </p>
-            </div>
-
-            <div className="p-3 border rounded-lg">
-              <h5 className="font-semibold mb-1 flex items-center gap-2">
-                📢 Anúncios Segmentados
-                <Badge variant="secondary">Pago</Badge>
-              </h5>
-              <p className="text-sm text-muted-foreground">
-                Google Ads e Facebook Ads segmentados para "renda extra", "trabalho autônomo", 
-                "representante comercial" com landing page otimizada.
-              </p>
-            </div>
-          </div>
+          </ScrollArea>
         </CardContent>
       </Card>
     </div>

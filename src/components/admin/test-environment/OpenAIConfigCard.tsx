@@ -71,7 +71,7 @@ export function OpenAIConfigCard() {
       const { data: { session } } = await supabase.auth.getSession();
       
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/openai-credentials-sync`,
+        'https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/openai-credentials-sync',
         {
           method: 'POST',
           headers: {
@@ -111,7 +111,7 @@ export function OpenAIConfigCard() {
       const { data: { session } } = await supabase.auth.getSession();
       
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/openai-credentials-sync`,
+        'https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/openai-credentials-sync',
         {
           method: 'POST',
           headers: {
@@ -155,7 +155,7 @@ export function OpenAIConfigCard() {
       const { data: { session } } = await supabase.auth.getSession();
       
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/openai-credentials-sync`,
+        'https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/openai-credentials-sync',
         {
           method: 'POST',
           headers: {

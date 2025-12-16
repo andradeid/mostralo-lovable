@@ -33,6 +33,51 @@ interface OperationStep {
   details?: string;
 }
 
+function formatBusinessHours(hours: any): string {
+  if (!hours) return 'Não informado';
+  
+  try {
+    if (typeof hours === 'string') {
+      return hours;
+    }
+    
+    if (typeof hours === 'object') {
+      const formatted: string[] = [];
+      
+      for (const [key, value] of Object.entries(hours)) {
+        if (value && typeof value === 'object') {
+          const dayValue = value as any;
+          if (dayValue.open && dayValue.close) {
+            formatted.push(`${key}: ${dayValue.open} - ${dayValue.close}`);
+          } else if (dayValue.closed) {
+            formatted.push(`${key}: Fechado`);
+          }
+        }
+      }
+      
+      return formatted.length > 0 ? formatted.join('\n') : 'Não informado';
+    }
+    
+    return 'Não informado';
+  } catch {
+    return 'Não informado';
+  }
+}
+
+function formatPaymentMethods(store: any): string {
+  const methods: string[] = [];
+  
+  if (store.accepts_pix !== false) methods.push('✅ PIX');
+  if (store.accepts_card !== false) methods.push('✅ Cartão');
+  if (store.accepts_cash !== false) methods.push('✅ Dinheiro');
+  
+  if (methods.length === 0) {
+    return '- Consulte a loja sobre formas de pagamento';
+  }
+  
+  return methods.join('\n');
+}
+
 function generateSystemPrompt(botName: string, store: any, products: any[], categories: any[]): string {
   const productList = products
     .filter(p => p.is_available)
@@ -45,6 +90,28 @@ function generateSystemPrompt(botName: string, store: any, products: any[], cate
     .join(', ');
 
   const storeLink = `https://mostralo.com.br/loja/${store.slug}`;
+  
+  // Seção de localização
+  const locationSection = store.google_maps_link 
+    ? `\nLOCALIZAÇÃO:
+- Endereço: ${store.address || 'Não informado'}
+- Cidade/Estado: ${store.city || ''}${store.city && store.state ? '/' : ''}${store.state || ''}
+- 📍 Link do Google Maps: ${store.google_maps_link}
+- Quando cliente pedir localização, SEMPRE envie o link acima`
+    : '';
+
+  // Seção de pagamento
+  const paymentSection = `\nFORMAS DE PAGAMENTO:
+${formatPaymentMethods(store)}`;
+
+  // Seção de delivery
+  const deliverySection = `\nDELIVERY:
+- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}
+- Pedido mínimo: ${store.min_order_value ? `R$ ${store.min_order_value.toFixed(2)}` : 'Sem valor mínimo'}`;
+
+  // Seção de horários
+  const hoursSection = `\nHORÁRIO DE FUNCIONAMENTO:
+${formatBusinessHours(store.business_hours)}`;
 
   return `Você é ${botName}, o assistente virtual da ${store.name || 'loja'}.
 
@@ -56,6 +123,10 @@ INFORMAÇÕES DA LOJA:
 - Endereço: ${store.address || 'Não informado'}
 - WhatsApp: ${store.whatsapp || 'Não informado'}
 - Link do cardápio: ${storeLink}
+${locationSection}
+${paymentSection}
+${deliverySection}
+${hoursSection}
 
 CATEGORIAS DISPONÍVEIS:
 ${categoryList || 'Não há categorias cadastradas'}
@@ -74,6 +145,9 @@ INSTRUÇÕES:
 8. Responda sempre em português brasileiro
 9. Use emojis moderadamente para deixar a conversa mais amigável
 10. Mencione promoções se houver
+11. Quando pedirem localização, envie o link do Google Maps se disponível
+12. Informe horário de funcionamento quando perguntado
+13. Informe formas de pagamento aceitas quando perguntado
 
 ENCERRAMENTO:
 - Quando o cliente digitar a palavra de encerramento, agradeça e finalize
@@ -115,10 +189,14 @@ serve(async (req) => {
 
     const { action, config } = await req.json() as { action: string; config: BotConfig };
 
-    // Buscar loja do usuário
+    // Buscar loja do usuário com todos os campos necessários
     const { data: store, error: storeError } = await supabaseClient
       .from('stores')
-      .select('*')
+      .select(`
+        *, 
+        google_maps_link, business_hours, delivery_fee, min_order_value,
+        accepts_cash, accepts_card, accepts_pix, city, state
+      `)
       .eq('id', config.storeId)
       .single();
 
@@ -204,7 +282,6 @@ serve(async (req) => {
 
     // ========================================
     // FUNÇÃO: Consultar e garantir credenciais OpenAI
-    // (Mesmo padrão do master-test-bot-sync)
     // ========================================
     async function ensureOpenAiCreds(instanceName: string): Promise<string | null> {
       steps.push({
@@ -427,7 +504,7 @@ serve(async (req) => {
         const deleteText = await deleteResp.text();
         console.log('Resposta delete bot:', deleteResp.status, deleteText);
         
-        return deleteResp.ok || deleteResp.status === 404; // 404 = já não existe, ok
+        return deleteResp.ok || deleteResp.status === 404;
       } catch (e) {
         console.log('Erro ao deletar bot:', e);
         return false;
@@ -436,7 +513,6 @@ serve(async (req) => {
 
     // ========================================
     // FUNÇÃO: Garantir bot com estratégia DELETE + CREATE
-    // (Mesmo padrão do master-test-bot-sync)
     // ========================================
     async function ensureOpenAiBot(
       instanceName: string,
@@ -444,7 +520,6 @@ serve(async (req) => {
       botPayload: any,
       storeName: string
     ): Promise<{ success: boolean; botId: string | null; created: boolean }> {
-      // Adicionar description ao payload
       botPayload.description = `Bot Mostralo - ${storeName}`;
 
       steps.push({
@@ -463,7 +538,6 @@ serve(async (req) => {
           details: existingBots.map((b) => `${b.description || b.id?.slice(0, 8) || 'sem-id'}`).join(', '),
         });
 
-        // ESTRATÉGIA DELETE + CREATE: Deletar bots existentes para recriar com todas as configs
         for (const bot of existingBots) {
           if (bot.id) {
             steps.push({
@@ -522,7 +596,6 @@ serve(async (req) => {
         console.log('Resposta criação bot:', createResp.status, createText);
 
         if (!createResp.ok) {
-          // Se a Evolution diz que já existe, deletar e tentar criar novamente
           const alreadyExists = createText.includes('already exists') || createText.includes('already');
           if (alreadyExists) {
             steps.push({
@@ -534,14 +607,12 @@ serve(async (req) => {
 
             const botsAfter = await findExistingBots(instanceName);
             
-            // Deletar todos os bots encontrados
             for (const bot of botsAfter) {
               if (bot.id) {
                 await deleteExistingBot(instanceName, bot.id);
               }
             }
 
-            // Tentar criar novamente
             const retryResp = await fetch(createUrl, {
               method: 'POST',
               headers: {
@@ -647,7 +718,7 @@ serve(async (req) => {
 
       console.log('Usando openaiCredsId:', openaiCredsId);
 
-      // 2. Gerar prompt com dados da loja
+      // 2. Gerar prompt com dados da loja (agora com todos os campos)
       const botName = config.botName || 'Assistente';
       const systemPrompt = generateSystemPrompt(botName, store, products || [], categories || []);
 
@@ -655,7 +726,7 @@ serve(async (req) => {
         step: 'prompt_generate',
         status: 'success',
         message: 'Prompt gerado com dados da loja',
-        details: `${products?.length || 0} produto(s), ${categories?.length || 0} categoria(s)`,
+        details: `${products?.length || 0} produto(s), ${categories?.length || 0} categoria(s), localização: ${store.google_maps_link ? 'sim' : 'não'}`,
       });
 
       // 3. Validar modelo
@@ -676,7 +747,7 @@ serve(async (req) => {
         });
       }
 
-      // 4. Montar payload do bot (incluindo splitMessages e timePerChar)
+      // 4. Montar payload do bot
       const botPayload: any = {
         enabled: true,
         openaiCredsId: openaiCredsId,

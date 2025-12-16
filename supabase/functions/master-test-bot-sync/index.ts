@@ -238,19 +238,22 @@ serve(async (req) => {
     const instanceName = testConfig.test_instance_name;
 
     // Helper: obter openaiCredsId com validação robusta
-    async function ensureOpenAiCreds(): Promise<string | null> {
+    // Evolution API v2 requer o nome da instância nos endpoints de credenciais
+    async function ensureOpenAiCreds(instanceName: string): Promise<string | null> {
       steps.push({
         step: 'openai_creds_check',
         status: 'success',
         message: 'Verificando credenciais OpenAI na Evolution...',
+        details: `Instância: ${instanceName}`,
       });
 
-      // 1. Listar credenciais existentes na Evolution
-      console.log('Buscando credenciais OpenAI na Evolution...');
+      // 1. Listar credenciais existentes na Evolution para esta instância
+      console.log('Buscando credenciais OpenAI para instância:', instanceName);
       let existingCreds: any[] = [];
       
       try {
-        const listResp = await fetch(`${evolutionUrl}/openai/creds`, {
+        // Evolution API v2: GET /openai/creds/{instance}
+        const listResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
           method: 'GET',
           headers: {
             'apikey': evolutionConfig.api_key,
@@ -265,15 +268,16 @@ serve(async (req) => {
           steps.push({
             step: 'openai_creds_list',
             status: 'success',
-            message: `${existingCreds.length} credencial(is) encontrada(s) na Evolution`,
+            message: `${existingCreds.length} credencial(is) encontrada(s)`,
             details: existingCreds.map(c => c.name || c.id).join(', ') || 'Nenhuma',
           });
         } else {
           console.log('Falha ao listar credenciais:', listResp.status);
+          // Se não encontrou, não é erro - pode ser que não tenha nenhuma ainda
           steps.push({
             step: 'openai_creds_list',
             status: 'warning',
-            message: 'Não foi possível listar credenciais',
+            message: 'Nenhuma credencial encontrada para esta instância',
             details: `Status: ${listResp.status}`,
           });
         }
@@ -355,7 +359,8 @@ serve(async (req) => {
       });
 
       try {
-        const createResp = await fetch(`${evolutionUrl}/openai/creds`, {
+        // Evolution API v2: POST /openai/creds/{instance}
+        const createResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
           method: 'POST',
           headers: {
             'apikey': evolutionConfig.api_key,
@@ -376,7 +381,7 @@ serve(async (req) => {
             step: 'openai_creds_create',
             status: 'error',
             message: 'Falha ao criar credencial na Evolution',
-            details: `Status: ${createResp.status}`,
+            details: `Status: ${createResp.status} - ${createText}`,
           });
           return null;
         }
@@ -384,7 +389,7 @@ serve(async (req) => {
         let createdId: string | null = null;
         try {
           const data = JSON.parse(createText);
-          createdId = data?.id || data?.openaiCredsId || null;
+          createdId = data?.id || data?.openaiCredsId || data?.creds?.id || null;
         } catch {
           createdId = null;
         }
@@ -413,6 +418,7 @@ serve(async (req) => {
           step: 'openai_creds_create',
           status: 'error',
           message: 'ID da credencial não retornado pela Evolution',
+          details: createText,
         });
         return null;
       } catch (e) {
@@ -434,8 +440,8 @@ serve(async (req) => {
         message: `Iniciando ${action === 'create' ? 'criação' : 'atualização'} do bot...`,
       });
 
-      // Garantir que temos openaiCredsId
-      const openaiCredsId = await ensureOpenAiCreds();
+      // Garantir que temos openaiCredsId (passa o nome da instância para os endpoints da Evolution API v2)
+      const openaiCredsId = await ensureOpenAiCreds(testConfig.test_instance_name);
       if (!openaiCredsId) {
         return new Response(JSON.stringify({
           success: false,

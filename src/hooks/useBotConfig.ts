@@ -77,7 +77,7 @@ export function useBotConfig(storeId: string | null) {
     }
   }, [storeId]);
 
-  const fetchPromptPreview = useCallback(async () => {
+  const fetchPromptPreview = useCallback(async (botName?: string) => {
     if (!storeId) return;
 
     try {
@@ -91,7 +91,8 @@ export function useBotConfig(storeId: string | null) {
         const preview = generateBotPromptPreview(
           storeResult.data,
           productsResult.data || [],
-          categoriesResult.data || []
+          categoriesResult.data || [],
+          botName
         );
         setPromptData(preview);
         setLastUpdated(new Date());
@@ -103,8 +104,14 @@ export function useBotConfig(storeId: string | null) {
 
   useEffect(() => {
     fetchConfig();
-    fetchPromptPreview();
-  }, [fetchConfig, fetchPromptPreview]);
+  }, [fetchConfig]);
+
+  // Atualizar preview quando config carregar ou bot_name mudar
+  useEffect(() => {
+    if (config?.bot_name) {
+      fetchPromptPreview(config.bot_name);
+    }
+  }, [config?.bot_name, fetchPromptPreview]);
 
   const saveConfig = useDebouncedCallback(async (newConfig: Partial<BotConfig>) => {
     if (!storeId || !config) return;
@@ -231,7 +238,7 @@ export function useBotConfig(storeId: string | null) {
     lastUpdated,
     updateConfig,
     syncWithEvolution,
-    refreshPrompt: fetchPromptPreview,
+    refreshPrompt: () => fetchPromptPreview(config?.bot_name),
     refetch: fetchConfig,
   };
 }

@@ -787,7 +787,7 @@ serve(async (req) => {
         });
       }
 
-      // 4. Montar payload do bot
+      // 4. Montar payload do bot com novos campos avançados
       const botPayload: any = {
         enabled: true,
         openaiCredsId: openaiCredsId,
@@ -803,14 +803,14 @@ serve(async (req) => {
         expire: config?.expireMinutes || testConfig.bot_expire_minutes || 20,
         keywordFinish: config?.keywordFinish || testConfig.bot_keyword_finish || '#SAIR',
         delayMessage: config?.delayMessage || testConfig.bot_delay_message || 1500,
-        unknownMessage: 'Desculpe, não entendi sua mensagem. Digite #SAIR para encerrar.',
-        listeningFromMe: false,
+        unknownMessage: config?.unknownMessage || testConfig.bot_unknown_message || 'Desculpe, não entendi sua mensagem. Digite #SAIR para encerrar.',
+        listeningFromMe: config?.listeningFromMe !== undefined ? config.listeningFromMe : (testConfig.bot_listening_from_me ?? false),
         stopBotFromMe: config?.stopBotFromMe !== undefined ? config.stopBotFromMe : testConfig.bot_stop_from_me,
-        keepOpen: false,
-        debounceTime: 10,
+        keepOpen: config?.keepOpen !== undefined ? config.keepOpen : (testConfig.bot_keep_open ?? false),
+        debounceTime: config?.debounceTime || testConfig.bot_debounce_time || 10,
         ignoreJids: [],
-        splitMessages: false,
-        timePerChar: 0,
+        splitMessages: config?.splitMessages !== undefined ? config.splitMessages : (testConfig.bot_split_messages ?? true),
+        timePerChar: config?.timePerChar || testConfig.bot_time_per_char || 0,
       };
 
       console.log('Payload do bot:', JSON.stringify(botPayload, null, 2));
@@ -829,7 +829,7 @@ serve(async (req) => {
         });
       }
 
-      // 6. Salvar configuração no banco
+      // 6. Salvar configuração no banco (incluindo novos campos)
       await supabaseClient
         .from('master_admin_test_config')
         .update({
@@ -845,6 +845,13 @@ serve(async (req) => {
           bot_evolution_id: botResult.botId,
           sandbox_store_name: config?.storeName || testConfig.sandbox_store_name,
           sandbox_store_description: config?.storeDescription || testConfig.sandbox_store_description,
+          // Novos campos avançados
+          bot_unknown_message: config?.unknownMessage || testConfig.bot_unknown_message,
+          bot_listening_from_me: config?.listeningFromMe !== undefined ? config.listeningFromMe : testConfig.bot_listening_from_me,
+          bot_keep_open: config?.keepOpen !== undefined ? config.keepOpen : testConfig.bot_keep_open,
+          bot_debounce_time: config?.debounceTime || testConfig.bot_debounce_time,
+          bot_split_messages: config?.splitMessages !== undefined ? config.splitMessages : testConfig.bot_split_messages,
+          bot_time_per_char: config?.timePerChar || testConfig.bot_time_per_char,
           updated_at: new Date().toISOString(),
         })
         .eq('id', testConfig.id);
@@ -1016,6 +1023,93 @@ serve(async (req) => {
       return new Response(JSON.stringify({ success: true, message: 'Loja sandbox salva!', steps }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    }
+
+    // ========================================
+    // AÇÃO: get_sessions
+    // ========================================
+    if (action === 'get_sessions') {
+      steps.push({
+        step: 'sessions_start',
+        status: 'success',
+        message: 'Consultando sessões ativas...',
+      });
+
+      if (!testConfig.test_instance_name) {
+        steps.push({
+          step: 'sessions_check',
+          status: 'error',
+          message: 'Nenhuma instância configurada',
+        });
+        return new Response(JSON.stringify({ error: 'Nenhuma instância configurada', steps }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      try {
+        const sessionsResp = await fetch(
+          `${evolutionUrl}/openai/session/${testConfig.test_instance_name}`,
+          {
+            method: 'GET',
+            headers: { 'apikey': evolutionConfig.api_key },
+          }
+        );
+
+        if (!sessionsResp.ok) {
+          const errorText = await sessionsResp.text();
+          steps.push({
+            step: 'sessions_fetch',
+            status: 'error',
+            message: 'Falha ao consultar sessões',
+            details: `Status: ${sessionsResp.status} - ${errorText.slice(0, 100)}`,
+          });
+          return new Response(JSON.stringify({ 
+            success: false, 
+            error: 'Falha ao consultar sessões',
+            sessions: [],
+            steps,
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const sessionsData = await sessionsResp.json();
+        const sessions = Array.isArray(sessionsData) 
+          ? sessionsData 
+          : (sessionsData?.sessions || sessionsData?.data || []);
+
+        steps.push({
+          step: 'sessions_complete',
+          status: 'success',
+          message: `${sessions.length} sessão(ões) encontrada(s)`,
+        });
+
+        return new Response(JSON.stringify({ 
+          success: true, 
+          sessions,
+          steps,
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      } catch (e) {
+        steps.push({
+          step: 'sessions_error',
+          status: 'error',
+          message: 'Erro ao consultar sessões',
+          details: String(e),
+        });
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: String(e),
+          sessions: [],
+          steps,
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     }
 
     return new Response(JSON.stringify({ error: 'Ação inválida', steps }), {

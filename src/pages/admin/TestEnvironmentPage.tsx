@@ -10,10 +10,12 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
   FlaskConical, Smartphone, Store, Bot, FileText, 
   QrCode, Wifi, WifiOff, Plus, Trash2, RefreshCw,
-  Play, Pause, Save, Loader2, Check, X, Settings2, BookOpen
+  Play, Pause, Save, Loader2, Check, X, Settings2, BookOpen,
+  Users, MessageSquare
 } from 'lucide-react';
 import { HowItWorksCard, TestPromptPreviewCard, OpenAIConfigCard, OperationProgressCard, type OperationStep } from '@/components/admin/test-environment';
 import { supabase } from '@/integrations/supabase/client';
@@ -40,6 +42,13 @@ interface TestConfig {
   bot_trigger_type: string;
   bot_trigger_value: string;
   bot_evolution_id: string | null;
+  // Novos campos avançados
+  bot_unknown_message: string;
+  bot_listening_from_me: boolean;
+  bot_keep_open: boolean;
+  bot_debounce_time: number;
+  bot_split_messages: boolean;
+  bot_time_per_char: number;
 }
 
 interface SandboxProduct {
@@ -54,6 +63,15 @@ interface SandboxCategory {
   id: string;
   name: string;
   description?: string;
+}
+
+interface BotSession {
+  remoteJid: string;
+  sessionId: string;
+  status: string;
+  createdAt?: string;
+  updateAt?: string;
+  pushName?: string;
 }
 
 export default function TestEnvironmentPage() {
@@ -77,6 +95,19 @@ export default function TestEnvironmentPage() {
   const [keywordFinish, setKeywordFinish] = useState('#SAIR');
   const [triggerType, setTriggerType] = useState('all');
   const [triggerValue, setTriggerValue] = useState('');
+
+  // Novos estados para campos avançados
+  const [unknownMessage, setUnknownMessage] = useState('Desculpe, não entendi sua mensagem. Digite #SAIR para encerrar.');
+  const [listeningFromMe, setListeningFromMe] = useState(false);
+  const [keepOpen, setKeepOpen] = useState(false);
+  const [debounceTime, setDebounceTime] = useState(10);
+  const [splitMessages, setSplitMessages] = useState(true);
+  const [timePerChar, setTimePerChar] = useState(0);
+
+  // Sessions state
+  const [sessions, setSessions] = useState<BotSession[]>([]);
+  const [loadingSessions, setLoadingSessions] = useState(false);
+  const [sessionsDialogOpen, setSessionsDialogOpen] = useState(false);
 
   const fetchConfig = useCallback(async () => {
     try {
@@ -102,6 +133,13 @@ export default function TestEnvironmentPage() {
         setKeywordFinish(data.config.bot_keyword_finish || '#SAIR');
         setTriggerType(data.config.bot_trigger_type || 'all');
         setTriggerValue(data.config.bot_trigger_value || '');
+        // Novos campos
+        setUnknownMessage(data.config.bot_unknown_message || 'Desculpe, não entendi sua mensagem. Digite #SAIR para encerrar.');
+        setListeningFromMe(data.config.bot_listening_from_me ?? false);
+        setKeepOpen(data.config.bot_keep_open ?? false);
+        setDebounceTime(data.config.bot_debounce_time || 10);
+        setSplitMessages(data.config.bot_split_messages ?? true);
+        setTimePerChar(data.config.bot_time_per_char || 0);
       }
     } catch (error) {
       console.error('Erro ao buscar config:', error);
@@ -192,6 +230,13 @@ export default function TestEnvironmentPage() {
             keywordFinish,
             triggerType,
             triggerValue,
+            // Novos campos
+            unknownMessage,
+            listeningFromMe,
+            keepOpen,
+            debounceTime,
+            splitMessages,
+            timePerChar,
           }
         }
       });
@@ -241,6 +286,34 @@ export default function TestEnvironmentPage() {
       toast.error('Erro ao alternar bot');
     } finally {
       setActionLoading(null);
+    }
+  };
+
+  const handleLoadSessions = async () => {
+    if (!config?.test_instance_name) {
+      toast.error('Nenhuma instância configurada');
+      return;
+    }
+
+    setLoadingSessions(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('master-test-bot-sync', {
+        body: { action: 'get_sessions' }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        setSessions(data.sessions || []);
+        setSessionsDialogOpen(true);
+      } else {
+        toast.error(data?.error || 'Erro ao carregar sessões');
+      }
+    } catch (error) {
+      console.error('Erro:', error);
+      toast.error('Erro ao carregar sessões');
+    } finally {
+      setLoadingSessions(false);
     }
   };
 
@@ -773,6 +846,195 @@ export default function TestEnvironmentPage() {
                     />
                   </div>
                 )}
+              </CardContent>
+            </Card>
+
+            {/* Configurações Avançadas */}
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings2 className="h-5 w-5" />
+                  Configurações Avançadas
+                </CardTitle>
+                <CardDescription>
+                  Ajustes finos do comportamento do bot
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Mensagem quando não entender</Label>
+                  <Textarea 
+                    value={unknownMessage}
+                    onChange={(e) => setUnknownMessage(e.target.value)}
+                    placeholder="Mensagem exibida quando o bot não compreende a pergunta"
+                    rows={2}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                    <div>
+                      <p className="font-medium text-sm">Ouvindo de mim</p>
+                      <p className="text-xs text-muted-foreground">
+                        Bot escuta suas mensagens
+                      </p>
+                    </div>
+                    <Switch 
+                      checked={listeningFromMe}
+                      onCheckedChange={setListeningFromMe}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                    <div>
+                      <p className="font-medium text-sm">Manter Aberto</p>
+                      <p className="text-xs text-muted-foreground">
+                        Não expira sessão
+                      </p>
+                    </div>
+                    <Switch 
+                      checked={keepOpen}
+                      onCheckedChange={setKeepOpen}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                    <div>
+                      <p className="font-medium text-sm">Dividir Mensagens</p>
+                      <p className="text-xs text-muted-foreground">
+                        Quebra mensagens longas
+                      </p>
+                    </div>
+                    <Switch 
+                      checked={splitMessages}
+                      onCheckedChange={setSplitMessages}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Tempo de Debounce (s)</Label>
+                    <Input 
+                      type="number"
+                      value={debounceTime}
+                      onChange={(e) => setDebounceTime(parseInt(e.target.value) || 10)}
+                      min={0}
+                      max={60}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Espera antes de responder (agrupa mensagens)
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Tempo por Caractere (ms)</Label>
+                    <Input 
+                      type="number"
+                      value={timePerChar}
+                      onChange={(e) => setTimePerChar(parseInt(e.target.value) || 0)}
+                      min={0}
+                      max={100}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Simula digitação (0 = desativado)
+                    </p>
+                  </div>
+                </div>
+
+                {/* Botão de Sessões */}
+                <div className="pt-4 border-t">
+                  <Dialog open={sessionsDialogOpen} onOpenChange={setSessionsDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        onClick={handleLoadSessions}
+                        disabled={!hasInstance || loadingSessions}
+                      >
+                        {loadingSessions ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        ) : (
+                          <Users className="h-4 w-4 mr-2" />
+                        )}
+                        Ver Sessões Ativas
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-3xl">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <MessageSquare className="h-5 w-5" />
+                          Sessões Ativas do Bot
+                        </DialogTitle>
+                        <DialogDescription>
+                          Conversas em andamento com o bot de teste
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <Badge variant="outline">
+                            {sessions.length} sessão(ões)
+                          </Badge>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={handleLoadSessions}
+                            disabled={loadingSessions}
+                          >
+                            {loadingSessions ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <RefreshCw className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                        
+                        {sessions.length === 0 ? (
+                          <div className="text-center py-8 text-muted-foreground">
+                            <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                            <p>Nenhuma sessão ativa no momento</p>
+                          </div>
+                        ) : (
+                          <ScrollArea className="h-[400px]">
+                            <div className="space-y-2">
+                              {sessions.map((session, index) => (
+                                <div 
+                                  key={session.sessionId || index}
+                                  className="flex items-center justify-between p-4 bg-muted/30 rounded-lg"
+                                >
+                                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-4 gap-2 text-sm">
+                                    <div>
+                                      <p className="text-xs text-muted-foreground">Número</p>
+                                      <p className="font-mono truncate">
+                                        {session.remoteJid?.replace('@s.whatsapp.net', '') || '-'}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-muted-foreground">Nome</p>
+                                      <p className="truncate">{session.pushName || '-'}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-muted-foreground">ID Sessão</p>
+                                      <p className="font-mono text-xs truncate">
+                                        {session.sessionId?.slice(0, 12)}...
+                                      </p>
+                                    </div>
+                                    <div className="flex items-center">
+                                      <Badge 
+                                        variant={session.status === 'opened' ? 'default' : 'secondary'}
+                                        className={session.status === 'opened' ? 'bg-green-500' : ''}
+                                      >
+                                        {session.status === 'opened' ? '🟢 Ativo' : '⚪ ' + session.status}
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </ScrollArea>
+                        )}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </CardContent>
             </Card>
           </div>

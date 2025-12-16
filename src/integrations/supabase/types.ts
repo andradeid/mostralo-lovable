@@ -1504,16 +1504,22 @@ export type Database = {
       master_admin_test_config: {
         Row: {
           admin_user_id: string
+          bot_debounce_time: number | null
           bot_delay_message: number | null
           bot_enabled: boolean | null
           bot_evolution_id: string | null
           bot_expire_minutes: number | null
+          bot_keep_open: boolean | null
           bot_keyword_finish: string | null
+          bot_listening_from_me: boolean | null
           bot_name: string | null
+          bot_split_messages: boolean | null
           bot_stop_from_me: boolean | null
           bot_system_prompt: string | null
+          bot_time_per_char: number | null
           bot_trigger_type: string | null
           bot_trigger_value: string | null
+          bot_unknown_message: string | null
           created_at: string | null
           id: string
           last_test_at: string | null
@@ -1535,16 +1541,22 @@ export type Database = {
         }
         Insert: {
           admin_user_id: string
+          bot_debounce_time?: number | null
           bot_delay_message?: number | null
           bot_enabled?: boolean | null
           bot_evolution_id?: string | null
           bot_expire_minutes?: number | null
+          bot_keep_open?: boolean | null
           bot_keyword_finish?: string | null
+          bot_listening_from_me?: boolean | null
           bot_name?: string | null
+          bot_split_messages?: boolean | null
           bot_stop_from_me?: boolean | null
           bot_system_prompt?: string | null
+          bot_time_per_char?: number | null
           bot_trigger_type?: string | null
           bot_trigger_value?: string | null
+          bot_unknown_message?: string | null
           created_at?: string | null
           id?: string
           last_test_at?: string | null
@@ -1566,16 +1578,22 @@ export type Database = {
         }
         Update: {
           admin_user_id?: string
+          bot_debounce_time?: number | null
           bot_delay_message?: number | null
           bot_enabled?: boolean | null
           bot_evolution_id?: string | null
           bot_expire_minutes?: number | null
+          bot_keep_open?: boolean | null
           bot_keyword_finish?: string | null
+          bot_listening_from_me?: boolean | null
           bot_name?: string | null
+          bot_split_messages?: boolean | null
           bot_stop_from_me?: boolean | null
           bot_system_prompt?: string | null
+          bot_time_per_char?: number | null
           bot_trigger_type?: string | null
           bot_trigger_value?: string | null
+          bot_unknown_message?: string | null
           created_at?: string | null
           id?: string
           last_test_at?: string | null

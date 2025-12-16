@@ -193,50 +193,51 @@ export function UserPasswordResetDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] p-4 md:p-6">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Key className="h-5 w-5" />
-            Resetar Senha do Usuário
+          <DialogTitle className="flex items-center gap-2 text-base md:text-lg">
+            <Key className="h-4 w-4 md:h-5 md:w-5" />
+            Resetar Senha
           </DialogTitle>
-          <DialogDescription>
-            Resetar senha para <strong>{userName}</strong> ({userEmail})
+          <DialogDescription className="text-xs md:text-sm">
+            Resetar senha para <strong className="truncate">{userName}</strong>
+            <span className="hidden sm:inline"> ({userEmail})</span>
           </DialogDescription>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "email" | "manual")} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="email" className="flex items-center gap-2">
-              <Mail className="h-4 w-4" />
-              Enviar Email
+          <TabsList className="grid w-full grid-cols-2 h-9 md:h-10">
+            <TabsTrigger value="email" className="text-xs md:text-sm flex items-center gap-1.5 md:gap-2">
+              <Mail className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              <span className="hidden xs:inline">Enviar</span> Email
             </TabsTrigger>
             <TabsTrigger 
               value="manual" 
-              className="flex items-center gap-2"
+              className="text-xs md:text-sm flex items-center gap-1.5 md:gap-2"
               disabled={!isMasterAdmin}
             >
-              <Key className="h-4 w-4" />
-              Definir Senha
+              <Key className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              <span className="hidden xs:inline">Definir</span> Senha
             </TabsTrigger>
           </TabsList>
 
           {/* Tab: Enviar Email de Recuperação */}
-          <TabsContent value="email" className="space-y-4 mt-4">
-            <div className="rounded-lg border bg-muted/50 p-4 space-y-2">
-              <div className="flex items-start gap-3">
-                <Mail className="h-5 w-5 text-primary mt-0.5" />
-                <div className="space-y-1 flex-1">
-                  <p className="text-sm font-medium">Email de Recuperação</p>
-                  <p className="text-sm text-muted-foreground">
-                    Um email será enviado para <strong>{userEmail}</strong> com um link seguro 
+          <TabsContent value="email" className="space-y-3 md:space-y-4 mt-3 md:mt-4">
+            <div className="rounded-lg border bg-muted/50 p-3 md:p-4 space-y-2">
+              <div className="flex items-start gap-2 md:gap-3">
+                <Mail className="h-4 w-4 md:h-5 md:w-5 text-primary mt-0.5 shrink-0" />
+                <div className="space-y-1 flex-1 min-w-0">
+                  <p className="text-xs md:text-sm font-medium">Email de Recuperação</p>
+                  <p className="text-xs md:text-sm text-muted-foreground">
+                    Um email será enviado para <strong className="break-all">{userEmail}</strong> com um link seguro 
                     para o usuário redefinir sua própria senha.
                   </p>
-                  <div className="mt-3 p-3 rounded-md bg-background border">
-                    <p className="text-xs text-muted-foreground">
+                  <div className="mt-2 md:mt-3 p-2 md:p-3 rounded-md bg-background border">
+                    <p className="text-[10px] md:text-xs text-muted-foreground">
                       <strong>Como funciona:</strong>
                     </p>
-                    <ol className="text-xs text-muted-foreground mt-2 space-y-1 list-decimal list-inside">
-                      <li>Email enviado automaticamente pelo Supabase</li>
+                    <ol className="text-[10px] md:text-xs text-muted-foreground mt-1.5 md:mt-2 space-y-0.5 md:space-y-1 list-decimal list-inside">
+                      <li>Email enviado automaticamente</li>
                       <li>Link válido por 1 hora</li>
                       <li>Usuário define sua nova senha</li>
                       <li>Login automático após reset</li>
@@ -246,12 +247,14 @@ export function UserPasswordResetDialog({
               </div>
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="gap-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
                 disabled={sendRecoveryEmailMutation.isPending}
+                size="sm"
+                className="h-9"
               >
                 Cancelar
               </Button>
@@ -259,30 +262,32 @@ export function UserPasswordResetDialog({
                 type="button"
                 onClick={handleSendRecoveryEmail}
                 disabled={sendRecoveryEmailMutation.isPending}
+                size="sm"
+                className="h-9"
               >
                 {sendRecoveryEmailMutation.isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 md:h-4 md:w-4 animate-spin" />
                 )}
-                <Mail className="mr-2 h-4 w-4" />
-                Enviar Email
+                <Mail className="mr-1.5 h-3.5 w-3.5 md:h-4 md:w-4" />
+                <span className="hidden sm:inline">Enviar </span>Email
               </Button>
             </DialogFooter>
           </TabsContent>
 
           {/* Tab: Definir Senha Manualmente */}
-          <TabsContent value="manual" className="space-y-4 mt-4">
+          <TabsContent value="manual" className="space-y-3 md:space-y-4 mt-3 md:mt-4">
             {isMasterAdmin ? (
               <>
-                <div className="rounded-lg border border-orange-200 bg-orange-50 dark:bg-orange-950/20 p-4">
-                  <p className="text-sm text-orange-800 dark:text-orange-200">
+                <div className="rounded-lg border border-orange-200 bg-orange-50 dark:bg-orange-950/20 p-3 md:p-4">
+                  <p className="text-xs md:text-sm text-orange-800 dark:text-orange-200">
                     <strong>⚠️ Atenção:</strong> Você está definindo a senha diretamente. 
-                    O usuário poderá fazer login imediatamente com a nova senha.
+                    O usuário poderá fazer login imediatamente.
                   </p>
                 </div>
 
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="new-password">Nova Senha *</Label>
+                <div className="space-y-3 md:space-y-4">
+                  <div className="space-y-1.5 md:space-y-2">
+                    <Label htmlFor="new-password" className="text-xs md:text-sm">Nova Senha *</Label>
                     <Input
                       id="new-password"
                       type="password"
@@ -291,32 +296,36 @@ export function UserPasswordResetDialog({
                       onChange={(e) => setNewPassword(e.target.value)}
                       minLength={6}
                       disabled={resetPasswordManuallyMutation.isPending}
+                      className="h-9 md:h-10 text-sm"
                     />
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-[10px] md:text-xs text-muted-foreground">
                       Mínimo de 6 caracteres
                     </p>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirmar Senha *</Label>
+                  <div className="space-y-1.5 md:space-y-2">
+                    <Label htmlFor="confirm-password" className="text-xs md:text-sm">Confirmar Senha *</Label>
                     <Input
                       id="confirm-password"
                       type="password"
-                      placeholder="Digite novamente a nova senha"
+                      placeholder="Digite novamente"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       minLength={6}
                       disabled={resetPasswordManuallyMutation.isPending}
+                      className="h-9 md:h-10 text-sm"
                     />
                   </div>
                 </div>
 
-                <DialogFooter>
+                <DialogFooter className="gap-2">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => onOpenChange(false)}
                     disabled={resetPasswordManuallyMutation.isPending}
+                    size="sm"
+                    className="h-9"
                   >
                     Cancelar
                   </Button>
@@ -324,20 +333,22 @@ export function UserPasswordResetDialog({
                     type="button"
                     onClick={handleResetPasswordManually}
                     disabled={resetPasswordManuallyMutation.isPending}
+                    size="sm"
+                    className="h-9"
                   >
                     {resetPasswordManuallyMutation.isPending && (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="mr-1.5 h-3.5 w-3.5 md:h-4 md:w-4 animate-spin" />
                     )}
-                    <Key className="mr-2 h-4 w-4" />
-                    Resetar Senha
+                    <Key className="mr-1.5 h-3.5 w-3.5 md:h-4 md:w-4" />
+                    Resetar
                   </Button>
                 </DialogFooter>
               </>
             ) : (
-              <div className="rounded-lg border border-yellow-200 bg-yellow-50 dark:bg-yellow-950/20 p-4">
-                <p className="text-sm text-yellow-800 dark:text-yellow-200">
+              <div className="rounded-lg border border-yellow-200 bg-yellow-50 dark:bg-yellow-950/20 p-3 md:p-4">
+                <p className="text-xs md:text-sm text-yellow-800 dark:text-yellow-200">
                   <strong>Acesso Restrito:</strong> Apenas Master Admins podem definir senhas manualmente. 
-                  Use a opção "Enviar Email" para permitir que o usuário redefina sua própria senha.
+                  Use "Enviar Email" para recuperação.
                 </p>
               </div>
             )}
@@ -347,4 +358,3 @@ export function UserPasswordResetDialog({
     </Dialog>
   );
 }
-

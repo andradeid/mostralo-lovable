@@ -69,7 +69,7 @@ function isStoreOpenNow(businessHours: any, timezone: string): boolean {
     const dayKey = dayMap[weekday] || 'monday';
     const dayConfig = businessHours[dayKey];
     
-    if (!dayConfig || !dayConfig.enabled) return false;
+    if (!dayConfig || dayConfig.closed === true) return false;
     
     // Verificar se está dentro do horário
     const [openHour, openMin] = (dayConfig.open || '08:00').split(':').map(Number);

@@ -4502,6 +4502,14 @@ export type Database = {
           agency: string | null
           bank_name: string | null
           created_at: string | null
+          efi_certificate_pem: string | null
+          efi_client_id: string | null
+          efi_client_secret: string | null
+          efi_environment: string | null
+          efi_is_configured: boolean | null
+          efi_last_test_at: string | null
+          efi_last_test_status: string | null
+          efi_pix_key: string | null
           enable_auto_approval: boolean | null
           enable_manual_approval: boolean | null
           id: string
@@ -4521,6 +4529,14 @@ export type Database = {
           agency?: string | null
           bank_name?: string | null
           created_at?: string | null
+          efi_certificate_pem?: string | null
+          efi_client_id?: string | null
+          efi_client_secret?: string | null
+          efi_environment?: string | null
+          efi_is_configured?: boolean | null
+          efi_last_test_at?: string | null
+          efi_last_test_status?: string | null
+          efi_pix_key?: string | null
           enable_auto_approval?: boolean | null
           enable_manual_approval?: boolean | null
           id?: string
@@ -4540,6 +4556,14 @@ export type Database = {
           agency?: string | null
           bank_name?: string | null
           created_at?: string | null
+          efi_certificate_pem?: string | null
+          efi_client_id?: string | null
+          efi_client_secret?: string | null
+          efi_environment?: string | null
+          efi_is_configured?: boolean | null
+          efi_last_test_at?: string | null
+          efi_last_test_status?: string | null
+          efi_pix_key?: string | null
           enable_auto_approval?: boolean | null
           enable_manual_approval?: boolean | null
           id?: string

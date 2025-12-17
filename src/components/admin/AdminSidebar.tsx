@@ -362,6 +362,7 @@ export function AdminSidebar() {
         { title: 'Pagamentos Assinaturas', url: '/dashboard/subscription-payments', icon: Receipt, group: 'Financeiro' },
         { title: 'Planos', url: '/dashboard/plans', icon: CreditCard, group: 'Financeiro' },
         { title: 'Config. Pagamentos', url: '/dashboard/subscription-config', icon: DollarSign, group: 'Financeiro' },
+        { title: 'Gateway EFI', url: '/dashboard/gateway-config', icon: Zap, group: 'Financeiro' },
         { title: 'Cupons', url: '/dashboard/coupons', icon: Ticket, group: 'Sistema' },
         { title: 'Aceites de Contratos', url: '/dashboard/contract-acceptances', icon: FileText, group: 'Sistema' },
         { title: 'Perfil', url: '/dashboard/profile', icon: User, group: 'Conta' }

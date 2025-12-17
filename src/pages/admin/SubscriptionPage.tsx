@@ -923,69 +923,6 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {/* Payment Approvals (cadastro inicial e renovações) */}
-                {allPaymentApprovals.map((approval) => (
-                  <TableRow key={`approval-${approval.id}`}>
-                    <TableCell>
-                      {format(new Date(approval.created_at), "dd/MM/yyyy", { locale: ptBR })}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">Assinatura</Badge>
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(approval.payment_amount)}
-                    </TableCell>
-                    <TableCell>
-                      {approval.status === 'approved' && (
-                        <Badge className="bg-green-500">
-                          <CheckCircle2 className="w-3 h-3 mr-1" />
-                          Aprovado
-                        </Badge>
-                      )}
-                      {approval.status === 'pending' && (
-                        <Badge className="bg-yellow-500">
-                          <Clock className="w-3 h-3 mr-1" />
-                          Aguardando
-                        </Badge>
-                      )}
-                      {approval.status === 'rejected' && (
-                        <Badge variant="destructive">
-                          <AlertCircle className="w-3 h-3 mr-1" />
-                          Rejeitado
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-muted-foreground text-xs">-</span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {approval.payment_proof_url && (
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedProofUrl(approval.payment_proof_url);
-                            setShowProofDialog(true);
-                          }}
-                        >
-                          Ver Comprovante
-                        </Button>
-                      )}
-                      {approval.status === 'rejected' && approval.rejection_reason && (
-                        <Button 
-                          size="sm" 
-                          variant="ghost"
-                          className="ml-2"
-                          onClick={() => toast.error(approval.rejection_reason || 'Sem motivo especificado')}
-                        >
-                          Ver Motivo
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-
-                {/* Invoices (faturas mensais) */}
                 {invoices.map((invoice) => (
                   <TableRow key={`invoice-${invoice.id}`}>
                     <TableCell>
@@ -1037,25 +974,12 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                             : 'Pagar'}
                         </Button>
                       )}
-                      {invoice.payment_proof_url && (
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="ml-2"
-                          onClick={() => {
-                            setSelectedProofUrl(invoice.payment_proof_url);
-                            setShowProofDialog(true);
-                          }}
-                        >
-                          Ver Comprovante
-                        </Button>
-                      )}
                     </TableCell>
                   </TableRow>
                 ))}
 
                 {/* Empty state */}
-                {invoices.length === 0 && allPaymentApprovals.length === 0 && (
+                {invoices.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                       Nenhum registro encontrado

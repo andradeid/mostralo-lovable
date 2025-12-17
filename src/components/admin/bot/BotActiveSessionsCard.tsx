@@ -3,12 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -26,7 +20,6 @@ import {
   MessageSquare,
   RefreshCw,
   Search,
-  MoreVertical,
   Pause,
   Square,
   Trash2,
@@ -268,53 +261,64 @@ export function BotActiveSessionsCard({ storeId }: BotActiveSessionsCardProps) {
                   </div>
 
                   {/* Ações */}
-                  <div className="md:col-span-2 flex items-center justify-end">
+                  <div className="md:col-span-2 flex items-center justify-end gap-1">
                     {actionLoading === session.remoteJid ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {session.status === "paused" && (
-                            <DropdownMenuItem
-                              onClick={() => handleAction(session, "open")}
-                              className="text-green-600"
-                            >
-                              <Play className="h-4 w-4 mr-2" />
-                              Reativar Bot
-                            </DropdownMenuItem>
-                          )}
-                          {session.status === "opened" && (
-                            <DropdownMenuItem
-                              onClick={() => handleAction(session, "pause")}
-                              className="text-yellow-600"
-                            >
-                              <Pause className="h-4 w-4 mr-2" />
-                              Pausar Bot
-                            </DropdownMenuItem>
-                          )}
-                          {session.status !== "closed" && (
-                            <DropdownMenuItem
-                              onClick={() => handleAction(session, "close")}
-                              className="text-muted-foreground"
-                            >
-                              <Square className="h-4 w-4 mr-2" />
-                              Encerrar Sessão
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem
-                            onClick={() => handleAction(session, "delete")}
-                            className="text-destructive"
+                      <>
+                        {/* Pausar - apenas para sessões abertas */}
+                        {session.status === "opened" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleAction(session, "pause")}
+                            className="h-7 px-2 text-yellow-600 border-yellow-500/30 hover:bg-yellow-500/10 hover:text-yellow-700"
+                            title="Pausar Bot"
                           >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Excluir Sessão
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                            <Pause className="h-3.5 w-3.5" />
+                            <span className="hidden lg:inline ml-1 text-xs">Pausar</span>
+                          </Button>
+                        )}
+
+                        {/* Reativar - apenas para sessões pausadas */}
+                        {session.status === "paused" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleAction(session, "open")}
+                            className="h-7 px-2 text-green-600 border-green-500/30 hover:bg-green-500/10 hover:text-green-700"
+                            title="Reativar Bot"
+                          >
+                            <Play className="h-3.5 w-3.5" />
+                            <span className="hidden lg:inline ml-1 text-xs">Reativar</span>
+                          </Button>
+                        )}
+
+                        {/* Encerrar - para sessões não fechadas */}
+                        {session.status !== "closed" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleAction(session, "close")}
+                            className="h-7 px-2 text-muted-foreground hover:text-foreground"
+                            title="Encerrar Sessão"
+                          >
+                            <Square className="h-3.5 w-3.5" />
+                            <span className="hidden lg:inline ml-1 text-xs">Encerrar</span>
+                          </Button>
+                        )}
+
+                        {/* Excluir - sempre visível */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleAction(session, "delete")}
+                          className="h-7 px-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          title="Excluir Sessão"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </>
                     )}
                   </div>
                 </div>

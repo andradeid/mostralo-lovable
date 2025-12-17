@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,8 @@ import {
   Calendar,
   Scale,
   ArrowRight,
-  GripVertical
+  GripVertical,
+  Loader2
 } from "lucide-react";
 import {
   Collapsible,
@@ -32,37 +33,16 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
-import { ideasData, statusConfig, priorityConfig, type Idea } from "@/data/ideasData";
-
-const STORAGE_KEY = 'mostralo_ideas_order';
+import { statusConfig, priorityConfig, type Idea, type IdeaStatus, type IdeaPriority } from "@/data/ideasData";
+import { useAdminIdeas } from "@/hooks/useAdminIdeas";
 
 export default function IdeasPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [expandedIds, setExpandedIds] = useState<number[]>([]);
-  const [orderedIdeas, setOrderedIdeas] = useState<Idea[]>([]);
 
-  // Carregar ordem do localStorage na inicialização
-  useEffect(() => {
-    const savedOrder = localStorage.getItem(STORAGE_KEY);
-    if (savedOrder) {
-      try {
-        const orderIds = JSON.parse(savedOrder) as number[];
-        const ordered = orderIds
-          .map(id => ideasData.find(idea => idea.id === id))
-          .filter((idea): idea is Idea => idea !== undefined);
-        
-        // Adicionar novas ideias que não estão na ordem salva
-        const newIdeas = ideasData.filter(idea => !orderIds.includes(idea.id));
-        setOrderedIdeas([...ordered, ...newIdeas]);
-      } catch {
-        setOrderedIdeas([...ideasData]);
-      }
-    } else {
-      setOrderedIdeas([...ideasData]);
-    }
-  }, []);
+  const { ideas, loading, updateStatus, updatePriority, updateOrder } = useAdminIdeas();
 
   const toggleExpanded = (id: number) => {
     setExpandedIds(prev => 
@@ -70,13 +50,15 @@ export default function IdeasPage() {
     );
   };
 
-  const filteredIdeas = orderedIdeas.filter(idea => {
-    const matchesSearch = idea.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         idea.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || idea.status === statusFilter;
-    const matchesPriority = priorityFilter === "all" || idea.priority === priorityFilter;
-    return matchesSearch && matchesStatus && matchesPriority;
-  });
+  const filteredIdeas = useMemo(() => {
+    return ideas.filter(idea => {
+      const matchesSearch = idea.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           idea.description.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === "all" || idea.status === statusFilter;
+      const matchesPriority = priorityFilter === "all" || idea.priority === priorityFilter;
+      return matchesSearch && matchesStatus && matchesPriority;
+    });
+  }, [ideas, searchTerm, statusFilter, priorityFilter]);
 
   const onDragEnd = (result: DropResult) => {
     if (!result.destination) return;
@@ -87,19 +69,19 @@ export default function IdeasPage() {
     if (sourceIndex === destIndex) return;
 
     // Reordenar baseado nos itens filtrados
-    const draggedItem = filteredIdeas[sourceIndex];
+    const newFiltered = [...filteredIdeas];
+    const [draggedItem] = newFiltered.splice(sourceIndex, 1);
+    newFiltered.splice(destIndex, 0, draggedItem);
+
+    // Salvar nova ordem de todos os IDs
+    const orderedIds = newFiltered.map(i => i.id);
     
-    // Encontrar índices no array completo
-    const sourceIndexInFull = orderedIdeas.findIndex(i => i.id === draggedItem.id);
-    const destItem = filteredIdeas[destIndex];
-    const destIndexInFull = orderedIdeas.findIndex(i => i.id === destItem.id);
-
-    const newOrdered = [...orderedIdeas];
-    newOrdered.splice(sourceIndexInFull, 1);
-    newOrdered.splice(destIndexInFull, 0, draggedItem);
-
-    setOrderedIdeas(newOrdered);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newOrdered.map(i => i.id)));
+    // Adicionar IDs que não estão filtrados no final
+    const nonFilteredIds = ideas
+      .filter(idea => !orderedIds.includes(idea.id))
+      .map(i => i.id);
+    
+    updateOrder([...orderedIds, ...nonFilteredIds]);
   };
 
   const renderIdeaContent = (idea: Idea) => (
@@ -296,6 +278,14 @@ export default function IdeasPage() {
     </CardContent>
   );
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -304,7 +294,7 @@ export default function IdeasPage() {
           Ideias e Funcionalidades Futuras
         </h1>
         <p className="text-muted-foreground mt-1">
-          Registro de ideias para evolução do sistema Mostralo ({ideasData.length} ideias) • Arraste para reordenar
+          Registro de ideias para evolução do sistema Mostralo ({ideas.length} ideias) • Arraste para reordenar
         </p>
       </div>
 
@@ -389,22 +379,56 @@ export default function IdeasPage() {
                                 <GripVertical className="w-5 h-5 text-muted-foreground" />
                               </div>
                               
-                              <CollapsibleTrigger asChild>
-                                <div className="flex-1 min-w-0 flex items-start justify-between gap-4">
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                      <CardTitle className="text-lg">{idea.title}</CardTitle>
-                                      <Badge className={statusConfig[idea.status].color}>
-                                        {statusConfig[idea.status].label}
-                                      </Badge>
-                                    </div>
-                                    <CardDescription className="mt-1 flex items-center gap-4">
-                                      <span className={priorityConfig[idea.priority].color}>
-                                        Prioridade: {priorityConfig[idea.priority].label}
-                                      </span>
-                                      <span className="text-xs">{idea.createdAt}</span>
-                                    </CardDescription>
+                              <div className="flex-1 min-w-0 flex items-start justify-between gap-4">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <CollapsibleTrigger asChild>
+                                      <CardTitle className="text-lg hover:underline cursor-pointer">{idea.title}</CardTitle>
+                                    </CollapsibleTrigger>
+                                    
+                                    {/* Status Dropdown */}
+                                    <Select 
+                                      value={idea.status} 
+                                      onValueChange={(value) => updateStatus(idea.id, value as IdeaStatus)}
+                                    >
+                                      <SelectTrigger 
+                                        className={`h-7 w-auto px-2 text-xs ${statusConfig[idea.status].color} border-0`}
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="idea">💡 Ideia</SelectItem>
+                                        <SelectItem value="analyzing">🔍 Em Análise</SelectItem>
+                                        <SelectItem value="development">🚧 Em Dev</SelectItem>
+                                        <SelectItem value="completed">✅ Concluído</SelectItem>
+                                        <SelectItem value="discarded">❌ Descartado</SelectItem>
+                                      </SelectContent>
+                                    </Select>
                                   </div>
+                                  <CardDescription className="mt-1 flex items-center gap-4">
+                                    {/* Priority Dropdown */}
+                                    <Select 
+                                      value={idea.priority} 
+                                      onValueChange={(value) => updatePriority(idea.id, value as IdeaPriority)}
+                                    >
+                                      <SelectTrigger 
+                                        className={`h-6 w-auto px-2 text-xs ${priorityConfig[idea.priority].color} border-0 bg-transparent`}
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <span>Prioridade: </span>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="high">🔴 Alta</SelectItem>
+                                        <SelectItem value="medium">🟡 Média</SelectItem>
+                                        <SelectItem value="low">🟢 Baixa</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <span className="text-xs">{idea.createdAt}</span>
+                                  </CardDescription>
+                                </div>
+                                <CollapsibleTrigger asChild>
                                   <Button variant="ghost" size="icon">
                                     {expandedIds.includes(idea.id) ? (
                                       <ChevronUp className="w-4 h-4" />
@@ -412,8 +436,8 @@ export default function IdeasPage() {
                                       <ChevronDown className="w-4 h-4" />
                                     )}
                                   </Button>
-                                </div>
-                              </CollapsibleTrigger>
+                                </CollapsibleTrigger>
+                              </div>
                             </div>
                           </CardHeader>
 
@@ -434,9 +458,10 @@ export default function IdeasPage() {
 
       {filteredIdeas.length === 0 && (
         <Card>
-          <CardContent className="py-12 text-center">
-            <Lightbulb className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">Nenhuma ideia encontrada com os filtros aplicados.</p>
+          <CardContent className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+            <Lightbulb className="w-12 h-12 mb-4 opacity-50" />
+            <p className="text-lg font-medium">Nenhuma ideia encontrada</p>
+            <p className="text-sm">Tente ajustar os filtros de busca</p>
           </CardContent>
         </Card>
       )}

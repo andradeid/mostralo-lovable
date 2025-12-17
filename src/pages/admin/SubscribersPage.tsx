@@ -52,7 +52,19 @@ interface Subscriber {
   subscription_expires_at?: string | null;
   custom_monthly_price?: number | null;
   discount_reason?: string | null;
+  coupon_discount?: number | null;
+  coupon_code?: string | null;
 }
+
+// Helper function para calcular preço efetivo
+const getEffectivePrice = (subscriber: Subscriber): number => {
+  if (subscriber.custom_monthly_price) {
+    return Number(subscriber.custom_monthly_price);
+  }
+  const planPrice = Number(subscriber.plan_price || 0);
+  const couponDiscount = Number(subscriber.coupon_discount || 0);
+  return planPrice - couponDiscount;
+};
 
 const SubscribersPage = () => {
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
@@ -117,6 +129,27 @@ const SubscribersPage = () => {
 
       if (error) throw error;
 
+      // Buscar cupons aplicados por store_id
+      const { data: couponsData } = await supabase
+        .from('payment_approvals')
+        .select(`
+          store_id,
+          coupon_discount,
+          coupons:coupon_id (code)
+        `)
+        .not('coupon_id', 'is', null);
+
+      // Criar mapa store_id -> coupon info
+      const couponMap = new Map<string, { coupon_discount: number; coupon_code: string }>();
+      couponsData?.forEach((item: any) => {
+        if (item.store_id && item.coupon_discount) {
+          couponMap.set(item.store_id, {
+            coupon_discount: item.coupon_discount,
+            coupon_code: item.coupons?.code || ''
+          });
+        }
+      });
+
       // Transformar para o formato Subscriber[]
       const transformedData: Subscriber[] = storesData
         ?.filter((store: any) => store.owner && !store.owner.is_deleted)
@@ -139,6 +172,8 @@ const SubscribersPage = () => {
           subscription_expires_at: store.subscription_expires_at,
           custom_monthly_price: store.custom_monthly_price,
           discount_reason: store.discount_reason,
+          coupon_discount: couponMap.get(store.id)?.coupon_discount || null,
+          coupon_code: couponMap.get(store.id)?.coupon_code || null,
         })) || [];
 
       setSubscribers(transformedData);
@@ -218,9 +253,8 @@ const SubscribersPage = () => {
   const noPlanSubscribers = subscribers.filter(s => !s.plan_id);
 
   const monthlyRevenue = activeSubscribers.reduce((acc, sub) => {
-    const effectivePrice = sub.custom_monthly_price || sub.plan_price || 0;
     if (sub.plan_billing_cycle === 'monthly') {
-      return acc + Number(effectivePrice);
+      return acc + getEffectivePrice(sub);
     }
     return acc;
   }, 0);
@@ -444,18 +478,24 @@ const SubscribersPage = () => {
                           <div className="space-y-1">
                             <div className="flex items-center justify-between">
                               <span className="text-sm font-medium">Valor:</span>
-                              <div className="flex items-center gap-2">
-                                {subscriber.custom_monthly_price && (
+                              <div className="flex flex-col items-end gap-1">
+                                {/* Badge de desconto - cupom ou customizado */}
+                                {(subscriber.custom_monthly_price || subscriber.coupon_discount) && (
                                   <Badge variant="outline" className="bg-green-50 text-green-700 text-xs border-green-200">
-                                    🏷️ -{Math.round((1 - subscriber.custom_monthly_price / subscriber.plan_price) * 100)}%
+                                    {subscriber.coupon_code 
+                                      ? `🎟️ ${subscriber.coupon_code}` 
+                                      : '🏷️ Desconto'
+                                    }
+                                    {' '}-{Math.round((1 - getEffectivePrice(subscriber) / Number(subscriber.plan_price)) * 100)}%
                                   </Badge>
                                 )}
                                 <span className="text-sm font-semibold">
-                                  R$ {Number(subscriber.custom_monthly_price || subscriber.plan_price).toFixed(2)}/{subscriber.plan_billing_cycle === 'monthly' ? 'mês' : 'ano'}
+                                  R$ {getEffectivePrice(subscriber).toFixed(2)}/{subscriber.plan_billing_cycle === 'monthly' ? 'mês' : 'ano'}
                                 </span>
                               </div>
                             </div>
-                            {subscriber.custom_monthly_price && (
+                            {/* Preço original riscado */}
+                            {(subscriber.custom_monthly_price || subscriber.coupon_discount) && (
                               <div className="text-xs text-muted-foreground line-through text-right">
                                 Original: R$ {Number(subscriber.plan_price).toFixed(2)}/mês
                               </div>

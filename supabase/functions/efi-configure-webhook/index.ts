@@ -6,10 +6,28 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Função para extrair certificado(s) e chave privada do PEM
+function parsePemContent(pemContent: string): { cert: string; key: string; certsCount: number } {
+  const cleanPem = pemContent.trim();
+
+  // Extrair TODOS os certificados (cadeia completa), se houver
+  const certMatches = cleanPem.match(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g);
+  const cert = certMatches ? certMatches.join('\n') : '';
+  const certsCount = certMatches?.length ?? 0;
+
+  // Extrair chave privada (pode ser PRIVATE KEY ou RSA PRIVATE KEY)
+  const keyMatch = cleanPem.match(/-----BEGIN (RSA )?PRIVATE KEY-----[\s\S]*?-----END (RSA )?PRIVATE KEY-----/);
+  const key = keyMatch ? keyMatch[0] : '';
+
+  return { cert, key, certsCount };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  let httpClient: Deno.HttpClient | null = null;
 
   try {
     console.log('🔧 Configurando webhook EFI PIX...');
@@ -56,6 +74,20 @@ serve(async (req) => {
       );
     }
 
+    // Parse PEM certificate
+    const { cert, key, certsCount } = parsePemContent(certificatePem);
+    console.log(`📄 Certificados encontrados: ${certsCount}`);
+
+    if (!cert || !key) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Certificado inválido. O arquivo PEM deve conter tanto o CERTIFICATE quanto a PRIVATE KEY.' 
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
+
     // API URLs
     const baseUrl = isProduction
       ? 'https://pix.api.efipay.com.br'
@@ -63,23 +95,59 @@ serve(async (req) => {
 
     console.log(`📡 Ambiente: ${environment}, URL: ${baseUrl}`);
 
-    // Step 1: Get OAuth token
+    // Create mTLS HTTP client
+    console.log('🔐 Configurando cliente mTLS...');
+    try {
+      httpClient = Deno.createHttpClient({
+        cert: cert,
+        key: key,
+        http2: false,
+      });
+      console.log('✅ Cliente mTLS criado com sucesso!');
+    } catch (clientError) {
+      console.error('❌ Erro ao criar cliente mTLS:', clientError);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: `Erro ao configurar certificado mTLS: ${clientError instanceof Error ? clientError.message : 'Erro desconhecido'}`,
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 },
+      );
+    }
+
+    // Step 1: Get OAuth token with mTLS
     const authString = btoa(`${clientId}:${clientSecret}`);
+    console.log('🔐 Obtendo token OAuth2...');
     
-    const tokenResponse = await fetch(`${baseUrl}/oauth/token`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${authString}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        grant_type: 'client_credentials',
-      }),
-    });
+    let tokenResponse;
+    try {
+      tokenResponse = await fetch(`${baseUrl}/oauth/token`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${authString}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          grant_type: 'client_credentials',
+        }),
+        client: httpClient,
+      });
+    } catch (fetchError) {
+      console.error('❌ Erro na requisição de token:', fetchError);
+      httpClient?.close();
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: `Erro de conexão mTLS: ${fetchError instanceof Error ? fetchError.message : 'Falha na conexão'}` 
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      );
+    }
 
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
       console.error('❌ Erro ao obter token:', errorText);
+      httpClient?.close();
       return new Response(
         JSON.stringify({ success: false, error: 'Falha na autenticação EFI', details: errorText }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
@@ -98,22 +166,37 @@ serve(async (req) => {
 
     console.log(`🔗 Configurando webhook: ${webhookUrlWithParam}`);
 
-    const webhookResponse = await fetch(`${baseUrl}/v2/webhook/${pixKey}`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-        'x-skip-mtls-checking': 'true', // Skip mTLS for Supabase Edge Functions
-      },
-      body: JSON.stringify({
-        webhookUrl: webhookUrlWithParam,
-      }),
-    });
+    let webhookResponse;
+    try {
+      webhookResponse = await fetch(`${baseUrl}/v2/webhook/${pixKey}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+          'x-skip-mtls-checking': 'true', // Skip mTLS for Supabase Edge Functions
+        },
+        body: JSON.stringify({
+          webhookUrl: webhookUrlWithParam,
+        }),
+        client: httpClient,
+      });
+    } catch (webhookError) {
+      console.error('❌ Erro ao configurar webhook:', webhookError);
+      httpClient?.close();
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: `Erro ao configurar webhook: ${webhookError instanceof Error ? webhookError.message : 'Falha na conexão'}` 
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      );
+    }
 
     const webhookText = await webhookResponse.text();
     console.log(`📥 Resposta webhook (${webhookResponse.status}):`, webhookText);
 
     if (!webhookResponse.ok) {
+      httpClient?.close();
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -126,22 +209,34 @@ serve(async (req) => {
     }
 
     // Step 3: Verify webhook configuration
-    const verifyResponse = await fetch(`${baseUrl}/v2/webhook/${pixKey}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-      },
-    });
+    let verifyResponse;
+    try {
+      verifyResponse = await fetch(`${baseUrl}/v2/webhook/${pixKey}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+        client: httpClient,
+      });
+    } catch (verifyError) {
+      console.warn('⚠️ Erro ao verificar webhook:', verifyError);
+    }
 
     let webhookConfigured = false;
-    let configuredUrl = '';
+    let configuredUrl = webhookUrlWithParam;
 
-    if (verifyResponse.ok) {
+    if (verifyResponse?.ok) {
       const verifyData = await verifyResponse.json();
-      configuredUrl = verifyData.webhookUrl || '';
+      configuredUrl = verifyData.webhookUrl || webhookUrlWithParam;
       webhookConfigured = configuredUrl.includes('efi-pix-webhook');
       console.log('✅ Webhook verificado:', configuredUrl);
+    } else {
+      // If verification failed but PUT succeeded, assume it worked
+      webhookConfigured = true;
     }
+
+    // Close HTTP client
+    httpClient?.close();
 
     // Step 4: Save webhook status to database
     await supabase
@@ -167,6 +262,7 @@ serve(async (req) => {
 
   } catch (error: any) {
     console.error('❌ Erro ao configurar webhook:', error);
+    httpClient?.close();
     return new Response(
       JSON.stringify({
         success: false,

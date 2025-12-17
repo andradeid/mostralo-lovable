@@ -14,20 +14,20 @@ interface TestConnectionRequest {
   environment: 'sandbox' | 'production';
 }
 
-// Função para extrair certificado e chave privada do PEM
-function parsePemContent(pemContent: string): { cert: string; key: string } {
-  // Limpar o conteúdo
+// Função para extrair certificado(s) e chave privada do PEM
+function parsePemContent(pemContent: string): { cert: string; key: string; certsCount: number } {
   const cleanPem = pemContent.trim();
-  
-  // Extrair certificado
-  const certMatch = cleanPem.match(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/);
-  const cert = certMatch ? certMatch[0] : '';
-  
+
+  // Extrair TODOS os certificados (cadeia completa), se houver
+  const certMatches = cleanPem.match(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g);
+  const cert = certMatches ? certMatches.join('\n') : '';
+  const certsCount = certMatches?.length ?? 0;
+
   // Extrair chave privada (pode ser PRIVATE KEY ou RSA PRIVATE KEY)
   const keyMatch = cleanPem.match(/-----BEGIN (RSA )?PRIVATE KEY-----[\s\S]*?-----END (RSA )?PRIVATE KEY-----/);
   const key = keyMatch ? keyMatch[0] : '';
-  
-  return { cert, key };
+
+  return { cert, key, certsCount };
 }
 
 serve(async (req) => {
@@ -58,8 +58,9 @@ serve(async (req) => {
     }
 
     // Extrair certificado e chave privada do PEM
-    const { cert, key } = parsePemContent(certificate_pem);
-    
+    const { cert, key, certsCount } = parsePemContent(certificate_pem);
+
+    console.log(`📄 Certificados encontrados no PEM: ${certsCount}`);
     console.log(`📄 Certificado extraído: ${cert ? 'OK' : 'NÃO ENCONTRADO'}`);
     console.log(`🔑 Chave privada extraída: ${key ? 'OK' : 'NÃO ENCONTRADA'}`);
 
@@ -90,19 +91,21 @@ serve(async (req) => {
     
     let httpClient;
     try {
+      // Forçar HTTP/1.1 pode evitar alguns cenários de UnexpectedEof em HTTP/2
       httpClient = Deno.createHttpClient({
         cert: cert,
         key: key,
+        http2: false,
       });
       console.log('✅ Cliente mTLS criado com sucesso!');
     } catch (clientError) {
       console.error('❌ Erro ao criar cliente mTLS:', clientError);
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: `Erro ao configurar certificado mTLS: ${clientError instanceof Error ? clientError.message : 'Erro desconhecido'}. Verifique se o certificado está no formato correto.`
+        JSON.stringify({
+          success: false,
+          error: `Erro ao configurar certificado mTLS: ${clientError instanceof Error ? clientError.message : 'Erro desconhecido'}. Verifique se o certificado está no formato correto.`,
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 },
       );
     }
 

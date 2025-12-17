@@ -17,6 +17,7 @@ export default function OrderTracking() {
   const navigate = useNavigate();
   const { order, loading, error } = useOrderTracking(orderId || '');
   const [showConfetti, setShowConfetti] = useState(true);
+  const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
 
   useEffect(() => {
     if (order) {
@@ -34,6 +35,65 @@ export default function OrderTracking() {
     const timer = setTimeout(() => setShowConfetti(false), 3000);
     return () => clearTimeout(timer);
   }, []);
+
+  // Countdown timer effect
+  useEffect(() => {
+    if (!order?.estimated_delivery_minutes || !order?.created_at) {
+      setRemainingSeconds(null);
+      return;
+    }
+
+    // Don't show countdown for completed or cancelled orders
+    if (order.status === 'concluido' || order.status === 'cancelado') {
+      setRemainingSeconds(null);
+      return;
+    }
+
+    const calculateRemaining = () => {
+      const estimatedTime = addMinutes(new Date(order.created_at), order.estimated_delivery_minutes);
+      const now = new Date();
+      const diffMs = estimatedTime.getTime() - now.getTime();
+      return Math.floor(diffMs / 1000);
+    };
+
+    setRemainingSeconds(calculateRemaining());
+
+    const interval = setInterval(() => {
+      setRemainingSeconds(calculateRemaining());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [order?.estimated_delivery_minutes, order?.created_at, order?.status]);
+
+  // Format remaining time with status
+  const formatRemainingTime = (seconds: number | null): { text: string; status: 'counting' | 'almost' | 'arriving' | 'late' } | null => {
+    if (seconds === null) return null;
+    
+    if (seconds <= 0) {
+      const overdue = Math.abs(seconds);
+      if (overdue < 300) { // Less than 5 min overdue
+        return { text: "Chegando a qualquer momento!", status: "arriving" };
+      } else {
+        const overdueMin = Math.floor(overdue / 60);
+        return { text: `Atrasado ~${overdueMin} min`, status: "late" };
+      }
+    }
+    
+    const min = Math.floor(seconds / 60);
+    const sec = seconds % 60;
+    
+    if (min >= 60) {
+      const hours = Math.floor(min / 60);
+      const remainingMin = min % 60;
+      return { text: `${hours}h ${remainingMin}min restantes`, status: "counting" };
+    }
+    
+    if (min > 0) {
+      return { text: `${min} min ${sec.toString().padStart(2, '0')} seg`, status: "counting" };
+    }
+    
+    return { text: `${sec} segundos`, status: "almost" };
+  };
 
   if (loading) {
     return (
@@ -69,7 +129,7 @@ export default function OrderTracking() {
     }
   };
 
-  // Calcular horário previsto de entrega
+  // Calculate estimated arrival time
   const getEstimatedArrival = () => {
     if (!order.estimated_delivery_minutes) return null;
     const estimatedTime = addMinutes(new Date(order.created_at), order.estimated_delivery_minutes);
@@ -77,6 +137,7 @@ export default function OrderTracking() {
   };
 
   const estimatedArrival = getEstimatedArrival();
+  const countdownData = formatRemainingTime(remainingSeconds);
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -127,32 +188,65 @@ export default function OrderTracking() {
           </p>
         </Card>
 
-        {/* Card de Tempo Estimado */}
+        {/* Card de Tempo Estimado com Countdown */}
         {order.estimated_delivery_minutes && order.status !== 'concluido' && order.status !== 'cancelado' && (
           <Card className="p-4 bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-primary/20 rounded-full">
-                  <Clock className="h-6 w-6 text-primary" />
+            <div className="flex flex-col gap-3">
+              {/* Header: Icon + Info + Estimated Time */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-primary/20 rounded-full">
+                    <Clock className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      {order.delivery_type === 'pickup' ? 'Pronto para retirada' : 'Previsão de entrega'}
+                    </p>
+                    {estimatedArrival && (
+                      <p className="text-xl font-bold text-foreground">
+                        {estimatedArrival}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    {order.delivery_type === 'pickup' ? 'Pronto para retirada em' : 'Tempo estimado de entrega'}
-                  </p>
-                  <p className="text-2xl font-bold text-primary">
+                
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">Tempo estimado</p>
+                  <p className="text-lg font-semibold text-primary">
                     {order.estimated_delivery_minutes >= 60
                       ? `${Math.floor(order.estimated_delivery_minutes / 60)}h${order.estimated_delivery_minutes % 60 > 0 ? ` ${order.estimated_delivery_minutes % 60}min` : ''}`
-                      : `${order.estimated_delivery_minutes} minutos`}
+                      : `${order.estimated_delivery_minutes} min`}
                   </p>
                 </div>
               </div>
               
-              {estimatedArrival && (
-                <div className="text-right">
-                  <p className="text-xs text-muted-foreground">Previsão</p>
-                  <p className="text-xl font-bold text-foreground">
-                    {estimatedArrival}
+              {/* Countdown Display */}
+              {countdownData && (
+                <div className={`p-3 rounded-lg text-center transition-colors ${
+                  countdownData.status === 'late' 
+                    ? 'bg-red-100 dark:bg-red-900/30' 
+                    : countdownData.status === 'arriving'
+                    ? 'bg-green-100 dark:bg-green-900/30'
+                    : countdownData.status === 'almost'
+                    ? 'bg-yellow-100 dark:bg-yellow-900/30'
+                    : 'bg-primary/10'
+                }`}>
+                  <p className={`text-xl font-bold ${
+                    countdownData.status === 'late' 
+                      ? 'text-red-600 dark:text-red-400' 
+                      : countdownData.status === 'arriving'
+                      ? 'text-green-600 dark:text-green-400'
+                      : countdownData.status === 'almost'
+                      ? 'text-yellow-600 dark:text-yellow-400'
+                      : 'text-primary'
+                  }`}>
+                    {countdownData.status === 'arriving' && '✨ '}
+                    {countdownData.status === 'late' && '⏰ '}
+                    {countdownData.text}
                   </p>
+                  {countdownData.status === 'counting' && (
+                    <p className="text-xs text-muted-foreground mt-1">restantes</p>
+                  )}
                 </div>
               )}
             </div>

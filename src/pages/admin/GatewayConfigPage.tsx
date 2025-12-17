@@ -27,6 +27,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { EfiSetupGuide } from "@/components/admin/gateway/EfiSetupGuide";
 import { PixChargeTestCard } from "@/components/admin/gateway/PixChargeTestCard";
+import { WebhookConfigCard } from "@/components/admin/gateway/WebhookConfigCard";
 
 interface EfiConfig {
   efi_client_id: string | null;
@@ -40,6 +41,9 @@ interface EfiConfig {
   efi_is_configured: boolean | null;
   efi_last_test_at: string | null;
   efi_last_test_status: string | null;
+  efi_webhook_configured: boolean | null;
+  efi_webhook_url: string | null;
+  efi_webhook_configured_at: string | null;
 }
 
 export default function GatewayConfigPage() {
@@ -68,6 +72,8 @@ export default function GatewayConfigPage() {
   const [isConfigured, setIsConfigured] = useState(false);
   const [lastTestAt, setLastTestAt] = useState<string | null>(null);
   const [lastTestStatus, setLastTestStatus] = useState<string | null>(null);
+  const [webhookUrl, setWebhookUrl] = useState<string | null>(null);
+  const [webhookConfiguredAt, setWebhookConfiguredAt] = useState<string | null>(null);
   
   // Visibility toggles
   const [showSecretSandbox, setShowSecretSandbox] = useState(false);
@@ -108,6 +114,8 @@ export default function GatewayConfigPage() {
         setIsConfigured(data.efi_is_configured || false);
         setLastTestAt(data.efi_last_test_at);
         setLastTestStatus(data.efi_last_test_status);
+        setWebhookUrl((data as any).efi_webhook_url || null);
+        setWebhookConfiguredAt((data as any).efi_webhook_configured_at || null);
       }
     } catch (error) {
       console.error("Erro ao carregar configurações:", error);
@@ -853,6 +861,15 @@ export default function GatewayConfigPage() {
         <PixChargeTestCard 
           isConfigured={isConfigured && lastTestStatus === "success"} 
           environment={environment} 
+        />
+
+        {/* Card de Webhook */}
+        <WebhookConfigCard
+          isConfigured={isConfigured && lastTestStatus === "success"}
+          environment={environment}
+          webhookUrl={webhookUrl}
+          webhookConfiguredAt={webhookConfiguredAt}
+          onConfigured={fetchConfig}
         />
       </div>
 

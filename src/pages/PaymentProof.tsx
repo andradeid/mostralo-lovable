@@ -74,19 +74,18 @@ const PaymentProof = () => {
     };
   }, []);
 
-  // Auto-generate PIX when ready
+  // Auto-gerar PIX quando pronto (ou reparar PIX incompleto)
   useEffect(() => {
-    if (
-      !hasTriedAutoGenerate.current &&
-      isEfiConfigured && 
-      approval && 
-      !approval.pix_txid && 
-      !generatingPix
-    ) {
+    const needsPix =
+      isEfiConfigured &&
+      approval &&
+      (!approval.pix_txid || (!approval.pix_qrcode_base64 && !approval.pix_copia_cola));
+
+    if (!hasTriedAutoGenerate.current && needsPix && !generatingPix) {
       hasTriedAutoGenerate.current = true;
       generatePixCharge();
     }
-  }, [isEfiConfigured, approval]);
+  }, [isEfiConfigured, approval, generatingPix]);
 
   const loadData = async () => {
     try {
@@ -262,6 +261,12 @@ const PaymentProof = () => {
     }
   };
 
+  const qrCodeSrc = approval?.pix_qrcode_base64
+    ? (approval.pix_qrcode_base64.startsWith('data:') || approval.pix_qrcode_base64.startsWith('http')
+      ? approval.pix_qrcode_base64
+      : `data:image/png;base64,${approval.pix_qrcode_base64}`)
+    : null;
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -383,21 +388,33 @@ const PaymentProof = () => {
               </div>
             )}
 
-            {/* QR Code Display */}
-            {isEfiConfigured && approval?.pix_qrcode_base64 && !generatingPix && (
+            {/* QR Code / Copia e Cola */}
+            {isEfiConfigured && approval && (approval.pix_qrcode_base64 || approval.pix_copia_cola) && !generatingPix && (
               <div className="space-y-4">
-                <div className="flex flex-col items-center space-y-3">
-                  <div className="p-4 bg-white rounded-lg shadow-md">
-                    <img 
-                      src={approval.pix_qrcode_base64}
-                      alt="QR Code PIX"
-                      className="w-48 h-48"
-                    />
+                {/* QR Code */}
+                {qrCodeSrc ? (
+                  <div className="flex flex-col items-center space-y-3">
+                    <div className="p-4 bg-white rounded-lg shadow-md">
+                      <img
+                        src={qrCodeSrc}
+                        alt="QR Code PIX"
+                        className="w-48 h-48"
+                        loading="lazy"
+                      />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Escaneie com o app do seu banco
+                    </p>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Escaneie com o app do seu banco
-                  </p>
-                </div>
+                ) : (
+                  <Alert>
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      <p className="font-medium">QR Code indisponível</p>
+                      <p className="text-sm mt-1">Use o código PIX (Copia e Cola) abaixo.</p>
+                    </AlertDescription>
+                  </Alert>
+                )}
 
                 {/* Pix Copia e Cola */}
                 {approval.pix_copia_cola && (
@@ -411,6 +428,7 @@ const PaymentProof = () => {
                         variant="outline"
                         size="icon"
                         onClick={copyPixCode}
+                        aria-label="Copiar código PIX"
                       >
                         <Copy className="w-4 h-4" />
                       </Button>

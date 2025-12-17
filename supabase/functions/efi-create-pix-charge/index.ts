@@ -176,7 +176,7 @@ serve(async (req) => {
     const location = cobData.loc?.id || cobData.location;
     console.log(`🔗 Location ID: ${location}`);
 
-    let qrCodeData = null;
+    let qrCodeData: any = null;
     if (location) {
       console.log('🎨 Buscando QR Code...');
       const qrResponse = await fetch(`${baseUrl}/v2/loc/${location}/qrcode`, {
@@ -189,11 +189,20 @@ serve(async (req) => {
 
       if (qrResponse.ok) {
         qrCodeData = await qrResponse.json();
+        console.log('🖼️ qrCodeData:', JSON.stringify(qrCodeData, null, 2));
         console.log('✅ QR Code gerado!');
       } else {
-        console.log('⚠️ Erro ao buscar QR Code, usando pixCopiaECola');
+        const qrErrText = await qrResponse.text().catch(() => '');
+        console.log('⚠️ Erro ao buscar QR Code, usando pixCopiaECola', qrErrText);
       }
     }
+
+    const pixCopiaECola = cobData.pixCopiaECola || qrCodeData?.qrcode || null;
+    const qrCodeBase64 = qrCodeData?.imagemQrcode
+      ? (String(qrCodeData.imagemQrcode).trim().startsWith('data:')
+        ? String(qrCodeData.imagemQrcode).trim()
+        : `data:image/png;base64,${String(qrCodeData.imagemQrcode).trim()}`)
+      : null;
 
     httpClient.close();
 
@@ -206,8 +215,8 @@ serve(async (req) => {
         status: cobData.status,
         valor: cobData.valor?.original,
         expiracao: cobData.calendario?.expiracao,
-        pixCopiaECola: qrCodeData?.qrcode || cobData.pixCopiaECola,
-        qrCodeBase64: qrCodeData?.imagemQrcode,
+        pixCopiaECola,
+        qrCodeBase64,
         location: cobData.loc,
         ambiente: environment,
         criadoEm: cobData.calendario?.criacao,

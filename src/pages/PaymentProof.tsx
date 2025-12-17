@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from '@/hooks/use-toast';
 import { usePageSEO } from '@/hooks/useSEO';
-import { Loader2, Upload, FileCheck, Copy, QrCode, Store, CheckCircle, Clock } from 'lucide-react';
+import { Loader2, Upload, FileCheck, Copy, QrCode, Store, CheckCircle, Clock, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -15,6 +15,11 @@ interface PaymentConfig {
   pix_key_type?: string;
   pix_name?: string;
   payment_instructions?: string;
+  efi_client_id?: string;
+  efi_client_secret?: string;
+  efi_certificate_pem?: string;
+  efi_pix_key?: string;
+  efi_environment?: string;
 }
 
 interface PaymentApproval {
@@ -23,6 +28,10 @@ interface PaymentApproval {
   plan_id: string;
   status: string;
   payment_proof_url?: string;
+  pix_txid?: string;
+  pix_qrcode_base64?: string;
+  pix_copia_cola?: string;
+  pix_expires_at?: string;
 }
 
 const PaymentProof = () => {
@@ -38,7 +47,12 @@ const PaymentProof = () => {
   const [approval, setApproval] = useState<PaymentApproval | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isEfiConfigured, setIsEfiConfigured] = useState(false);
+  const [generatingPix, setGeneratingPix] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(false);
+  const [pixStatus, setPixStatus] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
   
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -60,6 +74,15 @@ const PaymentProof = () => {
     }
   }, [user]);
 
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+      }
+    };
+  }, []);
+
   const fetchPaymentConfig = async () => {
     try {
       const { data, error } = await supabase
@@ -69,6 +92,16 @@ const PaymentProof = () => {
 
       if (error && error.code !== 'PGRST116') throw error;
       setPaymentConfig(data);
+      
+      // Check if EFI is configured
+      const efiConfigured = !!(
+        data?.efi_client_id && 
+        data?.efi_client_secret && 
+        data?.efi_certificate_pem &&
+        data?.efi_pix_key
+      );
+      setIsEfiConfigured(efiConfigured);
+      console.log('🔧 EFI configurado:', efiConfigured);
     } catch (error: any) {
       console.error('Erro ao buscar configuração:', error);
     }
@@ -92,6 +125,10 @@ const PaymentProof = () => {
         if ((data as any).payment_proof_url) {
           setPreviewUrl((data as any).payment_proof_url);
         }
+        // Se já tem PIX gerado, iniciar polling
+        if ((data as any).pix_txid) {
+          startPolling((data as any).pix_txid);
+        }
       } else {
         // Se não tem aprovação pendente, redirecionar
         toast({
@@ -109,6 +146,134 @@ const PaymentProof = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const generatePixCharge = async () => {
+    if (!approval || !isEfiConfigured) return;
+
+    setGeneratingPix(true);
+    try {
+      console.log('🚀 Gerando cobrança PIX EFI...');
+      
+      const { data, error } = await supabase.functions.invoke('efi-create-pix-charge', {
+        body: {
+          valor: approval.payment_amount.toString(),
+          descricao: `Assinatura Mostralo - ID: ${approval.id.slice(0, 8)}`,
+          expiracao_segundos: 3600, // 1 hora
+        },
+      });
+
+      if (error) throw error;
+
+      if (!data.success) {
+        throw new Error(data.error || 'Erro ao gerar PIX');
+      }
+
+      console.log('✅ PIX gerado:', data);
+
+      // Update approval with PIX data
+      const expiresAt = new Date();
+      expiresAt.setSeconds(expiresAt.getSeconds() + 3600);
+
+      await (supabase as any)
+        .from('payment_approvals')
+        .update({
+          pix_txid: data.txid,
+          pix_location: data.location,
+          pix_qrcode_base64: data.qrcode_base64,
+          pix_copia_cola: data.pix_copia_cola,
+          pix_expires_at: expiresAt.toISOString(),
+        })
+        .eq('id', approval.id);
+
+      // Update local state
+      setApproval({
+        ...approval,
+        pix_txid: data.txid,
+        pix_qrcode_base64: data.qrcode_base64,
+        pix_copia_cola: data.pix_copia_cola,
+        pix_expires_at: expiresAt.toISOString(),
+      });
+
+      toast({
+        title: 'QR Code PIX gerado!',
+        description: 'Escaneie o código ou copie o código PIX para pagar.',
+      });
+
+      // Start polling for payment status
+      startPolling(data.txid);
+    } catch (error: any) {
+      console.error('Erro ao gerar PIX:', error);
+      toast({
+        title: 'Erro ao gerar PIX',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setGeneratingPix(false);
+    }
+  };
+
+  const checkPixStatus = useCallback(async (txid: string) => {
+    try {
+      setCheckingStatus(true);
+      
+      const { data, error } = await supabase.functions.invoke('efi-check-pix-status', {
+        body: { txid },
+      });
+
+      if (error) throw error;
+
+      console.log('📊 Status PIX:', data);
+      setPixStatus(data.status);
+
+      if (data.systemStatus === 'paid') {
+        // Stop polling
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+        }
+
+        toast({
+          title: '🎉 Pagamento Confirmado!',
+          description: 'Seu pagamento foi recebido. Redirecionando...',
+        });
+
+        // Redirect to subscription page
+        setTimeout(() => {
+          navigate('/dashboard/subscription');
+        }, 2000);
+      }
+    } catch (error: any) {
+      console.error('Erro ao verificar status:', error);
+    } finally {
+      setCheckingStatus(false);
+    }
+  }, [navigate, toast]);
+
+  const startPolling = useCallback((txid: string) => {
+    // Clear any existing polling
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+    }
+
+    // Initial check
+    checkPixStatus(txid);
+
+    // Poll every 5 seconds
+    pollingRef.current = setInterval(() => {
+      checkPixStatus(txid);
+    }, 5000);
+  }, [checkPixStatus]);
+
+  const copyPixCode = () => {
+    if (approval?.pix_copia_cola) {
+      navigator.clipboard.writeText(approval.pix_copia_cola);
+      toast({
+        title: 'Código PIX copiado!',
+        description: 'Cole no app do seu banco.',
+      });
     }
   };
 
@@ -246,13 +411,36 @@ const PaymentProof = () => {
         </div>
 
         {/* Status Alert */}
-        {!approval?.payment_proof_url ? (
+        {pixStatus === 'CONCLUIDA' ? (
+          <Alert className="border-green-500/50 bg-green-500/5">
+            <CheckCircle className="h-4 w-4 text-green-500" />
+            <AlertDescription>
+              <p className="font-medium">Pagamento Confirmado! 🎉</p>
+              <p className="text-sm mt-1">
+                Seu pagamento foi recebido. Redirecionando para o painel...
+              </p>
+            </AlertDescription>
+          </Alert>
+        ) : approval?.pix_txid ? (
+          <Alert className="border-blue-500/50 bg-blue-500/5">
+            <RefreshCw className={`h-4 w-4 text-blue-500 ${checkingStatus ? 'animate-spin' : ''}`} />
+            <AlertDescription>
+              <p className="font-medium">Aguardando Pagamento</p>
+              <p className="text-sm mt-1">
+                Escaneie o QR Code ou copie o código PIX. Verificando automaticamente...
+              </p>
+            </AlertDescription>
+          </Alert>
+        ) : !approval?.payment_proof_url ? (
           <Alert className="border-yellow-500/50 bg-yellow-500/5">
             <Clock className="h-4 w-4 text-yellow-500" />
             <AlertDescription>
               <p className="font-medium">Pagamento Pendente</p>
               <p className="text-sm mt-1">
-                Faça o pagamento via PIX e envie o comprovante para continuar.
+                {isEfiConfigured 
+                  ? 'Gere o QR Code PIX para pagar instantaneamente.'
+                  : 'Faça o pagamento via PIX e envie o comprovante para continuar.'
+                }
               </p>
             </AlertDescription>
           </Alert>
@@ -277,7 +465,10 @@ const PaymentProof = () => {
                 <span>Dados para Pagamento</span>
               </CardTitle>
               <CardDescription>
-                Use os dados abaixo para fazer o pagamento via PIX
+                {isEfiConfigured && !approval?.pix_txid
+                  ? 'Gere o QR Code PIX para pagar instantaneamente'
+                  : 'Use os dados abaixo para fazer o pagamento via PIX'
+                }
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -290,7 +481,96 @@ const PaymentProof = () => {
                 </div>
               )}
 
-              {paymentConfig?.pix_key ? (
+              {/* EFI QR Code Section */}
+              {isEfiConfigured && (
+                <div className="space-y-4">
+                  {approval?.pix_qrcode_base64 ? (
+                    <>
+                      {/* QR Code Display */}
+                      <div className="flex flex-col items-center space-y-3">
+                        <div className="p-4 bg-white rounded-lg shadow-md">
+                          <img 
+                            src={`data:image/png;base64,${approval.pix_qrcode_base64}`}
+                            alt="QR Code PIX"
+                            className="w-48 h-48"
+                          />
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          Escaneie com o app do seu banco
+                        </p>
+                      </div>
+
+                      {/* Pix Copia e Cola */}
+                      {approval.pix_copia_cola && (
+                        <div className="space-y-2">
+                          <Label>Código PIX (Copia e Cola)</Label>
+                          <div className="flex space-x-2">
+                            <div className="flex-1 p-3 rounded-md bg-muted font-mono text-xs break-all max-h-20 overflow-y-auto">
+                              {approval.pix_copia_cola}
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={copyPixCode}
+                            >
+                              <Copy className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Expiration Warning */}
+                      {approval.pix_expires_at && (
+                        <p className="text-xs text-muted-foreground text-center">
+                          Válido até: {new Date(approval.pix_expires_at).toLocaleString('pt-BR')}
+                        </p>
+                      )}
+
+                      {/* Manual Check Button */}
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => approval.pix_txid && checkPixStatus(approval.pix_txid)}
+                        disabled={checkingStatus}
+                      >
+                        {checkingStatus ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Verificando...
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="mr-2 h-4 w-4" />
+                            Verificar Pagamento
+                          </>
+                        )}
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      onClick={generatePixCharge}
+                      disabled={generatingPix}
+                      className="w-full"
+                      size="lg"
+                    >
+                      {generatingPix ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Gerando QR Code...
+                        </>
+                      ) : (
+                        <>
+                          <QrCode className="mr-2 h-4 w-4" />
+                          Gerar QR Code PIX
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
+              )}
+
+              {/* Fallback: Manual PIX Key */}
+              {!isEfiConfigured && paymentConfig?.pix_key && (
                 <div className="space-y-3">
                   <div className="space-y-2">
                     <Label>Chave PIX ({paymentConfig.pix_key_type?.toUpperCase()})</Label>
@@ -326,7 +606,9 @@ const PaymentProof = () => {
                     </div>
                   )}
                 </div>
-              ) : (
+              )}
+
+              {!isEfiConfigured && !paymentConfig?.pix_key && (
                 <Alert>
                   <AlertDescription>
                     Os dados de pagamento ainda não foram configurados pelo administrador.
@@ -337,15 +619,20 @@ const PaymentProof = () => {
             </CardContent>
           </Card>
 
-          {/* Upload do Comprovante */}
+          {/* Upload do Comprovante - Only show if EFI not configured or as fallback */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Upload className="w-5 h-5" />
-                <span>Comprovante de Pagamento</span>
+                <span>
+                  {isEfiConfigured ? 'Ou Envie o Comprovante' : 'Comprovante de Pagamento'}
+                </span>
               </CardTitle>
               <CardDescription>
-                Envie uma foto ou PDF do comprovante
+                {isEfiConfigured 
+                  ? 'Se preferir, envie o comprovante manualmente'
+                  : 'Envie uma foto ou PDF do comprovante'
+                }
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -365,7 +652,7 @@ const PaymentProof = () => {
                 </div>
               )}
 
-              {!approval?.payment_proof_url && (
+              {!approval?.payment_proof_url && pixStatus !== 'CONCLUIDA' && (
                 <div className="space-y-4">
                   {/* Input oculto com ref para controle programático */}
                   <input
@@ -430,7 +717,7 @@ const PaymentProof = () => {
                 </div>
               )}
 
-              {approval?.payment_proof_url && (
+              {(approval?.payment_proof_url || pixStatus === 'CONCLUIDA') && (
                 <Button
                   onClick={() => navigate('/dashboard/subscription')}
                   className="w-full"
@@ -448,4 +735,3 @@ const PaymentProof = () => {
 };
 
 export default PaymentProof;
-

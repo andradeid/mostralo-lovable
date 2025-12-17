@@ -14,6 +14,22 @@ interface TestConnectionRequest {
   environment: 'sandbox' | 'production';
 }
 
+// Função para extrair certificado e chave privada do PEM
+function parsePemContent(pemContent: string): { cert: string; key: string } {
+  // Limpar o conteúdo
+  const cleanPem = pemContent.trim();
+  
+  // Extrair certificado
+  const certMatch = cleanPem.match(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/);
+  const cert = certMatch ? certMatch[0] : '';
+  
+  // Extrair chave privada (pode ser PRIVATE KEY ou RSA PRIVATE KEY)
+  const keyMatch = cleanPem.match(/-----BEGIN (RSA )?PRIVATE KEY-----[\s\S]*?-----END (RSA )?PRIVATE KEY-----/);
+  const key = keyMatch ? keyMatch[0] : '';
+  
+  return { cert, key };
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -41,13 +57,17 @@ serve(async (req) => {
       );
     }
 
-    // Validar formato do certificado
-    if (!certificate_pem.includes('-----BEGIN CERTIFICATE-----') && 
-        !certificate_pem.includes('-----BEGIN PRIVATE KEY-----')) {
+    // Extrair certificado e chave privada do PEM
+    const { cert, key } = parsePemContent(certificate_pem);
+    
+    console.log(`📄 Certificado extraído: ${cert ? 'OK' : 'NÃO ENCONTRADO'}`);
+    console.log(`🔑 Chave privada extraída: ${key ? 'OK' : 'NÃO ENCONTRADA'}`);
+
+    if (!cert || !key) {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: 'Certificado inválido. O certificado deve estar no formato PEM.' 
+          error: 'Certificado inválido. O arquivo PEM deve conter tanto o CERTIFICATE quanto a PRIVATE KEY.' 
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
@@ -65,22 +85,60 @@ serve(async (req) => {
     // Criar credenciais base64
     const credentials = btoa(`${client_id}:${client_secret}`);
 
-    // Tentar autenticação OAuth2
-    console.log('🔐 Tentando autenticação OAuth2...');
+    // Criar HTTP client com certificado mTLS
+    console.log('🔐 Configurando cliente mTLS...');
     
-    const authResponse = await fetch(authUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${credentials}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        grant_type: 'client_credentials'
-      }),
-    });
+    let httpClient;
+    try {
+      httpClient = Deno.createHttpClient({
+        cert: cert,
+        key: key,
+      });
+      console.log('✅ Cliente mTLS criado com sucesso!');
+    } catch (clientError) {
+      console.error('❌ Erro ao criar cliente mTLS:', clientError);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: `Erro ao configurar certificado mTLS: ${clientError instanceof Error ? clientError.message : 'Erro desconhecido'}. Verifique se o certificado está no formato correto.`
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
+
+    // Tentar autenticação OAuth2 com mTLS
+    console.log('🔐 Tentando autenticação OAuth2 com mTLS...');
+    
+    let authResponse;
+    try {
+      authResponse = await fetch(authUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${credentials}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          grant_type: 'client_credentials'
+        }),
+        client: httpClient,
+      });
+    } catch (fetchError) {
+      console.error('❌ Erro na requisição mTLS:', fetchError);
+      httpClient.close();
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: `Erro de conexão mTLS: ${fetchError instanceof Error ? fetchError.message : 'Falha na conexão'}. Verifique se o certificado corresponde às credenciais.`
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      );
+    }
 
     const authData = await authResponse.json();
     console.log('📄 Resposta de autenticação:', JSON.stringify(authData, null, 2));
+
+    // Fechar o cliente HTTP
+    httpClient.close();
 
     if (!authResponse.ok) {
       const errorMessage = authData.error_description || authData.error || 'Erro de autenticação';
@@ -91,7 +149,7 @@ serve(async (req) => {
         .from('subscription_payment_config')
         .update({
           efi_last_test_at: new Date().toISOString(),
-          efi_last_test_status: 'failed',
+          efi_last_test_status: errorMessage,
           efi_is_configured: false
         })
         .eq('is_active', true);
@@ -108,30 +166,6 @@ serve(async (req) => {
 
     const { access_token } = authData;
     console.log('✅ Token de acesso obtido com sucesso!');
-
-    // Testar endpoint de chaves PIX (opcional, apenas se tiver access_token)
-    if (access_token && pix_key) {
-      console.log('🔍 Verificando chave PIX...');
-      const pixUrl = `${baseUrl}/v2/gn/pix/keys`;
-      
-      try {
-        const pixResponse = await fetch(pixUrl, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${access_token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (pixResponse.ok) {
-          console.log('✅ Acesso às chaves PIX confirmado!');
-        } else {
-          console.log('⚠️ Não foi possível listar chaves PIX, mas autenticação OK');
-        }
-      } catch (pixError) {
-        console.log('⚠️ Erro ao verificar PIX, mas autenticação OK:', pixError);
-      }
-    }
 
     // Atualizar status de sucesso no banco
     const { error: updateError } = await supabase

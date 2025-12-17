@@ -140,3 +140,6 @@ verify_jwt = false
 
 [functions.whatsapp-bot-sessions]
 verify_jwt = true
+
+[functions.efi-test-connection]
+verify_jwt = true

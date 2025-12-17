@@ -70,7 +70,7 @@ import {
   BotTimezoneCard,
   BotTrainingExamplesCard,
   BotGreetingPreviewCard,
-  BotActiveSessionsCard,
+  ConversationsTab,
 } from "@/components/admin/bot";
 
 interface Template {
@@ -588,8 +588,12 @@ export default function WhatsAppInstancePage() {
         </p>
       </div>
 
-      <Tabs defaultValue="connection" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+      <Tabs defaultValue="conversations" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="conversations" className="gap-2">
+            <MessageSquare className="h-4 w-4" />
+            <span className="hidden sm:inline">Conversas</span>
+          </TabsTrigger>
           <TabsTrigger value="connection" className="gap-2">
             <Smartphone className="h-4 w-4" />
             <span className="hidden sm:inline">Conexão</span>
@@ -599,6 +603,10 @@ export default function WhatsAppInstancePage() {
             <span className="hidden sm:inline">Assistente IA</span>
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="conversations" className="space-y-6">
+          <ConversationsTab storeId={storeId} isConnected={isConnected} />
+        </TabsContent>
 
         <TabsContent value="connection" className="space-y-6">
           {!instance ? (
@@ -1279,9 +1287,6 @@ export default function WhatsAppInstancePage() {
             </div>
           ) : botConfig && (
               <>
-                {/* Card de Sessões Ativas - Destaque no topo */}
-                <BotActiveSessionsCard storeId={storeId} />
-
                 <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
                   {/* Coluna Esquerda - 4 cards */}
                   <div className="space-y-4 sm:space-y-6 min-w-0">

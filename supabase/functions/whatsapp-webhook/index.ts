@@ -32,6 +32,141 @@ function normalizePhoneForSearch(phone: string): string[] {
   return [...new Set(variants)];
 }
 
+// ========== VERIFICAÇÃO DE STATUS DA LOJA EM TEMPO REAL ==========
+function isStoreOpenNow(businessHours: any, timezone: string): boolean {
+  if (!businessHours) return true; // Se não há horário configurado, assume aberto
+  
+  // Verificar pausa manual
+  if (businessHours.is_paused) return false;
+  
+  try {
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat('pt-BR', {
+      timeZone: timezone,
+      weekday: 'long',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+    
+    const parts = formatter.formatToParts(now);
+    const weekday = parts.find(p => p.type === 'weekday')?.value?.toLowerCase() || '';
+    const hour = parseInt(parts.find(p => p.type === 'hour')?.value || '0');
+    const minute = parseInt(parts.find(p => p.type === 'minute')?.value || '0');
+    const currentMinutes = hour * 60 + minute;
+    
+    // Mapear dia da semana
+    const dayMap: Record<string, string> = {
+      'domingo': 'sunday',
+      'segunda-feira': 'monday',
+      'terça-feira': 'tuesday',
+      'quarta-feira': 'wednesday',
+      'quinta-feira': 'thursday',
+      'sexta-feira': 'friday',
+      'sábado': 'saturday'
+    };
+    
+    const dayKey = dayMap[weekday] || 'monday';
+    const dayConfig = businessHours[dayKey];
+    
+    if (!dayConfig || !dayConfig.enabled) return false;
+    
+    // Verificar se está dentro do horário
+    const [openHour, openMin] = (dayConfig.open || '08:00').split(':').map(Number);
+    const [closeHour, closeMin] = (dayConfig.close || '22:00').split(':').map(Number);
+    const openMinutes = openHour * 60 + openMin;
+    const closeMinutes = closeHour * 60 + closeMin;
+    
+    return currentMinutes >= openMinutes && currentMinutes < closeMinutes;
+  } catch (e) {
+    console.log('⚠️ Erro ao verificar horário de funcionamento:', e);
+    return true; // Em caso de erro, assume aberto
+  }
+}
+
+function getNextOpeningTime(businessHours: any, timezone: string): string | null {
+  if (!businessHours) return null;
+  
+  try {
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat('pt-BR', {
+      timeZone: timezone,
+      weekday: 'long',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+    
+    const parts = formatter.formatToParts(now);
+    const currentWeekday = parts.find(p => p.type === 'weekday')?.value?.toLowerCase() || '';
+    const currentHour = parseInt(parts.find(p => p.type === 'hour')?.value || '0');
+    const currentMinute = parseInt(parts.find(p => p.type === 'minute')?.value || '0');
+    const currentMinutes = currentHour * 60 + currentMinute;
+    
+    const dayMap: Record<string, string> = {
+      'domingo': 'sunday',
+      'segunda-feira': 'monday',
+      'terça-feira': 'tuesday',
+      'quarta-feira': 'wednesday',
+      'quinta-feira': 'thursday',
+      'sexta-feira': 'friday',
+      'sábado': 'saturday'
+    };
+    
+    const daysOrder = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const daysPortuguese: Record<string, string> = {
+      'sunday': 'domingo',
+      'monday': 'segunda',
+      'tuesday': 'terça',
+      'wednesday': 'quarta',
+      'thursday': 'quinta',
+      'friday': 'sexta',
+      'saturday': 'sábado'
+    };
+    
+    const currentDayKey = dayMap[currentWeekday] || 'monday';
+    const currentDayIndex = daysOrder.indexOf(currentDayKey);
+    
+    // Verificar se abre ainda hoje
+    const todayConfig = businessHours[currentDayKey];
+    if (todayConfig?.enabled) {
+      const [openHour, openMin] = (todayConfig.open || '08:00').split(':').map(Number);
+      const openMinutes = openHour * 60 + openMin;
+      
+      if (currentMinutes < openMinutes) {
+        // Abre ainda hoje
+        const hoursUntil = Math.floor((openMinutes - currentMinutes) / 60);
+        const minutesUntil = (openMinutes - currentMinutes) % 60;
+        
+        if (hoursUntil < 2) {
+          return `em ${hoursUntil > 0 ? `${hoursUntil}h` : ''}${minutesUntil > 0 ? `${minutesUntil}min` : ''}, às ${todayConfig.open}`;
+        }
+        return `ainda hoje, às ${todayConfig.open}`;
+      }
+    }
+    
+    // Procurar próximo dia que abre
+    for (let i = 1; i <= 7; i++) {
+      const nextDayIndex = (currentDayIndex + i) % 7;
+      const nextDayKey = daysOrder[nextDayIndex];
+      const nextDayConfig = businessHours[nextDayKey];
+      
+      if (nextDayConfig?.enabled) {
+        const dayName = daysPortuguese[nextDayKey];
+        if (i === 1) {
+          return `amanhã às ${nextDayConfig.open}`;
+        }
+        return `${dayName} às ${nextDayConfig.open}`;
+      }
+    }
+    
+    return null;
+  } catch (e) {
+    console.log('⚠️ Erro ao calcular próxima abertura:', e);
+    return null;
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -123,14 +258,15 @@ serve(async (req) => {
         });
       }
 
-      // Buscar timezone da loja
+      // Buscar timezone e business_hours da loja
       const { data: storeData } = await supabase
         .from('stores')
-        .select('timezone')
+        .select('timezone, business_hours')
         .eq('id', instance.store_id)
         .single();
       
       const timezone = storeData?.timezone || 'America/Sao_Paulo';
+      const businessHours = storeData?.business_hours;
       
       // Calcular horário atual no timezone da loja
       const now = new Date();
@@ -155,6 +291,15 @@ serve(async (req) => {
       } catch (e) {
         console.log('⚠️ Erro ao calcular horário:', e);
       }
+      
+      // ========== VERIFICAR STATUS EM TEMPO REAL ==========
+      const isOpen = isStoreOpenNow(businessHours, timezone);
+      const nextOpening = !isOpen ? getNextOpeningTime(businessHours, timezone) : null;
+      
+      console.log(`🏪 Status da loja: ${isOpen ? '✅ ABERTA' : '❌ FECHADA'}${nextOpening ? ` - Abre ${nextOpening}` : ''}`);
+      
+      // Verificar se está em pausa manual
+      const isPaused = businessHours?.is_paused || false;
 
       console.log(`🏪 Loja encontrada: ${instance.store_id}`);
 
@@ -227,11 +372,14 @@ serve(async (req) => {
               totalOrders: customerStoreData.total_orders,
               totalSpent: customerStoreData.total_spent
             } : null,
-            // CONTEXTO DE HORÁRIO para o bot
+            // CONTEXTO DE HORÁRIO E STATUS para o bot
             timeContext: {
               currentTime,
               greeting,
-              timezone
+              timezone,
+              isOpen,
+              nextOpening,
+              isPaused
             }
           }
         });

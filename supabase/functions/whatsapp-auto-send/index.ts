@@ -97,11 +97,33 @@ function classifyCustomer(isKnownCustomer: boolean, customerData: any): Customer
 function getSmartGreetingTemplate(
   classification: CustomerClassification, 
   greeting: string,
-  storeName: string
+  storeName: string,
+  isOpen: boolean = true,
+  nextOpening: string | null = null
 ): string {
   // Link do cardápio adicionado em todas as saudações
   const menuLink = `\n\n📱 Confira nosso cardápio: {link_loja}`;
   
+  // Se loja está fechada, usar template específico
+  if (!isOpen) {
+    const closedMessage = nextOpening 
+      ? `⚠️ Estamos fechados no momento, mas abrimos ${nextOpening}!`
+      : `⚠️ Estamos fechados no momento.`;
+    
+    switch (classification.type) {
+      case 'vip':
+        return `${greeting}, {primeiro_nome}! 🌟 Nosso cliente especial!\n\n${closedMessage}\n\nMas enquanto isso, que tal dar uma olhada no cardápio?${menuLink}`;
+      case 'frequent':
+      case 'returning':
+        return `${greeting}, {primeiro_nome}! 😊\n\n${closedMessage}\n\nDá uma olhada no cardápio para quando abrirmos!${menuLink}`;
+      case 'missed':
+        return `${greeting}, {primeiro_nome}! Que bom ter você de volta! 💕\n\n${closedMessage}\n\nMas já confira o cardápio!${menuLink}`;
+      default:
+        return `${greeting}! 👋 Seja bem-vindo(a) à ${storeName}!\n\n${closedMessage}\n\nEnquanto isso, confira nosso cardápio!${menuLink}`;
+    }
+  }
+  
+  // Loja aberta - templates normais
   switch (classification.type) {
     case 'vip':
       return `${greeting}, {primeiro_nome}! 🌟 Nosso cliente especial! Que bom ter você de volta na ${storeName}! Como posso ajudar hoje?${menuLink}`;
@@ -330,8 +352,17 @@ serve(async (req) => {
           totalSpent: classification.totalSpent
         });
       } else {
-        // Usar template inteligente baseado no tipo de cliente
-        const smartTemplate = getSmartGreetingTemplate(classification, greeting, store.name);
+        // Usar template inteligente baseado no tipo de cliente E status da loja
+        const isOpen = timeContext?.isOpen !== false; // Default true se não receber
+        const nextOpening = timeContext?.nextOpening || null;
+        
+        const smartTemplate = getSmartGreetingTemplate(
+          classification, 
+          greeting, 
+          store.name, 
+          isOpen, 
+          nextOpening
+        );
         finalMessage = replaceVariables(smartTemplate, {
           customerName: customerName || orderData?.customer_name,
           storeName: store.name,

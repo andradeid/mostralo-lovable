@@ -90,8 +90,27 @@ export default function SubscriptionPage() {
   const [paymentApproval, setPaymentApproval] = useState<PaymentApproval | null>(null);
   const [availablePlans, setAvailablePlans] = useState<Plan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
-  const [showRenewalDialog, setShowRenewalDialog] = useState(false);
+const [showRenewalDialog, setShowRenewalDialog] = useState(false);
   const [renewalUploading, setRenewalUploading] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // Extrai EndToEndId do campo notes da invoice
+  const extractEndToEndId = (notes: string | null): string | null => {
+    if (!notes) return null;
+    const match = notes.match(/EndToEndId:\s*([A-Za-z0-9]+)/);
+    return match ? match[1] : null;
+  };
+
+  const handleCopyId = async (id: string) => {
+    try {
+      await navigator.clipboard.writeText(id);
+      setCopiedId(id);
+      toast.success("ID copiado!");
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (error) {
+      toast.error("Erro ao copiar");
+    }
+  };
 
   useEffect(() => {
     fetchPaymentApproval();
@@ -899,6 +918,7 @@ export default function SubscriptionPage() {
                   <TableHead>Tipo</TableHead>
                   <TableHead>Valor</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>ID Transação</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -934,6 +954,9 @@ export default function SubscriptionPage() {
                           Rejeitado
                         </Badge>
                       )}
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-muted-foreground text-xs">-</span>
                     </TableCell>
                     <TableCell className="text-right">
                       {approval.payment_proof_url && (
@@ -977,6 +1000,31 @@ export default function SubscriptionPage() {
                     <TableCell>
                       {getStatusBadge(invoice.payment_status, invoice.paid_at)}
                     </TableCell>
+                    <TableCell>
+                      {(() => {
+                        const endToEndId = extractEndToEndId(invoice.notes);
+                        if (!endToEndId) return <span className="text-muted-foreground text-xs">-</span>;
+                        return (
+                          <div className="flex items-center gap-1">
+                            <span className="font-mono text-xs" title={endToEndId}>
+                              ...{endToEndId.slice(-12)}
+                            </span>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-6 w-6"
+                              onClick={() => handleCopyId(endToEndId)}
+                            >
+                              {copiedId === endToEndId ? (
+                                <Check className="h-3 w-3 text-green-500" />
+                              ) : (
+                                <Copy className="h-3 w-3" />
+                              )}
+                            </Button>
+                          </div>
+                        );
+                      })()}
+                    </TableCell>
                     <TableCell className="text-right">
                       {invoice.payment_status !== 'paid' && (
                         <Button 
@@ -1009,7 +1057,7 @@ export default function SubscriptionPage() {
                 {/* Empty state */}
                 {invoices.length === 0 && allPaymentApprovals.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                       Nenhum registro encontrado
                     </TableCell>
                   </TableRow>

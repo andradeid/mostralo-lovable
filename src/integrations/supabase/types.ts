@@ -3883,6 +3883,7 @@ export type Database = {
       }
       store_bot_config: {
         Row: {
+          auto_reactivate_minutes: number | null
           bot_name: string | null
           bot_split_messages: boolean | null
           bot_time_per_char: number | null
@@ -3916,6 +3917,7 @@ export type Database = {
           whatsapp_instance_id: string | null
         }
         Insert: {
+          auto_reactivate_minutes?: number | null
           bot_name?: string | null
           bot_split_messages?: boolean | null
           bot_time_per_char?: number | null
@@ -3949,6 +3951,7 @@ export type Database = {
           whatsapp_instance_id?: string | null
         }
         Update: {
+          auto_reactivate_minutes?: number | null
           bot_name?: string | null
           bot_split_messages?: boolean | null
           bot_time_per_char?: number | null
@@ -5285,6 +5288,66 @@ export type Database = {
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "whatsapp_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_paused_contacts: {
+        Row: {
+          auto_reactivate_at: string | null
+          created_at: string | null
+          customer_name: string | null
+          id: string
+          instance_name: string
+          paused_at: string
+          paused_by: string | null
+          reactivated_at: string | null
+          remote_jid: string
+          status: string
+          store_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          auto_reactivate_at?: string | null
+          created_at?: string | null
+          customer_name?: string | null
+          id?: string
+          instance_name: string
+          paused_at?: string
+          paused_by?: string | null
+          reactivated_at?: string | null
+          remote_jid: string
+          status?: string
+          store_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          auto_reactivate_at?: string | null
+          created_at?: string | null
+          customer_name?: string | null
+          id?: string
+          instance_name?: string
+          paused_at?: string
+          paused_by?: string | null
+          reactivated_at?: string | null
+          remote_jid?: string
+          status?: string
+          store_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_paused_contacts_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_paused_contacts_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
             referencedColumns: ["id"]
           },
         ]

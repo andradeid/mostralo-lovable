@@ -70,7 +70,7 @@ const ideasData: Idea[] = [
     title: '💳 PIX para Lojistas',
     status: 'analyzing',
     priority: 'high',
-    createdAt: '2024-12-17',
+    createdAt: '2025-12-17',
     description: 'Permitir que lojistas recebam pagamentos PIX dos clientes diretamente no checkout da loja.',
     options: [
       {
@@ -121,7 +121,7 @@ const ideasData: Idea[] = [
     title: '💰 Split Payment EFI',
     status: 'idea',
     priority: 'medium',
-    createdAt: '2024-12-17',
+    createdAt: '2025-12-17',
     description: 'Investigar funcionalidade de Split Payment da EFI para divisão automática de pagamentos (ex: 95% lojista / 5% Mostralo).',
     nextSteps: [
       'Estudar documentação Split Payment EFI',
@@ -135,7 +135,7 @@ const ideasData: Idea[] = [
     title: '🖥️ App Nativo Desktop (Electron)',
     status: 'completed',
     priority: 'high',
-    createdAt: '2024-11-15',
+    createdAt: '2025-11-15',
     description: 'Criar aplicativo desktop nativo usando Electron para resolver limitações de som/notificações do navegador.',
     nextSteps: [
       'Infraestrutura Electron criada',
@@ -148,7 +148,7 @@ const ideasData: Idea[] = [
     title: '🔔 Push Notifications Nativas',
     status: 'idea',
     priority: 'medium',
-    createdAt: '2024-12-01',
+    createdAt: '2025-12-01',
     description: 'Implementar push notifications nativas via Firebase Cloud Messaging para alertas de pedidos.',
     nextSteps: [
       'Configurar projeto Firebase',
@@ -162,7 +162,7 @@ const ideasData: Idea[] = [
     title: '📊 Dashboard Analytics Avançado',
     status: 'idea',
     priority: 'low',
-    createdAt: '2024-12-10',
+    createdAt: '2025-12-10',
     description: 'Dashboard com métricas avançadas: heatmap de pedidos, análise de cohort, previsão de demanda com ML.',
     nextSteps: [
       'Definir métricas prioritárias',

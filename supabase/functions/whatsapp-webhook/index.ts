@@ -129,7 +129,7 @@ function getNextOpeningTime(businessHours: any, timezone: string): string | null
     
     // Verificar se abre ainda hoje
     const todayConfig = businessHours[currentDayKey];
-    if (todayConfig?.enabled) {
+    if (todayConfig && todayConfig.closed !== true) {
       const [openHour, openMin] = (todayConfig.open || '08:00').split(':').map(Number);
       const openMinutes = openHour * 60 + openMin;
       
@@ -151,7 +151,7 @@ function getNextOpeningTime(businessHours: any, timezone: string): string | null
       const nextDayKey = daysOrder[nextDayIndex];
       const nextDayConfig = businessHours[nextDayKey];
       
-      if (nextDayConfig?.enabled) {
+      if (nextDayConfig && nextDayConfig.closed !== true) {
         const dayName = daysPortuguese[nextDayKey];
         if (i === 1) {
           return `amanhã às ${nextDayConfig.open}`;

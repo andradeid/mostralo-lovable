@@ -125,6 +125,7 @@ import AdminSharePage from "./pages/admin/AdminSharePage";
 import StoreMarketingPage from "./pages/admin/StoreMarketingPage";
 import EvolutionConfigPage from "./pages/admin/EvolutionConfigPage";
 import WhatsAppInstancePage from "./pages/admin/WhatsAppInstancePage";
+import WhatsAppConversationsPage from "./pages/admin/WhatsAppConversationsPage";
 import WhatsAppTemplatesPage from "./pages/admin/WhatsAppTemplatesPage";
 import WhatsAppCampaignsPage from "./pages/admin/WhatsAppCampaignsPage";
 import WhatsAppCampaignNewPage from "./pages/admin/WhatsAppCampaignNewPage";
@@ -506,6 +507,11 @@ const App = () => (
             } />
 
             {/* Rotas WhatsApp - Store Admin */}
+            <Route path="/dashboard/whatsapp/conversations" element={
+              <ProtectedRoute allowedRoles={['store_admin']}>
+                <AdminLayout pageTitle="Conversas"><WhatsAppConversationsPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
             <Route path="/dashboard/whatsapp" element={
               <ProtectedRoute allowedRoles={['store_admin']}>
                 <AdminLayout pageTitle="Conexão WhatsApp"><WhatsAppInstancePage /></AdminLayout>

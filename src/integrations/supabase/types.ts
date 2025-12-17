@@ -1900,6 +1900,7 @@ export type Database = {
           customer_phone: string
           delivery_fee: number
           delivery_type: Database["public"]["Enums"]["delivery_type"]
+          estimated_delivery_minutes: number | null
           id: string
           is_outside_delivery_zone: boolean | null
           notes: string | null
@@ -1931,6 +1932,7 @@ export type Database = {
           customer_phone: string
           delivery_fee?: number
           delivery_type?: Database["public"]["Enums"]["delivery_type"]
+          estimated_delivery_minutes?: number | null
           id?: string
           is_outside_delivery_zone?: boolean | null
           notes?: string | null
@@ -1962,6 +1964,7 @@ export type Database = {
           customer_phone?: string
           delivery_fee?: number
           delivery_type?: Database["public"]["Enums"]["delivery_type"]
+          estimated_delivery_minutes?: number | null
           id?: string
           is_outside_delivery_zone?: boolean | null
           notes?: string | null

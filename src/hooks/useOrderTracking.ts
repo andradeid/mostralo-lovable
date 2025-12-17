@@ -206,10 +206,10 @@ export const useOrderTracking = (orderId: string) => {
       });
       
       if (currentOrder && !isLoading) {
-        // Buscar apenas status e updated_at (leve)
+        // Buscar apenas campos importantes (leve)
         supabase
           .from('orders')
-          .select('status, delivery_type, completed_at, updated_at')
+          .select('status, delivery_type, completed_at, updated_at, estimated_delivery_minutes')
           .eq('id', orderId)
           .maybeSingle()
           .then(({ data, error }) => {

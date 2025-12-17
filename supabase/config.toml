@@ -137,3 +137,6 @@ verify_jwt = false
 
 [functions.whatsapp-bot-reactivate]
 verify_jwt = false
+
+[functions.whatsapp-bot-sessions]
+verify_jwt = true

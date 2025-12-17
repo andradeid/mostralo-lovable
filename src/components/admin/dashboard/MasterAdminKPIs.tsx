@@ -59,17 +59,36 @@ export function MasterAdminKPIs({ compact = false }: MasterAdminKPIsProps) {
         return;
       }
 
-      // Calcular MRR (mensalizar todos os planos considerando preços customizados)
+      // Buscar descontos de cupom por loja (maior desconto aplicado)
+      const { data: couponDiscounts } = await supabase
+        .from('payment_approvals')
+        .select('store_id, coupon_discount')
+        .not('store_id', 'is', null)
+        .gt('coupon_discount', 0);
+
+      // Criar mapa de desconto por store_id
+      const discountMap = new Map<string, number>();
+      couponDiscounts?.forEach(pa => {
+        if (pa.store_id) {
+          const current = discountMap.get(pa.store_id) || 0;
+          discountMap.set(pa.store_id, Math.max(current, Number(pa.coupon_discount || 0)));
+        }
+      });
+
+      // Calcular MRR (mensalizar todos os planos considerando preços customizados e cupons)
       let mrr = 0;
       activeStores.forEach(store => {
         const storeData = store as any;
         const plan = storeData.plans;
         
         if (plan) {
-          // Usar preço customizado se existir, senão usar preço do plano
+          const planPrice = Number(plan.price);
+          const couponDiscount = discountMap.get(storeData.id) || 0;
+          
+          // Prioridade: custom_monthly_price > (plan_price - coupon_discount) > plan_price
           const effectivePrice = storeData.custom_monthly_price 
             ? Number(storeData.custom_monthly_price)
-            : Number(plan.price);
+            : Math.max(0, planPrice - couponDiscount);
           const cycle = plan.billing_cycle;
           
           // Converter para mensal
@@ -121,9 +140,12 @@ export function MasterAdminKPIs({ compact = false }: MasterAdminKPIsProps) {
         const storeData = store as any;
         const plan = storeData.plans;
         if (plan) {
+          const planPrice = Number(plan.price);
+          const couponDiscount = discountMap.get(storeData.id) || 0;
+          
           const effectivePrice = storeData.custom_monthly_price 
             ? Number(storeData.custom_monthly_price)
-            : Number(plan.price);
+            : Math.max(0, planPrice - couponDiscount);
           const cycle = plan.billing_cycle;
           
           if (cycle === 'monthly') {

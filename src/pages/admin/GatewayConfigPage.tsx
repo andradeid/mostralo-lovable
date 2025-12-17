@@ -245,10 +245,10 @@ export default function GatewayConfigPage() {
   };
 
   const handleTestConnection = async () => {
-    if (!isConfigured) {
+    if (!clientId || !clientSecret || !certificatePem) {
       toast({
         title: "Configure primeiro",
-        description: "Salve as credenciais antes de testar a conexão.",
+        description: "Preencha todas as credenciais antes de testar a conexão.",
         variant: "destructive",
       });
       return;
@@ -256,46 +256,37 @@ export default function GatewayConfigPage() {
 
     setTesting(true);
     try {
-      // TODO: Implementar Edge Function efi-test-connection
-      // Por enquanto, simular o teste
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const testResult = "success"; // ou mensagem de erro
-      const testTime = new Date().toISOString();
-      
-      // Atualizar no banco
-      if (configId) {
-        await supabase
-          .from("subscription_payment_config")
-          .update({
-            efi_last_test_at: testTime,
-            efi_last_test_status: testResult,
-          })
-          .eq("id", configId);
-      }
-
-      setLastTestAt(testTime);
-      setLastTestStatus(testResult);
-
-      toast({
-        title: "Conexão bem-sucedida!",
-        description: "As credenciais estão funcionando corretamente.",
+      const { data, error } = await supabase.functions.invoke('efi-test-connection', {
+        body: {
+          client_id: clientId,
+          client_secret: clientSecret,
+          certificate_pem: certificatePem,
+          pix_key: pixKey,
+          environment: environment,
+        },
       });
+
+      if (error) throw error;
+
+      if (data.success) {
+        setLastTestAt(new Date().toISOString());
+        setLastTestStatus("success");
+        setIsConfigured(true);
+
+        toast({
+          title: "Conexão bem-sucedida!",
+          description: `Autenticação OK no ambiente de ${environment === 'production' ? 'produção' : 'sandbox'}.`,
+        });
+      } else {
+        throw new Error(data.error || "Falha na conexão");
+      }
     } catch (error) {
       console.error("Erro ao testar:", error);
       const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
       
-      if (configId) {
-        await supabase
-          .from("subscription_payment_config")
-          .update({
-            efi_last_test_at: new Date().toISOString(),
-            efi_last_test_status: errorMessage,
-          })
-          .eq("id", configId);
-      }
-
+      setLastTestAt(new Date().toISOString());
       setLastTestStatus(errorMessage);
+
       toast({
         title: "Falha na conexão",
         description: errorMessage,
@@ -303,6 +294,7 @@ export default function GatewayConfigPage() {
       });
     } finally {
       setTesting(false);
+      fetchConfig(); // Recarregar para atualizar status do banco
     }
   };
 

@@ -70,6 +70,7 @@ import {
   BotTimezoneCard,
   BotTrainingExamplesCard,
   BotGreetingPreviewCard,
+  BotPausedContactsCard,
 } from "@/components/admin/bot";
 
 interface Template {
@@ -1278,6 +1279,9 @@ export default function WhatsAppInstancePage() {
             </div>
           ) : botConfig && (
               <>
+                {/* Card de Contatos Pausados - Destaque no topo */}
+                <BotPausedContactsCard storeId={storeId} />
+
                 <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
                   {/* Coluna Esquerda - 4 cards */}
                   <div className="space-y-4 sm:space-y-6 min-w-0">

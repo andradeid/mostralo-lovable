@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,10 +11,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { CreditCard, Calendar, DollarSign, Upload, FileText, Copy, Check, Clock, AlertCircle, CheckCircle2 } from "lucide-react";
+import { CreditCard, Calendar, DollarSign, Upload, FileText, Copy, Check, Clock, AlertCircle, CheckCircle2, QrCode, Gift, Tag, X, Loader2, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
+import { useCouponValidation } from "@/hooks/useCouponValidation";
 
 interface SubscriptionInfo {
   planName: string;
@@ -102,6 +103,31 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
   const [renewalUploading, setRenewalUploading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [couponInfo, setCouponInfo] = useState<CouponInfo | null>(null);
+
+  // Estados para cupom de desconto na renovação
+  const [renewalCouponCode, setRenewalCouponCode] = useState('');
+  const [appliedRenewalCoupon, setAppliedRenewalCoupon] = useState<{
+    id: string;
+    code: string;
+    discountAmount: number;
+    finalPrice: number;
+    discountType: 'percentage' | 'fixed';
+    discountValue: number;
+  } | null>(null);
+  const [renewalCouponError, setRenewalCouponError] = useState<string | null>(null);
+
+  // Estados para PIX automático na renovação
+  const [generatingRenewalPix, setGeneratingRenewalPix] = useState(false);
+  const [renewalPixData, setRenewalPixData] = useState<{
+    txid: string;
+    qrCodeBase64: string;
+    pixCopiaECola: string;
+    expiresAt: string;
+  } | null>(null);
+  const [checkingRenewalPixStatus, setCheckingRenewalPixStatus] = useState(false);
+  const renewalPollingRef = useRef<NodeJS.Timeout | null>(null);
+
+  const { validateCoupon, loading: couponValidationLoading } = useCouponValidation();
 
   // Extrai EndToEndId do campo notes da invoice
   const extractEndToEndId = (notes: string | null): string | null => {
@@ -330,6 +356,154 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
     if (data) {
       setAvailablePlans(data);
     }
+  };
+
+  // ===== FUNÇÕES DE CUPOM E PIX PARA RENOVAÇÃO =====
+
+  const getRenewalBasePrice = () => {
+    if (!selectedPlan) return 0;
+    
+    // Se tem desconto personalizado E é o mesmo plano, usa o preço personalizado
+    if (subscription?.customMonthlyPrice && selectedPlan.id === subscription.currentPlanId) {
+      return subscription.actualPrice;
+    }
+    
+    // Senão, usa o preço do plano (com promoção se houver)
+    return selectedPlan.promotion_active && selectedPlan.discount_price 
+      ? selectedPlan.discount_price 
+      : selectedPlan.price;
+  };
+
+  const handleApplyRenewalCoupon = async () => {
+    if (!renewalCouponCode.trim() || !selectedPlan || !user) return;
+    
+    setRenewalCouponError(null);
+    const basePrice = getRenewalBasePrice();
+
+    const result = await validateCoupon(renewalCouponCode.trim(), selectedPlan.id, basePrice, user.id);
+
+    if (result.isValid && result.coupon) {
+      setAppliedRenewalCoupon({
+        id: result.coupon.id,
+        code: result.coupon.code,
+        discountAmount: result.discountAmount,
+        finalPrice: result.finalPrice,
+        discountType: result.coupon.discount_type,
+        discountValue: result.coupon.discount_value,
+      });
+      toast.success(`🎉 Cupom aplicado! Você economizou R$ ${result.discountAmount.toFixed(2)}`);
+    } else {
+      setRenewalCouponError(result.error || 'Cupom inválido');
+    }
+  };
+
+  const handleRemoveRenewalCoupon = () => {
+    setAppliedRenewalCoupon(null);
+    setRenewalCouponCode('');
+    setRenewalCouponError(null);
+  };
+
+  const generateRenewalPix = async () => {
+    if (!selectedPlan || !user) return;
+    
+    setGeneratingRenewalPix(true);
+    
+    try {
+      const basePrice = getRenewalBasePrice();
+      const finalPrice = appliedRenewalCoupon ? appliedRenewalCoupon.finalPrice : basePrice;
+
+      const { data, error } = await supabase.functions.invoke('efi-create-pix-charge', {
+        body: {
+          valor: finalPrice.toFixed(2),
+          descricao: `Renovação Mostralo - ${selectedPlan.name}`,
+          expiracao_segundos: 3600,
+        },
+      });
+
+      if (error) throw error;
+      if (!data.success) throw new Error(data.error || 'Erro ao gerar PIX');
+
+      const expiresAt = new Date();
+      expiresAt.setSeconds(expiresAt.getSeconds() + 3600);
+
+      // Buscar store_id
+      const { data: store } = await supabase
+        .from('stores')
+        .select('id')
+        .eq('owner_id', user.id)
+        .single();
+
+      // Criar payment_approval com dados do PIX
+      await supabase.from('payment_approvals').insert({
+        user_id: user.id,
+        store_id: store?.id,
+        plan_id: selectedPlan.id,
+        payment_amount: finalPrice,
+        payment_method: 'pix',
+        status: 'pending',
+        notes: 'Renovação de assinatura',
+        pix_txid: data.txid,
+        pix_location: data.location,
+        pix_qrcode_base64: data.qrCodeBase64,
+        pix_copia_cola: data.pixCopiaECola,
+        pix_expires_at: expiresAt.toISOString(),
+        coupon_id: appliedRenewalCoupon?.id || null,
+        coupon_discount: appliedRenewalCoupon?.discountAmount || 0,
+      });
+
+      setRenewalPixData({
+        txid: data.txid,
+        qrCodeBase64: data.qrCodeBase64,
+        pixCopiaECola: data.pixCopiaECola,
+        expiresAt: expiresAt.toISOString(),
+      });
+
+      toast.success('QR Code PIX gerado! Escaneie para pagar.');
+      startRenewalPixPolling(data.txid);
+    } catch (error: any) {
+      console.error('Erro ao gerar PIX:', error);
+      toast.error(error.message || 'Erro ao gerar PIX. Tente novamente.');
+    } finally {
+      setGeneratingRenewalPix(false);
+    }
+  };
+
+  const checkRenewalPixStatus = async (txid: string) => {
+    setCheckingRenewalPixStatus(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('efi-check-pix-status', {
+        body: { txid },
+      });
+
+      if (data?.systemStatus === 'paid') {
+        if (renewalPollingRef.current) clearInterval(renewalPollingRef.current);
+        toast.success('🎉 Pagamento Confirmado! Sua assinatura foi renovada.');
+        closeRenewalDialog();
+        fetchSubscriptionData();
+        fetchPaymentApproval();
+        fetchAllPaymentApprovals();
+      }
+    } catch (error) {
+      console.error('Erro ao verificar status:', error);
+    } finally {
+      setCheckingRenewalPixStatus(false);
+    }
+  };
+
+  const startRenewalPixPolling = (txid: string) => {
+    if (renewalPollingRef.current) clearInterval(renewalPollingRef.current);
+    checkRenewalPixStatus(txid);
+    renewalPollingRef.current = setInterval(() => checkRenewalPixStatus(txid), 5000);
+  };
+
+  const closeRenewalDialog = () => {
+    if (renewalPollingRef.current) clearInterval(renewalPollingRef.current);
+    setShowRenewalDialog(false);
+    setRenewalPixData(null);
+    setAppliedRenewalCoupon(null);
+    setRenewalCouponCode('');
+    setRenewalCouponError(null);
+    setSelectedPlan(null);
   };
 
   const handlePayClick = (invoice: Invoice) => {
@@ -1167,137 +1341,214 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
         </DialogContent>
       </Dialog>
 
-      {/* Dialog de Renovação */}
-      <Dialog open={showRenewalDialog} onOpenChange={setShowRenewalDialog}>
-        <DialogContent className="max-w-md">
+      {/* Dialog de Renovação com Cupom e PIX Automático */}
+      <Dialog open={showRenewalDialog} onOpenChange={(open) => {
+        if (!open) closeRenewalDialog();
+        else setShowRenewalDialog(true);
+      }}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Renovar Assinatura</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <RefreshCw className="h-5 w-5" />
+              Renovar Assinatura
+            </DialogTitle>
             <DialogDescription>
-              {selectedPlan && (
-                <>
-                  {subscription?.customMonthlyPrice && selectedPlan.id === subscription.currentPlanId ? (
-                    <div className="space-y-1 mt-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm line-through text-muted-foreground">
-                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedPlan.price)}
-                        </span>
-                        <Badge className="bg-green-500 text-white text-xs">
-                          -{Math.round(((subscription.planPrice - subscription.actualPrice) / subscription.planPrice) * 100)}% OFF
-                        </Badge>
-                      </div>
-                      <p className="text-base font-semibold text-green-600 dark:text-green-400">
-                        Plano {selectedPlan.name} - SEU PREÇO: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.actualPrice)}
-                        /{selectedPlan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
-                      </p>
-                    </div>
-                  ) : (
-                    <>
-                      Plano {selectedPlan.name} - {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
-                        selectedPlan.promotion_active && selectedPlan.discount_price 
-                          ? selectedPlan.discount_price 
-                          : selectedPlan.price
-                      )}/{selectedPlan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
-                    </>
-                  )}
-                </>
-              )}
+              {selectedPlan && `Plano ${selectedPlan.name}`}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
-            {paymentConfig && (
+            {/* Se ainda não gerou PIX, mostrar opções de cupom e preço */}
+            {!renewalPixData ? (
               <>
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription className="text-sm">
-                    Realize o pagamento via PIX e envie o comprovante para análise
-                  </AlertDescription>
-                </Alert>
-
+                {/* Card de Preço */}
                 <div className="p-4 bg-muted rounded-lg space-y-3">
+                  {/* Preço base */}
                   <div>
-                    <Label className="text-xs text-muted-foreground">Chave PIX</Label>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Input 
-                        value={paymentConfig.pix_key} 
-                        readOnly 
-                        className="flex-1 font-mono"
-                      />
-                      <Button 
-                        size="icon" 
-                        variant="outline"
-                        onClick={handleCopyPix}
-                      >
-                        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                      </Button>
-                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {subscription?.customMonthlyPrice && selectedPlan?.id === subscription.currentPlanId 
+                        ? 'Seu preço personalizado' 
+                        : 'Preço do plano'}
+                    </p>
+                    {appliedRenewalCoupon ? (
+                      <p className="text-lg line-through text-muted-foreground">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(getRenewalBasePrice())}
+                      </p>
+                    ) : (
+                      <p className="text-2xl font-bold text-primary">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(getRenewalBasePrice())}
+                      </p>
+                    )}
                   </div>
 
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Tipo</Label>
-                    <p className="font-medium mt-1 capitalize">{paymentConfig.pix_key_type === 'phone' ? 'Telefone' : paymentConfig.pix_key_type}</p>
-                  </div>
-
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Titular da Conta</Label>
-                    <p className="font-medium mt-1">{paymentConfig.account_holder_name}</p>
-                  </div>
-
-                  {selectedPlan && (
-                    <div className="pt-2 border-t">
-                      <Label className="text-xs text-muted-foreground">Valor a Pagar</Label>
-                      {subscription?.customMonthlyPrice && selectedPlan.id === subscription.currentPlanId ? (
-                        <div className="space-y-1 mt-1">
-                          <p className="text-sm line-through text-muted-foreground">
-                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedPlan.price)}
-                          </p>
-                          <div className="flex items-center gap-2">
-                            <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.actualPrice)}
-                            </p>
-                            <Badge className="bg-green-500 text-white">
-                              Desconto Aplicado
-                            </Badge>
-                          </div>
+                  {/* Desconto de cupom aplicado */}
+                  {appliedRenewalCoupon && (
+                    <>
+                      <div className="flex items-center justify-between text-green-600">
+                        <div className="flex items-center gap-2">
+                          <Gift className="h-4 w-4" />
+                          <span className="text-sm font-medium">
+                            Cupom {appliedRenewalCoupon.code}
+                          </span>
                         </div>
-                      ) : (
-                        <p className="text-2xl font-bold text-primary mt-1">
-                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
-                            selectedPlan.promotion_active && selectedPlan.discount_price 
-                              ? selectedPlan.discount_price 
-                              : selectedPlan.price
-                          )}
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">
+                            -R$ {appliedRenewalCoupon.discountAmount.toFixed(2)}
+                          </span>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 w-6 p-0"
+                            onClick={handleRemoveRenewalCoupon}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="pt-2 border-t">
+                        <p className="text-sm text-muted-foreground">Preço final</p>
+                        <p className="text-2xl font-bold text-green-600">
+                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(appliedRenewalCoupon.finalPrice)}
                         </p>
-                      )}
-                    </div>
+                      </div>
+                    </>
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Anexar Comprovante de Pagamento</Label>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="file"
-                      accept="image/*,.pdf"
-                      onChange={handleRenewalFileUpload}
-                      disabled={renewalUploading}
-                      className="cursor-pointer"
+                {/* Campo de Cupom */}
+                {!appliedRenewalCoupon && (
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Tag className="h-4 w-4" />
+                      Tem um cupom de desconto?
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Digite o código"
+                        value={renewalCouponCode}
+                        onChange={(e) => {
+                          setRenewalCouponCode(e.target.value.toUpperCase());
+                          setRenewalCouponError(null);
+                        }}
+                        className="flex-1"
+                      />
+                      <Button 
+                        variant="outline" 
+                        onClick={handleApplyRenewalCoupon}
+                        disabled={couponValidationLoading || !renewalCouponCode.trim()}
+                      >
+                        {couponValidationLoading ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          'Aplicar'
+                        )}
+                      </Button>
+                    </div>
+                    {renewalCouponError && (
+                      <p className="text-sm text-destructive">{renewalCouponError}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Botão Gerar PIX */}
+                <Button 
+                  className="w-full" 
+                  size="lg"
+                  onClick={generateRenewalPix}
+                  disabled={generatingRenewalPix}
+                >
+                  {generatingRenewalPix ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Gerando QR Code PIX...
+                    </>
+                  ) : (
+                    <>
+                      <QrCode className="mr-2 h-4 w-4" />
+                      Gerar QR Code PIX
+                    </>
+                  )}
+                </Button>
+              </>
+            ) : (
+              /* Se já gerou PIX, mostrar QR Code */
+              <div className="space-y-4">
+                {/* QR Code */}
+                <div className="flex flex-col items-center space-y-3">
+                  <div className="p-4 bg-white rounded-lg shadow-md">
+                    <img
+                      src={renewalPixData.qrCodeBase64.startsWith('data:') 
+                        ? renewalPixData.qrCodeBase64 
+                        : `data:image/png;base64,${renewalPixData.qrCodeBase64}`}
+                      alt="QR Code PIX"
+                      className="w-48 h-48"
                     />
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Formatos aceitos: Imagens e PDF (máx. 5MB)
+                  <p className="text-sm text-muted-foreground text-center">
+                    Escaneie com o app do seu banco
                   </p>
                 </div>
 
-                {renewalUploading && (
-                  <div className="text-center text-sm text-muted-foreground">
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                      Enviando comprovante...
-                    </div>
+                {/* Valor a pagar */}
+                <div className="p-3 bg-muted rounded-lg text-center">
+                  <p className="text-sm text-muted-foreground">Valor a pagar</p>
+                  <p className="text-2xl font-bold text-primary">
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+                      appliedRenewalCoupon ? appliedRenewalCoupon.finalPrice : getRenewalBasePrice()
+                    )}
+                  </p>
+                </div>
+
+                {/* Copia e Cola */}
+                <div className="space-y-2">
+                  <Label>Código PIX (Copia e Cola)</Label>
+                  <div className="flex gap-2">
+                    <Input 
+                      value={renewalPixData.pixCopiaECola} 
+                      readOnly 
+                      className="font-mono text-xs"
+                    />
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      onClick={() => {
+                        navigator.clipboard.writeText(renewalPixData.pixCopiaECola);
+                        toast.success('Código PIX copiado!');
+                      }}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
                   </div>
-                )}
-              </>
+                </div>
+
+                {/* Status de verificação */}
+                <Alert className="border-blue-500/50 bg-blue-500/5">
+                  <RefreshCw className={`h-4 w-4 ${checkingRenewalPixStatus ? 'animate-spin' : ''}`} />
+                  <AlertDescription>
+                    Aguardando pagamento... Verificando automaticamente a cada 5 segundos.
+                  </AlertDescription>
+                </Alert>
+
+                {/* Botão verificar manualmente */}
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => checkRenewalPixStatus(renewalPixData.txid)}
+                  disabled={checkingRenewalPixStatus}
+                >
+                  {checkingRenewalPixStatus ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Verificando...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      Verificar Pagamento Manualmente
+                    </>
+                  )}
+                </Button>
+              </div>
             )}
           </div>
         </DialogContent>

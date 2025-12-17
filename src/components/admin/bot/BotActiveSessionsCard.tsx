@@ -61,7 +61,8 @@ export function BotActiveSessionsCard({ storeId }: BotActiveSessionsCardProps) {
   const filteredSessions = sessions.filter(
     (session) =>
       session.remoteJid.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      session.pushName?.toLowerCase().includes(searchQuery.toLowerCase())
+      session.pushName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      session.customerName?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleRefresh = async () => {
@@ -250,10 +251,15 @@ export function BotActiveSessionsCard({ storeId }: BotActiveSessionsCardProps) {
                   </div>
 
                   {/* Nome */}
-                  <div className="md:col-span-3 flex items-center">
+                  <div className="md:col-span-3 flex items-center gap-2">
                     <span className="text-sm truncate">
-                      {session.pushName || "—"}
+                      {session.isCustomer ? session.customerName : (session.pushName || "—")}
                     </span>
+                    {session.isCustomer && (
+                      <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/30 text-xs shrink-0">
+                        Cliente
+                      </Badge>
+                    )}
                   </div>
 
                   {/* Status */}

@@ -8,6 +8,10 @@ export interface BotSession {
   pushName?: string;
   createdAt?: string;
   updateAt?: string;
+  // Campos de identificação de cliente
+  isCustomer?: boolean;
+  customerName?: string | null;
+  customerId?: string | null;
 }
 
 export function useBotSessions(storeId: string | null) {

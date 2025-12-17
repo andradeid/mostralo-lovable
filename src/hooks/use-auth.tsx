@@ -27,6 +27,7 @@ interface AuthContextType {
   stopImpersonation: () => void;
   isImpersonating: boolean;
   originalAdmin: Profile | null;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -537,6 +538,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const refreshProfile = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const { data: prof } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (prof) {
+        setProfile(prof);
+        console.log('🔄 Profile atualizado:', prof.accepted_terms_version);
+      }
+    } catch (error) {
+      console.error('❌ Erro ao atualizar profile:', error);
+    }
+  };
+
   const value = {
     user,
     session,
@@ -549,7 +569,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     impersonateUser,
     stopImpersonation,
     isImpersonating,
-    originalAdmin
+    originalAdmin,
+    refreshProfile
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

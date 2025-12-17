@@ -26,6 +26,7 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { EfiSetupGuide } from "@/components/admin/gateway/EfiSetupGuide";
+import { PixChargeTestCard } from "@/components/admin/gateway/PixChargeTestCard";
 
 interface EfiConfig {
   efi_client_id: string | null;
@@ -847,6 +848,12 @@ export default function GatewayConfigPage() {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Card de Teste de Cobrança PIX */}
+        <PixChargeTestCard 
+          isConfigured={isConfigured && lastTestStatus === "success"} 
+          environment={environment} 
+        />
       </div>
 
       {/* Botão Salvar */}

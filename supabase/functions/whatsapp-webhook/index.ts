@@ -52,19 +52,60 @@ serve(async (req) => {
       const message = body.data;
       const instanceName = body.instance;
       
-      // Ignorar mensagens enviadas por nós
-      if (message.key?.fromMe) {
-        console.log('📤 Mensagem enviada por nós, ignorando');
-        return new Response(JSON.stringify({ success: true, ignored: true }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      // Extrair telefone do remetente
+      // Extrair remoteJid antes de qualquer coisa
       const remoteJid = message.key?.remoteJid || '';
       const senderPhone = remoteJid.replace('@s.whatsapp.net', '').replace('@c.us', '');
       const senderName = message.pushName || 'Cliente';
       
+      // DETECTAR RESPOSTA MANUAL DA LOJA → PAUSAR BOT
+      if (message.key?.fromMe) {
+        console.log('📤 Loja respondeu manualmente, verificando se deve pausar bot...');
+        
+        // Buscar instância e config do bot
+        const { data: instance } = await supabase
+          .from('whatsapp_instances')
+          .select('store_id')
+          .eq('instance_name', instanceName)
+          .eq('status', 'connected')
+          .single();
+
+        if (instance) {
+          // Buscar config de reativação automática
+          const { data: botConfig } = await supabase
+            .from('store_bot_config')
+            .select('auto_reactivate_minutes, stop_bot_from_me')
+            .eq('store_id', instance.store_id)
+            .single();
+
+          // Se stop_bot_from_me está ativo, pausar permanentemente
+          if (botConfig?.stop_bot_from_me !== false) {
+            console.log(`⏸️ Pausando bot para ${remoteJid} (reativação em ${botConfig?.auto_reactivate_minutes || 0} min)`);
+            
+            // Chamar edge function para pausar bot permanentemente
+            const { data: pauseResult, error: pauseError } = await supabase.functions.invoke('whatsapp-bot-pause', {
+              body: {
+                action: 'pause',
+                storeId: instance.store_id,
+                instanceName: instanceName,
+                remoteJid: remoteJid,
+                customerName: senderName,
+                autoReactivateMinutes: botConfig?.auto_reactivate_minutes || 0
+              }
+            });
+
+            if (pauseError) {
+              console.error('❌ Erro ao pausar bot:', pauseError);
+            } else {
+              console.log('✅ Bot pausado:', pauseResult);
+            }
+          }
+        }
+        
+        return new Response(JSON.stringify({ success: true, botPaused: true }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       console.log(`📱 Mensagem de: ${senderPhone} (${senderName})`);
 
       // Buscar instância e loja associada (com timezone)

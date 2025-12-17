@@ -32,6 +32,7 @@ export interface BotConfig {
   ignore_jids: string[];
   split_messages: boolean;
   time_per_char: number;
+  auto_reactivate_minutes: number; // NOVO: minutos para reativação automática (0 = manual)
   evolution_bot_id?: string;
   evolution_bot_status?: string;
 }
@@ -53,6 +54,7 @@ const defaultBotConfig: Omit<BotConfig, 'store_id'> = {
   ignore_jids: [],
   split_messages: true,
   time_per_char: 0,
+  auto_reactivate_minutes: 0, // 0 = manual por padrão
 };
 
 const defaultPromptSettings: PromptSettings = {
@@ -110,6 +112,7 @@ export function useBotConfig(storeId: string | null) {
           ignore_jids: dbData.ignore_jids || [],
           split_messages: dbData.bot_split_messages ?? true,      // Mapeamento correto
           time_per_char: dbData.bot_time_per_char ?? 0,           // Mapeamento correto
+          auto_reactivate_minutes: dbData.auto_reactivate_minutes ?? 0, // NOVO
           evolution_bot_id: dbData.evolution_bot_id,
           evolution_bot_status: dbData.evolution_bot_status,
         };
@@ -239,6 +242,7 @@ export function useBotConfig(storeId: string | null) {
         ignore_jids: updatedConfig.ignore_jids,
         bot_split_messages: updatedConfig.split_messages,    // Mapeamento correto para o banco
         bot_time_per_char: updatedConfig.time_per_char,      // Mapeamento correto para o banco
+        auto_reactivate_minutes: updatedConfig.auto_reactivate_minutes, // NOVO
         evolution_bot_id: updatedConfig.evolution_bot_id,
         evolution_bot_status: updatedConfig.evolution_bot_status,
         updated_at: new Date().toISOString(),

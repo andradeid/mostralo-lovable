@@ -2013,7 +2013,12 @@ export type Database = {
           payment_method: string
           payment_proof_url: string | null
           phone: string | null
+          pix_copia_cola: string | null
+          pix_expires_at: string | null
           pix_key: string | null
+          pix_location: string | null
+          pix_qrcode_base64: string | null
+          pix_txid: string | null
           plan_id: string | null
           referred_by_salesperson_id: string | null
           rejection_reason: string | null
@@ -2039,7 +2044,12 @@ export type Database = {
           payment_method?: string
           payment_proof_url?: string | null
           phone?: string | null
+          pix_copia_cola?: string | null
+          pix_expires_at?: string | null
           pix_key?: string | null
+          pix_location?: string | null
+          pix_qrcode_base64?: string | null
+          pix_txid?: string | null
           plan_id?: string | null
           referred_by_salesperson_id?: string | null
           rejection_reason?: string | null
@@ -2065,7 +2075,12 @@ export type Database = {
           payment_method?: string
           payment_proof_url?: string | null
           phone?: string | null
+          pix_copia_cola?: string | null
+          pix_expires_at?: string | null
           pix_key?: string | null
+          pix_location?: string | null
+          pix_qrcode_base64?: string | null
+          pix_txid?: string | null
           plan_id?: string | null
           referred_by_salesperson_id?: string | null
           rejection_reason?: string | null

@@ -80,6 +80,10 @@ interface CouponInfo {
   discountType: string;
   discountValue: number;
   discountApplied: number;
+  // Campos do plano pago para exibição correta
+  paidPlanPrice: number;
+  paidPlanName: string;
+  finalPaidAmount: number;
 }
 
 export default function SubscriptionPage() {
@@ -166,6 +170,12 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
         .select(`
           coupon_id,
           coupon_discount,
+          payment_amount,
+          plan_id,
+          plans:plan_id (
+            name,
+            price
+          ),
           coupons:coupon_id (
             code,
             name,
@@ -174,6 +184,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
           )
         `)
         .eq('user_id', user.id)
+        .eq('status', 'approved')
         .not('coupon_id', 'is', null)
         .order('created_at', { ascending: false })
         .limit(1)
@@ -186,12 +197,17 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
       
       if (data && data.coupons) {
         const couponData = data.coupons as any;
+        const planData = data.plans as any;
+        
         setCouponInfo({
           code: couponData.code,
           name: couponData.name,
           discountType: couponData.discount_type,
           discountValue: couponData.discount_value,
           discountApplied: data.coupon_discount || 0,
+          paidPlanPrice: planData?.price || 0,
+          paidPlanName: planData?.name || '',
+          finalPaidAmount: data.payment_amount || 0,
         });
       }
     } catch (error) {
@@ -1052,23 +1068,23 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                   <p className="text-sm text-muted-foreground">Valor</p>
                   {couponInfo && subscription ? (
                     <div className="space-y-2">
-                      {/* Preço original */}
+                      {/* Preço original do plano pago */}
                       <p className="text-xs text-muted-foreground">
-                        De: <span className="line-through">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.planPrice)}</span>
+                        De: <span className="line-through">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(couponInfo.paidPlanPrice)}</span>
                       </p>
                       
-                      {/* Preço atual - destaque principal */}
+                      {/* Preço atual - valor efetivamente pago */}
                       <p className="text-xl font-bold text-green-600 dark:text-green-400">
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.planPrice - couponInfo.discountApplied)}
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(couponInfo.finalPaidAmount)}
                         <span className="text-sm font-normal text-muted-foreground">/{subscription.billingCycle === 'monthly' ? 'mês' : 'ano'}</span>
                       </p>
                       
-                      {/* Economia */}
+                      {/* Economia com proteção contra divisão por zero */}
                       <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-500">
                         <span>💰 Economia:</span>
                         <span className="font-medium">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(couponInfo.discountApplied)}</span>
                         <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">
-                          -{Math.round((couponInfo.discountApplied / subscription.planPrice) * 100)}%
+                          -{couponInfo.paidPlanPrice > 0 ? Math.round((couponInfo.discountApplied / couponInfo.paidPlanPrice) * 100) : 0}%
                         </Badge>
                       </div>
                       

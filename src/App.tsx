@@ -137,6 +137,7 @@ import NavigationGuidePage from "./pages/admin/NavigationGuidePage";
 import RecruitmentPage from "./pages/admin/RecruitmentPage";
 import TestEnvironmentPage from "./pages/admin/TestEnvironmentPage";
 import GatewayConfigPage from "./pages/admin/GatewayConfigPage";
+import IdeasPage from "./pages/admin/IdeasPage";
 
 const queryClient = new QueryClient();
 
@@ -261,6 +262,13 @@ const App = () => (
               <ProtectedRoute allowedRoles={['master_admin']}>
                 <AdminLayout pageTitle="Ambiente de Testes">
                   <TestEnvironmentPage />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/ideias" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Ideias e Funcionalidades">
+                  <IdeasPage />
                 </AdminLayout>
               </ProtectedRoute>
             } />

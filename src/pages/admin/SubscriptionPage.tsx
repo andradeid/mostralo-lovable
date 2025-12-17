@@ -73,6 +73,14 @@ interface Plan {
   promotion_active: boolean | null;
 }
 
+interface CouponInfo {
+  code: string;
+  name: string;
+  discountType: string;
+  discountValue: number;
+  discountApplied: number;
+}
+
 export default function SubscriptionPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -93,6 +101,7 @@ export default function SubscriptionPage() {
 const [showRenewalDialog, setShowRenewalDialog] = useState(false);
   const [renewalUploading, setRenewalUploading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [couponInfo, setCouponInfo] = useState<CouponInfo | null>(null);
 
   // Extrai EndToEndId do campo notes da invoice
   const extractEndToEndId = (notes: string | null): string | null => {
@@ -119,7 +128,50 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
     fetchInvoices();
     fetchPaymentConfig();
     fetchAvailablePlans();
+    fetchCouponInfo();
   }, [user]);
+
+  const fetchCouponInfo = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('payment_approvals')
+        .select(`
+          coupon_id,
+          coupon_discount,
+          coupons:coupon_id (
+            code,
+            name,
+            discount_type,
+            discount_value
+          )
+        `)
+        .eq('user_id', user.id)
+        .not('coupon_id', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Erro ao buscar cupom:', error);
+        return;
+      }
+      
+      if (data && data.coupons) {
+        const couponData = data.coupons as any;
+        setCouponInfo({
+          code: couponData.code,
+          name: couponData.name,
+          discountType: couponData.discount_type,
+          discountValue: couponData.discount_value,
+          discountApplied: data.coupon_discount || 0,
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao buscar cupom:', error);
+    }
+  };
 
   const fetchPaymentApproval = async () => {
     if (!user) return;
@@ -824,7 +876,27 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                 <DollarSign className="h-8 w-8 text-primary" />
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Valor</p>
-                  {subscription?.customMonthlyPrice ? (
+                  {couponInfo && subscription ? (
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs line-through text-muted-foreground">
+                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.planPrice)}
+                        </p>
+                        <Badge className="bg-green-500 text-white text-[10px] px-1.5 py-0">
+                          🎟️ {couponInfo.code} -{Math.round((couponInfo.discountApplied / subscription.planPrice) * 100)}%
+                        </Badge>
+                      </div>
+                      <p className="text-lg font-bold text-green-600 dark:text-green-400">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.planPrice - couponInfo.discountApplied)}
+                        <span className="text-sm font-normal text-muted-foreground">
+                          /{subscription.billingCycle === 'monthly' ? 'mês' : 'ano'}
+                        </span>
+                      </p>
+                      <p className="text-xs text-muted-foreground italic">
+                        Cupom aplicado no cadastro
+                      </p>
+                    </div>
+                  ) : subscription?.customMonthlyPrice ? (
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <p className="text-xs line-through text-muted-foreground">

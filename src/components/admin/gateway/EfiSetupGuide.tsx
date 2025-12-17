@@ -169,7 +169,7 @@ export function EfiSetupGuide() {
             </AccordionContent>
           </AccordionItem>
 
-          {/* Passo 4: Gerar Certificado */}
+          {/* Passo 4: Gerar Certificados */}
           <AccordionItem value="step-4">
             <AccordionTrigger className="hover:no-underline">
               <div className="flex items-center gap-3">
@@ -178,22 +178,39 @@ export function EfiSetupGuide() {
                 </div>
                 <div className="flex items-center gap-2">
                   <FileText className="h-4 w-4 text-primary" />
-                  <span>Gerar Certificado PEM</span>
+                  <span>Gerar Certificados PEM (Sandbox + Produção)</span>
                 </div>
               </div>
             </AccordionTrigger>
             <AccordionContent className="pl-11 space-y-3">
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                <AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" />
+                <div className="text-sm">
+                  <p className="font-medium text-amber-600">Importante: Você precisa de 2 certificados!</p>
+                  <p className="text-amber-600/80">
+                    Um para <strong>Sandbox</strong> (testes) e outro para <strong>Produção</strong> (cobranças reais).
+                  </p>
+                </div>
+              </div>
+
               <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
                 <li>Na sua aplicação, vá na aba <strong>"Certificados"</strong></li>
                 <li>
-                  Escolha o ambiente:
+                  <strong>Para Sandbox (Homologação):</strong>
                   <ul className="list-disc list-inside ml-4 mt-1">
-                    <li><strong>Homologação</strong> - Para testar (Sandbox)</li>
-                    <li><strong>Produção</strong> - Para cobranças reais</li>
+                    <li>Clique na aba <strong>"Homologação"</strong></li>
+                    <li>Clique em <strong>"Gerar novo certificado"</strong></li>
+                    <li>Baixe e guarde como <code className="bg-muted px-1 rounded">certificado_sandbox.pem</code></li>
                   </ul>
                 </li>
-                <li>Clique em <strong>"Gerar novo certificado"</strong></li>
-                <li>Baixe o arquivo (pode ser <code className="bg-muted px-1 rounded">.pem</code> ou <code className="bg-muted px-1 rounded">.p12</code>)</li>
+                <li>
+                  <strong>Para Produção:</strong>
+                  <ul className="list-disc list-inside ml-4 mt-1">
+                    <li>Clique na aba <strong>"Produção"</strong></li>
+                    <li>Clique em <strong>"Gerar novo certificado"</strong></li>
+                    <li>Baixe e guarde como <code className="bg-muted px-1 rounded">certificado_producao.pem</code></li>
+                  </ul>
+                </li>
               </ol>
 
               <div className="p-3 rounded-lg bg-muted/50 border space-y-2">
@@ -219,7 +236,7 @@ export function EfiSetupGuide() {
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Execute este comando no terminal (requer OpenSSL instalado)
+                  Execute este comando no terminal para cada certificado (requer OpenSSL instalado)
                 </p>
               </div>
 
@@ -228,8 +245,8 @@ export function EfiSetupGuide() {
                 <div className="text-sm">
                   <p className="font-medium text-blue-600">Dica</p>
                   <p className="text-blue-600/80">
-                    Depois de gerar o arquivo .pem, você pode fazer upload direto aqui ou 
-                    copiar e colar o conteúdo do arquivo.
+                    Faça upload de cada certificado no card correspondente (Sandbox ou Produção) 
+                    ou copie e cole o conteúdo dos arquivos.
                   </p>
                 </div>
               </div>

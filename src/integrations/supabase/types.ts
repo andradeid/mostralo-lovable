@@ -4503,6 +4503,7 @@ export type Database = {
           bank_name: string | null
           created_at: string | null
           efi_certificate_pem: string | null
+          efi_certificate_pem_production: string | null
           efi_client_id: string | null
           efi_client_secret: string | null
           efi_environment: string | null
@@ -4530,6 +4531,7 @@ export type Database = {
           bank_name?: string | null
           created_at?: string | null
           efi_certificate_pem?: string | null
+          efi_certificate_pem_production?: string | null
           efi_client_id?: string | null
           efi_client_secret?: string | null
           efi_environment?: string | null
@@ -4557,6 +4559,7 @@ export type Database = {
           bank_name?: string | null
           created_at?: string | null
           efi_certificate_pem?: string | null
+          efi_certificate_pem_production?: string | null
           efi_client_id?: string | null
           efi_client_secret?: string | null
           efi_environment?: string | null

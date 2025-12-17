@@ -55,18 +55,18 @@ serve(async (req) => {
         continue;
       }
 
-      // Check if already paid
-      if (approval.status === 'paid' || approval.status === 'approved') {
+      // Check if already approved
+      if (approval.status === 'approved') {
         console.log(`ℹ️ Pagamento já processado: ${txid}`);
         processedEvents.push({ txid, status: 'already_processed' });
         continue;
       }
 
-      // Update payment_approval status to paid
+      // Update payment_approval status to approved (constraint doesn't allow 'paid')
       const { error: updateError } = await supabase
         .from('payment_approvals')
         .update({
-          status: 'paid',
+          status: 'approved',
           payment_proof_url: `PIX confirmado via webhook - EndToEndId: ${endToEndId}`,
           admin_notes: `Pagamento PIX confirmado automaticamente em ${horario}. Valor: R$ ${valor}. EndToEndId: ${endToEndId}`,
           updated_at: new Date().toISOString(),

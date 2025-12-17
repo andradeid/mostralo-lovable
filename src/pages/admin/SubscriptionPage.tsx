@@ -58,6 +58,8 @@ interface PaymentApproval {
   created_at: string;
   rejection_reason: string | null;
   notes: string | null;
+  pix_txid: string | null;
+  pix_copia_cola: string | null;
 }
 
 interface Plan {
@@ -510,10 +512,15 @@ export default function SubscriptionPage() {
           <AlertDescription>
             <div className="space-y-2">
               <p className="font-semibold text-yellow-700 dark:text-yellow-400">
-                ⏳ Aguardando Aprovação de Pagamento
+                ⏳ {paymentApproval.pix_txid ? 'Pagamento PIX em Processamento' : 'Aguardando Aprovação de Pagamento'}
               </p>
               <p className="text-sm text-yellow-600 dark:text-yellow-300">
-                {paymentApproval.payment_proof_url ? (
+                {paymentApproval.pix_txid ? (
+                  <>
+                    Seu pagamento PIX está sendo processado automaticamente. 
+                    Assim que o banco confirmar, sua conta será ativada automaticamente.
+                  </>
+                ) : paymentApproval.payment_proof_url ? (
                   <>
                     Seu comprovante de pagamento foi enviado e está sendo analisado pelo administrador. 
                     Você será notificado assim que for aprovado.
@@ -525,7 +532,7 @@ export default function SubscriptionPage() {
                   </>
                 )}
               </p>
-              {!paymentApproval.payment_proof_url && (
+              {!paymentApproval.payment_proof_url && !paymentApproval.pix_txid && (
                 <Button
                   size="sm"
                   variant="outline"
@@ -534,6 +541,17 @@ export default function SubscriptionPage() {
                 >
                   <Upload className="w-4 h-4 mr-2" />
                   Enviar Comprovante
+                </Button>
+              )}
+              {paymentApproval.pix_txid && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="mt-2"
+                  onClick={() => navigate('/payment-proof')}
+                >
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                  Ver QR Code PIX
                 </Button>
               )}
               <p className="text-xs text-muted-foreground mt-2">

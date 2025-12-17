@@ -40,7 +40,8 @@ import {
   Gift,
   Map,
   UserPlus,
-  Film
+  Film,
+  Lightbulb
 } from "lucide-react";
 
 import {
@@ -338,6 +339,7 @@ export function AdminSidebar() {
         { title: 'Inteligência de Negócios', url: '/dashboard/business-intelligence', icon: TrendingUp, group: 'Principal' },
         { title: 'Metas', url: '/dashboard/metas', icon: Target, group: 'Principal' },
         { title: 'Ambiente de Testes', url: '/dashboard/test-environment', icon: Bot, group: 'Principal' },
+        { title: 'Ideias', url: '/dashboard/ideias', icon: Lightbulb, group: 'Principal' },
         { title: 'Navegação', url: '/dashboard/navegacao', icon: Map, group: 'Principal' },
         { title: 'Material de Divulgação', url: '/dashboard/material-divulgacao', icon: QrCode, group: 'Prospecção' },
         { title: 'Vendedores', url: '/dashboard/salespeople', icon: Users, group: 'Vendedores' },

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, TrendingUp, TrendingDown, CreditCard, AlertCircle } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, CreditCard, AlertCircle, Info } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface KPIData {
   mrr: number;
@@ -191,7 +192,8 @@ export function MasterAdminKPIs({ compact = false }: MasterAdminKPIsProps) {
       value: `R$ ${kpis.mrr.toFixed(2)}`,
       icon: DollarSign,
       trend: kpis.trends.mrr,
-      color: 'text-green-600'
+      color: 'text-green-600',
+      tooltip: 'Monthly Recurring Revenue: Soma do valor efetivo mensal de todas as lojas ativas. Considera preço personalizado (se houver), desconto de cupom, e converte planos trimestrais/anuais para valor mensal.'
     },
     {
       title: 'ARR',
@@ -199,7 +201,8 @@ export function MasterAdminKPIs({ compact = false }: MasterAdminKPIsProps) {
       value: `R$ ${kpis.arr.toFixed(2)}`,
       icon: TrendingUp,
       trend: kpis.trends.arr,
-      color: 'text-blue-600'
+      color: 'text-blue-600',
+      tooltip: 'Annual Recurring Revenue: MRR × 12. Projeção da receita anual se todas as assinaturas atuais se mantiverem durante 12 meses.'
     },
     {
       title: 'Ticket Médio',
@@ -207,7 +210,8 @@ export function MasterAdminKPIs({ compact = false }: MasterAdminKPIsProps) {
       value: `R$ ${kpis.avgTicket.toFixed(2)}`,
       icon: CreditCard,
       trend: kpis.trends.avgTicket,
-      color: 'text-purple-600'
+      color: 'text-purple-600',
+      tooltip: 'Valor médio pago por loja ativa por mês. Calculado como: MRR ÷ número de lojas ativas.'
     },
     {
       title: 'Churn',
@@ -216,7 +220,8 @@ export function MasterAdminKPIs({ compact = false }: MasterAdminKPIsProps) {
       icon: AlertCircle,
       trend: kpis.trends.churn,
       color: 'text-orange-600',
-      invertTrend: true // Churn menor é melhor
+      invertTrend: true,
+      tooltip: 'Taxa de cancelamento: Percentual de lojas inativas em relação ao total. Calculado como: (lojas inativas ÷ total de lojas) × 100.'
     }
   ];
 
@@ -249,7 +254,19 @@ export function MasterAdminKPIs({ compact = false }: MasterAdminKPIsProps) {
         <Card key={i} className="overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between pb-1 p-3 md:p-4 md:pb-2">
             <div className="min-w-0 flex-1">
-              <CardTitle className="text-xs sm:text-sm font-medium truncate">{kpi.title}</CardTitle>
+              <div className="flex items-center gap-1">
+                <CardTitle className="text-xs sm:text-sm font-medium truncate">{kpi.title}</CardTitle>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="w-3 h-3 text-muted-foreground cursor-help flex-shrink-0" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs text-xs">
+                      <p>{kpi.tooltip}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{kpi.subtitle}</p>
             </div>
             <kpi.icon className={`w-4 h-4 sm:w-5 sm:h-5 ${kpi.color} flex-shrink-0`} />

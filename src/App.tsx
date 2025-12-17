@@ -136,6 +136,7 @@ import AllContractsAcceptancePage from "./pages/admin/AllContractsAcceptancePage
 import NavigationGuidePage from "./pages/admin/NavigationGuidePage";
 import RecruitmentPage from "./pages/admin/RecruitmentPage";
 import TestEnvironmentPage from "./pages/admin/TestEnvironmentPage";
+import GatewayConfigPage from "./pages/admin/GatewayConfigPage";
 
 const queryClient = new QueryClient();
 
@@ -321,6 +322,11 @@ const App = () => (
             <Route path="/dashboard/subscription-payments" element={
               <ProtectedRoute allowedRoles={['master_admin']}>
                 <AdminLayout><SubscriptionPaymentsManagementPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/gateway-config" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Gateway de Pagamento"><GatewayConfigPage /></AdminLayout>
               </ProtectedRoute>
             } />
             <Route path="/dashboard/store-configuration" element={

@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Receipt, Check, X, Eye, Search, Filter, Plus, Pencil, Trash2, UserPlus, Clock, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { Receipt, Check, X, Eye, Search, Filter, Plus, Pencil, Trash2, UserPlus, Clock, AlertCircle, CheckCircle2, Loader2, Copy } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useAuth } from "@/hooks/use-auth";
@@ -68,6 +68,7 @@ interface PaymentApproval {
   created_at: string;
   rejection_reason: string | null;
   referred_by_salesperson_id: string | null;
+  pix_txid?: string | null;
   profiles?: {
     full_name: string;
     email: string;
@@ -80,6 +81,31 @@ interface PaymentApproval {
     referral_code: string;
   };
 }
+
+// Helper para extrair EndToEndId do campo notes
+const extractTransactionId = (notes: string | null): string | null => {
+  if (!notes) return null;
+  
+  // Tentar extrair EndToEndId do JSON
+  try {
+    const parsed = JSON.parse(notes);
+    if (parsed.EndToEndId) return parsed.EndToEndId;
+    if (parsed.endToEndId) return parsed.endToEndId;
+    if (parsed.e2eId) return parsed.e2eId;
+  } catch {
+    // Se não for JSON, tentar encontrar padrão de ID
+    const match = notes.match(/E\d{32}/);
+    if (match) return match[0];
+  }
+  
+  return null;
+};
+
+// Helper para copiar texto
+const copyToClipboard = (text: string) => {
+  navigator.clipboard.writeText(text);
+  toast.success('ID copiado!');
+};
 
 export default function SubscriptionPaymentsManagementPage() {
   const { user } = useAuth();
@@ -777,6 +803,7 @@ export default function SubscriptionPaymentsManagementPage() {
                     <TableHead>Empresa</TableHead>
                     <TableHead>Plano</TableHead>
                     <TableHead>Valor</TableHead>
+                    <TableHead>PIX ID</TableHead>
                     <TableHead>Data</TableHead>
                     <TableHead>Comprovante</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
@@ -800,6 +827,25 @@ export default function SubscriptionPaymentsManagementPage() {
                       <TableCell>{approval.plans?.name}</TableCell>
                       <TableCell className="font-bold text-primary">
                         R$ {approval.payment_amount.toFixed(2)}
+                      </TableCell>
+                      <TableCell>
+                        {approval.pix_txid ? (
+                          <div className="flex items-center gap-1">
+                            <span className="font-mono text-xs truncate max-w-[100px]" title={approval.pix_txid}>
+                              {approval.pix_txid.slice(0, 12)}...
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={() => copyToClipboard(approval.pix_txid!)}
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">-</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         {format(new Date(approval.created_at), "dd/MM/yyyy", { locale: ptBR })}
@@ -1027,6 +1073,7 @@ export default function SubscriptionPaymentsManagementPage() {
                   <TableHead>Loja</TableHead>
                   <TableHead>Lojista</TableHead>
                   <TableHead>Plano</TableHead>
+                  <TableHead>ID Transação</TableHead>
                   <TableHead>Vencimento</TableHead>
                   <TableHead>Valor</TableHead>
                   <TableHead>Status</TableHead>
@@ -1036,12 +1083,14 @@ export default function SubscriptionPaymentsManagementPage() {
               <TableBody>
                 {filteredInvoices.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                       Nenhuma fatura encontrada
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredInvoices.map((invoice) => (
+                  filteredInvoices.map((invoice) => {
+                    const txId = extractTransactionId(invoice.notes);
+                    return (
                     <TableRow key={invoice.id}>
                       <TableCell className="font-medium">{invoice.stores?.name || '-'}</TableCell>
                       <TableCell>
@@ -1051,6 +1100,25 @@ export default function SubscriptionPaymentsManagementPage() {
                         </div>
                       </TableCell>
                       <TableCell>{invoice.plans?.name || '-'}</TableCell>
+                      <TableCell>
+                        {txId ? (
+                          <div className="flex items-center gap-1">
+                            <span className="font-mono text-xs truncate max-w-[100px]" title={txId}>
+                              {txId.slice(0, 12)}...
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={() => copyToClipboard(txId)}
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">-</span>
+                        )}
+                      </TableCell>
                       <TableCell>
                         {format(new Date(invoice.due_date), "dd/MM/yyyy", { locale: ptBR })}
                        </TableCell>
@@ -1090,7 +1158,8 @@ export default function SubscriptionPaymentsManagementPage() {
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))
+                    );
+                  })
                 )}
               </TableBody>
             </Table>
@@ -1142,6 +1211,26 @@ export default function SubscriptionPaymentsManagementPage() {
                   </div>
                 </div>
               </div>
+
+              {/* ID de Transação */}
+              {extractTransactionId(selectedInvoice.notes) && (
+                <div className="p-3 bg-muted/50 rounded-lg">
+                  <p className="text-sm text-muted-foreground mb-1">ID de Transação (EndToEndId)</p>
+                  <div className="flex items-center gap-2">
+                    <code className="text-xs font-mono bg-background px-2 py-1 rounded break-all">
+                      {extractTransactionId(selectedInvoice.notes)}
+                    </code>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => copyToClipboard(extractTransactionId(selectedInvoice.notes)!)}
+                    >
+                      <Copy className="h-3 w-3 mr-1" />
+                      Copiar
+                    </Button>
+                  </div>
+                </div>
+              )}
 
               {selectedInvoice.payment_proof_url && (
                 <div>

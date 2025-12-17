@@ -1,6 +1,41 @@
-// Templates de saudação humanizadas - 60 variações (6 períodos × 2 status × 5 modelos)
+// Sistema Unificado de Templates Inteligentes - 141+ variações
+// Combina: período do dia + status + feriados + dias especiais + nicho da loja
+
+import { 
+  holidayGreetings, 
+  weekdayGreetings, 
+  getHolidayInfo, 
+  getSpecialWeekdayTemplates,
+  getCurrentWeekday,
+  type Weekday,
+  type HolidayTemplates 
+} from "./seasonal-templates.ts";
+
+import { 
+  nicheTemplates, 
+  detectNiche, 
+  nicheInfo,
+  type StoreNiche 
+} from "./niche-templates.ts";
 
 export type Period = 'madrugada' | 'manha' | 'almoco' | 'tarde' | 'noite' | 'noite_tarde';
+
+// Re-export para manter compatibilidade
+export { 
+  holidayGreetings, 
+  weekdayGreetings, 
+  getHolidayInfo, 
+  getSpecialWeekdayTemplates,
+  getCurrentWeekday,
+  nicheTemplates, 
+  detectNiche, 
+  nicheInfo 
+};
+export type { Weekday, HolidayTemplates, StoreNiche };
+
+// =============================================================================
+// TEMPLATES GENÉRICOS POR PERÍODO (Fallback)
+// =============================================================================
 
 // Templates para LOJA ABERTA
 const madrugadaAberto = [
@@ -100,7 +135,7 @@ const noiteTardeFechado = [
   "Boa noite! 🌙 Que pena, já fechamos{proxima_abertura}.\n\nDá uma olhada no cardápio: {link}"
 ];
 
-// Mapa de templates organizados
+// Mapa de templates genéricos organizados
 export const greetingTemplates: Record<Period, { aberto: string[]; fechado: string[] }> = {
   madrugada: { aberto: madrugadaAberto, fechado: madrugadaFechado },
   manha: { aberto: manhaAberto, fechado: manhaFechado },
@@ -110,6 +145,10 @@ export const greetingTemplates: Record<Period, { aberto: string[]; fechado: stri
   noite_tarde: { aberto: noiteTardeAberto, fechado: noiteTardeFechado },
 };
 
+// =============================================================================
+// FUNÇÕES AUXILIARES
+// =============================================================================
+
 // Função para determinar período do dia
 export function getPeriodFromHour(hour: number): Period {
   if (hour >= 0 && hour < 6) return 'madrugada';
@@ -118,27 +157,6 @@ export function getPeriodFromHour(hour: number): Period {
   if (hour >= 14 && hour < 18) return 'tarde';
   if (hour >= 18 && hour < 22) return 'noite';
   return 'noite_tarde'; // 22-23
-}
-
-// Função para selecionar saudação aleatória
-export function getRandomGreeting(
-  period: Period,
-  isOpen: boolean,
-  storeName: string,
-  storeLink: string,
-  nextOpening?: string | null
-): string {
-  const templates = greetingTemplates[period][isOpen ? 'aberto' : 'fechado'];
-  const randomIndex = Math.floor(Math.random() * templates.length);
-  let message = templates[randomIndex];
-
-  // Substituir placeholders
-  message = message
-    .replace(/{loja}/g, storeName)
-    .replace(/{link}/g, storeLink)
-    .replace(/{proxima_abertura}/g, nextOpening ? `, mas abrimos ${nextOpening}` : '');
-
-  return message;
 }
 
 // Função para obter saudação simples (para instruções do prompt)
@@ -159,4 +177,234 @@ export function getPeriodEmoji(period: Period): string {
     noite_tarde: '🌙',
   };
   return emojis[period];
+}
+
+// Função auxiliar para selecionar template aleatório
+function getRandomFromArray<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+// Substitui placeholders no template
+function replacePlaceholders(
+  template: string,
+  storeName: string,
+  storeLink: string,
+  nextOpening?: string | null
+): string {
+  return template
+    .replace(/{loja}/g, storeName)
+    .replace(/{link}/g, storeLink)
+    .replace(/{proxima_abertura}/g, nextOpening ? `, mas abrimos ${nextOpening}` : '');
+}
+
+// =============================================================================
+// SISTEMA UNIFICADO DE SELEÇÃO DE TEMPLATES
+// =============================================================================
+
+export interface GreetingContext {
+  period: Period;
+  isOpen: boolean;
+  storeName: string;
+  storeLink: string;
+  nextOpening?: string | null;
+  timezone?: string;
+  storeSegment?: string | null;
+}
+
+/**
+ * Seleciona o melhor template seguindo prioridades:
+ * 1. Feriado/Data comemorativa (100% chance)
+ * 2. Dia da semana especial (50% chance - para não ficar repetitivo)
+ * 3. Nicho específico da loja (70% chance)
+ * 4. Template genérico por período (fallback)
+ */
+export function selectBestGreeting(context: GreetingContext): string {
+  const { 
+    period, 
+    isOpen, 
+    storeName, 
+    storeLink, 
+    nextOpening,
+    timezone = 'America/Sao_Paulo',
+    storeSegment 
+  } = context;
+
+  const status = isOpen ? 'aberto' : 'fechado';
+  let selectedTemplate: string | null = null;
+
+  // PRIORIDADE 1: Feriado/Data comemorativa (100% chance)
+  const holiday = getHolidayInfo(timezone);
+  if (holiday) {
+    const templates = holiday.templates[status];
+    if (templates && templates.length > 0) {
+      selectedTemplate = getRandomFromArray(templates);
+      console.log(`🎉 Template de feriado selecionado: ${holiday.name}`);
+    }
+  }
+
+  // PRIORIDADE 2: Dia da semana especial (50% chance)
+  if (!selectedTemplate && Math.random() > 0.5) {
+    const weekdayTemplates = getSpecialWeekdayTemplates(timezone);
+    if (weekdayTemplates) {
+      const templates = weekdayTemplates[status];
+      if (templates && templates.length > 0) {
+        selectedTemplate = getRandomFromArray(templates);
+        const weekday = getCurrentWeekday(timezone);
+        console.log(`📅 Template de dia especial selecionado: ${weekday}`);
+      }
+    }
+  }
+
+  // PRIORIDADE 3: Nicho específico da loja (70% chance)
+  if (!selectedTemplate && Math.random() > 0.3) {
+    const niche = detectNiche(storeSegment, storeName);
+    if (niche !== 'default') {
+      const templates = nicheTemplates[niche][status];
+      if (templates && templates.length > 0) {
+        selectedTemplate = getRandomFromArray(templates);
+        console.log(`🏪 Template de nicho selecionado: ${niche}`);
+      }
+    }
+  }
+
+  // PRIORIDADE 4: Template genérico por período (fallback)
+  if (!selectedTemplate) {
+    const templates = greetingTemplates[period][status];
+    selectedTemplate = getRandomFromArray(templates);
+    console.log(`⏰ Template genérico selecionado: ${period}`);
+  }
+
+  return replacePlaceholders(selectedTemplate, storeName, storeLink, nextOpening);
+}
+
+// =============================================================================
+// FUNÇÃO PRINCIPAL (mantém compatibilidade com versão anterior)
+// =============================================================================
+
+/**
+ * Função principal para selecionar saudação
+ * Agora usa o sistema unificado internamente
+ */
+export function getRandomGreeting(
+  period: Period,
+  isOpen: boolean,
+  storeName: string,
+  storeLink: string,
+  nextOpening?: string | null,
+  timezone?: string,
+  storeSegment?: string | null
+): string {
+  return selectBestGreeting({
+    period,
+    isOpen,
+    storeName,
+    storeLink,
+    nextOpening,
+    timezone,
+    storeSegment
+  });
+}
+
+// =============================================================================
+// PRÓXIMA ABERTURA CONTEXTUAL
+// =============================================================================
+
+export interface NextOpeningContextual {
+  text: string;
+  proximity: 'soon' | 'today' | 'tomorrow' | 'later';
+  hoursRemaining?: number;
+  dayName?: string;
+  time: string;
+}
+
+/**
+ * Calcula próxima abertura com contexto detalhado
+ */
+export function getNextOpeningContextual(
+  businessHours: any,
+  timezone: string = 'America/Sao_Paulo'
+): NextOpeningContextual | null {
+  if (!businessHours) return null;
+
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    weekday: 'long',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+
+  const parts = formatter.formatToParts(now);
+  const weekdayEn = parts.find(p => p.type === 'weekday')?.value?.toLowerCase() || '';
+  const hourStr = parts.find(p => p.type === 'hour')?.value || '00';
+  const minuteStr = parts.find(p => p.type === 'minute')?.value || '00';
+  const currentHour = parseInt(hourStr);
+  const currentMinute = parseInt(minuteStr);
+  const currentTime = `${hourStr}:${minuteStr}`;
+
+  const dayNamesEn = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  const dayNamesPt = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+
+  const currentDayIndex = dayNamesEn.indexOf(weekdayEn);
+  if (currentDayIndex === -1) return null;
+
+  // Verificar se abre ainda hoje
+  const todayHours = businessHours[dayNamesEn[currentDayIndex]];
+  if (todayHours && !todayHours.closed && currentTime < todayHours.open) {
+    const [openHour, openMinute] = todayHours.open.split(':').map(Number);
+    const minutesUntilOpen = (openHour * 60 + openMinute) - (currentHour * 60 + currentMinute);
+    const hoursRemaining = Math.floor(minutesUntilOpen / 60);
+
+    if (minutesUntilOpen <= 60) {
+      // Abre em menos de 1 hora
+      return {
+        text: `em ${minutesUntilOpen} minutos, às ${todayHours.open}`,
+        proximity: 'soon',
+        hoursRemaining: 0,
+        time: todayHours.open
+      };
+    } else if (hoursRemaining <= 3) {
+      // Abre em até 3 horas
+      return {
+        text: `em ${hoursRemaining} ${hoursRemaining === 1 ? 'hora' : 'horas'}, às ${todayHours.open}`,
+        proximity: 'soon',
+        hoursRemaining,
+        time: todayHours.open
+      };
+    } else {
+      // Abre mais tarde hoje
+      return {
+        text: `hoje às ${todayHours.open}`,
+        proximity: 'today',
+        hoursRemaining,
+        time: todayHours.open
+      };
+    }
+  }
+
+  // Procurar próximo dia aberto
+  for (let i = 1; i <= 7; i++) {
+    const nextDayIndex = (currentDayIndex + i) % 7;
+    const nextDayHours = businessHours[dayNamesEn[nextDayIndex]];
+
+    if (nextDayHours && !nextDayHours.closed) {
+      if (i === 1) {
+        return {
+          text: `amanhã às ${nextDayHours.open}`,
+          proximity: 'tomorrow',
+          dayName: dayNamesPt[nextDayIndex],
+          time: nextDayHours.open
+        };
+      }
+      return {
+        text: `${dayNamesPt[nextDayIndex]} às ${nextDayHours.open}`,
+        proximity: 'later',
+        dayName: dayNamesPt[nextDayIndex],
+        time: nextDayHours.open
+      };
+    }
+  }
+
+  return null;
 }

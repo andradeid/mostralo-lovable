@@ -5,6 +5,7 @@ import {
   getPeriodFromHour, 
   getSimpleGreeting,
   getPeriodEmoji,
+  getNextOpeningContextual,
   type Period 
 } from "./greeting-templates.ts";
 

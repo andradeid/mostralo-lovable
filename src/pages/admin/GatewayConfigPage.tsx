@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { EfiSetupGuide } from "@/components/admin/gateway/EfiSetupGuide";
 
 interface EfiConfig {
   efi_client_id: string | null;
@@ -322,6 +323,9 @@ export default function GatewayConfigPage() {
           Configure as credenciais para receber pagamentos PIX automaticamente
         </p>
       </div>
+
+      {/* Guia de Configuração */}
+      <EfiSetupGuide />
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Card de Credenciais */}

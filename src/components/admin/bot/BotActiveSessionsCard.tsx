@@ -27,6 +27,7 @@ import {
   Loader2,
   User,
   AlertCircle,
+  ExternalLink,
 } from "lucide-react";
 
 interface BotActiveSessionsCardProps {
@@ -74,6 +75,11 @@ export function BotActiveSessionsCard({ storeId }: BotActiveSessionsCardProps) {
       return `+${ddi} (${ddd}) ${prefix}-${suffix}`;
     }
     return phone;
+  };
+
+  const getWhatsAppLink = (remoteJid: string): string => {
+    const phone = remoteJid.replace("@s.whatsapp.net", "").replace("@c.us", "");
+    return `https://wa.me/${phone}`;
   };
 
   const getStatusBadge = (status: string) => {
@@ -241,6 +247,20 @@ export function BotActiveSessionsCard({ storeId }: BotActiveSessionsCardProps) {
                     <span className="font-mono text-xs sm:text-sm truncate">
                       {formatPhone(session.remoteJid)}
                     </span>
+                    <a
+                      href={getWhatsAppLink(session.remoteJid)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Abrir conversa no WhatsApp"
+                    >
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0 text-green-600 hover:bg-green-500/10 hover:text-green-700"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </Button>
+                    </a>
                   </div>
 
                   {/* Nome */}

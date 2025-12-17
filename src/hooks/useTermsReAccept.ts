@@ -12,7 +12,7 @@ interface TermsReAcceptState {
 }
 
 export const useTermsReAccept = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const [state, setState] = useState<TermsReAcceptState>({
     needsReAccept: false,
     isLoading: true,
@@ -116,6 +116,8 @@ export const useTermsReAccept = () => {
 
       if (existingAcceptance) {
         console.log('Aceite já existe para esta versão, atualizando estado local');
+        // Recarregar profile para sincronizar estado do contexto
+        await refreshProfile();
         setState(prev => ({
           ...prev,
           needsReAccept: false,
@@ -158,6 +160,9 @@ export const useTermsReAccept = () => {
         console.error('Erro ao atualizar profile:', updateError);
         return false;
       }
+
+      // Recarregar profile para sincronizar estado do contexto
+      await refreshProfile();
 
       // Atualizar estado local
       setState(prev => ({

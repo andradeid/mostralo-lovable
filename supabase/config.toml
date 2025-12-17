@@ -143,3 +143,6 @@ verify_jwt = true
 
 [functions.efi-test-connection]
 verify_jwt = true
+
+[functions.efi-create-pix-charge]
+verify_jwt = true

@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -31,6 +30,8 @@ import { EfiSetupGuide } from "@/components/admin/gateway/EfiSetupGuide";
 interface EfiConfig {
   efi_client_id: string | null;
   efi_client_secret: string | null;
+  efi_client_id_production: string | null;
+  efi_client_secret_production: string | null;
   efi_certificate_pem: string | null;
   efi_certificate_pem_production: string | null;
   efi_pix_key: string | null;
@@ -50,11 +51,17 @@ export default function GatewayConfigPage() {
   const [testing, setTesting] = useState(false);
   const [configId, setConfigId] = useState<string | null>(null);
   
-  // Form state
-  const [clientId, setClientId] = useState("");
-  const [clientSecret, setClientSecret] = useState("");
+  // Form state - Sandbox
+  const [clientIdSandbox, setClientIdSandbox] = useState("");
+  const [clientSecretSandbox, setClientSecretSandbox] = useState("");
   const [certificatePemSandbox, setCertificatePemSandbox] = useState("");
+  
+  // Form state - Production
+  const [clientIdProduction, setClientIdProduction] = useState("");
+  const [clientSecretProduction, setClientSecretProduction] = useState("");
   const [certificatePemProduction, setCertificatePemProduction] = useState("");
+  
+  // Common
   const [pixKey, setPixKey] = useState("");
   const [environment, setEnvironment] = useState<"sandbox" | "production">("sandbox");
   const [isConfigured, setIsConfigured] = useState(false);
@@ -62,7 +69,8 @@ export default function GatewayConfigPage() {
   const [lastTestStatus, setLastTestStatus] = useState<string | null>(null);
   
   // Visibility toggles
-  const [showClientSecret, setShowClientSecret] = useState(false);
+  const [showSecretSandbox, setShowSecretSandbox] = useState(false);
+  const [showSecretProduction, setShowSecretProduction] = useState(false);
   const [showCertificateSandbox, setShowCertificateSandbox] = useState(false);
   const [showCertificateProduction, setShowCertificateProduction] = useState(false);
   
@@ -85,10 +93,15 @@ export default function GatewayConfigPage() {
 
       if (data) {
         setConfigId(data.id);
-        setClientId(data.efi_client_id || "");
-        setClientSecret(data.efi_client_secret || "");
+        // Sandbox credentials
+        setClientIdSandbox(data.efi_client_id || "");
+        setClientSecretSandbox(data.efi_client_secret || "");
         setCertificatePemSandbox(data.efi_certificate_pem || "");
+        // Production credentials
+        setClientIdProduction((data as any).efi_client_id_production || "");
+        setClientSecretProduction((data as any).efi_client_secret_production || "");
         setCertificatePemProduction((data as any).efi_certificate_pem_production || "");
+        // Common
         setPixKey(data.efi_pix_key || "");
         setEnvironment((data.efi_environment as "sandbox" | "production") || "sandbox");
         setIsConfigured(data.efi_is_configured || false);
@@ -152,56 +165,49 @@ export default function GatewayConfigPage() {
     return uuidRegex.test(key);
   };
 
-  // Retorna o certificado ativo baseado no ambiente selecionado
-  const getActiveCertificate = () => {
-    return environment === "production" ? certificatePemProduction : certificatePemSandbox;
+  // Retorna credenciais do ambiente selecionado
+  const getActiveCredentials = () => {
+    if (environment === "production") {
+      return {
+        clientId: clientIdProduction,
+        clientSecret: clientSecretProduction,
+        certificate: certificatePemProduction,
+      };
+    }
+    return {
+      clientId: clientIdSandbox,
+      clientSecret: clientSecretSandbox,
+      certificate: certificatePemSandbox,
+    };
+  };
+
+  // Verifica se ambiente está completo
+  const isEnvironmentConfigured = (env: "sandbox" | "production") => {
+    if (env === "sandbox") {
+      return !!(clientIdSandbox && clientSecretSandbox && certificatePemSandbox && validateCertificate(certificatePemSandbox));
+    }
+    return !!(clientIdProduction && clientSecretProduction && certificatePemProduction && validateCertificate(certificatePemProduction));
   };
 
   const handleSave = async () => {
-    // Validações
-    if (!clientId.trim()) {
+    // Validar que pelo menos um ambiente está configurado
+    const sandboxOk = isEnvironmentConfigured("sandbox");
+    const productionOk = isEnvironmentConfigured("production");
+
+    if (!sandboxOk && !productionOk) {
       toast({
-        title: "Campo obrigatório",
-        description: "Preencha o Client ID.",
+        title: "Configuração incompleta",
+        description: "Configure pelo menos um ambiente completo (Sandbox ou Produção).",
         variant: "destructive",
       });
       return;
     }
 
-    if (!clientSecret.trim()) {
+    // Validar ambiente ativo
+    if (!isEnvironmentConfigured(environment)) {
       toast({
-        title: "Campo obrigatório",
-        description: "Preencha o Client Secret.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validar que pelo menos um certificado está preenchido
-    if (!certificatePemSandbox.trim() && !certificatePemProduction.trim()) {
-      toast({
-        title: "Certificado obrigatório",
-        description: "Envie pelo menos um certificado (Sandbox ou Produção).",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validar certificado do ambiente selecionado
-    const activeCert = getActiveCertificate();
-    if (!activeCert.trim()) {
-      toast({
-        title: "Certificado não configurado",
-        description: `Configure o certificado de ${environment === "production" ? "Produção" : "Sandbox"} para usar este ambiente.`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!validateCertificate(activeCert)) {
-      toast({
-        title: "Certificado inválido",
-        description: `O certificado de ${environment === "production" ? "Produção" : "Sandbox"} não está no formato PEM válido.`,
+        title: "Ambiente ativo não configurado",
+        description: `O ambiente ${environment === "production" ? "Produção" : "Sandbox"} está selecionado mas não está completo.`,
         variant: "destructive",
       });
       return;
@@ -228,10 +234,15 @@ export default function GatewayConfigPage() {
     setSaving(true);
     try {
       const updateData = {
-        efi_client_id: clientId,
-        efi_client_secret: clientSecret,
+        // Sandbox
+        efi_client_id: clientIdSandbox || null,
+        efi_client_secret: clientSecretSandbox || null,
         efi_certificate_pem: certificatePemSandbox || null,
+        // Production
+        efi_client_id_production: clientIdProduction || null,
+        efi_client_secret_production: clientSecretProduction || null,
         efi_certificate_pem_production: certificatePemProduction || null,
+        // Common
         efi_pix_key: pixKey,
         efi_environment: environment,
         efi_is_configured: true,
@@ -277,12 +288,12 @@ export default function GatewayConfigPage() {
   };
 
   const handleTestConnection = async () => {
-    const activeCert = getActiveCertificate();
+    const creds = getActiveCredentials();
     
-    if (!clientId || !clientSecret || !activeCert) {
+    if (!creds.clientId || !creds.clientSecret || !creds.certificate) {
       toast({
         title: "Configure primeiro",
-        description: `Preencha todas as credenciais e o certificado de ${environment === "production" ? "Produção" : "Sandbox"}.`,
+        description: `Preencha todas as credenciais do ambiente ${environment === "production" ? "Produção" : "Sandbox"}.`,
         variant: "destructive",
       });
       return;
@@ -292,9 +303,9 @@ export default function GatewayConfigPage() {
     try {
       const { data, error } = await supabase.functions.invoke('efi-test-connection', {
         body: {
-          client_id: clientId,
-          client_secret: clientSecret,
-          certificate_pem: activeCert,
+          client_id: creds.clientId,
+          client_secret: creds.clientSecret,
+          certificate_pem: creds.certificate,
           pix_key: pixKey,
           environment: environment,
         },
@@ -360,38 +371,164 @@ export default function GatewayConfigPage() {
       {/* Guia de Configuração */}
       <EfiSetupGuide />
 
+      {/* Seletor de Ambiente Visual */}
+      <Card>
+        <CardHeader>
+          <CardTitle>🎯 Ambiente Ativo</CardTitle>
+          <CardDescription>
+            Selecione qual ambiente será usado para processar pagamentos
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Card Sandbox */}
+            <button
+              onClick={() => setEnvironment("sandbox")}
+              className={`relative p-4 rounded-lg border-2 text-left transition-all ${
+                environment === "sandbox"
+                  ? "border-yellow-500 bg-yellow-500/10"
+                  : "border-border hover:border-yellow-500/50"
+              }`}
+            >
+              {environment === "sandbox" && (
+                <Badge className="absolute top-2 right-2 bg-yellow-500">ATIVO</Badge>
+              )}
+              <div className="flex items-center gap-3 mb-2">
+                <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                  environment === "sandbox" ? "bg-yellow-500/20" : "bg-muted"
+                }`}>
+                  <FlaskConical className={`h-5 w-5 ${
+                    environment === "sandbox" ? "text-yellow-500" : "text-muted-foreground"
+                  }`} />
+                </div>
+                <div>
+                  <p className="font-semibold">🧪 SANDBOX</p>
+                  <p className="text-xs text-muted-foreground">Homologação</p>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground mb-2">
+                Ambiente de testes sem cobranças reais
+              </p>
+              <code className="text-xs bg-muted px-2 py-1 rounded">
+                pix-h.api.efipay.com.br
+              </code>
+              <div className="mt-3">
+                {isEnvironmentConfigured("sandbox") ? (
+                  <Badge variant="outline" className="text-green-600 border-green-600">
+                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                    Configurado
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+                    <AlertTriangle className="h-3 w-3 mr-1" />
+                    Incompleto
+                  </Badge>
+                )}
+              </div>
+            </button>
+
+            {/* Card Produção */}
+            <button
+              onClick={() => setEnvironment("production")}
+              className={`relative p-4 rounded-lg border-2 text-left transition-all ${
+                environment === "production"
+                  ? "border-blue-500 bg-blue-500/10"
+                  : "border-border hover:border-blue-500/50"
+              }`}
+            >
+              {environment === "production" && (
+                <Badge className="absolute top-2 right-2 bg-blue-500">ATIVO</Badge>
+              )}
+              <div className="flex items-center gap-3 mb-2">
+                <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                  environment === "production" ? "bg-blue-500/20" : "bg-muted"
+                }`}>
+                  <Factory className={`h-5 w-5 ${
+                    environment === "production" ? "text-blue-500" : "text-muted-foreground"
+                  }`} />
+                </div>
+                <div>
+                  <p className="font-semibold">🏭 PRODUÇÃO</p>
+                  <p className="text-xs text-muted-foreground">Cobranças Reais</p>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground mb-2">
+                Ambiente de produção com cobranças reais
+              </p>
+              <code className="text-xs bg-muted px-2 py-1 rounded">
+                pix.api.efipay.com.br
+              </code>
+              <div className="mt-3">
+                {isEnvironmentConfigured("production") ? (
+                  <Badge variant="outline" className="text-green-600 border-green-600">
+                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                    Configurado
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+                    <AlertTriangle className="h-3 w-3 mr-1" />
+                    Incompleto
+                  </Badge>
+                )}
+              </div>
+            </button>
+          </div>
+
+          {environment === "production" && (
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 mt-4">
+              <AlertTriangle className="h-5 w-5 text-destructive mt-0.5" />
+              <div>
+                <p className="font-medium text-destructive">⚠️ PRODUÇÃO ATIVA</p>
+                <p className="text-sm text-destructive/80">
+                  Cobranças PIX reais serão geradas! Certifique-se de que as credenciais estão corretas.
+                </p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Cards de Configuração lado a lado */}
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Card de Credenciais */}
-        <Card>
-          <CardHeader>
+        {/* ==================== SANDBOX CONFIG ==================== */}
+        <Card className={environment === "sandbox" ? "ring-2 ring-yellow-500" : ""}>
+          <CardHeader className="bg-yellow-500/5 border-b">
             <CardTitle className="flex items-center gap-2">
-              <Key className="h-5 w-5" />
-              Credenciais de API
+              <FlaskConical className="h-5 w-5 text-yellow-500" />
+              Configuração Sandbox
+              {environment === "sandbox" && (
+                <Badge className="ml-auto bg-yellow-500">ATIVO</Badge>
+              )}
             </CardTitle>
             <CardDescription>
-              Client ID e Secret da aplicação EFI
+              Credenciais e certificado para homologação
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-4">
+            {/* Client ID Sandbox */}
             <div className="space-y-2">
-              <Label htmlFor="clientId">Client ID</Label>
+              <Label htmlFor="clientIdSandbox" className="flex items-center gap-2">
+                <Key className="h-4 w-4" />
+                Client ID Sandbox
+              </Label>
               <Input
-                id="clientId"
+                id="clientIdSandbox"
                 placeholder="Client_Id_xxxxxxxx..."
-                value={clientId}
-                onChange={(e) => setClientId(e.target.value)}
+                value={clientIdSandbox}
+                onChange={(e) => setClientIdSandbox(e.target.value)}
               />
             </div>
 
+            {/* Client Secret Sandbox */}
             <div className="space-y-2">
-              <Label htmlFor="clientSecret">Client Secret</Label>
+              <Label htmlFor="clientSecretSandbox">Client Secret Sandbox</Label>
               <div className="relative">
                 <Input
-                  id="clientSecret"
-                  type={showClientSecret ? "text" : "password"}
+                  id="clientSecretSandbox"
+                  type={showSecretSandbox ? "text" : "password"}
                   placeholder="Client_Secret_xxxxxxxx..."
-                  value={clientSecret}
-                  onChange={(e) => setClientSecret(e.target.value)}
+                  value={clientSecretSandbox}
+                  onChange={(e) => setClientSecretSandbox(e.target.value)}
                   className="pr-10"
                 />
                 <Button
@@ -399,243 +536,229 @@ export default function GatewayConfigPage() {
                   variant="ghost"
                   size="icon"
                   className="absolute right-0 top-0 h-full px-3"
-                  onClick={() => setShowClientSecret(!showClientSecret)}
+                  onClick={() => setShowSecretSandbox(!showSecretSandbox)}
                 >
-                  {showClientSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showSecretSandbox ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </Button>
               </div>
             </div>
 
-            {isConfigured && clientId && clientSecret && (
-              <Badge variant="outline" className="text-green-600 border-green-600">
-                <CheckCircle2 className="h-3 w-3 mr-1" />
-                Configurado
-              </Badge>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Card de Ambiente */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Ambiente</CardTitle>
-            <CardDescription>
-              Selecione o ambiente de operação
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-4 rounded-lg border">
-              <div className="space-y-1">
-                <p className="font-medium">
-                  {environment === "production" ? "Produção" : "Sandbox"}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {environment === "production" 
-                    ? "Cobranças reais serão geradas" 
-                    : "Ambiente de testes sem cobranças reais"}
-                </p>
+            {/* Certificado Sandbox */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Certificado Sandbox (.pem)
+              </Label>
+              <div
+                className="border-2 border-dashed rounded-lg p-3 text-center cursor-pointer hover:border-yellow-500/50 transition-colors"
+                onClick={() => sandboxFileInputRef.current?.click()}
+              >
+                <input
+                  ref={sandboxFileInputRef}
+                  type="file"
+                  accept=".pem,.p12"
+                  onChange={(e) => handleFileUpload(e, "sandbox")}
+                  className="hidden"
+                />
+                <Upload className="h-6 w-6 mx-auto text-muted-foreground mb-1" />
+                <p className="text-xs font-medium">Upload .pem</p>
               </div>
-              <Switch
-                checked={environment === "production"}
-                onCheckedChange={(checked) => 
-                  setEnvironment(checked ? "production" : "sandbox")
-                }
-              />
-            </div>
 
-            {environment === "production" && (
-              <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-                <AlertTriangle className="h-5 w-5 text-destructive mt-0.5" />
-                <div>
-                  <p className="font-medium text-destructive">Atenção!</p>
-                  <p className="text-sm text-destructive/80">
-                    No ambiente de produção, cobranças reais serão geradas.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Indicador de certificado ativo */}
-            <div className="p-3 rounded-lg bg-muted/50 border">
-              <p className="text-sm text-muted-foreground">
-                <span className="font-medium">Certificado ativo:</span>{" "}
-                {environment === "production" ? (
-                  certificatePemProduction ? (
-                    <span className="text-green-600">Produção ✓</span>
-                  ) : (
-                    <span className="text-destructive">Não configurado</span>
-                  )
-                ) : (
-                  certificatePemSandbox ? (
-                    <span className="text-green-600">Sandbox ✓</span>
-                  ) : (
-                    <span className="text-destructive">Não configurado</span>
-                  )
-                )}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Card de Certificado Sandbox */}
-        <Card className={environment === "sandbox" ? "ring-2 ring-primary" : ""}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FlaskConical className="h-5 w-5 text-yellow-500" />
-              Certificado Sandbox
-              {environment === "sandbox" && (
-                <Badge variant="default" className="ml-auto">ATIVO</Badge>
+              {sandboxFileName && (
+                <Badge variant="secondary" className="text-xs">
+                  <FileText className="h-3 w-3 mr-1" />
+                  {sandboxFileName}
+                </Badge>
               )}
-            </CardTitle>
-            <CardDescription>
-              Certificado para ambiente de homologação/testes
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div
-              className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary/50 transition-colors"
-              onClick={() => sandboxFileInputRef.current?.click()}
-            >
-              <input
-                ref={sandboxFileInputRef}
-                type="file"
-                accept=".pem,.p12"
-                onChange={(e) => handleFileUpload(e, "sandbox")}
-                className="hidden"
-              />
-              <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-              <p className="text-sm font-medium">Enviar certificado Sandbox</p>
-              <p className="text-xs text-muted-foreground">.pem ou .p12</p>
-            </div>
 
-            {sandboxFileName && (
-              <Badge variant="secondary" className="text-sm">
-                <FileText className="h-3 w-3 mr-1" />
-                {sandboxFileName}
-              </Badge>
-            )}
-
-            <div className="relative">
-              <div className="flex items-center justify-between mb-2">
-                <Label htmlFor="certificateSandbox" className="text-sm">Ou cole o conteúdo</Label>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowCertificateSandbox(!showCertificateSandbox)}
-                >
-                  {showCertificateSandbox ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
+              <div className="relative">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-muted-foreground">Ou cole o conteúdo:</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2"
+                    onClick={() => setShowCertificateSandbox(!showCertificateSandbox)}
+                  >
+                    {showCertificateSandbox ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                  </Button>
+                </div>
+                <Textarea
+                  placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
+                  value={showCertificateSandbox ? certificatePemSandbox : (certificatePemSandbox ? maskValue(certificatePemSandbox, 20) : "")}
+                  onChange={(e) => {
+                    if (showCertificateSandbox) {
+                      setCertificatePemSandbox(e.target.value);
+                    }
+                  }}
+                  readOnly={!showCertificateSandbox}
+                  rows={3}
+                  className="font-mono text-xs"
+                />
               </div>
-              <Textarea
-                id="certificateSandbox"
-                placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
-                value={showCertificateSandbox ? certificatePemSandbox : (certificatePemSandbox ? maskValue(certificatePemSandbox, 20) : "")}
-                onChange={(e) => {
-                  if (showCertificateSandbox) {
-                    setCertificatePemSandbox(e.target.value);
-                  }
-                }}
-                readOnly={!showCertificateSandbox}
-                rows={4}
-                className="font-mono text-xs"
-              />
             </div>
 
-            {certificatePemSandbox && validateCertificate(certificatePemSandbox) && (
-              <Badge variant="outline" className="text-green-600 border-green-600">
-                <CheckCircle2 className="h-3 w-3 mr-1" />
-                Certificado válido
-              </Badge>
-            )}
+            {/* Status Sandbox */}
+            <div className="pt-2 border-t">
+              {isEnvironmentConfigured("sandbox") ? (
+                <Badge variant="outline" className="text-green-600 border-green-600">
+                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                  Configuração completa
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  Preencha todos os campos
+                </Badge>
+              )}
+            </div>
           </CardContent>
         </Card>
 
-        {/* Card de Certificado Produção */}
-        <Card className={environment === "production" ? "ring-2 ring-primary" : ""}>
-          <CardHeader>
+        {/* ==================== PRODUCTION CONFIG ==================== */}
+        <Card className={environment === "production" ? "ring-2 ring-blue-500" : ""}>
+          <CardHeader className="bg-blue-500/5 border-b">
             <CardTitle className="flex items-center gap-2">
               <Factory className="h-5 w-5 text-blue-500" />
-              Certificado Produção
+              Configuração Produção
               {environment === "production" && (
-                <Badge variant="default" className="ml-auto">ATIVO</Badge>
+                <Badge className="ml-auto bg-blue-500">ATIVO</Badge>
               )}
             </CardTitle>
             <CardDescription>
-              Certificado para cobranças reais
+              Credenciais e certificado para cobranças reais
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div
-              className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary/50 transition-colors"
-              onClick={() => productionFileInputRef.current?.click()}
-            >
-              <input
-                ref={productionFileInputRef}
-                type="file"
-                accept=".pem,.p12"
-                onChange={(e) => handleFileUpload(e, "production")}
-                className="hidden"
+          <CardContent className="space-y-4 pt-4">
+            {/* Client ID Production */}
+            <div className="space-y-2">
+              <Label htmlFor="clientIdProduction" className="flex items-center gap-2">
+                <Key className="h-4 w-4" />
+                Client ID Produção
+              </Label>
+              <Input
+                id="clientIdProduction"
+                placeholder="Client_Id_xxxxxxxx..."
+                value={clientIdProduction}
+                onChange={(e) => setClientIdProduction(e.target.value)}
               />
-              <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-              <p className="text-sm font-medium">Enviar certificado Produção</p>
-              <p className="text-xs text-muted-foreground">.pem ou .p12</p>
             </div>
 
-            {productionFileName && (
-              <Badge variant="secondary" className="text-sm">
-                <FileText className="h-3 w-3 mr-1" />
-                {productionFileName}
-              </Badge>
-            )}
-
-            <div className="relative">
-              <div className="flex items-center justify-between mb-2">
-                <Label htmlFor="certificateProduction" className="text-sm">Ou cole o conteúdo</Label>
+            {/* Client Secret Production */}
+            <div className="space-y-2">
+              <Label htmlFor="clientSecretProduction">Client Secret Produção</Label>
+              <div className="relative">
+                <Input
+                  id="clientSecretProduction"
+                  type={showSecretProduction ? "text" : "password"}
+                  placeholder="Client_Secret_xxxxxxxx..."
+                  value={clientSecretProduction}
+                  onChange={(e) => setClientSecretProduction(e.target.value)}
+                  className="pr-10"
+                />
                 <Button
                   type="button"
                   variant="ghost"
-                  size="sm"
-                  onClick={() => setShowCertificateProduction(!showCertificateProduction)}
+                  size="icon"
+                  className="absolute right-0 top-0 h-full px-3"
+                  onClick={() => setShowSecretProduction(!showSecretProduction)}
                 >
-                  {showCertificateProduction ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showSecretProduction ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </Button>
               </div>
-              <Textarea
-                id="certificateProduction"
-                placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
-                value={showCertificateProduction ? certificatePemProduction : (certificatePemProduction ? maskValue(certificatePemProduction, 20) : "")}
-                onChange={(e) => {
-                  if (showCertificateProduction) {
-                    setCertificatePemProduction(e.target.value);
-                  }
-                }}
-                readOnly={!showCertificateProduction}
-                rows={4}
-                className="font-mono text-xs"
-              />
             </div>
 
-            {certificatePemProduction && validateCertificate(certificatePemProduction) && (
-              <Badge variant="outline" className="text-green-600 border-green-600">
-                <CheckCircle2 className="h-3 w-3 mr-1" />
-                Certificado válido
-              </Badge>
-            )}
+            {/* Certificado Production */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Certificado Produção (.pem)
+              </Label>
+              <div
+                className="border-2 border-dashed rounded-lg p-3 text-center cursor-pointer hover:border-blue-500/50 transition-colors"
+                onClick={() => productionFileInputRef.current?.click()}
+              >
+                <input
+                  ref={productionFileInputRef}
+                  type="file"
+                  accept=".pem,.p12"
+                  onChange={(e) => handleFileUpload(e, "production")}
+                  className="hidden"
+                />
+                <Upload className="h-6 w-6 mx-auto text-muted-foreground mb-1" />
+                <p className="text-xs font-medium">Upload .pem</p>
+              </div>
+
+              {productionFileName && (
+                <Badge variant="secondary" className="text-xs">
+                  <FileText className="h-3 w-3 mr-1" />
+                  {productionFileName}
+                </Badge>
+              )}
+
+              <div className="relative">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-muted-foreground">Ou cole o conteúdo:</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2"
+                    onClick={() => setShowCertificateProduction(!showCertificateProduction)}
+                  >
+                    {showCertificateProduction ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                  </Button>
+                </div>
+                <Textarea
+                  placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
+                  value={showCertificateProduction ? certificatePemProduction : (certificatePemProduction ? maskValue(certificatePemProduction, 20) : "")}
+                  onChange={(e) => {
+                    if (showCertificateProduction) {
+                      setCertificatePemProduction(e.target.value);
+                    }
+                  }}
+                  readOnly={!showCertificateProduction}
+                  rows={3}
+                  className="font-mono text-xs"
+                />
+              </div>
+            </div>
+
+            {/* Status Production */}
+            <div className="pt-2 border-t">
+              {isEnvironmentConfigured("production") ? (
+                <Badge variant="outline" className="text-green-600 border-green-600">
+                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                  Configuração completa
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  Preencha todos os campos
+                </Badge>
+              )}
+            </div>
           </CardContent>
         </Card>
+      </div>
 
+      {/* Chave PIX e Status */}
+      <div className="grid gap-6 md:grid-cols-2">
         {/* Card de Chave PIX */}
         <Card>
           <CardHeader>
-            <CardTitle>Chave PIX</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Key className="h-5 w-5" />
+              Chave PIX EVP
+            </CardTitle>
             <CardDescription>
-              Chave aleatória (EVP) da sua conta EFI
+              Chave aleatória comum para ambos ambientes
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="pixKey">Chave PIX EVP</Label>
+              <Label htmlFor="pixKey">Chave PIX (UUID)</Label>
               <Input
                 id="pixKey"
                 placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
@@ -643,7 +766,7 @@ export default function GatewayConfigPage() {
                 onChange={(e) => setPixKey(e.target.value)}
               />
               <p className="text-xs text-muted-foreground">
-                Formato UUID obtido no painel EFI
+                Formato UUID obtido no painel EFI (API &gt; Minhas chaves Pix)
               </p>
             </div>
 
@@ -659,9 +782,9 @@ export default function GatewayConfigPage() {
         {/* Card de Status da Conexão */}
         <Card>
           <CardHeader>
-            <CardTitle>Status da Conexão</CardTitle>
+            <CardTitle>📡 Status da Conexão</CardTitle>
             <CardDescription>
-              Verifique se as credenciais estão funcionando
+              Teste a conexão com o ambiente selecionado
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -690,7 +813,7 @@ export default function GatewayConfigPage() {
                   </p>
                   {lastTestAt && (
                     <p className="text-sm text-muted-foreground">
-                      Último teste: {format(new Date(lastTestAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                      {format(new Date(lastTestAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                     </p>
                   )}
                 </div>
@@ -705,9 +828,13 @@ export default function GatewayConfigPage() {
 
             <Button
               onClick={handleTestConnection}
-              disabled={testing || !clientId || !clientSecret || !getActiveCertificate()}
+              disabled={testing || !isEnvironmentConfigured(environment)}
               variant="outline"
-              className="w-full"
+              className={`w-full ${
+                environment === "production" 
+                  ? "border-blue-500 text-blue-600 hover:bg-blue-500/10" 
+                  : "border-yellow-500 text-yellow-600 hover:bg-yellow-500/10"
+              }`}
             >
               {testing ? (
                 <>
@@ -717,7 +844,7 @@ export default function GatewayConfigPage() {
               ) : (
                 <>
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  Testar Conexão ({environment === "production" ? "Produção" : "Sandbox"})
+                  {environment === "production" ? "🏭 Testar Produção" : "🧪 Testar Sandbox"}
                 </>
               )}
             </Button>

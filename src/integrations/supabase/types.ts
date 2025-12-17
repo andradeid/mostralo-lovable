@@ -4505,7 +4505,9 @@ export type Database = {
           efi_certificate_pem: string | null
           efi_certificate_pem_production: string | null
           efi_client_id: string | null
+          efi_client_id_production: string | null
           efi_client_secret: string | null
+          efi_client_secret_production: string | null
           efi_environment: string | null
           efi_is_configured: boolean | null
           efi_last_test_at: string | null
@@ -4533,7 +4535,9 @@ export type Database = {
           efi_certificate_pem?: string | null
           efi_certificate_pem_production?: string | null
           efi_client_id?: string | null
+          efi_client_id_production?: string | null
           efi_client_secret?: string | null
+          efi_client_secret_production?: string | null
           efi_environment?: string | null
           efi_is_configured?: boolean | null
           efi_last_test_at?: string | null
@@ -4561,7 +4565,9 @@ export type Database = {
           efi_certificate_pem?: string | null
           efi_certificate_pem_production?: string | null
           efi_client_id?: string | null
+          efi_client_id_production?: string | null
           efi_client_secret?: string | null
+          efi_client_secret_production?: string | null
           efi_environment?: string | null
           efi_is_configured?: boolean | null
           efi_last_test_at?: string | null

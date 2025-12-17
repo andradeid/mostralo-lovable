@@ -31,15 +31,37 @@ export function LiveKPIs() {
         .select('*', { count: 'exact', head: true })
         .eq('status', 'active');
 
-      // MRR atual (soma dos planos das lojas ativas com preços customizados)
+      // MRR atual (soma dos planos das lojas ativas com preços customizados e cupons)
       const { data: storesWithPlans } = await supabase
         .from('stores')
-        .select('plan_id, custom_monthly_price, plans:plan_id(price)')
+        .select('id, plan_id, custom_monthly_price, plans:plan_id(price)')
         .eq('status', 'active');
 
+      // Buscar descontos de cupom por loja
+      const { data: couponDiscounts } = await supabase
+        .from('payment_approvals')
+        .select('store_id, coupon_discount')
+        .not('store_id', 'is', null)
+        .gt('coupon_discount', 0);
+
+      // Criar mapa de desconto por store_id
+      const discountMap = new Map<string, number>();
+      couponDiscounts?.forEach(pa => {
+        if (pa.store_id) {
+          const current = discountMap.get(pa.store_id) || 0;
+          discountMap.set(pa.store_id, Math.max(current, Number(pa.coupon_discount || 0)));
+        }
+      });
+
       const currentMRR = storesWithPlans?.reduce((sum, store: any) => {
-        const effectivePrice = store.custom_monthly_price || store.plans?.price || 0;
-        return sum + Number(effectivePrice);
+        const planPrice = Number(store.plans?.price || 0);
+        const couponDiscount = discountMap.get(store.id) || 0;
+        
+        // Prioridade: custom_monthly_price > (plan_price - coupon_discount) > plan_price
+        const effectivePrice = store.custom_monthly_price 
+          ? Number(store.custom_monthly_price)
+          : Math.max(0, planPrice - couponDiscount);
+        return sum + effectivePrice;
       }, 0) || 0;
 
       const projectedARR = currentMRR * 12;

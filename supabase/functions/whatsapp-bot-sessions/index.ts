@@ -6,6 +6,39 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Normaliza telefone para busca (mesma lógica do webhook)
+function normalizePhoneForSearch(phone: string): string[] {
+  const digits = phone.replace(/\D/g, '');
+  const variants: string[] = [];
+  
+  // Remove DDI 55 se presente
+  let baseNumber = digits;
+  if (digits.startsWith('55') && digits.length > 11) {
+    baseNumber = digits.substring(2);
+  }
+  
+  variants.push(baseNumber);
+  variants.push('55' + baseNumber);
+  
+  // Variantes com/sem 9º dígito para celulares brasileiros
+  if (baseNumber.length === 11 && baseNumber[2] === '9') {
+    const without9 = baseNumber.substring(0, 2) + baseNumber.substring(3);
+    variants.push(without9);
+    variants.push('55' + without9);
+  } else if (baseNumber.length === 10) {
+    const with9 = baseNumber.substring(0, 2) + '9' + baseNumber.substring(2);
+    variants.push(with9);
+    variants.push('55' + with9);
+  }
+  
+  return [...new Set(variants)];
+}
+
+// Extrai número de telefone do remoteJid
+function extractPhoneFromJid(remoteJid: string): string {
+  return remoteJid.replace('@s.whatsapp.net', '').replace('@c.us', '');
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -98,8 +131,71 @@ serve(async (req) => {
         const sessions = await response.json();
         console.log(`[whatsapp-bot-sessions] Found ${Array.isArray(sessions) ? sessions.length : 0} sessions`);
 
+        // Enriquecer sessões com dados de clientes
+        const sessionsArray = Array.isArray(sessions) ? sessions : [];
+        
+        if (sessionsArray.length > 0) {
+          // Extrair todos os telefones e criar variantes para busca
+          const allPhoneVariants: string[] = [];
+          const phoneToSessionMap = new Map<string, string[]>();
+          
+          for (const session of sessionsArray) {
+            const phone = extractPhoneFromJid(session.remoteJid);
+            const variants = normalizePhoneForSearch(phone);
+            
+            for (const variant of variants) {
+              allPhoneVariants.push(variant);
+              if (!phoneToSessionMap.has(variant)) {
+                phoneToSessionMap.set(variant, []);
+              }
+              phoneToSessionMap.get(variant)!.push(session.remoteJid);
+            }
+          }
+          
+          // Buscar clientes que correspondem aos telefones
+          const { data: customers } = await supabase
+            .from("customers")
+            .select("id, name, phone")
+            .in("phone", [...new Set(allPhoneVariants)]);
+          
+          // Criar mapa de remoteJid → cliente
+          const jidToCustomer = new Map<string, { id: string; name: string }>();
+          
+          if (customers && customers.length > 0) {
+            for (const customer of customers) {
+              const customerVariants = normalizePhoneForSearch(customer.phone);
+              for (const variant of customerVariants) {
+                const jids = phoneToSessionMap.get(variant);
+                if (jids) {
+                  for (const jid of jids) {
+                    jidToCustomer.set(jid, { id: customer.id, name: customer.name });
+                  }
+                }
+              }
+            }
+          }
+          
+          // Enriquecer sessões com dados do cliente
+          const enrichedSessions = sessionsArray.map(session => {
+            const customer = jidToCustomer.get(session.remoteJid);
+            return {
+              ...session,
+              isCustomer: !!customer,
+              customerName: customer?.name || null,
+              customerId: customer?.id || null,
+            };
+          });
+          
+          console.log(`[whatsapp-bot-sessions] Enriched ${enrichedSessions.filter(s => s.isCustomer).length} sessions with customer data`);
+          
+          return new Response(
+            JSON.stringify({ success: true, sessions: enrichedSessions }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
         return new Response(
-          JSON.stringify({ success: true, sessions: Array.isArray(sessions) ? sessions : [] }),
+          JSON.stringify({ success: true, sessions: [] }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }

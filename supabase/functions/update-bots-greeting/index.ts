@@ -6,8 +6,22 @@ import {
   getSimpleGreeting,
   getPeriodEmoji,
   getNextOpeningContextual,
+  selectBestGreeting,
   type Period 
 } from "./greeting-templates.ts";
+import { 
+  getHolidayInfo, 
+  getSpecialWeekdayTemplates,
+  getCurrentWeekday,
+  getCurrentDateKey,
+  type Weekday 
+} from "./seasonal-templates.ts";
+import { 
+  detectNiche, 
+  nicheTemplates,
+  nicheInfo,
+  type StoreNiche 
+} from "./niche-templates.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -175,7 +189,8 @@ serve(async (req) => {
           id, name, slug, description, address, whatsapp, 
           business_hours, timezone, delivery_fee, min_order_value,
           accepts_cash, accepts_card, accepts_pix, city, state,
-          google_maps_link, custom_domain, custom_domain_verified
+          google_maps_link, custom_domain, custom_domain_verified,
+          segment
         )
       `)
       .eq('enabled', true)
@@ -285,14 +300,16 @@ ${isOpen
         // Atualizar bot na Evolution API
         const botId = botConfig.evolution_bot_id;
         
-        // Usar sistema de templates humanizados (60 variações)
-        const dynamicGreeting = getRandomGreeting(
+        // Usar sistema unificado de templates inteligentes (141+ variações)
+        const dynamicGreeting = selectBestGreeting({
           period,
           isOpen,
-          store.name,
+          storeName: store.name,
           storeLink,
-          nextOpening
-        );
+          nextOpening,
+          timezone,
+          storeSegment: store.segment
+        });
 
         // Payload de atualização
         const updatePayload = {

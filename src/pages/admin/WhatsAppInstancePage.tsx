@@ -70,7 +70,6 @@ import {
   BotTimezoneCard,
   BotTrainingExamplesCard,
   BotGreetingPreviewCard,
-  ConversationsTab,
 } from "@/components/admin/bot";
 
 interface Template {
@@ -588,12 +587,8 @@ export default function WhatsAppInstancePage() {
         </p>
       </div>
 
-      <Tabs defaultValue="conversations" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="conversations" className="gap-2">
-            <MessageSquare className="h-4 w-4" />
-            <span className="hidden sm:inline">Conversas</span>
-          </TabsTrigger>
+      <Tabs defaultValue="connection" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="connection" className="gap-2">
             <Smartphone className="h-4 w-4" />
             <span className="hidden sm:inline">Conexão</span>
@@ -603,10 +598,6 @@ export default function WhatsAppInstancePage() {
             <span className="hidden sm:inline">Assistente IA</span>
           </TabsTrigger>
         </TabsList>
-
-        <TabsContent value="conversations" className="space-y-6">
-          <ConversationsTab storeId={storeId} isConnected={isConnected} />
-        </TabsContent>
 
         <TabsContent value="connection" className="space-y-6">
           {!instance ? (

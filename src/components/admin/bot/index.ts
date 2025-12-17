@@ -10,4 +10,5 @@ export { BotTimezoneCard } from './BotTimezoneCard';
 export { BotTrainingExamplesCard } from './BotTrainingExamplesCard';
 export { BotGreetingPreviewCard } from './BotGreetingPreviewCard';
 export { BotPausedContactsCard } from './BotPausedContactsCard';
+export { BotActiveSessionsCard } from './BotActiveSessionsCard';
 export type { PersonalitySettings, PersonalityType, EmojiLevel } from './BotPersonalityCard';

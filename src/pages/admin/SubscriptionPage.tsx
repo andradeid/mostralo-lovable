@@ -877,23 +877,30 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Valor</p>
                   {couponInfo && subscription ? (
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <p className="text-xs line-through text-muted-foreground">
-                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.planPrice)}
-                        </p>
-                        <Badge className="bg-green-500 text-white text-[10px] px-1.5 py-0">
-                          🎟️ {couponInfo.code} -{Math.round((couponInfo.discountApplied / subscription.planPrice) * 100)}%
+                    <div className="space-y-2">
+                      {/* Preço original */}
+                      <p className="text-xs text-muted-foreground">
+                        De: <span className="line-through">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.planPrice)}</span>
+                      </p>
+                      
+                      {/* Preço atual - destaque principal */}
+                      <p className="text-xl font-bold text-green-600 dark:text-green-400">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.planPrice - couponInfo.discountApplied)}
+                        <span className="text-sm font-normal text-muted-foreground">/{subscription.billingCycle === 'monthly' ? 'mês' : 'ano'}</span>
+                      </p>
+                      
+                      {/* Economia */}
+                      <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-500">
+                        <span>💰 Economia:</span>
+                        <span className="font-medium">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(couponInfo.discountApplied)}</span>
+                        <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">
+                          -{Math.round((couponInfo.discountApplied / subscription.planPrice) * 100)}%
                         </Badge>
                       </div>
-                      <p className="text-lg font-bold text-green-600 dark:text-green-400">
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.planPrice - couponInfo.discountApplied)}
-                        <span className="text-sm font-normal text-muted-foreground">
-                          /{subscription.billingCycle === 'monthly' ? 'mês' : 'ano'}
-                        </span>
-                      </p>
-                      <p className="text-xs text-muted-foreground italic">
-                        Cupom aplicado no cadastro
+                      
+                      {/* Cupom usado */}
+                      <p className="text-xs text-muted-foreground">
+                        🎟️ Cupom: <span className="font-medium">{couponInfo.code}</span>
                       </p>
                     </div>
                   ) : subscription?.customMonthlyPrice ? (

@@ -1408,5 +1408,222 @@ Quando implementar:
       '□ Implementar aplicação automática do benefício',
       '□ Criar UI para acompanhar indicações e benefícios'
     ]
+  },
+  {
+    id: 16,
+    title: '📦 Estruturação de Planos por Módulos',
+    status: 'analyzing',
+    priority: 'high',
+    createdAt: '2025-12-17',
+    description: 'Análise estratégica dos 17 módulos do sistema e proposta de distribuição para os 3 planos: Essencial (R$ 397), Profissional (R$ 597) e Enterprise (R$ 997).',
+    
+    context: `O sistema Mostralo possui atualmente 17 módulos funcionais que controlam o acesso a diferentes funcionalidades. Utiliza modelo de permissão invertida: todos os módulos são habilitados por padrão, e o master admin pode bloquear módulos específicos para lojas específicas.
+
+📊 INVENTÁRIO COMPLETO DOS MÓDULOS:
+
+🟢 MÓDULOS CORE (Essenciais para operação):
+1. digital_menu - Cardápio Digital (gestão de produtos e categorias)
+2. order_management - Gestão de Pedidos (recebimento e acompanhamento)
+3. reports - Relatórios Básicos (vendas e métricas)
+4. customization - Personalização Visual (logo, cores, tema)
+5. delivery - Configurações de Entrega (áreas, taxas)
+
+🟡 MÓDULOS AVANÇADOS (Valor agregado):
+6. banners - Banners Promocionais (vitrines na loja)
+7. promotions - Promoções e Cupons (descontos e campanhas)
+8. whatsapp - Notificações WhatsApp (alertas automáticos)
+9. delivery_drivers - Gestão de Entregadores (equipe própria)
+10. printing - Sistema de Impressão (comandas térmicas)
+11. attendants - Gestão de Atendentes (multi-usuários)
+12. scheduled_orders - Pedidos Agendados (delivery programado)
+13. marketing_material - Material de Marketing (flyers, QR codes)
+
+🔴 MÓDULOS PREMIUM (Alto valor):
+14. whatsapp_recovery - Recuperação WhatsApp (carrinhos abandonados)
+15. marketing - Marketing Digital (campanhas avançadas)
+16. integrations - Integrações Externas (iframes customizados)
+17. custom_scripts - Scripts Personalizados (JavaScript custom)`,
+
+    problem: `A distribuição atual não está otimizada para maximizar conversão e upsell entre planos. Precisamos definir:
+
+• Quais módulos incluir em cada faixa de preço?
+• Como criar valor percebido claro entre os planos?
+• Como incentivar upgrade do Essencial → Profissional → Enterprise?
+
+💡 CRITÉRIOS DE DISTRIBUIÇÃO:
+1. Plano Essencial (R$ 397) = Módulos CORE para funcionar
+2. Plano Profissional (R$ 597) = CORE + Automação/Produtividade  
+3. Plano Enterprise (R$ 997) = TUDO + Premium + Suporte Prioritário
+
+📈 ESTRATÉGIA DE UPSELL:
+• Essencial → Profissional: "Quer automatizar WhatsApp e gerenciar entregadores?"
+• Profissional → Enterprise: "Quer recuperar carrinhos abandonados e integrações avançadas?"`,
+
+    marketAnalysis: {
+      title: '💰 Análise de Valor por Módulo',
+      items: [
+        'digital_menu + order_management = ESSENCIAL (sem isso não funciona)',
+        'whatsapp + delivery_drivers = +R$ 100-150 valor percebido (automação)',
+        'whatsapp_recovery = +R$ 200-300 valor percebido (recupera 23% clientes)',
+        'integrations + custom_scripts = +R$ 300-500 valor percebido (personalização total)',
+        'Suporte Prioritário = diferencial emocional para Enterprise',
+        'R$ 397 → R$ 597 = +50% preço por +77% mais módulos (6→13 módulos)',
+        'R$ 597 → R$ 997 = +67% preço por acesso total + suporte prioritário'
+      ]
+    },
+
+    technicalDetails: {
+      title: '🔧 Distribuição Proposta dos Planos',
+      items: [
+        '═══════════════════════════════════════════════════════════════',
+        '📦 PLANO ESSENCIAL (R$ 397/mês) - 7 MÓDULOS',
+        '═══════════════════════════════════════════════════════════════',
+        '✅ digital_menu - Cardápio Digital',
+        '✅ order_management - Gestão de Pedidos', 
+        '✅ reports - Relatórios Básicos',
+        '✅ customization - Personalização Visual',
+        '✅ delivery - Configurações de Entrega',
+        '✅ banners - Banners Promocionais',
+        '✅ promotions - Promoções e Cupons',
+        '❌ Bloqueados: whatsapp, delivery_drivers, printing, attendants, scheduled_orders, marketing_material, whatsapp_recovery, marketing, integrations, custom_scripts',
+        '',
+        '═══════════════════════════════════════════════════════════════',
+        '📦 PLANO PROFISSIONAL (R$ 597/mês) - 13 MÓDULOS',
+        '═══════════════════════════════════════════════════════════════',
+        '✅ Todos do Essencial +',
+        '✅ whatsapp - Notificações WhatsApp',
+        '✅ delivery_drivers - Gestão de Entregadores',
+        '✅ printing - Sistema de Impressão',
+        '✅ attendants - Gestão de Atendentes',
+        '✅ scheduled_orders - Pedidos Agendados',
+        '✅ marketing_material - Material de Marketing',
+        '❌ Bloqueados: whatsapp_recovery, marketing, integrations, custom_scripts',
+        '',
+        '═══════════════════════════════════════════════════════════════',
+        '📦 PLANO ENTERPRISE (R$ 997/mês) - 17 MÓDULOS + SUPORTE',
+        '═══════════════════════════════════════════════════════════════',
+        '✅ TODOS os 17 módulos desbloqueados',
+        '✅ whatsapp_recovery - Recuperação WhatsApp (23% clientes)',
+        '✅ marketing - Marketing Digital Avançado',
+        '✅ integrations - Integrações Externas',
+        '✅ custom_scripts - Scripts Personalizados',
+        '⭐ BÔNUS: Suporte Prioritário (resposta em 4h úteis)',
+        '⭐ BÔNUS: Consultoria mensal de 30min'
+      ]
+    },
+
+    phases: [
+      {
+        name: 'Fase 1 - Configurar Planos',
+        description: 'Atualizar tabela plans com módulos de cada plano',
+        items: [
+          'Atualizar registro do plano Essencial (ID existente)',
+          'Atualizar registro do plano Profissional (ID existente)',
+          'Atualizar registro do plano Enterprise (ID existente)',
+          'Definir lista de module_keys bloqueados por plano',
+          'Criar coluna blocked_modules[] na tabela plans'
+        ]
+      },
+      {
+        name: 'Fase 2 - Implementar Bloqueio',
+        description: 'Garantir que ModuleGate funcione com os planos',
+        items: [
+          'Verificar função is_module_blocked_for_store()',
+          'Atualizar lógica para considerar plano da loja',
+          'Testar bloqueio de módulos por plano',
+          'Criar mensagem de upgrade quando módulo bloqueado',
+          'Adicionar CTA para upgrade no modal de bloqueio'
+        ]
+      },
+      {
+        name: 'Fase 3 - Visualização de Planos',
+        description: 'Atualizar página de planos com módulos visíveis',
+        items: [
+          'Mostrar lista de módulos inclusos em cada plano',
+          'Destacar módulos exclusivos de planos superiores',
+          'Adicionar comparativo visual entre planos',
+          'Criar tooltip explicando cada módulo',
+          'Atualizar landing page com novo comparativo'
+        ]
+      }
+    ],
+
+    legalConsiderations: [
+      '✅ Sem implicações legais - apenas reorganização de features',
+      '⚠️ Comunicar mudanças aos assinantes atuais com antecedência',
+      '⚠️ Garantir que assinantes atuais mantenham benefícios contratados',
+      '📋 Atualizar contrato de merchant com nova descrição de planos'
+    ],
+
+    options: [
+      {
+        name: 'Distribuição Conservadora',
+        description: 'Mais módulos no Essencial para maximizar valor percebido',
+        pros: [
+          'Maior atratividade do plano de entrada',
+          'Reduz barreira de entrada',
+          'Menos reclamações de "falta de recursos"',
+          'Bom para mercados sensíveis a preço'
+        ],
+        cons: [
+          'Menor incentivo para upgrade',
+          'Receita média por usuário (ARPU) mais baixa',
+          'Enterprise pode parecer "caro demais"',
+          'Menos diferenciação entre planos'
+        ]
+      },
+      {
+        name: 'Distribuição Agressiva (Recomendada)',
+        description: 'Essencial enxuto, valor concentrado nos planos superiores',
+        pros: [
+          'Forte incentivo para upgrade',
+          'ARPU potencialmente maior',
+          'Clara diferenciação de valor entre planos',
+          'Enterprise tem valor premium justificável'
+        ],
+        cons: [
+          'Essencial pode parecer "limitado"',
+          'Maior taxa de churn no plano básico',
+          'Necessita comunicação clara do valor de cada plano',
+          'Concorrentes podem oferecer mais no plano básico'
+        ]
+      }
+    ],
+
+    recommendation: `**Recomendação: Distribuição Agressiva com Comunicação Clara**
+
+A distribuição proposta (7→13→17 módulos) cria:
+• Escada clara de valor entre os planos
+• Incentivo natural para upgrade conforme negócio cresce
+• Margem saudável no Essencial (custo baixo, módulos básicos)
+• Premium justificável no Enterprise (WhatsApp Recovery vale R$ 200+/mês)
+
+📈 PROJEÇÃO DE RECEITA:
+Se 100 lojas distribuídas em:
+• 40% Essencial = 40 × R$ 397 = R$ 15.880
+• 40% Profissional = 40 × R$ 597 = R$ 23.880  
+• 20% Enterprise = 20 × R$ 997 = R$ 19.940
+• MRR Total = R$ 59.700/mês
+
+📊 TICKET MÉDIO: R$ 597 (média ponderada)
+
+💡 ESTRATÉGIA DE MIGRAÇÃO:
+1. Novos assinantes seguem nova estrutura
+2. Assinantes atuais mantêm módulos até renovação
+3. Oferecer upgrade com desconto para assinantes antigos
+4. Comunicar mudanças 30 dias antes da renovação`,
+
+    nextSteps: [
+      '□ Confirmar distribuição final dos módulos com análise de uso',
+      '□ Criar migração SQL para atualizar tabela plans',
+      '□ Adicionar coluna blocked_modules[] na tabela plans',
+      '□ Atualizar função is_module_blocked_for_store()',
+      '□ Criar modal de "Módulo Premium" com CTA de upgrade',
+      '□ Atualizar página de planos com comparativo de módulos',
+      '□ Atualizar landing page com nova tabela de funcionalidades',
+      '□ Comunicar mudanças aos assinantes atuais',
+      '□ Preparar FAQ sobre nova estrutura de planos',
+      '□ Treinar equipe de vendas sobre nova argumentação'
+    ]
   }
 ];

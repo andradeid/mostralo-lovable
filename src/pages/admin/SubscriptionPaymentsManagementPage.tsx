@@ -10,10 +10,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Receipt, Check, X, Eye, Search, Filter, Plus, Pencil, Trash2, UserPlus, Clock, AlertCircle, CheckCircle2, Loader2, Copy, Building2, DollarSign } from "lucide-react";
+import { Receipt, Check, X, Eye, Search, Filter, Plus, Pencil, Trash2, UserPlus, Clock, AlertCircle, CheckCircle2, Loader2, Copy, Building2, DollarSign, Ticket } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useAuth } from "@/hooks/use-auth";
+
+interface CouponInfo {
+  coupon_id: string;
+  coupon_code: string;
+  coupon_name: string;
+  discount_type: 'percentage' | 'fixed';
+  discount_value: number;
+  discount_applied: number;
+  original_price: number;
+}
 
 interface Invoice {
   id: string;
@@ -36,7 +46,9 @@ interface Invoice {
   };
   plans: {
     name: string;
+    price: number;
   };
+  coupon_info?: CouponInfo | null;
 }
 
 interface Store {
@@ -330,12 +342,58 @@ export default function SubscriptionPaymentsManagementPage() {
             email
           )
         ),
-        plans (name)
+        plans (name, price)
       `)
       .order('due_date', { ascending: false });
 
     if (data) {
-      setInvoices(data as any);
+      // Buscar informações de cupom para cada fatura via payment_approvals
+      const invoicesWithCoupons = await Promise.all(
+        data.map(async (invoice: any) => {
+          // Buscar payment_approval da loja que tenha cupom
+          const { data: approvalWithCoupon } = await supabase
+            .from('payment_approvals')
+            .select(`
+              coupon_id,
+              coupon_discount,
+              payment_amount,
+              coupons (
+                code,
+                name,
+                discount_type,
+                discount_value
+              )
+            `)
+            .eq('store_id', invoice.store_id)
+            .not('coupon_id', 'is', null)
+            .eq('status', 'approved')
+            .order('approved_at', { ascending: false })
+            .limit(1)
+            .single();
+
+          let coupon_info: CouponInfo | null = null;
+          
+          if (approvalWithCoupon?.coupons) {
+            const coupon = approvalWithCoupon.coupons as any;
+            coupon_info = {
+              coupon_id: approvalWithCoupon.coupon_id,
+              coupon_code: coupon.code,
+              coupon_name: coupon.name,
+              discount_type: coupon.discount_type,
+              discount_value: coupon.discount_value,
+              discount_applied: approvalWithCoupon.coupon_discount || 0,
+              original_price: invoice.plans?.price || invoice.amount + (approvalWithCoupon.coupon_discount || 0)
+            };
+          }
+
+          return {
+            ...invoice,
+            coupon_info
+          };
+        })
+      );
+
+      setInvoices(invoicesWithCoupons as any);
     }
     setLoading(false);
   };
@@ -1036,14 +1094,40 @@ export default function SubscriptionPaymentsManagementPage() {
             ) : (
               filteredInvoices.map((invoice) => (
                 <div key={invoice.id} className="p-3 rounded-lg border bg-card w-[90%] mx-auto">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-sm truncate max-w-[60%]">{invoice.stores?.name || '-'}</span>
-                    {getStatusBadge(invoice.payment_status, invoice.paid_at)}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold text-sm truncate max-w-[50%]">{invoice.stores?.name || '-'}</span>
+                    <div className="flex items-center gap-1">
+                      {invoice.coupon_info && (
+                        <Badge variant="outline" className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30 text-[10px] px-1.5">
+                          <Ticket className="w-3 h-3 mr-0.5" />
+                          {invoice.coupon_info.coupon_code}
+                        </Badge>
+                      )}
+                      {getStatusBadge(invoice.payment_status, invoice.paid_at)}
+                    </div>
                   </div>
                   
                   <p className="text-xs text-muted-foreground mt-1 truncate">
                     {invoice.stores?.profiles?.full_name || '-'} • {invoice.stores?.profiles?.email || '-'}
                   </p>
+                  
+                  {/* Cupom aplicado - exibir desconto */}
+                  {invoice.coupon_info && (
+                    <div className="mt-2 p-2 bg-purple-500/10 rounded-md border border-purple-500/20">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">Valor original:</span>
+                        <span className="line-through text-muted-foreground">
+                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(invoice.coupon_info.original_price)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs mt-0.5">
+                        <span className="text-purple-600 dark:text-purple-400">Desconto ({invoice.coupon_info.coupon_code}):</span>
+                        <span className="text-purple-600 dark:text-purple-400 font-medium">
+                          -{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(invoice.coupon_info.discount_applied)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                   
                   <div className="flex items-center justify-between mt-2">
                     <span className="text-xs text-muted-foreground">
@@ -1147,7 +1231,15 @@ export default function SubscriptionPaymentsManagementPage() {
                         {format(new Date(invoice.due_date), "dd/MM/yyyy", { locale: ptBR })}
                        </TableCell>
                        <TableCell className="font-medium">
-                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(invoice.amount)}
+                         <div className="flex flex-col gap-1">
+                           <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(invoice.amount)}</span>
+                           {invoice.coupon_info && (
+                             <Badge variant="outline" className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30 text-[10px] w-fit">
+                               <Ticket className="w-3 h-3 mr-1" />
+                               {invoice.coupon_info.coupon_code}
+                             </Badge>
+                           )}
+                         </div>
                        </TableCell>
                        <TableCell>
                         {getStatusBadge(invoice.payment_status, invoice.paid_at)}
@@ -1236,7 +1328,59 @@ export default function SubscriptionPaymentsManagementPage() {
                 </div>
               </div>
 
-              {/* ID de Transação */}
+              {/* Seção de Cupom/Desconto Aplicado */}
+              {selectedInvoice.coupon_info && (
+                <div className="p-4 rounded-lg border border-purple-500/30 bg-purple-500/5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Ticket className="w-5 h-5 text-purple-500" />
+                    <p className="font-semibold text-purple-600 dark:text-purple-400">Desconto Aplicado</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Cupom</p>
+                      <p className="font-mono font-bold text-purple-600 dark:text-purple-400">
+                        {selectedInvoice.coupon_info.coupon_code}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Nome</p>
+                      <p className="font-medium">{selectedInvoice.coupon_info.coupon_name}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Tipo de Desconto</p>
+                      <p className="font-medium">
+                        {selectedInvoice.coupon_info.discount_type === 'percentage' 
+                          ? `${selectedInvoice.coupon_info.discount_value}% de desconto`
+                          : `R$ ${selectedInvoice.coupon_info.discount_value.toFixed(2)} de desconto`
+                        }
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Economia</p>
+                      <p className="font-bold text-green-500">
+                        -{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedInvoice.coupon_info.discount_applied)}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-3 pt-3 border-t border-purple-500/20 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Valor Original</p>
+                      <p className="line-through text-muted-foreground">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedInvoice.coupon_info.original_price)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-muted-foreground">Valor Final</p>
+                      <p className="text-xl font-bold text-green-500">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(selectedInvoice.amount)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {extractTransactionId(selectedInvoice.notes) && (
                 <div className="p-3 bg-muted/50 rounded-lg">
                   <p className="text-sm text-muted-foreground mb-1">ID de Transação (EndToEndId)</p>

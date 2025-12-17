@@ -44,8 +44,11 @@ serve(async (req) => {
 
     const { valor, descricao, expiracao_segundos }: CreateChargeRequest = await req.json();
 
+    // Formatar valor para ter exatamente 2 casas decimais (exigido pela API EFI)
+    const valorFormatado = parseFloat(valor).toFixed(2);
+
     console.log('💰 Iniciando criação de cobrança PIX...');
-    console.log(`💵 Valor: R$ ${valor}`);
+    console.log(`💵 Valor: R$ ${valorFormatado}`);
     console.log(`📝 Descrição: ${descricao}`);
     console.log(`⏱️ Expiração: ${expiracao_segundos}s`);
 
@@ -137,7 +140,7 @@ serve(async (req) => {
         expiracao: expiracao_segundos
       },
       valor: {
-        original: valor
+        original: valorFormatado
       },
       chave: pixKey,
       solicitacaoPagador: descricao

@@ -261,31 +261,31 @@ const SubscribersPage = () => {
 
   const statsCards = [
     {
-      title: 'Total de Assinantes',
+      title: '👥 Total de Assinantes',
       value: subscribers.length,
-      description: 'Donos de loja no sistema',
+      description: 'Donos de loja cadastrados no sistema',
       icon: Store,
       color: 'text-blue-600'
     },
     {
-      title: 'Assinaturas Ativas',
+      title: '✅ Assinaturas Ativas',
       value: activeSubscribers.length,
-      description: 'Com plano ativo',
+      description: 'Lojas com plano ativo e dentro da validade',
       icon: CheckCircle,
       color: 'text-green-600'
     },
     {
-      title: 'Assinaturas Expiradas',
+      title: '⚠️ Assinaturas Expiradas',
       value: expiredSubscribers.length,
-      description: 'Precisam renovar',
+      description: 'Lojas com assinatura vencida que precisam renovar',
       icon: AlertCircle,
       color: 'text-red-600'
     },
     {
-      title: 'Receita Mensal',
+      title: '📊 MRR Projetado',
       value: `R$ ${monthlyRevenue.toFixed(2)}`,
-      description: 'Potencial de assinaturas',
-      icon: DollarSign,
+      description: 'Receita mensal recorrente esperada (com descontos aplicados)',
+      icon: TrendingUp,
       color: 'text-emerald-600'
     }
   ];

@@ -871,38 +871,50 @@ export default function SubscriptionPaymentsManagementPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
         <Card>
           <CardHeader className="pb-1 pt-3 px-3 md:pb-2 md:pt-6 md:px-6">
-            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Total de Faturas</CardTitle>
+            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">📋 Total de Faturas</CardTitle>
           </CardHeader>
           <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
             <p className="text-xl md:text-2xl font-bold">{stats.total}</p>
+            <p className="text-[10px] md:text-xs text-muted-foreground mt-1">
+              Todas as faturas geradas no sistema
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-1 pt-3 px-3 md:pb-2 md:pt-6 md:px-6">
-            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Pagas</CardTitle>
+            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">✅ Pagas</CardTitle>
           </CardHeader>
           <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
             <p className="text-xl md:text-2xl font-bold text-green-500">{stats.paid}</p>
+            <p className="text-[10px] md:text-xs text-muted-foreground mt-1">
+              Faturas com pagamento confirmado
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-1 pt-3 px-3 md:pb-2 md:pt-6 md:px-6">
-            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Aguardando</CardTitle>
+            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">⏳ Aguardando</CardTitle>
           </CardHeader>
           <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
             <p className="text-xl md:text-2xl font-bold text-yellow-500">{stats.pending}</p>
+            <p className="text-[10px] md:text-xs text-muted-foreground mt-1">
+              Comprovante enviado, aguardando aprovação
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-1 pt-3 px-3 md:pb-2 md:pt-6 md:px-6">
-            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Receita Total</CardTitle>
+            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">💰 Total Recebido</CardTitle>
           </CardHeader>
           <CardContent className="px-3 pb-3 md:px-6 md:pb-6">
             <p className="text-lg md:text-2xl font-bold text-primary">
               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.totalRevenue)}
+            </p>
+            <p className="text-[10px] md:text-xs text-muted-foreground mt-1">
+              Soma de todas as faturas pagas (dinheiro que entrou)
             </p>
           </CardContent>
         </Card>

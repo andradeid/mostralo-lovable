@@ -1,17 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Phone, MapPin, Bell } from 'lucide-react';
+import { ArrowLeft, Phone, MapPin, Bell, Clock } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import { useOrderTracking } from '@/hooks/useOrderTracking';
 import { OrderStatusTimeline } from '@/components/customer/OrderStatusTimeline';
 import { OrderConfettiAnimation } from '@/components/customer/OrderConfettiAnimation';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, addMinutes, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function OrderTracking() {
@@ -20,20 +18,19 @@ export default function OrderTracking() {
   const { order, loading, error } = useOrderTracking(orderId || '');
   const [showConfetti, setShowConfetti] = useState(true);
 
-  // Log quando order muda
   useEffect(() => {
     if (order) {
       console.log('📦 OrderTracking: Order atualizado', {
         orderId: order.id,
         status: order.status,
         deliveryType: order.delivery_type,
-        orderNumber: order.order_number
+        orderNumber: order.order_number,
+        estimatedMinutes: order.estimated_delivery_minutes
       });
     }
-  }, [order?.status, order?.id]);
+  }, [order?.status, order?.id, order?.estimated_delivery_minutes]);
 
   useEffect(() => {
-    // Esconder confetti após 3 segundos
     const timer = setTimeout(() => setShowConfetti(false), 3000);
     return () => clearTimeout(timer);
   }, []);
@@ -71,6 +68,15 @@ export default function OrderTracking() {
       window.location.href = `tel:${order.customer_phone}`;
     }
   };
+
+  // Calcular horário previsto de entrega
+  const getEstimatedArrival = () => {
+    if (!order.estimated_delivery_minutes) return null;
+    const estimatedTime = addMinutes(new Date(order.created_at), order.estimated_delivery_minutes);
+    return format(estimatedTime, 'HH:mm', { locale: ptBR });
+  };
+
+  const estimatedArrival = getEstimatedArrival();
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -121,6 +127,38 @@ export default function OrderTracking() {
           </p>
         </Card>
 
+        {/* Card de Tempo Estimado */}
+        {order.estimated_delivery_minutes && order.status !== 'concluido' && order.status !== 'cancelado' && (
+          <Card className="p-4 bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-primary/20 rounded-full">
+                  <Clock className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    {order.delivery_type === 'pickup' ? 'Pronto para retirada em' : 'Tempo estimado de entrega'}
+                  </p>
+                  <p className="text-2xl font-bold text-primary">
+                    {order.estimated_delivery_minutes >= 60
+                      ? `${Math.floor(order.estimated_delivery_minutes / 60)}h${order.estimated_delivery_minutes % 60 > 0 ? ` ${order.estimated_delivery_minutes % 60}min` : ''}`
+                      : `${order.estimated_delivery_minutes} minutos`}
+                  </p>
+                </div>
+              </div>
+              
+              {estimatedArrival && (
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">Previsão</p>
+                  <p className="text-xl font-bold text-foreground">
+                    {estimatedArrival}
+                  </p>
+                </div>
+              )}
+            </div>
+          </Card>
+        )}
+
         {/* Timeline de Status */}
         <Card className="p-6">
           <h2 className="text-lg font-semibold mb-4">Acompanhe seu Pedido</h2>
@@ -155,39 +193,39 @@ export default function OrderTracking() {
               <span className="text-primary">R$ {order.total.toFixed(2)}</span>
             </div>
           </div>
-          </Card>
+        </Card>
 
-          {/* Informações do Entregador */}
-          {order.assigned_driver_id && order.profiles && (
-            <Card className="p-6">
-              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                🚴 Entregador
-              </h2>
-              <div className="flex items-center gap-3">
-                <Avatar className="h-12 w-12">
-                  {order.profiles.avatar_url && (
-                    <AvatarImage 
-                      src={order.profiles.avatar_url} 
-                      alt={order.profiles.full_name} 
-                    />
-                  )}
-                  <AvatarFallback className="text-lg">
-                    {order.profiles.full_name.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-medium text-base">{order.profiles.full_name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {order.status === 'em_transito' 
-                      ? 'A caminho do endereço de entrega' 
-                      : 'Entregador atribuído'}
-                  </p>
-                </div>
+        {/* Informações do Entregador */}
+        {order.assigned_driver_id && order.profiles && (
+          <Card className="p-6">
+            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              🚴 Entregador
+            </h2>
+            <div className="flex items-center gap-3">
+              <Avatar className="h-12 w-12">
+                {order.profiles.avatar_url && (
+                  <AvatarImage 
+                    src={order.profiles.avatar_url} 
+                    alt={order.profiles.full_name} 
+                  />
+                )}
+                <AvatarFallback className="text-lg">
+                  {order.profiles.full_name.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-medium text-base">{order.profiles.full_name}</p>
+                <p className="text-sm text-muted-foreground">
+                  {order.status === 'em_transito' 
+                    ? 'A caminho do endereço de entrega' 
+                    : 'Entregador atribuído'}
+                </p>
               </div>
-            </Card>
-          )}
+            </div>
+          </Card>
+        )}
 
-          {/* Informações da Loja */}
+        {/* Informações da Loja */}
         <Card className="p-6">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             🏪 Informações do Pedido
@@ -221,7 +259,7 @@ export default function OrderTracking() {
         {/* Informações de Pagamento */}
         <Card className="p-6">
           <h2 className="text-lg font-semibold mb-4">💳 Pagamento</h2>
-            <div className="space-y-2 text-sm">
+          <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Método:</span>
               <span className="font-medium text-foreground">

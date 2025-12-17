@@ -368,9 +368,6 @@ export default function GatewayConfigPage() {
         </p>
       </div>
 
-      {/* Guia de Configuração */}
-      <EfiSetupGuide />
-
       {/* Seletor de Ambiente Visual */}
       <Card>
         <CardHeader>
@@ -869,6 +866,9 @@ export default function GatewayConfigPage() {
           )}
         </Button>
       </div>
+
+      {/* Guia de Configuração */}
+      <EfiSetupGuide />
     </div>
   );
 }

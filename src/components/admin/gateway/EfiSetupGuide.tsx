@@ -18,7 +18,9 @@ import {
   AlertTriangle,
   Copy,
   CheckCircle2,
-  Terminal
+  Terminal,
+  Bell,
+  Info
 } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -297,6 +299,60 @@ export function EfiSetupGuide() {
               <Badge variant="outline" className="text-green-600 border-green-600">
                 <CheckCircle2 className="h-3 w-3 mr-1" />
                 Recomendado: Chave EVP é mais segura que CPF/CNPJ/Email/Telefone
+              </Badge>
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* Passo 6: Configurar Webhook */}
+          <AccordionItem value="step-6">
+            <AccordionTrigger className="hover:no-underline">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-full bg-green-500/10 flex items-center justify-center text-sm font-bold text-green-600">
+                  6
+                </div>
+                <div className="flex items-center gap-2">
+                  <Bell className="h-4 w-4 text-green-600" />
+                  <span>Configurar Webhook PIX</span>
+                  <Badge variant="outline" className="text-green-600 border-green-600 ml-2">
+                    Automático
+                  </Badge>
+                </div>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="pl-11 space-y-3">
+              <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+                <p className="text-sm font-medium text-green-700">✨ Configuração Automática!</p>
+                <p className="text-sm text-green-600/80 mt-1">
+                  O webhook é configurado automaticamente pelo sistema. Basta clicar no botão 
+                  <strong> "Configurar Webhook Automaticamente"</strong> no card ao lado.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-sm font-medium">O que o webhook faz?</p>
+                <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                  <li>Recebe notificações automáticas quando um pagamento PIX é confirmado</li>
+                  <li>Aprova automaticamente a assinatura do cliente</li>
+                  <li>Funciona mesmo se o cliente fechar a página</li>
+                  <li>Garante que nenhum pagamento seja perdido</li>
+                </ul>
+              </div>
+
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                <Info className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-medium text-blue-600">Nota Técnica</p>
+                  <p className="text-sm text-blue-600/80">
+                    O sistema usa o header <code className="bg-muted px-1 rounded">x-skip-mtls-checking</code> para 
+                    contornar a exigência de mTLS da EFI, permitindo que webhooks funcionem com 
+                    Edge Functions do Supabase.
+                  </p>
+                </div>
+              </div>
+
+              <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+                <AlertTriangle className="h-3 w-3 mr-1" />
+                Configure separadamente para Sandbox e Produção
               </Badge>
             </AccordionContent>
           </AccordionItem>

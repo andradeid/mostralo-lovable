@@ -4528,6 +4528,9 @@ export type Database = {
           efi_last_test_at: string | null
           efi_last_test_status: string | null
           efi_pix_key: string | null
+          efi_webhook_configured: boolean | null
+          efi_webhook_configured_at: string | null
+          efi_webhook_url: string | null
           enable_auto_approval: boolean | null
           enable_manual_approval: boolean | null
           id: string
@@ -4558,6 +4561,9 @@ export type Database = {
           efi_last_test_at?: string | null
           efi_last_test_status?: string | null
           efi_pix_key?: string | null
+          efi_webhook_configured?: boolean | null
+          efi_webhook_configured_at?: string | null
+          efi_webhook_url?: string | null
           enable_auto_approval?: boolean | null
           enable_manual_approval?: boolean | null
           id?: string
@@ -4588,6 +4594,9 @@ export type Database = {
           efi_last_test_at?: string | null
           efi_last_test_status?: string | null
           efi_pix_key?: string | null
+          efi_webhook_configured?: boolean | null
+          efi_webhook_configured_at?: string | null
+          efi_webhook_url?: string | null
           enable_auto_approval?: boolean | null
           enable_manual_approval?: boolean | null
           id?: string

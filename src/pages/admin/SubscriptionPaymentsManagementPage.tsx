@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Receipt, Check, X, Eye, Search, Filter, Plus, Pencil, Trash2, UserPlus, Clock, AlertCircle, CheckCircle2, Loader2, Copy } from "lucide-react";
+import { Receipt, Check, X, Eye, Search, Filter, Plus, Pencil, Trash2, UserPlus, Clock, AlertCircle, CheckCircle2, Loader2, Copy, Building2, DollarSign } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useAuth } from "@/hooks/use-auth";
@@ -683,115 +683,139 @@ export default function SubscriptionPaymentsManagementPage() {
           </CardContent>
         ) : (
           <CardContent className="space-y-4">
-            {/* Mobile: Cards Organizados com Botões Verticais */}
-            <div className="md:hidden space-y-4">
-              {pendingApprovals.map((approval) => (
-                <div 
-                  key={approval.id} 
-                  className="rounded-lg border-2 border-yellow-500/40 bg-card overflow-hidden"
-                >
-                  {/* Seção 1: Dados do Cliente */}
-                  <div className="p-4 space-y-1">
-                    <p className="font-bold text-lg text-foreground">
-                      {approval.profiles?.full_name || 'Nome não informado'}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {approval.profiles?.email || 'Email não informado'}
-                    </p>
-                    <p className="text-sm text-foreground">
-                      {approval.company_name || 'Empresa não informada'}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {approval.company_document || 'CNPJ não informado'}
-                    </p>
-                  </div>
-                  
-                  {/* Seção 2: Detalhes da Assinatura */}
-                  <div className="px-4 py-3 bg-muted/30 space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Plano:</span>
-                      <Badge className="bg-primary/20 text-primary">
-                        {approval.plans?.name || 'Plano'}
-                      </Badge>
+            {/* Mobile: Cards Redesenhados com Avatar e Layout Compacto */}
+            <div className="md:hidden space-y-3">
+              {pendingApprovals.map((approval) => {
+                const fullName = approval.profiles?.full_name || 'Nome não informado';
+                const initials = fullName.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+                
+                return (
+                  <div 
+                    key={approval.id} 
+                    className="rounded-xl border border-yellow-500/30 bg-card overflow-hidden shadow-sm"
+                  >
+                    {/* Header: Avatar + Nome + Badge */}
+                    <div className="p-3 flex items-start gap-3">
+                      {/* Avatar com Iniciais */}
+                      <div className="w-11 h-11 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                        <span className="text-sm font-bold text-primary">{initials}</span>
+                      </div>
+                      
+                      {/* Info do Cliente */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="font-semibold text-foreground truncate text-sm">
+                            {fullName}
+                          </p>
+                          <Badge className="bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 text-xs shrink-0">
+                            PENDENTE
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {approval.profiles?.email || 'Email não informado'}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Data:</span>
-                      <span className="text-sm text-foreground">
-                        {format(new Date(approval.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                      </span>
+                    
+                    {/* Empresa e CNPJ */}
+                    <div className="px-3 pb-2">
+                      <div className="flex items-center gap-2 text-xs">
+                        <Building2 className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                        <span className="text-foreground truncate">{approval.company_name || 'Empresa não informada'}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground ml-5.5 pl-0.5">
+                        {approval.company_document || 'CNPJ não informado'}
+                      </p>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Valor:</span>
+                    
+                    {/* Grid: Plano + Data */}
+                    <div className="px-3 pb-2 grid grid-cols-2 gap-2">
+                      <div className="bg-muted/40 rounded-lg p-2">
+                        <p className="text-xs text-muted-foreground">Plano</p>
+                        <Badge variant="secondary" className="mt-0.5 text-xs">
+                          {approval.plans?.name || 'Plano'}
+                        </Badge>
+                      </div>
+                      <div className="bg-muted/40 rounded-lg p-2">
+                        <p className="text-xs text-muted-foreground">Data</p>
+                        <p className="text-xs font-medium text-foreground mt-0.5">
+                          {format(new Date(approval.created_at), "dd/MM/yy HH:mm", { locale: ptBR })}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Valor em Destaque */}
+                    <div className="mx-3 mb-2 bg-green-500/10 rounded-lg p-2.5 flex items-center justify-center gap-2">
+                      <DollarSign className="w-5 h-5 text-green-500" />
                       <span className="text-xl font-bold text-green-500">
                         R$ {approval.payment_amount?.toFixed(2) || '0,00'}
                       </span>
                     </div>
-                  </div>
-                  
-                  {/* Seção 3: Vendedor que Indicou (se houver) */}
-                  {approval.salesperson && (
-                    <div className="px-4 py-3 bg-blue-500/10 border-t border-blue-500/20">
-                      <div className="flex items-center gap-2">
-                        <UserPlus className="w-4 h-4 text-blue-500 shrink-0" />
-                        <span className="text-sm text-foreground">
-                          Indicado por: <strong>{approval.salesperson.full_name}</strong>
-                          <span className="text-xs text-muted-foreground ml-1">
-                            ({approval.salesperson.referral_code})
-                          </span>
+                    
+                    {/* Vendedor (se houver) */}
+                    {approval.salesperson && (
+                      <div className="mx-3 mb-2 flex items-center gap-1.5 text-xs text-blue-500">
+                        <UserPlus className="w-3.5 h-3.5" />
+                        <span>
+                          Indicado por <strong>{approval.salesperson.full_name}</strong>
+                          <span className="text-muted-foreground ml-1">({approval.salesperson.referral_code})</span>
                         </span>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Seção 4: Botões Verticais */}
-                  <div className="p-4 space-y-3 border-t border-border">
-                    {/* Botão Ver Comprovante */}
-                    {approval.payment_proof_url ? (
-                      <Button
-                        variant="outline"
-                        className="w-full h-12"
-                        onClick={() => {
-                          setSelectedProofUrl(approval.payment_proof_url!);
-                          setShowProofDialog(true);
-                        }}
-                      >
-                        <Eye className="w-5 h-5 mr-2" />
-                        Ver Comprovante
-                      </Button>
-                    ) : (
-                      <div className="w-full h-12 flex items-center justify-center bg-muted/30 rounded-md text-sm text-muted-foreground">
-                        Sem comprovante anexado
                       </div>
                     )}
                     
-                    {/* Botão Aprovar */}
-                    <Button
-                      className="w-full h-12 bg-green-600 hover:bg-green-700 text-white"
-                      onClick={() => {
-                        setSelectedApproval(approval);
-                        setShowApprovalDialog(true);
-                      }}
-                      disabled={!approval.payment_proof_url}
-                    >
-                      <Check className="w-5 h-5 mr-2" />
-                      Aprovar Assinatura
-                    </Button>
-                    
-                    {/* Botão Rejeitar */}
-                    <Button
-                      variant="destructive"
-                      className="w-full h-12"
-                      onClick={() => {
-                        setSelectedApproval(approval);
-                        setShowRejectDialog(true);
-                      }}
-                    >
-                      <X className="w-5 h-5 mr-2" />
-                      Rejeitar
-                    </Button>
+                    {/* Botões Compactos */}
+                    <div className="p-3 pt-2 border-t border-border space-y-2">
+                      {/* Comprovante */}
+                      {approval.payment_proof_url ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full h-9"
+                          onClick={() => {
+                            setSelectedProofUrl(approval.payment_proof_url!);
+                            setShowProofDialog(true);
+                          }}
+                        >
+                          <Eye className="w-4 h-4 mr-1.5" />
+                          Ver Comprovante
+                        </Button>
+                      ) : (
+                        <div className="w-full h-9 flex items-center justify-center bg-muted/30 rounded-md text-xs text-muted-foreground">
+                          Sem comprovante
+                        </div>
+                      )}
+                      
+                      {/* Aprovar + Rejeitar lado a lado */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          size="sm"
+                          className="h-9 bg-green-600 hover:bg-green-700 text-white"
+                          onClick={() => {
+                            setSelectedApproval(approval);
+                            setShowApprovalDialog(true);
+                          }}
+                          disabled={!approval.payment_proof_url}
+                        >
+                          <Check className="w-4 h-4 mr-1" />
+                          Aprovar
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="h-9"
+                          onClick={() => {
+                            setSelectedApproval(approval);
+                            setShowRejectDialog(true);
+                          }}
+                        >
+                          <X className="w-4 h-4 mr-1" />
+                          Rejeitar
+                        </Button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Desktop: Table Layout */}

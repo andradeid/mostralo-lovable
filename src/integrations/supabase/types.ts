@@ -244,6 +244,36 @@ export type Database = {
           },
         ]
       }
+      admin_idea_overrides: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
+          id: string
+          idea_id: number
+          priority: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          idea_id: number
+          priority?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          idea_id?: number
+          priority?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       affiliate_earnings_resets: {
         Row: {
           affiliates_count: number

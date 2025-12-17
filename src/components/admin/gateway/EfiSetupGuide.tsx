@@ -140,19 +140,33 @@ export function EfiSetupGuide() {
               </div>
             </AccordionTrigger>
             <AccordionContent className="pl-11 space-y-3">
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 mb-3">
+                <Key className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                <div className="text-sm">
+                  <p className="font-medium text-blue-600">Credenciais são separadas por ambiente!</p>
+                  <p className="text-blue-600/80">
+                    Você precisará obter <strong>Client ID e Secret para Sandbox</strong> (aba Homologação) 
+                    e <strong>Client ID e Secret para Produção</strong> (aba Produção) separadamente.
+                  </p>
+                </div>
+              </div>
+
               <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
                 <li>Na lista de aplicações, clique na aplicação que você criou</li>
-                <li>Clique em <strong>"Visualizar credenciais"</strong></li>
                 <li>
-                  Copie o <strong>Client ID</strong>:
+                  <strong>Para credenciais de Sandbox:</strong>
                   <ul className="list-disc list-inside ml-4 mt-1">
-                    <li>Formato: <code className="bg-muted px-1 rounded">Client_Id_xxxxxxxx...</code></li>
+                    <li>Clique na aba <strong>"Homologação"</strong></li>
+                    <li>Clique em <strong>"Visualizar credenciais"</strong></li>
+                    <li>Copie o Client ID e Client Secret de Sandbox</li>
                   </ul>
                 </li>
                 <li>
-                  Copie o <strong>Client Secret</strong>:
+                  <strong>Para credenciais de Produção:</strong>
                   <ul className="list-disc list-inside ml-4 mt-1">
-                    <li>Formato: <code className="bg-muted px-1 rounded">Client_Secret_xxxxxxxx...</code></li>
+                    <li>Clique na aba <strong>"Produção"</strong></li>
+                    <li>Clique em <strong>"Visualizar credenciais"</strong></li>
+                    <li>Copie o Client ID e Client Secret de Produção</li>
                   </ul>
                 </li>
               </ol>

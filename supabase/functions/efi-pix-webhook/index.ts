@@ -114,6 +114,27 @@ serve(async (req) => {
           .eq('id', approval.user_id);
 
         console.log(`🏪 Loja ${approval.store_id} ativada automaticamente`);
+
+        // Criar invoice para registro financeiro
+        const { error: invoiceError } = await supabase
+          .from('subscription_invoices')
+          .insert({
+            store_id: approval.store_id,
+            plan_id: approval.plan_id,
+            amount: approval.payment_amount,
+            due_date: new Date().toISOString(),
+            paid_at: new Date().toISOString(),
+            payment_status: 'paid',
+            payment_method: 'pix',
+            notes: `Pagamento PIX confirmado automaticamente - EndToEndId: ${endToEndId}`,
+            approved_at: new Date().toISOString(),
+          });
+
+        if (invoiceError) {
+          console.error(`⚠️ Erro ao criar invoice:`, invoiceError);
+        } else {
+          console.log(`📄 Invoice criada para loja ${approval.store_id}`);
+        }
       }
 
       processedEvents.push({ txid, status: 'success' });

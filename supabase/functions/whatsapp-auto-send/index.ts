@@ -21,45 +21,6 @@ function normalizePhoneForWhatsApp(phone: string): string {
   return normalized;
 }
 
-// ========== PRÉ-AQUECIMENTO DE CACHE PARA RICH PREVIEWS ==========
-// Extrai URLs da mensagem para pré-aquecer cache antes do envio
-function extractUrls(text: string): string[] {
-  const urlRegex = /https?:\/\/[^\s]+/gi;
-  const matches = text.match(urlRegex);
-  return matches ? [...new Set(matches)] : []; // Remove duplicatas
-}
-
-// Pré-aquece cache fazendo requisição simulando crawler do WhatsApp
-async function prewarmLinkPreviewCache(urls: string[]): Promise<void> {
-  if (urls.length === 0) return;
-  
-  console.log(`[whatsapp-auto-send] Pré-aquecendo cache para ${urls.length} link(s):`, urls);
-  
-  const prewarmPromises = urls.map(async (url) => {
-    try {
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'User-Agent': 'WhatsApp/2.23.20.76 A',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
-        },
-        // Timeout de 3 segundos para não atrasar muito o envio
-        signal: AbortSignal.timeout(3000),
-      });
-      
-      console.log(`[whatsapp-auto-send] Cache pré-aquecido para ${url}: ${response.status}`);
-    } catch (error: unknown) {
-      // Ignora erros - o pré-aquecimento é best-effort
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      console.log(`[whatsapp-auto-send] Erro ao pré-aquecer ${url}:`, errorMsg);
-    }
-  });
-  
-  // Aguarda todas as requisições (com timeout individual de 3s cada)
-  await Promise.allSettled(prewarmPromises);
-}
-
 // ========== SAUDAÇÃO POR HORÁRIO (fallback se não receber contexto) ==========
 function getGreetingByTime(timezone: string = 'America/Sao_Paulo'): string {
   try {
@@ -451,20 +412,12 @@ serve(async (req) => {
 
     const formattedPhone = normalizePhoneForWhatsApp(targetPhone);
 
-    // ========== PRÉ-AQUECIMENTO DE CACHE PARA RICH PREVIEWS ==========
-    // Extrai URLs da mensagem e faz requisições simulando crawler do WhatsApp
-    // Isso força a geração do HTML com Open Graph tags antes do WhatsApp buscar
-    const urlsInMessage = extractUrls(finalMessage);
-    if (urlsInMessage.length > 0) {
-      await prewarmLinkPreviewCache(urlsInMessage);
-    }
-
     // Enviar via Evolution API
     const endpoint = `${evolutionConfig.api_url}/message/sendText/${instance.instance_name}`;
     const payload = {
       number: formattedPhone,
       text: finalMessage,
-      linkPreview: true  // Força geração de rich preview no WhatsApp
+      linkPreview: false  // Desabilitado para evitar preview com imagem errada
     };
 
     console.log(`[whatsapp-auto-send] Enviando para: ${formattedPhone}`);

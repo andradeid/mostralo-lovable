@@ -8,17 +8,21 @@ const corsHeaders = {
 
 // Parse PEM content
 function parsePemContent(pemContent: string): { certificate: string; privateKey: string } {
-  const certMatch = pemContent.match(
-    /-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/
-  );
-  const keyMatch = pemContent.match(
-    /-----BEGIN (?:RSA )?PRIVATE KEY-----[\s\S]*?-----END (?:RSA )?PRIVATE KEY-----/
-  );
+  const cleanPem = pemContent.trim();
 
-  return {
-    certificate: certMatch ? certMatch[0] : '',
-    privateKey: keyMatch ? keyMatch[0] : '',
-  };
+  // Extrair TODOS os certificados (cadeia completa), se houver
+  const certMatches = cleanPem.match(
+    /-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g,
+  );
+  const certificate = certMatches ? certMatches.join('\n') : '';
+
+  // Extrair chave privada (pode ser PRIVATE KEY ou RSA PRIVATE KEY)
+  const keyMatch = cleanPem.match(
+    /-----BEGIN (?:RSA )?PRIVATE KEY-----[\s\S]*?-----END (?:RSA )?PRIVATE KEY-----/,
+  );
+  const privateKey = keyMatch ? keyMatch[0] : '';
+
+  return { certificate, privateKey };
 }
 
 serve(async (req) => {
@@ -51,104 +55,119 @@ serve(async (req) => {
       throw new Error('Configuração do gateway não encontrada');
     }
 
-    const { 
-      efi_client_id, 
-      efi_client_secret, 
-      efi_certificate_pem, 
-      efi_environment 
-    } = config;
+    // Selecionar credenciais corretas conforme ambiente (igual às outras funções EFI)
+    const environment = config.efi_environment || 'sandbox';
+    const isProd = environment === 'production';
 
-    if (!efi_client_id || !efi_client_secret || !efi_certificate_pem) {
+    const clientId = isProd ? config.efi_client_id_production : config.efi_client_id;
+    const clientSecret = isProd ? config.efi_client_secret_production : config.efi_client_secret;
+    const certificatePem = isProd
+      ? config.efi_certificate_pem_production
+      : config.efi_certificate_pem;
+
+    if (!clientId || !clientSecret || !certificatePem) {
       throw new Error('Credenciais EFI não configuradas');
     }
 
-    const { certificate, privateKey } = parsePemContent(efi_certificate_pem);
+    console.log(`📡 Ambiente EFI: ${environment}`);
+
+    const { certificate, privateKey } = parsePemContent(certificatePem);
 
     if (!certificate || !privateKey) {
       throw new Error('Certificado PEM inválido');
     }
 
-    // Determine API URLs based on environment
-    const authUrl = efi_environment === 'production'
-      ? 'https://pix.api.efipay.com.br/oauth/token'
-      : 'https://pix-h.api.efipay.com.br/oauth/token';
+    // URLs conforme ambiente
+    const baseUrl = isProd
+      ? 'https://pix.api.efipay.com.br'
+      : 'https://pix-h.api.efipay.com.br';
 
-    const pixUrl = efi_environment === 'production'
-      ? `https://pix.api.efipay.com.br/v2/cob/${txid}`
-      : `https://pix-h.api.efipay.com.br/v2/cob/${txid}`;
+    const authUrl = `${baseUrl}/oauth/token`;
+    const pixUrl = `${baseUrl}/v2/cob/${txid}`;
 
-    // Authenticate with EFI
-    const credentials = btoa(`${efi_client_id}:${efi_client_secret}`);
+    // Criar cliente mTLS (obrigatório para /oauth/token e rotas do PIX)
+    let httpClient: Deno.HttpClient | null = null;
 
-    const authResponse = await fetch(authUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${credentials}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ grant_type: 'client_credentials' }),
-      // @ts-ignore - Deno supports client certificate
-      cert: certificate,
-      key: privateKey,
-    });
+    try {
+      httpClient = Deno.createHttpClient({
+        cert: certificate,
+        key: privateKey,
+        http2: false,
+      });
 
-    if (!authResponse.ok) {
-      const errorText = await authResponse.text();
-      throw new Error(`Erro na autenticação EFI: ${errorText}`);
-    }
+      // Authenticate with EFI
+      const credentials = btoa(`${clientId}:${clientSecret}`);
 
-    const authData = await authResponse.json();
-    const accessToken = authData.access_token;
+      const authResponse = await fetch(authUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${credentials}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ grant_type: 'client_credentials' }),
+        client: httpClient,
+      });
 
-    // Get PIX charge status
-    const pixResponse = await fetch(pixUrl, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      // @ts-ignore - Deno supports client certificate
-      cert: certificate,
-      key: privateKey,
-    });
-
-    if (!pixResponse.ok) {
-      const errorText = await pixResponse.text();
-      throw new Error(`Erro ao consultar PIX: ${errorText}`);
-    }
-
-    const pixData = await pixResponse.json();
-
-    console.log('📊 Status do PIX:', pixData.status);
-    console.log('📋 Dados completos:', JSON.stringify(pixData, null, 2));
-
-    // Map EFI status to our system status
-    let systemStatus = 'pending';
-    if (pixData.status === 'CONCLUIDA') {
-      systemStatus = 'paid';
-    } else if (pixData.status === 'REMOVIDA_PELO_USUARIO_RECEBEDOR' || 
-               pixData.status === 'REMOVIDA_PELO_PSP') {
-      systemStatus = 'cancelled';
-    } else if (pixData.status === 'ATIVA') {
-      systemStatus = 'pending';
-    }
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        txid: pixData.txid,
-        status: pixData.status,
-        systemStatus,
-        valor: pixData.valor?.original,
-        pix: pixData.pix || null, // Contains payment details when paid
-        criacao: pixData.calendario?.criacao,
-        expiracao: pixData.calendario?.expiracao,
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
+      if (!authResponse.ok) {
+        const errorText = await authResponse.text();
+        throw new Error(`Erro na autenticação EFI: ${errorText}`);
       }
-    );
+
+      const authData = await authResponse.json();
+      const accessToken = authData.access_token;
+
+      // Get PIX charge status
+      const pixResponse = await fetch(pixUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        client: httpClient,
+      });
+
+      if (!pixResponse.ok) {
+        const errorText = await pixResponse.text();
+        throw new Error(`Erro ao consultar PIX: ${errorText}`);
+      }
+
+      const pixData = await pixResponse.json();
+
+      console.log('📊 Status do PIX:', pixData.status);
+      console.log('📋 Dados completos:', JSON.stringify(pixData, null, 2));
+
+      // Map EFI status to our system status
+      let systemStatus = 'pending';
+      if (pixData.status === 'CONCLUIDA') {
+        systemStatus = 'paid';
+      } else if (
+        pixData.status === 'REMOVIDA_PELO_USUARIO_RECEBEDOR' ||
+        pixData.status === 'REMOVIDA_PELO_PSP'
+      ) {
+        systemStatus = 'cancelled';
+      } else if (pixData.status === 'ATIVA') {
+        systemStatus = 'pending';
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          txid: pixData.txid,
+          status: pixData.status,
+          systemStatus,
+          valor: pixData.valor?.original,
+          pix: pixData.pix || null, // Contains payment details when paid
+          criacao: pixData.calendario?.criacao,
+          expiracao: pixData.calendario?.expiracao,
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        },
+      );
+    } finally {
+      httpClient?.close();
+    }
   } catch (error: any) {
     console.error('❌ Erro ao verificar status:', error);
     return new Response(
@@ -159,7 +178,7 @@ serve(async (req) => {
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
-      }
+      },
     );
   }
 });

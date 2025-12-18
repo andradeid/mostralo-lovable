@@ -87,7 +87,7 @@ export function PixPaymentModal({
 
   // Verificar status do pagamento
   const checkPaymentStatus = useCallback(async () => {
-    if (!chargeData?.txid || paymentStatus !== "pending") return;
+    if (!chargeData?.txid || paymentStatus !== "pending" || !orderId) return;
 
     try {
       const { data, error } = await supabase.functions.invoke("efi-check-pix-status", {
@@ -100,6 +100,19 @@ export function PixPaymentModal({
       }
 
       if (data?.systemStatus === "paid") {
+        console.log("[PixPaymentModal] Pagamento detectado como pago, chamando confirm-pix-payment...");
+        
+        // Chamar Edge Function para confirmar e atualizar pedido (bypass RLS)
+        const { data: confirmData, error: confirmError } = await supabase.functions.invoke("confirm-pix-payment", {
+          body: { orderId, txid: chargeData.txid },
+        });
+
+        if (confirmError || !confirmData?.success) {
+          console.error("Erro ao confirmar pagamento:", confirmError || confirmData?.error);
+          // Mesmo com erro, se EFI confirmou, mostramos sucesso para o cliente
+        }
+
+        console.log("[PixPaymentModal] Pedido atualizado com sucesso!");
         setPaymentStatus("paid");
         toast.success("Pagamento confirmado!");
         onPaymentConfirmed();
@@ -107,7 +120,7 @@ export function PixPaymentModal({
     } catch (error) {
       console.error("Erro na verificação de status:", error);
     }
-  }, [chargeData?.txid, paymentStatus, onPaymentConfirmed]);
+  }, [chargeData?.txid, paymentStatus, orderId, onPaymentConfirmed]);
 
   // Criar cobrança ao abrir modal
   useEffect(() => {

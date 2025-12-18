@@ -449,37 +449,25 @@ export default function Checkout() {
     }
   };
   
-  // Handler quando pagamento PIX é confirmado
-  const handlePixPaymentConfirmed = async () => {
-    if (!pendingOrderId) return;
+  // Handler quando pagamento PIX é confirmado (Edge Function já atualizou o pedido)
+  const handlePixPaymentConfirmed = () => {
+    // Limpar dados (Edge Function já atualizou status do pedido via service_role)
+    clearCart();
+    sessionStorage.removeItem('checkoutStoreId');
+    sessionStorage.removeItem('checkoutDeliveryFee');
+    sessionStorage.removeItem('checkoutPrimaryColor');
+    sessionStorage.removeItem('checkoutSecondaryColor');
+    sessionStorage.removeItem('checkoutStoreName');
+    sessionStorage.removeItem('checkoutStoreSlug');
     
-    try {
-      // Atualizar pedido para 'entrada' (o webhook já marcou como pago)
-      await supabase
-        .from('orders')
-        .update({ status: 'entrada' })
-        .eq('id', pendingOrderId);
-      
-      // Limpar dados
-      clearCart();
-      sessionStorage.removeItem('checkoutStoreId');
-      sessionStorage.removeItem('checkoutDeliveryFee');
-      sessionStorage.removeItem('checkoutPrimaryColor');
-      sessionStorage.removeItem('checkoutSecondaryColor');
-      sessionStorage.removeItem('checkoutStoreName');
-      sessionStorage.removeItem('checkoutStoreSlug');
-      
-      setShowPixModal(false);
-      toast.success('Pagamento confirmado! Pedido enviado.');
-      
-      // Redirecionar
-      if (storeSlug) {
-        window.location.href = `/painel-cliente/${storeSlug}`;
-      } else {
-        window.location.href = '/';
-      }
-    } catch (error) {
-      console.error('Erro ao finalizar pedido:', error);
+    setShowPixModal(false);
+    toast.success('Pagamento confirmado! Pedido enviado.');
+    
+    // Redirecionar
+    if (storeSlug) {
+      window.location.href = `/painel-cliente/${storeSlug}`;
+    } else {
+      window.location.href = '/';
     }
   };
   

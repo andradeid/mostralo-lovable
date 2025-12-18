@@ -339,14 +339,25 @@ serve(async (req) => {
         client: httpClient,
       });
 
-      const vinculoData = await vinculoResponse.json();
-      console.log('📥 Resposta vínculo:', JSON.stringify(vinculoData, null, 2));
+      // EFI API pode retornar 204 No Content para vinculação bem-sucedida
+      let vinculoData = null;
+      const vinculoText = await vinculoResponse.text();
+      if (vinculoText && vinculoText.trim()) {
+        try {
+          vinculoData = JSON.parse(vinculoText);
+          console.log('📥 Resposta vínculo:', JSON.stringify(vinculoData, null, 2));
+        } catch {
+          console.log('📥 Resposta vínculo (texto):', vinculoText);
+        }
+      } else {
+        console.log('📥 Resposta vínculo: (vazio - 204 No Content)');
+      }
 
       if (vinculoResponse.ok) {
         splitApplied = true;
         console.log('✅ Split vinculado com sucesso!');
       } else {
-        console.log('⚠️ Falha ao vincular split:', vinculoData);
+        console.log('⚠️ Falha ao vincular split:', vinculoData || vinculoText);
         console.log('⚠️ A cobrança foi criada, mas sem split');
       }
     } else {

@@ -57,6 +57,7 @@ interface FormData {
   online_debit_enabled: boolean;
   online_boleto_enabled: boolean;
   online_cash_enabled: boolean;
+  efi_pix_enabled: boolean;
   // Mercado Pago
   mp_sandbox_mode: string;
   mp_public_key: string;
@@ -189,6 +190,7 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
       stripe_test_mode: store.payment_gateways?.stripe?.test_mode || 'nao',
       stripe_publishable_key: store.payment_gateways?.stripe?.publishable_key || '',
       stripe_secret_key: store.payment_gateways?.stripe?.secret_key || '',
+      efi_pix_enabled: store.efi_pix_enabled ?? false,
       
       // Delivery
       address: store.address || '',
@@ -396,6 +398,7 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
         custom_domain: formData.custom_domain,
         custom_domain_verified: formData.custom_domain_verified,
         custom_domain_requested_at: formData.custom_domain_requested_at,
+        efi_pix_enabled: formData.efi_pix_enabled,
         // JSON com opções adicionais de funcionamento/entrega
         delivery_config: {
           send_whatsapp_copy: formData.send_whatsapp_copy,
@@ -597,9 +600,13 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
               </div>
             </TabsContent>
 
-            {/* Payment Tab */}
             <TabsContent value="payment" className="space-y-4 mt-6">
-              <PaymentStep formData={formData} updateFormData={updateFormData} />
+              <PaymentStep 
+                formData={formData} 
+                updateFormData={updateFormData}
+                efiAccountStatus={store.efi_account_status}
+                efiAccountNumber={store.efi_account_number}
+              />
               <div className="flex justify-end gap-2 pt-4 border-t">
                 <Button 
                   onClick={() => handleSaveSection('payment')}

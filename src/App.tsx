@@ -79,6 +79,7 @@ import AcceptInvitation from './pages/AcceptInvitation';
 import AvailableDriversPage from './pages/admin/AvailableDriversPage';
 import AttendantsPage from './pages/admin/AttendantsPage';
 import IntegrationsPage from './pages/admin/IntegrationsPage';
+import IFoodIntegrationPage from './pages/admin/integrations/IFoodIntegrationPage';
 import IframePage from './pages/admin/IframePage';
 import GoalsPage from './pages/admin/GoalsPage';
 import SalesPromptsPage from './pages/admin/SalesPromptsPage';
@@ -510,6 +511,11 @@ const App = () => (
             <Route path="/dashboard/integrations" element={
               <ProtectedRoute allowedRoles={['store_admin']}>
                 <AdminLayout><IntegrationsPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/integrations/ifood" element={
+              <ProtectedRoute allowedRoles={['store_admin']}>
+                <AdminLayout pageTitle="Integração iFood"><IFoodIntegrationPage /></AdminLayout>
               </ProtectedRoute>
             } />
             <Route path="/dashboard/iframe/:id" element={

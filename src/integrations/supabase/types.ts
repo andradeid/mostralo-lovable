@@ -1377,6 +1377,129 @@ export type Database = {
         }
         Relationships: []
       }
+      ifood_events_log: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          event_code: string | null
+          event_id: string
+          event_type: string
+          id: string
+          order_id: string | null
+          payload: Json | null
+          processed: boolean | null
+          processed_at: string | null
+          store_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          event_code?: string | null
+          event_id: string
+          event_type: string
+          id?: string
+          order_id?: string | null
+          payload?: Json | null
+          processed?: boolean | null
+          processed_at?: string | null
+          store_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          event_code?: string | null
+          event_id?: string
+          event_type?: string
+          id?: string
+          order_id?: string | null
+          payload?: Json | null
+          processed?: boolean | null
+          processed_at?: string | null
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ifood_events_log_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ifood_events_log_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ifood_integrations: {
+        Row: {
+          access_token: string | null
+          client_id: string | null
+          client_secret: string | null
+          created_at: string
+          environment: string | null
+          id: string
+          is_active: boolean | null
+          last_sync_at: string | null
+          merchant_id: string | null
+          refresh_token: string | null
+          store_id: string
+          token_expires_at: string | null
+          updated_at: string
+          webhook_secret: string | null
+        }
+        Insert: {
+          access_token?: string | null
+          client_id?: string | null
+          client_secret?: string | null
+          created_at?: string
+          environment?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          merchant_id?: string | null
+          refresh_token?: string | null
+          store_id: string
+          token_expires_at?: string | null
+          updated_at?: string
+          webhook_secret?: string | null
+        }
+        Update: {
+          access_token?: string | null
+          client_id?: string | null
+          client_secret?: string | null
+          created_at?: string
+          environment?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          merchant_id?: string | null
+          refresh_token?: string | null
+          store_id?: string
+          token_expires_at?: string | null
+          updated_at?: string
+          webhook_secret?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ifood_integrations_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ifood_integrations_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_follow_up_reminders: {
         Row: {
           created_at: string | null
@@ -1901,6 +2024,8 @@ export type Database = {
           delivery_fee: number
           delivery_type: Database["public"]["Enums"]["delivery_type"]
           estimated_delivery_minutes: number | null
+          external_data: Json | null
+          external_id: string | null
           id: string
           is_outside_delivery_zone: boolean | null
           notes: string | null
@@ -1913,6 +2038,7 @@ export type Database = {
           promotion_id: string | null
           requires_zone_approval: boolean | null
           scheduled_for: string | null
+          source: string | null
           status: Database["public"]["Enums"]["order_status"]
           store_id: string
           subtotal: number
@@ -1933,6 +2059,8 @@ export type Database = {
           delivery_fee?: number
           delivery_type?: Database["public"]["Enums"]["delivery_type"]
           estimated_delivery_minutes?: number | null
+          external_data?: Json | null
+          external_id?: string | null
           id?: string
           is_outside_delivery_zone?: boolean | null
           notes?: string | null
@@ -1945,6 +2073,7 @@ export type Database = {
           promotion_id?: string | null
           requires_zone_approval?: boolean | null
           scheduled_for?: string | null
+          source?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           store_id: string
           subtotal?: number
@@ -1965,6 +2094,8 @@ export type Database = {
           delivery_fee?: number
           delivery_type?: Database["public"]["Enums"]["delivery_type"]
           estimated_delivery_minutes?: number | null
+          external_data?: Json | null
+          external_id?: string | null
           id?: string
           is_outside_delivery_zone?: boolean | null
           notes?: string | null
@@ -1977,6 +2108,7 @@ export type Database = {
           promotion_id?: string | null
           requires_zone_approval?: boolean | null
           scheduled_for?: string | null
+          source?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           store_id?: string
           subtotal?: number

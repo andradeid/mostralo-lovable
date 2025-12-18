@@ -508,6 +508,7 @@ export function AdminSidebar() {
       if (hasModule('integrations')) {
         menuItems.push(
           { title: 'Gerenciar Integrações', url: '/dashboard/integrations', icon: ExternalLink, group: 'Integrações' },
+          { title: 'iFood', url: '/dashboard/integrations/ifood', icon: Package, group: 'Integrações' },
           ...customMenus.map(menu => ({
             title: menu.title,
             url: `/dashboard/iframe/${menu.id}`,

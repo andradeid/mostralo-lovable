@@ -136,7 +136,7 @@ serve(async (req: Request) => {
       },
       body: JSON.stringify({
         grant_type: "client_credentials",
-        scope: "gn.registration.webhook.write gn.registration.webhook.read"
+        scope: "gn.registration.webhook.write"
       }),
     });
 
@@ -152,9 +152,41 @@ serve(async (req: Request) => {
       );
     }
 
-    const tokenData = await tokenResponse.json();
+    const tokenData = await tokenResponse.json() as {
+      access_token?: string;
+      scope?: string;
+      token_type?: string;
+      expires_in?: number;
+    };
+
     const accessToken = tokenData.access_token;
-    console.log("✅ Token obtido");
+    const grantedScope = typeof tokenData.scope === 'string' ? tokenData.scope : '';
+
+    console.log("✅ Token obtido. Escopos:", grantedScope || "(não informado)");
+
+    if (!accessToken) {
+      return new Response(
+        JSON.stringify({
+          error: "Erro de autenticação com EFI (token ausente)",
+          details: tokenData
+        }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!grantedScope.includes('gn.registration.webhook.write')) {
+      return new Response(
+        JSON.stringify({
+          error: "A aplicação EFI não tem permissão para configurar webhook de cadastro",
+          details: {
+            required_scope: "gn.registration.webhook.write",
+            granted_scope: grantedScope || null,
+            hint: "No painel da Efí, habilite o escopo gn.registration.webhook.write (produção/homologação) e solicite a liberação dessa API."
+          }
+        }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // URL do webhook de contas
     const webhookUrl = `${supabaseUrl}/functions/v1/efi-account-webhook`;

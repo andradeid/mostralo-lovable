@@ -9,6 +9,8 @@ const corsHeaders = {
 interface ValidateRequest {
   store_id: string;
   efi_account_number: string;
+  efi_document_type?: 'cpf' | 'cnpj';
+  efi_document_number?: string;
 }
 
 serve(async (req) => {
@@ -21,11 +23,13 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { store_id, efi_account_number }: ValidateRequest = await req.json();
+    const { store_id, efi_account_number, efi_document_type, efi_document_number }: ValidateRequest = await req.json();
 
     console.log('🔍 Validando conta EFI...');
     console.log(`📦 Store ID: ${store_id}`);
     console.log(`🏦 Conta EFI: ${efi_account_number}`);
+    console.log(`📄 Tipo Documento: ${efi_document_type || 'não informado'}`);
+    console.log(`📄 Documento: ${efi_document_number ? efi_document_number.substring(0, 3) + '***' : 'não informado'}`);
 
     // Validar formato do número da conta (6-10 dígitos)
     const accountNumberClean = efi_account_number.replace(/\D/g, '');
@@ -37,6 +41,21 @@ serve(async (req) => {
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
+    }
+
+    // Validar documento se informado
+    if (efi_document_number) {
+      const docClean = efi_document_number.replace(/\D/g, '');
+      const expectedLength = efi_document_type === 'cpf' ? 11 : 14;
+      if (docClean.length !== expectedLength) {
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: `${(efi_document_type || 'documento').toUpperCase()} inválido. Deve ter ${expectedLength} dígitos.` 
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
     }
 
     // Buscar dados da loja
@@ -54,31 +73,29 @@ serve(async (req) => {
       );
     }
 
-    // Buscar CPF do responsável
-    const document = store.responsible_cpf;
-    const documentType = 'CPF';
+    // Usar documento informado ou fallback para responsible_cpf
+    const document = efi_document_number?.replace(/\D/g, '') || store.responsible_cpf;
+    const documentType = efi_document_type || (document && document.length === 11 ? 'cpf' : 'cnpj');
     
     if (!document) {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: 'CPF/CNPJ da loja não cadastrado. Atualize os dados da loja primeiro.' 
+          error: 'CPF/CNPJ não informado. Preencha o documento do titular da conta EFI.' 
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
 
-    console.log(`📋 Documento: ${document.substring(0, 3)}***`);
+    console.log(`📋 Documento final: ${document.substring(0, 3)}*** (${documentType})`);
 
-    // Por enquanto, não validaremos com a API EFI porque o split 
-    // não exige validação prévia - a EFI valida no momento do pagamento.
-    // Apenas salvaremos o número da conta.
-
-    // Atualizar a loja com o número da conta EFI
+    // Atualizar a loja com os dados da conta EFI
     const { error: updateError } = await supabase
       .from('stores')
       .update({ 
         efi_account_number: accountNumberClean,
+        efi_document_type: documentType,
+        efi_document_number: document,
         efi_account_status: 'active',
         wants_online_payment: true
       })
@@ -100,7 +117,7 @@ serve(async (req) => {
         message: 'Conta EFI vinculada com sucesso!',
         account_number: accountNumberClean,
         store_name: store.name,
-        document_type: documentType
+        document_type: documentType.toUpperCase()
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

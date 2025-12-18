@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Switch } from "@/components/ui/switch";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useStoreAccess } from "@/hooks/useStoreAccess";
@@ -26,7 +27,9 @@ import {
   Copy,
   Link2,
   QrCode,
-  TestTube2
+  TestTube2,
+  Building2,
+  User
 } from 'lucide-react';
 
 interface StoreEfiData {
@@ -34,6 +37,8 @@ interface StoreEfiData {
   efi_account_status: string | null;
   efi_account_id: string | null;
   efi_account_number: string | null;
+  efi_document_type: string | null;
+  efi_document_number: string | null;
   company_name: string | null;
 }
 
@@ -49,6 +54,8 @@ export default function StoreOnlinePaymentPage() {
   
   // Form state
   const [efiAccountNumber, setEfiAccountNumber] = useState("");
+  const [efiDocumentType, setEfiDocumentType] = useState<'cpf' | 'cnpj'>('cpf');
+  const [efiDocumentNumber, setEfiDocumentNumber] = useState("");
   
   // PIX Test state
   const [testValue, setTestValue] = useState("1.00");
@@ -78,6 +85,8 @@ export default function StoreOnlinePaymentPage() {
           efi_account_status,
           efi_account_id,
           efi_account_number,
+          efi_document_type,
+          efi_document_number,
           name
         `)
         .eq('id', storeId)
@@ -90,11 +99,19 @@ export default function StoreOnlinePaymentPage() {
         efi_account_status: data.efi_account_status,
         efi_account_id: data.efi_account_id,
         efi_account_number: data.efi_account_number,
+        efi_document_type: data.efi_document_type,
+        efi_document_number: data.efi_document_number,
         company_name: data.name,
       });
       
       if (data.efi_account_number) {
         setEfiAccountNumber(data.efi_account_number);
+      }
+      if (data.efi_document_type) {
+        setEfiDocumentType(data.efi_document_type as 'cpf' | 'cnpj');
+      }
+      if (data.efi_document_number) {
+        setEfiDocumentNumber(data.efi_document_number);
       }
     } catch (error) {
       console.error('Erro ao buscar dados da loja:', error);
@@ -118,14 +135,47 @@ export default function StoreOnlinePaymentPage() {
     return value.replace(/\D/g, '').slice(0, 10);
   };
 
+  const formatCPF = (value: string) => {
+    const cleaned = value.replace(/\D/g, '').slice(0, 11);
+    return cleaned
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  };
+
+  const formatCNPJ = (value: string) => {
+    const cleaned = value.replace(/\D/g, '').slice(0, 14);
+    return cleaned
+      .replace(/(\d{2})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1/$2')
+      .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+  };
+
+  const formatDocument = (value: string) => {
+    return efiDocumentType === 'cpf' ? formatCPF(value) : formatCNPJ(value);
+  };
+
   const handleLinkAccount = async () => {
     if (!storeId) return;
     
-    const cleanNumber = efiAccountNumber.replace(/\D/g, '');
-    if (cleanNumber.length < 6) {
+    const cleanAccountNumber = efiAccountNumber.replace(/\D/g, '');
+    const cleanDocNumber = efiDocumentNumber.replace(/\D/g, '');
+    
+    if (cleanAccountNumber.length < 6) {
       toast({
-        title: "Número inválido",
+        title: "Número da conta inválido",
         description: "O número da conta deve ter pelo menos 6 dígitos.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const expectedDocLength = efiDocumentType === 'cpf' ? 11 : 14;
+    if (cleanDocNumber.length !== expectedDocLength) {
+      toast({
+        title: `${efiDocumentType.toUpperCase()} inválido`,
+        description: `O ${efiDocumentType.toUpperCase()} deve ter ${expectedDocLength} dígitos.`,
         variant: "destructive",
       });
       return;
@@ -136,7 +186,9 @@ export default function StoreOnlinePaymentPage() {
       const { data, error } = await supabase.functions.invoke('validate-efi-account', {
         body: { 
           store_id: storeId,
-          efi_account_number: cleanNumber
+          efi_account_number: cleanAccountNumber,
+          efi_document_type: efiDocumentType,
+          efi_document_number: cleanDocNumber
         }
       });
 
@@ -732,6 +784,52 @@ export default function StoreOnlinePaymentPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Tipo de documento */}
+          <div className="space-y-3">
+            <Label>Tipo de Documento do Titular *</Label>
+            <RadioGroup 
+              value={efiDocumentType} 
+              onValueChange={(v) => {
+                setEfiDocumentType(v as 'cpf' | 'cnpj');
+                setEfiDocumentNumber('');
+              }}
+              className="flex gap-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="cpf" id="cpf" />
+                <Label htmlFor="cpf" className="flex items-center gap-1 cursor-pointer font-normal">
+                  <User className="h-4 w-4" /> CPF (Pessoa Física)
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="cnpj" id="cnpj" />
+                <Label htmlFor="cnpj" className="flex items-center gap-1 cursor-pointer font-normal">
+                  <Building2 className="h-4 w-4" /> CNPJ (Empresa)
+                </Label>
+              </div>
+            </RadioGroup>
+            <p className="text-xs text-muted-foreground">
+              Use o mesmo tipo de documento que você cadastrou na conta EFI
+            </p>
+          </div>
+
+          {/* Número do documento */}
+          <div className="space-y-2">
+            <Label htmlFor="efiDocument">{efiDocumentType.toUpperCase()} do Titular *</Label>
+            <Input
+              id="efiDocument"
+              value={efiDocumentNumber}
+              onChange={(e) => setEfiDocumentNumber(formatDocument(e.target.value))}
+              placeholder={efiDocumentType === 'cpf' ? '000.000.000-00' : '00.000.000/0000-00'}
+              maxLength={efiDocumentType === 'cpf' ? 14 : 18}
+              className="font-mono"
+            />
+            <p className="text-xs text-muted-foreground">
+              O documento deve ser o mesmo cadastrado como titular da conta EFI
+            </p>
+          </div>
+
+          {/* Número da conta */}
           <div className="space-y-2">
             <Label htmlFor="efiAccount">Número da Conta EFI *</Label>
             <Input
@@ -747,9 +845,17 @@ export default function StoreOnlinePaymentPage() {
             </p>
           </div>
 
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription className="text-sm">
+              <strong>Importante:</strong> O CPF ou CNPJ informado deve ser exatamente o mesmo cadastrado 
+              na sua conta EFI. Isso garante que o split de pagamento funcione corretamente.
+            </AlertDescription>
+          </Alert>
+
           <Button
             onClick={handleLinkAccount}
-            disabled={saving || efiAccountNumber.length < 6}
+            disabled={saving || efiAccountNumber.length < 6 || efiDocumentNumber.replace(/\D/g, '').length < (efiDocumentType === 'cpf' ? 11 : 14)}
             className="w-full"
             size="lg"
           >

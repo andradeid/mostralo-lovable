@@ -162,7 +162,7 @@ serve(async (req) => {
       // Buscar dados da loja
       const { data: store, error: storeError } = await supabase
         .from('stores')
-        .select('efi_account_number, online_payment_commission, owner_id, name, responsible_cpf')
+        .select('efi_account_number, efi_document_type, efi_document_number, online_payment_commission, owner_id, name, responsible_cpf')
         .eq('id', store_id)
         .single();
 
@@ -177,27 +177,34 @@ serve(async (req) => {
 
       storeData = store;
 
+      // Determinar documento a usar (novo campo ou fallback para responsible_cpf)
+      const documentNumber = store.efi_document_number || store.responsible_cpf;
+      const documentType = store.efi_document_type || 
+        (documentNumber && cleanDocument(documentNumber).length === 11 ? 'cpf' : 'cnpj');
+
       if (!store.efi_account_number) {
         console.log('⚠️ Loja não tem conta EFI vinculada - prosseguindo sem split');
-      } else if (!store.responsible_cpf) {
-        console.log('⚠️ CPF do responsável não cadastrado - prosseguindo sem split');
+      } else if (!documentNumber) {
+        console.log('⚠️ Documento do titular não cadastrado - prosseguindo sem split');
       } else {
-        // Calcular comissões
+        // Calcular comissões - CORREÇÃO: não subtrair taxa EFI do percentual
+        // A taxa EFI (1.19%) é descontada do valor recebido, não do percentual
         const commissionPercent = store.online_payment_commission ?? 7;
-        const merchantPercent = (100 - commissionPercent - 1.19).toFixed(2);
+        const merchantPercent = (100 - commissionPercent).toFixed(2);
 
         console.log(`💼 Comissão Mostralo: ${commissionPercent}%`);
         console.log(`🏪 Valor líquido lojista: ${merchantPercent}%`);
         console.log(`🏦 Conta EFI lojista: ${store.efi_account_number}`);
-        console.log(`📄 CPF responsável: ${store.responsible_cpf}`);
+        console.log(`📄 Tipo documento: ${documentType}`);
+        console.log(`📄 Documento: ${documentNumber}`);
 
-        // Preparar favorecido
-        const cleanDoc = cleanDocument(store.responsible_cpf);
+        // Preparar favorecido com tipo de documento correto
+        const cleanDoc = cleanDocument(documentNumber);
         const favorecido: any = {
           conta: store.efi_account_number
         };
         
-        if (cleanDoc.length === 11) {
+        if (documentType === 'cpf') {
           favorecido.cpf = cleanDoc;
         } else {
           favorecido.cnpj = cleanDoc;

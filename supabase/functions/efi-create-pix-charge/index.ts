@@ -53,7 +53,9 @@ serve(async (req) => {
     // Formatar valor para ter exatamente 2 casas decimais (exigido pela API EFI)
     const valorFormatado = parseFloat(valor).toFixed(2);
 
-    console.log('💰 Iniciando criação de cobrança PIX...');
+    console.log('═══════════════════════════════════════════════════════════');
+    console.log('💰 INICIANDO CRIAÇÃO DE COBRANÇA PIX');
+    console.log('═══════════════════════════════════════════════════════════');
     console.log(`💵 Valor: R$ ${valorFormatado}`);
     console.log(`📝 Descrição: ${descricao}`);
     console.log(`⏱️ Expiração: ${expiracao_segundos}s`);
@@ -104,6 +106,8 @@ serve(async (req) => {
       ? 'https://pix.api.efipay.com.br'
       : 'https://pix-h.api.efipay.com.br';
 
+    console.log(`🌐 Ambiente: ${environment} (${baseUrl})`);
+
     // Criar cliente mTLS
     const httpClient = Deno.createHttpClient({
       cert: cert,
@@ -111,8 +115,10 @@ serve(async (req) => {
       http2: false,
     });
 
-    // 1. Autenticar
-    console.log('🔐 Autenticando...');
+    // ═══════════════════════════════════════════════════════════
+    // ETAPA 1: AUTENTICAÇÃO
+    // ═══════════════════════════════════════════════════════════
+    console.log('\n🔐 [ETAPA 1/4] Autenticando na API EFI...');
     const authResponse = await fetch(`${baseUrl}/oauth/token`, {
       method: 'POST',
       headers: {
@@ -126,6 +132,7 @@ serve(async (req) => {
     const authData = await authResponse.json();
     if (!authResponse.ok || !authData.access_token) {
       httpClient.close();
+      console.error('❌ Falha na autenticação:', authData);
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -136,29 +143,21 @@ serve(async (req) => {
     }
 
     const accessToken = authData.access_token;
-    console.log('✅ Autenticado!');
+    console.log('✅ Autenticado com sucesso!');
 
-    // 2. Preparar payload da cobrança
+    // Preparar dados para cobrança
     const txid = generateTxId();
-    console.log(`📋 TXID: ${txid}`);
+    console.log(`📋 TXID gerado: ${txid}`);
 
-    const cobPayload: any = {
-      calendario: {
-        expiracao: expiracao_segundos || 3600
-      },
-      valor: {
-        original: valorFormatado
-      },
-      chave: pixKey,
-      solicitacaoPagador: descricao
-    };
+    let splitApplied = false;
+    let splitConfigId: string | null = null;
+    let storeData: any = null;
 
-    let useSplitEndpoint = false;
-    let splitConfig: any = null;
-
-    // 3. Se tiver store_id, configurar Split Payment
+    // ═══════════════════════════════════════════════════════════
+    // ETAPA 2: CRIAR CONFIGURAÇÃO DE SPLIT (se aplicável)
+    // ═══════════════════════════════════════════════════════════
     if (store_id) {
-      console.log('🔀 Configurando Split Payment...');
+      console.log('\n🔀 [ETAPA 2/4] Configurando Split Payment...');
       
       // Buscar dados da loja
       const { data: store, error: storeError } = await supabase
@@ -176,145 +175,130 @@ serve(async (req) => {
         );
       }
 
+      storeData = store;
+
       if (!store.efi_account_number) {
-        console.error('❌ Loja não tem conta EFI vinculada');
-        httpClient.close();
-        return new Response(
-          JSON.stringify({ 
-            success: false, 
-            error: 'Loja não possui conta EFI vinculada. Configure o pagamento online primeiro.' 
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-        );
-      }
-
-      // Buscar CPF do responsável
-      const document = store.responsible_cpf;
-      
-      if (!document) {
-        httpClient.close();
-        return new Response(
-          JSON.stringify({ success: false, error: 'CPF do responsável não cadastrado' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-        );
-      }
-
-      // Calcular comissão (padrão 7% se não configurado)
-      const commissionPercent = store.online_payment_commission ?? 7;
-      // Valor líquido para o lojista = 100% - comissão Mostralo - taxa EFI (1.19%)
-      const merchantPercent = 100 - commissionPercent - 1.19;
-
-      console.log(`💼 Comissão Mostralo: ${commissionPercent}%`);
-      console.log(`🏪 Valor líquido lojista: ${merchantPercent.toFixed(2)}%`);
-      console.log(`🏦 Conta EFI lojista: ${store.efi_account_number}`);
-
-      // Configurar split - usar endpoint separado /v2/gn/split/cob
-      const favorecido: any = {
-        conta: store.efi_account_number
-      };
-
-      // Adicionar CPF ou CNPJ
-      const cleanDoc = cleanDocument(document);
-      if (cleanDoc.length === 11) {
-        favorecido.cpf = cleanDoc;
+        console.log('⚠️ Loja não tem conta EFI vinculada - prosseguindo sem split');
+      } else if (!store.responsible_cpf) {
+        console.log('⚠️ CPF do responsável não cadastrado - prosseguindo sem split');
       } else {
-        favorecido.cnpj = cleanDoc;
-      }
+        // Calcular comissões
+        const commissionPercent = store.online_payment_commission ?? 7;
+        const merchantPercent = (100 - commissionPercent - 1.19).toFixed(2);
 
-      useSplitEndpoint = true;
-      splitConfig = {
-        divisaoTarifa: "assumir_total",
-        minhaParte: {
-          tipo: "porcentagem",
-          valor: commissionPercent.toFixed(2)
-        },
-        repasses: [{
-          tipo: "porcentagem",
-          valor: merchantPercent.toFixed(2),
-          favorecido: favorecido
-        }]
-      };
+        console.log(`💼 Comissão Mostralo: ${commissionPercent}%`);
+        console.log(`🏪 Valor líquido lojista: ${merchantPercent}%`);
+        console.log(`🏦 Conta EFI lojista: ${store.efi_account_number}`);
+        console.log(`📄 CPF responsável: ${store.responsible_cpf}`);
 
-      console.log('✅ Split configurado:', JSON.stringify(splitConfig, null, 2));
-    }
-
-    // 4. Criar cobrança - usar endpoint diferente para split
-    console.log('📤 Criando cobrança...');
-    
-    let cobResponse;
-    let cobEndpoint;
-    let cobData;
-    let splitApplied = false;
-    
-    if (useSplitEndpoint && splitConfig) {
-      // Tentar endpoint de split primeiro: /v2/gn/split/cob/:txid
-      cobEndpoint = `${baseUrl}/v2/gn/split/cob/${txid}`;
-      console.log(`🔗 Tentando endpoint split: ${cobEndpoint}`);
-      
-      const splitPayload = {
-        ...cobPayload,
-        split: splitConfig
-      };
-      
-      cobResponse = await fetch(cobEndpoint, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(splitPayload),
-        client: httpClient,
-      });
-
-      cobData = await cobResponse.json();
-      console.log('📥 Resposta split:', JSON.stringify(cobData, null, 2));
-      
-      // Se split não estiver habilitado (404), fallback para cobrança normal
-      if (!cobResponse.ok && (cobData.nome === 'nao_encontrado' || cobResponse.status === 404)) {
-        console.log('⚠️ Split não habilitado na conta EFI. Usando cobrança normal...');
+        // Preparar favorecido
+        const cleanDoc = cleanDocument(store.responsible_cpf);
+        const favorecido: any = {
+          conta: store.efi_account_number
+        };
         
-        // Gerar novo txid para evitar conflito
-        const newTxid = generateTxId();
-        cobEndpoint = `${baseUrl}/v2/cob/${newTxid}`;
-        console.log(`🔗 Fallback para endpoint padrão: ${cobEndpoint}`);
-        
-        cobResponse = await fetch(cobEndpoint, {
-          method: 'PUT',
+        if (cleanDoc.length === 11) {
+          favorecido.cpf = cleanDoc;
+        } else {
+          favorecido.cnpj = cleanDoc;
+        }
+
+        // Payload para criar configuração de split
+        const splitConfigPayload = {
+          descricao: `Split - ${store.name || 'Loja'} - ${descricao}`.substring(0, 80),
+          lancamento: {
+            imediato: true
+          },
+          split: {
+            divisaoTarifa: "assumir_total",
+            minhaParte: {
+              tipo: "porcentagem",
+              valor: commissionPercent.toFixed(2)
+            },
+            repasses: [{
+              tipo: "porcentagem",
+              valor: merchantPercent,
+              favorecido: favorecido
+            }]
+          }
+        };
+
+        console.log('📤 Criando configuração de split...');
+        console.log('📦 Payload:', JSON.stringify(splitConfigPayload, null, 2));
+
+        // POST /v2/gn/split/config
+        const splitConfigResponse = await fetch(`${baseUrl}/v2/gn/split/config`, {
+          method: 'POST',
           headers: {
             'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(cobPayload),
+          body: JSON.stringify(splitConfigPayload),
           client: httpClient,
         });
-        
-        cobData = await cobResponse.json();
-        console.log('📥 Resposta cob (fallback):', JSON.stringify(cobData, null, 2));
-      } else if (cobResponse.ok) {
-        splitApplied = true;
-        console.log('✅ Split aplicado com sucesso!');
+
+        const splitConfigData = await splitConfigResponse.json();
+        console.log('📥 Resposta split config:', JSON.stringify(splitConfigData, null, 2));
+
+        if (splitConfigResponse.ok && splitConfigData.id) {
+          splitConfigId = splitConfigData.id;
+          console.log(`✅ Configuração de split criada! ID: ${splitConfigId}`);
+        } else {
+          console.log('⚠️ Falha ao criar configuração de split:', splitConfigData);
+          console.log('⚠️ Prosseguindo com cobrança normal (sem split)...');
+          
+          // Verificar se é erro de escopo/permissão
+          if (splitConfigData.nome === 'nao_autorizado' || splitConfigData.nome === 'nao_encontrado') {
+            console.log('ℹ️ Split payment pode não estar habilitado na conta EFI');
+            console.log('ℹ️ Verifique se os escopos gn.split.write e gn.split.read estão ativos');
+          }
+          
+          // Verificar se é erro de conta inválida
+          if (splitConfigData.mensagem?.includes('conta') || splitConfigData.mensagem?.includes('favorecido')) {
+            console.log('ℹ️ Possível problema com a conta EFI do lojista');
+            console.log(`ℹ️ Conta: ${store.efi_account_number}, CPF: ${cleanDoc}`);
+          }
+        }
       }
     } else {
-      // Endpoint padrão para cobrança sem split
-      cobEndpoint = `${baseUrl}/v2/cob/${txid}`;
-      console.log(`🔗 Usando endpoint padrão: ${cobEndpoint}`);
-      
-      cobResponse = await fetch(cobEndpoint, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(cobPayload),
-        client: httpClient,
-      });
-      
-      cobData = await cobResponse.json();
-      console.log('📥 Resposta cob:', JSON.stringify(cobData, null, 2));
+      console.log('\n⏭️ [ETAPA 2/4] Pulando split (store_id não informado)');
     }
+
+    // ═══════════════════════════════════════════════════════════
+    // ETAPA 3: CRIAR COBRANÇA PIX NORMAL
+    // ═══════════════════════════════════════════════════════════
+    console.log('\n📤 [ETAPA 3/4] Criando cobrança PIX...');
+    
+    const cobPayload = {
+      calendario: {
+        expiracao: expiracao_segundos || 3600
+      },
+      valor: {
+        original: valorFormatado
+      },
+      chave: pixKey,
+      solicitacaoPagador: descricao
+    };
+
+    console.log('📦 Payload cobrança:', JSON.stringify(cobPayload, null, 2));
+
+    // PUT /v2/cob/:txid (cobrança normal)
+    const cobResponse = await fetch(`${baseUrl}/v2/cob/${txid}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(cobPayload),
+      client: httpClient,
+    });
+
+    const cobData = await cobResponse.json();
+    console.log('📥 Resposta cobrança:', JSON.stringify(cobData, null, 2));
 
     if (!cobResponse.ok) {
       httpClient.close();
+      console.error('❌ Erro ao criar cobrança:', cobData);
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -325,13 +309,51 @@ serve(async (req) => {
       );
     }
 
-    // 5. Buscar QR Code
+    console.log('✅ Cobrança criada com sucesso!');
+
+    // ═══════════════════════════════════════════════════════════
+    // ETAPA 4: VINCULAR COBRANÇA AO SPLIT (se aplicável)
+    // ═══════════════════════════════════════════════════════════
+    if (splitConfigId) {
+      console.log('\n🔗 [ETAPA 4/4] Vinculando cobrança ao split...');
+      console.log(`📋 TXID: ${txid}`);
+      console.log(`🔧 Split Config ID: ${splitConfigId}`);
+
+      // PUT /v2/gn/split/cob/:txid/vinculo/:splitConfigId
+      const vinculoUrl = `${baseUrl}/v2/gn/split/cob/${txid}/vinculo/${splitConfigId}`;
+      console.log(`🔗 URL: ${vinculoUrl}`);
+
+      const vinculoResponse = await fetch(vinculoUrl, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        client: httpClient,
+      });
+
+      const vinculoData = await vinculoResponse.json();
+      console.log('📥 Resposta vínculo:', JSON.stringify(vinculoData, null, 2));
+
+      if (vinculoResponse.ok) {
+        splitApplied = true;
+        console.log('✅ Split vinculado com sucesso!');
+      } else {
+        console.log('⚠️ Falha ao vincular split:', vinculoData);
+        console.log('⚠️ A cobrança foi criada, mas sem split');
+      }
+    } else {
+      console.log('\n⏭️ [ETAPA 4/4] Pulando vinculação (split não configurado)');
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // BUSCAR QR CODE
+    // ═══════════════════════════════════════════════════════════
     const location = cobData.loc?.id || cobData.location;
-    console.log(`🔗 Location ID: ${location}`);
+    console.log(`\n🎨 Buscando QR Code... (Location ID: ${location})`);
 
     let qrCodeData: any = null;
     if (location) {
-      console.log('🎨 Buscando QR Code...');
       const qrResponse = await fetch(`${baseUrl}/v2/loc/${location}/qrcode`, {
         method: 'GET',
         headers: {
@@ -342,11 +364,10 @@ serve(async (req) => {
 
       if (qrResponse.ok) {
         qrCodeData = await qrResponse.json();
-        console.log('🖼️ qrCodeData:', JSON.stringify(qrCodeData, null, 2));
         console.log('✅ QR Code gerado!');
       } else {
         const qrErrText = await qrResponse.text().catch(() => '');
-        console.log('⚠️ Erro ao buscar QR Code, usando pixCopiaECola', qrErrText);
+        console.log('⚠️ Erro ao buscar QR Code:', qrErrText);
       }
     }
 
@@ -359,7 +380,12 @@ serve(async (req) => {
 
     httpClient.close();
 
-    console.log('🎉 Cobrança criada com sucesso!');
+    console.log('\n═══════════════════════════════════════════════════════════');
+    console.log('🎉 COBRANÇA CRIADA COM SUCESSO!');
+    console.log(`📋 TXID: ${cobData.txid}`);
+    console.log(`💰 Valor: R$ ${cobData.valor?.original}`);
+    console.log(`🔀 Split aplicado: ${splitApplied ? 'SIM ✅' : 'NÃO ❌'}`);
+    console.log('═══════════════════════════════════════════════════════════');
 
     return new Response(
       JSON.stringify({
@@ -375,8 +401,9 @@ serve(async (req) => {
         criadoEm: cobData.calendario?.criacao,
         hasSplit: !!store_id,
         splitApplied: splitApplied,
+        splitConfigId: splitConfigId,
         splitWarning: store_id && !splitApplied 
-          ? 'Split não aplicado. A funcionalidade pode não estar habilitada na conta EFI.'
+          ? 'Split não aplicado. Verifique: 1) Escopos gn.split.write/read ativos no painel EFI, 2) Conta EFI do lojista válida, 3) CPF corresponde ao titular da conta'
           : null,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

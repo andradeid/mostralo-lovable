@@ -43,7 +43,8 @@ import {
   Film,
   Lightbulb,
   Megaphone,
-  Building2
+  Building2,
+  Activity
 } from "lucide-react";
 
 import {
@@ -371,6 +372,7 @@ export function AdminSidebar() {
         { title: 'Cupons', url: '/dashboard/coupons', icon: Ticket, group: 'Sistema' },
         { title: 'Aceites de Contratos', url: '/dashboard/contract-acceptances', icon: FileText, group: 'Sistema' },
         { title: 'Gerenciar Novidades', url: '/dashboard/system-updates', icon: Megaphone, group: 'Sistema' },
+        { title: 'Diagnósticos', url: '/dashboard/diagnostics', icon: Activity, group: 'Sistema' },
         { title: 'Novidades', url: '/dashboard/novidades', icon: Megaphone, group: 'Conta' },
         { title: 'Perfil', url: '/dashboard/profile', icon: User, group: 'Conta' }
       ];

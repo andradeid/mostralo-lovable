@@ -6045,6 +6045,7 @@ export type Database = {
       billing_cycle_type: "monthly" | "quarterly" | "biannual" | "annual"
       delivery_type: "delivery" | "pickup"
       order_status:
+        | "aguardando_pagamento"
         | "entrada"
         | "em_preparo"
         | "aguarda_retirada"
@@ -6229,6 +6230,7 @@ export const Constants = {
       billing_cycle_type: ["monthly", "quarterly", "biannual", "annual"],
       delivery_type: ["delivery", "pickup"],
       order_status: [
+        "aguardando_pagamento",
         "entrada",
         "em_preparo",
         "aguarda_retirada",

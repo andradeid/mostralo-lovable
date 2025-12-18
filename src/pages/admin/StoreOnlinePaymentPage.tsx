@@ -72,6 +72,35 @@ export default function StoreOnlinePaymentPage() {
     splitWarning?: string | null;
   } | null>(null);
   const [copied, setCopied] = useState(false);
+  
+  // Edit mode state
+  const [isEditing, setIsEditing] = useState(false);
+
+  // Helper functions
+  const formatDisplayDocument = (docNumber: string | null, docType: string | null) => {
+    if (!docNumber) return 'Não informado';
+    const cleaned = docNumber.replace(/\D/g, '');
+    if (docType === 'cnpj') {
+      return cleaned
+        .replace(/(\d{2})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1/$2')
+        .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+    }
+    return cleaned
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    if (storeData) {
+      setEfiAccountNumber(storeData.efi_account_number || '');
+      setEfiDocumentType((storeData.efi_document_type as 'cpf' | 'cnpj') || 'cpf');
+      setEfiDocumentNumber(storeData.efi_document_number || '');
+    }
+  };
 
   const fetchStoreData = async () => {
     if (!storeId) return;
@@ -409,34 +438,6 @@ export default function StoreOnlinePaymentPage() {
       </div>
     );
   }
-
-  // Estado para modo edição
-  const [isEditing, setIsEditing] = useState(false);
-
-  const formatDisplayDocument = (docNumber: string | null, docType: string | null) => {
-    if (!docNumber) return 'Não informado';
-    const cleaned = docNumber.replace(/\D/g, '');
-    if (docType === 'cnpj') {
-      return cleaned
-        .replace(/(\d{2})(\d)/, '$1.$2')
-        .replace(/(\d{3})(\d)/, '$1.$2')
-        .replace(/(\d{3})(\d)/, '$1/$2')
-        .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
-    }
-    return cleaned
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    if (storeData) {
-      setEfiAccountNumber(storeData.efi_account_number || '');
-      setEfiDocumentType((storeData.efi_document_type as 'cpf' | 'cnpj') || 'cpf');
-      setEfiDocumentNumber(storeData.efi_document_number || '');
-    }
-  };
 
   // Se já tem conta ativa
   if (storeData?.efi_account_status === 'active' && storeData?.efi_account_number) {

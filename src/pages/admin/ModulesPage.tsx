@@ -9,14 +9,15 @@ import { useQuery } from '@tanstack/react-query';
 import { 
   Package, Menu, ShoppingCart, BarChart3, Palette, MessageCircle,
   Truck, Users, Printer, Tag, Megaphone, Calendar, ExternalLink, 
-  Image, Search, Filter, CheckCircle, XCircle, Sparkles, Shield, Zap
+  Image, Search, Filter, CheckCircle, XCircle, Sparkles, Shield, Zap,
+  Utensils
 } from 'lucide-react';
 
 // Mapeamento de ícones string -> componente
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Menu, ShoppingCart, BarChart3, Palette, MessageCircle,
   Truck, Printer, Tag, Megaphone, Calendar, ExternalLink,
-  Users, Image, Package
+  Users, Image, Package, Utensils
 };
 
 // Descrições detalhadas e categorias de cada módulo
@@ -76,6 +77,10 @@ const moduleDetails: Record<string, { description: string; category: 'core' | 'a
   'banners': {
     description: 'Criação e gestão de banners promocionais rotativos para destacar ofertas, novidades e promoções na página inicial da loja.',
     category: 'advanced'
+  },
+  'ifood_integration': {
+    description: 'Receba pedidos automaticamente do iFood. Configure credenciais, monitore eventos, acompanhe métricas de vendas e gerencie tudo integrado ao seu painel.',
+    category: 'premium'
   }
 };
 

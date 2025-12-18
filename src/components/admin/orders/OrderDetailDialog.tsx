@@ -8,6 +8,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { OrderStatusBadge } from "./OrderStatusBadge";
 import { CancelOrderDialog } from "./CancelOrderDialog";
+import { DeliveryTimeSelector } from "./DeliveryTimeSelector";
 import { CustomerMap } from "../CustomerMap";
 import { DriverBadge } from "./DriverBadge";
 import { useDriverPresence } from "@/hooks/useDriverPresence";
@@ -56,6 +57,8 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
   const [previewHtmls, setPreviewHtmls] = useState<string[]>([]);
   const [previewViaNames, setPreviewViaNames] = useState<string[]>([]);
   const [storeName, setStoreName] = useState<string>('Loja');
+  const [showTimeSelector, setShowTimeSelector] = useState(false);
+  const [pendingNewStatus, setPendingNewStatus] = useState<OrderStatus | null>(null);
 
   useEffect(() => {
     if (order && open) {
@@ -237,11 +240,30 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
   const handleStatusChange = async (newStatus: OrderStatus) => {
     if (!order || !selectedStatus) return;
 
+    // Se está mudando para "em_preparo" e ainda não tem tempo estimado, mostrar seletor
+    if (newStatus === 'em_preparo' && !order.estimated_delivery_minutes) {
+      setPendingNewStatus(newStatus);
+      setShowTimeSelector(true);
+      return;
+    }
+
+    // Continuar com a mudança de status normal
+    await executeStatusChange(newStatus);
+  };
+
+  const executeStatusChange = async (newStatus: OrderStatus, estimatedMinutes?: number) => {
+    if (!order) return;
+
     setIsLoading(true);
     const updateData: any = {
       status: newStatus,
       updated_at: new Date().toISOString()
     };
+
+    // Adicionar tempo estimado se fornecido
+    if (estimatedMinutes) {
+      updateData.estimated_delivery_minutes = estimatedMinutes;
+    }
 
     if (newStatus === 'concluido') {
       updateData.completed_at = new Date().toISOString();
@@ -275,6 +297,13 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     toast.success('Status atualizado com sucesso!');
     setSelectedStatus(newStatus);
     onStatusChange();
+  };
+
+  const handleTimeConfirm = async (minutes: number) => {
+    if (!pendingNewStatus) return;
+    await executeStatusChange(pendingNewStatus, minutes);
+    setShowTimeSelector(false);
+    setPendingNewStatus(null);
   };
 
   const handleCancelOrder = async (reason: string) => {
@@ -719,6 +748,19 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
         htmlContents={previewHtmls}
         viaNames={previewViaNames}
         onConfirmPrint={handleConfirmPrint}
+      />
+
+      <DeliveryTimeSelector
+        open={showTimeSelector}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowTimeSelector(false);
+            setPendingNewStatus(null);
+          }
+        }}
+        onConfirm={handleTimeConfirm}
+        isPickup={order?.delivery_type === 'pickup'}
+        isLoading={isLoading}
       />
     </>
   );

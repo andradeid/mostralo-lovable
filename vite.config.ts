@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => ({
       manifest: false, // Usar o manifest.json existente
       injectManifest: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,mp3,woff,woff2,ttf,eot}'],
-        maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
+        maximumFileSizeToCacheInBytes: 20 * 1024 * 1024,
       },
       devOptions: {
         enabled: false,

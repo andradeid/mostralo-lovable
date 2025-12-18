@@ -61,6 +61,8 @@ export default function StoreOnlinePaymentPage() {
     pixCopiaECola: string;
     qrcode: string;
     expiracao: string;
+    splitApplied?: boolean;
+    splitWarning?: string | null;
   } | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -237,13 +239,26 @@ export default function StoreOnlinePaymentPage() {
           status: data.status,
           valor: data.valor,
           pixCopiaECola: data.pixCopiaECola,
-          qrcode: data.qrcode,
+          qrcode: data.qrCodeBase64,
           expiracao: data.expiracao,
+          splitApplied: data.splitApplied,
+          splitWarning: data.splitWarning,
         });
-        toast({
-          title: "Cobrança criada!",
-          description: "QR Code gerado com sucesso. Teste o pagamento abaixo.",
-        });
+        
+        if (data.splitWarning) {
+          toast({
+            title: "Cobrança criada com aviso",
+            description: data.splitWarning,
+            variant: "default",
+          });
+        } else {
+          toast({
+            title: "Cobrança criada!",
+            description: data.splitApplied 
+              ? "QR Code com split payment gerado com sucesso!" 
+              : "QR Code gerado com sucesso.",
+          });
+        }
       } else {
         throw new Error(data.error || 'Erro ao criar cobrança');
       }
@@ -468,13 +483,27 @@ export default function StoreOnlinePaymentPage() {
             {testResult && (
               <div className="space-y-4 pt-4 border-t">
                 <div className="flex items-center justify-between">
-                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                    {testResult.status}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                      {testResult.status}
+                    </Badge>
+                    {testResult.splitApplied && (
+                      <Badge className="bg-purple-500">Split ✓</Badge>
+                    )}
+                  </div>
                   <span className="text-sm text-muted-foreground">
-                    TXID: {testResult.txid.slice(0, 12)}...
+                    TXID: {testResult.txid?.slice(0, 12)}...
                   </span>
                 </div>
+
+                {testResult.splitWarning && (
+                  <Alert className="bg-yellow-50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-900">
+                    <Info className="h-4 w-4 text-yellow-600" />
+                    <AlertDescription className="text-yellow-800 dark:text-yellow-300 text-sm">
+                      <strong>Aviso:</strong> {testResult.splitWarning}
+                    </AlertDescription>
+                  </Alert>
+                )}
 
                 <div className="text-center space-y-2">
                   <p className="text-2xl font-bold text-primary">
@@ -482,7 +511,7 @@ export default function StoreOnlinePaymentPage() {
                   </p>
                   {testResult.qrcode && (
                     <img 
-                      src={`data:image/png;base64,${testResult.qrcode}`}
+                      src={testResult.qrcode.startsWith('data:') ? testResult.qrcode : `data:image/png;base64,${testResult.qrcode}`}
                       alt="QR Code PIX"
                       className="mx-auto w-48 h-48 rounded-lg border"
                     />
@@ -507,16 +536,26 @@ export default function StoreOnlinePaymentPage() {
                   </div>
                 </div>
 
-                <Alert className="bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-900">
-                  <Info className="h-4 w-4 text-blue-600" />
-                  <AlertDescription className="text-blue-800 dark:text-blue-300 text-sm">
-                    <strong>Split Payment:</strong> Ao pagar este PIX, você receberá 91,81% 
-                    (R$ {(parseFloat(testResult.valor) * 0.9181).toFixed(2)}) e a plataforma 8,19%.
-                  </AlertDescription>
-                </Alert>
+                {testResult.splitApplied ? (
+                  <Alert className="bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-900">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <AlertDescription className="text-green-800 dark:text-green-300 text-sm">
+                      <strong>Split Payment Ativo:</strong> Ao pagar este PIX, você receberá 91,81% 
+                      (R$ {(parseFloat(testResult.valor) * 0.9181).toFixed(2)}) e a plataforma 8,19%.
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <Alert className="bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-900">
+                    <Info className="h-4 w-4 text-blue-600" />
+                    <AlertDescription className="text-blue-800 dark:text-blue-300 text-sm">
+                      <strong>Cobrança Normal:</strong> O valor total será creditado na conta principal.
+                      O split payment requer habilitação especial na conta EFI.
+                    </AlertDescription>
+                  </Alert>
+                )}
 
                 <p className="text-xs text-muted-foreground text-center">
-                  Expira em: {new Date(testResult.expiracao).toLocaleString('pt-BR')}
+                  Expira em: {testResult.expiracao ? new Date(testResult.expiracao).toLocaleString('pt-BR') : 'N/A'}
                 </p>
               </div>
             )}

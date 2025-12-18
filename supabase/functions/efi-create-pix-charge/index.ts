@@ -243,13 +243,14 @@ serve(async (req) => {
     
     let cobResponse;
     let cobEndpoint;
+    let cobData;
+    let splitApplied = false;
     
     if (useSplitEndpoint && splitConfig) {
-      // Endpoint específico para split payment: /v2/gn/split/cob/:txid
+      // Tentar endpoint de split primeiro: /v2/gn/split/cob/:txid
       cobEndpoint = `${baseUrl}/v2/gn/split/cob/${txid}`;
-      console.log(`🔗 Usando endpoint split: ${cobEndpoint}`);
+      console.log(`🔗 Tentando endpoint split: ${cobEndpoint}`);
       
-      // Para o endpoint de split, o payload inclui a configuração de split
       const splitPayload = {
         ...cobPayload,
         split: splitConfig
@@ -264,6 +265,35 @@ serve(async (req) => {
         body: JSON.stringify(splitPayload),
         client: httpClient,
       });
+
+      cobData = await cobResponse.json();
+      console.log('📥 Resposta split:', JSON.stringify(cobData, null, 2));
+      
+      // Se split não estiver habilitado (404), fallback para cobrança normal
+      if (!cobResponse.ok && (cobData.nome === 'nao_encontrado' || cobResponse.status === 404)) {
+        console.log('⚠️ Split não habilitado na conta EFI. Usando cobrança normal...');
+        
+        // Gerar novo txid para evitar conflito
+        const newTxid = generateTxId();
+        cobEndpoint = `${baseUrl}/v2/cob/${newTxid}`;
+        console.log(`🔗 Fallback para endpoint padrão: ${cobEndpoint}`);
+        
+        cobResponse = await fetch(cobEndpoint, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(cobPayload),
+          client: httpClient,
+        });
+        
+        cobData = await cobResponse.json();
+        console.log('📥 Resposta cob (fallback):', JSON.stringify(cobData, null, 2));
+      } else if (cobResponse.ok) {
+        splitApplied = true;
+        console.log('✅ Split aplicado com sucesso!');
+      }
     } else {
       // Endpoint padrão para cobrança sem split
       cobEndpoint = `${baseUrl}/v2/cob/${txid}`;
@@ -278,10 +308,10 @@ serve(async (req) => {
         body: JSON.stringify(cobPayload),
         client: httpClient,
       });
+      
+      cobData = await cobResponse.json();
+      console.log('📥 Resposta cob:', JSON.stringify(cobData, null, 2));
     }
-
-    const cobData = await cobResponse.json();
-    console.log('📥 Resposta cob:', JSON.stringify(cobData, null, 2));
 
     if (!cobResponse.ok) {
       httpClient.close();
@@ -344,6 +374,10 @@ serve(async (req) => {
         ambiente: environment,
         criadoEm: cobData.calendario?.criacao,
         hasSplit: !!store_id,
+        splitApplied: splitApplied,
+        splitWarning: store_id && !splitApplied 
+          ? 'Split não aplicado. A funcionalidade pode não estar habilitada na conta EFI.'
+          : null,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

@@ -158,3 +158,9 @@ verify_jwt = true
 
 [functions.create-efi-simplified-account]
 verify_jwt = true
+
+[functions.efi-account-webhook]
+verify_jwt = false
+
+[functions.efi-configure-account-webhook]
+verify_jwt = true

@@ -173,3 +173,9 @@ verify_jwt = false
 
 [functions.performance-diagnostics]
 verify_jwt = true
+
+[functions.ifood-auth]
+verify_jwt = true
+
+[functions.ifood-webhook]
+verify_jwt = false

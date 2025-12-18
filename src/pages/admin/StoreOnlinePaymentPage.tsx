@@ -5,32 +5,32 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useStoreAccess } from "@/hooks/useStoreAccess";
 import { 
   Smartphone, 
-  Building2, 
-  User, 
   Zap, 
-  Shield, 
   Check, 
   Info,
-  CreditCard,
   Percent,
   CheckCircle2,
   Clock,
   XCircle,
   Loader2,
   RefreshCw,
-  AlertTriangle
+  ChevronDown,
+  ExternalLink,
+  Copy,
+  Link2
 } from 'lucide-react';
 
 interface StoreEfiData {
   wants_online_payment: boolean;
   efi_account_status: string | null;
   efi_account_id: string | null;
+  efi_account_number: string | null;
   company_name: string | null;
 }
 
@@ -41,12 +41,10 @@ export default function StoreOnlinePaymentPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [storeData, setStoreData] = useState<StoreEfiData | null>(null);
+  const [guideOpen, setGuideOpen] = useState(true);
   
   // Form state
-  const [wantsOnlinePayment, setWantsOnlinePayment] = useState<boolean | null>(null);
-  const [personType, setPersonType] = useState<'pf' | 'pj' | null>(null);
-  const [birthDate, setBirthDate] = useState("");
-  const [motherName, setMotherName] = useState("");
+  const [efiAccountNumber, setEfiAccountNumber] = useState("");
 
   const fetchStoreData = async () => {
     if (!storeId) return;
@@ -59,6 +57,7 @@ export default function StoreOnlinePaymentPage() {
           wants_online_payment,
           efi_account_status,
           efi_account_id,
+          efi_account_number,
           name
         `)
         .eq('id', storeId)
@@ -70,10 +69,13 @@ export default function StoreOnlinePaymentPage() {
         wants_online_payment: data.wants_online_payment || false,
         efi_account_status: data.efi_account_status,
         efi_account_id: data.efi_account_id,
+        efi_account_number: data.efi_account_number,
         company_name: data.name,
       });
       
-      setWantsOnlinePayment(data.wants_online_payment || false);
+      if (data.efi_account_number) {
+        setEfiAccountNumber(data.efi_account_number);
+      }
     } catch (error) {
       console.error('Erro ao buscar dados da loja:', error);
       toast({
@@ -92,58 +94,29 @@ export default function StoreOnlinePaymentPage() {
     }
   }, [storeId]);
 
-  const formatBirthDate = (value: string) => {
-    const numbers = value.replace(/\D/g, '');
-    const limited = numbers.slice(0, 8);
-    
-    if (limited.length <= 2) return limited;
-    if (limited.length <= 4) return `${limited.slice(0, 2)}/${limited.slice(2)}`;
-    return `${limited.slice(0, 2)}/${limited.slice(2, 4)}/${limited.slice(4)}`;
+  const formatAccountNumber = (value: string) => {
+    return value.replace(/\D/g, '').slice(0, 10);
   };
 
-  const handleActivateOnlinePayment = async () => {
+  const handleLinkAccount = async () => {
     if (!storeId) return;
     
-    // Validações para PF
-    if (personType === 'pf') {
-      if (!birthDate || birthDate.length < 10) {
-        toast({
-          title: "Data de nascimento obrigatória",
-          description: "Por favor, informe sua data de nascimento.",
-          variant: "destructive",
-        });
-        return;
-      }
-      if (!motherName || motherName.length < 3) {
-        toast({
-          title: "Nome da mãe obrigatório",
-          description: "Por favor, informe o nome completo da sua mãe.",
-          variant: "destructive",
-        });
-        return;
-      }
+    const cleanNumber = efiAccountNumber.replace(/\D/g, '');
+    if (cleanNumber.length < 6) {
+      toast({
+        title: "Número inválido",
+        description: "O número da conta deve ter pelo menos 6 dígitos.",
+        variant: "destructive",
+      });
+      return;
     }
 
     setSaving(true);
     try {
-      // Primeiro, atualizar a loja
-      const { error: updateError } = await supabase
-        .from('stores')
-        .update({ 
-          wants_online_payment: true,
-          efi_account_status: 'pending_creation'
-        })
-        .eq('id', storeId);
-
-      if (updateError) throw updateError;
-
-      // Chamar Edge Function para criar conta simplificada
-      const { data, error } = await supabase.functions.invoke('create-efi-simplified-account', {
+      const { data, error } = await supabase.functions.invoke('validate-efi-account', {
         body: { 
           store_id: storeId,
-          person_type: personType,
-          birth_date: personType === 'pf' ? birthDate : null,
-          mother_name: personType === 'pf' ? motherName : null,
+          efi_account_number: cleanNumber
         }
       });
 
@@ -151,23 +124,31 @@ export default function StoreOnlinePaymentPage() {
 
       if (data.success) {
         toast({
-          title: "Solicitação enviada!",
-          description: "Você receberá um link por SMS/WhatsApp para autorizar a criação da conta.",
+          title: "Conta vinculada!",
+          description: "Sua conta EFI foi vinculada com sucesso. Agora você pode receber pagamentos PIX.",
         });
         fetchStoreData();
       } else {
-        throw new Error(data.error || 'Erro ao criar conta');
+        throw new Error(data.error || 'Erro ao vincular conta');
       }
     } catch (error: any) {
-      console.error('Erro ao ativar pagamento online:', error);
+      console.error('Erro ao vincular conta:', error);
       toast({
         title: "Erro",
-        description: error.message || "Não foi possível ativar o pagamento online.",
+        description: error.message || "Não foi possível vincular a conta.",
         variant: "destructive",
       });
     } finally {
       setSaving(false);
     }
+  };
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copiado!",
+      description: `${label} copiado para a área de transferência.`,
+    });
   };
 
   const getStatusCard = () => {
@@ -186,9 +167,9 @@ export default function StoreOnlinePaymentPage() {
                 <p className="text-sm text-green-700 dark:text-green-400">
                   Sua conta EFI está configurada e pronta para receber pagamentos PIX.
                 </p>
-                {storeData.efi_account_id && (
+                {storeData.efi_account_number && (
                   <p className="text-xs text-muted-foreground">
-                    ID da Conta: {storeData.efi_account_id}
+                    Conta EFI: {storeData.efi_account_number}
                   </p>
                 )}
               </div>
@@ -203,31 +184,10 @@ export default function StoreOnlinePaymentPage() {
             <AlertDescription>
               <div className="space-y-2">
                 <p className="font-semibold text-yellow-800 dark:text-yellow-300">
-                  ⏳ Aguardando sua Autorização
+                  ⏳ Aguardando Configuração
                 </p>
                 <p className="text-sm text-yellow-700 dark:text-yellow-400">
-                  Enviamos um link de autorização por SMS/WhatsApp. 
-                  Clique no link para autorizar a criação da sua conta EFI.
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Não recebeu? Verifique sua caixa de SMS ou solicite um novo link.
-                </p>
-              </div>
-            </AlertDescription>
-          </Alert>
-        );
-      
-      case 'pending_creation':
-        return (
-          <Alert className="bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-900">
-            <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
-            <AlertDescription>
-              <div className="space-y-2">
-                <p className="font-semibold text-blue-800 dark:text-blue-300">
-                  🔄 Processando...
-                </p>
-                <p className="text-sm text-blue-700 dark:text-blue-400">
-                  Estamos criando sua conta EFI. Isso pode levar alguns segundos.
+                  Complete a vinculação da sua conta EFI abaixo.
                 </p>
               </div>
             </AlertDescription>
@@ -241,14 +201,10 @@ export default function StoreOnlinePaymentPage() {
             <AlertDescription>
               <div className="space-y-2">
                 <p className="font-semibold text-red-800 dark:text-red-300">
-                  ❌ Solicitação Rejeitada
+                  ❌ Conta Rejeitada
                 </p>
                 <p className="text-sm text-red-700 dark:text-red-400">
-                  Infelizmente sua solicitação foi rejeitada pela EFI. 
-                  Isso pode acontecer por inconsistências nos dados cadastrais.
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Entre em contato com o suporte para mais informações.
+                  Houve um problema com a conta informada. Verifique os dados e tente novamente.
                 </p>
               </div>
             </AlertDescription>
@@ -260,9 +216,6 @@ export default function StoreOnlinePaymentPage() {
     }
   };
 
-  // Default to PJ since we don't have company_document in stores table
-  const isPJ = false;
-
   if (storeLoading || loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -271,8 +224,8 @@ export default function StoreOnlinePaymentPage() {
     );
   }
 
-  // Se já tem conta ativa ou pendente de autorização
-  if (storeData?.efi_account_status === 'active' || storeData?.efi_account_status === 'pending_authorization') {
+  // Se já tem conta ativa
+  if (storeData?.efi_account_status === 'active' && storeData?.efi_account_number) {
     return (
       <div className="space-y-6">
         <div>
@@ -287,55 +240,55 @@ export default function StoreOnlinePaymentPage() {
 
         {getStatusCard()}
 
-        {storeData?.efi_account_status === 'pending_authorization' && (
-          <Card>
-            <CardContent className="pt-6">
-              <Button 
-                onClick={fetchStoreData}
-                variant="outline" 
-                className="w-full"
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Verificar Status
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {storeData?.efi_account_status === 'active' && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Zap className="h-5 w-5 text-primary" />
-                Informações da Conta
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Status</p>
-                  <Badge className="bg-green-500">Ativo</Badge>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Taxa por Transação</p>
-                  <p className="font-semibold">8,19%</p>
-                </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Zap className="h-5 w-5 text-primary" />
+              Informações da Conta
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Status</p>
+                <Badge className="bg-green-500">Ativo</Badge>
               </div>
-              <Alert>
-                <Info className="h-4 w-4" />
-                <AlertDescription>
-                  Os pagamentos PIX dos seus clientes serão depositados automaticamente 
-                  na sua conta EFI vinculada.
-                </AlertDescription>
-              </Alert>
-            </CardContent>
-          </Card>
-        )}
+              <div>
+                <p className="text-sm text-muted-foreground">Taxa por Transação</p>
+                <p className="font-semibold">8,19%</p>
+              </div>
+              <div className="col-span-2">
+                <p className="text-sm text-muted-foreground">Conta EFI</p>
+                <p className="font-mono text-lg">{storeData.efi_account_number}</p>
+              </div>
+            </div>
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                Os pagamentos PIX dos seus clientes serão depositados automaticamente 
+                na sua conta EFI vinculada, já com a taxa descontada.
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <Button 
+              onClick={fetchStoreData}
+              variant="outline" 
+              className="w-full"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Atualizar Status
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
-  // Formulário de ativação
+  // Formulário de vinculação
   return (
     <div className="space-y-6">
       <div>
@@ -361,20 +314,20 @@ export default function StoreOnlinePaymentPage() {
         <CardContent>
           <ul className="space-y-3">
             <li className="flex items-center gap-2 text-sm">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
-              Recebimento instantâneo na sua conta
+              <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+              Recebimento instantâneo na sua conta EFI
             </li>
             <li className="flex items-center gap-2 text-sm">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
+              <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
               Confirmação automática de pagamentos
             </li>
             <li className="flex items-center gap-2 text-sm">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
+              <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
               Maior conversão de vendas
             </li>
             <li className="flex items-center gap-2 text-sm">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
-              Menos inadimplência
+              <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+              Menos inadimplência e cancelamentos
             </li>
           </ul>
         </CardContent>
@@ -394,124 +347,123 @@ export default function StoreOnlinePaymentPage() {
         </AlertDescription>
       </Alert>
 
-      {/* Formulário */}
+      {/* Guia passo a passo */}
+      <Collapsible open={guideOpen} onOpenChange={setGuideOpen}>
+        <Card>
+          <CollapsibleTrigger className="w-full">
+            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+              <CardTitle className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  📱 PASSO 1: Criar sua Conta EFI (gratuita)
+                </span>
+                <ChevronDown className={`h-5 w-5 transition-transform ${guideOpen ? 'rotate-180' : ''}`} />
+              </CardTitle>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="space-y-4 pt-0">
+              <div className="space-y-3">
+                <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                  <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">1</span>
+                  <div>
+                    <p className="font-medium">Baixe o app "Efí" no seu celular</p>
+                    <p className="text-sm text-muted-foreground">Disponível na Play Store (Android) e App Store (iPhone)</p>
+                    <div className="flex gap-2 mt-2">
+                      <Button variant="outline" size="sm" asChild>
+                        <a href="https://play.google.com/store/apps/details?id=br.com.gerencianet.app" target="_blank" rel="noopener">
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          Play Store
+                        </a>
+                      </Button>
+                      <Button variant="outline" size="sm" asChild>
+                        <a href="https://apps.apple.com/br/app/efi-banco-digital/id1443363678" target="_blank" rel="noopener">
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          App Store
+                        </a>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                  <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">2</span>
+                  <div>
+                    <p className="font-medium">Crie sua conta com CPF ou CNPJ</p>
+                    <p className="text-sm text-muted-foreground">A criação é gratuita e leva poucos minutos. Basta seguir as instruções do app.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                  <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">3</span>
+                  <div>
+                    <p className="font-medium">Encontre o número da sua conta</p>
+                    <p className="text-sm text-muted-foreground">
+                      No app Efí, vá em <strong>Menu → Minha Conta</strong>. O número da conta aparece no topo.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <Alert>
+                <Info className="h-4 w-4" />
+                <AlertDescription>
+                  A conta EFI é 100% gratuita para criar e manter. Você só paga a taxa de 8,19% quando receber um pagamento.
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
+
+      {/* Formulário de vinculação */}
       <Card>
         <CardHeader>
-          <CardTitle>Ativar Pagamento Online</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Link2 className="h-5 w-5" />
+            PASSO 2: Vincular sua Conta
+          </CardTitle>
           <CardDescription>
-            Preencha os dados para criar sua conta de recebimento
+            Informe o número da sua conta EFI para começar a receber pagamentos
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Se for CPF, precisa escolher tipo de conta */}
-          {!isPJ && (
-            <div className="space-y-3">
-              <Label>Tipo de conta para recebimento:</Label>
-              <RadioGroup
-                value={personType || ''}
-                onValueChange={(value) => setPersonType(value as 'pf' | 'pj')}
-                className="grid grid-cols-2 gap-4"
-              >
-                <div>
-                  <RadioGroupItem value="pf" id="pf" className="peer sr-only" />
-                  <Label
-                    htmlFor="pf"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
-                  >
-                    <User className="mb-3 h-6 w-6" />
-                    <span className="text-sm font-medium">Pessoa Física</span>
-                    <span className="text-xs text-muted-foreground">CPF</span>
-                  </Label>
-                </div>
-                <div>
-                  <RadioGroupItem value="pj" id="pj" className="peer sr-only" />
-                  <Label
-                    htmlFor="pj"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
-                  >
-                    <Building2 className="mb-3 h-6 w-6" />
-                    <span className="text-sm font-medium">Pessoa Jurídica</span>
-                    <span className="text-xs text-muted-foreground">CNPJ</span>
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
-          )}
+          <div className="space-y-2">
+            <Label htmlFor="efiAccount">Número da Conta EFI *</Label>
+            <Input
+              id="efiAccount"
+              value={efiAccountNumber}
+              onChange={(e) => setEfiAccountNumber(formatAccountNumber(e.target.value))}
+              placeholder="Ex: 1234567"
+              maxLength={10}
+              className="font-mono text-lg"
+            />
+            <p className="text-xs text-muted-foreground">
+              O número está no app Efí → Menu → Minha Conta
+            </p>
+          </div>
 
-          {/* Formulário para PF */}
-          {personType === 'pf' && (
-            <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <Shield className="w-4 h-4 text-primary" />
-                Dados para verificação de identidade
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="birthDate">Data de Nascimento *</Label>
-                <Input
-                  id="birthDate"
-                  value={birthDate}
-                  onChange={(e) => setBirthDate(formatBirthDate(e.target.value))}
-                  placeholder="DD/MM/AAAA"
-                  maxLength={10}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="motherName">Nome Completo da Mãe *</Label>
-                <Input
-                  id="motherName"
-                  value={motherName}
-                  onChange={(e) => setMotherName(e.target.value)}
-                  placeholder="Nome completo da mãe"
-                />
-              </div>
-
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <Shield className="w-3 h-3" />
-                Dados protegidos pela LGPD, usados apenas para verificação na EFI Pay
-              </p>
-            </div>
-          )}
-
-          {/* Confirmação para PJ */}
-          {personType === 'pj' && (
-            <Alert className="bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-900">
-              <Building2 className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-800 dark:text-green-300">
-                <div className="font-semibold mb-2">Dados da empresa:</div>
-                <div className="text-sm space-y-1">
-                  <p>🏢 Loja: {storeData?.company_name}</p>
-                </div>
-                <p className="text-xs mt-2 opacity-70">
-                  ⚠️ A EFI validará os dados automaticamente com a Receita Federal
-                </p>
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {/* Botão de ativação */}
           <Button
-            onClick={handleActivateOnlinePayment}
-            disabled={saving || (!isPJ && !personType) || (personType === 'pf' && (!birthDate || !motherName))}
+            onClick={handleLinkAccount}
+            disabled={saving || efiAccountNumber.length < 6}
             className="w-full"
             size="lg"
           >
             {saving ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Ativando...
+                Vinculando...
               </>
             ) : (
               <>
-                <Zap className="h-4 w-4 mr-2" />
-                Ativar Pagamento Online
+                <Check className="h-4 w-4 mr-2" />
+                Vincular e Ativar Pagamento Online
               </>
             )}
           </Button>
 
           <p className="text-xs text-muted-foreground text-center">
-            Ao ativar, você receberá um link por SMS/WhatsApp para autorizar a criação da conta
+            Ao vincular, você concorda com os termos de uso do serviço de pagamentos.
+            Os valores recebidos serão depositados diretamente na sua conta EFI.
           </p>
         </CardContent>
       </Card>

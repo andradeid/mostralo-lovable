@@ -10,6 +10,7 @@ interface CreateChargeRequest {
   valor: string;
   descricao: string;
   expiracao_segundos: number;
+  store_id?: string; // Opcional: se informado, usa Split Payment
 }
 
 // Função para extrair certificado(s) e chave privada do PEM
@@ -32,6 +33,11 @@ function generateTxId(): string {
   return result;
 }
 
+// Limpar documento (CPF/CNPJ)
+function cleanDocument(doc: string): string {
+  return doc.replace(/\D/g, '');
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -42,7 +48,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { valor, descricao, expiracao_segundos }: CreateChargeRequest = await req.json();
+    const { valor, descricao, expiracao_segundos, store_id }: CreateChargeRequest = await req.json();
 
     // Formatar valor para ter exatamente 2 casas decimais (exigido pela API EFI)
     const valorFormatado = parseFloat(valor).toFixed(2);
@@ -51,8 +57,9 @@ serve(async (req) => {
     console.log(`💵 Valor: R$ ${valorFormatado}`);
     console.log(`📝 Descrição: ${descricao}`);
     console.log(`⏱️ Expiração: ${expiracao_segundos}s`);
+    console.log(`🏪 Store ID: ${store_id || 'N/A (sem split)'}`);
 
-    // Buscar configuração ativa
+    // Buscar configuração ativa do master admin
     const { data: config, error: configError } = await supabase
       .from('subscription_payment_config')
       .select('*')
@@ -131,11 +138,11 @@ serve(async (req) => {
     const accessToken = authData.access_token;
     console.log('✅ Autenticado!');
 
-    // 2. Criar cobrança imediata (cob)
+    // 2. Preparar payload da cobrança
     const txid = generateTxId();
     console.log(`📋 TXID: ${txid}`);
 
-    const cobPayload = {
+    const cobPayload: any = {
       calendario: {
         expiracao: expiracao_segundos
       },
@@ -146,6 +153,104 @@ serve(async (req) => {
       solicitacaoPagador: descricao
     };
 
+    // 3. Se tiver store_id, configurar Split Payment
+    if (store_id) {
+      console.log('🔀 Configurando Split Payment...');
+      
+      // Buscar dados da loja
+      const { data: store, error: storeError } = await supabase
+        .from('stores')
+        .select('efi_account_number, online_payment_commission, owner_id, name')
+        .eq('id', store_id)
+        .single();
+
+      if (storeError || !store) {
+        console.error('❌ Loja não encontrada:', storeError);
+        httpClient.close();
+        return new Response(
+          JSON.stringify({ success: false, error: 'Loja não encontrada' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
+        );
+      }
+
+      if (!store.efi_account_number) {
+        console.error('❌ Loja não tem conta EFI vinculada');
+        httpClient.close();
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: 'Loja não possui conta EFI vinculada. Configure o pagamento online primeiro.' 
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
+
+      // Buscar CPF/CNPJ do proprietário
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('cpf, cnpj')
+        .eq('id', store.owner_id)
+        .single();
+
+      if (profileError || !profile) {
+        console.error('❌ Perfil do proprietário não encontrado:', profileError);
+        httpClient.close();
+        return new Response(
+          JSON.stringify({ success: false, error: 'Dados do proprietário não encontrados' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
+        );
+      }
+
+      const document = profile.cnpj || profile.cpf;
+      if (!document) {
+        httpClient.close();
+        return new Response(
+          JSON.stringify({ success: false, error: 'CPF/CNPJ do proprietário não cadastrado' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
+
+      // Calcular comissão (padrão 7% se não configurado)
+      const commissionPercent = store.online_payment_commission ?? 7;
+      // Valor líquido para o lojista = 100% - comissão Mostralo - taxa EFI (1.19%)
+      const merchantPercent = 100 - commissionPercent - 1.19;
+
+      console.log(`💼 Comissão Mostralo: ${commissionPercent}%`);
+      console.log(`🏪 Valor líquido lojista: ${merchantPercent.toFixed(2)}%`);
+      console.log(`🏦 Conta EFI lojista: ${store.efi_account_number}`);
+
+      // Configurar split
+      // O favorecido recebe a porcentagem do lojista
+      // O recebedor principal (nossas credenciais) fica com o resto (comissão + taxa)
+      const favorecido: any = {
+        conta: store.efi_account_number
+      };
+
+      // Adicionar CPF ou CNPJ
+      const cleanDoc = cleanDocument(document);
+      if (cleanDoc.length === 11) {
+        favorecido.cpf = cleanDoc;
+      } else {
+        favorecido.cnpj = cleanDoc;
+      }
+
+      cobPayload.split = {
+        divisaoTarifa: "assumir_total", // Mostralo assume a tarifa EFI
+        minhaParte: {
+          tipo: "porcentagem",
+          valor: commissionPercent.toFixed(2) // Nossa comissão
+        },
+        repasses: [{
+          tipo: "porcentagem",
+          valor: merchantPercent.toFixed(2), // Valor líquido para o lojista
+          favorecido: favorecido
+        }]
+      };
+
+      console.log('✅ Split configurado:', JSON.stringify(cobPayload.split, null, 2));
+    }
+
+    // 4. Criar cobrança imediata (cob)
     console.log('📤 Criando cobrança...');
     const cobResponse = await fetch(`${baseUrl}/v2/cob/${txid}`, {
       method: 'PUT',
@@ -172,7 +277,7 @@ serve(async (req) => {
       );
     }
 
-    // 3. Buscar QR Code
+    // 5. Buscar QR Code
     const location = cobData.loc?.id || cobData.location;
     console.log(`🔗 Location ID: ${location}`);
 
@@ -220,6 +325,7 @@ serve(async (req) => {
         location: cobData.loc,
         ambiente: environment,
         criadoEm: cobData.calendario?.criacao,
+        hasSplit: !!store_id,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

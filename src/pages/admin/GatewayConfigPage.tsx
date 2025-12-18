@@ -28,6 +28,7 @@ import { ptBR } from "date-fns/locale";
 import { EfiSetupGuide } from "@/components/admin/gateway/EfiSetupGuide";
 import { PixChargeTestCard } from "@/components/admin/gateway/PixChargeTestCard";
 import { WebhookConfigCard } from "@/components/admin/gateway/WebhookConfigCard";
+import { AccountWebhookConfigCard } from "@/components/admin/gateway/AccountWebhookConfigCard";
 
 interface EfiConfig {
   efi_client_id: string | null;
@@ -863,12 +864,19 @@ export default function GatewayConfigPage() {
           environment={environment} 
         />
 
-        {/* Card de Webhook */}
+        {/* Card de Webhook PIX */}
         <WebhookConfigCard
           isConfigured={isConfigured && lastTestStatus === "success"}
           environment={environment}
           webhookUrl={webhookUrl}
           webhookConfiguredAt={webhookConfiguredAt}
+          onConfigured={fetchConfig}
+        />
+
+        {/* Card de Webhook de Contas Simplificadas */}
+        <AccountWebhookConfigCard
+          isConfigured={isConfigured && lastTestStatus === "success"}
+          environment={environment}
           onConfigured={fetchConfig}
         />
       </div>

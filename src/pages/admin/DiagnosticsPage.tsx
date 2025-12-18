@@ -9,6 +9,7 @@ import { EdgeFunctionTable } from '@/components/admin/diagnostics/EdgeFunctionTa
 import { WebVitalsCard } from '@/components/admin/diagnostics/WebVitalsCard';
 import { PerformanceScoreCard } from '@/components/admin/diagnostics/PerformanceScoreCard';
 import { DiagnosticHistory } from '@/components/admin/diagnostics/DiagnosticHistory';
+import { DiagnosticInsights } from '@/components/admin/diagnostics/DiagnosticInsights';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function DiagnosticsPage() {
@@ -113,6 +114,12 @@ export default function DiagnosticsPage() {
         {/* History */}
         <DiagnosticHistory history={history} />
       </div>
+      
+      {/* Insights - Full width */}
+      <DiagnosticInsights 
+        result={result}
+        isLoading={isRunning}
+      />
       
       {/* Web Vitals - Full width */}
       <WebVitalsCard 

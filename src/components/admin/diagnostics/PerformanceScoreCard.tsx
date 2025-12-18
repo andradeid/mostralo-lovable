@@ -1,5 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Info } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface PerformanceScoreCardProps {
   score: number | null;
@@ -36,18 +37,45 @@ export function PerformanceScoreCard({ score, previousScore, isLoading }: Perfor
     return 'ring-red-500/30';
   };
   
+  const getScoreDescription = (s: number) => {
+    if (s >= 90) return 'Sua aplicação está com performance excepcional! Continue monitorando para manter esse nível.';
+    if (s >= 70) return 'Performance boa, mas há espaço para melhorias. Verifique os insights abaixo.';
+    if (s >= 50) return 'Performance abaixo do ideal. Corrija os pontos críticos identificados nos insights.';
+    return 'Performance crítica! Priorize as correções dos problemas identificados urgentemente.';
+  };
+  
   const diff = score !== null && previousScore !== null ? score - previousScore : null;
 
   return (
     <Card className={`bg-gradient-to-br ${score !== null ? getScoreBg(score) : 'from-muted to-muted/50'}`}>
       <CardContent className="pt-6">
         <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground font-medium">Performance Score</p>
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5">
+              <p className="text-sm text-muted-foreground font-medium">Performance Score</p>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="h-3.5 w-3.5 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-[250px]">
+                    <p className="text-xs">
+                      Pontuação calculada com base em: tempo de resposta do servidor, 
+                      latência do banco, Web Vitals e performance das Edge Functions.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             {score !== null && (
-              <p className={`text-sm ${getScoreColor(score)}`}>
-                {getScoreLabel(score)}
-              </p>
+              <>
+                <p className={`text-sm font-medium ${getScoreColor(score)}`}>
+                  {getScoreLabel(score)}
+                </p>
+                <p className="text-xs text-muted-foreground max-w-[180px]">
+                  {getScoreDescription(score)}
+                </p>
+              </>
             )}
           </div>
           

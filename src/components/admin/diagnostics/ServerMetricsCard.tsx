@@ -1,24 +1,56 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Server, Wifi, Lock, Clock } from 'lucide-react';
+import { Server, Wifi, Lock, Clock, Info } from 'lucide-react';
 import { ServerMetrics } from '@/hooks/usePerformanceDiagnostics';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ServerMetricsCardProps {
   metrics: ServerMetrics | null;
   isLoading?: boolean;
 }
 
+interface MetricTip {
+  good: string;
+  warning: string;
+  bad: string;
+}
+
+const metricTips: Record<string, MetricTip> = {
+  ttfb: {
+    good: 'TTFB excelente! O servidor está respondendo rapidamente.',
+    warning: 'TTFB aceitável. Considere cache no edge para melhorar.',
+    bad: 'TTFB alto. Configure cache agressivo, CDN (Cloudflare) ou aproxime o servidor.',
+  },
+  dns: {
+    good: 'DNS lookup rápido. Boa configuração!',
+    warning: 'DNS pode melhorar. Adicione dns-prefetch no HTML.',
+    bad: 'DNS lento. Use DNS rápido (Cloudflare 1.1.1.1) e adicione dns-prefetch.',
+  },
+  ssl: {
+    good: 'SSL handshake rápido. TLS otimizado!',
+    warning: 'SSL pode ser otimizado. Verifique se TLS 1.3 está ativo.',
+    bad: 'SSL lento. Ative TLS 1.3, HTTP/2 e session resumption.',
+  },
+  connection: {
+    good: 'Conexão estabelecida rapidamente!',
+    warning: 'Conexão aceitável. CDN pode ajudar.',
+    bad: 'Conexão lenta. Use CDN ou servidor mais próximo dos usuários.',
+  },
+};
+
 function MetricItem({ 
   icon: Icon, 
   label, 
   value, 
   unit = 'ms',
-  thresholds 
+  thresholds,
+  tipKey
 }: { 
   icon: typeof Server;
   label: string; 
   value: number; 
   unit?: string;
   thresholds: { good: number; bad: number };
+  tipKey: keyof typeof metricTips;
 }) {
   const getStatus = () => {
     if (value < 0) return 'error';
@@ -41,17 +73,32 @@ function MetricItem({
     bad: 'bg-red-500/10',
     error: 'bg-muted/50',
   };
+  
+  const tips = metricTips[tipKey];
+  const currentTip = status === 'error' ? 'Erro ao medir. Tente novamente.' : tips[status as keyof MetricTip];
 
   return (
-    <div className={`flex items-center justify-between p-3 rounded-lg ${statusBg[status]}`}>
-      <div className="flex items-center gap-2">
-        <Icon className="h-4 w-4 text-muted-foreground" />
-        <span className="text-sm text-muted-foreground">{label}</span>
-      </div>
-      <span className={`font-mono text-sm font-medium ${statusColors[status]}`}>
-        {value < 0 ? 'N/A' : `${value}${unit}`}
-      </span>
-    </div>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className={`flex items-center justify-between p-3 rounded-lg ${statusBg[status]} cursor-help transition-colors hover:opacity-80`}>
+            <div className="flex items-center gap-2">
+              <Icon className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">{label}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`font-mono text-sm font-medium ${statusColors[status]}`}>
+                {value < 0 ? 'N/A' : `${value}${unit}`}
+              </span>
+              <Info className="h-3.5 w-3.5 text-muted-foreground/50" />
+            </div>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="left" className="max-w-[280px]">
+          <p className="text-xs">{currentTip}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
@@ -92,24 +139,28 @@ export function ServerMetricsCard({ metrics, isLoading }: ServerMetricsCardProps
               label="Time to First Byte" 
               value={metrics.ttfb} 
               thresholds={{ good: 200, bad: 600 }}
+              tipKey="ttfb"
             />
             <MetricItem 
               icon={Wifi}
               label="DNS Lookup" 
               value={metrics.dnsLookup} 
               thresholds={{ good: 50, bad: 150 }}
+              tipKey="dns"
             />
             <MetricItem 
               icon={Lock}
               label="SSL Handshake" 
               value={metrics.sslHandshake} 
               thresholds={{ good: 100, bad: 300 }}
+              tipKey="ssl"
             />
             <MetricItem 
               icon={Server}
               label="Conexão Total" 
               value={metrics.connectionTime} 
               thresholds={{ good: 200, bad: 500 }}
+              tipKey="connection"
             />
           </>
         ) : (

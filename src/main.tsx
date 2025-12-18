@@ -3,19 +3,44 @@ import App from './App'
 import './index.css'
 
 // Registro do Service Worker para PWA e cache offline
-// ✅ Com fallback seguro para Safari/iPhones
-if ('serviceWorker' in navigator) {
+// ✅ Em DEV (especialmente no preview do Lovable), desabilitamos e limpamos SW para evitar tela branca
+const isLovablePreviewHost =
+  location.hostname.includes('lovableproject.com') ||
+  location.hostname.includes('lovable.app');
+
+if (import.meta.env.DEV && isLovablePreviewHost && 'serviceWorker' in navigator) {
+  // Em preview, um SW antigo pode devolver HTML para módulos do Vite (MIME text/html) e causar tela branca.
+  const swCleanupFlag = 'mostralo_sw_cleanup_done';
+
+  if (!sessionStorage.getItem(swCleanupFlag)) {
+    sessionStorage.setItem(swCleanupFlag, '1');
+
+    navigator.serviceWorker
+      .getRegistrations()
+      .then((registrations) => Promise.all(registrations.map((r) => r.unregister())))
+      .then(() => {
+        if (navigator.serviceWorker.controller) {
+          window.location.reload();
+        }
+      })
+      .catch(() => {
+        // silencioso: o app continua sem SW
+      });
+  }
+}
+
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
       .register('/sw.js', { scope: '/' })
       .then((registration) => {
         console.log('[PWA] Service Worker registrado com sucesso:', registration.scope);
-        
+
         // Verificar atualizações a cada 60 minutos
         setInterval(() => {
           registration.update();
         }, 60 * 60 * 1000);
-        
+
         // Listener para novas versões
         registration.addEventListener('updatefound', () => {
           const newWorker = registration.installing;
@@ -35,7 +60,6 @@ if ('serviceWorker' in navigator) {
       .catch((error) => {
         console.warn('[PWA] Service Worker não disponível:', error);
         // ✅ App continua funcionando normalmente sem SW
-        // Útil para Safari modo privado ou iPhones mais antigos
       });
   });
 }

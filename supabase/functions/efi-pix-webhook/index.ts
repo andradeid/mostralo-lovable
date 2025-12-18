@@ -42,7 +42,49 @@ serve(async (req) => {
 
       console.log(`💰 Processando pagamento - txid: ${txid}, valor: ${valor}`);
 
-      // Find payment_approval by pix_txid
+      // 1. Primeiro, verificar se é um pedido (order)
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .select('id, store_id, payment_status')
+        .eq('payment_details->>pix_txid', txid)
+        .maybeSingle();
+
+      if (order && !orderError) {
+        console.log(`🛒 Pedido encontrado: ${order.id}`);
+
+        if (order.payment_status === 'paid') {
+          console.log(`ℹ️ Pedido já pago: ${order.id}`);
+          processedEvents.push({ txid, status: 'already_processed', type: 'order' });
+          continue;
+        }
+
+        // Atualizar status do pedido
+        const { error: updateOrderError } = await supabase
+          .from('orders')
+          .update({
+            payment_status: 'paid',
+            payment_details: {
+              pix_txid: txid,
+              endToEndId,
+              valor,
+              pago_em: horario,
+            },
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', order.id);
+
+        if (updateOrderError) {
+          console.error(`❌ Erro ao atualizar pedido ${order.id}:`, updateOrderError);
+          processedEvents.push({ txid, status: 'update_error', type: 'order', error: updateOrderError.message });
+          continue;
+        }
+
+        console.log(`✅ Pedido ${order.id} marcado como pago`);
+        processedEvents.push({ txid, status: 'success', type: 'order', orderId: order.id });
+        continue;
+      }
+
+      // 2. Se não for pedido, verificar se é aprovação de assinatura
       const { data: approval, error: approvalError } = await supabase
         .from('payment_approvals')
         .select('*')
@@ -58,7 +100,7 @@ serve(async (req) => {
       // Check if already approved
       if (approval.status === 'approved') {
         console.log(`ℹ️ Pagamento já processado: ${txid}`);
-        processedEvents.push({ txid, status: 'already_processed' });
+        processedEvents.push({ txid, status: 'already_processed', type: 'subscription' });
         continue;
       }
 
@@ -75,7 +117,7 @@ serve(async (req) => {
 
       if (updateError) {
         console.error(`❌ Erro ao atualizar aprovação ${approval.id}:`, updateError);
-        processedEvents.push({ txid, status: 'update_error', error: updateError.message });
+        processedEvents.push({ txid, status: 'update_error', type: 'subscription', error: updateError.message });
         continue;
       }
 
@@ -137,7 +179,7 @@ serve(async (req) => {
         }
       }
 
-      processedEvents.push({ txid, status: 'success' });
+      processedEvents.push({ txid, status: 'success', type: 'subscription' });
     }
 
     return new Response(

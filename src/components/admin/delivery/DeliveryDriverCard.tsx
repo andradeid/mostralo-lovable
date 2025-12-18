@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Bike, Package, TrendingUp, MoreVertical, Edit, UserMinus, DollarSign, Clock, AlertTriangle, Settings } from 'lucide-react';
 import { EditDriverDialog } from './EditDriverDialog';
 import { UnlinkDriverDialog } from './UnlinkDriverDialog';
@@ -80,7 +81,7 @@ export function DeliveryDriverCard({ driver, stats, onUpdate, isOnline = false, 
   };
 
   return (
-    <>
+    <TooltipProvider delayDuration={300}>
       <Card className="hover:shadow-lg transition-shadow">
         <CardHeader className="pb-3">
           <div className="flex items-start gap-3">
@@ -96,142 +97,243 @@ export function DeliveryDriverCard({ driver, stats, onUpdate, isOnline = false, 
                 {driver.email}
               </p>
               <div className="flex flex-col gap-1 mt-1">
-                {isOnline ? (
-                  <Badge variant="default" className="text-xs gap-1 w-fit">
-                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                    Online
-                  </Badge>
-                ) : (
-                  <Badge variant="secondary" className="text-xs gap-1 w-fit">
-                    <div className="w-2 h-2 rounded-full bg-gray-400" />
-                    Offline
-                  </Badge>
-                )}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    {isOnline ? (
+                      <Badge variant="default" className="text-xs gap-1 w-fit cursor-help">
+                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                        Online
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary" className="text-xs gap-1 w-fit cursor-help">
+                        <div className="w-2 h-2 rounded-full bg-gray-400" />
+                        Offline
+                      </Badge>
+                    )}
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{isOnline 
+                      ? 'Entregador está com o app aberto e disponível' 
+                      : 'Entregador não está online no momento'
+                    }</p>
+                  </TooltipContent>
+                </Tooltip>
+
                 {earningsConfig && (
-                  <Badge variant="outline" className="text-xs w-fit">
-                    {earningsConfig.payment_type === 'fixed' 
-                      ? `Fixo: ${formatCurrency(earningsConfig.fixed_amount || 0)}`
-                      : `Comissão: ${earningsConfig.commission_percentage}%`
-                    }
-                  </Badge>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge variant="outline" className="text-xs w-fit cursor-help">
+                        {earningsConfig.payment_type === 'fixed' 
+                          ? `Fixo: ${formatCurrency(earningsConfig.fixed_amount || 0)}`
+                          : `Comissão: ${earningsConfig.commission_percentage}%`
+                        }
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{earningsConfig.payment_type === 'fixed' 
+                        ? `Valor fixo de ${formatCurrency(earningsConfig.fixed_amount || 0)} por entrega`
+                        : `${earningsConfig.commission_percentage}% da taxa de entrega cobrada do cliente`
+                      }</p>
+                    </TooltipContent>
+                  </Tooltip>
                 )}
               </div>
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <MoreVertical className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => navigate(`/dashboard/entregadores/financeiro?driver=${driver.id}`)}>
-                  <DollarSign className="w-4 h-4 mr-2" />
-                  Ver Financeiro
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setShowEarningsDialog(true)}>
-                  <Settings className="w-4 h-4 mr-2" />
-                  Configurar Pagamento
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
-                  <Edit className="w-4 h-4 mr-2" />
-                  Editar
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => setShowUnlinkDialog(true)}
-                  className="text-amber-600"
-                >
-                  <UserMinus className="w-4 h-4 mr-2" />
-                  Desvincular da Loja
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <MoreVertical className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <DropdownMenuItem onClick={() => navigate(`/dashboard/entregadores/financeiro?driver=${driver.id}`)}>
+                          <DollarSign className="w-4 h-4 mr-2" />
+                          Ver Financeiro
+                        </DropdownMenuItem>
+                      </TooltipTrigger>
+                      <TooltipContent side="left">
+                        <p>Ver histórico de ganhos e pagamentos</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <DropdownMenuItem onClick={() => setShowEarningsDialog(true)}>
+                          <Settings className="w-4 h-4 mr-2" />
+                          Configurar Pagamento
+                        </DropdownMenuItem>
+                      </TooltipTrigger>
+                      <TooltipContent side="left">
+                        <p>Definir como você vai pagar este entregador</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
+                          <Edit className="w-4 h-4 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
+                      </TooltipTrigger>
+                      <TooltipContent side="left">
+                        <p>Alterar dados do entregador</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <DropdownMenuItem 
+                          onClick={() => setShowUnlinkDialog(true)}
+                          className="text-amber-600"
+                        >
+                          <UserMinus className="w-4 h-4 mr-2" />
+                          Desvincular da Loja
+                        </DropdownMenuItem>
+                      </TooltipTrigger>
+                      <TooltipContent side="left">
+                        <p>Remover entregador da sua equipe (não apaga a conta)</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Opções do entregador</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </CardHeader>
 
-      <CardContent className="space-y-3">
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Package className="w-4 h-4" />
-            <span>Ativas</span>
-          </div>
-          <span className="font-semibold">{stats?.active_deliveries || 0}</span>
-        </div>
+        <CardContent className="space-y-3">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center justify-between text-sm cursor-help">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Package className="w-4 h-4" />
+                  <span>Ativas</span>
+                </div>
+                <span className="font-semibold">{stats?.active_deliveries || 0}</span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Entregas em andamento agora</p>
+            </TooltipContent>
+          </Tooltip>
 
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Bike className="w-4 h-4" />
-            <span>Concluídas</span>
-          </div>
-          <span className="font-semibold">{stats?.total_deliveries || 0}</span>
-        </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center justify-between text-sm cursor-help">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Bike className="w-4 h-4" />
+                  <span>Concluídas</span>
+                </div>
+                <span className="font-semibold">{stats?.total_deliveries || 0}</span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Total de entregas finalizadas por este entregador</p>
+            </TooltipContent>
+          </Tooltip>
 
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <TrendingUp className="w-4 h-4" />
-            <span>Ganhos Totais</span>
-          </div>
-          <span className="font-semibold text-green-600">
-            {formatCurrency(stats?.total_earnings || 0)}
-          </span>
-        </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center justify-between text-sm cursor-help">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <TrendingUp className="w-4 h-4" />
+                  <span>Ganhos Totais</span>
+                </div>
+                <span className="font-semibold text-green-600">
+                  {formatCurrency(stats?.total_earnings || 0)}
+                </span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Total acumulado (pagos + pendentes)</p>
+            </TooltipContent>
+          </Tooltip>
 
-        <div className="flex items-center justify-between text-sm pt-3 border-t">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Clock className="w-4 h-4" />
-            <span>A Receber</span>
-          </div>
-          <span className="font-semibold text-amber-600">
-            {formatCurrency(stats?.pending_earnings || 0)}
-          </span>
-        </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center justify-between text-sm pt-3 border-t cursor-help">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Clock className="w-4 h-4" />
+                  <span>A Receber</span>
+                </div>
+                <span className="font-semibold text-amber-600">
+                  {formatCurrency(stats?.pending_earnings || 0)}
+                </span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Valor pendente de pagamento ao entregador</p>
+            </TooltipContent>
+          </Tooltip>
 
-        {!earningsConfig && (
-          <Alert variant="destructive" className="mt-3">
-            <AlertTriangle className="w-4 h-4" />
-            <AlertDescription className="text-xs">
-              Configure como você vai pagar este entregador
-            </AlertDescription>
-          </Alert>
-        )}
+          {!earningsConfig && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Alert variant="destructive" className="mt-3 cursor-help">
+                  <AlertTriangle className="w-4 h-4" />
+                  <AlertDescription className="text-xs">
+                    Configure como você vai pagar este entregador
+                  </AlertDescription>
+                </Alert>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Clique em "Configurar Pagamento" no menu para definir taxa fixa ou comissão</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
 
-        <Button 
-          variant="outline" 
-          className="w-full mt-3" 
-          onClick={() => navigate(`/dashboard/entregadores/financeiro?driver=${driver.id}`)}
-        >
-          <DollarSign className="w-4 h-4 mr-2" />
-          Ver Detalhes Financeiros
-        </Button>
-      </CardContent>
-    </Card>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="outline" 
+                className="w-full mt-3" 
+                onClick={() => navigate(`/dashboard/entregadores/financeiro?driver=${driver.id}`)}
+              >
+                <DollarSign className="w-4 h-4 mr-2" />
+                Ver Detalhes Financeiros
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Ver histórico completo de entregas e pagamentos</p>
+            </TooltipContent>
+          </Tooltip>
+        </CardContent>
+      </Card>
 
-    <EditDriverDialog
-      open={showEditDialog}
-      onOpenChange={setShowEditDialog}
-      driver={driver}
-      onSuccess={onUpdate}
-    />
+      <EditDriverDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        driver={driver}
+        onSuccess={onUpdate}
+      />
 
-    <UnlinkDriverDialog
-      open={showUnlinkDialog}
-      onOpenChange={setShowUnlinkDialog}
-      driver={driver}
-      storeId={storeId}
-      onSuccess={onUpdate}
-    />
+      <UnlinkDriverDialog
+        open={showUnlinkDialog}
+        onOpenChange={setShowUnlinkDialog}
+        driver={driver}
+        storeId={storeId}
+        onSuccess={onUpdate}
+      />
 
-    <DriverEarningsConfigDialog
-      open={showEarningsDialog}
-      onOpenChange={(open) => {
-        setShowEarningsDialog(open);
-        if (!open) {
-          onUpdate();
-          fetchEarningsConfig();
-        }
-      }}
-      driver={driver}
-      storeId={storeId}
-    />
-  </>
+      <DriverEarningsConfigDialog
+        open={showEarningsDialog}
+        onOpenChange={(open) => {
+          setShowEarningsDialog(open);
+          if (!open) {
+            onUpdate();
+            fetchEarningsConfig();
+          }
+        }}
+        driver={driver}
+        storeId={storeId}
+      />
+    </TooltipProvider>
   );
 }

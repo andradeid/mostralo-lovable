@@ -1,4 +1,4 @@
-import { Home, Link2, FileText, User, LogOut, MessageSquare, Target, ClipboardList, Users, Printer, History, Wallet, BookOpen, Film, DollarSign, UserCheck } from "lucide-react";
+import { Home, Link2, FileText, User, LogOut, MessageSquare, Target, ClipboardList, Users, Printer, History, Wallet, BookOpen, Film, DollarSign, UserCheck, Megaphone } from "lucide-react";
 import { useLocation, Link } from "react-router-dom";
 import {
   Sidebar,
@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useUnreadUpdates } from "@/hooks/useUnreadUpdates";
 
 interface SalespersonSidebarProps {
   onSignOut: () => void;
@@ -18,10 +20,12 @@ interface SalespersonSidebarProps {
 
 export function SalespersonSidebar({ onSignOut }: SalespersonSidebarProps) {
   const location = useLocation();
+  const { unreadCount } = useUnreadUpdates();
 
   const menuItems = [
     { icon: Home, title: "Dashboard", path: "/vendedor" },
     { icon: BookOpen, title: "📚 Guia Completo", path: "/vendedor/guia" },
+    { icon: Megaphone, title: "Novidades", path: "/vendedor/novidades", badge: unreadCount },
     { icon: Link2, title: "Meu Link", path: "/vendedor/link" },
     { icon: UserCheck, title: "Meus Clientes", path: "/vendedor/clientes" },
     { icon: DollarSign, title: "Minhas Comissões", path: "/vendedor/comissoes" },
@@ -66,9 +70,14 @@ export function SalespersonSidebar({ onSignOut }: SalespersonSidebarProps) {
                   isActive={isActive}
                   className="w-full justify-start h-10 px-3"
                 >
-                  <Link to={item.path}>
+                  <Link to={item.path} className="flex items-center gap-2">
                     <Icon className="h-4 w-4" />
-                    <span>{item.title}</span>
+                    <span className="flex-1">{item.title}</span>
+                    {item.badge && item.badge > 0 && (
+                      <Badge variant="destructive" className="h-5 min-w-5 rounded-full p-0 flex items-center justify-center text-xs">
+                        {item.badge}
+                      </Badge>
+                    )}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

@@ -369,7 +369,7 @@ export function AdminSidebar() {
         { title: 'Cupons', url: '/dashboard/coupons', icon: Ticket, group: 'Sistema' },
         { title: 'Aceites de Contratos', url: '/dashboard/contract-acceptances', icon: FileText, group: 'Sistema' },
         { title: 'Gerenciar Novidades', url: '/dashboard/system-updates', icon: Megaphone, group: 'Sistema' },
-        { title: 'Novidades', url: '/novidades', icon: Megaphone, group: 'Conta' },
+        { title: 'Novidades', url: '/dashboard/novidades', icon: Megaphone, group: 'Conta' },
         { title: 'Perfil', url: '/dashboard/profile', icon: User, group: 'Conta' }
       ];
     } else {

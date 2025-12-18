@@ -150,7 +150,7 @@ export default function Checkout() {
       try {
         const { data: store, error } = await supabase
           .from("stores")
-          .select("accepts_cash, accepts_card, accepts_pix, payment_gateways, efi_account_status, efi_account_number")
+          .select("accepts_cash, accepts_card, accepts_pix, payment_gateways, efi_account_status, efi_account_number, efi_pix_enabled")
           .eq("id", checkoutStoreId)
           .single();
         
@@ -166,7 +166,7 @@ export default function Checkout() {
           setAcceptsPix(store.accepts_pix ?? false);
           
           // Verificar se há EFI ativo para pagamento online
-          const hasEfiActive = store.efi_account_status === 'active' && !!store.efi_account_number;
+          const hasEfiActive = store.efi_account_status === 'active' && !!store.efi_account_number && store.efi_pix_enabled === true;
           if (hasEfiActive) {
             setEfiAccountNumber(store.efi_account_number);
           }

@@ -1,19 +1,22 @@
-import { Clock, CheckCircle, AlertTriangle, AlertCircle } from "lucide-react";
+import { Clock, CheckCircle, AlertTriangle, AlertCircle, Pencil } from "lucide-react";
 import { useEstimatedDeliveryTimer } from "@/hooks/useEstimatedDeliveryTimer";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface EstimatedDeliveryBadgeProps {
   createdAt: string;
   estimatedMinutes: number | null;
   variant?: 'compact' | 'expanded';
   deliveryType?: 'delivery' | 'pickup';
+  onEdit?: () => void;
 }
 
 export const EstimatedDeliveryBadge = ({ 
   createdAt, 
   estimatedMinutes, 
   variant = 'compact',
-  deliveryType = 'delivery'
+  deliveryType = 'delivery',
+  onEdit
 }: EstimatedDeliveryBadgeProps) => {
   const { hasEstimate, displayText, color, status, estimatedTime, remainingMinutes } = 
     useEstimatedDeliveryTimer(createdAt, estimatedMinutes);
@@ -76,9 +79,21 @@ export const EstimatedDeliveryBadge = ({
         colors.border
       )}
     >
-      <div className="flex items-center gap-2 mb-1.5">
-        <Clock className={cn("h-4 w-4", colors.icon)} />
-        <span className={cn("font-medium text-sm", colors.text)}>{title}</span>
+      <div className="flex items-center justify-between mb-1.5">
+        <div className="flex items-center gap-2">
+          <Clock className={cn("h-4 w-4", colors.icon)} />
+          <span className={cn("font-medium text-sm", colors.text)}>{title}</span>
+        </div>
+        {onEdit && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onEdit}
+            className="h-7 w-7 p-0 hover:bg-background/50"
+          >
+            <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+          </Button>
+        )}
       </div>
       
       <div className="flex items-center justify-between">

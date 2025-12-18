@@ -60,6 +60,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
   const [storeName, setStoreName] = useState<string>('Loja');
   const [showTimeSelector, setShowTimeSelector] = useState(false);
   const [pendingNewStatus, setPendingNewStatus] = useState<OrderStatus | null>(null);
+  const [showEditTimeSelector, setShowEditTimeSelector] = useState(false);
 
   useEffect(() => {
     if (order && open) {
@@ -307,6 +308,29 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     setPendingNewStatus(null);
   };
 
+  const handleEditTimeConfirm = async (minutes: number) => {
+    if (!order) return;
+    
+    setIsLoading(true);
+    const { error } = await supabase
+      .from('orders')
+      .update({ 
+        estimated_delivery_minutes: minutes,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', order.id);
+
+    if (error) {
+      toast.error('Erro ao atualizar tempo estimado');
+    } else {
+      toast.success('⏱️ Tempo atualizado! O cliente será notificado.');
+      onStatusChange();
+    }
+    
+    setIsLoading(false);
+    setShowEditTimeSelector(false);
+  };
+
   const handleCancelOrder = async (reason: string) => {
     if (!order) return;
 
@@ -417,6 +441,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
                 estimatedMinutes={order.estimated_delivery_minutes}
                 variant="expanded"
                 deliveryType={order.delivery_type}
+                onEdit={() => setShowEditTimeSelector(true)}
               />
             )}
             
@@ -772,6 +797,15 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
           }
         }}
         onConfirm={handleTimeConfirm}
+        isPickup={order?.delivery_type === 'pickup'}
+        isLoading={isLoading}
+      />
+
+      {/* Seletor para EDITAR tempo estimado */}
+      <DeliveryTimeSelector
+        open={showEditTimeSelector}
+        onOpenChange={setShowEditTimeSelector}
+        onConfirm={handleEditTimeConfirm}
         isPickup={order?.delivery_type === 'pickup'}
         isLoading={isLoading}
       />

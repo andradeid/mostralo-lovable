@@ -1625,5 +1625,194 @@ Se 100 lojas distribuídas em:
       '□ Preparar FAQ sobre nova estrutura de planos',
       '□ Treinar equipe de vendas sobre nova argumentação'
     ]
+  },
+  {
+    id: 17,
+    title: '💰 Gestão Financeira para Lojistas',
+    status: 'idea',
+    priority: 'high',
+    createdAt: '2025-12-18',
+    description: 'Módulo completo para lojistas gerenciarem despesas, registrarem ganhos por categoria, controlarem fluxo de caixa e visualizarem relatórios financeiros.',
+    
+    context: `Lojistas hoje não têm visibilidade clara sobre sua saúde financeira dentro do Mostralo. Eles sabem quanto venderam (via relatórios de pedidos), mas não sabem:
+• Quanto gastaram no mês
+• Qual o lucro real após despesas
+• Como está o fluxo de caixa ao longo do tempo
+• Quais categorias de despesa consomem mais recursos
+
+A maioria usa planilhas externas ou simplesmente não controla. Isso é uma oportunidade de agregar valor significativo ao sistema.`,
+
+    problem: `Sem controle financeiro integrado, lojistas enfrentam:
+• Dificuldade em saber se estão tendo lucro real
+• Despesas esquecidas que corroem margem
+• Falta de visão do fluxo de caixa mensal
+• Necessidade de planilhas externas ou sistemas separados
+• Decisões de negócio baseadas em "achismo"
+
+Oportunidade:
+• Aumentar valor percebido do Mostralo (não é só delivery, é gestão)
+• Aumentar retenção (lojista fica dependente dos dados financeiros)
+• Possível módulo premium para planos superiores`,
+
+    marketAnalysis: {
+      title: '📊 Potencial de Valor',
+      items: [
+        'Controle financeiro é #1 necessidade de micro/pequenos negócios',
+        'Reduz necessidade de contador para gestão diária',
+        'Pode aumentar retenção de lojistas (feature de alto valor agregado)',
+        'Diferencial competitivo (poucos sistemas de delivery oferecem isso)',
+        'Pode ser módulo premium do plano Profissional/Enterprise',
+        'Potencial para integração futura com contabilidade/NFe'
+      ]
+    },
+
+    technicalDetails: {
+      title: '🔧 Implementação Técnica',
+      items: [
+        'Tabela financial_categories (id, store_id, name, type, icon, color, is_system)',
+        'Tabela financial_transactions (id, store_id, category_id, type, amount, description, transaction_date, payment_method, is_recurring, recurrence_type, order_id, attachment_url)',
+        'RLS: lojistas só veem/editam dados da própria loja',
+        'Trigger: criar categorias padrão ao criar loja',
+        'Hooks: useFinancialTransactions, useFinancialCategories, useFinancialSummary',
+        'Componentes: FinancialKPICards, FinancialChart, TransactionForm, CategoriesManager',
+        'Página com tabs: Dashboard, Transações, Categorias, Relatórios',
+        'Integração opcional: trigger ao completar pedido → criar transação automática'
+      ]
+    },
+
+    phases: [
+      {
+        name: 'Fase 1 - MVP Básico',
+        description: 'Funcionalidades essenciais de registro e visualização',
+        items: [
+          'Criar tabelas no banco (categories + transactions)',
+          'CRUD de categorias personalizadas',
+          'Registro manual de receitas e despesas',
+          'Dashboard com saldo, receitas e despesas do mês',
+          'Lista de transações com filtros básicos',
+          'Gráfico de fluxo de caixa mensal (Recharts)'
+        ]
+      },
+      {
+        name: 'Fase 2 - Funcionalidades Avançadas',
+        description: 'Automações e relatórios mais completos',
+        items: [
+          'Despesas recorrentes com frequência configurável (mensal, semanal, etc)',
+          'Integração automática com vendas (trigger no pedido completo)',
+          'Relatório de despesas por categoria (gráfico pizza)',
+          'Comparativo mês a mês com variação percentual',
+          'Exportação para Excel/PDF'
+        ]
+      },
+      {
+        name: 'Fase 3 - Recursos Premium',
+        description: 'Funcionalidades diferenciadas para planos superiores',
+        items: [
+          'Metas financeiras com acompanhamento visual',
+          'Alertas de despesas acima do normal',
+          'Upload de comprovantes/notas fiscais (Storage)',
+          'Previsão de fluxo de caixa com base em histórico',
+          'Relatório de lucro/prejuízo detalhado (DRE simplificado)'
+        ]
+      }
+    ],
+
+    options: [
+      {
+        name: 'Apenas Registro Manual',
+        description: 'Lojista registra todas as transações manualmente',
+        pros: [
+          'Implementação mais simples e rápida',
+          'Controle total do lojista sobre o que registra',
+          'Sem dependência de integrações complexas',
+          'Menor risco de dados duplicados'
+        ],
+        cons: [
+          'Mais trabalho manual para o lojista',
+          'Possibilidade de esquecer registros',
+          'Não captura vendas automaticamente',
+          'Dados podem ficar incompletos'
+        ]
+      },
+      {
+        name: 'Integrado com Vendas',
+        description: 'Vendas concluídas geram entrada automática de receita',
+        pros: [
+          'Menos trabalho manual para o lojista',
+          'Dados de receita sempre precisos e atualizados',
+          'Visão real do faturamento sem esforço',
+          'Link direto entre pedido e receita'
+        ],
+        cons: [
+          'Implementação mais complexa (trigger no banco)',
+          'Pode gerar muitas transações (alto volume de pedidos)',
+          'Lojista pode confundir vendas não pagas com receita',
+          'Necessita lógica para evitar duplicação'
+        ]
+      }
+    ],
+
+    recommendation: `**Recomendação: Abordagem Progressiva**
+
+1. **COMEÇAR com MVP Básico** (Fase 1)
+   → Registro manual simples + dashboard de resumo
+   → Categorias padrão já criadas para facilitar uso
+   → Valida se lojistas realmente usam a feature
+   → Tempo estimado: 2-3 dias de desenvolvimento
+
+2. **ADICIONAR Integração com Vendas** (Fase 2)
+   → Após validar uso, automatizar entrada de receitas
+   → Adicionar despesas recorrentes (aluguel, energia, etc)
+   → Implementar relatórios mais completos
+   → Tempo estimado: 1-2 semanas
+
+3. **PREMIUM Features** (Fase 3)
+   → Metas, alertas e previsões como diferencial
+   → Upload de comprovantes para compliance
+   → Pode justificar plano Enterprise
+
+📊 CATEGORIAS PADRÃO SUGERIDAS:
+
+ENTRADAS:
+• Vendas (automático se integrado)
+• Gorjetas
+• Outras receitas
+
+SAÍDAS:
+• Aluguel
+• Energia elétrica
+• Água
+• Internet/Telefone
+• Insumos/Mercadorias
+• Salários
+• Embalagens
+• Combustível
+• Marketing
+• Manutenção
+• Taxas bancárias
+• Impostos
+• Outras despesas`,
+
+    nextSteps: [
+      '□ Criar migração SQL para financial_categories e financial_transactions',
+      '□ Configurar RLS policies para isolamento por loja',
+      '□ Criar trigger para seed de categorias padrão',
+      '□ Implementar hook useFinancialCategories',
+      '□ Implementar hook useFinancialTransactions',
+      '□ Implementar hook useFinancialSummary',
+      '□ Criar componente FinancialKPICards',
+      '□ Criar componente FinancialChart (fluxo de caixa)',
+      '□ Criar componente TransactionsList',
+      '□ Criar componente TransactionForm (modal)',
+      '□ Criar componente CategoriesManager',
+      '□ Criar página FinancialManagementPage com tabs',
+      '□ Adicionar item no menu lateral (Gestão Financeira)',
+      '□ Adicionar módulo financial_management na tabela modules',
+      '□ Testar fluxo completo em ambiente de desenvolvimento',
+      '□ (Fase 2) Criar trigger para transação automática em pedido concluído',
+      '□ (Fase 2) Implementar despesas recorrentes',
+      '□ (Fase 3) Adicionar metas financeiras',
+      '□ (Fase 3) Implementar upload de comprovantes'
+    ]
   }
 ];

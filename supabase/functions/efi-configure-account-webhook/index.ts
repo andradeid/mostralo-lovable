@@ -89,30 +89,31 @@ serve(async (req: Request) => {
       );
     }
 
-    if (!efiConfig.certificate_pem) {
-      return new Response(
-        JSON.stringify({ error: "Certificado EFI não configurado" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
     // Determinar ambiente e credenciais
-    const isProduction = efiConfig.environment === 'production';
-    const clientId = isProduction ? efiConfig.client_id_production : efiConfig.client_id_sandbox;
-    const clientSecret = isProduction ? efiConfig.client_secret_production : efiConfig.client_secret_sandbox;
+    const isProduction = efiConfig.efi_environment === 'production';
+    const certificatePem = isProduction ? efiConfig.efi_certificate_pem_production : efiConfig.efi_certificate_pem;
+    const clientId = isProduction ? efiConfig.efi_client_id_production : efiConfig.efi_client_id;
+    const clientSecret = isProduction ? efiConfig.efi_client_secret_production : efiConfig.efi_client_secret;
     const baseUrl = isProduction 
       ? "https://apis.gerencianet.com.br" 
       : "https://apis-h.gerencianet.com.br";
 
+    if (!certificatePem) {
+      return new Response(
+        JSON.stringify({ error: `Certificado EFI não configurado para ambiente ${isProduction ? 'produção' : 'sandbox'}` }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     if (!clientId || !clientSecret) {
       return new Response(
-        JSON.stringify({ error: "Credenciais EFI não configuradas para o ambiente selecionado" }),
+        JSON.stringify({ error: `Credenciais EFI não configuradas para ambiente ${isProduction ? 'produção' : 'sandbox'}` }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     // Parse certificado
-    const { certificate, privateKey } = parsePemContent(efiConfig.certificate_pem);
+    const { certificate, privateKey } = parsePemContent(certificatePem);
 
     // Criar cliente HTTP com mTLS
     const httpClient = Deno.createHttpClient({

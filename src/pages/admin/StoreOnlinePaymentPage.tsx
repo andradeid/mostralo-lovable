@@ -410,6 +410,34 @@ export default function StoreOnlinePaymentPage() {
     );
   }
 
+  // Estado para modo edição
+  const [isEditing, setIsEditing] = useState(false);
+
+  const formatDisplayDocument = (docNumber: string | null, docType: string | null) => {
+    if (!docNumber) return 'Não informado';
+    const cleaned = docNumber.replace(/\D/g, '');
+    if (docType === 'cnpj') {
+      return cleaned
+        .replace(/(\d{2})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1/$2')
+        .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+    }
+    return cleaned
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    if (storeData) {
+      setEfiAccountNumber(storeData.efi_account_number || '');
+      setEfiDocumentType((storeData.efi_document_type as 'cpf' | 'cnpj') || 'cpf');
+      setEfiDocumentNumber(storeData.efi_document_number || '');
+    }
+  };
+
   // Se já tem conta ativa
   if (storeData?.efi_account_status === 'active' && storeData?.efi_account_number) {
     return (
@@ -426,56 +454,340 @@ export default function StoreOnlinePaymentPage() {
 
         {getStatusCard()}
 
-        {/* Switch para ativar/desativar */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <p className="font-medium flex items-center gap-2">
-                  {storeData.wants_online_payment ? (
-                    <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  ) : (
-                    <XCircle className="h-4 w-4 text-muted-foreground" />
-                  )}
-                  Pagamento Online no Checkout
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {storeData.wants_online_payment 
-                    ? "Clientes podem pagar via PIX no checkout"
-                    : "Clientes só podem pagar na entrega"}
-                </p>
-              </div>
-              <Switch
-                checked={storeData.wants_online_payment}
-                onCheckedChange={handleToggleOnlinePayment}
-                disabled={togglingPayment}
-              />
-            </div>
-          </CardContent>
-        </Card>
+        {/* Grid 2 colunas */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Coluna Esquerda */}
+          <div className="space-y-6">
+            {/* Switch para ativar/desativar */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <p className="font-medium flex items-center gap-2">
+                      {storeData.wants_online_payment ? (
+                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <XCircle className="h-4 w-4 text-muted-foreground" />
+                      )}
+                      Pagamento Online no Checkout
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {storeData.wants_online_payment 
+                        ? "Clientes podem pagar via PIX no checkout"
+                        : "Clientes só podem pagar na entrega"}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={storeData.wants_online_payment}
+                    onCheckedChange={handleToggleOnlinePayment}
+                    disabled={togglingPayment}
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Zap className="h-5 w-5 text-primary" />
-              Informações da Conta
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Status</p>
-                <Badge className="bg-green-500">Ativo</Badge>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Taxa por Transação</p>
-                <p className="font-semibold">8,19%</p>
-              </div>
-              <div className="col-span-2">
-                <p className="text-sm text-muted-foreground">Conta EFI</p>
-                <p className="font-mono text-lg">{storeData.efi_account_number}</p>
-              </div>
-            </div>
+            {/* Card Informações da Conta */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Zap className="h-5 w-5 text-primary" />
+                  Informações da Conta
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {isEditing ? (
+                  /* Modo Edição */
+                  <div className="space-y-4">
+                    {/* Tipo de documento */}
+                    <div className="space-y-3">
+                      <Label>Tipo de Documento do Titular *</Label>
+                      <RadioGroup 
+                        value={efiDocumentType} 
+                        onValueChange={(v) => {
+                          setEfiDocumentType(v as 'cpf' | 'cnpj');
+                          setEfiDocumentNumber('');
+                        }}
+                        className="flex gap-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="cpf" id="edit-cpf" />
+                          <Label htmlFor="edit-cpf" className="flex items-center gap-1 cursor-pointer font-normal">
+                            <User className="h-4 w-4" /> CPF
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="cnpj" id="edit-cnpj" />
+                          <Label htmlFor="edit-cnpj" className="flex items-center gap-1 cursor-pointer font-normal">
+                            <Building2 className="h-4 w-4" /> CNPJ
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+
+                    {/* Número do documento */}
+                    <div className="space-y-2">
+                      <Label>{efiDocumentType.toUpperCase()} do Titular *</Label>
+                      <Input
+                        value={efiDocumentNumber}
+                        onChange={(e) => setEfiDocumentNumber(formatDocument(e.target.value))}
+                        placeholder={efiDocumentType === 'cpf' ? '000.000.000-00' : '00.000.000/0000-00'}
+                        maxLength={efiDocumentType === 'cpf' ? 14 : 18}
+                        className="font-mono"
+                      />
+                    </div>
+
+                    {/* Número da conta */}
+                    <div className="space-y-2">
+                      <Label>Número da Conta EFI *</Label>
+                      <Input
+                        value={efiAccountNumber}
+                        onChange={(e) => setEfiAccountNumber(formatAccountNumber(e.target.value))}
+                        placeholder="Ex: 1234567"
+                        maxLength={10}
+                        className="font-mono text-lg"
+                      />
+                    </div>
+
+                    {/* Botões de ação */}
+                    <div className="flex gap-2 pt-2">
+                      <Button
+                        variant="outline"
+                        onClick={handleCancelEdit}
+                        className="flex-1"
+                      >
+                        Cancelar
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          handleLinkAccount();
+                          setIsEditing(false);
+                        }}
+                        disabled={saving || efiAccountNumber.length < 6 || efiDocumentNumber.replace(/\D/g, '').length < (efiDocumentType === 'cpf' ? 11 : 14)}
+                        className="flex-1"
+                      >
+                        {saving ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Salvando...
+                          </>
+                        ) : (
+                          <>
+                            <Check className="h-4 w-4 mr-2" />
+                            Salvar Alterações
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  /* Modo Visualização */
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Status</p>
+                        <Badge className="bg-green-500 mt-1">Ativo</Badge>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Taxa por Transação</p>
+                        <p className="font-semibold">8,19%</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Tipo de Documento</p>
+                        <p className="font-medium flex items-center gap-1 mt-1">
+                          {storeData.efi_document_type === 'cnpj' ? (
+                            <Building2 className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <User className="h-4 w-4 text-muted-foreground" />
+                          )}
+                          {storeData.efi_document_type?.toUpperCase() || 'CPF'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Documento do Titular</p>
+                        <p className="font-mono text-sm mt-1">
+                          {formatDisplayDocument(storeData.efi_document_number, storeData.efi_document_type)}
+                        </p>
+                      </div>
+                      <div className="col-span-2">
+                        <p className="text-sm text-muted-foreground">Conta EFI</p>
+                        <p className="font-mono text-lg">{storeData.efi_account_number}</p>
+                      </div>
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsEditing(true)}
+                      className="w-full"
+                    >
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Editar / Trocar Conta
+                    </Button>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Botão Atualizar Status */}
+            <Card>
+              <CardContent className="pt-6">
+                <Button 
+                  onClick={fetchStoreData}
+                  variant="outline" 
+                  className="w-full"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Atualizar Status
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Coluna Direita */}
+          <div className="space-y-6">
+            {/* Card de Teste PIX */}
+            <Card className="border-dashed border-2 border-primary/30">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <TestTube2 className="h-5 w-5 text-primary" />
+                  Testar Cobrança PIX
+                </CardTitle>
+                <CardDescription>
+                  Gere uma cobrança de teste para validar que o split payment está funcionando
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="testValue">Valor (R$)</Label>
+                    <Input
+                      id="testValue"
+                      value={testValue}
+                      onChange={(e) => setTestValue(e.target.value)}
+                      placeholder="1.00"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="testDesc">Descrição</Label>
+                    <Input
+                      id="testDesc"
+                      value={testDescription}
+                      onChange={(e) => setTestDescription(e.target.value)}
+                      placeholder="Descrição do teste"
+                    />
+                  </div>
+                </div>
+
+                <Button
+                  onClick={handleCreateTestCharge}
+                  disabled={testLoading}
+                  className="w-full"
+                >
+                  {testLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Gerando...
+                    </>
+                  ) : (
+                    <>
+                      <QrCode className="h-4 w-4 mr-2" />
+                      Gerar PIX de Teste
+                    </>
+                  )}
+                </Button>
+
+                {testResult && (
+                  <div className="space-y-4 pt-4 border-t">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                          {testResult.status}
+                        </Badge>
+                        {testResult.splitApplied && (
+                          <Badge className="bg-purple-500">Split ✓</Badge>
+                        )}
+                      </div>
+                      <span className="text-sm text-muted-foreground">
+                        TXID: {testResult.txid?.slice(0, 12)}...
+                      </span>
+                    </div>
+
+                    {testResult.splitWarning && (
+                      <Alert className="bg-yellow-50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-900">
+                        <Info className="h-4 w-4 text-yellow-600" />
+                        <AlertDescription className="text-yellow-800 dark:text-yellow-300 text-sm">
+                          <strong>Aviso:</strong> {testResult.splitWarning}
+                        </AlertDescription>
+                      </Alert>
+                    )}
+
+                    <div className="text-center space-y-2">
+                      <p className="text-2xl font-bold text-primary">
+                        {formatCurrency(testResult.valor)}
+                      </p>
+                      {testResult.qrcode && (
+                        <img 
+                          src={testResult.qrcode.startsWith('data:') ? testResult.qrcode : `data:image/png;base64,${testResult.qrcode}`}
+                          alt="QR Code PIX"
+                          className="mx-auto w-48 h-48 rounded-lg border"
+                        />
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Código Copia e Cola</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          value={testResult.pixCopiaECola}
+                          readOnly
+                          className="font-mono text-xs"
+                        />
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => copyToClipboard(testResult.pixCopiaECola, 'Código PIX')}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {testResult.splitApplied ? (
+                      <Alert className="bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-900">
+                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        <AlertDescription className="text-green-800 dark:text-green-300 text-sm">
+                          <strong>Split Payment Ativo:</strong> Ao pagar este PIX, você receberá 91,81% 
+                          (R$ {(parseFloat(testResult.valor) * 0.9181).toFixed(2)}) e a plataforma 8,19%.
+                        </AlertDescription>
+                      </Alert>
+                    ) : (
+                      <Alert className="bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-900">
+                        <Info className="h-4 w-4 text-amber-600" />
+                        <AlertDescription className="text-amber-800 dark:text-amber-300 text-sm space-y-2">
+                          <p><strong>⚠️ Split Payment não aplicado</strong></p>
+                          <p>O valor total será creditado na conta principal. Para habilitar o split:</p>
+                          <ol className="list-decimal list-inside text-xs space-y-1 mt-2">
+                            <li>Acesse o <a href="https://app.gerencianet.com.br" target="_blank" rel="noopener" className="underline font-medium">Painel EFI</a></li>
+                            <li>Vá em <strong>API → Minhas Aplicações</strong></li>
+                            <li>Selecione sua aplicação</li>
+                            <li>Em <strong>Escopos</strong>, ative <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">gn.split.write</code></li>
+                            <li>Salve e teste novamente</li>
+                          </ol>
+                          <p className="text-xs mt-2 opacity-80">
+                            Se o escopo não aparecer, entre em contato com o suporte EFI para solicitar a habilitação.
+                          </p>
+                        </AlertDescription>
+                      </Alert>
+                    )}
+
+                    <p className="text-xs text-muted-foreground text-center">
+                      Expira em: {testResult.expiracao ? new Date(testResult.expiracao).toLocaleString('pt-BR') : 'N/A'}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Info Card */}
             <Alert>
               <Info className="h-4 w-4" />
               <AlertDescription>
@@ -483,164 +795,8 @@ export default function StoreOnlinePaymentPage() {
                 na sua conta EFI vinculada, já com a taxa descontada.
               </AlertDescription>
             </Alert>
-          </CardContent>
-        </Card>
-
-        {/* Card de Teste PIX */}
-        <Card className="border-dashed border-2 border-primary/30">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <TestTube2 className="h-5 w-5 text-primary" />
-              Testar Cobrança PIX
-            </CardTitle>
-            <CardDescription>
-              Gere uma cobrança de teste para validar que o split payment está funcionando
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="testValue">Valor (R$)</Label>
-                <Input
-                  id="testValue"
-                  value={testValue}
-                  onChange={(e) => setTestValue(e.target.value)}
-                  placeholder="1.00"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="testDesc">Descrição</Label>
-                <Input
-                  id="testDesc"
-                  value={testDescription}
-                  onChange={(e) => setTestDescription(e.target.value)}
-                  placeholder="Descrição do teste"
-                />
-              </div>
-            </div>
-
-            <Button
-              onClick={handleCreateTestCharge}
-              disabled={testLoading}
-              className="w-full"
-            >
-              {testLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Gerando...
-                </>
-              ) : (
-                <>
-                  <QrCode className="h-4 w-4 mr-2" />
-                  Gerar PIX de Teste
-                </>
-              )}
-            </Button>
-
-            {testResult && (
-              <div className="space-y-4 pt-4 border-t">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                      {testResult.status}
-                    </Badge>
-                    {testResult.splitApplied && (
-                      <Badge className="bg-purple-500">Split ✓</Badge>
-                    )}
-                  </div>
-                  <span className="text-sm text-muted-foreground">
-                    TXID: {testResult.txid?.slice(0, 12)}...
-                  </span>
-                </div>
-
-                {testResult.splitWarning && (
-                  <Alert className="bg-yellow-50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-900">
-                    <Info className="h-4 w-4 text-yellow-600" />
-                    <AlertDescription className="text-yellow-800 dark:text-yellow-300 text-sm">
-                      <strong>Aviso:</strong> {testResult.splitWarning}
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                <div className="text-center space-y-2">
-                  <p className="text-2xl font-bold text-primary">
-                    {formatCurrency(testResult.valor)}
-                  </p>
-                  {testResult.qrcode && (
-                    <img 
-                      src={testResult.qrcode.startsWith('data:') ? testResult.qrcode : `data:image/png;base64,${testResult.qrcode}`}
-                      alt="QR Code PIX"
-                      className="mx-auto w-48 h-48 rounded-lg border"
-                    />
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Código Copia e Cola</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      value={testResult.pixCopiaECola}
-                      readOnly
-                      className="font-mono text-xs"
-                    />
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => copyToClipboard(testResult.pixCopiaECola, 'Código PIX')}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                {testResult.splitApplied ? (
-                  <Alert className="bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-900">
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    <AlertDescription className="text-green-800 dark:text-green-300 text-sm">
-                      <strong>Split Payment Ativo:</strong> Ao pagar este PIX, você receberá 91,81% 
-                      (R$ {(parseFloat(testResult.valor) * 0.9181).toFixed(2)}) e a plataforma 8,19%.
-                    </AlertDescription>
-                  </Alert>
-                ) : (
-                  <Alert className="bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-900">
-                    <Info className="h-4 w-4 text-amber-600" />
-                    <AlertDescription className="text-amber-800 dark:text-amber-300 text-sm space-y-2">
-                      <p><strong>⚠️ Split Payment não aplicado</strong></p>
-                      <p>O valor total será creditado na conta principal. Para habilitar o split:</p>
-                      <ol className="list-decimal list-inside text-xs space-y-1 mt-2">
-                        <li>Acesse o <a href="https://app.gerencianet.com.br" target="_blank" rel="noopener" className="underline font-medium">Painel EFI</a></li>
-                        <li>Vá em <strong>API → Minhas Aplicações</strong></li>
-                        <li>Selecione sua aplicação</li>
-                        <li>Em <strong>Escopos</strong>, ative <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">gn.split.write</code></li>
-                        <li>Salve e teste novamente</li>
-                      </ol>
-                      <p className="text-xs mt-2 opacity-80">
-                        Se o escopo não aparecer, entre em contato com o suporte EFI para solicitar a habilitação.
-                      </p>
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                <p className="text-xs text-muted-foreground text-center">
-                  Expira em: {testResult.expiracao ? new Date(testResult.expiracao).toLocaleString('pt-BR') : 'N/A'}
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <Button 
-              onClick={fetchStoreData}
-              variant="outline" 
-              className="w-full"
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Atualizar Status
-            </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     );
   }

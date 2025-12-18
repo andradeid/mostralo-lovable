@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useStoreAccess } from "@/hooks/useStoreAccess";
@@ -23,7 +24,9 @@ import {
   ChevronDown,
   ExternalLink,
   Copy,
-  Link2
+  Link2,
+  QrCode,
+  TestTube2
 } from 'lucide-react';
 
 interface StoreEfiData {
@@ -42,9 +45,24 @@ export default function StoreOnlinePaymentPage() {
   const [saving, setSaving] = useState(false);
   const [storeData, setStoreData] = useState<StoreEfiData | null>(null);
   const [guideOpen, setGuideOpen] = useState(true);
+  const [togglingPayment, setTogglingPayment] = useState(false);
   
   // Form state
   const [efiAccountNumber, setEfiAccountNumber] = useState("");
+  
+  // PIX Test state
+  const [testValue, setTestValue] = useState("1.00");
+  const [testDescription, setTestDescription] = useState("Teste de cobrança PIX");
+  const [testLoading, setTestLoading] = useState(false);
+  const [testResult, setTestResult] = useState<{
+    txid: string;
+    status: string;
+    valor: string;
+    pixCopiaECola: string;
+    qrcode: string;
+    expiracao: string;
+  } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const fetchStoreData = async () => {
     if (!storeId) return;
@@ -145,10 +163,106 @@ export default function StoreOnlinePaymentPage() {
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
+    setCopied(true);
     toast({
       title: "Copiado!",
       description: `${label} copiado para a área de transferência.`,
     });
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleToggleOnlinePayment = async (enabled: boolean) => {
+    if (!storeId) return;
+    
+    setTogglingPayment(true);
+    try {
+      const { error } = await supabase
+        .from('stores')
+        .update({ wants_online_payment: enabled })
+        .eq('id', storeId);
+
+      if (error) throw error;
+
+      setStoreData(prev => prev ? { ...prev, wants_online_payment: enabled } : null);
+      
+      toast({
+        title: enabled ? "Pagamento online ativado!" : "Pagamento online desativado",
+        description: enabled 
+          ? "Seus clientes agora podem pagar via PIX no checkout."
+          : "Seus clientes só podem pagar na entrega.",
+      });
+    } catch (error: any) {
+      console.error('Erro ao alterar configuração:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível alterar a configuração.",
+        variant: "destructive",
+      });
+    } finally {
+      setTogglingPayment(false);
+    }
+  };
+
+  const handleCreateTestCharge = async () => {
+    if (!storeId) return;
+    
+    setTestLoading(true);
+    setTestResult(null);
+    
+    try {
+      const valorCentavos = Math.round(parseFloat(testValue.replace(',', '.')) * 100);
+      
+      if (isNaN(valorCentavos) || valorCentavos < 100) {
+        toast({
+          title: "Valor inválido",
+          description: "O valor mínimo é R$ 1,00",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('efi-create-pix-charge', {
+        body: {
+          valor: valorCentavos,
+          descricao: testDescription,
+          store_id: storeId, // Importante: envia store_id para aplicar split
+        },
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        setTestResult({
+          txid: data.txid,
+          status: data.status,
+          valor: data.valor,
+          pixCopiaECola: data.pixCopiaECola,
+          qrcode: data.qrcode,
+          expiracao: data.expiracao,
+        });
+        toast({
+          title: "Cobrança criada!",
+          description: "QR Code gerado com sucesso. Teste o pagamento abaixo.",
+        });
+      } else {
+        throw new Error(data.error || 'Erro ao criar cobrança');
+      }
+    } catch (error: any) {
+      console.error('Erro ao criar cobrança:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Não foi possível criar a cobrança de teste.",
+        variant: "destructive",
+      });
+    } finally {
+      setTestLoading(false);
+    }
+  };
+
+  const formatCurrency = (value: string) => {
+    const num = parseFloat(value.replace(',', '.'));
+    if (isNaN(num)) return 'R$ 0,00';
+    return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
   const getStatusCard = () => {
@@ -240,6 +354,34 @@ export default function StoreOnlinePaymentPage() {
 
         {getStatusCard()}
 
+        {/* Switch para ativar/desativar */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <p className="font-medium flex items-center gap-2">
+                  {storeData.wants_online_payment ? (
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <XCircle className="h-4 w-4 text-muted-foreground" />
+                  )}
+                  Pagamento Online no Checkout
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {storeData.wants_online_payment 
+                    ? "Clientes podem pagar via PIX no checkout"
+                    : "Clientes só podem pagar na entrega"}
+                </p>
+              </div>
+              <Switch
+                checked={storeData.wants_online_payment}
+                onCheckedChange={handleToggleOnlinePayment}
+                disabled={togglingPayment}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
@@ -269,6 +411,115 @@ export default function StoreOnlinePaymentPage() {
                 na sua conta EFI vinculada, já com a taxa descontada.
               </AlertDescription>
             </Alert>
+          </CardContent>
+        </Card>
+
+        {/* Card de Teste PIX */}
+        <Card className="border-dashed border-2 border-primary/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <TestTube2 className="h-5 w-5 text-primary" />
+              Testar Cobrança PIX
+            </CardTitle>
+            <CardDescription>
+              Gere uma cobrança de teste para validar que o split payment está funcionando
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="testValue">Valor (R$)</Label>
+                <Input
+                  id="testValue"
+                  value={testValue}
+                  onChange={(e) => setTestValue(e.target.value)}
+                  placeholder="1.00"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="testDesc">Descrição</Label>
+                <Input
+                  id="testDesc"
+                  value={testDescription}
+                  onChange={(e) => setTestDescription(e.target.value)}
+                  placeholder="Descrição do teste"
+                />
+              </div>
+            </div>
+
+            <Button
+              onClick={handleCreateTestCharge}
+              disabled={testLoading}
+              className="w-full"
+            >
+              {testLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Gerando...
+                </>
+              ) : (
+                <>
+                  <QrCode className="h-4 w-4 mr-2" />
+                  Gerar PIX de Teste
+                </>
+              )}
+            </Button>
+
+            {testResult && (
+              <div className="space-y-4 pt-4 border-t">
+                <div className="flex items-center justify-between">
+                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                    {testResult.status}
+                  </Badge>
+                  <span className="text-sm text-muted-foreground">
+                    TXID: {testResult.txid.slice(0, 12)}...
+                  </span>
+                </div>
+
+                <div className="text-center space-y-2">
+                  <p className="text-2xl font-bold text-primary">
+                    {formatCurrency(testResult.valor)}
+                  </p>
+                  {testResult.qrcode && (
+                    <img 
+                      src={`data:image/png;base64,${testResult.qrcode}`}
+                      alt="QR Code PIX"
+                      className="mx-auto w-48 h-48 rounded-lg border"
+                    />
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Código Copia e Cola</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={testResult.pixCopiaECola}
+                      readOnly
+                      className="font-mono text-xs"
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => copyToClipboard(testResult.pixCopiaECola, 'Código PIX')}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <Alert className="bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-900">
+                  <Info className="h-4 w-4 text-blue-600" />
+                  <AlertDescription className="text-blue-800 dark:text-blue-300 text-sm">
+                    <strong>Split Payment:</strong> Ao pagar este PIX, você receberá 91,81% 
+                    (R$ {(parseFloat(testResult.valor) * 0.9181).toFixed(2)}) e a plataforma 8,19%.
+                  </AlertDescription>
+                </Alert>
+
+                <p className="text-xs text-muted-foreground text-center">
+                  Expira em: {new Date(testResult.expiracao).toLocaleString('pt-BR')}
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 

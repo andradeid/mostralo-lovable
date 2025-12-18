@@ -70,11 +70,15 @@ serve(async (req) => {
       );
     }
 
-    // Verificar status na EFI
-    const isProduction = storeConfig.efi_environment === 'production';
-    const clientId = isProduction ? storeConfig.efi_client_id : storeConfig.efi_sandbox_client_id;
-    const clientSecret = isProduction ? storeConfig.efi_client_secret : storeConfig.efi_sandbox_client_secret;
-    const certificatePem = isProduction ? storeConfig.efi_certificate_pem : storeConfig.efi_sandbox_certificate_pem;
+    // Verificar status na EFI (mesma lógica das outras funções EFI)
+    const environment = storeConfig.efi_environment || 'sandbox';
+    const isProd = environment === 'production';
+
+    const clientId = isProd ? storeConfig.efi_client_id_production : storeConfig.efi_client_id;
+    const clientSecret = isProd ? storeConfig.efi_client_secret_production : storeConfig.efi_client_secret;
+    const certificatePem = isProd
+      ? storeConfig.efi_certificate_pem_production
+      : storeConfig.efi_certificate_pem;
 
     if (!clientId || !clientSecret || !certificatePem) {
       console.error('[confirm-pix-payment] Credenciais EFI incompletas');
@@ -84,14 +88,22 @@ serve(async (req) => {
       );
     }
 
-    // Parse PEM
+    console.log(`[confirm-pix-payment] Ambiente EFI: ${environment}`);
+
+    // Parse PEM (cadeia completa + chave privada)
     const parsePemContent = (pemContent: string) => {
-      const certMatch = pemContent.match(/-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/);
-      const keyMatch = pemContent.match(/-----BEGIN (RSA |EC |ENCRYPTED )?PRIVATE KEY-----[\s\S]+?-----END (RSA |EC |ENCRYPTED )?PRIVATE KEY-----/);
-      return {
-        cert: certMatch ? certMatch[0] : null,
-        key: keyMatch ? keyMatch[0] : null,
-      };
+      const cleanPem = pemContent.trim();
+      const certMatches = cleanPem.match(
+        /-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g,
+      );
+      const cert = certMatches ? certMatches.join('\n') : '';
+
+      const keyMatch = cleanPem.match(
+        /-----BEGIN (?:RSA )?PRIVATE KEY-----[\s\S]*?-----END (?:RSA )?PRIVATE KEY-----/,
+      );
+      const key = keyMatch ? keyMatch[0] : '';
+
+      return { cert, key };
     };
 
     const { cert, key } = parsePemContent(certificatePem);
@@ -107,9 +119,11 @@ serve(async (req) => {
     const httpClient = Deno.createHttpClient({ cert, key, http2: false });
 
     // Obter token de acesso
-    const tokenUrl = isProduction
-      ? 'https://pix.api.efipay.com.br/oauth/token'
-      : 'https://pix-h.api.efipay.com.br/oauth/token';
+    const baseUrl = isProd
+      ? 'https://pix.api.efipay.com.br'
+      : 'https://pix-h.api.efipay.com.br';
+
+    const tokenUrl = `${baseUrl}/oauth/token`;
 
     const tokenResponse = await fetch(tokenUrl, {
       method: 'POST',
@@ -133,9 +147,7 @@ serve(async (req) => {
     const accessToken = tokenData.access_token;
 
     // Consultar status do PIX
-    const pixUrl = isProduction
-      ? `https://pix.api.efipay.com.br/v2/cob/${txid}`
-      : `https://pix-h.api.efipay.com.br/v2/cob/${txid}`;
+    const pixUrl = `${baseUrl}/v2/cob/${txid}`;
 
     const pixResponse = await fetch(pixUrl, {
       method: 'GET',

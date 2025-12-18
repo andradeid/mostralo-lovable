@@ -94,9 +94,11 @@ serve(async (req: Request) => {
     const certificatePem = isProduction ? efiConfig.efi_certificate_pem_production : efiConfig.efi_certificate_pem;
     const clientId = isProduction ? efiConfig.efi_client_id_production : efiConfig.efi_client_id;
     const clientSecret = isProduction ? efiConfig.efi_client_secret_production : efiConfig.efi_client_secret;
+    
+    // API de Abertura de Contas usa URLs diferentes da API PIX
     const baseUrl = isProduction 
-      ? "https://apis.gerencianet.com.br" 
-      : "https://apis-h.gerencianet.com.br";
+      ? "https://abrircontas.api.efipay.com.br" 
+      : "https://abrircontas-h.api.efipay.com.br";
 
     if (!certificatePem) {
       return new Response(
@@ -167,8 +169,7 @@ serve(async (req: Request) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        webhookUrl: webhookUrl,
-        tipo: "conta-simplificada"
+        url: webhookUrl
       }),
     });
 

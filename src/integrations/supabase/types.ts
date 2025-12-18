@@ -4148,8 +4148,11 @@ export type Database = {
       }
       store_efi_data: {
         Row: {
+          authorization_link_sent_at: string | null
+          authorized_at: string | null
           birth_date: string | null
           created_at: string | null
+          efi_identifier: string | null
           id: string
           mother_name: string | null
           person_type: string
@@ -4157,8 +4160,11 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          authorization_link_sent_at?: string | null
+          authorized_at?: string | null
           birth_date?: string | null
           created_at?: string | null
+          efi_identifier?: string | null
           id?: string
           mother_name?: string | null
           person_type: string
@@ -4166,8 +4172,11 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          authorization_link_sent_at?: string | null
+          authorized_at?: string | null
           birth_date?: string | null
           created_at?: string | null
+          efi_identifier?: string | null
           id?: string
           mother_name?: string | null
           person_type?: string
@@ -4326,6 +4335,7 @@ export type Database = {
           discount_reason: string | null
           efi_account_id: string | null
           efi_account_status: string | null
+          efi_certificate_pem: string | null
           efi_client_id: string | null
           efi_client_secret: string | null
           facebook: string | null
@@ -4382,6 +4392,7 @@ export type Database = {
           discount_reason?: string | null
           efi_account_id?: string | null
           efi_account_status?: string | null
+          efi_certificate_pem?: string | null
           efi_client_id?: string | null
           efi_client_secret?: string | null
           facebook?: string | null
@@ -4438,6 +4449,7 @@ export type Database = {
           discount_reason?: string | null
           efi_account_id?: string | null
           efi_account_status?: string | null
+          efi_certificate_pem?: string | null
           efi_client_id?: string | null
           efi_client_secret?: string | null
           facebook?: string | null
@@ -4610,6 +4622,9 @@ export type Database = {
         Row: {
           account_holder_name: string
           account_number: string | null
+          account_webhook_configured: boolean | null
+          account_webhook_configured_at: string | null
+          account_webhook_url: string | null
           agency: string | null
           bank_name: string | null
           created_at: string | null
@@ -4643,6 +4658,9 @@ export type Database = {
         Insert: {
           account_holder_name: string
           account_number?: string | null
+          account_webhook_configured?: boolean | null
+          account_webhook_configured_at?: string | null
+          account_webhook_url?: string | null
           agency?: string | null
           bank_name?: string | null
           created_at?: string | null
@@ -4676,6 +4694,9 @@ export type Database = {
         Update: {
           account_holder_name?: string
           account_number?: string | null
+          account_webhook_configured?: boolean | null
+          account_webhook_configured_at?: string | null
+          account_webhook_url?: string | null
           agency?: string | null
           bank_name?: string | null
           created_at?: string | null

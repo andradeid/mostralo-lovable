@@ -162,14 +162,14 @@ serve(async (req: Request) => {
     // Configurar webhook na EFI
     console.log("📡 Configurando webhook na EFI:", webhookUrl);
     const webhookResponse = await fetch(`${baseUrl}/v1/webhook`, {
-      method: "PUT",
+      method: "POST",
       client: httpClient,
       headers: {
         "Authorization": `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        url: webhookUrl
+        webhookUrl: webhookUrl,
       }),
     });
 

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Megaphone, CheckCheck } from 'lucide-react';
+import { Loader2, Megaphone, CheckCheck, Rocket, Bug, Zap, Shield, AlertTriangle, Bell } from 'lucide-react';
 import { UpdateCard } from '@/components/system-updates/UpdateCard';
 import { useUnreadUpdates } from '@/hooks/useUnreadUpdates';
 import { supabase } from '@/integrations/supabase/client';
@@ -33,6 +33,7 @@ export default function SystemUpdatesPage() {
   const [updates, setUpdates] = useState<SystemUpdate[]>([]);
   const [loading, setLoading] = useState(true);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [importanceFilter, setImportanceFilter] = useState<string>('all');
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
 
   const fetchUpdates = async () => {
@@ -86,8 +87,22 @@ export default function SystemUpdatesPage() {
     setReadIds(new Set(allIds));
   };
 
+  // Estatísticas
+  const stats = {
+    features: updates.filter(u => u.category === 'feature').length,
+    fixes: updates.filter(u => u.category === 'fix').length,
+    improvements: updates.filter(u => u.category === 'improvement').length,
+    security: updates.filter(u => u.category === 'security').length,
+    critical: updates.filter(u => u.importance === 'critical').length,
+    important: updates.filter(u => u.importance === 'important').length,
+    unread: updates.filter(u => !readIds.has(u.id)).length
+  };
+
   const filteredUpdates = updates.filter(update => {
     if (categoryFilter !== 'all' && update.category !== categoryFilter) {
+      return false;
+    }
+    if (importanceFilter !== 'all' && update.importance !== importanceFilter) {
       return false;
     }
     return true;
@@ -131,6 +146,62 @@ export default function SystemUpdatesPage() {
         )}
       </div>
 
+      {/* Card de Estatísticas */}
+      <Card className="mb-6">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            📊 Resumo das Novidades
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
+              <Rocket className="h-4 w-4 text-blue-500" />
+              <div>
+                <p className="text-lg font-bold text-blue-500">{stats.features}</p>
+                <p className="text-xs text-muted-foreground">Funcionalidades</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-orange-500/10 border border-orange-500/20">
+              <Bug className="h-4 w-4 text-orange-500" />
+              <div>
+                <p className="text-lg font-bold text-orange-500">{stats.fixes}</p>
+                <p className="text-xs text-muted-foreground">Correções</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+              <Zap className="h-4 w-4 text-yellow-500" />
+              <div>
+                <p className="text-lg font-bold text-yellow-500">{stats.improvements}</p>
+                <p className="text-xs text-muted-foreground">Melhorias</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-green-500/10 border border-green-500/20">
+              <Shield className="h-4 w-4 text-green-500" />
+              <div>
+                <p className="text-lg font-bold text-green-500">{stats.security}</p>
+                <p className="text-xs text-muted-foreground">Segurança</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-red-500/10 border border-red-500/20">
+              <AlertTriangle className="h-4 w-4 text-red-500" />
+              <div>
+                <p className="text-lg font-bold text-red-500">{stats.critical}</p>
+                <p className="text-xs text-muted-foreground">Críticos</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/10 border border-primary/20">
+              <Bell className="h-4 w-4 text-primary" />
+              <div>
+                <p className="text-lg font-bold text-primary">{stats.unread}</p>
+                <p className="text-xs text-muted-foreground">Não lidas</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Filtros */}
       <Card className="mb-6">
         <CardContent className="pt-4">
           <div className="flex flex-col sm:flex-row gap-4">
@@ -148,8 +219,21 @@ export default function SystemUpdatesPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="text-sm text-muted-foreground flex items-center">
-              {filteredUpdates.length} atualização(ões) encontrada(s)
+            <div className="flex-1">
+              <Select value={importanceFilter} onValueChange={setImportanceFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filtrar por importância" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as importâncias</SelectItem>
+                  <SelectItem value="critical">🔴 Crítico</SelectItem>
+                  <SelectItem value="important">🟡 Importante</SelectItem>
+                  <SelectItem value="normal">🟢 Normal</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="text-sm text-muted-foreground flex items-center whitespace-nowrap">
+              {filteredUpdates.length} atualização(ões)
             </div>
           </div>
         </CardContent>

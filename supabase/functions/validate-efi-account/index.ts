@@ -39,10 +39,10 @@ serve(async (req) => {
       );
     }
 
-    // Buscar dados da loja
+    // Buscar dados da loja incluindo CPF/CNPJ
     const { data: store, error: storeError } = await supabase
       .from('stores')
-      .select('id, name, owner_id')
+      .select('id, name, owner_id, company_document, cpf, responsible_cpf, document_type')
       .eq('id', store_id)
       .single();
 
@@ -54,27 +54,15 @@ serve(async (req) => {
       );
     }
 
-    // Buscar perfil do proprietário para obter CPF/CNPJ
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('cpf, cnpj, full_name')
-      .eq('id', store.owner_id)
-      .single();
-
-    if (profileError) {
-      console.error('❌ Perfil não encontrado:', profileError);
-      return new Response(
-        JSON.stringify({ success: false, error: 'Perfil do proprietário não encontrado' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
-      );
-    }
-
-    const document = profile.cnpj || profile.cpf;
+    // Buscar documento da loja (CNPJ ou CPF)
+    const document = store.company_document || store.cpf || store.responsible_cpf;
+    const documentType = store.company_document ? 'CNPJ' : 'CPF';
+    
     if (!document) {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: 'CPF/CNPJ do proprietário não cadastrado. Atualize seu perfil primeiro.' 
+          error: 'CPF/CNPJ da loja não cadastrado. Atualize os dados da loja primeiro.' 
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
@@ -112,7 +100,7 @@ serve(async (req) => {
         message: 'Conta EFI vinculada com sucesso!',
         account_number: accountNumberClean,
         store_name: store.name,
-        document_type: profile.cnpj ? 'CNPJ' : 'CPF'
+        document_type: documentType
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

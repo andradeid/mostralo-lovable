@@ -157,10 +157,10 @@ serve(async (req) => {
     if (store_id) {
       console.log('🔀 Configurando Split Payment...');
       
-      // Buscar dados da loja
+      // Buscar dados da loja incluindo CPF/CNPJ
       const { data: store, error: storeError } = await supabase
         .from('stores')
-        .select('efi_account_number, online_payment_commission, owner_id, name')
+        .select('efi_account_number, online_payment_commission, owner_id, name, company_document, cpf, responsible_cpf')
         .eq('id', store_id)
         .single();
 
@@ -185,27 +185,13 @@ serve(async (req) => {
         );
       }
 
-      // Buscar CPF/CNPJ do proprietário
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('cpf, cnpj')
-        .eq('id', store.owner_id)
-        .single();
-
-      if (profileError || !profile) {
-        console.error('❌ Perfil do proprietário não encontrado:', profileError);
-        httpClient.close();
-        return new Response(
-          JSON.stringify({ success: false, error: 'Dados do proprietário não encontrados' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
-        );
-      }
-
-      const document = profile.cnpj || profile.cpf;
+      // Buscar documento da loja (CNPJ ou CPF)
+      const document = store.company_document || store.cpf || store.responsible_cpf;
+      
       if (!document) {
         httpClient.close();
         return new Response(
-          JSON.stringify({ success: false, error: 'CPF/CNPJ do proprietário não cadastrado' }),
+          JSON.stringify({ success: false, error: 'CPF/CNPJ da loja não cadastrado' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
         );
       }

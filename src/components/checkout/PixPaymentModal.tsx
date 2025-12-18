@@ -55,6 +55,7 @@ export function PixPaymentModal({
           descricao: description,
           expiracao_segundos: 300, // 5 minutos
           store_id: storeId,
+          order_id: orderId, // Passa orderId para a Edge Function salvar o txid
         },
       });
 
@@ -62,13 +63,7 @@ export function PixPaymentModal({
         throw new Error(data?.error || error?.message || "Erro ao criar cobrança");
       }
 
-      // Salvar txid no pedido para o webhook encontrar
-      await supabase
-        .from('orders')
-        .update({
-          payment_details: { pix_txid: data.txid },
-        })
-        .eq('id', orderId);
+      // TXID é salvo no pedido pela Edge Function (bypass RLS)
 
       setChargeData({
         txid: data.txid,

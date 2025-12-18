@@ -4339,6 +4339,8 @@ export type Database = {
           efi_certificate_pem: string | null
           efi_client_id: string | null
           efi_client_secret: string | null
+          efi_document_number: string | null
+          efi_document_type: string | null
           facebook: string | null
           google_maps_link: string | null
           id: string
@@ -4397,6 +4399,8 @@ export type Database = {
           efi_certificate_pem?: string | null
           efi_client_id?: string | null
           efi_client_secret?: string | null
+          efi_document_number?: string | null
+          efi_document_type?: string | null
           facebook?: string | null
           google_maps_link?: string | null
           id?: string
@@ -4455,6 +4459,8 @@ export type Database = {
           efi_certificate_pem?: string | null
           efi_client_id?: string | null
           efi_client_secret?: string | null
+          efi_document_number?: string | null
+          efi_document_type?: string | null
           facebook?: string | null
           google_maps_link?: string | null
           id?: string

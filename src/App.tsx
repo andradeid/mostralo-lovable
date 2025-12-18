@@ -140,6 +140,7 @@ import GatewayConfigPage from "./pages/admin/GatewayConfigPage";
 import IdeasPage from "./pages/admin/IdeasPage";
 import SystemUpdatesPage from "./pages/SystemUpdatesPage";
 import SystemUpdatesManagementPage from "./pages/admin/SystemUpdatesManagementPage";
+import { UpdatesRedirect } from "./components/system-updates/UpdatesRedirect";
 const queryClient = new QueryClient();
 
 // Componente interno para controlar o tema baseado na rota
@@ -786,6 +787,9 @@ const App = () => (
               </ProtectedRoute>
             }
           />
+            {/* Novidades do Sistema - Redirecionamento automático */}
+            <Route path="/novidades" element={<UpdatesRedirect />} />
+            
             {/* Novidades do Sistema - Rotas específicas por área */}
             <Route path="/dashboard/novidades" element={
               <ProtectedRoute allowedRoles={['master_admin', 'store_admin', 'attendant']}>

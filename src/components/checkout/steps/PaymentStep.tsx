@@ -86,7 +86,7 @@ export const PaymentStep = ({
       title: 'Pix',
       subtitle: 'Pagamento online instantâneo',
       category: 'online',
-      enabled: onlinePaymentEnabled && acceptsPix
+      enabled: onlinePaymentEnabled
     },
     {
       id: 'pix_delivery',
@@ -95,7 +95,7 @@ export const PaymentStep = ({
       title: 'Pix',
       subtitle: 'Pagar na entrega',
       category: 'delivery',
-      enabled: acceptsPix && !onlinePaymentEnabled
+      enabled: acceptsPix
     },
     {
       id: 'cash',

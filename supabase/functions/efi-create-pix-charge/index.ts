@@ -11,6 +11,7 @@ interface CreateChargeRequest {
   descricao: string;
   expiracao_segundos: number;
   store_id?: string; // Opcional: se informado, usa Split Payment
+  order_id?: string; // Opcional: se informado, salva txid no pedido
 }
 
 // Função para extrair certificado(s) e chave privada do PEM
@@ -48,7 +49,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { valor, descricao, expiracao_segundos, store_id }: CreateChargeRequest = await req.json();
+    const { valor, descricao, expiracao_segundos, store_id, order_id }: CreateChargeRequest = await req.json();
 
     // Formatar valor para ter exatamente 2 casas decimais (exigido pela API EFI)
     const valorFormatado = parseFloat(valor).toFixed(2);
@@ -397,6 +398,25 @@ serve(async (req) => {
       : null;
 
     httpClient.close();
+
+    // ═══════════════════════════════════════════════════════════
+    // SALVAR TXID NO PEDIDO (se order_id informado)
+    // ═══════════════════════════════════════════════════════════
+    if (order_id) {
+      console.log(`\n💾 Salvando TXID no pedido ${order_id}...`);
+      const { error: updateError } = await supabase
+        .from('orders')
+        .update({
+          payment_details: { pix_txid: cobData.txid },
+        })
+        .eq('id', order_id);
+
+      if (updateError) {
+        console.error('⚠️ Erro ao salvar TXID no pedido:', updateError);
+      } else {
+        console.log('✅ TXID salvo no pedido!');
+      }
+    }
 
     console.log('\n═══════════════════════════════════════════════════════════');
     console.log('🎉 COBRANÇA CRIADA COM SUCESSO!');

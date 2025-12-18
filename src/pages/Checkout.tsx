@@ -6,6 +6,7 @@ import { CustomerDataStep } from "@/components/checkout/steps/CustomerDataStep";
 import { PaymentStep } from "@/components/checkout/steps/PaymentStep";
 import { ConfirmationStep } from "@/components/checkout/steps/ConfirmationStep";
 import { CheckoutProgressIndicator } from "@/components/checkout/CheckoutProgressIndicator";
+import { PixPaymentModal } from "@/components/checkout/PixPaymentModal";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -70,12 +71,17 @@ export default function Checkout() {
   const [acceptsDebit, setAcceptsDebit] = useState(false);
   const [acceptsPix, setAcceptsPix] = useState(false);
   const [onlinePaymentEnabled, setOnlinePaymentEnabled] = useState(false);
+  const [efiAccountNumber, setEfiAccountNumber] = useState<string | null>(null);
   
   // Payment Step
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [paymentDetails, setPaymentDetails] = useState<any>(null);
   const [needsChange, setNeedsChange] = useState(false);
   const [changeAmount, setChangeAmount] = useState("");
+  
+  // PIX Payment Modal
+  const [showPixModal, setShowPixModal] = useState(false);
+  const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
   
   // Verificar autenticação e fazer prefill dos dados do cliente
   useEffect(() => {
@@ -144,7 +150,7 @@ export default function Checkout() {
       try {
         const { data: store, error } = await supabase
           .from("stores")
-          .select("accepts_cash, accepts_card, accepts_pix, payment_gateways")
+          .select("accepts_cash, accepts_card, accepts_pix, payment_gateways, efi_account_status, efi_account_number")
           .eq("id", checkoutStoreId)
           .single();
         
@@ -159,7 +165,13 @@ export default function Checkout() {
           setAcceptsDebit(store.accepts_card ?? false);
           setAcceptsPix(store.accepts_pix ?? false);
           
-          // Verificar se há gateway online configurado
+          // Verificar se há EFI ativo para pagamento online
+          const hasEfiActive = store.efi_account_status === 'active' && !!store.efi_account_number;
+          if (hasEfiActive) {
+            setEfiAccountNumber(store.efi_account_number);
+          }
+          
+          // Verificar se há gateway online configurado (legado)
           const gateways = store.payment_gateways as any;
           const hasOnlineGateway = gateways && (
             gateways.mercado_pago?.enabled || 
@@ -167,7 +179,8 @@ export default function Checkout() {
             gateways.pagarme?.enabled ||
             gateways.paypal?.enabled
           );
-          setOnlinePaymentEnabled(hasOnlineGateway ?? false);
+          
+          setOnlinePaymentEnabled(hasEfiActive || (hasOnlineGateway ?? false));
         }
       } catch (error) {
         console.error("Erro ao buscar configurações de pagamento:", error);
@@ -329,6 +342,9 @@ export default function Checkout() {
         throw orderNumberError;
       }
       
+      // Verificar se é PIX online (com EFI ativo)
+      const isPixOnline = paymentMethod === 'pix' && onlinePaymentEnabled && efiAccountNumber;
+      
       // Montar dados do pedido usando colunas corretas do schema
       const orderData: any = {
         order_number: orderNumber,
@@ -341,8 +357,8 @@ export default function Checkout() {
         delivery_type: deliveryType,
         payment_method: paymentMethod,
         payment_details: paymentDetails,
-        payment_status: 'pending',
-        status: 'entrada',
+        payment_status: isPixOnline ? 'pending' : 'pending', // PIX online aguarda confirmação
+        status: isPixOnline ? 'aguardando_pagamento' : 'entrada', // Status especial para aguardar PIX
         subtotal,
         delivery_fee: finalDeliveryFee,
         total,
@@ -400,6 +416,14 @@ export default function Checkout() {
         });
       }
       
+      // Se for PIX online, abrir modal de pagamento
+      if (isPixOnline) {
+        setPendingOrderId(order.id);
+        setShowPixModal(true);
+        setIsLoading(false);
+        return; // Não finaliza ainda, aguarda pagamento
+      }
+      
       // Limpar carrinho e dados temporários
       clearCart();
       sessionStorage.removeItem('checkoutStoreId');
@@ -423,6 +447,55 @@ export default function Checkout() {
     } finally {
       setIsLoading(false);
     }
+  };
+  
+  // Handler quando pagamento PIX é confirmado
+  const handlePixPaymentConfirmed = async () => {
+    if (!pendingOrderId) return;
+    
+    try {
+      // Atualizar pedido para 'entrada' (o webhook já marcou como pago)
+      await supabase
+        .from('orders')
+        .update({ status: 'entrada' })
+        .eq('id', pendingOrderId);
+      
+      // Limpar dados
+      clearCart();
+      sessionStorage.removeItem('checkoutStoreId');
+      sessionStorage.removeItem('checkoutDeliveryFee');
+      sessionStorage.removeItem('checkoutPrimaryColor');
+      sessionStorage.removeItem('checkoutSecondaryColor');
+      sessionStorage.removeItem('checkoutStoreName');
+      sessionStorage.removeItem('checkoutStoreSlug');
+      
+      setShowPixModal(false);
+      toast.success('Pagamento confirmado! Pedido enviado.');
+      
+      // Redirecionar
+      if (storeSlug) {
+        window.location.href = `/painel-cliente/${storeSlug}`;
+      } else {
+        window.location.href = '/';
+      }
+    } catch (error) {
+      console.error('Erro ao finalizar pedido:', error);
+    }
+  };
+  
+  // Handler quando PIX expira
+  const handlePixPaymentExpired = async () => {
+    // Cancelar o pedido pendente
+    if (pendingOrderId) {
+      await supabase
+        .from('orders')
+        .update({ 
+          status: 'cancelado',
+          cancellation_reason: 'Tempo de pagamento PIX expirado'
+        })
+        .eq('id', pendingOrderId);
+    }
+    toast.error('Tempo de pagamento expirado. Gere um novo QR Code.');
   };
   
   const handleEditStep = (step: number) => {
@@ -600,6 +673,19 @@ export default function Checkout() {
           </Button>
         </div>
       </footer>
+      
+      {/* Modal de Pagamento PIX */}
+      <PixPaymentModal
+        open={showPixModal}
+        onOpenChange={setShowPixModal}
+        storeId={storeId}
+        orderId={pendingOrderId}
+        amount={getTotalPrice() + (deliveryType === 'delivery' ? deliveryFee : 0)}
+        description={`Pedido ${storeName}`}
+        onPaymentConfirmed={handlePixPaymentConfirmed}
+        onPaymentExpired={handlePixPaymentExpired}
+        primaryColor={primaryColor}
+      />
     </div>
   );
 }

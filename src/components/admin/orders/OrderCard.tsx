@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { PrintPreviewDialog } from "@/components/admin/print/PrintPreviewDialog";
 import { useState } from "react";
+import { EstimatedDeliveryBadge } from "./EstimatedDeliveryBadge";
 
 type Order = Database['public']['Tables']['orders']['Row'];
 
@@ -114,8 +115,8 @@ export const OrderCard = ({ order, onClick, isDragging, isViewed, onPrint, isSel
       onClick={onClick}
     >
       <div className="space-y-1.5">
-        {/* Header - Linha 1: Checkbox + Número + Status + Urgência */}
-        <div className="flex items-center gap-1.5">
+        {/* Header - Linha 1: Checkbox + Número + Status + Tempo Estimado + Urgência */}
+        <div className="flex items-center gap-1.5 flex-wrap">
           {onSelectChange && (
             <input
               type="checkbox"
@@ -129,6 +130,13 @@ export const OrderCard = ({ order, onClick, isDragging, isViewed, onPrint, isSel
           )}
           <span className="text-sm font-semibold whitespace-nowrap">#{order.order_number}</span>
           <OrderStatusBadge status={order.status} />
+          {order.estimated_delivery_minutes && order.status !== 'concluido' && order.status !== 'cancelado' && (
+            <EstimatedDeliveryBadge 
+              createdAt={order.created_at}
+              estimatedMinutes={order.estimated_delivery_minutes}
+              variant="compact"
+            />
+          )}
           {isUrgent && <AlertTriangle className="h-3.5 w-3.5 text-red-500 flex-shrink-0" />}
         </div>
 

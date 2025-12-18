@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { OrderStatusBadge } from "./OrderStatusBadge";
 import { CancelOrderDialog } from "./CancelOrderDialog";
 import { DeliveryTimeSelector } from "./DeliveryTimeSelector";
+import { EstimatedDeliveryBadge } from "./EstimatedDeliveryBadge";
 import { CustomerMap } from "../CustomerMap";
 import { DriverBadge } from "./DriverBadge";
 import { useDriverPresence } from "@/hooks/useDriverPresence";
@@ -406,6 +407,18 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
             <p className="text-sm text-muted-foreground">
               {format(new Date(order.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
             </p>
+            
+            {/* Indicador de Tempo Estimado de Entrega */}
+            {order.estimated_delivery_minutes && 
+             order.status !== 'concluido' && 
+             order.status !== 'cancelado' && (
+              <EstimatedDeliveryBadge 
+                createdAt={order.created_at}
+                estimatedMinutes={order.estimated_delivery_minutes}
+                variant="expanded"
+                deliveryType={order.delivery_type}
+              />
+            )}
             
             {/* Data de Agendamento - SE EXISTIR */}
             {order.scheduled_for && (

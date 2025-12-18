@@ -39,10 +39,10 @@ serve(async (req) => {
       );
     }
 
-    // Buscar dados da loja incluindo CPF/CNPJ
+    // Buscar dados da loja
     const { data: store, error: storeError } = await supabase
       .from('stores')
-      .select('id, name, owner_id, company_document, cpf, responsible_cpf, document_type')
+      .select('id, name, owner_id, responsible_cpf')
       .eq('id', store_id)
       .single();
 
@@ -54,9 +54,9 @@ serve(async (req) => {
       );
     }
 
-    // Buscar documento da loja (CNPJ ou CPF)
-    const document = store.company_document || store.cpf || store.responsible_cpf;
-    const documentType = store.company_document ? 'CNPJ' : 'CPF';
+    // Buscar CPF do responsável
+    const document = store.responsible_cpf;
+    const documentType = 'CPF';
     
     if (!document) {
       return new Response(

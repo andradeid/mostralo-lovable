@@ -157,10 +157,10 @@ serve(async (req) => {
     if (store_id) {
       console.log('🔀 Configurando Split Payment...');
       
-      // Buscar dados da loja incluindo CPF/CNPJ
+      // Buscar dados da loja
       const { data: store, error: storeError } = await supabase
         .from('stores')
-        .select('efi_account_number, online_payment_commission, owner_id, name, company_document, cpf, responsible_cpf')
+        .select('efi_account_number, online_payment_commission, owner_id, name, responsible_cpf')
         .eq('id', store_id)
         .single();
 
@@ -185,13 +185,13 @@ serve(async (req) => {
         );
       }
 
-      // Buscar documento da loja (CNPJ ou CPF)
-      const document = store.company_document || store.cpf || store.responsible_cpf;
+      // Buscar CPF do responsável
+      const document = store.responsible_cpf;
       
       if (!document) {
         httpClient.close();
         return new Response(
-          JSON.stringify({ success: false, error: 'CPF/CNPJ da loja não cadastrado' }),
+          JSON.stringify({ success: false, error: 'CPF do responsável não cadastrado' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
         );
       }

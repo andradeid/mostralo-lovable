@@ -162,7 +162,7 @@ serve(async (req: Request) => {
     const accessToken = tokenData.access_token;
     const grantedScope = typeof tokenData.scope === 'string' ? tokenData.scope : '';
 
-    console.log("✅ Token obtido. Escopos:", grantedScope || "(não informado)");
+    console.log(`✅ Token obtido. token_type=${tokenData.token_type || '(não informado)'} scope=${grantedScope || '(não informado)'}`);
 
     if (!accessToken) {
       return new Response(
@@ -181,6 +181,7 @@ serve(async (req: Request) => {
           details: {
             required_scope: "gn.registration.webhook.write",
             granted_scope: grantedScope || null,
+            environment: isProduction ? 'production' : 'sandbox',
             hint: "No painel da Efí, habilite o escopo gn.registration.webhook.write (produção/homologação) e solicite a liberação dessa API."
           }
         }),
@@ -209,10 +210,15 @@ serve(async (req: Request) => {
     console.log("📥 Resposta EFI:", webhookResponse.status, webhookResponseText);
 
     if (!webhookResponse.ok) {
+      const isUnauthorized = webhookResponse.status === 401;
+
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: "Erro ao configurar webhook na EFI",
-          details: webhookResponseText
+          details: webhookResponseText,
+          hint: isUnauthorized
+            ? "401 Unauthorized na API Abertura de Contas normalmente indica que a aplicação/escopo não está liberado pela Efí para este ambiente (produção/homologação) OU que ClientId/Secret e certificado não pertencem à mesma conta Efí."
+            : null
         }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );

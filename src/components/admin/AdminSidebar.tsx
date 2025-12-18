@@ -41,7 +41,8 @@ import {
   Map,
   UserPlus,
   Film,
-  Lightbulb
+  Lightbulb,
+  Megaphone
 } from "lucide-react";
 
 import {
@@ -63,7 +64,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNewOrders } from "@/contexts/NewOrdersContext";
 import { useStoreModules } from "@/hooks/useStoreModules";
-
+import { useUnreadUpdates } from "@/hooks/useUnreadUpdates";
 export function AdminSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
@@ -72,7 +73,7 @@ export function AdminSidebar() {
   const { toast } = useToast();
   const { pendingOrdersCount } = useNewOrders();
   const { hasModule, loading: modulesLoading } = useStoreModules(validatedStoreId);
-  
+  const { unreadCount: unreadUpdatesCount } = useUnreadUpdates();
   const collapsed = state === "collapsed";
   const currentPath = location.pathname;
   const [storeConfig, setStoreConfig] = useState<any>(null);
@@ -367,6 +368,8 @@ export function AdminSidebar() {
         { title: 'Gateway EFI', url: '/dashboard/gateway-config', icon: Zap, group: 'Financeiro' },
         { title: 'Cupons', url: '/dashboard/coupons', icon: Ticket, group: 'Sistema' },
         { title: 'Aceites de Contratos', url: '/dashboard/contract-acceptances', icon: FileText, group: 'Sistema' },
+        { title: 'Gerenciar Novidades', url: '/dashboard/system-updates', icon: Megaphone, group: 'Sistema' },
+        { title: 'Novidades', url: '/novidades', icon: Megaphone, group: 'Conta' },
         { title: 'Perfil', url: '/dashboard/profile', icon: User, group: 'Conta' }
       ];
     } else {
@@ -490,6 +493,7 @@ export function AdminSidebar() {
       menuItems.push(
         { title: 'Minha Assinatura', url: '/dashboard/subscription', icon: CreditCard, group: 'Conta' },
         { title: 'Meus Contratos', url: '/dashboard/contracts', icon: FileText, group: 'Conta' },
+        { title: 'Novidades', url: '/novidades', icon: Megaphone, group: 'Conta' },
         { title: 'Perfil', url: '/dashboard/profile', icon: User, group: 'Conta' }
       );
 
@@ -631,6 +635,15 @@ export function AdminSidebar() {
                                 className="ml-auto animate-pulse bg-red-600 text-white text-xs px-2 py-0.5"
                               >
                                 {pendingOrdersCount === 1 ? '1 NOVO' : `${pendingOrdersCount} NOVOS`}
+                              </Badge>
+                            )}
+                            {/* Badge de novidades não lidas */}
+                            {item.url === '/novidades' && unreadUpdatesCount > 0 && (
+                              <Badge 
+                                variant="destructive" 
+                                className="ml-auto animate-pulse bg-red-600 text-white text-xs px-2 py-0.5"
+                              >
+                                {unreadUpdatesCount}
                               </Badge>
                             )}
                           </span>

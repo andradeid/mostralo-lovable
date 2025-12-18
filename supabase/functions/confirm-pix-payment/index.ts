@@ -103,8 +103,8 @@ serve(async (req) => {
       );
     }
 
-    // Criar cliente mTLS
-    const httpClient = Deno.createHttpClient({ cert, key });
+    // Criar cliente mTLS (http2: false é necessário para a API EFI)
+    const httpClient = Deno.createHttpClient({ cert, key, http2: false });
 
     // Obter token de acesso
     const tokenUrl = isProduction

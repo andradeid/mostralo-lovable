@@ -127,7 +127,7 @@ serve(async (req: Request) => {
     // Obter token OAuth2 com escopo de webhook de registro
     console.log("🔐 Obtendo token OAuth2...");
     const credentials = btoa(`${clientId}:${clientSecret}`);
-    const tokenResponse = await fetch(`${baseUrl}/oauth/token`, {
+    const tokenResponse = await fetch(`${baseUrl}/v1/oauth/token`, {
       method: "POST",
       client: httpClient,
       headers: {

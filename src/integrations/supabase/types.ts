@@ -4341,6 +4341,7 @@ export type Database = {
           efi_client_secret: string | null
           efi_document_number: string | null
           efi_document_type: string | null
+          efi_pix_enabled: boolean | null
           facebook: string | null
           google_maps_link: string | null
           id: string
@@ -4401,6 +4402,7 @@ export type Database = {
           efi_client_secret?: string | null
           efi_document_number?: string | null
           efi_document_type?: string | null
+          efi_pix_enabled?: boolean | null
           facebook?: string | null
           google_maps_link?: string | null
           id?: string
@@ -4461,6 +4463,7 @@ export type Database = {
           efi_client_secret?: string | null
           efi_document_number?: string | null
           efi_document_type?: string | null
+          efi_pix_enabled?: boolean | null
           facebook?: string | null
           google_maps_link?: string | null
           id?: string

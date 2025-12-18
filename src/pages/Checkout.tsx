@@ -591,8 +591,8 @@ export default function Checkout() {
             promotionDiscount={0}
             isApplyingPromotion={isApplyingPromotion}
             subtotal={getTotalPrice()}
-            deliveryFee={deliveryFee}
-            total={getTotalPrice() + deliveryFee}
+            deliveryFee={deliveryType === 'delivery' ? deliveryFee : 0}
+            total={getTotalPrice() + (deliveryType === 'delivery' ? deliveryFee : 0)}
             primaryColor={primaryColor}
             secondaryColor={secondaryColor}
             acceptsCash={acceptsCash}
@@ -615,9 +615,9 @@ export default function Checkout() {
             changeAmount={changeAmount}
             items={items}
             subtotal={getTotalPrice()}
-            deliveryFee={deliveryFee}
+            deliveryFee={deliveryType === 'delivery' ? deliveryFee : 0}
             promotionDiscount={0}
-            total={getTotalPrice() + deliveryFee}
+            total={getTotalPrice() + (deliveryType === 'delivery' ? deliveryFee : 0)}
             appliedPromotion={appliedPromotion}
             isScheduled={isScheduled}
             selectedDate={selectedDate}

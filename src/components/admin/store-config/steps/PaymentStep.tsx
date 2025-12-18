@@ -5,7 +5,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { CreditCard, Banknote, Smartphone, Globe, DollarSign, CheckCircle2, AlertTriangle, ExternalLink } from "lucide-react";
+import { CreditCard, Banknote, Smartphone, Globe, DollarSign, CheckCircle2, AlertTriangle, ExternalLink, Construction } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
@@ -251,7 +252,7 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
       <Separator />
 
       {/* Gateways de Pagamento Online */}
-      <Card>
+      <Card className="opacity-75">
         <CardHeader>
           <CardTitle className="flex items-center">
             <DollarSign className="w-4 h-4 mr-2" />
@@ -259,7 +260,17 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-2">
+          {/* Aviso de desenvolvimento */}
+          <Alert className="border-yellow-500 bg-yellow-500/10">
+            <Construction className="h-4 w-4 text-yellow-600" />
+            <AlertTitle className="text-yellow-700 dark:text-yellow-400">🚧 Em Desenvolvimento</AlertTitle>
+            <AlertDescription className="text-yellow-600 dark:text-yellow-300">
+              Esta funcionalidade está em fase de desenvolvimento e ainda não está disponível. 
+              Em breve você poderá configurar gateways como Mercado Pago, PayPal, Pagar.me e Stripe.
+            </AlertDescription>
+          </Alert>
+
+          <div className="pointer-events-none opacity-50 space-y-2">
             <p className="text-sm text-muted-foreground border-l-4 border-muted pl-3">
               Escolha qual Gateway de pagamento que você deseja utilizar para receber de seus clientes. Caso não trabalhe com pagamento online selecione a opção (Nenhum)
             </p>
@@ -268,25 +279,26 @@ export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAcc
               value={formData.payment_gateway || 'nenhum'} 
               onValueChange={(value) => updateFormData({ payment_gateway: value })}
               className="flex flex-wrap gap-6"
+              disabled
             >
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="mercado-pago" id="mp" />
+                <RadioGroupItem value="mercado-pago" id="mp" disabled />
                 <Label htmlFor="mp">Mercado Pago</Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="paypal" id="paypal" />
+                <RadioGroupItem value="paypal" id="paypal" disabled />
                 <Label htmlFor="paypal">PayPal</Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="pagar-me" id="pagarme" />
+                <RadioGroupItem value="pagar-me" id="pagarme" disabled />
                 <Label htmlFor="pagarme">Pagar.me</Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="stripe" id="stripe" />
+                <RadioGroupItem value="stripe" id="stripe" disabled />
                 <Label htmlFor="stripe">Stripe</Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="nenhum" id="nenhum" />
+                <RadioGroupItem value="nenhum" id="nenhum" disabled />
                 <Label htmlFor="nenhum">Nenhum</Label>
               </div>
             </RadioGroup>

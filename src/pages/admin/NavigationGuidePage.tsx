@@ -119,6 +119,7 @@ const routeSections: RouteSection[] = [
       { path: "/dashboard/business-intelligence", name: "Inteligência de Negócios", component: "BusinessIntelligenceDashboard.tsx", roles: ["master_admin"] },
       { path: "/dashboard/metas", name: "Metas e Objetivos", component: "GoalsPage.tsx", roles: ["master_admin"] },
       { path: "/dashboard/navegacao", name: "Guia de Navegação", component: "NavigationGuidePage.tsx", roles: ["master_admin"] },
+      { path: "/dashboard/novidades", name: "Novidades do Sistema", component: "SystemUpdatesPage.tsx", roles: ["master_admin"] },
       { path: "/dashboard/subscribers", name: "Assinantes", component: "SubscribersPage.tsx", roles: ["master_admin"] },
       { path: "/dashboard/stores", name: "Lojas", component: "StoresPage.tsx", roles: ["master_admin"] },
       { path: "/dashboard/users", name: "Usuários", component: "UsersPage.tsx", roles: ["master_admin"] },

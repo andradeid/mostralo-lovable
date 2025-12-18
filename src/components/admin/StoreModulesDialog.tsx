@@ -21,7 +21,8 @@ import {
   BarChart3,
   Palette,
   MessageCircle,
-  MapPin
+  MapPin,
+  Utensils
 } from 'lucide-react';
 
 interface StoreModulesDialogProps {
@@ -43,6 +44,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Palette,
   MessageCircle,
   MapPin,
+  Utensils,
 };
 
 export function StoreModulesDialog({ 

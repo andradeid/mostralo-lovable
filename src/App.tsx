@@ -138,7 +138,8 @@ import RecruitmentPage from "./pages/admin/RecruitmentPage";
 import TestEnvironmentPage from "./pages/admin/TestEnvironmentPage";
 import GatewayConfigPage from "./pages/admin/GatewayConfigPage";
 import IdeasPage from "./pages/admin/IdeasPage";
-
+import SystemUpdatesPage from "./pages/SystemUpdatesPage";
+import SystemUpdatesManagementPage from "./pages/admin/SystemUpdatesManagementPage";
 const queryClient = new QueryClient();
 
 // Componente interno para controlar o tema baseado na rota
@@ -785,6 +786,19 @@ const App = () => (
               </ProtectedRoute>
             }
           />
+            {/* Novidades do Sistema - Todos usuários exceto customer */}
+            <Route path="/novidades" element={
+              <ProtectedRoute allowedRoles={['master_admin', 'store_admin', 'salesperson', 'delivery_driver', 'attendant']}>
+                <SystemUpdatesPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/system-updates" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Gerenciar Novidades">
+                  <SystemUpdatesManagementPage />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
             <Route path="/termos" element={<TermsOfUse />} />
             <Route path="/privacidade" element={<Privacy />} />
             <Route path="/suporte" element={<Support />} />

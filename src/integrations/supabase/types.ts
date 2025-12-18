@@ -4672,6 +4672,98 @@ export type Database = {
         }
         Relationships: []
       }
+      system_update_images: {
+        Row: {
+          caption: string | null
+          created_at: string | null
+          display_order: number | null
+          id: string
+          image_url: string
+          update_id: string | null
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          image_url: string
+          update_id?: string | null
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          image_url?: string
+          update_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_update_images_update_id_fkey"
+            columns: ["update_id"]
+            isOneToOne: false
+            referencedRelation: "system_updates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      system_updates: {
+        Row: {
+          category: string
+          created_at: string | null
+          created_by: string | null
+          description: string
+          id: string
+          importance: string | null
+          is_published: boolean | null
+          release_date: string
+          title: string
+          updated_at: string | null
+          version: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          created_by?: string | null
+          description: string
+          id?: string
+          importance?: string | null
+          is_published?: boolean | null
+          release_date: string
+          title: string
+          updated_at?: string | null
+          version: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string
+          id?: string
+          importance?: string | null
+          is_published?: boolean | null
+          release_date?: string
+          title?: string
+          updated_at?: string | null
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_updates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "system_updates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "unified_users_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -4707,6 +4799,49 @@ export type Database = {
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_update_reads: {
+        Row: {
+          id: string
+          read_at: string | null
+          update_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          read_at?: string | null
+          update_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          read_at?: string | null
+          update_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_update_reads_update_id_fkey"
+            columns: ["update_id"]
+            isOneToOne: false
+            referencedRelation: "system_updates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_update_reads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_update_reads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "unified_users_view"
             referencedColumns: ["id"]
           },
         ]

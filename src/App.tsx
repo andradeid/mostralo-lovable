@@ -137,6 +137,8 @@ import NavigationGuidePage from "./pages/admin/NavigationGuidePage";
 import RecruitmentPage from "./pages/admin/RecruitmentPage";
 import TestEnvironmentPage from "./pages/admin/TestEnvironmentPage";
 import GatewayConfigPage from "./pages/admin/GatewayConfigPage";
+import EfiAccountsPage from "./pages/admin/EfiAccountsPage";
+import StoreOnlinePaymentPage from "./pages/admin/StoreOnlinePaymentPage";
 import IdeasPage from "./pages/admin/IdeasPage";
 import SystemUpdatesPage from "./pages/SystemUpdatesPage";
 import SystemUpdatesManagementPage from "./pages/admin/SystemUpdatesManagementPage";
@@ -337,6 +339,16 @@ const App = () => (
             <Route path="/dashboard/gateway-config" element={
               <ProtectedRoute allowedRoles={['master_admin']}>
                 <AdminLayout pageTitle="Gateway de Pagamento"><GatewayConfigPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/efi-accounts" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Contas EFI Lojistas"><EfiAccountsPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/online-payment" element={
+              <ProtectedRoute allowedRoles={['store_admin']}>
+                <AdminLayout pageTitle="Pagamento Online"><StoreOnlinePaymentPage /></AdminLayout>
               </ProtectedRoute>
             } />
             <Route path="/dashboard/store-configuration" element={

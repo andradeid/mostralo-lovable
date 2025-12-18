@@ -42,7 +42,8 @@ import {
   UserPlus,
   Film,
   Lightbulb,
-  Megaphone
+  Megaphone,
+  Building2
 } from "lucide-react";
 
 import {
@@ -366,6 +367,7 @@ export function AdminSidebar() {
         { title: 'Planos', url: '/dashboard/plans', icon: CreditCard, group: 'Financeiro' },
         { title: 'Config. Pagamentos', url: '/dashboard/subscription-config', icon: DollarSign, group: 'Financeiro' },
         { title: 'Gateway EFI', url: '/dashboard/gateway-config', icon: Zap, group: 'Financeiro' },
+        { title: 'Contas EFI Lojistas', url: '/dashboard/efi-accounts', icon: Building2, group: 'Financeiro' },
         { title: 'Cupons', url: '/dashboard/coupons', icon: Ticket, group: 'Sistema' },
         { title: 'Aceites de Contratos', url: '/dashboard/contract-acceptances', icon: FileText, group: 'Sistema' },
         { title: 'Gerenciar Novidades', url: '/dashboard/system-updates', icon: Megaphone, group: 'Sistema' },
@@ -492,6 +494,7 @@ export function AdminSidebar() {
 
       menuItems.push(
         { title: 'Minha Assinatura', url: '/dashboard/subscription', icon: CreditCard, group: 'Conta' },
+        { title: 'Pagamento Online', url: '/dashboard/online-payment', icon: Smartphone, group: 'Conta' },
         { title: 'Meus Contratos', url: '/dashboard/contracts', icon: FileText, group: 'Conta' },
         { title: 'Novidades', url: '/novidades', icon: Megaphone, group: 'Conta' },
         { title: 'Perfil', url: '/dashboard/profile', icon: User, group: 'Conta' }

@@ -4146,6 +4146,51 @@ export type Database = {
           },
         ]
       }
+      store_efi_data: {
+        Row: {
+          birth_date: string | null
+          created_at: string | null
+          id: string
+          mother_name: string | null
+          person_type: string
+          store_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          birth_date?: string | null
+          created_at?: string | null
+          id?: string
+          mother_name?: string | null
+          person_type: string
+          store_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          birth_date?: string | null
+          created_at?: string | null
+          id?: string
+          mother_name?: string | null
+          person_type?: string
+          store_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_efi_data_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_efi_data_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_invite_links: {
         Row: {
           created_at: string
@@ -4279,6 +4324,10 @@ export type Database = {
           discount_applied_at: string | null
           discount_applied_by: string | null
           discount_reason: string | null
+          efi_account_id: string | null
+          efi_account_status: string | null
+          efi_client_id: string | null
+          efi_client_secret: string | null
           facebook: string | null
           google_maps_link: string | null
           id: string
@@ -4289,6 +4338,7 @@ export type Database = {
           longitude: number | null
           min_order_value: number | null
           name: string
+          online_payment_commission: number | null
           owner_id: string | null
           payment_gateways: Json | null
           phone: string | null
@@ -4306,6 +4356,7 @@ export type Database = {
           theme_colors: Json | null
           timezone: string | null
           updated_at: string
+          wants_online_payment: boolean | null
           website: string | null
           whatsapp: string | null
         }
@@ -4329,6 +4380,10 @@ export type Database = {
           discount_applied_at?: string | null
           discount_applied_by?: string | null
           discount_reason?: string | null
+          efi_account_id?: string | null
+          efi_account_status?: string | null
+          efi_client_id?: string | null
+          efi_client_secret?: string | null
           facebook?: string | null
           google_maps_link?: string | null
           id?: string
@@ -4339,6 +4394,7 @@ export type Database = {
           longitude?: number | null
           min_order_value?: number | null
           name: string
+          online_payment_commission?: number | null
           owner_id?: string | null
           payment_gateways?: Json | null
           phone?: string | null
@@ -4356,6 +4412,7 @@ export type Database = {
           theme_colors?: Json | null
           timezone?: string | null
           updated_at?: string
+          wants_online_payment?: boolean | null
           website?: string | null
           whatsapp?: string | null
         }
@@ -4379,6 +4436,10 @@ export type Database = {
           discount_applied_at?: string | null
           discount_applied_by?: string | null
           discount_reason?: string | null
+          efi_account_id?: string | null
+          efi_account_status?: string | null
+          efi_client_id?: string | null
+          efi_client_secret?: string | null
           facebook?: string | null
           google_maps_link?: string | null
           id?: string
@@ -4389,6 +4450,7 @@ export type Database = {
           longitude?: number | null
           min_order_value?: number | null
           name?: string
+          online_payment_commission?: number | null
           owner_id?: string | null
           payment_gateways?: Json | null
           phone?: string | null
@@ -4406,6 +4468,7 @@ export type Database = {
           theme_colors?: Json | null
           timezone?: string | null
           updated_at?: string
+          wants_online_payment?: boolean | null
           website?: string | null
           whatsapp?: string | null
         }

@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import ContractAcceptanceStep from '@/components/signup/ContractAcceptanceStep';
+import OnlinePaymentStep, { OnlinePaymentConfig } from '@/components/signup/OnlinePaymentStep';
 import { useCouponValidation } from '@/hooks/useCouponValidation';
 
 interface ContractAcceptances {
@@ -129,6 +130,14 @@ const SignUp = () => {
     businessInfoDeclaration: false,
     companyAuthorization: false,
     complianceCommitment: false,
+  });
+
+  // Estado para configuração de pagamento online
+  const [onlinePaymentConfig, setOnlinePaymentConfig] = useState<OnlinePaymentConfig>({
+    wantsOnlinePayment: false,
+    personType: null,
+    birthDate: '',
+    motherName: '',
   });
 
   // 🎯 Validar código de referência
@@ -622,14 +631,58 @@ const SignUp = () => {
     return true;
   };
 
+  const validateStep6 = () => {
+    // Se quer pagamento online
+    if (onlinePaymentConfig.wantsOnlinePayment) {
+      const documentNumbers = formData.companyDocument.replace(/\D/g, '');
+      const isPJ = documentNumbers.length === 14;
+      
+      // Se for PF, precisa ter tipo definido e dados preenchidos
+      if (!isPJ) {
+        if (!onlinePaymentConfig.personType) {
+          toast({
+            title: 'Tipo de conta não selecionado',
+            description: 'Selecione se deseja receber como Pessoa Física ou Jurídica.',
+            variant: 'destructive',
+          });
+          return false;
+        }
+        
+        if (onlinePaymentConfig.personType === 'pf') {
+          if (!onlinePaymentConfig.birthDate || !onlinePaymentConfig.motherName) {
+            toast({
+              title: 'Dados incompletos',
+              description: 'Preencha a data de nascimento e nome da mãe para continuar.',
+              variant: 'destructive',
+            });
+            return false;
+          }
+          
+          // Validar formato da data
+          const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
+          if (!dateRegex.test(onlinePaymentConfig.birthDate)) {
+            toast({
+              title: 'Data inválida',
+              description: 'Digite a data de nascimento no formato DD/MM/AAAA.',
+              variant: 'destructive',
+            });
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  };
+
   const handleNext = () => {
     if (currentStep === 1 && !validateStep1()) return;
     if (currentStep === 2 && !validateStep2()) return;
     if (currentStep === 3 && !validateStep3()) return;
     if (currentStep === 4 && !validateStep4()) return;
     if (currentStep === 5 && !validateStep5()) return;
+    if (currentStep === 6 && !validateStep6()) return;
 
-    if (currentStep < 5) {
+    if (currentStep < 6) {
       setCurrentStep(prev => prev + 1);
     } else {
       handleSubmit();
@@ -701,11 +754,41 @@ const SignUp = () => {
           owner_id: userId,
           status: 'inactive',
           plan_id: formData.planId,
+          wants_online_payment: onlinePaymentConfig.wantsOnlinePayment,
+          efi_account_status: onlinePaymentConfig.wantsOnlinePayment ? 'pending_approval' : 'not_configured',
         })
         .select()
         .single();
 
       if (storeError) throw storeError;
+
+      // Se quer pagamento online, salvar dados EFI
+      if (onlinePaymentConfig.wantsOnlinePayment) {
+        const documentNumbers = formData.companyDocument.replace(/\D/g, '');
+        const isPJ = documentNumbers.length === 14;
+        const personType = isPJ ? 'pj' : (onlinePaymentConfig.personType || 'pf');
+
+        // Converter data DD/MM/AAAA para YYYY-MM-DD
+        let birthDateISO = null;
+        if (personType === 'pf' && onlinePaymentConfig.birthDate) {
+          const [day, month, year] = onlinePaymentConfig.birthDate.split('/');
+          birthDateISO = `${year}-${month}-${day}`;
+        }
+
+        const { error: efiDataError } = await supabase
+          .from('store_efi_data')
+          .insert({
+            store_id: storeData.id,
+            person_type: personType,
+            birth_date: birthDateISO,
+            mother_name: personType === 'pf' ? onlinePaymentConfig.motherName : null,
+          });
+
+        if (efiDataError) {
+          console.error('Erro ao salvar dados EFI:', efiDataError);
+          // Não bloqueia o cadastro, apenas loga o erro
+        }
+      }
 
       // 6. Buscar dados do plano
       const selectedPlan = plans.find(p => p.id === formData.planId);
@@ -1211,6 +1294,18 @@ const SignUp = () => {
           />
         );
 
+      case 6:
+        return (
+          <OnlinePaymentStep
+            config={onlinePaymentConfig}
+            onConfigChange={setOnlinePaymentConfig}
+            companyDocument={formData.companyDocument}
+            companyName={formData.companyName}
+            email={formData.email}
+            phone={formData.phone}
+          />
+        );
+
       default:
         return null;
     }
@@ -1221,7 +1316,8 @@ const SignUp = () => {
     'Dados Pessoais e Empresa',
     'Endereço',
     'Escolha seu Plano',
-    'Aceite dos Termos'
+    'Aceite dos Termos',
+    'Pagamento Online'
   ];
 
   return (
@@ -1252,20 +1348,20 @@ const SignUp = () => {
 
         {/* Progress */}
         <div className="flex items-center justify-between mb-8">
-          {[1, 2, 3, 4, 5].map((step) => (
+          {[1, 2, 3, 4, 5, 6].map((step) => (
             <div key={step} className="flex items-center">
               <div
-                className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-semibold text-sm md:text-base ${
+                className={`w-7 h-7 md:w-9 md:h-9 rounded-full flex items-center justify-center font-semibold text-xs md:text-sm ${
                   step <= currentStep
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-muted text-muted-foreground'
                 }`}
               >
-                {step < currentStep ? <Check className="w-4 h-4 md:w-5 md:h-5" /> : step}
+                {step < currentStep ? <Check className="w-3 h-3 md:w-4 md:h-4" /> : step}
               </div>
-              {step < 5 && (
+              {step < 6 && (
                 <div
-                  className={`h-1 w-8 md:w-12 mx-1 md:mx-2 ${
+                  className={`h-1 w-4 md:w-8 mx-0.5 md:mx-1 ${
                     step < currentStep ? 'bg-primary' : 'bg-muted'
                   }`}
                 />
@@ -1281,7 +1377,7 @@ const SignUp = () => {
               {stepTitles[currentStep - 1]}
             </CardTitle>
             <CardDescription>
-              Passo {currentStep} de 5
+              Passo {currentStep} de 6
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -1308,8 +1404,8 @@ const SignUp = () => {
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Criando conta...
                   </>
-                ) : currentStep === 5 ? (
-                  'Criar Conta e Aceitar Termos'
+                ) : currentStep === 6 ? (
+                  'Criar Conta'
                 ) : (
                   'Próximo'
                 )}

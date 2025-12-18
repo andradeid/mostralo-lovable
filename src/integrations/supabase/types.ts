@@ -4334,6 +4334,7 @@ export type Database = {
           discount_applied_by: string | null
           discount_reason: string | null
           efi_account_id: string | null
+          efi_account_number: string | null
           efi_account_status: string | null
           efi_certificate_pem: string | null
           efi_client_id: string | null
@@ -4391,6 +4392,7 @@ export type Database = {
           discount_applied_by?: string | null
           discount_reason?: string | null
           efi_account_id?: string | null
+          efi_account_number?: string | null
           efi_account_status?: string | null
           efi_certificate_pem?: string | null
           efi_client_id?: string | null
@@ -4448,6 +4450,7 @@ export type Database = {
           discount_applied_by?: string | null
           discount_reason?: string | null
           efi_account_id?: string | null
+          efi_account_number?: string | null
           efi_account_status?: string | null
           efi_certificate_pem?: string | null
           efi_client_id?: string | null

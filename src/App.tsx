@@ -142,6 +142,7 @@ import StoreOnlinePaymentPage from "./pages/admin/StoreOnlinePaymentPage";
 import IdeasPage from "./pages/admin/IdeasPage";
 import SystemUpdatesPage from "./pages/SystemUpdatesPage";
 import SystemUpdatesManagementPage from "./pages/admin/SystemUpdatesManagementPage";
+import DiagnosticsPage from "./pages/admin/DiagnosticsPage";
 import { UpdatesRedirect } from "./components/system-updates/UpdatesRedirect";
 const queryClient = new QueryClient();
 
@@ -273,6 +274,13 @@ const App = () => (
               <ProtectedRoute allowedRoles={['master_admin']}>
                 <AdminLayout pageTitle="Ideias e Funcionalidades">
                   <IdeasPage />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/diagnostics" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Diagnóstico de Performance">
+                  <DiagnosticsPage />
                 </AdminLayout>
               </ProtectedRoute>
             } />

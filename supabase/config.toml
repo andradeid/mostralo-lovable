@@ -170,3 +170,6 @@ verify_jwt = true
 
 [functions.confirm-pix-payment]
 verify_jwt = false
+
+[functions.performance-diagnostics]
+verify_jwt = true

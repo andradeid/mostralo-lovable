@@ -144,7 +144,7 @@ serve(async (req) => {
 
     const cobPayload: any = {
       calendario: {
-        expiracao: expiracao_segundos
+        expiracao: expiracao_segundos || 3600
       },
       valor: {
         original: valorFormatado
@@ -152,6 +152,9 @@ serve(async (req) => {
       chave: pixKey,
       solicitacaoPagador: descricao
     };
+
+    let useSplitEndpoint = false;
+    let splitConfig: any = null;
 
     // 3. Se tiver store_id, configurar Split Payment
     if (store_id) {
@@ -205,9 +208,7 @@ serve(async (req) => {
       console.log(`🏪 Valor líquido lojista: ${merchantPercent.toFixed(2)}%`);
       console.log(`🏦 Conta EFI lojista: ${store.efi_account_number}`);
 
-      // Configurar split
-      // O favorecido recebe a porcentagem do lojista
-      // O recebedor principal (nossas credenciais) fica com o resto (comissão + taxa)
+      // Configurar split - usar endpoint separado /v2/gn/split/cob
       const favorecido: any = {
         conta: store.efi_account_number
       };
@@ -220,33 +221,64 @@ serve(async (req) => {
         favorecido.cnpj = cleanDoc;
       }
 
-      cobPayload.split = {
-        divisaoTarifa: "assumir_total", // Mostralo assume a tarifa EFI
+      useSplitEndpoint = true;
+      splitConfig = {
+        divisaoTarifa: "assumir_total",
         minhaParte: {
           tipo: "porcentagem",
-          valor: commissionPercent.toFixed(2) // Nossa comissão
+          valor: commissionPercent.toFixed(2)
         },
         repasses: [{
           tipo: "porcentagem",
-          valor: merchantPercent.toFixed(2), // Valor líquido para o lojista
+          valor: merchantPercent.toFixed(2),
           favorecido: favorecido
         }]
       };
 
-      console.log('✅ Split configurado:', JSON.stringify(cobPayload.split, null, 2));
+      console.log('✅ Split configurado:', JSON.stringify(splitConfig, null, 2));
     }
 
-    // 4. Criar cobrança imediata (cob)
+    // 4. Criar cobrança - usar endpoint diferente para split
     console.log('📤 Criando cobrança...');
-    const cobResponse = await fetch(`${baseUrl}/v2/cob/${txid}`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(cobPayload),
-      client: httpClient,
-    });
+    
+    let cobResponse;
+    let cobEndpoint;
+    
+    if (useSplitEndpoint && splitConfig) {
+      // Endpoint específico para split payment: /v2/gn/split/cob/:txid
+      cobEndpoint = `${baseUrl}/v2/gn/split/cob/${txid}`;
+      console.log(`🔗 Usando endpoint split: ${cobEndpoint}`);
+      
+      // Para o endpoint de split, o payload inclui a configuração de split
+      const splitPayload = {
+        ...cobPayload,
+        split: splitConfig
+      };
+      
+      cobResponse = await fetch(cobEndpoint, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(splitPayload),
+        client: httpClient,
+      });
+    } else {
+      // Endpoint padrão para cobrança sem split
+      cobEndpoint = `${baseUrl}/v2/cob/${txid}`;
+      console.log(`🔗 Usando endpoint padrão: ${cobEndpoint}`);
+      
+      cobResponse = await fetch(cobEndpoint, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(cobPayload),
+        client: httpClient,
+      });
+    }
 
     const cobData = await cobResponse.json();
     console.log('📥 Resposta cob:', JSON.stringify(cobData, null, 2));

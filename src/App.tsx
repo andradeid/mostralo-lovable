@@ -786,10 +786,26 @@ const App = () => (
               </ProtectedRoute>
             }
           />
-            {/* Novidades do Sistema - Todos usuários exceto customer */}
-            <Route path="/novidades" element={
-              <ProtectedRoute allowedRoles={['master_admin', 'store_admin', 'salesperson', 'delivery_driver', 'attendant']}>
-                <SystemUpdatesPage />
+            {/* Novidades do Sistema - Rotas específicas por área */}
+            <Route path="/dashboard/novidades" element={
+              <ProtectedRoute allowedRoles={['master_admin', 'store_admin', 'attendant']}>
+                <AdminLayout pageTitle="Novidades do Sistema">
+                  <SystemUpdatesPage />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/vendedor/novidades" element={
+              <ProtectedRoute allowedRoles={['salesperson']}>
+                <SalespersonLayout>
+                  <SystemUpdatesPage />
+                </SalespersonLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/entregador/novidades" element={
+              <ProtectedRoute allowedRoles={['delivery_driver']}>
+                <DeliveryDriverLayout>
+                  <SystemUpdatesPage />
+                </DeliveryDriverLayout>
               </ProtectedRoute>
             } />
             <Route path="/dashboard/system-updates" element={

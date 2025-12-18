@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
-import { Package, BarChart3, DollarSign, User, Settings, LogOut } from "lucide-react";
+import { Package, BarChart3, DollarSign, User, Settings, LogOut, Megaphone } from "lucide-react";
+import { useUnreadUpdates } from "@/hooks/useUnreadUpdates";
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -25,12 +26,19 @@ export function DeliveryDriverSidebar({ onSignOut, pendingInvitations = 0 }: Del
   const { user, profile } = useAuth();
   const { open } = useSidebar();
   const isMobile = useIsMobile();
+  const { unreadCount } = useUnreadUpdates();
 
   const menuItems = [
     {
       title: "Meus Pedidos",
       icon: Package,
       path: "/delivery-panel",
+    },
+    {
+      title: "Novidades",
+      icon: Megaphone,
+      path: "/entregador/novidades",
+      badge: unreadCount > 0 ? unreadCount : undefined,
     },
     {
       title: "Relatórios",

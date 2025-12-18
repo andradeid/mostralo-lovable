@@ -16,7 +16,8 @@ import {
   AlertTriangle,
   Store,
   ExternalLink,
-  Send
+  Send,
+  Pencil
 } from "lucide-react";
 import {
   Table,
@@ -33,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { EditStoreCommissionDialog } from "@/components/admin/EditStoreCommissionDialog";
 
 interface StoreEfiAccount {
   id: string;
@@ -43,6 +45,7 @@ interface StoreEfiAccount {
   efi_account_id: string | null;
   created_at: string;
   subscription_expires_at: string | null;
+  online_payment_commission: number | null;
 }
 
 export default function EfiAccountsPage() {
@@ -53,6 +56,8 @@ export default function EfiAccountsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [resending, setResending] = useState<string | null>(null);
+  const [editingStore, setEditingStore] = useState<StoreEfiAccount | null>(null);
+  const [commissionDialogOpen, setCommissionDialogOpen] = useState(false);
 
   // Estatísticas
   const stats = {
@@ -76,6 +81,7 @@ export default function EfiAccountsPage() {
           efi_account_id,
           created_at,
           subscription_expires_at,
+          online_payment_commission,
           profiles:owner_id (email)
         `)
         .order('created_at', { ascending: false });
@@ -91,6 +97,7 @@ export default function EfiAccountsPage() {
         efi_account_id: store.efi_account_id,
         created_at: store.created_at,
         subscription_expires_at: store.subscription_expires_at,
+        online_payment_commission: store.online_payment_commission,
       }));
 
       setStores(formattedStores);
@@ -322,6 +329,7 @@ export default function EfiAccountsPage() {
                   <TableHead>Email</TableHead>
                   <TableHead>PIX Online</TableHead>
                   <TableHead>Status EFI</TableHead>
+                  <TableHead>Comissão</TableHead>
                   <TableHead>ID Conta</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
@@ -329,7 +337,7 @@ export default function EfiAccountsPage() {
               <TableBody>
                 {filteredStores.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                       Nenhuma loja encontrada
                     </TableCell>
                   </TableRow>
@@ -351,6 +359,11 @@ export default function EfiAccountsPage() {
                         )}
                       </TableCell>
                       <TableCell>{getStatusBadge(store)}</TableCell>
+                      <TableCell>
+                        <span className="font-medium">
+                          {(store.online_payment_commission ?? 7).toFixed(2)}%
+                        </span>
+                      </TableCell>
                       <TableCell className="font-mono text-xs">
                         {store.efi_account_id ? (
                           <span className="truncate max-w-[100px] block">
@@ -361,23 +374,36 @@ export default function EfiAccountsPage() {
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        {store.wants_online_payment && store.efi_account_status === 'pending_authorization' && (
+                        <div className="flex items-center justify-end gap-2">
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
-                            onClick={() => handleResendAuthLink(store.id)}
-                            disabled={resending === store.id}
+                            onClick={() => {
+                              setEditingStore(store);
+                              setCommissionDialogOpen(true);
+                            }}
+                            title="Editar comissão"
                           >
-                            {resending === store.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <>
-                                <Send className="h-4 w-4 mr-1" />
-                                Reenviar Link
-                              </>
-                            )}
+                            <Pencil className="h-4 w-4" />
                           </Button>
-                        )}
+                          {store.wants_online_payment && store.efi_account_status === 'pending_authorization' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleResendAuthLink(store.id)}
+                              disabled={resending === store.id}
+                            >
+                              {resending === store.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <>
+                                  <Send className="h-4 w-4 mr-1" />
+                                  Reenviar
+                                </>
+                              )}
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -387,6 +413,13 @@ export default function EfiAccountsPage() {
           </div>
         </CardContent>
       </Card>
+
+      <EditStoreCommissionDialog
+        open={commissionDialogOpen}
+        onOpenChange={setCommissionDialogOpen}
+        store={editingStore}
+        onSuccess={fetchStores}
+      />
     </div>
   );
 }

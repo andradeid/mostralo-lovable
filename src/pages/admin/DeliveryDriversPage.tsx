@@ -7,13 +7,15 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Plus, Bike, Users, Package, Link, AlertCircle } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Loader2, Plus, Bike, Users, Package, Link, AlertCircle, HelpCircle, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { CreateDriverDialog } from '@/components/admin/delivery/CreateDriverDialog';
 import { DeliveryDriverCardWithPresence } from '@/components/admin/delivery/DeliveryDriverCardWithPresence';
 import { GenerateInviteLinkDialog } from '@/components/admin/delivery/GenerateInviteLinkDialog';
 import { ReviewCounterOfferDialog } from '@/components/admin/delivery/ReviewCounterOfferDialog';
 import { ModuleGate } from '@/components/admin/ModuleGate';
+import { DeliveryDriversGuide } from '@/components/admin/delivery/DeliveryDriversGuide';
 
 interface DeliveryDriver {
   id: string;
@@ -44,6 +46,7 @@ export default function DeliveryDriversPage() {
   const [counterOffers, setCounterOffers] = useState<any[]>([]);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
   const [selectedCounterOffer, setSelectedCounterOffer] = useState<any>(null);
+  const [showGuide, setShowGuide] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -255,6 +258,7 @@ export default function DeliveryDriversPage() {
 
   return (
     <ModuleGate moduleKey="delivery_drivers" storeId={validatedStoreId}>
+    <TooltipProvider delayDuration={300}>
     <div className="container mx-auto p-6 max-w-7xl">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div>
@@ -262,24 +266,59 @@ export default function DeliveryDriversPage() {
             <Bike className="w-8 h-8 text-primary" />
             Entregadores
             {counterOffers.length > 0 && (
-              <Badge variant="destructive" className="ml-2">
-                {counterOffers.length} contra-proposta{counterOffers.length !== 1 ? 's' : ''}
-              </Badge>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge variant="destructive" className="ml-2 cursor-help">
+                    {counterOffers.length} contra-proposta{counterOffers.length !== 1 ? 's' : ''}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Entregadores enviaram propostas de pagamento diferentes. Clique em "Revisar" para negociar.</p>
+                </TooltipContent>
+              </Tooltip>
             )}
           </h1>
           <p className="text-muted-foreground mt-1">
             Gerencie sua equipe de entregadores
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={() => setShowInviteLinkDialog(true)} variant="outline" className="gap-2">
-            <Link className="w-4 h-4" />
-            Gerar Link de Convite
-          </Button>
-          <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
-            <Plus className="w-4 h-4" />
-            Novo Entregador
-          </Button>
+        <div className="flex gap-2 flex-wrap">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button onClick={() => setShowGuide(true)} variant="ghost" size="icon">
+                <HelpCircle className="w-5 h-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Abrir guia completo de como gerenciar entregadores</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button onClick={() => setShowInviteLinkDialog(true)} variant="outline" className="gap-2">
+                <Link className="w-4 h-4" />
+                <span className="hidden sm:inline">Gerar Link de Convite</span>
+                <span className="sm:hidden">Convidar</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Crie um link para entregadores se cadastrarem na sua loja</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
+                <Plus className="w-4 h-4" />
+                <span className="hidden sm:inline">Novo Entregador</span>
+                <span className="sm:hidden">Novo</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Cadastrar um novo entregador diretamente</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
 
@@ -287,72 +326,110 @@ export default function DeliveryDriversPage() {
       {counterOffers.length > 0 && (
         <Alert className="mb-6 border-primary bg-primary/5">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription className="flex items-center justify-between">
+          <AlertDescription className="flex items-center justify-between flex-wrap gap-2">
             <span>
               Você tem {counterOffers.length} contra-proposta{counterOffers.length !== 1 ? 's' : ''} aguardando revisão
             </span>
-            <Button
-              size="sm"
-              onClick={() => {
-                if (counterOffers[0]) {
-                  setSelectedCounterOffer(counterOffers[0]);
-                  setShowReviewDialog(true);
-                }
-              }}
-            >
-              Revisar Agora
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    if (counterOffers[0]) {
+                      setSelectedCounterOffer(counterOffers[0]);
+                      setShowReviewDialog(true);
+                    }
+                  }}
+                >
+                  Revisar Agora
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Ver e responder às propostas de pagamento dos entregadores</p>
+              </TooltipContent>
+            </Tooltip>
           </AlertDescription>
         </Alert>
       )}
 
       {/* Cards de Estatísticas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total de Entregadores
-            </CardTitle>
-            <Users className="w-4 h-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{drivers.length}</div>
-          </CardContent>
-        </Card>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Card className="cursor-help">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Total de Entregadores
+                </CardTitle>
+                <Users className="w-4 h-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{drivers.length}</div>
+              </CardContent>
+            </Card>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Quantidade de entregadores vinculados à sua loja</p>
+          </TooltipContent>
+        </Tooltip>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Entregas Ativas
-            </CardTitle>
-            <Package className="w-4 h-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalActiveDeliveries}</div>
-          </CardContent>
-        </Card>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Card className="cursor-help">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Entregas Ativas
+                </CardTitle>
+                <Package className="w-4 h-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{totalActiveDeliveries}</div>
+              </CardContent>
+            </Card>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Entregas em andamento (aceitas ou a caminho)</p>
+          </TooltipContent>
+        </Tooltip>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Entregas Concluídas
-            </CardTitle>
-            <Bike className="w-4 h-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalCompletedDeliveries}</div>
-          </CardContent>
-        </Card>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Card className="cursor-help">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Entregas Concluídas
+                </CardTitle>
+                <Bike className="w-4 h-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{totalCompletedDeliveries}</div>
+              </CardContent>
+            </Card>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Total de entregas finalizadas com sucesso</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       {/* Barra de Busca */}
       <div className="mb-6">
-        <Input
-          placeholder="Buscar entregador por nome ou email..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-md"
-        />
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="relative max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar entregador por nome ou email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Digite o nome ou email para filtrar a lista</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       {/* Lista de Entregadores */}
@@ -365,10 +442,17 @@ export default function DeliveryDriversPage() {
               {searchTerm ? 'Tente buscar com outros termos' : 'Adicione seu primeiro entregador para começar'}
             </p>
             {!searchTerm && (
-              <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
-                <Plus className="w-4 h-4" />
-                Adicionar Entregador
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
+                    <Plus className="w-4 h-4" />
+                    Adicionar Entregador
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Cadastrar seu primeiro entregador</p>
+                </TooltipContent>
+              </Tooltip>
             )}
           </CardContent>
         </Card>
@@ -413,7 +497,13 @@ export default function DeliveryDriversPage() {
           }}
         />
       )}
+
+      <DeliveryDriversGuide 
+        open={showGuide} 
+        onOpenChange={setShowGuide} 
+      />
     </div>
+    </TooltipProvider>
     </ModuleGate>
   );
 }

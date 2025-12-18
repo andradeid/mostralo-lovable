@@ -167,3 +167,6 @@ verify_jwt = true
 
 [functions.validate-efi-account]
 verify_jwt = true
+
+[functions.confirm-pix-payment]
+verify_jwt = false

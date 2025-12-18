@@ -5,14 +5,20 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { CreditCard, Banknote, Smartphone, Globe, DollarSign } from "lucide-react";
+import { CreditCard, Banknote, Smartphone, Globe, DollarSign, CheckCircle2, AlertTriangle, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
 
 interface PaymentStepProps {
   formData: any;
   updateFormData: (data: any) => void;
+  efiAccountStatus?: string;
+  efiAccountNumber?: string;
 }
 
-export function PaymentStep({ formData, updateFormData }: PaymentStepProps) {
+export function PaymentStep({ formData, updateFormData, efiAccountStatus, efiAccountNumber }: PaymentStepProps) {
+  const navigate = useNavigate();
   return (
     <div className="space-y-6">
       {/* Valor Mínimo do Pedido */}
@@ -151,8 +157,8 @@ export function PaymentStep({ formData, updateFormData }: PaymentStepProps) {
                   Este formato se trata de PIX manual, a comprovação do pagamento é feita pelo estabelecimento.
                 </p>
                 <RadioGroup 
-                  value={formData.accepts_pix ? 'nao' : 'sim'} 
-                  onValueChange={(value) => updateFormData({ accepts_pix: value === 'nao' })}
+                  value={formData.accepts_pix ? 'sim' : 'nao'} 
+                  onValueChange={(value) => updateFormData({ accepts_pix: value === 'sim' })}
                   className="flex space-x-6"
                 >
                   <div className="flex items-center space-x-2">
@@ -164,6 +170,78 @@ export function PaymentStep({ formData, updateFormData }: PaymentStepProps) {
                     <Label htmlFor="pix-nao">Não</Label>
                   </div>
                 </RadioGroup>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* PIX Online (EFI) */}
+          <Card className="border-2 border-primary/20 bg-primary/5">
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Smartphone className="w-5 h-5 text-primary" />
+                    <Label className="text-base font-semibold">PIX Online (QR Code automático)</Label>
+                  </div>
+                  {efiAccountStatus === 'active' ? (
+                    <Badge variant="default" className="bg-green-500">
+                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                      Conta EFI Ativa
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary" className="bg-amber-100 text-amber-800">
+                      <AlertTriangle className="w-3 h-3 mr-1" />
+                      Conta não configurada
+                    </Badge>
+                  )}
+                </div>
+                
+                <p className="text-sm text-muted-foreground border-l-4 border-primary pl-3">
+                  O cliente gera QR Code PIX e paga instantaneamente. O pagamento é confirmado automaticamente e você recebe na sua conta EFI.
+                  {efiAccountNumber && (
+                    <span className="block mt-1 font-medium text-foreground">
+                      Conta EFI: {efiAccountNumber}
+                    </span>
+                  )}
+                </p>
+
+                {efiAccountStatus === 'active' ? (
+                  <RadioGroup 
+                    value={formData.efi_pix_enabled ? 'sim' : 'nao'} 
+                    onValueChange={(value) => updateFormData({ efi_pix_enabled: value === 'sim' })}
+                    className="flex space-x-6"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="sim" id="efi-pix-sim" />
+                      <Label htmlFor="efi-pix-sim">Sim</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="nao" id="efi-pix-nao" />
+                      <Label htmlFor="efi-pix-nao">Não</Label>
+                    </div>
+                  </RadioGroup>
+                ) : (
+                  <div className="flex items-center gap-3 p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
+                    <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                        Configure sua conta EFI para aceitar PIX Online
+                      </p>
+                      <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
+                        Vá em Conta → Pagamento Online para vincular sua conta
+                      </p>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => navigate('/dashboard/online-payment')}
+                      className="border-amber-300 text-amber-700 hover:bg-amber-100"
+                    >
+                      <ExternalLink className="w-4 h-4 mr-1" />
+                      Configurar
+                    </Button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

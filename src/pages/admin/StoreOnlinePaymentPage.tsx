@@ -11,6 +11,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useStoreAccess } from "@/hooks/useStoreAccess";
+import { EfiSplitSetupGuide } from "@/components/store/EfiSplitSetupGuide";
 import { 
   Smartphone, 
   Zap, 
@@ -29,7 +30,8 @@ import {
   QrCode,
   TestTube2,
   Building2,
-  User
+  User,
+  AlertTriangle
 } from 'lucide-react';
 
 interface StoreEfiData {
@@ -80,6 +82,9 @@ export default function StoreOnlinePaymentPage() {
   
   // Edit mode state
   const [isEditing, setIsEditing] = useState(false);
+  
+  // Split guide state - shows when split fails
+  const [showSplitGuide, setShowSplitGuide] = useState(false);
 
   // Helper functions
   const formatDisplayDocument = (docNumber: string | null, docType: string | null) => {
@@ -393,18 +398,19 @@ export default function StoreOnlinePaymentPage() {
         setTestTimeRemaining(300);
         setTestPaymentStatus("pending");
         
-        if (data.splitWarning) {
+        // Show split guide if split failed
+        if (data.splitWarning || !data.splitApplied) {
+          setShowSplitGuide(true);
           toast({
-            title: "Cobrança criada com aviso",
-            description: data.splitWarning,
+            title: "⚠️ Cobrança criada sem split",
+            description: "O split de pagamento não foi aplicado. Veja o guia para configurar.",
             variant: "default",
           });
         } else {
+          setShowSplitGuide(false);
           toast({
-            title: "Cobrança criada!",
-            description: data.splitApplied 
-              ? "QR Code com split payment gerado com sucesso!" 
-              : "QR Code gerado com sucesso.",
+            title: "✅ Cobrança criada!",
+            description: "QR Code com split payment gerado com sucesso!",
           });
         }
       } else {
@@ -915,8 +921,41 @@ export default function StoreOnlinePaymentPage() {
                 na sua conta EFI vinculada, já com a taxa descontada.
               </AlertDescription>
             </Alert>
+
+            {/* Split Setup Guide - shows when split fails */}
+            {showSplitGuide && (
+              <EfiSplitSetupGuide 
+                onTestAgain={handleCreateTestCharge}
+                showTestButton={true}
+                defaultOpen={true}
+              />
+            )}
           </div>
         </div>
+
+        {/* Split warning alert at bottom */}
+        {testResult && !testResult.splitApplied && (
+          <Alert className="bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800">
+            <AlertTriangle className="h-4 w-4 text-amber-600" />
+            <AlertDescription className="text-amber-800 dark:text-amber-200">
+              <div className="space-y-1">
+                <p className="font-medium">⚠️ Split de pagamento não configurado</p>
+                <p className="text-sm">
+                  A cobrança PIX foi criada, mas o split não foi aplicado. 
+                  Isso significa que todo o valor vai direto para a plataforma.
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-2"
+                  onClick={() => setShowSplitGuide(true)}
+                >
+                  Ver como configurar
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
       </div>
     );
   }

@@ -12,7 +12,7 @@ interface TermsReAcceptState {
 }
 
 export const useTermsReAccept = () => {
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile, userRole } = useAuth();
   const [state, setState] = useState<TermsReAcceptState>({
     needsReAccept: false,
     isLoading: true,
@@ -27,6 +27,19 @@ export const useTermsReAccept = () => {
       // Não verificar se não está autenticado
       if (!user || !profile) {
         setState(prev => ({ ...prev, isLoading: false, needsReAccept: false }));
+        return;
+      }
+
+      // Só exigir termos para LOJISTAS (store_admin) e VENDEDORES (salesperson)
+      // master_admin, clientes, entregadores e atendentes NÃO precisam aceitar
+      const requiresTerms = userRole === 'store_admin' || userRole === 'salesperson';
+      
+      if (!requiresTerms) {
+        setState(prev => ({ 
+          ...prev, 
+          isLoading: false, 
+          needsReAccept: false 
+        }));
         return;
       }
 
@@ -79,7 +92,7 @@ export const useTermsReAccept = () => {
     };
 
     checkTermsVersion();
-  }, [user, profile]);
+  }, [user, profile, userRole]);
 
   const acceptTerms = async (): Promise<boolean> => {
     if (!user || !state.currentVersion) return false;

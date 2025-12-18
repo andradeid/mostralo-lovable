@@ -7,18 +7,26 @@ const corsHeaders = {
 };
 
 // Parse PEM certificate content
-function parsePemContent(pemContent: string): { cert: string; key: string } {
-  const certMatch = pemContent.match(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/);
-  const keyMatch = pemContent.match(/-----BEGIN (RSA |EC |ENCRYPTED )?PRIVATE KEY-----[\s\S]*?-----END (RSA |EC |ENCRYPTED )?PRIVATE KEY-----/);
+function parsePemContent(pemContent: string): { certificate: string; privateKey: string } {
+  const cleanPem = pemContent.trim();
+
+  // Extrair TODOS os certificados (cadeia completa), se houver
+  const certMatches = cleanPem.match(
+    /-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g,
+  );
+  const certificate = certMatches ? certMatches.join('\n') : '';
+
+  // Extrair chave privada (pode ser PRIVATE KEY ou RSA PRIVATE KEY)
+  const keyMatch = cleanPem.match(
+    /-----BEGIN (?:RSA |EC |ENCRYPTED )?PRIVATE KEY-----[\s\S]*?-----END (?:RSA |EC |ENCRYPTED )?PRIVATE KEY-----/,
+  );
+  const privateKey = keyMatch ? keyMatch[0] : '';
   
-  if (!certMatch || !keyMatch) {
+  if (!certificate || !privateKey) {
     throw new Error("Invalid PEM content: missing certificate or private key");
   }
-  
-  return {
-    cert: certMatch[0],
-    key: keyMatch[0]
-  };
+
+  return { certificate, privateKey };
 }
 
 // Convert base64 certificate to PEM format
@@ -141,10 +149,11 @@ serve(async (req: Request) => {
         ? "https://apis.gerencianet.com.br" 
         : "https://apis-h.gerencianet.com.br";
 
-      const { cert, key } = parsePemContent(efiConfig.certificate_pem);
+      const { certificate, privateKey } = parsePemContent(efiConfig.certificate_pem);
       const httpClient = Deno.createHttpClient({
-        certChain: cert,
-        privateKey: key,
+        cert: certificate,
+        key: privateKey,
+        http2: false,
       });
 
       // Obter token OAuth2

@@ -29,18 +29,26 @@ interface CreateAccountRequest {
 }
 
 // Parse PEM certificate content
-function parsePemContent(pemContent: string): { cert: string; key: string } {
-  const certMatch = pemContent.match(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/);
-  const keyMatch = pemContent.match(/-----BEGIN (RSA |EC |ENCRYPTED )?PRIVATE KEY-----[\s\S]*?-----END (RSA |EC |ENCRYPTED )?PRIVATE KEY-----/);
+function parsePemContent(pemContent: string): { certificate: string; privateKey: string } {
+  const cleanPem = pemContent.trim();
+
+  // Extrair TODOS os certificados (cadeia completa), se houver
+  const certMatches = cleanPem.match(
+    /-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g,
+  );
+  const certificate = certMatches ? certMatches.join('\n') : '';
+
+  // Extrair chave privada (pode ser PRIVATE KEY ou RSA PRIVATE KEY)
+  const keyMatch = cleanPem.match(
+    /-----BEGIN (?:RSA |EC |ENCRYPTED )?PRIVATE KEY-----[\s\S]*?-----END (?:RSA |EC |ENCRYPTED )?PRIVATE KEY-----/,
+  );
+  const privateKey = keyMatch ? keyMatch[0] : '';
   
-  if (!certMatch || !keyMatch) {
+  if (!certificate || !privateKey) {
     throw new Error("Invalid PEM content: missing certificate or private key");
   }
-  
-  return {
-    cert: certMatch[0],
-    key: keyMatch[0]
-  };
+
+  return { certificate, privateKey };
 }
 
 // Format date from YYYY-MM-DD to DD/MM/AAAA
@@ -181,11 +189,11 @@ serve(async (req: Request) => {
     }
 
     // Parse certificado
-    let cert: string, key: string;
+    let certificate: string, privateKey: string;
     try {
       const parsed = parsePemContent(efiConfig.certificate_pem);
-      cert = parsed.cert;
-      key = parsed.key;
+      certificate = parsed.certificate;
+      privateKey = parsed.privateKey;
     } catch (e) {
       console.error("❌ Erro ao parsear certificado:", e);
       return new Response(
@@ -196,8 +204,9 @@ serve(async (req: Request) => {
 
     // Criar cliente HTTP com mTLS
     const httpClient = Deno.createHttpClient({
-      certChain: cert,
-      privateKey: key,
+      cert: certificate,
+      key: privateKey,
+      http2: false,
     });
 
     // === PASSO 1: Obter token OAuth2 com escopo de registro ===

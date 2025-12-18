@@ -212,22 +212,27 @@ export default function StoreOnlinePaymentPage() {
     setTestResult(null);
     
     try {
-      const valorCentavos = Math.round(parseFloat(testValue.replace(',', '.')) * 100);
+      // Converte para número e valida
+      const valorNumerico = parseFloat(testValue.replace(',', '.'));
       
-      if (isNaN(valorCentavos) || valorCentavos < 100) {
+      if (isNaN(valorNumerico) || valorNumerico < 1) {
         toast({
           title: "Valor inválido",
           description: "O valor mínimo é R$ 1,00",
           variant: "destructive",
         });
+        setTestLoading(false);
         return;
       }
 
+      // Envia o valor em REAIS (string com 2 decimais), não centavos
+      const valorReais = valorNumerico.toFixed(2);
+
       const { data, error } = await supabase.functions.invoke('efi-create-pix-charge', {
         body: {
-          valor: valorCentavos,
+          valor: valorReais, // Ex: "1.00" para R$ 1,00
           descricao: testDescription,
-          store_id: storeId, // Importante: envia store_id para aplicar split
+          store_id: storeId,
         },
       });
 
@@ -545,11 +550,21 @@ export default function StoreOnlinePaymentPage() {
                     </AlertDescription>
                   </Alert>
                 ) : (
-                  <Alert className="bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-900">
-                    <Info className="h-4 w-4 text-blue-600" />
-                    <AlertDescription className="text-blue-800 dark:text-blue-300 text-sm">
-                      <strong>Cobrança Normal:</strong> O valor total será creditado na conta principal.
-                      O split payment requer habilitação especial na conta EFI.
+                  <Alert className="bg-amber-50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-900">
+                    <Info className="h-4 w-4 text-amber-600" />
+                    <AlertDescription className="text-amber-800 dark:text-amber-300 text-sm space-y-2">
+                      <p><strong>⚠️ Split Payment não aplicado</strong></p>
+                      <p>O valor total será creditado na conta principal. Para habilitar o split:</p>
+                      <ol className="list-decimal list-inside text-xs space-y-1 mt-2">
+                        <li>Acesse o <a href="https://app.gerencianet.com.br" target="_blank" rel="noopener" className="underline font-medium">Painel EFI</a></li>
+                        <li>Vá em <strong>API → Minhas Aplicações</strong></li>
+                        <li>Selecione sua aplicação</li>
+                        <li>Em <strong>Escopos</strong>, ative <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">gn.split.write</code></li>
+                        <li>Salve e teste novamente</li>
+                      </ol>
+                      <p className="text-xs mt-2 opacity-80">
+                        Se o escopo não aparecer, entre em contato com o suporte EFI para solicitar a habilitação.
+                      </p>
                     </AlertDescription>
                   </Alert>
                 )}

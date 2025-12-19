@@ -109,6 +109,59 @@ const OrdersPage = () => {
     }
   }, [storeId, storeAccessLoading, hasAccess]);
 
+  // Polling automático iFood a cada 30 segundos
+  useEffect(() => {
+    if (!storeId || storeAccessLoading || !hasAccess) return;
+
+    const pollIFoodEvents = async () => {
+      try {
+        // Verificar se existe integração iFood ativa
+        const { data: integration } = await supabase
+          .from('ifood_integrations')
+          .select('is_active, access_token, token_expires_at')
+          .eq('store_id', storeId)
+          .maybeSingle();
+
+        if (!integration?.is_active || !integration?.access_token) {
+          return;
+        }
+
+        // Verificar se token não está expirado
+        if (integration.token_expires_at && new Date(integration.token_expires_at) < new Date()) {
+          return;
+        }
+
+        console.log('[iFood] Polling automático de pedidos...');
+        
+        const { data, error } = await supabase.functions.invoke('ifood-webhook', {
+          body: {
+            action: 'poll_events',
+            store_id: storeId
+          }
+        });
+
+        if (error) {
+          console.error('[iFood] Erro no polling:', error);
+          return;
+        }
+
+        if (data?.events_count > 0) {
+          console.log(`[iFood] ${data.events_count} evento(s) recebido(s)`);
+          toast.success(`iFood: ${data.events_count} novo(s) evento(s)`);
+          // Os pedidos serão atualizados via realtime subscription
+        }
+      } catch (err) {
+        console.error('[iFood] Erro no polling:', err);
+      }
+    };
+
+    // Executar imediatamente e depois a cada 30 segundos
+    pollIFoodEvents();
+    const interval = setInterval(pollIFoodEvents, 30000);
+
+    return () => clearInterval(interval);
+  }, [storeId, storeAccessLoading, hasAccess]);
+
   // Verificar query parameter e abrir modal automaticamente
   useEffect(() => {
     const orderId = searchParams.get('order');

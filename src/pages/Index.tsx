@@ -403,15 +403,22 @@ const Index = () => {
         }
 
         // Associar módulos aos planos
-        const plansWithModules = (plansData || []).map(plan => ({
-          ...plan,
-          plan_modules: (planModulesData || [])
+        const plansWithModules = (plansData || []).map(plan => {
+          const planModules = (planModulesData || [])
             .filter(pm => pm.plan_id === plan.id)
             .map(pm => ({
               module_id: pm.module_id,
               modules: pm.modules as { name: string; icon: string | null; key: string | null }
-            }))
-        }));
+            }));
+          
+          return {
+            ...plan,
+            plan_modules: planModules
+          };
+        });
+
+        console.log('📦 Planos com módulos:', plansWithModules);
+        console.log('📋 Dados brutos plan_modules:', planModulesData);
 
         setPlans(plansWithModules);
       } catch (error) {

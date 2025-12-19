@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useMasterWhatsAppConfig } from "@/hooks/useMasterWhatsAppConfig";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
+import { CountryCodeSelect } from "@/components/ui/country-code-select";
+import { formatBrazilianPhone, formatInternationalPhone } from "@/lib/utils";
 import { 
   Loader2, 
   Smartphone, 
@@ -36,6 +38,7 @@ export default function MasterWhatsAppPage() {
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [testPhone, setTestPhone] = useState("");
   const [testMessage, setTestMessage] = useState("");
+  const [countryCode, setCountryCode] = useState("+55");
 
   useEffect(() => {
     if (config?.instance_name) {
@@ -155,12 +158,16 @@ export default function MasterWhatsAppPage() {
       return;
     }
 
+    // Remove formatação e combina com DDI
+    const cleanPhone = testPhone.replace(/\D/g, '');
+    const fullNumber = countryCode.replace('+', '') + cleanPhone;
+
     setLoadingAction('sendTest');
     try {
       const { data, error } = await supabase.functions.invoke('master-whatsapp-instance', {
         body: { 
           action: 'sendTest', 
-          phoneNumber: testPhone.trim(),
+          phoneNumber: fullNumber,
           message: testMessage.trim() || undefined
         }
       });
@@ -364,14 +371,28 @@ export default function MasterWhatsAppPage() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label>Número do WhatsApp</Label>
-                  <Input
-                    placeholder="ex: 11999998888"
-                    value={testPhone}
-                    onChange={(e) => setTestPhone(e.target.value)}
-                    disabled={instanceStatus !== 'connected'}
-                  />
+                  <div className="flex gap-2">
+                    <CountryCodeSelect
+                      value={countryCode}
+                      onChange={setCountryCode}
+                      disabled={instanceStatus !== 'connected'}
+                    />
+                    <Input
+                      className="flex-1"
+                      placeholder={countryCode === '+55' ? "(00) 00000-0000" : "Número"}
+                      value={testPhone}
+                      onChange={(e) => {
+                        const formatted = countryCode === '+55'
+                          ? formatBrazilianPhone(e.target.value)
+                          : formatInternationalPhone(e.target.value);
+                        setTestPhone(formatted);
+                      }}
+                      maxLength={countryCode === '+55' ? 16 : 20}
+                      disabled={instanceStatus !== 'connected'}
+                    />
+                  </div>
                   <p className="text-xs text-muted-foreground">
-                    Com DDD, sem espaços
+                    {countryCode === '+55' ? 'Com DDD' : 'Número sem o código do país'}
                   </p>
                 </div>
                 

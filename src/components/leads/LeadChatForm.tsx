@@ -123,6 +123,7 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isValidatingPhone, setIsValidatingPhone] = useState(false);
   const [leadData, setLeadData] = useState({
     name: '',
     email: '',
@@ -241,34 +242,98 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
   };
 
   const handleSubmit = async () => {
-    if (!validateInput() || isTyping) return;
+    if (!validateInput() || isTyping || isValidatingPhone) return;
 
+    const currentInput = inputValue;
+    
     // Adicionar mensagem do usuário
-    addUserMessage(inputValue);
+    addUserMessage(currentInput);
+    setInputValue('');
 
     // Atualizar dados do lead
     const updatedData = { ...leadData };
     switch (currentStep) {
       case 'name':
-        updatedData.name = inputValue.trim();
+        updatedData.name = currentInput.trim();
         break;
       case 'email':
-        updatedData.email = inputValue.trim().toLowerCase();
+        updatedData.email = currentInput.trim().toLowerCase();
         break;
       case 'phone':
-        updatedData.phone = inputValue.replace(/\D/g, '');
+        updatedData.phone = currentInput.replace(/\D/g, '');
         break;
       case 'company':
-        updatedData.company_name = inputValue.trim();
+        updatedData.company_name = currentInput.trim();
         break;
       case 'city':
-        updatedData.city = inputValue.trim();
+        updatedData.city = currentInput.trim();
         break;
     }
     setLeadData(updatedData);
-    setInputValue('');
 
-    // Próximo passo
+    // Validação especial para telefone - verificar no WhatsApp
+    if (currentStep === 'phone') {
+      setIsTyping(true);
+      
+      // Mostrar mensagem de verificação
+      setTimeout(() => {
+        setIsTyping(false);
+        addBotMessage('⏳ Aguarde, estou verificando seu WhatsApp...');
+        setIsValidatingPhone(true);
+      }, 500);
+
+      // Chamar edge function para validar
+      try {
+        const phoneToValidate = updatedData.phone;
+        console.log('[LeadChatForm] Validando telefone:', phoneToValidate);
+        
+        const { data, error } = await supabase.functions.invoke('validate-whatsapp-number', {
+          body: { phone: phoneToValidate }
+        });
+
+        console.log('[LeadChatForm] Resposta validação:', data, error);
+
+        if (error || !data?.valid) {
+          // Número inválido - pedir novamente
+          setIsTyping(true);
+          setTimeout(() => {
+            setIsTyping(false);
+            addBotMessage('❌ Não encontrei esse número no WhatsApp. Pode verificar e digitar novamente?');
+            setIsValidatingPhone(false);
+            // Voltar o dado para vazio para permitir nova tentativa
+            setLeadData(prev => ({ ...prev, phone: '' }));
+          }, 600);
+          return;
+        }
+
+        // Número válido - continuar
+        setIsTyping(true);
+        setTimeout(() => {
+          setIsTyping(false);
+          addBotMessage('✅ WhatsApp verificado!');
+          
+          // Avançar para próximo passo
+          setTimeout(() => {
+            const nextStep = getNextStep(currentStep);
+            setCurrentStep(nextStep);
+            setIsTyping(true);
+            setTimeout(() => {
+              setIsTyping(false);
+              addBotMessage(STEPS_CONFIG[nextStep].question.replace('{name}', updatedData.name));
+              setIsValidatingPhone(false);
+            }, 600);
+          }, 800);
+        }, 500);
+        
+        return;
+      } catch (err) {
+        console.error('[LeadChatForm] Erro ao validar telefone:', err);
+        // Em caso de erro, continuar sem validação
+        setIsValidatingPhone(false);
+      }
+    }
+
+    // Próximo passo (para outros campos)
     const nextStep = getNextStep(currentStep);
     setCurrentStep(nextStep);
 

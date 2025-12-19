@@ -957,124 +957,59 @@ serve(async (req) => {
           timePerChar: behaviorConfig.time_per_char || 0,
         };
 
-        let response: Response;
-        let action: string;
-
-        // 🔥 CORRIGIDO: Verificar se bot já existe e usar UPDATE
+        // 🔥 ESTRATÉGIA DELETE + CREATE (igual ao lojista)
+        // Sempre deletar bot existente e criar novo para evitar erros de UPDATE
+        
         if (existingBotId) {
-          console.log(`🔄 Atualizando bot ${bt} existente (ID: ${existingBotId})...`);
-          action = 'update';
+          console.log(`🗑️ Deletando bot ${bt} existente (ID: ${existingBotId}) antes de criar novo...`);
+          await deleteExistingBot(config.instance_name, existingBotId);
           
-          response = await fetch(
-            `${evolutionUrl}/openai/update/${existingBotId}/${config.instance_name}`,
-            {
-              method: 'PUT',
-              headers: {
-                'Content-Type': 'application/json',
-                'apikey': evolutionConfig.api_key
-              },
-              body: JSON.stringify(botPayload)
-            }
-          );
-        } else {
-          console.log(`➕ Criando novo bot ${bt}...`);
-          action = 'create';
+          // Limpar ID no banco
+          await supabase
+            .from('master_whatsapp_config')
+            .update({ [existingBotIdField]: null })
+            .eq('id', configId);
           
-          response = await fetch(
-            `${evolutionUrl}/openai/create/${config.instance_name}`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'apikey': evolutionConfig.api_key
-              },
-              body: JSON.stringify(botPayload)
-            }
-          );
+          await delay(1000); // Aguardar 1s após deletar
+          console.log(`✅ Bot ${bt} antigo deletado`);
         }
 
+        // Sempre criar novo bot
+        console.log(`➕ Criando novo bot ${bt}...`);
+        const response = await fetch(
+          `${evolutionUrl}/openai/create/${config.instance_name}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': evolutionConfig.api_key
+            },
+            body: JSON.stringify(botPayload)
+          }
+        );
+
         const responseText = await response.text();
-        console.log(`📥 Resposta ${action} ${bt}:`, response.status, responseText);
+        console.log(`📥 Resposta create ${bt}:`, response.status, responseText);
 
         if (!response.ok) {
-          // Se update falhar (bot não existe mais ou erro 500), deletar e recriar
-          if (action === 'update' && (response.status === 404 || response.status === 500 || responseText.includes('not found'))) {
-            console.log(`⚠️ Bot ${bt} com erro (${response.status}), tentando deletar e recriar...`);
-            
-            // Tentar deletar bot antigo se houver ID
-            if (existingBotId) {
-              console.log(`🗑️ Deletando bot antigo ${existingBotId}...`);
-              await deleteExistingBot(config.instance_name, existingBotId);
-              await delay(1000); // Aguardar 1s após deletar
-            }
-            
-            // Limpar ID no banco antes de criar novo
-            await supabase
-              .from('master_whatsapp_config')
-              .update({ [existingBotIdField]: null })
-              .eq('id', configId);
-            
-            const createResponse = await fetch(
-              `${evolutionUrl}/openai/create/${config.instance_name}`,
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'apikey': evolutionConfig.api_key
-                },
-                body: JSON.stringify(botPayload)
-              }
-            );
-            
-            const createText = await createResponse.text();
-            console.log(`📥 Resposta create fallback ${bt}:`, createResponse.status, createText);
-            
-            if (createResponse.ok) {
-              let createData: any = {};
-              try { createData = JSON.parse(createText); } catch { createData = {}; }
-              const newBotId = createData.id || createData.openaiBot?.id || createData.openai?.id;
-              
-              if (newBotId) {
-                await supabase
-                  .from('master_whatsapp_config')
-                  .update({ [existingBotIdField]: newBotId })
-                  .eq('id', configId);
-                
-                results[bt] = { success: true, botId: newBotId };
-                console.log(`✅ Bot ${bt} recriado com novo ID: ${newBotId}`);
-                
-                // Aguardar 3 segundos antes do próximo bot para evitar rate limit na Evolution API
-                if (botsToSync.indexOf(bt) < botsToSync.length - 1) {
-                  console.log(`⏳ Aguardando 3s antes do próximo bot...`);
-                  await delay(3000);
-                }
-                continue;
-              }
-            }
-            
-            throw new Error(`Falha ao recriar bot: ${createText}`);
-          }
-          
-          throw new Error(`Falha ao ${action} bot: ${responseText}`);
+          throw new Error(`Falha ao criar bot: ${responseText}`);
         }
 
         let responseData: any = {};
         try { responseData = JSON.parse(responseText); } catch { responseData = {}; }
 
-        // Para UPDATE, manter o ID existente; para CREATE, salvar o novo ID
-        if (action === 'create') {
-          const newBotId = responseData.id || responseData.openaiBot?.id || responseData.openai?.id;
-          if (newBotId) {
-            await supabase
-              .from('master_whatsapp_config')
-              .update({ [existingBotIdField]: newBotId })
-              .eq('id', configId);
-          }
+        const newBotId = responseData.id || responseData.openaiBot?.id || responseData.openai?.id;
+        if (newBotId) {
+          await supabase
+            .from('master_whatsapp_config')
+            .update({ [existingBotIdField]: newBotId })
+            .eq('id', configId);
+          
           results[bt] = { success: true, botId: newBotId };
           console.log(`✅ Bot ${bt} criado com ID: ${newBotId}`);
         } else {
-          results[bt] = { success: true, botId: existingBotId };
-          console.log(`✅ Bot ${bt} atualizado (ID mantido: ${existingBotId})`);
+          results[bt] = { success: true, botId: undefined };
+          console.log(`⚠️ Bot ${bt} criado mas sem ID retornado`);
         }
 
         // Aguardar 3 segundos antes do próximo bot para evitar rate limit na Evolution API

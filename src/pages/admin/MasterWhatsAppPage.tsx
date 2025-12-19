@@ -94,17 +94,32 @@ function OpenAIKeySection({
 
     setTesting(true);
     try {
-      const response = await fetch('https://api.openai.com/v1/models', {
-        headers: { 'Authorization': `Bearer ${keyToTest}` }
-      });
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await fetch(
+        'https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/openai-credentials-sync',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            action: 'test',
+            openaiApiKey: keyToTest,
+          }),
+        }
+      );
 
-      if (response.ok) {
-        toast.success('API Key válida!');
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        toast.success('✅ API Key válida!');
       } else {
-        const error = await response.json();
-        toast.error(`API Key inválida: ${error.error?.message || 'Erro desconhecido'}`);
+        toast.error(result.error || 'API Key inválida');
       }
     } catch (error) {
+      console.error('Erro ao testar API Key:', error);
       toast.error('Erro ao testar API Key');
     } finally {
       setTesting(false);

@@ -25,6 +25,24 @@ export interface ImplementationPhase {
   items: string[];
 }
 
+export interface RiskSection {
+  level: 'low' | 'medium' | 'high';
+  title: string;
+  items: string[];
+}
+
+export interface RiskAnalysis {
+  title: string;
+  sections: RiskSection[];
+}
+
+export interface SafetyChecklist {
+  title: string;
+  keep: string[];
+  remove: string[];
+  attendantPages?: string[];
+}
+
 export interface Idea {
   id: number;
   title: string;
@@ -41,6 +59,8 @@ export interface Idea {
   options?: IdeaOption[];
   recommendation?: string;
   nextSteps?: string[];
+  riskAnalysis?: RiskAnalysis;
+  safetyChecklist?: SafetyChecklist;
 }
 
 export const statusConfig: Record<IdeaStatus, { label: string; color: string }> = {
@@ -1923,18 +1943,106 @@ Situação atual:
       }
     ],
 
+    riskAnalysis: {
+      title: '⚠️ Análise de Riscos',
+      sections: [
+        {
+          level: 'low',
+          title: '🟢 Risco BAIXO (Fácil de implementar)',
+          items: [
+            'Lazy Loading: Mudança aditiva, não quebra funcionalidades',
+            'PageLoader.tsx: Componente novo, sem impacto em código existente',
+            'Vite Chunks: Afeta apenas build de produção, não muda comportamento'
+          ]
+        },
+        {
+          level: 'medium',
+          title: '🟡 Risco MÉDIO (Requer cuidado)',
+          items: [
+            'AttendantLayout: AdminLayout atual tem NewOrdersProvider, useAuth, redirects, GlobalNewOrderAlert que DEVEM ser preservados',
+            'AdminSidebar: Carrega useStoreModules (remover) mas PRECISA de useStoreAccess para validação de acesso à loja',
+            'Migração de Rotas: Risco de esquecer rotas ou validação incorreta expor páginas indevidas'
+          ]
+        }
+      ]
+    },
+
+    safetyChecklist: {
+      title: '✅ Checklist de Segurança para AttendantLayout',
+      keep: [
+        'NewOrdersProvider (alerta de novos pedidos)',
+        'useAuth (autenticação)',
+        'useStoreAccess (validação de acesso à loja)',
+        'GlobalNewOrderAlert (notificação de pedidos)',
+        'Sidebar mobile toggle',
+        'useLocation para rotas ativas'
+      ],
+      remove: [
+        'useStoreModules (módulos dinâmicos)',
+        'useImpersonation (não aplicável)',
+        'ImpersonationBanner (não aplicável)',
+        'Verificação de assinatura (responsabilidade do lojista)',
+        'Título dinâmico da página'
+      ],
+      attendantPages: [
+        '/dashboard/orders',
+        '/dashboard/customers',
+        '/dashboard/reports',
+        '/dashboard/promotions',
+        '/dashboard/products',
+        '/dashboard/categories',
+        '/dashboard/addons',
+        '/dashboard/addon-categories',
+        '/dashboard/profile'
+      ]
+    },
+
+    recommendation: `**Recomendação: Implementação Incremental (Risco Mínimo)**
+
+🎯 ESTRATÉGIA DE MITIGAÇÃO:
+
+**Etapa 1 - Lazy Loading Puro (Testar 2-3 dias em produção)**
+• Apenas adiciona React.lazy() e Suspense
+• Zero mudança em layouts existentes
+• Fácil rollback se necessário
+• Já entrega ~50% do ganho de performance
+
+**Etapa 2 - Criar AttendantLayout (Manter AdminLayout como backup)**
+• Criar novo layout SEM remover o antigo
+• Feature flag para escolher qual usar
+• Testar com atendente real antes de migrar todos
+
+**Etapa 3 - Migrar rotas gradualmente**
+• Migrar 1-2 rotas por vez
+• Validar cada migração antes de prosseguir
+• Manter AdminLayout funcional até 100% migrado
+
+**Etapa 4 - Remover código redundante**
+• Só após validação completa
+• Documentar mudanças para manutenção futura
+
+📋 PONTOS SEM RISCO (Já estão OK):
+• DeliveryDriverLayout já é separado
+• ProtectedRoute é independente
+• useAuth é centralizado e robusto`,
+
     nextSteps: [
-      '□ Criar PageLoader.tsx',
-      '□ Implementar lazy loading nas rotas de atendente',
-      '□ Implementar lazy loading nas rotas de entregador',
-      '□ Criar AttendantLayout.tsx',
-      '□ Criar AttendantSidebar.tsx',
-      '□ Migrar rotas de atendente para novo layout',
-      '□ Otimizar DeliveryDriverLayout',
-      '□ Configurar manualChunks no vite.config.ts',
-      '□ Testar em dispositivos móveis',
-      '□ Medir métricas antes/depois no diagnóstico',
-      '□ Documentar arquitetura de chunks'
+      '□ [FASE 1] Criar PageLoader.tsx',
+      '□ [FASE 1] Implementar lazy loading nas rotas de atendente',
+      '□ [FASE 1] Implementar lazy loading nas rotas de entregador',
+      '□ [FASE 1] Testar lazy loading por 2-3 dias em produção',
+      '□ [FASE 2] Criar AttendantLayout.tsx preservando funcionalidades críticas',
+      '□ [FASE 2] Criar AttendantSidebar.tsx com menu fixo (9 páginas)',
+      '□ [FASE 2] Implementar feature flag para escolher layout',
+      '□ [FASE 2] Testar com atendente real',
+      '□ [FASE 3] Migrar rotas de atendente gradualmente',
+      '□ [FASE 3] Validar cada rota antes de prosseguir',
+      '□ [FASE 4] Otimizar DeliveryDriverLayout',
+      '□ [FASE 4] Configurar manualChunks no vite.config.ts',
+      '□ [FASE 4] Testar em dispositivos móveis reais',
+      '□ [FASE 4] Medir métricas antes/depois no diagnóstico',
+      '□ [FASE 5] Remover AdminLayout das rotas de atendente (após validação)',
+      '□ [FASE 5] Documentar arquitetura de chunks'
     ]
   }
 ];

@@ -5,8 +5,17 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Mapeamento de status iFood -> Mostralo
+// Mapeamento de status iFood -> Mostralo (códigos abreviados E por extenso)
 const STATUS_MAP: Record<string, string> = {
+  // Códigos abreviados (como o iFood realmente envia)
+  'PLC': 'entrada',
+  'CFM': 'confirmado',
+  'PRS': 'em_preparo',
+  'RTP': 'aguarda_retirada',
+  'DSP': 'em_transito',
+  'CON': 'concluido',
+  'CAN': 'cancelado',
+  // Códigos por extenso (fallback)
   'PLACED': 'entrada',
   'CONFIRMED': 'confirmado',
   'PREPARATION_STARTED': 'em_preparo',
@@ -243,10 +252,14 @@ async function processEvent(supabase: any, event: any, defaultStoreId?: string) 
     console.error('❌ Erro ao salvar log:', logError)
   }
 
-  // Processar baseado no tipo de evento
-  if (event.code === 'PLACED') {
+  // Processar baseado no tipo de evento (usar fullCode quando disponível, fallback para code)
+  const eventCode = event.fullCode || event.code
+  console.log(`🎯 Código do evento: ${event.code} | fullCode: ${event.fullCode} | usando: ${eventCode}`)
+
+  if (eventCode === 'PLACED' || event.code === 'PLC') {
     await createOrderFromEvent(supabase, storeId, event)
-  } else if (event.code === 'CONFIRMED' || event.code === 'CANCELLED' || event.code === 'CONCLUDED') {
+  } else if (['CONFIRMED', 'CFM', 'CANCELLED', 'CAN', 'CONCLUDED', 'CON'].includes(eventCode) || 
+             ['CONFIRMED', 'CFM', 'CANCELLED', 'CAN', 'CONCLUDED', 'CON'].includes(event.code)) {
     await updateOrderStatus(supabase, storeId, event)
   }
 

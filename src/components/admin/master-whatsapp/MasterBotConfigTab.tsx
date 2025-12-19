@@ -1,11 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   useMasterWhatsAppConfig, 
   SalesApproach, 
@@ -14,7 +13,6 @@ import {
 import { toast } from "sonner";
 import { 
   Loader2, 
-  Bot, 
   MessageSquare, 
   Users, 
   HelpCircle,
@@ -23,11 +21,18 @@ import {
   TrendingUp,
   Flame,
   Snowflake,
-  Save,
-  Eye
+  Save
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PromptPreviewCard } from "./PromptPreviewCard";
+import { 
+  getSalesPrompt, 
+  getRecruitmentPrompt, 
+  getSupportPrompt,
+  salesApproachLabels,
+  recruitmentApproachLabels
+} from "@/lib/masterBotPrompts";
 
 // Keywords Editor Component
 function KeywordsEditor({ 
@@ -177,6 +182,22 @@ export function MasterBotConfigTab() {
   const [supportPrompt, setSupportPrompt] = useState(config?.support_bot_custom_prompt || "");
   const [savingPrompt, setSavingPrompt] = useState(false);
 
+  // Memoizar os prompts baseados nas configurações atuais
+  const salesPromptPreview = useMemo(() => 
+    config ? getSalesPrompt(config.sales_bot_approach) : "",
+    [config?.sales_bot_approach]
+  );
+
+  const recruitmentPromptPreview = useMemo(() => 
+    config ? getRecruitmentPrompt(config.recruitment_bot_approach) : "",
+    [config?.recruitment_bot_approach]
+  );
+
+  const supportPromptPreview = useMemo(() => 
+    getSupportPrompt(supportPrompt),
+    [supportPrompt]
+  );
+
   if (loading || !config) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -280,6 +301,16 @@ export function MasterBotConfigTab() {
                 onChange={(kws) => updateKeywords('sales', kws)}
               />
 
+              {/* Preview do Prompt de Vendas */}
+              <PromptPreviewCard
+                prompt={salesPromptPreview}
+                approachLabel={salesApproachLabels[config.sales_bot_approach]}
+                approachVariant={
+                  config.sales_bot_approach === 'aggressive' ? 'destructive' : 
+                  config.sales_bot_approach === 'intermediate' ? 'default' : 'secondary'
+                }
+              />
+
               <div className="flex justify-end">
                 <Button
                   variant="outline"
@@ -335,6 +366,16 @@ export function MasterBotConfigTab() {
                 label="Keywords de Ativação"
                 keywords={config.recruitment_bot_keywords}
                 onChange={(kws) => updateKeywords('recruitment', kws)}
+              />
+
+              {/* Preview do Prompt de Recrutamento */}
+              <PromptPreviewCard
+                prompt={recruitmentPromptPreview}
+                approachLabel={recruitmentApproachLabels[config.recruitment_bot_approach]}
+                approachVariant={
+                  config.recruitment_bot_approach === 'super_aggressive' ? 'destructive' : 
+                  config.recruitment_bot_approach === 'aggressive' ? 'default' : 'secondary'
+                }
               />
 
               <div className="flex justify-end">
@@ -399,6 +440,13 @@ export function MasterBotConfigTab() {
                   Se deixar em branco, será usado um prompt padrão com FAQ da plataforma.
                 </p>
               </div>
+
+              {/* Preview do Prompt de Suporte */}
+              <PromptPreviewCard
+                prompt={supportPromptPreview}
+                approachLabel={supportPrompt.trim() ? "Customizado" : "Padrão"}
+                approachVariant={supportPrompt.trim() ? "default" : "secondary"}
+              />
 
               <div className="flex justify-end gap-2">
                 <Button

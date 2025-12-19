@@ -157,15 +157,54 @@ async function handlePolling(supabase: any, storeId: string) {
   console.log(`📦 ${events.length} eventos recebidos`)
 
   const processedEvents = []
+  const eventIds: string[] = []
+  
   for (const event of events) {
     const result = await processEvent(supabase, event, storeId)
     processedEvents.push(result)
+    if (event.id) {
+      eventIds.push(event.id)
+    }
+  }
+
+  // ✅ ACKNOWLEDGE AUTOMÁTICO - Limpa fila do iFood após processar
+  if (eventIds.length > 0) {
+    console.log(`✅ Enviando acknowledge para ${eventIds.length} eventos...`)
+    try {
+      const ackResponse = await fetch('https://merchant-api.ifood.com.br/events/v1.0/events/acknowledgment', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${integration.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(eventIds.map(id => ({ id })))
+      })
+      
+      if (ackResponse.ok) {
+        console.log(`✅ Acknowledge enviado com sucesso para ${eventIds.length} eventos`)
+        
+        // Marcar como processados no banco
+        await supabase
+          .from('ifood_events_log')
+          .update({ 
+            processed: true, 
+            processed_at: new Date().toISOString() 
+          })
+          .in('event_id', eventIds)
+      } else {
+        const ackError = await ackResponse.text()
+        console.error(`⚠️ Erro no acknowledge: ${ackResponse.status} - ${ackError}`)
+      }
+    } catch (ackErr) {
+      console.error('⚠️ Erro ao enviar acknowledge:', ackErr)
+    }
   }
 
   return new Response(JSON.stringify({ 
     success: true,
     events_count: events.length,
-    processed: processedEvents
+    processed: processedEvents,
+    acknowledged: eventIds.length
   }), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' }
   })

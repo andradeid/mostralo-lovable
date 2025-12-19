@@ -23,6 +23,7 @@ import {
   Bike,
   DollarSign,
   Tag,
+  Wallet,
   Receipt,
   Printer,
   Ticket,
@@ -505,6 +506,11 @@ export function AdminSidebar() {
         { title: 'Novidades', url: '/novidades', icon: Megaphone, group: 'Conta' },
         { title: 'Perfil', url: '/dashboard/profile', icon: User, group: 'Conta' }
       );
+
+      // Gestão Financeira - verifica módulo
+      if (hasModule('financial_management')) {
+        menuItems.push({ title: 'Gestão Financeira', url: '/dashboard/financeiro', icon: Wallet, group: 'Financeiro' });
+      }
 
       // Integrações - verifica módulo
       if (hasModule('integrations')) {

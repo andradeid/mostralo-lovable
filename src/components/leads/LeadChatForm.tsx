@@ -324,6 +324,26 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
         user_agent: navigator.userAgent
       });
       
+      // Enviar notificação master de novo lead
+      try {
+        await supabase.functions.invoke('send-master-notification', {
+          body: {
+            type: 'new_lead',
+            data: {
+              name: finalData.name,
+              email: finalData.email,
+              phone: finalData.phone,
+              company_name: finalData.company_name,
+              city: finalData.city,
+              uses_ifood: finalData.uses_ifood,
+              source: 'website'
+            }
+          }
+        });
+      } catch (notifyError) {
+        console.error('Erro ao enviar notificação:', notifyError);
+      }
+      
       // Limpar progresso salvo após envio bem-sucedido
       clearProgress();
     } catch (error) {

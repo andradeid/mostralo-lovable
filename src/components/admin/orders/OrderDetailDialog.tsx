@@ -516,11 +516,19 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
         <DialogContent className="max-w-3xl max-h-[95vh] flex flex-col overflow-hidden">
           <DialogHeader>
             <div className="flex items-center justify-between">
-              <DialogTitle className="text-2xl font-bold">{order.order_number}</DialogTitle>
+              <div className="flex items-center gap-2">
+                <DialogTitle className="text-2xl font-bold">{order.order_number}</DialogTitle>
+                {order.source === 'ifood' && (
+                  <Badge className="bg-red-500 hover:bg-red-600 text-white">iFood</Badge>
+                )}
+              </div>
               <OrderStatusBadge status={selectedStatus || order.status} />
             </div>
             <p className="text-sm text-muted-foreground">
               {format(new Date(order.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+              {order.source === 'ifood' && order.short_reference && (
+                <span className="ml-2">• Localizador: <strong>{order.short_reference}</strong></span>
+              )}
             </p>
             
             {/* Indicador de Tempo Estimado de Entrega */}

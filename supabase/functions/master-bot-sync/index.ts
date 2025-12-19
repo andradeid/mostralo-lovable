@@ -1055,13 +1055,17 @@ serve(async (req) => {
 
         const newBotId = responseData.id || responseData.openaiBot?.id || responseData.openai?.id;
         if (newBotId) {
+          // Atualizar o botId E o primary_bot_type automaticamente
           await supabase
             .from('master_whatsapp_config')
-            .update({ [existingBotIdField]: newBotId })
+            .update({ 
+              [existingBotIdField]: newBotId,
+              primary_bot_type: bt  // Atualiza automaticamente o bot principal
+            })
             .eq('id', configId);
 
           results[bt] = { success: true, botId: newBotId };
-          console.log(`✅ Bot ${bt} criado com ID: ${newBotId}`);
+          console.log(`✅ Bot ${bt} criado com ID: ${newBotId} - primary_bot_type atualizado para "${bt}"`);
         } else {
           results[bt] = { success: true, botId: undefined };
           console.log(`⚠️ Bot ${bt} criado mas sem ID retornado`);

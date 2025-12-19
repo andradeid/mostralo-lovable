@@ -98,6 +98,36 @@ Deno.serve(async (req) => {
     }
 
     const baseUrl = 'https://merchant-api.ifood.com.br/order/v1.0/orders'
+
+    // VALIDAÇÃO: Verificar estado atual do pedido no iFood antes de atualizar
+    console.log(`🔍 Verificando estado atual do pedido ${ifoodOrderId} no iFood...`)
+    const currentStatusResponse = await fetch(`${baseUrl}/${ifoodOrderId}`, {
+      headers: {
+        'Authorization': `Bearer ${integration.access_token}`
+      }
+    })
+
+    if (currentStatusResponse.ok) {
+      const currentOrder = await currentStatusResponse.json()
+      const currentIfoodStatus = currentOrder.orderStatus || currentOrder.status
+      console.log(`📋 Estado atual no iFood: ${currentIfoodStatus}`)
+
+      // Se já está cancelado ou concluído no iFood, não tentar atualizar
+      if (currentIfoodStatus === 'CANCELLED' || currentIfoodStatus === 'CONCLUDED') {
+        console.log(`⚠️ Pedido já está ${currentIfoodStatus} no iFood. Não é possível alterar.`)
+        return new Response(JSON.stringify({ 
+          success: false, 
+          error: `Pedido já está ${currentIfoodStatus === 'CANCELLED' ? 'cancelado' : 'concluído'} no iFood. Atualize a página para sincronizar o status.`,
+          ifoodStatus: currentIfoodStatus
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
+    } else {
+      console.warn(`⚠️ Não foi possível verificar estado atual: ${currentStatusResponse.status}`)
+      // Continuar mesmo assim, o iFood vai retornar erro apropriado
+    }
     const results = []
 
     // Se for status em_preparo, primeiro confirmar, depois iniciar preparação

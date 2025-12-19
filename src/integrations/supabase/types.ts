@@ -1825,6 +1825,7 @@ export type Database = {
           created_at: string | null
           id: string
           last_test_at: string | null
+          openai_api_key: string | null
           sandbox_address: string | null
           sandbox_business_hours: Json | null
           sandbox_categories: Json | null
@@ -1862,6 +1863,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           last_test_at?: string | null
+          openai_api_key?: string | null
           sandbox_address?: string | null
           sandbox_business_hours?: Json | null
           sandbox_categories?: Json | null
@@ -1899,6 +1901,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           last_test_at?: string | null
+          openai_api_key?: string | null
           sandbox_address?: string | null
           sandbox_business_hours?: Json | null
           sandbox_categories?: Json | null
@@ -4921,6 +4924,7 @@ export type Database = {
           min_order_value: number | null
           name: string
           online_payment_commission: number | null
+          openai_api_key: string | null
           owner_id: string | null
           payment_gateways: Json | null
           phone: string | null
@@ -4982,6 +4986,7 @@ export type Database = {
           min_order_value?: number | null
           name: string
           online_payment_commission?: number | null
+          openai_api_key?: string | null
           owner_id?: string | null
           payment_gateways?: Json | null
           phone?: string | null
@@ -5043,6 +5048,7 @@ export type Database = {
           min_order_value?: number | null
           name?: string
           online_payment_commission?: number | null
+          openai_api_key?: string | null
           owner_id?: string | null
           payment_gateways?: Json | null
           phone?: string | null

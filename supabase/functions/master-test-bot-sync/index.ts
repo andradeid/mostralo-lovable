@@ -160,28 +160,7 @@ serve(async (req) => {
       details: evolutionConfig.api_url,
     });
 
-    const hasOpenAiApiKey = !!evolutionConfig.openai_api_key;
-
-    if (!hasOpenAiApiKey) {
-      steps.push({
-        step: 'openai_key_check',
-        status: 'error',
-        message: 'Chave OpenAI não configurada',
-      });
-      return new Response(JSON.stringify({ error: 'Chave OpenAI não configurada', steps }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    steps.push({
-      step: 'openai_key_check',
-      status: 'success',
-      message: 'Chave OpenAI configurada',
-      details: '****' + evolutionConfig.openai_api_key.slice(-4),
-    });
-
-    // Buscar config de teste
+    // Buscar config de teste primeiro para pegar a API key do master admin
     let { data: testConfig } = await supabaseClient
       .from('master_admin_test_config')
       .select('*')
@@ -227,8 +206,33 @@ serve(async (req) => {
       });
     }
 
+    // Verificar API Key OpenAI do master admin (de master_admin_test_config, não de evolution_config)
+    const openaiApiKey = testConfig.openai_api_key;
+    
+    if (!openaiApiKey) {
+      steps.push({
+        step: 'openai_key_check',
+        status: 'error',
+        message: 'Chave OpenAI não configurada',
+        details: 'Configure sua API Key OpenAI no card "Configurar OpenAI"',
+      });
+      return new Response(JSON.stringify({ 
+        error: 'Configure sua API Key OpenAI no ambiente de teste (card "Configurar OpenAI")', 
+        steps 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    steps.push({
+      step: 'openai_key_check',
+      status: 'success',
+      message: 'Chave OpenAI configurada (Master Admin)',
+      details: '****' + openaiApiKey.slice(-4),
+    });
+
     const evolutionUrl = evolutionConfig.api_url.replace(/\/$/, '');
-    const openaiApiKey = evolutionConfig.openai_api_key;
 
     // Ações que requerem instância de teste
     const actionsRequiringInstance = ['create', 'update', 'toggle', 'delete'];
@@ -347,18 +351,18 @@ serve(async (req) => {
         });
       }
 
-      // 2. Se temos ID salvo, verificar se ainda é válido
-      if (evolutionConfig.openai_creds_id) {
-        const found = existingCreds.find(c => c.id === evolutionConfig.openai_creds_id);
+      // 2. Se temos ID salvo no testConfig, verificar se ainda é válido
+      if (testConfig.bot_evolution_id) {
+        const found = existingCreds.find(c => c.id === testConfig.bot_evolution_id);
         if (found) {
-          console.log('Credencial salva é válida:', evolutionConfig.openai_creds_id);
+          console.log('Credencial salva é válida:', testConfig.bot_evolution_id);
           steps.push({
             step: 'openai_creds_validate',
             status: 'success',
             message: 'Credencial salva ainda é válida',
-            details: `ID: ${evolutionConfig.openai_creds_id.slice(0, 8)}...`,
+            details: `ID: ${testConfig.bot_evolution_id.slice(0, 8)}...`,
           });
-          return evolutionConfig.openai_creds_id;
+          return testConfig.bot_evolution_id;
         }
         
         // ID não existe mais - limpar
@@ -367,32 +371,32 @@ serve(async (req) => {
           step: 'openai_creds_invalid',
           status: 'warning',
           message: 'Credencial salva não existe mais',
-          details: `ID antigo: ${evolutionConfig.openai_creds_id.slice(0, 8)}...`,
+          details: `ID antigo: ${testConfig.bot_evolution_id.slice(0, 8)}...`,
         });
         
         await supabaseClient
-          .from('evolution_config')
-          .update({ openai_creds_id: null, updated_at: new Date().toISOString() })
-          .eq('id', evolutionConfig.id);
+          .from('master_admin_test_config')
+          .update({ bot_evolution_id: null, updated_at: new Date().toISOString() })
+          .eq('id', testConfig.id);
       }
 
-      // 3. Buscar credencial existente "mostralo-openai"
-      const mostraloCredential = existingCreds.find(c => c.name === 'mostralo-openai');
-      if (mostraloCredential?.id) {
-        console.log('Reutilizando credencial existente:', mostraloCredential.id);
+      // 3. Buscar credencial existente "master_admin_openai" (nome único para o master)
+      const masterCredential = existingCreds.find(c => c.name === 'master_admin_openai');
+      if (masterCredential?.id) {
+        console.log('Reutilizando credencial existente:', masterCredential.id);
         steps.push({
           step: 'openai_creds_reuse',
           status: 'success',
-          message: 'Reutilizando credencial "mostralo-openai"',
-          details: `ID: ${mostraloCredential.id.slice(0, 8)}...`,
+          message: 'Reutilizando credencial "master_admin_openai"',
+          details: `ID: ${masterCredential.id.slice(0, 8)}...`,
         });
         
         await supabaseClient
-          .from('evolution_config')
-          .update({ openai_creds_id: mostraloCredential.id, updated_at: new Date().toISOString() })
-          .eq('id', evolutionConfig.id);
+          .from('master_admin_test_config')
+          .update({ bot_evolution_id: masterCredential.id, updated_at: new Date().toISOString() })
+          .eq('id', testConfig.id);
         
-        return mostraloCredential.id;
+        return masterCredential.id;
       }
 
       // 4. Criar nova credencial
@@ -420,7 +424,7 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            name: 'mostralo-openai',
+            name: 'master_admin_openai',
             apiKey: openaiApiKey,
           }),
         });
@@ -448,9 +452,9 @@ serve(async (req) => {
 
         if (createdId) {
           await supabaseClient
-            .from('evolution_config')
-            .update({ openai_creds_id: createdId, updated_at: new Date().toISOString() })
-            .eq('id', evolutionConfig.id);
+            .from('master_admin_test_config')
+            .update({ bot_evolution_id: createdId, updated_at: new Date().toISOString() })
+            .eq('id', testConfig.id);
 
           steps.push({
             step: 'openai_creds_created',

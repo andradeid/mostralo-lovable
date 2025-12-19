@@ -45,6 +45,7 @@ export function OpenAIConfigCard() {
   const [isEditing, setIsEditing] = useState(false);
   const [testingKey, setTestingKey] = useState(false);
   const [savingKey, setSavingKey] = useState(false);
+  const [hasApiKey, setHasApiKey] = useState(false);
 
   useEffect(() => {
     fetchConfig();
@@ -52,16 +53,29 @@ export function OpenAIConfigCard() {
 
   const fetchConfig = async () => {
     try {
-      const { data, error } = await supabase
+      // Buscar config global (modelo e max_tokens)
+      const { data: evolutionData, error: evolutionError } = await supabase
         .from('evolution_config')
         .select('id, api_url, openai_creds_id, openai_default_model, openai_max_tokens, is_active')
         .eq('is_active', true)
         .single();
 
-      if (!error && data) {
-        setConfig(data);
-        if (data.openai_default_model) setModel(data.openai_default_model);
-        if (data.openai_max_tokens) setMaxTokens(data.openai_max_tokens);
+      if (!evolutionError && evolutionData) {
+        setConfig(evolutionData);
+        if (evolutionData.openai_default_model) setModel(evolutionData.openai_default_model);
+        if (evolutionData.openai_max_tokens) setMaxTokens(evolutionData.openai_max_tokens);
+      }
+
+      // Buscar API Key do master admin (da tabela master_admin_test_config)
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: testConfig } = await supabase
+          .from('master_admin_test_config')
+          .select('openai_api_key')
+          .eq('admin_user_id', user.id)
+          .single();
+        
+        setHasApiKey(!!testConfig?.openai_api_key);
       }
     } catch (err) {
       console.error('Erro ao buscar config:', err);
@@ -121,35 +135,59 @@ export function OpenAIConfigCard() {
 
     setSavingKey(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      const response = await fetch(
-        'https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/openai-credentials-sync',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session?.access_token}`,
-          },
-          body: JSON.stringify({
-            action: 'save',
-            openaiApiKey: apiKey,
-            model,
-            maxTokens,
-          }),
-        }
-      );
-
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        toast.success('✅ Configuração salva!');
-        setApiKey('');
-        setIsEditing(false);
-        fetchConfig();
-      } else {
-        toast.error(result.error || 'Erro ao salvar');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Usuário não autenticado');
+        return;
       }
+
+      // Verificar se já existe config para o usuário
+      const { data: existingConfig } = await supabase
+        .from('master_admin_test_config')
+        .select('id')
+        .eq('admin_user_id', user.id)
+        .single();
+
+      if (existingConfig) {
+        // Atualizar config existente
+        const { error } = await supabase
+          .from('master_admin_test_config')
+          .update({ 
+            openai_api_key: apiKey.trim(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('admin_user_id', user.id);
+        
+        if (error) throw error;
+      } else {
+        // Criar nova config
+        const { error } = await supabase
+          .from('master_admin_test_config')
+          .insert({
+            admin_user_id: user.id,
+            openai_api_key: apiKey.trim(),
+          });
+        
+        if (error) throw error;
+      }
+
+      // Também atualizar modelo e max_tokens na evolution_config (são globais)
+      if (config) {
+        await supabase
+          .from('evolution_config')
+          .update({ 
+            openai_default_model: model,
+            openai_max_tokens: maxTokens,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', config.id);
+      }
+
+      toast.success('✅ Configuração salva!');
+      setApiKey('');
+      setIsEditing(false);
+      setHasApiKey(true);
+      fetchConfig();
     } catch (error: any) {
       console.error('Erro ao salvar:', error);
       toast.error('Erro ao salvar configuração');
@@ -168,7 +206,7 @@ export function OpenAIConfigCard() {
     );
   }
 
-  const hasOpenAI = !!config?.openai_creds_id;
+  const hasOpenAI = hasApiKey;
 
   return (
     <Card>

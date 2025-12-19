@@ -456,14 +456,15 @@ serve(async (req) => {
 
     const { action, config, origin } = await req.json() as { action: string; config: BotConfig; origin?: string };
 
-    // Buscar loja do usuário com todos os campos necessários (incluindo domínio customizado)
+    // Buscar loja do usuário com todos os campos necessários (incluindo domínio customizado e openai_api_key)
     const { data: store, error: storeError } = await supabaseClient
       .from('stores')
       .select(`
         *, 
         google_maps_link, business_hours, delivery_fee, min_order_value,
         accepts_cash, accepts_card, accepts_pix, city, state,
-        custom_domain, custom_domain_verified
+        custom_domain, custom_domain_verified,
+        openai_api_key
       `)
       .eq('id', config.storeId)
       .single();
@@ -513,18 +514,28 @@ serve(async (req) => {
 
     steps.push({ step: 'evolution_config', status: 'success', message: 'Evolution API configurada', details: evolutionConfig.api_url });
 
-    if (!evolutionConfig.openai_api_key) {
-      steps.push({ step: 'openai_key_check', status: 'error', message: 'Chave OpenAI não configurada' });
-      return new Response(JSON.stringify({ error: 'Chave OpenAI não configurada', steps }), {
+    // Verificar API Key OpenAI da loja (de stores.openai_api_key, não de evolution_config)
+    const openaiApiKey = store.openai_api_key;
+    
+    if (!openaiApiKey) {
+      steps.push({ 
+        step: 'openai_key_check', 
+        status: 'error', 
+        message: 'Chave OpenAI não configurada para esta loja',
+        details: 'O Master Admin precisa configurar a API Key OpenAI para esta loja'
+      });
+      return new Response(JSON.stringify({ 
+        error: 'API Key OpenAI não configurada para esta loja. Solicite ao administrador.', 
+        steps 
+      }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    steps.push({ step: 'openai_key_check', status: 'success', message: 'Chave OpenAI configurada', details: '****' + evolutionConfig.openai_api_key.slice(-4) });
+    steps.push({ step: 'openai_key_check', status: 'success', message: 'Chave OpenAI da loja configurada', details: '****' + openaiApiKey.slice(-4) });
 
     const evolutionUrl = evolutionConfig.api_url.replace(/\/$/, '');
-    const openaiApiKey = evolutionConfig.openai_api_key;
 
     // Buscar produtos e categorias (incluindo slug para links)
     const { data: products } = await supabaseClient
@@ -628,26 +639,22 @@ serve(async (req) => {
           .eq('id', evolutionConfig.id);
       }
 
-      // 3. Buscar credencial existente "mostralo-openai"
-      const mostraloCredential = existingCreds.find(c => c.name === 'mostralo-openai');
-      if (mostraloCredential?.id) {
-        console.log('Reutilizando credencial existente:', mostraloCredential.id);
+      // 3. Buscar credencial existente para esta loja específica
+      const storeCredentialName = `store_${store.slug}_openai`;
+      const storeCredential = existingCreds.find(c => c.name === storeCredentialName);
+      if (storeCredential?.id) {
+        console.log('Reutilizando credencial existente:', storeCredential.id);
         steps.push({
           step: 'openai_creds_reuse',
           status: 'success',
-          message: 'Reutilizando credencial "mostralo-openai"',
-          details: `ID: ${mostraloCredential.id.slice(0, 8)}...`,
+          message: `Reutilizando credencial "${storeCredentialName}"`,
+          details: `ID: ${storeCredential.id.slice(0, 8)}...`,
         });
         
-        await supabaseClient
-          .from('evolution_config')
-          .update({ openai_creds_id: mostraloCredential.id, updated_at: new Date().toISOString() })
-          .eq('id', evolutionConfig.id);
-        
-        return mostraloCredential.id;
+        return storeCredential.id;
       }
 
-      // 4. Criar nova credencial
+      // 4. Criar nova credencial para a loja
       if (!openaiApiKey) {
         steps.push({
           step: 'openai_creds_create',
@@ -657,11 +664,11 @@ serve(async (req) => {
         return null;
       }
 
-      console.log('Criando nova credencial OpenAI...');
+      console.log('Criando nova credencial OpenAI para loja:', store.slug);
       steps.push({
         step: 'openai_creds_creating',
         status: 'success',
-        message: 'Criando nova credencial OpenAI...',
+        message: `Criando credencial "${storeCredentialName}"...`,
       });
 
       try {
@@ -672,7 +679,7 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            name: 'mostralo-openai',
+            name: storeCredentialName,
             apiKey: openaiApiKey,
           }),
         });
@@ -699,11 +706,6 @@ serve(async (req) => {
         }
 
         if (createdId) {
-          await supabaseClient
-            .from('evolution_config')
-            .update({ openai_creds_id: createdId, updated_at: new Date().toISOString() })
-            .eq('id', evolutionConfig.id);
-
           steps.push({
             step: 'openai_creds_created',
             status: 'success',

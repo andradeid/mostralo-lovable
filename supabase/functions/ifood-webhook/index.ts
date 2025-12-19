@@ -6,18 +6,19 @@ const corsHeaders = {
 }
 
 // Mapeamento de status iFood -> Mostralo (códigos abreviados E por extenso)
+// Valores válidos do enum order_status: entrada, em_preparo, aguarda_retirada, em_transito, concluido, cancelado
 const STATUS_MAP: Record<string, string> = {
   // Códigos abreviados (como o iFood realmente envia)
-  'PLC': 'entrada',
-  'CFM': 'confirmado',
-  'PRS': 'em_preparo',
-  'RTP': 'aguarda_retirada',
-  'DSP': 'em_transito',
-  'CON': 'concluido',
-  'CAN': 'cancelado',
+  'PLC': 'entrada',           // PLACED → pedido recebido
+  'CFM': 'em_preparo',        // CONFIRMED → loja confirmou, inicia preparo
+  'PRS': 'em_preparo',        // PREPARATION_STARTED → em preparo
+  'RTP': 'aguarda_retirada',  // READY_TO_PICKUP → pronto para retirada
+  'DSP': 'em_transito',       // DISPATCHED → saiu para entrega
+  'CON': 'concluido',         // CONCLUDED → entregue
+  'CAN': 'cancelado',         // CANCELLED → cancelado
   // Códigos por extenso (fallback)
   'PLACED': 'entrada',
-  'CONFIRMED': 'confirmado',
+  'CONFIRMED': 'em_preparo',
   'PREPARATION_STARTED': 'em_preparo',
   'READY_TO_PICKUP': 'aguarda_retirada',
   'DISPATCHED': 'em_transito',

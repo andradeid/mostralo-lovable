@@ -126,7 +126,19 @@ async function handlePolling(supabase: any, storeId: string) {
     throw new Error(`Erro ao buscar eventos: ${eventsResponse.status}`)
   }
 
-  const events = await eventsResponse.json()
+  // Tratar resposta vazia do iFood (pode retornar corpo vazio ou array vazio)
+  const responseText = await eventsResponse.text()
+  let events: any[] = []
+  
+  if (responseText && responseText.trim()) {
+    try {
+      events = JSON.parse(responseText)
+    } catch (parseError) {
+      console.log('⚠️ Resposta não é JSON válido, assumindo array vazio')
+      events = []
+    }
+  }
+  
   console.log(`📦 ${events.length} eventos recebidos`)
 
   const processedEvents = []

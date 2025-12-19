@@ -812,23 +812,15 @@ serve(async (req) => {
       console.log('⚠️ Settings não configurados, mas continuando...');
     }
 
-    // 3. Buscar e deletar TODOS os bots existentes para recriar com configurações atualizadas
-    const existingBots = await findExistingBots(config.instance_name);
-    if (existingBots.length > 0) {
-      console.log(`🗑️ Removendo ${existingBots.length} bot(s) existente(s)...`);
-      for (const bot of existingBots) {
-        if (bot.id) {
-          await deleteExistingBot(config.instance_name, bot.id);
-        }
-      }
-    }
-
+    // 3. NÃO deletar bots - usar UPDATE quando existir, CREATE apenas quando não existir
     for (const bt of botsToSync) {
       try {
         let prompt: string;
         let botName: string;
         let triggerKeywords: string[];
         let behaviorConfig: BotBehaviorConfig;
+        const existingBotIdField = `${bt}_bot_evolution_id`;
+        const existingBotId = config[existingBotIdField];
 
         switch (bt) {
           case 'sales':
@@ -836,7 +828,6 @@ serve(async (req) => {
               results[bt] = { success: true, error: 'Bot disabled' };
               continue;
             }
-            // 🔥 USAR GERADOR COM DADOS REAIS
             prompt = generateSalesPrompt(config.sales_bot_approach, plansForPrompt);
             botName = 'Mostralo Vendas';
             triggerKeywords = config.sales_bot_keywords || [];
@@ -848,7 +839,6 @@ serve(async (req) => {
               results[bt] = { success: true, error: 'Bot disabled' };
               continue;
             }
-            // 🔥 USAR GERADOR COM DADOS REAIS
             prompt = generateRecruitmentPrompt(config.recruitment_bot_approach, plansForPrompt, bonusTiers);
             botName = 'Mostralo Recrutamento';
             triggerKeywords = config.recruitment_bot_keywords || [];
@@ -870,8 +860,14 @@ serve(async (req) => {
             continue;
         }
 
-        // 🔥 REPLICANDO EXATAMENTE O PAYLOAD DO openai-bot-sync QUE FUNCIONA!
-        const createPayload = {
+        // 🔥 CORRIGIDO: Aplicar keywords quando configuradas
+        const hasKeywords = triggerKeywords && triggerKeywords.length > 0 && triggerKeywords.some(k => k.trim());
+        const triggerType = hasKeywords ? 'keyword' : 'all';
+        const triggerValue = hasKeywords ? triggerKeywords.filter(k => k.trim()).join(',') : '';
+
+        console.log(`🔑 Bot ${bt}: triggerType=${triggerType}, triggerValue="${triggerValue}", keywords:`, triggerKeywords);
+
+        const botPayload = {
           enabled: true,
           openaiCredsId: openaiCredsId,
           botType: 'chatCompletion',
@@ -882,11 +878,10 @@ serve(async (req) => {
             `Olá! 👋 Sou o ${botName}, assistente virtual da Mostralo. Como posso ajudar você hoje?`
           ],
           userMessages: ['Oi', 'Olá', 'Boa tarde', 'Boa noite', 'Bom dia'],
-          // 🔥 IGUAL AO openai-bot-sync: triggerType 'all' e triggerValue vazio
-          triggerType: 'all',
+          // 🔥 CORRIGIDO: Usar keywords quando disponíveis
+          triggerType: triggerType,
           triggerOperator: 'contains',
-          triggerValue: '',
-          // 🔥 NÃO ENVIAR description - openai-bot-sync não envia
+          triggerValue: triggerValue,
           expire: behaviorConfig.expire_minutes || 20,
           keywordFinish: behaviorConfig.keyword_finish || '#SAIR',
           delayMessage: behaviorConfig.delay_message || 4000,
@@ -900,38 +895,51 @@ serve(async (req) => {
           timePerChar: behaviorConfig.time_per_char || 0,
         };
 
-        console.log(`📤 Criando bot ${bt} com ${prompt.length} caracteres de prompt`);
-        console.log(`⚙️ Payload:`, JSON.stringify(createPayload, null, 2));
+        let response: Response;
+        let action: string;
 
-        const createResponse = await fetch(
-          `${evolutionUrl}/openai/create/${config.instance_name}`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'apikey': evolutionConfig.api_key
-            },
-            body: JSON.stringify(createPayload)
-          }
-        );
-
-        const createText = await createResponse.text();
-        console.log(`📥 Resposta criação ${bt}:`, createResponse.status, createText);
-
-        if (!createResponse.ok) {
-          // Tentar recuperar de "already exists"
-          if (createText.includes('already exists') || createText.includes('already')) {
-            console.log(`⚠️ Bot ${bt} já existe, deletando e recriando...`);
-            
-            const botsAfter = await findExistingBots(config.instance_name);
-            for (const bot of botsAfter) {
-              if (bot.id) {
-                await deleteExistingBot(config.instance_name, bot.id);
-              }
+        // 🔥 CORRIGIDO: Verificar se bot já existe e usar UPDATE
+        if (existingBotId) {
+          console.log(`🔄 Atualizando bot ${bt} existente (ID: ${existingBotId})...`);
+          action = 'update';
+          
+          response = await fetch(
+            `${evolutionUrl}/openai/update/${existingBotId}/${config.instance_name}`,
+            {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': evolutionConfig.api_key
+              },
+              body: JSON.stringify(botPayload)
             }
+          );
+        } else {
+          console.log(`➕ Criando novo bot ${bt}...`);
+          action = 'create';
+          
+          response = await fetch(
+            `${evolutionUrl}/openai/create/${config.instance_name}`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': evolutionConfig.api_key
+              },
+              body: JSON.stringify(botPayload)
+            }
+          );
+        }
+
+        const responseText = await response.text();
+        console.log(`📥 Resposta ${action} ${bt}:`, response.status, responseText);
+
+        if (!response.ok) {
+          // Se update falhar (bot não existe mais), tentar criar
+          if (action === 'update' && (response.status === 404 || responseText.includes('not found'))) {
+            console.log(`⚠️ Bot ${bt} não encontrado, criando novo...`);
             
-            // Retry
-            const retryResponse = await fetch(
+            const createResponse = await fetch(
               `${evolutionUrl}/openai/create/${config.instance_name}`,
               {
                 method: 'POST',
@@ -939,47 +947,54 @@ serve(async (req) => {
                   'Content-Type': 'application/json',
                   'apikey': evolutionConfig.api_key
                 },
-                body: JSON.stringify(createPayload)
+                body: JSON.stringify(botPayload)
               }
             );
             
-            const retryText = await retryResponse.text();
-            if (retryResponse.ok) {
-              let retryData: any = {};
-              try { retryData = JSON.parse(retryText); } catch { retryData = {}; }
-              const retryBotId = retryData.id || retryData.openaiBot?.id || retryData.openai?.id || null;
+            const createText = await createResponse.text();
+            console.log(`📥 Resposta create fallback ${bt}:`, createResponse.status, createText);
+            
+            if (createResponse.ok) {
+              let createData: any = {};
+              try { createData = JSON.parse(createText); } catch { createData = {}; }
+              const newBotId = createData.id || createData.openaiBot?.id || createData.openai?.id;
               
-              if (retryBotId) {
-                const updateField = `${bt}_bot_evolution_id`;
+              if (newBotId) {
                 await supabase
                   .from('master_whatsapp_config')
-                  .update({ [updateField]: retryBotId })
+                  .update({ [existingBotIdField]: newBotId })
                   .eq('id', configId);
                 
-                results[bt] = { success: true, botId: retryBotId };
-                console.log(`✅ Bot ${bt} recriado com ID: ${retryBotId}`);
+                results[bt] = { success: true, botId: newBotId };
+                console.log(`✅ Bot ${bt} criado com ID: ${newBotId}`);
                 continue;
               }
             }
+            
+            throw new Error(`Falha ao criar bot: ${createText}`);
           }
           
-          throw new Error(`Falha ao criar bot: ${createText}`);
+          throw new Error(`Falha ao ${action} bot: ${responseText}`);
         }
 
-        let createData: any = {};
-        try { createData = JSON.parse(createText); } catch { createData = {}; }
+        let responseData: any = {};
+        try { responseData = JSON.parse(responseText); } catch { responseData = {}; }
 
-        // Atualizar ID do bot no banco
-        const newBotId = createData.id || createData.openaiBot?.id || createData.openai?.id;
-        const updateField = `${bt}_bot_evolution_id`;
-        
-        await supabase
-          .from('master_whatsapp_config')
-          .update({ [updateField]: newBotId })
-          .eq('id', configId);
-
-        results[bt] = { success: true, botId: newBotId };
-        console.log(`✅ Bot ${bt} sincronizado com ID: ${newBotId}`);
+        // Para UPDATE, manter o ID existente; para CREATE, salvar o novo ID
+        if (action === 'create') {
+          const newBotId = responseData.id || responseData.openaiBot?.id || responseData.openai?.id;
+          if (newBotId) {
+            await supabase
+              .from('master_whatsapp_config')
+              .update({ [existingBotIdField]: newBotId })
+              .eq('id', configId);
+          }
+          results[bt] = { success: true, botId: newBotId };
+          console.log(`✅ Bot ${bt} criado com ID: ${newBotId}`);
+        } else {
+          results[bt] = { success: true, botId: existingBotId };
+          console.log(`✅ Bot ${bt} atualizado (ID mantido: ${existingBotId})`);
+        }
 
       } catch (botError) {
         console.error(`❌ Erro no bot ${bt}:`, botError);

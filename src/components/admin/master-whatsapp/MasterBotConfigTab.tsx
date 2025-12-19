@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,13 +26,60 @@ import {
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PromptPreviewCard } from "./PromptPreviewCard";
-import { 
-  getSalesPrompt, 
-  getRecruitmentPrompt, 
-  getSupportPrompt,
-  salesApproachLabels,
-  recruitmentApproachLabels
-} from "@/lib/masterBotPrompts";
+import { supabase } from "@/integrations/supabase/client";
+import { generateSalesPrompt, PromptType } from "@/utils/salesPromptGenerator";
+import { generateRecruitmentPrompt, RecruitmentPromptType, BonusTier } from "@/utils/recruitmentPromptGenerator";
+import { Database } from "@/integrations/supabase/types";
+
+type Plan = Database['public']['Tables']['plans']['Row'];
+
+// Labels para exibição
+const salesApproachLabels: Record<SalesApproach, string> = {
+  basic: 'Consultivo',
+  intermediate: 'Persuasivo',
+  aggressive: 'Urgência'
+};
+
+const recruitmentApproachLabels: Record<RecruitmentApproach, string> = {
+  cold_lead: 'Lead Frio',
+  moderate: 'Moderado',
+  aggressive: 'Agressivo',
+  super_aggressive: 'Super Agressivo'
+};
+
+// Prompt padrão de suporte
+function getSupportPrompt(customPrompt?: string): string {
+  if (customPrompt?.trim()) {
+    return customPrompt;
+  }
+  return `Você é um assistente de suporte da plataforma Mostralo.
+
+SOBRE O MOSTRALO:
+- Sistema completo de delivery e vendas online
+- Para restaurantes, lojas, farmácias, açougues, etc.
+- 0% de taxa por pedido
+- WhatsApp Marketing integrado
+- Relatórios com IA
+
+FAQ COMUM:
+1. "Como funciona o pagamento?" → Assinatura mensal, paga via PIX ou cartão
+2. "Quanto custa?" → Planos a partir de R$ 197,90/mês
+3. "Tem taxa por pedido?" → NÃO! 0% de taxa
+4. "Posso testar?" → Sim, oferecemos período de teste gratuito
+5. "Funciona no meu celular?" → Sim, é um sistema web/app
+6. "Preciso de CNPJ?" → Pode ser PF ou PJ
+7. "Como recebo os pedidos?" → WhatsApp, app ou painel web
+
+ESTILO:
+- Seja prestativo e paciente
+- Responda de forma clara e objetiva
+- Se não souber, encaminhe para suporte humano
+- Use emojis moderadamente
+
+CONTATO HUMANO:
+WhatsApp: (61) 99555-0099
+Email: suporte@mostralo.com.br`;
+}
 
 // Keywords Editor Component
 function KeywordsEditor({ 
@@ -181,17 +228,58 @@ export function MasterBotConfigTab() {
   
   const [supportPrompt, setSupportPrompt] = useState(config?.support_bot_custom_prompt || "");
   const [savingPrompt, setSavingPrompt] = useState(false);
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [bonusTiers, setBonusTiers] = useState<BonusTier[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
 
-  // Memoizar os prompts baseados nas configurações atuais
-  const salesPromptPreview = useMemo(() => 
-    config ? getSalesPrompt(config.sales_bot_approach) : "",
-    [config?.sales_bot_approach]
-  );
+  // Buscar dados do banco para geração de prompts
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        // @ts-ignore - Supabase tipos muito profundos
+        const { data: plansData } = await supabase.from('plans').select('*').eq('is_active', true).order('price', { ascending: true });
+        
+        // @ts-ignore - Supabase tipos muito profundos
+        const { data: bonusData } = await supabase.from('salesperson_bonus_tiers').select('*').eq('is_active', true).order('min_sales', { ascending: true });
 
-  const recruitmentPromptPreview = useMemo(() => 
-    config ? getRecruitmentPrompt(config.recruitment_bot_approach) : "",
-    [config?.recruitment_bot_approach]
-  );
+        if (plansData) setPlans(plansData as Plan[]);
+        if (bonusData) {
+          setBonusTiers((bonusData as any[]).map(b => ({
+            id: b.id,
+            tier_name: b.tier_name,
+            min_sales: b.min_sales,
+            bonus_amount: b.bonus_amount,
+            is_cumulative: b.is_cumulative ?? true,
+            is_active: b.is_active ?? true
+          })));
+        }
+      } catch (error) {
+        console.error('Erro ao buscar dados para prompts:', error);
+      } finally {
+        setLoadingData(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  // Gerar prompts usando os geradores reais com dados do banco
+  const salesPromptPreview = useMemo(() => {
+    if (!config || plans.length === 0) return "";
+    return generateSalesPrompt({
+      type: config.sales_bot_approach as PromptType,
+      plans: plans
+    });
+  }, [config?.sales_bot_approach, plans]);
+
+  const recruitmentPromptPreview = useMemo(() => {
+    if (!config || plans.length === 0) return "";
+    return generateRecruitmentPrompt({
+      type: config.recruitment_bot_approach as RecruitmentPromptType,
+      plans: plans,
+      bonusTiers: bonusTiers,
+      baseUrl: 'https://mostralo.com.br'
+    });
+  }, [config?.recruitment_bot_approach, plans, bonusTiers]);
 
   const supportPromptPreview = useMemo(() => 
     getSupportPrompt(supportPrompt),

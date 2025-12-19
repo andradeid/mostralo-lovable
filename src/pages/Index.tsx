@@ -59,6 +59,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { useNavigate } from 'react-router-dom';
 
+interface PlanModule {
+  module_id: string;
+  modules: {
+    name: string;
+    icon: string | null;
+    key: string | null;
+  };
+}
+
 interface Plan {
   id: string;
   name: string;
@@ -74,6 +83,7 @@ interface Plan {
   promotion_start_date?: string | null;
   promotion_end_date?: string | null;
   promotion_label?: string | null;
+  plan_modules?: PlanModule[];
 }
 
 const Index = () => {
@@ -363,22 +373,47 @@ const Index = () => {
     }
   ];
 
-  // Buscar planos ativos do banco de dados
+  // Buscar planos ativos do banco de dados com módulos
   useEffect(() => {
     const fetchPlans = async () => {
       try {
-        const { data, error } = await supabase
+        // Buscar planos
+        const { data: plansData, error: plansError } = await supabase
           .from('plans')
           .select('*')
           .eq('status', 'active')
           .order('price', { ascending: true });
 
-        if (error) {
-          console.error('Erro ao buscar planos:', error);
+        if (plansError) {
+          console.error('Erro ao buscar planos:', plansError);
           return;
         }
 
-        setPlans(data || []);
+        // Buscar módulos de cada plano
+        const { data: planModulesData, error: planModulesError } = await supabase
+          .from('plan_modules')
+          .select(`
+            plan_id,
+            module_id,
+            modules!inner(name, icon, key)
+          `);
+
+        if (planModulesError) {
+          console.error('Erro ao buscar módulos dos planos:', planModulesError);
+        }
+
+        // Associar módulos aos planos
+        const plansWithModules = (plansData || []).map(plan => ({
+          ...plan,
+          plan_modules: (planModulesData || [])
+            .filter(pm => pm.plan_id === plan.id)
+            .map(pm => ({
+              module_id: pm.module_id,
+              modules: pm.modules as { name: string; icon: string | null; key: string | null }
+            }))
+        }));
+
+        setPlans(plansWithModules);
       } catch (error) {
         console.error('Erro ao buscar planos:', error);
       }
@@ -1630,14 +1665,64 @@ const Index = () => {
                     )}
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <ul className="space-y-2 text-left">
-                      {featuresArray.map((feature, featureIndex) => (
-                        <li key={featureIndex} className="flex items-center space-x-2">
-                          <Check className="h-4 w-4 text-primary flex-shrink-0" />
-                          <span className="text-sm">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    {/* Módulos do plano com ícones */}
+                    {plan.plan_modules && plan.plan_modules.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide text-left">
+                          Módulos Inclusos
+                        </p>
+                        <ul className="space-y-1.5 text-left">
+                          {plan.plan_modules.slice(0, 8).map((pm, idx) => {
+                            const iconName = pm.modules?.icon;
+                            const IconComponent = iconName ? (
+                              iconName === 'Menu' ? Menu :
+                              iconName === 'ShoppingCart' ? Package :
+                              iconName === 'Truck' ? Truck :
+                              iconName === 'Palette' ? Palette :
+                              iconName === 'BarChart' ? BarChart3 :
+                              iconName === 'MessageCircle' ? MessageCircle :
+                              iconName === 'Printer' ? Printer :
+                              iconName === 'Calendar' ? Clock :
+                              iconName === 'Tag' ? Tag :
+                              iconName === 'Megaphone' ? Target :
+                              iconName === 'ExternalLink' ? Zap :
+                              iconName === 'Wallet' ? Wallet :
+                              iconName === 'Users' ? Users :
+                              Check
+                            ) : Check;
+                            
+                            return (
+                              <li key={idx} className="flex items-center space-x-2">
+                                <IconComponent className="h-4 w-4 text-primary flex-shrink-0" />
+                                <span className="text-sm">{pm.modules?.name || 'Módulo'}</span>
+                              </li>
+                            );
+                          })}
+                          {plan.plan_modules.length > 8 && (
+                            <li className="text-xs text-muted-foreground pl-6">
+                              + {plan.plan_modules.length - 8} módulos
+                            </li>
+                          )}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Recursos extras (texto livre) */}
+                    {featuresArray.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide text-left">
+                          Extras
+                        </p>
+                        <ul className="space-y-1.5 text-left">
+                          {featuresArray.map((feature, featureIndex) => (
+                            <li key={featureIndex} className="flex items-center space-x-2">
+                              <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                              <span className="text-sm">{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                     <Link to="/signup" className="block">
                       <Button 
                         className="w-full mt-4" 

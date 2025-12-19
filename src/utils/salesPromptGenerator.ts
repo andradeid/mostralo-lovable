@@ -147,6 +147,15 @@ const TECHNICAL_FEATURES = {
     'Relatórios em tempo real',
     'Controle de estoque',
   ],
+  'Gestão Financeira (NOVO!)': [
+    'Dashboard com KPIs de receitas e despesas',
+    'Controle de entradas e saídas por categoria',
+    'Gráficos de evolução mensal',
+    'Categorias personalizáveis (receita/despesa)',
+    'Filtros por tipo, categoria e busca',
+    'Fluxo de caixa em tempo real',
+    'Relatórios financeiros completos',
+  ],
   'Delivery Completo': [
     'App para entregadores',
     'Cálculo automático de frete',

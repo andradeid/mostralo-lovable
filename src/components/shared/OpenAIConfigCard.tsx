@@ -130,30 +130,24 @@ export function OpenAIConfigCard({
 
     setTestingKey(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/openai-credentials-sync`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session?.access_token}`,
-          },
-          body: JSON.stringify({
-            action: 'test',
-            openaiApiKey: keyToTest || undefined,
-            useSavedKey: !keyToTest && hasExistingKey,
-          }),
-        }
-      );
+      const { data, error } = await supabase.functions.invoke('openai-credentials-sync', {
+        body: {
+          action: 'test',
+          openaiApiKey: keyToTest || undefined,
+          useSavedKey: !keyToTest && hasExistingKey,
+        },
+      });
 
-      const result = await response.json();
+      if (error) {
+        console.error('Erro ao testar chave:', error);
+        toast.error(error.message || 'Erro ao testar a chave');
+        return;
+      }
 
-      if (response.ok && result.success) {
+      if (data?.success) {
         toast.success('✅ Chave válida! A API da OpenAI está funcionando.');
       } else {
-        toast.error(result.error || 'Chave inválida');
+        toast.error(data?.error || 'Chave inválida');
       }
     } catch (error) {
       console.error('Erro ao testar chave:', error);

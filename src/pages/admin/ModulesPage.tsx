@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -10,7 +11,7 @@ import {
   Package, Menu, ShoppingCart, BarChart3, Palette, MessageCircle,
   Truck, Users, Printer, Tag, Megaphone, Calendar, ExternalLink, 
   Image, Search, Filter, CheckCircle, XCircle, Sparkles, Shield, Zap,
-  Utensils
+  Utensils, Settings2
 } from 'lucide-react';
 
 // Mapeamento de ícones string -> componente
@@ -172,9 +173,17 @@ const ModulesPage = () => {
             Visualize todos os módulos disponíveis no sistema
           </p>
         </div>
-        <Badge variant="secondary" className="text-base px-4 py-2 w-fit">
-          {modules.length} módulos
-        </Badge>
+        <div className="flex gap-2">
+          <Link to="/dashboard/modulos/gerenciar-acesso">
+            <Button variant="outline">
+              <Settings2 className="w-4 h-4 mr-2" />
+              Gerenciar Acesso por Loja
+            </Button>
+          </Link>
+          <Badge variant="secondary" className="text-base px-4 py-2 w-fit">
+            {modules.length} módulos
+          </Badge>
+        </div>
       </div>
 
       {/* Estatísticas */}

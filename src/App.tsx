@@ -45,6 +45,7 @@ import UsersPage from "./pages/admin/UsersPage";
 import SubscribersPage from "./pages/admin/SubscribersPage";
 import SubscriptionPage from "./pages/admin/SubscriptionPage";
 import ModulesPage from "./pages/admin/ModulesPage";
+import ModuleAccessManagementPage from "./pages/admin/ModuleAccessManagementPage";
 import SubscriptionPaymentConfigPage from "./pages/admin/SubscriptionPaymentConfigPage";
 import SubscriptionPaymentsManagementPage from "./pages/admin/SubscriptionPaymentsManagementPage";
 import PlansPage from "./pages/admin/PlansPage";
@@ -360,6 +361,11 @@ const App = () => (
             <Route path="/dashboard/subscription-payments" element={
               <ProtectedRoute allowedRoles={['master_admin']}>
                 <AdminLayout><SubscriptionPaymentsManagementPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/modulos/gerenciar-acesso" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Gerenciar Acesso a Módulos"><ModuleAccessManagementPage /></AdminLayout>
               </ProtectedRoute>
             } />
             <Route path="/dashboard/gateway-config" element={

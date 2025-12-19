@@ -798,6 +798,56 @@ serve(async (req) => {
       }
     }
 
+    // ========================================
+    // 🔥 FUNÇÃO: Configurar OpenAI Settings na instância
+    // Isso é OBRIGATÓRIO antes de criar bots para que a Evolution 
+    // saiba qual credencial usar como padrão
+    // ========================================
+    async function ensureOpenAiSettings(instanceName: string, credsId: string): Promise<boolean> {
+      console.log('⚙️ Configurando OpenAI settings para instância:', instanceName);
+      
+      try {
+        const settingsPayload = {
+          openaiCredsId: credsId,
+          expire: 60,
+          keywordFinish: '#sair',
+          delayMessage: 1500,
+          unknownMessage: 'Desculpe, não entendi. Pode reformular?',
+          listeningFromMe: false,
+          stopBotFromMe: true,
+          keepOpen: false,
+          debounceTime: 3,
+          ignoreJids: [],
+          speechToText: false
+        };
+
+        console.log('📤 Settings payload:', JSON.stringify(settingsPayload, null, 2));
+
+        const settingsResp = await fetch(`${evolutionUrl}/openai/settings/${instanceName}`, {
+          method: 'POST',
+          headers: {
+            'apikey': evolutionConfig.api_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(settingsPayload),
+        });
+
+        const settingsText = await settingsResp.text();
+        console.log('📥 Resposta settings:', settingsResp.status, settingsText);
+
+        if (!settingsResp.ok) {
+          console.error('❌ Falha ao configurar settings:', settingsText);
+          return false;
+        }
+
+        console.log('✅ OpenAI settings configurado com sucesso!');
+        return true;
+      } catch (e) {
+        console.error('❌ Erro ao configurar settings:', e);
+        return false;
+      }
+    }
+
     // 🔥 BUSCAR DADOS REAIS DO BANCO
     console.log('📊 Buscando planos e bônus do banco...');
     
@@ -845,6 +895,12 @@ serve(async (req) => {
       throw new Error('Não foi possível obter/criar credenciais OpenAI na Evolution');
     }
     console.log('🔑 Usando openaiCredsId:', openaiCredsId);
+
+    // 2. 🔥 CONFIGURAR SETTINGS NA INSTÂNCIA (OBRIGATÓRIO antes de criar bots!)
+    const settingsOk = await ensureOpenAiSettings(config.instance_name, openaiCredsId);
+    if (!settingsOk) {
+      console.warn('⚠️ Falha ao configurar settings, tentando continuar mesmo assim...');
+    }
 
     // 2. Buscar e deletar TODOS os bots existentes para recriar com configurações atualizadas
     const existingBots = await findExistingBots(config.instance_name);

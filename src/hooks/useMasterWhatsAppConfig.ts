@@ -6,6 +6,20 @@ import { toast } from 'sonner';
 export type SalesApproach = 'basic' | 'intermediate' | 'aggressive';
 export type RecruitmentApproach = 'cold_lead' | 'moderate' | 'aggressive' | 'super_aggressive';
 
+// Interface para configuração de comportamento de cada bot
+export interface BotBehaviorConfig {
+  delay_message: number;
+  expire_minutes: number;
+  keyword_finish: string;
+  stop_bot_from_me: boolean;
+  listening_from_me: boolean;
+  keep_open: boolean;
+  debounce_time: number;
+  split_messages: boolean;
+  time_per_char: number;
+  unknown_message: string;
+}
+
 export interface MasterWhatsAppConfig {
   id: string;
   admin_user_id: string;
@@ -13,18 +27,52 @@ export interface MasterWhatsAppConfig {
   instance_status: string;
   instance_phone: string | null;
   evolution_instance_id: string | null;
+  // Bot de Vendas
   sales_bot_enabled: boolean;
   sales_bot_approach: SalesApproach;
   sales_bot_keywords: string[];
   sales_bot_evolution_id: string | null;
+  sales_bot_delay_message: number;
+  sales_bot_expire_minutes: number;
+  sales_bot_keyword_finish: string;
+  sales_bot_stop_from_me: boolean;
+  sales_bot_listening_from_me: boolean;
+  sales_bot_keep_open: boolean;
+  sales_bot_debounce_time: number;
+  sales_bot_split_messages: boolean;
+  sales_bot_time_per_char: number;
+  sales_bot_unknown_message: string;
+  // Bot de Recrutamento
   recruitment_bot_enabled: boolean;
   recruitment_bot_approach: RecruitmentApproach;
   recruitment_bot_keywords: string[];
   recruitment_bot_evolution_id: string | null;
+  recruitment_bot_delay_message: number;
+  recruitment_bot_expire_minutes: number;
+  recruitment_bot_keyword_finish: string;
+  recruitment_bot_stop_from_me: boolean;
+  recruitment_bot_listening_from_me: boolean;
+  recruitment_bot_keep_open: boolean;
+  recruitment_bot_debounce_time: number;
+  recruitment_bot_split_messages: boolean;
+  recruitment_bot_time_per_char: number;
+  recruitment_bot_unknown_message: string;
+  // Bot de Suporte
   support_bot_enabled: boolean;
   support_bot_keywords: string[];
   support_bot_evolution_id: string | null;
   support_bot_custom_prompt: string | null;
+  support_bot_delay_message: number;
+  support_bot_expire_minutes: number;
+  support_bot_keyword_finish: string;
+  support_bot_stop_from_me: boolean;
+  support_bot_listening_from_me: boolean;
+  support_bot_keep_open: boolean;
+  support_bot_debounce_time: number;
+  support_bot_split_messages: boolean;
+  support_bot_time_per_char: number;
+  support_bot_unknown_message: string;
+  // Timestamps
   created_at: string;
   updated_at: string;
 }
@@ -41,6 +89,26 @@ export interface MasterWhatsAppSession {
   last_message_at: string;
   messages_count: number;
   created_at: string;
+}
+
+// Helper para extrair config de comportamento de um bot específico
+export function getBotBehaviorConfig(
+  config: MasterWhatsAppConfig,
+  botType: 'sales' | 'recruitment' | 'support'
+): BotBehaviorConfig {
+  const prefix = `${botType}_bot_`;
+  return {
+    delay_message: (config as any)[`${prefix}delay_message`] ?? 1500,
+    expire_minutes: (config as any)[`${prefix}expire_minutes`] ?? 60,
+    keyword_finish: (config as any)[`${prefix}keyword_finish`] ?? '#sair',
+    stop_bot_from_me: (config as any)[`${prefix}stop_from_me`] ?? true,
+    listening_from_me: (config as any)[`${prefix}listening_from_me`] ?? false,
+    keep_open: (config as any)[`${prefix}keep_open`] ?? false,
+    debounce_time: (config as any)[`${prefix}debounce_time`] ?? 3,
+    split_messages: (config as any)[`${prefix}split_messages`] ?? true,
+    time_per_char: (config as any)[`${prefix}time_per_char`] ?? 50,
+    unknown_message: (config as any)[`${prefix}unknown_message`] ?? 'Desculpe, não entendi. Pode reformular?',
+  };
 }
 
 export function useMasterWhatsAppConfig() {
@@ -157,6 +225,28 @@ export function useMasterWhatsAppConfig() {
     }
   };
 
+  // Atualizar configuração de comportamento de um bot específico
+  const updateBotBehavior = async (
+    botType: 'sales' | 'recruitment' | 'support',
+    updates: Partial<BotBehaviorConfig>
+  ) => {
+    const prefix = `${botType}_bot_`;
+    const mappedUpdates: Record<string, any> = {};
+    
+    if (updates.delay_message !== undefined) mappedUpdates[`${prefix}delay_message`] = updates.delay_message;
+    if (updates.expire_minutes !== undefined) mappedUpdates[`${prefix}expire_minutes`] = updates.expire_minutes;
+    if (updates.keyword_finish !== undefined) mappedUpdates[`${prefix}keyword_finish`] = updates.keyword_finish;
+    if (updates.stop_bot_from_me !== undefined) mappedUpdates[`${prefix}stop_from_me`] = updates.stop_bot_from_me;
+    if (updates.listening_from_me !== undefined) mappedUpdates[`${prefix}listening_from_me`] = updates.listening_from_me;
+    if (updates.keep_open !== undefined) mappedUpdates[`${prefix}keep_open`] = updates.keep_open;
+    if (updates.debounce_time !== undefined) mappedUpdates[`${prefix}debounce_time`] = updates.debounce_time;
+    if (updates.split_messages !== undefined) mappedUpdates[`${prefix}split_messages`] = updates.split_messages;
+    if (updates.time_per_char !== undefined) mappedUpdates[`${prefix}time_per_char`] = updates.time_per_char;
+    if (updates.unknown_message !== undefined) mappedUpdates[`${prefix}unknown_message`] = updates.unknown_message;
+
+    return updateConfig(mappedUpdates as Partial<MasterWhatsAppConfig>);
+  };
+
   // Sincronizar bots com Evolution API
   const syncBots = async (botType?: 'sales' | 'recruitment' | 'support') => {
     if (!config?.id || !config.instance_name) {
@@ -269,6 +359,7 @@ export function useMasterWhatsAppConfig() {
     loading,
     syncing,
     updateConfig,
+    updateBotBehavior,
     syncBots,
     toggleBot,
     updateApproach,

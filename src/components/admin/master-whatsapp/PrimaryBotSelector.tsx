@@ -1,13 +1,11 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, MessageSquare, Users, HelpCircle, Check } from "lucide-react";
+import { Info, MessageSquare, Users, HelpCircle, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PrimaryBotType } from "@/hooks/useMasterWhatsAppConfig";
 
 interface PrimaryBotSelectorProps {
   value: PrimaryBotType;
-  onChange: (value: PrimaryBotType) => void;
-  disabled?: boolean;
 }
 
 const botOptions: { 
@@ -40,17 +38,17 @@ const botOptions: {
   },
 ];
 
-export function PrimaryBotSelector({ value, onChange, disabled }: PrimaryBotSelectorProps) {
+export function PrimaryBotSelector({ value }: PrimaryBotSelectorProps) {
   return (
-    <Card className="border-amber-500/30 bg-amber-500/5">
+    <Card className="border-muted">
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5 text-amber-500" />
-          <CardTitle className="text-base sm:text-lg">Bot Principal Ativo</CardTitle>
+          <Info className="w-5 h-5 text-muted-foreground" />
+          <CardTitle className="text-base sm:text-lg">Bot Ativo Atualmente</CardTitle>
         </div>
         <CardDescription className="text-xs sm:text-sm">
-          Limitação da Evolution API: apenas <strong>1 bot</strong> pode estar ativo por instância WhatsApp.
-          Selecione qual bot será sincronizado.
+          O bot ativo é definido automaticamente pela <strong>última sincronização</strong>.
+          Para trocar, sincronize outro bot nas abas abaixo.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -60,18 +58,13 @@ export function PrimaryBotSelector({ value, onChange, disabled }: PrimaryBotSele
             const Icon = option.icon;
             
             return (
-              <button
+              <div
                 key={option.value}
-                type="button"
-                disabled={disabled}
-                onClick={() => onChange(option.value)}
                 className={cn(
                   "relative flex flex-col items-center p-4 rounded-lg border-2 transition-all",
-                  "hover:shadow-md focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
                   isSelected 
-                    ? "border-primary bg-primary/10 shadow-sm" 
-                    : "border-muted bg-background hover:bg-muted/50",
-                  disabled && "opacity-50 cursor-not-allowed"
+                    ? "border-primary bg-primary/10" 
+                    : "border-muted bg-muted/30 opacity-50"
                 )}
               >
                 {isSelected && (
@@ -79,12 +72,12 @@ export function PrimaryBotSelector({ value, onChange, disabled }: PrimaryBotSele
                     <Check className="w-3.5 h-3.5" />
                   </Badge>
                 )}
-                <Icon className={cn("w-8 h-8 mb-2", option.color)} />
-                <span className="font-medium text-sm">{option.label}</span>
+                <Icon className={cn("w-8 h-8 mb-2", isSelected ? option.color : "text-muted-foreground")} />
+                <span className={cn("font-medium text-sm", !isSelected && "text-muted-foreground")}>{option.label}</span>
                 <span className="text-xs text-muted-foreground text-center mt-1">
                   {option.description}
                 </span>
-              </button>
+              </div>
             );
           })}
         </div>

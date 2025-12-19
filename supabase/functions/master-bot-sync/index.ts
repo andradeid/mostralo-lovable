@@ -810,7 +810,8 @@ serve(async (req) => {
           ignoreJids: [],
           triggerType: 'none',
           triggerOperator: 'equals',
-          triggerValue: ''
+          triggerValue: '',
+          speechToText: true  // Habilita transcrição de áudio
         };
         
         const response = await fetch(settingsUrl, {

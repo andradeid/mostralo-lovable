@@ -1814,5 +1814,127 @@ SAÍDAS:
       '□ (Fase 3) Adicionar metas financeiras',
       '□ (Fase 3) Implementar upload de comprovantes'
     ]
+  },
+  {
+    id: 18,
+    title: '⚡ Otimização de Performance - Painéis Atendente e Entregador',
+    status: 'idea',
+    priority: 'high',
+    createdAt: '2025-12-19',
+    description: 'Implementar lazy loading e layouts dedicados para reduzir drasticamente o tempo de carregamento dos painéis de Atendente e Entregador.',
+    
+    context: `Análise realizada mostra que atualmente o App.tsx importa estaticamente 149+ páginas, fazendo com que todos os usuários carreguem o bundle completo (~2-3MB) mesmo que acessem apenas algumas páginas.
+
+Situação atual:
+• Atendente: usa AdminLayout completo com hooks pesados desnecessários
+• Entregador: DeliveryDriverLayout mais leve, mas sem lazy loading
+• Sem code splitting por área de usuário
+• Todos os chunks são carregados independente do perfil`,
+
+    problem: `Problemas identificados:
+• Atendente carrega AdminSidebar com useStoreModules, useImpersonation, verificação de assinatura
+• Atendente só precisa de 9 páginas, mas carrega 149+
+• Entregador só precisa de 6 páginas, mas também carrega tudo
+• Tempo de carregamento ~3-5 segundos mesmo em conexões rápidas
+• Experiência ruim em dispositivos móveis dos entregadores
+• Consumo desnecessário de dados móveis`,
+
+    marketAnalysis: {
+      title: '📊 Impacto Esperado',
+      items: [
+        'Bundle inicial: de ~2-3MB para ~800KB (redução de ~70%)',
+        'Tempo de load (Atendente): de ~3-5s para ~1-2s',
+        'Tempo de load (Entregador): de ~3-5s para ~1-2s',
+        'Chunks carregados (Atendente): de tudo para ~150KB',
+        'Chunks carregados (Entregador): de tudo para ~120KB',
+        'Redução de consumo de dados móveis em até 70%',
+        'Melhor experiência em redes 3G/4G lentas'
+      ]
+    },
+
+    technicalDetails: {
+      title: '🔧 Implementação Técnica',
+      items: [
+        'React.lazy() e Suspense para todas as rotas de atendente e entregador',
+        'Criar AttendantLayout.tsx simplificado (sem useStoreModules, useImpersonation)',
+        'Criar AttendantSidebar.tsx com menu estático fixo (9 itens)',
+        'Otimizar DeliveryDriverLayout removendo hooks desnecessários',
+        'Configurar manualChunks no vite.config.ts para chunks separados',
+        'Criar PageLoader.tsx para fallback de Suspense',
+        'Separar chunks: admin-extra, salesperson, delivery'
+      ]
+    },
+
+    phases: [
+      {
+        name: 'Fase 1 - Lazy Loading (Impacto Imediato)',
+        description: 'Ganho rápido sem quebrar estrutura existente',
+        items: [
+          'Criar grupos de lazy import por tipo de usuário',
+          'Envolver rotas de atendente com Suspense',
+          'Envolver rotas de entregador com Suspense',
+          'Criar componente PageLoader.tsx',
+          'Testar carregamento sob demanda'
+        ]
+      },
+      {
+        name: 'Fase 2 - AttendantLayout Simplificado',
+        description: 'Layout dedicado para atendentes sem hooks pesados',
+        items: [
+          'Criar src/components/attendant/AttendantLayout.tsx',
+          'Criar src/components/attendant/AttendantSidebar.tsx',
+          'Remover useStoreModules do contexto do atendente',
+          'Remover useImpersonation (não aplicável a atendentes)',
+          'Remover verificação de assinatura (responsabilidade do lojista)',
+          'Menu fixo com os 9 itens permitidos'
+        ]
+      },
+      {
+        name: 'Fase 3 - Otimização do DeliveryDriverLayout',
+        description: 'Refinamento do layout de entregadores',
+        items: [
+          'Lazy load do InvitationsDialog',
+          'Mover lógica de presença para hook específico',
+          'Remover imports desnecessários',
+          'Otimizar re-renders com useMemo/useCallback'
+        ]
+      },
+      {
+        name: 'Fase 4 - Chunks Separados no Vite',
+        description: 'Code splitting otimizado por área',
+        items: [
+          'Configurar manualChunks para admin-extra',
+          'Configurar manualChunks para salesperson/atendente',
+          'Configurar manualChunks para delivery',
+          'Testar build e verificar tamanhos de chunks',
+          'Validar que lazy loading funciona corretamente'
+        ]
+      },
+      {
+        name: 'Fase 5 - Migração de Rotas',
+        description: 'Migrar rotas para novos layouts',
+        items: [
+          'Atualizar rotas de atendente para usar AttendantLayout',
+          'Testar fluxo completo do atendente',
+          'Testar fluxo completo do entregador',
+          'Validar em dispositivos móveis reais',
+          'Medir métricas antes/depois no diagnóstico'
+        ]
+      }
+    ],
+
+    nextSteps: [
+      '□ Criar PageLoader.tsx',
+      '□ Implementar lazy loading nas rotas de atendente',
+      '□ Implementar lazy loading nas rotas de entregador',
+      '□ Criar AttendantLayout.tsx',
+      '□ Criar AttendantSidebar.tsx',
+      '□ Migrar rotas de atendente para novo layout',
+      '□ Otimizar DeliveryDriverLayout',
+      '□ Configurar manualChunks no vite.config.ts',
+      '□ Testar em dispositivos móveis',
+      '□ Medir métricas antes/depois no diagnóstico',
+      '□ Documentar arquitetura de chunks'
+    ]
   }
 ];

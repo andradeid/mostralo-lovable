@@ -12,13 +12,15 @@ import {
   Phone,
   MapPin,
   Calendar,
-  User,
   Activity,
   Loader2,
-  ExternalLink
+  ExternalLink,
+  Sparkles,
+  Check
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
+import { StoreOpenAIConfigModal } from '@/components/admin/stores/StoreOpenAIConfigModal';
 
 interface StoreData {
   id: string;
@@ -32,6 +34,7 @@ interface StoreData {
   owner_id: string | null;
   logo_url: string | null;
   cover_url: string | null;
+  openai_api_key: string | null;
 }
 
 const StoresPage = () => {
@@ -45,6 +48,7 @@ const StoresPage = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
+  const [openAIModalStore, setOpenAIModalStore] = useState<StoreData | null>(null);
 
   useEffect(() => {
     fetchStores();
@@ -54,7 +58,7 @@ const StoresPage = () => {
     try {
       const { data, error } = await supabase
         .from('stores')
-        .select('*')
+        .select('id, name, description, slug, phone, address, status, created_at, owner_id, logo_url, cover_url, openai_api_key')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -279,6 +283,18 @@ const StoresPage = () => {
                       </div>
                       
                       <div className="flex space-x-2 pt-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => setOpenAIModalStore(store)}
+                        >
+                          <Sparkles className="w-3 h-3 mr-1" />
+                          OpenAI
+                          {store.openai_api_key && (
+                            <Check className="w-3 h-3 ml-1 text-emerald-500" />
+                          )}
+                        </Button>
                         <Button variant="outline" size="sm" className="flex-1">
                           Editar
                         </Button>
@@ -296,6 +312,16 @@ const StoresPage = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Modal de configuração OpenAI */}
+      {openAIModalStore && (
+        <StoreOpenAIConfigModal
+          open={!!openAIModalStore}
+          onOpenChange={(open) => !open && setOpenAIModalStore(null)}
+          store={openAIModalStore}
+          onSaved={() => fetchStores()}
+        />
+      )}
     </div>
   );
 };

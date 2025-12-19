@@ -146,6 +146,7 @@ import SystemUpdatesManagementPage from "./pages/admin/SystemUpdatesManagementPa
 import DiagnosticsPage from "./pages/admin/DiagnosticsPage";
 import CloudflareGuidePage from "./pages/admin/CloudflareGuidePage";
 import IFoodHomologationPage from "./pages/admin/IFoodHomologationPage";
+import FinancialManagementPage from "./pages/admin/FinancialManagementPage";
 import { UpdatesRedirect } from "./components/system-updates/UpdatesRedirect";
 const queryClient = new QueryClient();
 
@@ -514,6 +515,11 @@ const App = () => (
             <Route path="/dashboard/attendants" element={
               <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
                 <AdminLayout><AttendantsPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/financeiro" element={
+              <ProtectedRoute allowedRoles={['store_admin', 'attendant']}>
+                <AdminLayout pageTitle="Gestão Financeira"><FinancialManagementPage /></AdminLayout>
               </ProtectedRoute>
             } />
             <Route path="/dashboard/integrations" element={

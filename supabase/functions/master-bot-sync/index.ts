@@ -799,16 +799,19 @@ serve(async (req) => {
     }
 
     // ========================================
-    // 🔥 FUNÇÃO: Configurar OpenAI Settings na instância
-    // Isso é OBRIGATÓRIO antes de criar bots para que a Evolution 
+    // FUNÇÃO: Configurar OpenAI Settings na instância
+    // Isso é OBRIGATÓRIO antes de criar bots para que a Evolution
     // saiba qual credencial usar como padrão
     // ========================================
     async function ensureOpenAiSettings(instanceName: string, credsId: string): Promise<boolean> {
-      console.log('⚙️ Configurando OpenAI settings para instância:', instanceName);
-      
+      console.log('[openai-settings] Configurando settings para instância:', instanceName);
+
       try {
+        // Docs: /openai/settings/{instance}
+        // Incluímos openaiIdFallback porque algumas instalações usam isso internamente
         const settingsPayload = {
           openaiCredsId: credsId,
+          openaiIdFallback: credsId,
           expire: 60,
           keywordFinish: '#sair',
           delayMessage: 1500,
@@ -818,10 +821,10 @@ serve(async (req) => {
           keepOpen: false,
           debounceTime: 3,
           ignoreJids: [],
-          speechToText: false
+          speechToText: false,
         };
 
-        console.log('📤 Settings payload:', JSON.stringify(settingsPayload, null, 2));
+        console.log('[openai-settings] Payload:', JSON.stringify(settingsPayload, null, 2));
 
         const settingsResp = await fetch(`${evolutionUrl}/openai/settings/${instanceName}`, {
           method: 'POST',
@@ -833,17 +836,17 @@ serve(async (req) => {
         });
 
         const settingsText = await settingsResp.text();
-        console.log('📥 Resposta settings:', settingsResp.status, settingsText);
+        console.log('[openai-settings] Resposta:', settingsResp.status, settingsText);
 
         if (!settingsResp.ok) {
-          console.error('❌ Falha ao configurar settings:', settingsText);
+          console.error('[openai-settings] Falha ao configurar settings:', settingsText);
           return false;
         }
 
-        console.log('✅ OpenAI settings configurado com sucesso!');
+        console.log('[openai-settings] OK');
         return true;
       } catch (e) {
-        console.error('❌ Erro ao configurar settings:', e);
+        console.error('[openai-settings] Erro ao configurar settings:', e);
         return false;
       }
     }

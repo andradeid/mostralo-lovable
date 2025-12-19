@@ -911,8 +911,14 @@ serve(async (req) => {
           botType: 'chatCompletion', // 🔥 CORRIGIDO: era 'assistant'
           model: evolutionConfig.openai_default_model || 'gpt-4o-mini',
           systemMessages: [prompt],
-          assistantMessages: [],
-          userMessages: [],
+          // 🔥 CORREÇÃO: Valores padrão obrigatórios (arrays vazios causam erro!)
+          assistantMessages: [
+            `Olá! 👋 Sou o assistente virtual da Mostralo. Como posso ajudar você hoje?`
+          ],
+          userMessages: [
+            'Oi', 'Olá', 'Boa tarde', 'Boa noite', 'Bom dia', 
+            'Quero saber mais', 'Como funciona', 'Preço', 'Planos'
+          ],
           maxTokens: evolutionConfig.openai_max_tokens || 1000,
           triggerType: 'keyword',
           triggerOperator: 'contains',

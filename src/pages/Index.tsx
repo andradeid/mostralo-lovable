@@ -1713,7 +1713,17 @@ const Index = () => {
                           Módulos
                         </p>
                         <ul className="space-y-1.5 text-left">
-                          {allModules.map((module) => {
+                          {[...allModules]
+                            .sort((a, b) => {
+                              const aIncluded = plan.plan_modules?.some(pm => pm.module_id === a.id);
+                              const bIncluded = plan.plan_modules?.some(pm => pm.module_id === b.id);
+                              // Incluídos primeiro, depois não incluídos
+                              if (aIncluded && !bIncluded) return -1;
+                              if (!aIncluded && bIncluded) return 1;
+                              // Dentro do mesmo grupo, ordem alfabética
+                              return a.name.localeCompare(b.name);
+                            })
+                            .map((module) => {
                             const isIncluded = plan.plan_modules?.some(
                               pm => pm.module_id === module.id
                             );

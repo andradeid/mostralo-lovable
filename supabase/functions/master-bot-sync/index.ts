@@ -639,6 +639,82 @@ serve(async (req) => {
         console.log('📥 Resposta criação credencial:', createResp.status, createText);
 
         if (!createResp.ok) {
+          const isAlreadyRegistered =
+            createText.includes('already registered') ||
+            createText.includes('already exists') ||
+            createText.includes('already');
+
+          if (isAlreadyRegistered) {
+            console.log('⚠️ API key já registrada. Tentando localizar credencial existente em outras instâncias...');
+
+            // 1) Tentar recarregar creds na própria instância (às vezes já existe e o POST só falhou por duplicidade)
+            try {
+              const retryListResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
+                method: 'GET',
+                headers: { 'apikey': evolutionConfig.api_key },
+              });
+
+              if (retryListResp.ok) {
+                const retryData = await retryListResp.json();
+                const retryCreds = Array.isArray(retryData) ? retryData : (retryData?.creds || retryData?.data || []);
+                const retryMostralo = retryCreds.find((c: any) => c.name === 'mostralo-openai') || retryCreds[0];
+
+                if (retryMostralo?.id) {
+                  console.log('✅ Credencial encontrada na própria instância após retry:', retryMostralo.id);
+                  await supabase
+                    .from('evolution_config')
+                    .update({ openai_creds_id: retryMostralo.id, updated_at: new Date().toISOString() })
+                    .eq('id', evolutionConfig.id);
+                  return retryMostralo.id;
+                }
+              }
+            } catch (e) {
+              console.log('⚠️ Falha ao buscar credenciais na própria instância após erro:', e);
+            }
+
+            // 2) Buscar em outras instâncias e reutilizar o openaiCredsId encontrado
+            try {
+              const instancesResp = await fetch(`${evolutionUrl}/instance/fetchInstances`, {
+                method: 'GET',
+                headers: { 'apikey': evolutionConfig.api_key },
+              });
+
+              if (instancesResp.ok) {
+                const instances = await instancesResp.json();
+                const list = Array.isArray(instances) ? instances : (instances?.instances || instances?.data || []);
+
+                for (const inst of list) {
+                  const instName = inst?.name || inst?.instanceName || inst?.instance?.instanceName;
+                  if (!instName) continue;
+
+                  const instCredsResp = await fetch(`${evolutionUrl}/openai/creds/${instName}`, {
+                    method: 'GET',
+                    headers: { 'apikey': evolutionConfig.api_key },
+                  });
+
+                  if (!instCredsResp.ok) continue;
+
+                  const instCredsData = await instCredsResp.json();
+                  const instCreds = Array.isArray(instCredsData) ? instCredsData : (instCredsData?.creds || instCredsData?.data || []);
+                  const found = instCreds.find((c: any) => c.name === 'mostralo-openai') || instCreds[0];
+
+                  if (found?.id) {
+                    console.log(`✅ Credencial localizada na instância ${instName}:`, found.id);
+
+                    await supabase
+                      .from('evolution_config')
+                      .update({ openai_creds_id: found.id, updated_at: new Date().toISOString() })
+                      .eq('id', evolutionConfig.id);
+
+                    return found.id;
+                  }
+                }
+              }
+            } catch (e) {
+              console.log('⚠️ Erro ao buscar instâncias/credenciais:', e);
+            }
+          }
+
           console.error('❌ Falha ao criar credencial:', createText);
           return null;
         }

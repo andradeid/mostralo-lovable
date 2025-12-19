@@ -35,15 +35,16 @@ serve(async (req) => {
       });
     }
 
-    // Verificar se é master_admin
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
+    // Verificar se é master_admin usando tabela user_roles
+    const { data: userRole, error: roleError } = await supabase
+      .from('user_roles')
       .select('role')
-      .eq('id', user.id)
-      .single();
+      .eq('user_id', user.id)
+      .eq('role', 'master_admin')
+      .maybeSingle();
 
-    if (profileError || profile?.role !== 'master_admin') {
-      console.error('[master-whatsapp-instance] Acesso negado:', profile?.role);
+    if (roleError || !userRole) {
+      console.error('[master-whatsapp-instance] Acesso negado - user:', user.id, 'role not found or not master_admin');
       return new Response(JSON.stringify({ error: 'Apenas master admin pode acessar' }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

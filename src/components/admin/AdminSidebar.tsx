@@ -365,6 +365,7 @@ export function AdminSidebar() {
         { title: 'Lojas', url: '/dashboard/stores', icon: Store, group: 'Gerenciamento' },
         { title: 'Usuários', url: '/dashboard/users', icon: UserCircle, group: 'Gerenciamento' },
         { title: 'Módulos', url: '/dashboard/modules', icon: Package, group: 'Sistema' },
+        { title: 'Acesso a Módulos', url: '/dashboard/modulos/gerenciar-acesso', icon: Settings, group: 'Sistema' },
         { title: 'Compilar Apps', url: '/dashboard/compile-apps', icon: Smartphone, group: 'Sistema' },
         { title: 'Evolution API', url: '/dashboard/evolution-config', icon: MessageCircle, group: 'Sistema' },
         { title: 'Pagamentos Assinaturas', url: '/dashboard/subscription-payments', icon: Receipt, group: 'Financeiro' },

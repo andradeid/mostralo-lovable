@@ -27,6 +27,7 @@ interface EvolutionInstance {
   chatsCount: number;
   isLinked: boolean;
   linkedStore: LinkedStore | null;
+  isMasterAdmin: boolean;
 }
 
 serve(async (req) => {
@@ -120,6 +121,7 @@ serve(async (req) => {
         // Buscar vínculo com loja no Supabase
         let isLinked = false;
         let linkedStore: LinkedStore | null = null;
+        let isMasterAdmin = false;
         
         try {
           const { data: linkedInstance } = await supabase
@@ -165,6 +167,21 @@ serve(async (req) => {
               ownerEmail
             };
           }
+
+          // Se não está vinculada a loja, verificar se é do Master Admin
+          if (!isLinked) {
+            const { data: masterConfig } = await supabase
+              .from('master_whatsapp_config')
+              .select('instance_name, evolution_instance_id')
+              .maybeSingle();
+            
+            if (masterConfig) {
+              const instanceId = instance.instanceId || instance.id;
+              isMasterAdmin = 
+                masterConfig.instance_name === instanceName ||
+                masterConfig.evolution_instance_id === instanceId;
+            }
+          }
         } catch (err) {
           console.log(`[evolution-test-connection] Erro ao buscar vínculo de ${instanceName}:`, err);
         }
@@ -182,6 +199,7 @@ serve(async (req) => {
           chatsCount,
           isLinked,
           linkedStore,
+          isMasterAdmin,
         });
       }
     }
@@ -193,7 +211,8 @@ serve(async (req) => {
       connecting: instances.filter(i => i.status === 'connecting').length,
       offline: instances.filter(i => i.status === 'close' || i.status === 'closed' || i.status === 'disconnected').length,
       linked: instances.filter(i => i.isLinked).length,
-      orphan: instances.filter(i => !i.isLinked).length,
+      masterAdmin: instances.filter(i => i.isMasterAdmin).length,
+      orphan: instances.filter(i => !i.isLinked && !i.isMasterAdmin).length,
     };
 
     console.log(`[evolution-test-connection] Conexão bem-sucedida! ${instances.length} instância(s)`);

@@ -5,12 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { useMasterWhatsAppConfig } from "@/hooks/useMasterWhatsAppConfig";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { CountryCodeSelect } from "@/components/ui/country-code-select";
 import { formatBrazilianPhone, formatInternationalPhone } from "@/lib/utils";
+import { format } from "date-fns";
 import { 
   Loader2, 
   Smartphone, 
@@ -25,10 +27,20 @@ import {
   MessageSquare,
   Users,
   HelpCircle,
-  Send
+  Send,
+  History
 } from "lucide-react";
 import { MasterBotConfigTab } from "@/components/admin/master-whatsapp/MasterBotConfigTab";
 import { MasterSessionsTab } from "@/components/admin/master-whatsapp/MasterSessionsTab";
+
+interface TestMessage {
+  id: string;
+  phone_number: string;
+  country_code: string;
+  message: string;
+  status: string;
+  sent_at: string;
+}
 
 export default function MasterWhatsAppPage() {
   const { config, loading, updateConfig } = useMasterWhatsAppConfig();
@@ -39,6 +51,8 @@ export default function MasterWhatsAppPage() {
   const [testPhone, setTestPhone] = useState("");
   const [testMessage, setTestMessage] = useState("");
   const [countryCode, setCountryCode] = useState("+55");
+  const [testMessages, setTestMessages] = useState<TestMessage[]>([]);
+  const [loadingMessages, setLoadingMessages] = useState(false);
 
   useEffect(() => {
     if (config?.instance_name) {
@@ -46,6 +60,29 @@ export default function MasterWhatsAppPage() {
       setInstanceStatus(config.instance_status || "disconnected");
     }
   }, [config]);
+
+  // Buscar histórico de mensagens de teste
+  const fetchTestMessages = async () => {
+    setLoadingMessages(true);
+    try {
+      const { data, error } = await supabase
+        .from('master_test_messages')
+        .select('*')
+        .order('sent_at', { ascending: false })
+        .limit(10);
+      
+      if (error) throw error;
+      setTestMessages((data as TestMessage[]) || []);
+    } catch (error) {
+      console.error('Erro ao buscar mensagens:', error);
+    } finally {
+      setLoadingMessages(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTestMessages();
+  }, []);
 
   // Criar instância via Edge Function
   const createInstance = async () => {
@@ -183,9 +220,14 @@ export default function MasterWhatsAppPage() {
       toast.success('✅ Mensagem enviada com sucesso!');
       setTestPhone("");
       setTestMessage("");
+      
+      // Atualizar histórico
+      await fetchTestMessages();
     } catch (error) {
       console.error('Erro:', error);
       toast.error(error instanceof Error ? error.message : 'Erro ao enviar mensagem');
+      // Mesmo em erro, atualizar histórico (pode ter salvo como failed)
+      await fetchTestMessages();
     } finally {
       setLoadingAction(null);
     }
@@ -422,6 +464,84 @@ export default function MasterWhatsAppPage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Histórico de Mensagens de Teste */}
+          <Card className="mt-6">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <History className="w-5 h-5" />
+                    Histórico de Testes
+                  </CardTitle>
+                  <CardDescription>
+                    Últimas mensagens de teste enviadas
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={fetchTestMessages}
+                  disabled={loadingMessages}
+                >
+                  <RefreshCw className={`w-4 h-4 ${loadingMessages ? 'animate-spin' : ''}`} />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {testMessages.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>Nenhuma mensagem de teste enviada ainda</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Número</TableHead>
+                        <TableHead className="hidden md:table-cell">Mensagem</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Data</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {testMessages.map((msg) => (
+                        <TableRow key={msg.id}>
+                          <TableCell className="font-mono text-sm">
+                            {msg.country_code} {msg.phone_number.length > 4 
+                              ? msg.phone_number.slice(-11) 
+                              : msg.phone_number}
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell max-w-xs truncate text-muted-foreground">
+                            {msg.message}
+                          </TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant={msg.status === 'sent' ? 'default' : 'destructive'}
+                              className="gap-1"
+                            >
+                              {msg.status === 'sent' ? (
+                                <CheckCircle className="w-3 h-3" />
+                              ) : (
+                                <XCircle className="w-3 h-3" />
+                              )}
+                              <span className="hidden sm:inline">
+                                {msg.status === 'sent' ? 'Enviada' : 'Falhou'}
+                              </span>
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
+                            {format(new Date(msg.sent_at), "dd/MM HH:mm")}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Info dos Bots */}
           <div className="grid gap-4 md:grid-cols-3 mt-6">

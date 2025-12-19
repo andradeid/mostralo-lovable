@@ -342,7 +342,13 @@ INSTRUÇÕES:
 3. SEMPRE inclua links dos produtos
 4. Direcione ao cardápio: ${storeLink}
 5. Se cliente perguntar se está aberto, use o STATUS acima
-6. Responda em português brasileiro`],
+6. Responda em português brasileiro
+
+SOBRE A PLATAFORMA:
+- Gestão Financeira completa para o lojista
+- Dashboard com KPIs de receitas, despesas e saldo
+- Controle de entradas/saídas por categoria
+- Gráficos de fluxo de caixa mensal`],
           assistantMessages: [dynamicGreeting],
           userMessages: ['Oi', 'Olá', 'Boa tarde', 'Boa noite', 'Bom dia', 'Vocês estão abertos?'],
           triggerType: botConfig.trigger_type || 'all',

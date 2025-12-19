@@ -253,6 +253,11 @@ export function useIFoodIntegration(storeId: string | null) {
           description: `${data.events_count} evento(s) processado(s)`
         });
         await fetchEvents();
+      } else {
+        toast({
+          title: 'Nenhum evento',
+          description: 'Não há novos pedidos ou eventos pendentes no iFood.'
+        });
       }
 
       return data;

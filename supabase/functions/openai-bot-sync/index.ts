@@ -988,49 +988,6 @@ serve(async (req) => {
 
       console.log('Usando openaiCredsId:', openaiCredsId);
 
-      // 1.5. Configurar OpenAI Settings para habilitar speechToText
-      try {
-        const settingsUrl = `${evolutionUrl}/openai/settings/${config.instanceName}`;
-        const settingsPayload = {
-          openaiCredsId: openaiCredsId,
-          speechToText: true,  // Habilita transcrição de áudio
-          expire: 0,
-          keywordFinish: '',
-          delayMessage: 1000,
-          unknownMessage: '',
-          listeningFromMe: false,
-          stopBotFromMe: false,
-          keepOpen: false,
-          debounceTime: 0,
-          ignoreJids: [],
-        };
-        
-        const settingsResponse = await fetch(settingsUrl, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json', 
-            'apikey': evolutionConfig.api_key 
-          },
-          body: JSON.stringify(settingsPayload)
-        });
-        
-        const settingsText = await settingsResponse.text();
-        console.log('📥 OpenAI Settings response:', settingsResponse.status, settingsText);
-        
-        steps.push({
-          step: 'openai_settings',
-          status: settingsResponse.ok ? 'success' : 'warning',
-          message: settingsResponse.ok ? 'OpenAI Settings configurados (speechToText habilitado)' : 'Settings não configurados, continuando...',
-        });
-      } catch (e) {
-        console.error('❌ Erro ao configurar OpenAI settings:', e);
-        steps.push({
-          step: 'openai_settings',
-          status: 'warning',
-          message: 'Erro ao configurar settings, continuando...',
-        });
-      }
-
       // 2. Gerar prompt com dados da loja (com detecção automática de domínio e personalidade)
       const botName = config.botName || 'Assistente';
       

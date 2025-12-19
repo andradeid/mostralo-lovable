@@ -206,3 +206,6 @@ verify_jwt = false
 
 [functions.send-daily-summary]
 verify_jwt = false
+
+[functions.validate-whatsapp-number]
+verify_jwt = false

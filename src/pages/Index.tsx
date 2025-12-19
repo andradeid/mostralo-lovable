@@ -96,6 +96,7 @@ const Index = () => {
   const [monthlyRevenue, setMonthlyRevenue] = useState(10000);
   const [revenueInput, setRevenueInput] = useState('10000');
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [allModules, setAllModules] = useState<{ id: string; name: string; icon: string | null }[]>([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // 🎯 Capturar código de referência do vendedor
@@ -391,6 +392,19 @@ const Index = () => {
         if (plansError) {
           console.error('Erro ao buscar planos:', plansError);
           return;
+        }
+
+        // Buscar TODOS os módulos ativos (ordenado alfabeticamente)
+        const { data: modulesData, error: modulesError } = await supabase
+          .from('modules')
+          .select('id, name, icon')
+          .eq('is_active', true)
+          .order('name', { ascending: true });
+
+        if (modulesError) {
+          console.error('Erro ao buscar módulos:', modulesError);
+        } else {
+          setAllModules(modulesData || []);
         }
 
         // Buscar módulos de cada plano
@@ -1692,15 +1706,19 @@ const Index = () => {
                     )}
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {/* Módulos do plano com ícones */}
-                    {plan.plan_modules && plan.plan_modules.length > 0 && (
+                    {/* Módulos do plano - Mostra todos, com não incluídos riscados */}
+                    {allModules.length > 0 && (
                       <div className="space-y-2">
                         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide text-left">
-                          Módulos Inclusos
+                          Módulos
                         </p>
                         <ul className="space-y-1.5 text-left">
-                          {plan.plan_modules.map((pm, idx) => {
-                            const iconName = pm.modules?.icon;
+                          {allModules.map((module) => {
+                            const isIncluded = plan.plan_modules?.some(
+                              pm => pm.module_id === module.id
+                            );
+                            
+                            const iconName = module.icon;
                             const IconComponent = iconName ? (
                               iconName === 'Menu' ? Menu :
                               iconName === 'ShoppingCart' ? Package :
@@ -1723,9 +1741,18 @@ const Index = () => {
                             ) : Check;
                             
                             return (
-                              <li key={idx} className="flex items-center space-x-2">
-                                <IconComponent className="h-4 w-4 text-primary flex-shrink-0" />
-                                <span className="text-sm">{pm.modules?.name || 'Módulo'}</span>
+                              <li 
+                                key={module.id} 
+                                className={`flex items-center space-x-2 ${!isIncluded ? 'opacity-50' : ''}`}
+                              >
+                                {isIncluded ? (
+                                  <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                                ) : (
+                                  <X className="h-4 w-4 text-muted-foreground/50 flex-shrink-0" />
+                                )}
+                                <span className={`text-sm ${!isIncluded ? 'line-through text-muted-foreground/60' : ''}`}>
+                                  {module.name}
+                                </span>
                               </li>
                             );
                           })}

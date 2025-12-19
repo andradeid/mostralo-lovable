@@ -13,6 +13,8 @@ import {
   BotBehaviorConfig,
   SyncErrorDetails,
   PrimaryBotType,
+  TriggerType,
+  TriggerOperator,
   getBotBehaviorConfig
 } from "@/hooks/useMasterWhatsAppConfig";
 import { toast } from "sonner";
@@ -37,6 +39,7 @@ import { MasterBotBehaviorCard } from "./MasterBotBehaviorCard";
 import { BotSyncStatusBadge } from "./BotSyncStatusBadge";
 import { SyncErrorModal } from "./SyncErrorModal";
 import { PrimaryBotSelector } from "./PrimaryBotSelector";
+import { TriggerConfigCard } from "./TriggerConfigCard";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { generateSalesPrompt, PromptType } from "@/utils/salesPromptGenerator";
@@ -244,6 +247,7 @@ interface MasterBotConfigTabProps {
   syncBots: (botType?: 'sales' | 'recruitment' | 'support') => Promise<boolean>;
   updatePrimaryBotType: (botType: PrimaryBotType) => Promise<boolean>;
   updateOpenAIModel: (model: string) => Promise<boolean>;
+  updateTriggerConfig: (botType: 'sales' | 'recruitment' | 'support', triggerType: TriggerType, triggerOperator: TriggerOperator) => Promise<boolean>;
   hasUnsyncedChanges: (botType: 'sales' | 'recruitment' | 'support') => boolean;
   lastSyncedAt: { sales: string | null; recruitment: string | null; support: string | null };
 }
@@ -261,6 +265,7 @@ export function MasterBotConfigTab({
   syncBots,
   updatePrimaryBotType,
   updateOpenAIModel,
+  updateTriggerConfig,
   hasUnsyncedChanges,
   lastSyncedAt
 }: MasterBotConfigTabProps) {
@@ -476,6 +481,14 @@ export function MasterBotConfigTab({
                 onChange={(kws) => updateKeywords('sales', kws)}
               />
 
+              <TriggerConfigCard
+                triggerType={(config.sales_bot_trigger_type as TriggerType) || 'all'}
+                triggerOperator={(config.sales_bot_trigger_operator as TriggerOperator) || 'contains'}
+                onTriggerTypeChange={(type) => updateTriggerConfig('sales', type, (config.sales_bot_trigger_operator as TriggerOperator) || 'contains')}
+                onTriggerOperatorChange={(op) => updateTriggerConfig('sales', (config.sales_bot_trigger_type as TriggerType) || 'all', op)}
+                disabled={!config.sales_bot_enabled || syncing}
+              />
+
               {/* Preview do Prompt de Vendas */}
               <PromptPreviewCard
                 prompt={salesPromptPreview}
@@ -559,6 +572,14 @@ export function MasterBotConfigTab({
                 onChange={(kws) => updateKeywords('recruitment', kws)}
               />
 
+              <TriggerConfigCard
+                triggerType={(config.recruitment_bot_trigger_type as TriggerType) || 'all'}
+                triggerOperator={(config.recruitment_bot_trigger_operator as TriggerOperator) || 'contains'}
+                onTriggerTypeChange={(type) => updateTriggerConfig('recruitment', type, (config.recruitment_bot_trigger_operator as TriggerOperator) || 'contains')}
+                onTriggerOperatorChange={(op) => updateTriggerConfig('recruitment', (config.recruitment_bot_trigger_type as TriggerType) || 'all', op)}
+                disabled={!config.recruitment_bot_enabled || syncing}
+              />
+
               {/* Preview do Prompt de Recrutamento */}
               <PromptPreviewCard
                 prompt={recruitmentPromptPreview}
@@ -632,6 +653,14 @@ export function MasterBotConfigTab({
                 label="Keywords de Ativação"
                 keywords={config.support_bot_keywords}
                 onChange={(kws) => updateKeywords('support', kws)}
+              />
+
+              <TriggerConfigCard
+                triggerType={(config.support_bot_trigger_type as TriggerType) || 'all'}
+                triggerOperator={(config.support_bot_trigger_operator as TriggerOperator) || 'contains'}
+                onTriggerTypeChange={(type) => updateTriggerConfig('support', type, (config.support_bot_trigger_operator as TriggerOperator) || 'contains')}
+                onTriggerOperatorChange={(op) => updateTriggerConfig('support', (config.support_bot_trigger_type as TriggerType) || 'all', op)}
+                disabled={!config.support_bot_enabled || syncing}
               />
 
               <div className="space-y-2">

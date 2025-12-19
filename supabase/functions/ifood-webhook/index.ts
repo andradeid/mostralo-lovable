@@ -25,15 +25,20 @@ const STATUS_MAP: Record<string, string> = {
   'CANCELLED': 'cancelado'
 }
 
-// Mapeamento de métodos de pagamento
+// Mapeamento de métodos de pagamento (compatível com enum payment_method: pix, card, cash)
 const PAYMENT_METHOD_MAP: Record<string, string> = {
-  'CREDIT': 'cartao_credito',
-  'DEBIT': 'cartao_debito',
-  'MEAL_VOUCHER': 'vale_refeicao',
-  'FOOD_VOUCHER': 'vale_alimentacao',
-  'CASH': 'dinheiro',
+  // Cartões (todos mapeiam para 'card')
+  'CREDIT': 'card',
+  'DEBIT': 'card',
+  'MEAL_VOUCHER': 'card',
+  'FOOD_VOUCHER': 'card',
+  'GIFT_CARD': 'card',
+  // Dinheiro
+  'CASH': 'cash',
+  // PIX
   'PIX': 'pix',
-  'ONLINE': 'online'
+  // Online (pagamento no app = card)
+  'ONLINE': 'card'
 }
 
 Deno.serve(async (req) => {
@@ -299,9 +304,10 @@ async function createOrderFromEvent(supabase: any, storeId: string, event: any) 
   const { data: nextNumber } = await supabase.rpc('get_next_order_number', { store_uuid: storeId })
   const orderNumber = `IF-${nextNumber || orderData.displayId}`
 
-  // Mapear método de pagamento
+  // Mapear método de pagamento (fallback para 'card' que é mais comum em apps)
   const payment = orderData.payments?.[0]
-  const paymentMethod = payment ? (PAYMENT_METHOD_MAP[payment.type] || 'outro') : 'outro'
+  const paymentMethod = payment ? (PAYMENT_METHOD_MAP[payment.type] || 'card') : 'card'
+  console.log(`💳 Pagamento: tipo=${payment?.type} -> mapeado=${paymentMethod}`)
 
   // Formatar endereço
   const delivery = orderData.delivery?.deliveryAddress

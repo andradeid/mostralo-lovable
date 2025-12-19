@@ -129,6 +129,9 @@ export const OrderCard = ({ order, onClick, isDragging, isViewed, onPrint, isSel
             />
           )}
           <span className="text-sm font-semibold whitespace-nowrap">#{order.order_number}</span>
+          {order.source === 'ifood' && (
+            <Badge className="bg-red-500 hover:bg-red-600 text-white text-[10px] px-1.5 py-0">iF</Badge>
+          )}
           <OrderStatusBadge status={order.status} />
           {order.estimated_delivery_minutes && order.status !== 'concluido' && order.status !== 'cancelado' && (
             <EstimatedDeliveryBadge 

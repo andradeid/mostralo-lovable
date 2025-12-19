@@ -39,6 +39,8 @@ interface OrderDetail {
   payment_method: string;
   delivery_type: string;
   notes?: string;
+  source?: string;
+  short_reference?: string;
   stores?: {
     name: string;
     logo_url?: string;
@@ -307,9 +309,18 @@ export default function CustomerOrderDetailModal({
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-base">{order.stores.name}</p>
-                <p className="text-sm text-muted-foreground">
-                  Pedido nº {order.order_number} • {format(new Date(order.created_at), "dd/MM 'às' HH:mm", { locale: ptBR })}
+                <p className="text-sm text-muted-foreground flex items-center gap-1 flex-wrap">
+                  <span>Pedido nº {order.order_number}</span>
+                  {order.source === 'ifood' && (
+                    <Badge className="bg-red-500 text-white text-[10px] px-1.5 py-0">iFood</Badge>
+                  )}
+                  <span>• {format(new Date(order.created_at), "dd/MM 'às' HH:mm", { locale: ptBR })}</span>
                 </p>
+                {order.source === 'ifood' && order.short_reference && (
+                  <p className="text-xs text-muted-foreground">
+                    Localizador: <span className="font-medium">{order.short_reference}</span>
+                  </p>
+                )}
               </div>
             </div>
           )}

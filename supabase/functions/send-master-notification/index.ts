@@ -66,7 +66,8 @@ serve(async (req) => {
 📱 *Telefone:* ${data.phone || 'N/A'}
 📧 *Email:* ${data.email || 'N/A'}
 🍕 *Usa iFood:* ${data.uses_ifood ? 'Sim' : 'Não'}
-${data.source ? `🔗 *Origem:* ${data.source}` : ''}
+${data.source ? `🔗 *Origem:* ${data.source}` : ''}${data.salesperson_name ? `
+🤝 *Indicado por:* ${data.salesperson_name}` : ''}
 
 ⏰ ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`;
         }

@@ -566,9 +566,10 @@ serve(async (req) => {
     // ========================================
     async function ensureOpenAiCreds(instanceName: string): Promise<string | null> {
       console.log('🔑 Verificando credenciais OpenAI para instância:', instanceName);
-      
+
+      // 1) Listar credenciais existentes (SOMENTE desta instância)
       let existingCreds: any[] = [];
-      
+
       try {
         const listResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
           method: 'GET',
@@ -578,56 +579,49 @@ serve(async (req) => {
         if (listResp.ok) {
           const data = await listResp.json();
           existingCreds = Array.isArray(data) ? data : (data?.creds || data?.data || []);
-          console.log('📋 Credenciais encontradas:', existingCreds.length);
         }
+
+        console.log('📋 Credenciais encontradas:', existingCreds.length);
       } catch (e) {
         console.log('⚠️ Erro ao listar credenciais:', e);
       }
 
-      // Se temos ID salvo, verificar se ainda é válido
+      // 2) Se temos ID salvo, ele precisa existir NESTA instância
       if (evolutionConfig.openai_creds_id) {
-        const found = existingCreds.find(c => c.id === evolutionConfig.openai_creds_id);
+        const found = existingCreds.find((c) => c.id === evolutionConfig.openai_creds_id);
         if (found) {
-          console.log('✅ Credencial salva é válida:', evolutionConfig.openai_creds_id);
+          console.log('✅ Credencial salva é válida nesta instância:', evolutionConfig.openai_creds_id);
           return evolutionConfig.openai_creds_id;
         }
-        
-        console.log('⚠️ ID salvo não é válido, limpando...');
+
+        console.log('⚠️ ID salvo não é válido nesta instância, limpando no banco...');
         await supabase
           .from('evolution_config')
           .update({ openai_creds_id: null, updated_at: new Date().toISOString() })
           .eq('id', evolutionConfig.id);
       }
 
-      // Buscar credencial existente "mostralo-openai"
-      const mostraloCredential = existingCreds.find(c => c.name === 'mostralo-openai');
+      // 3) Reutilizar credencial "mostralo-openai" (se existir nesta instância)
+      const mostraloCredential = existingCreds.find((c) => c.name === 'mostralo-openai');
       if (mostraloCredential?.id) {
         console.log('♻️ Reutilizando credencial existente:', mostraloCredential.id);
-        
+
         await supabase
           .from('evolution_config')
           .update({ openai_creds_id: mostraloCredential.id, updated_at: new Date().toISOString() })
           .eq('id', evolutionConfig.id);
-        
+
         return mostraloCredential.id;
       }
 
-      // Se já temos alguma credencial (qualquer uma), usar a primeira
-      if (existingCreds.length > 0 && existingCreds[0]?.id) {
-        const firstCred = existingCreds[0];
-        console.log('♻️ Usando primeira credencial disponível:', firstCred.id, firstCred.name || '');
-        
-        await supabase
-          .from('evolution_config')
-          .update({ openai_creds_id: firstCred.id, updated_at: new Date().toISOString() })
-          .eq('id', evolutionConfig.id);
-        
-        return firstCred.id;
+      // 4) Criar nova credencial nesta instância
+      if (!openaiApiKey) {
+        console.error('❌ openai_api_key ausente na evolution_config; não dá para criar credencial.');
+        return null;
       }
 
-      // Criar nova credencial
-      console.log('🆕 Criando nova credencial OpenAI...');
-      
+      console.log('🆕 Criando nova credencial OpenAI na instância:', instanceName);
+
       try {
         const createResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
           method: 'POST',
@@ -644,83 +638,7 @@ serve(async (req) => {
         const createText = await createResp.text();
         console.log('📥 Resposta criação credencial:', createResp.status, createText);
 
-        // Se a API key já está registrada, buscar novamente as credenciais
         if (!createResp.ok) {
-          const isAlreadyRegistered = createText.includes('already registered') || 
-                                       createText.includes('already exists');
-          
-          if (isAlreadyRegistered) {
-            console.log('⚠️ API key já registrada, buscando credenciais novamente...');
-            
-            // Buscar em TODAS as instâncias - a Evolution pode ter a credencial em outro lugar
-            // Tentar buscar novamente na mesma instância
-            const retryResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
-              method: 'GET',
-              headers: { 'apikey': evolutionConfig.api_key },
-            });
-            
-            if (retryResp.ok) {
-              const retryData = await retryResp.json();
-              const retryCreds = Array.isArray(retryData) ? retryData : (retryData?.creds || retryData?.data || []);
-              console.log('📋 Credenciais após retry:', retryCreds.length);
-              
-              if (retryCreds.length > 0 && retryCreds[0]?.id) {
-                const foundCred = retryCreds[0];
-                console.log('✅ Credencial encontrada após retry:', foundCred.id);
-                
-                await supabase
-                  .from('evolution_config')
-                  .update({ openai_creds_id: foundCred.id, updated_at: new Date().toISOString() })
-                  .eq('id', evolutionConfig.id);
-                
-                return foundCred.id;
-              }
-            }
-            
-            // Se ainda não encontrou, tentar buscar todas as instâncias
-            console.log('🔍 Buscando credenciais em fetch/instances...');
-            try {
-              const instancesResp = await fetch(`${evolutionUrl}/instance/fetchInstances`, {
-                method: 'GET',
-                headers: { 'apikey': evolutionConfig.api_key },
-              });
-              
-              if (instancesResp.ok) {
-                const instances = await instancesResp.json();
-                console.log('📋 Instâncias encontradas:', Array.isArray(instances) ? instances.length : 0);
-                
-                // Para cada instância, buscar credenciais
-                for (const inst of (Array.isArray(instances) ? instances : [])) {
-                  const instName = inst.name || inst.instanceName || inst.instance?.instanceName;
-                  if (!instName) continue;
-                  
-                  const instCredsResp = await fetch(`${evolutionUrl}/openai/creds/${instName}`, {
-                    method: 'GET',
-                    headers: { 'apikey': evolutionConfig.api_key },
-                  });
-                  
-                  if (instCredsResp.ok) {
-                    const instCredsData = await instCredsResp.json();
-                    const instCreds = Array.isArray(instCredsData) ? instCredsData : (instCredsData?.creds || instCredsData?.data || []);
-                    
-                    if (instCreds.length > 0 && instCreds[0]?.id) {
-                      console.log(`✅ Credencial encontrada na instância ${instName}:`, instCreds[0].id);
-                      
-                      await supabase
-                        .from('evolution_config')
-                        .update({ openai_creds_id: instCreds[0].id, updated_at: new Date().toISOString() })
-                        .eq('id', evolutionConfig.id);
-                      
-                      return instCreds[0].id;
-                    }
-                  }
-                }
-              }
-            } catch (instError) {
-              console.log('⚠️ Erro ao buscar instâncias:', instError);
-            }
-          }
-          
           console.error('❌ Falha ao criar credencial:', createText);
           return null;
         }
@@ -733,17 +651,18 @@ serve(async (req) => {
           createdId = null;
         }
 
-        if (createdId) {
-          await supabase
-            .from('evolution_config')
-            .update({ openai_creds_id: createdId, updated_at: new Date().toISOString() })
-            .eq('id', evolutionConfig.id);
-
-          console.log('✅ Nova credencial criada:', createdId);
-          return createdId;
+        if (!createdId) {
+          console.error('❌ ID da credencial não retornado pela Evolution:', createText);
+          return null;
         }
 
-        return null;
+        await supabase
+          .from('evolution_config')
+          .update({ openai_creds_id: createdId, updated_at: new Date().toISOString() })
+          .eq('id', evolutionConfig.id);
+
+        console.log('✅ Nova credencial criada:', createdId);
+        return createdId;
       } catch (e) {
         console.error('❌ Erro ao criar credencial:', e);
         return null;
@@ -798,58 +717,6 @@ serve(async (req) => {
       }
     }
 
-    // ========================================
-    // FUNÇÃO: Configurar OpenAI Settings na instância
-    // Isso é OBRIGATÓRIO antes de criar bots para que a Evolution
-    // saiba qual credencial usar como padrão
-    // ========================================
-    async function ensureOpenAiSettings(instanceName: string, credsId: string): Promise<boolean> {
-      console.log('[openai-settings] Configurando settings para instância:', instanceName);
-
-      try {
-        // Docs: /openai/settings/{instance}
-        // Incluímos openaiIdFallback porque algumas instalações usam isso internamente
-        const settingsPayload = {
-          openaiCredsId: credsId,
-          openaiIdFallback: credsId,
-          expire: 60,
-          keywordFinish: '#sair',
-          delayMessage: 1500,
-          unknownMessage: 'Desculpe, não entendi. Pode reformular?',
-          listeningFromMe: false,
-          stopBotFromMe: true,
-          keepOpen: false,
-          debounceTime: 3,
-          ignoreJids: [],
-          speechToText: false,
-        };
-
-        console.log('[openai-settings] Payload:', JSON.stringify(settingsPayload, null, 2));
-
-        const settingsResp = await fetch(`${evolutionUrl}/openai/settings/${instanceName}`, {
-          method: 'POST',
-          headers: {
-            'apikey': evolutionConfig.api_key,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(settingsPayload),
-        });
-
-        const settingsText = await settingsResp.text();
-        console.log('[openai-settings] Resposta:', settingsResp.status, settingsText);
-
-        if (!settingsResp.ok) {
-          console.error('[openai-settings] Falha ao configurar settings:', settingsText);
-          return false;
-        }
-
-        console.log('[openai-settings] OK');
-        return true;
-      } catch (e) {
-        console.error('[openai-settings] Erro ao configurar settings:', e);
-        return false;
-      }
-    }
 
     // 🔥 BUSCAR DADOS REAIS DO BANCO
     console.log('📊 Buscando planos e bônus do banco...');

@@ -334,7 +334,7 @@ export function useMasterWhatsAppConfig() {
         return false;
       }
 
-      // Verificar se a resposta indica erro
+      // Verificar se a resposta indica erro no nível superior
       if (response.data && response.data.success === false) {
         const errorDetails: SyncErrorDetails = {
           status: 500,
@@ -346,6 +346,26 @@ export function useMasterWhatsAppConfig() {
         setSyncError(errorDetails);
         toast.error('Erro ao sincronizar bots. Clique para ver detalhes.');
         return false;
+      }
+
+      // Verificar erros nos resultados individuais dos bots
+      if (response.data?.results) {
+        const botErrors = Object.entries(response.data.results)
+          .filter(([_, result]: [string, any]) => result.success === false && result.error !== 'Bot disabled')
+          .map(([botType, result]: [string, any]) => `${botType}: ${result.error}`);
+        
+        if (botErrors.length > 0) {
+          const errorDetails: SyncErrorDetails = {
+            status: 500,
+            message: botErrors.join('\n'),
+            payload,
+            responseData: response.data,
+            timestamp: new Date().toISOString()
+          };
+          setSyncError(errorDetails);
+          toast.error(`Falha em ${botErrors.length} bot(s). Clique para ver detalhes.`);
+          return false;
+        }
       }
 
       const { results } = response.data;

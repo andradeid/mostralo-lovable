@@ -470,6 +470,25 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Alterar Status</label>
                   
+                  {/* Botão Especial: Aceitar Pedido (quando status é entrada) */}
+                  {order.status === 'entrada' && (
+                    <div className="mb-4 p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
+                      <p className="text-sm font-medium text-orange-900 dark:text-orange-100 mb-2">
+                        🔔 Novo Pedido Recebido!
+                      </p>
+                      <p className="text-xs text-orange-700 dark:text-orange-300 mb-3">
+                        Aceite o pedido para iniciar o preparo
+                      </p>
+                      <Button 
+                        onClick={() => handleStatusChange('em_preparo')}
+                        disabled={isLoading}
+                        className="w-full bg-green-600 hover:bg-green-700"
+                      >
+                        ✅ Aceitar Pedido
+                      </Button>
+                    </div>
+                  )}
+
                   {/* Botão Especial: Liberar para Retirada (apenas para pickup) */}
                   {order.delivery_type === 'pickup' && order.status === 'em_preparo' && (
                     <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">

@@ -148,6 +148,7 @@ import DiagnosticsPage from "./pages/admin/DiagnosticsPage";
 import CloudflareGuidePage from "./pages/admin/CloudflareGuidePage";
 import IFoodHomologationPage from "./pages/admin/IFoodHomologationPage";
 import FinancialManagementPage from "./pages/admin/FinancialManagementPage";
+import MasterWhatsAppPage from "./pages/admin/MasterWhatsAppPage";
 import { UpdatesRedirect } from "./components/system-updates/UpdatesRedirect";
 const queryClient = new QueryClient();
 
@@ -300,6 +301,13 @@ const App = () => (
               <ProtectedRoute allowedRoles={['master_admin']}>
                 <AdminLayout pageTitle="Homologação iFood">
                   <IFoodHomologationPage />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/master-whatsapp" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="WhatsApp Master">
+                  <MasterWhatsAppPage />
                 </AdminLayout>
               </ProtectedRoute>
             } />

@@ -453,7 +453,7 @@ const PlansPage = () => {
       </div>
 
       {/* Plans List */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {plans.map((plan) => {
           const statusInfo = getStatusInfo(plan.status);
           const isPopular = (plan as any).is_popular || false;
@@ -482,9 +482,23 @@ const PlansPage = () => {
                   {plan.description || 'Sem descrição'}
                 </CardDescription>
                 <div className="pt-2">
-                  <div className="text-3xl font-bold text-primary">
-                    {formatPrice(plan.price)}
-                  </div>
+                  {(plan as any).promotion_active && (plan as any).discount_price ? (
+                    <>
+                      <Badge className="bg-red-500 text-white mb-2">
+                        🔥 {(plan as any).discount_percentage || Math.round((1 - (plan as any).discount_price / plan.price) * 100)}% OFF
+                      </Badge>
+                      <div className="text-lg text-muted-foreground line-through">
+                        {formatPrice(plan.price)}
+                      </div>
+                      <div className="text-3xl font-bold text-green-600">
+                        {formatPrice((plan as any).discount_price)}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-3xl font-bold text-primary">
+                      {formatPrice(plan.price)}
+                    </div>
+                  )}
                   <p className="text-sm text-muted-foreground">
                     {getBillingCycleLabel(plan.billing_cycle)} - {getBillingCycleDays(plan.billing_cycle)} dias
                   </p>

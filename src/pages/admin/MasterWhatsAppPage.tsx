@@ -32,7 +32,9 @@ import {
   Send,
   History,
   ExternalLink,
-  Zap
+  Zap,
+  Phone,
+  Clock
 } from "lucide-react";
 import { MasterBotConfigTab } from "@/components/admin/master-whatsapp/MasterBotConfigTab";
 import { MasterSessionsTab } from "@/components/admin/master-whatsapp/MasterSessionsTab";
@@ -44,6 +46,7 @@ interface TestMessage {
   message: string;
   status: string;
   sent_at: string;
+  error_message?: string;
 }
 
 interface EvolutionBot {
@@ -143,7 +146,7 @@ export default function MasterWhatsAppPage() {
     try {
       const { data, error } = await supabase
         .from('master_test_messages')
-        .select('*')
+        .select('id, phone_number, country_code, message, status, sent_at, error_message')
         .order('sent_at', { ascending: false })
         .limit(10);
       
@@ -572,49 +575,50 @@ export default function MasterWhatsAppPage() {
                   <p>Nenhuma mensagem de teste enviada ainda</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Número</TableHead>
-                        <TableHead className="hidden md:table-cell">Mensagem</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Data</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {testMessages.map((msg) => (
-                        <TableRow key={msg.id}>
-                          <TableCell className="font-mono text-sm">
-                            {msg.country_code} {msg.phone_number.length > 4 
-                              ? msg.phone_number.slice(-11) 
-                              : msg.phone_number}
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell max-w-xs truncate text-muted-foreground">
-                            {msg.message}
-                          </TableCell>
-                          <TableCell>
-                            <Badge 
-                              variant={msg.status === 'sent' ? 'default' : 'destructive'}
-                              className="gap-1"
-                            >
-                              {msg.status === 'sent' ? (
-                                <CheckCircle className="w-3 h-3" />
-                              ) : (
-                                <XCircle className="w-3 h-3" />
-                              )}
-                              <span className="hidden sm:inline">
-                                {msg.status === 'sent' ? 'Enviada' : 'Falhou'}
-                              </span>
+                <div className="space-y-3">
+                  {testMessages.map((msg) => (
+                    <div 
+                      key={msg.id} 
+                      className={`p-4 rounded-lg border ${
+                        msg.status === 'failed' 
+                          ? 'bg-destructive/10 border-destructive/20' 
+                          : 'bg-green-500/10 border-green-500/20'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+                        <div className="flex items-center gap-2">
+                          {msg.status === 'failed' ? (
+                            <Badge variant="destructive" className="gap-1">
+                              <XCircle className="h-3 w-3" /> Falhou
                             </Badge>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
-                            {format(new Date(msg.sent_at), "dd/MM HH:mm")}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                          ) : (
+                            <Badge className="bg-green-500 gap-1">
+                              <CheckCircle className="h-3 w-3" /> Enviada
+                            </Badge>
+                          )}
+                          <span className="text-xs text-muted-foreground">
+                            {format(new Date(msg.sent_at), "dd/MM/yyyy 'às' HH:mm")}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <Phone className="h-3 w-3" />
+                          <span className="font-mono text-xs">{msg.country_code} {msg.phone_number}</span>
+                        </div>
+                      </div>
+                      
+                      <p className="text-sm text-muted-foreground">
+                        {msg.status === 'failed' && msg.error_message 
+                          ? <span className="text-destructive">❌ Erro: {msg.error_message}</span>
+                          : <span>✅ {msg.message}</span>
+                        }
+                      </p>
+                      
+                      <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        {format(new Date(msg.sent_at), "dd/MM/yyyy, HH:mm:ss")}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </CardContent>

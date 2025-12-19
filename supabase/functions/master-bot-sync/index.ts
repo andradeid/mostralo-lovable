@@ -529,7 +529,6 @@ serve(async (req) => {
     const { data: plans } = await supabase
       .from('plans')
       .select('*')
-      .eq('is_active', true)
       .order('price', { ascending: true });
 
     const { data: bonusTiersData } = await supabase

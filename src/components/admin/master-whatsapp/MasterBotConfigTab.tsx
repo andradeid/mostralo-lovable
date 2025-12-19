@@ -237,7 +237,7 @@ export function MasterBotConfigTab() {
     async function fetchData() {
       try {
         // @ts-ignore - Supabase tipos muito profundos
-        const { data: plansData } = await supabase.from('plans').select('*').eq('is_active', true).order('price', { ascending: true });
+        const { data: plansData } = await supabase.from('plans').select('*').order('price', { ascending: true });
         
         // @ts-ignore - Supabase tipos muito profundos
         const { data: bonusData } = await supabase.from('salesperson_bonus_tiers').select('*').eq('is_active', true).order('min_sales', { ascending: true });

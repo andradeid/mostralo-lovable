@@ -6,13 +6,15 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { 
-  useMasterWhatsAppConfig, 
+  MasterWhatsAppConfig,
   SalesApproach, 
   RecruitmentApproach,
+  BotBehaviorConfig,
+  SyncErrorDetails,
   getBotBehaviorConfig
 } from "@/hooks/useMasterWhatsAppConfig";
 import { toast } from "sonner";
-import { 
+import {
   Loader2, 
   MessageSquare, 
   Users, 
@@ -224,24 +226,37 @@ function RecruitmentApproachSelector({
   );
 }
 
-export function MasterBotConfigTab() {
-  const { 
-    config, 
-    loading, 
-    syncing,
-    syncError,
-    clearSyncError,
-    toggleBot, 
-    updateApproach, 
-    updateKeywords,
-    updateSupportPrompt,
-    updateBotBehavior,
-    syncBots,
-    hasUnsyncedChanges,
-    lastSyncedAt
-  } = useMasterWhatsAppConfig();
-  
-  const [supportPrompt, setSupportPrompt] = useState(config?.support_bot_custom_prompt || "");
+// Props interface - recebe dados do componente pai
+interface MasterBotConfigTabProps {
+  config: MasterWhatsAppConfig;
+  syncing: boolean;
+  syncError: SyncErrorDetails | null;
+  clearSyncError: () => void;
+  toggleBot: (botType: 'sales' | 'recruitment' | 'support', enabled: boolean) => Promise<boolean>;
+  updateApproach: (botType: 'sales' | 'recruitment', approach: SalesApproach | RecruitmentApproach) => Promise<boolean>;
+  updateKeywords: (botType: 'sales' | 'recruitment' | 'support', keywords: string[]) => Promise<boolean>;
+  updateSupportPrompt: (prompt: string) => Promise<boolean>;
+  updateBotBehavior: (botType: 'sales' | 'recruitment' | 'support', updates: Partial<BotBehaviorConfig>) => Promise<boolean>;
+  syncBots: (botType?: 'sales' | 'recruitment' | 'support') => Promise<boolean>;
+  hasUnsyncedChanges: (botType: 'sales' | 'recruitment' | 'support') => boolean;
+  lastSyncedAt: { sales: string | null; recruitment: string | null; support: string | null };
+}
+
+export function MasterBotConfigTab({
+  config,
+  syncing,
+  syncError,
+  clearSyncError,
+  toggleBot,
+  updateApproach,
+  updateKeywords,
+  updateSupportPrompt,
+  updateBotBehavior,
+  syncBots,
+  hasUnsyncedChanges,
+  lastSyncedAt
+}: MasterBotConfigTabProps) {
+  const [supportPrompt, setSupportPrompt] = useState(config.support_bot_custom_prompt || "");
   const [savingPrompt, setSavingPrompt] = useState(false);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [bonusTiers, setBonusTiers] = useState<BonusTier[]>([]);
@@ -279,22 +294,22 @@ export function MasterBotConfigTab() {
 
   // Gerar prompts usando os geradores reais com dados do banco
   const salesPromptPreview = useMemo(() => {
-    if (!config || plans.length === 0) return "";
+    if (plans.length === 0) return "";
     return generateSalesPrompt({
       type: config.sales_bot_approach as PromptType,
       plans: plans
     });
-  }, [config?.sales_bot_approach, plans]);
+  }, [config.sales_bot_approach, plans]);
 
   const recruitmentPromptPreview = useMemo(() => {
-    if (!config || plans.length === 0) return "";
+    if (plans.length === 0) return "";
     return generateRecruitmentPrompt({
       type: config.recruitment_bot_approach as RecruitmentPromptType,
       plans: plans,
       bonusTiers: bonusTiers,
       baseUrl: 'https://mostralo.com.br'
     });
-  }, [config?.recruitment_bot_approach, plans, bonusTiers]);
+  }, [config.recruitment_bot_approach, plans, bonusTiers]);
 
   const supportPromptPreview = useMemo(() => 
     getSupportPrompt(supportPrompt),
@@ -303,27 +318,19 @@ export function MasterBotConfigTab() {
 
   // Extrair configs de comportamento de cada bot
   const salesBehaviorConfig = useMemo(() => 
-    config ? getBotBehaviorConfig(config, 'sales') : null,
+    getBotBehaviorConfig(config, 'sales'),
     [config]
   );
 
   const recruitmentBehaviorConfig = useMemo(() => 
-    config ? getBotBehaviorConfig(config, 'recruitment') : null,
+    getBotBehaviorConfig(config, 'recruitment'),
     [config]
   );
 
   const supportBehaviorConfig = useMemo(() => 
-    config ? getBotBehaviorConfig(config, 'support') : null,
+    getBotBehaviorConfig(config, 'support'),
     [config]
   );
-
-  if (loading || !config) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin" />
-      </div>
-    );
-  }
 
   const handleSaveSupportPrompt = async () => {
     setSavingPrompt(true);

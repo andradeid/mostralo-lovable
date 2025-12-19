@@ -82,7 +82,22 @@ interface EvolutionBot {
 // OpenAIKeySection removida - agora usa OpenAIConfigCard como card separado
 
 export default function MasterWhatsAppPage() {
-  const { config, loading, updateConfig, syncBots, syncing } = useMasterWhatsAppConfig();
+  const { 
+    config, 
+    loading, 
+    updateConfig, 
+    syncBots, 
+    syncing,
+    syncError,
+    clearSyncError,
+    toggleBot,
+    updateApproach,
+    updateKeywords,
+    updateSupportPrompt,
+    updateBotBehavior,
+    hasUnsyncedChanges,
+    lastSyncedAt
+  } = useMasterWhatsAppConfig();
   const isMobile = useIsMobile();
   const [instanceName, setInstanceName] = useState("");
   const [qrCode, setQrCode] = useState<string | null>(null);
@@ -1234,7 +1249,20 @@ export default function MasterWhatsAppPage() {
             </CardContent>
           </Card>
 
-          <MasterBotConfigTab />
+          <MasterBotConfigTab 
+            config={config!}
+            syncing={syncing}
+            syncError={syncError}
+            clearSyncError={clearSyncError}
+            toggleBot={toggleBot}
+            updateApproach={updateApproach}
+            updateKeywords={updateKeywords}
+            updateSupportPrompt={updateSupportPrompt}
+            updateBotBehavior={updateBotBehavior}
+            syncBots={syncBots}
+            hasUnsyncedChanges={hasUnsyncedChanges}
+            lastSyncedAt={lastSyncedAt}
+          />
         </TabsContent>
 
         {/* Tab Sessões */}

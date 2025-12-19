@@ -21,8 +21,7 @@ import {
   Bot,
   MessageSquare,
   Users,
-  HelpCircle,
-  Settings
+  HelpCircle
 } from "lucide-react";
 import { MasterBotConfigTab } from "@/components/admin/master-whatsapp/MasterBotConfigTab";
 import { MasterSessionsTab } from "@/components/admin/master-whatsapp/MasterSessionsTab";
@@ -41,22 +40,7 @@ export default function MasterWhatsAppPage() {
     }
   }, [config]);
 
-  // Buscar Evolution Config
-  const getEvolutionConfig = async () => {
-    const { data, error } = await supabase
-      .from('evolution_config')
-      .select('*')
-      .eq('is_active', true)
-      .single();
-    
-    if (error || !data) {
-      toast.error('Evolution API não configurada');
-      return null;
-    }
-    return data;
-  };
-
-  // Criar instância
+  // Criar instância via Edge Function
   const createInstance = async () => {
     if (!instanceName.trim()) {
       toast.error('Digite um nome para a instância');
@@ -65,43 +49,27 @@ export default function MasterWhatsAppPage() {
 
     setLoadingAction('create');
     try {
-      const evolutionConfig = await getEvolutionConfig();
-      if (!evolutionConfig) return;
-
-      // Gerar nome único
       const uniqueName = `master_${instanceName.replace(/\s+/g, '_').toLowerCase()}_${Date.now()}`;
 
-      const response = await fetch(`${evolutionConfig.api_url}/instance/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': evolutionConfig.api_key
-        },
-        body: JSON.stringify({
-          instanceName: uniqueName,
-          qrcode: true,
-          integration: 'WHATSAPP-BAILEYS'
-        })
+      const { data, error } = await supabase.functions.invoke('master-whatsapp-instance', {
+        body: { action: 'create', instanceName: uniqueName }
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Erro ao criar instância');
+      if (error) {
+        throw new Error(error.message);
       }
 
-      // Salvar no banco
-      await updateConfig({
-        instance_name: uniqueName,
-        instance_status: 'connecting',
-        evolution_instance_id: data.instance?.instanceId || null
-      });
+      if (data?.error) {
+        throw new Error(data.error);
+      }
 
       setInstanceStatus('connecting');
+      setInstanceName(uniqueName);
       
-      // Buscar QR Code
-      await fetchQrCode(uniqueName, evolutionConfig);
-      
+      if (data?.qrcode) {
+        setQrCode(data.qrcode);
+      }
+
       toast.success('Instância criada! Escaneie o QR Code');
     } catch (error) {
       console.error('Erro:', error);
@@ -111,60 +79,32 @@ export default function MasterWhatsAppPage() {
     }
   };
 
-  // Buscar QR Code
-  const fetchQrCode = async (name: string, evolutionConfig?: { api_url: string; api_key: string }) => {
-    try {
-      const config = evolutionConfig || await getEvolutionConfig();
-      if (!config) return;
-
-      const response = await fetch(`${config.api_url}/instance/connect/${name}`, {
-        method: 'GET',
-        headers: {
-          'apikey': config.api_key
-        }
-      });
-
-      const data = await response.json();
-
-      if (data.base64) {
-        setQrCode(data.base64);
-      } else if (data.instance?.state === 'open') {
-        setInstanceStatus('connected');
-        await updateConfig({ instance_status: 'connected' });
-        toast.success('WhatsApp conectado!');
-      }
-    } catch (error) {
-      console.error('Erro ao buscar QR:', error);
-    }
-  };
-
-  // Verificar status
+  // Verificar status via Edge Function
   const checkStatus = async () => {
     if (!config?.instance_name) return;
 
     setLoadingAction('status');
     try {
-      const evolutionConfig = await getEvolutionConfig();
-      if (!evolutionConfig) return;
+      const { data, error } = await supabase.functions.invoke('master-whatsapp-instance', {
+        body: { action: 'status' }
+      });
 
-      const response = await fetch(
-        `${evolutionConfig.api_url}/instance/connectionState/${config.instance_name}`,
-        {
-          headers: { 'apikey': evolutionConfig.api_key }
-        }
-      );
+      if (error) {
+        throw new Error(error.message);
+      }
 
-      const data = await response.json();
-      const newStatus = data.instance?.state || 'disconnected';
-      
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      const newStatus = data?.status || 'disconnected';
       setInstanceStatus(newStatus);
-      await updateConfig({ instance_status: newStatus });
 
-      if (newStatus === 'open' || newStatus === 'connected') {
+      if (newStatus === 'connected') {
         toast.success('WhatsApp conectado!');
         setQrCode(null);
-      } else if (newStatus === 'close' || newStatus === 'disconnected') {
-        await fetchQrCode(config.instance_name, evolutionConfig);
+      } else if (data?.qrcode) {
+        setQrCode(data.qrcode);
       }
     } catch (error) {
       console.error('Erro:', error);
@@ -174,23 +114,26 @@ export default function MasterWhatsAppPage() {
     }
   };
 
-  // Desconectar
+  // Desconectar via Edge Function
   const disconnect = async () => {
     if (!config?.instance_name) return;
 
     setLoadingAction('disconnect');
     try {
-      const evolutionConfig = await getEvolutionConfig();
-      if (!evolutionConfig) return;
-
-      await fetch(`${evolutionConfig.api_url}/instance/logout/${config.instance_name}`, {
-        method: 'DELETE',
-        headers: { 'apikey': evolutionConfig.api_key }
+      const { data, error } = await supabase.functions.invoke('master-whatsapp-instance', {
+        body: { action: 'disconnect' }
       });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
 
       setInstanceStatus('disconnected');
       setQrCode(null);
-      await updateConfig({ instance_status: 'disconnected' });
       
       toast.success('Desconectado');
     } catch (error) {

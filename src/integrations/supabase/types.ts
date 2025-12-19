@@ -1963,6 +1963,7 @@ export type Database = {
           instance_phone: string | null
           instance_status: string | null
           recruitment_bot_approach: string | null
+          recruitment_bot_auto_reactivate_minutes: number | null
           recruitment_bot_debounce_time: number | null
           recruitment_bot_delay_message: number | null
           recruitment_bot_enabled: boolean | null
@@ -1977,6 +1978,7 @@ export type Database = {
           recruitment_bot_time_per_char: number | null
           recruitment_bot_unknown_message: string | null
           sales_bot_approach: string | null
+          sales_bot_auto_reactivate_minutes: number | null
           sales_bot_debounce_time: number | null
           sales_bot_delay_message: number | null
           sales_bot_enabled: boolean | null
@@ -1990,6 +1992,7 @@ export type Database = {
           sales_bot_stop_from_me: boolean | null
           sales_bot_time_per_char: number | null
           sales_bot_unknown_message: string | null
+          support_bot_auto_reactivate_minutes: number | null
           support_bot_custom_prompt: string | null
           support_bot_debounce_time: number | null
           support_bot_delay_message: number | null
@@ -2015,6 +2018,7 @@ export type Database = {
           instance_phone?: string | null
           instance_status?: string | null
           recruitment_bot_approach?: string | null
+          recruitment_bot_auto_reactivate_minutes?: number | null
           recruitment_bot_debounce_time?: number | null
           recruitment_bot_delay_message?: number | null
           recruitment_bot_enabled?: boolean | null
@@ -2029,6 +2033,7 @@ export type Database = {
           recruitment_bot_time_per_char?: number | null
           recruitment_bot_unknown_message?: string | null
           sales_bot_approach?: string | null
+          sales_bot_auto_reactivate_minutes?: number | null
           sales_bot_debounce_time?: number | null
           sales_bot_delay_message?: number | null
           sales_bot_enabled?: boolean | null
@@ -2042,6 +2047,7 @@ export type Database = {
           sales_bot_stop_from_me?: boolean | null
           sales_bot_time_per_char?: number | null
           sales_bot_unknown_message?: string | null
+          support_bot_auto_reactivate_minutes?: number | null
           support_bot_custom_prompt?: string | null
           support_bot_debounce_time?: number | null
           support_bot_delay_message?: number | null
@@ -2067,6 +2073,7 @@ export type Database = {
           instance_phone?: string | null
           instance_status?: string | null
           recruitment_bot_approach?: string | null
+          recruitment_bot_auto_reactivate_minutes?: number | null
           recruitment_bot_debounce_time?: number | null
           recruitment_bot_delay_message?: number | null
           recruitment_bot_enabled?: boolean | null
@@ -2081,6 +2088,7 @@ export type Database = {
           recruitment_bot_time_per_char?: number | null
           recruitment_bot_unknown_message?: string | null
           sales_bot_approach?: string | null
+          sales_bot_auto_reactivate_minutes?: number | null
           sales_bot_debounce_time?: number | null
           sales_bot_delay_message?: number | null
           sales_bot_enabled?: boolean | null
@@ -2094,6 +2102,7 @@ export type Database = {
           sales_bot_stop_from_me?: boolean | null
           sales_bot_time_per_char?: number | null
           sales_bot_unknown_message?: string | null
+          support_bot_auto_reactivate_minutes?: number | null
           support_bot_custom_prompt?: string | null
           support_bot_debounce_time?: number | null
           support_bot_delay_message?: number | null

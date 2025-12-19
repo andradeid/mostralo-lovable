@@ -1630,9 +1630,25 @@ const Index = () => {
 
               const featuresArray = Object.keys(plan.features || {});
 
+              const isPremium = plan.name?.toLowerCase().includes('premium');
+              
               return (
-                <Card key={plan.id} className={`p-6 text-center relative w-full ${plan.is_popular ? 'border-primary shadow-2xl scale-105' : 'shadow-lg'}`}>
-                  {plan.is_popular && (
+                <Card 
+                  key={plan.id} 
+                  className={`p-6 text-center relative w-full transition-all duration-300 hover:scale-105 hover:shadow-xl hover:-translate-y-1 cursor-pointer ${
+                    isPremium 
+                      ? 'border-2 border-amber-400 shadow-2xl shadow-amber-200/30 scale-[1.02]' 
+                      : plan.is_popular 
+                        ? 'border-primary shadow-2xl scale-[1.02]' 
+                        : 'shadow-lg'
+                  }`}
+                >
+                  {isPremium && (
+                    <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-500 to-yellow-600 text-white font-semibold">
+                      👑 Premium
+                    </Badge>
+                  )}
+                  {plan.is_popular && !isPremium && (
                     <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white">
                       ⭐ Mais Popular
                     </Badge>

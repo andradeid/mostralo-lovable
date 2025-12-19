@@ -285,12 +285,18 @@ async function createOrderFromEvent(supabase: any, storeId: string, event: any) 
   const orderId = event.orderId
 
   // VERIFICAR SE PEDIDO JÁ EXISTE (evitar duplicatas)
-  const { data: existingOrder } = await supabase
+  // IMPORTANTE: usar maybeSingle() para não lançar erro quando não encontrar
+  const { data: existingOrder, error: existingError } = await supabase
     .from('orders')
     .select('id, status, order_number')
     .eq('external_id', orderId)
     .eq('store_id', storeId)
-    .single()
+    .maybeSingle()
+
+  // Se houve erro de banco (não erro de "não encontrado"), logar
+  if (existingError) {
+    console.error('⚠️ Erro ao verificar pedido existente:', existingError)
+  }
 
   if (existingOrder) {
     console.log(`⏭️ Pedido ${orderId} já existe (${existingOrder.order_number}), ignorando criação`)

@@ -242,6 +242,17 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
   const handleStatusChange = async (newStatus: OrderStatus) => {
     if (!order || !selectedStatus) return;
 
+    // BLOQUEAR ações em pedidos já cancelados ou concluídos
+    if (order.status === 'cancelado') {
+      toast.error('Este pedido já foi cancelado e não pode ser alterado');
+      return;
+    }
+    
+    if (order.status === 'concluido') {
+      toast.error('Este pedido já foi concluído e não pode ser alterado');
+      return;
+    }
+
     // Se está mudando para "em_preparo" e ainda não tem tempo estimado, mostrar seletor
     if (newStatus === 'em_preparo' && !order.estimated_delivery_minutes) {
       setPendingNewStatus(newStatus);

@@ -569,12 +569,17 @@ serve(async (req) => {
 
     // ========================================
     // FUNÇÃO: Garantir credenciais OpenAI na Evolution
-    // Nome único para o master: "master_whatsapp_openai"
+    // Nome único por tipo de bot para evitar conflito
     // ========================================
-    const MASTER_CRED_NAME = 'master_whatsapp_openai';
+    type BotType = 'sales' | 'recruitment' | 'support';
     
-    async function ensureOpenAiCreds(instanceName: string): Promise<string | null> {
-      console.log('🔑 [Master] Verificando credenciais OpenAI para instância:', instanceName);
+    function getMasterCredName(botType: BotType): string {
+      return `master_whatsapp_${botType}_openai`;
+    }
+    
+    async function ensureOpenAiCreds(instanceName: string, botType: BotType): Promise<string | null> {
+      const credName = getMasterCredName(botType);
+      console.log(`🔑 [Master] Verificando credenciais OpenAI "${credName}" para instância:`, instanceName);
 
       // 1) Listar credenciais existentes desta instância
       let existingCreds: any[] = [];
@@ -590,25 +595,25 @@ serve(async (req) => {
           existingCreds = Array.isArray(data) ? data : (data?.creds || data?.data || []);
         }
 
-        console.log('📋 [Master] Credenciais encontradas:', existingCreds.length);
+        console.log(`📋 [Master] Credenciais encontradas:`, existingCreds.length);
       } catch (e) {
         console.log('⚠️ [Master] Erro ao listar credenciais:', e);
       }
 
-      // 2) Procurar credencial com nome específico do master
-      const masterCredential = existingCreds.find((c) => c.name === MASTER_CRED_NAME);
+      // 2) Procurar credencial com nome específico do bot
+      const masterCredential = existingCreds.find((c) => c.name === credName);
       if (masterCredential?.id) {
-        console.log('✅ [Master] Credencial existente encontrada:', masterCredential.id);
+        console.log(`✅ [Master] Credencial "${credName}" existente encontrada:`, masterCredential.id);
         return masterCredential.id;
       }
 
-      // 3) Criar nova credencial com nome único do master
+      // 3) Criar nova credencial com nome único do bot
       if (!openaiApiKey) {
         console.error('❌ [Master] openai_api_key ausente; não dá para criar credencial.');
         return null;
       }
 
-      console.log('🆕 [Master] Criando nova credencial OpenAI:', MASTER_CRED_NAME);
+      console.log(`🆕 [Master] Criando nova credencial OpenAI: ${credName}`);
 
       try {
         const createResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
@@ -618,18 +623,18 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            name: MASTER_CRED_NAME,
+            name: credName,
             apiKey: openaiApiKey,
           }),
         });
 
         const createText = await createResp.text();
-        console.log('📥 [Master] Resposta criação credencial:', createResp.status, createText);
+        console.log(`📥 [Master] Resposta criação credencial "${credName}":`, createResp.status, createText);
 
         if (!createResp.ok) {
           // Se "already registered", tentar buscar novamente
           if (createText.includes('already')) {
-            console.log('⚠️ [Master] Credencial já registrada, tentando localizar...');
+            console.log(`⚠️ [Master] Credencial "${credName}" já registrada, tentando localizar...`);
             
             const retryResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
               method: 'GET',
@@ -639,16 +644,16 @@ serve(async (req) => {
             if (retryResp.ok) {
               const retryData = await retryResp.json();
               const retryCreds = Array.isArray(retryData) ? retryData : (retryData?.creds || retryData?.data || []);
-              const found = retryCreds.find((c: any) => c.name === MASTER_CRED_NAME);
+              const found = retryCreds.find((c: any) => c.name === credName);
               
               if (found?.id) {
-                console.log('✅ [Master] Credencial localizada após retry:', found.id);
+                console.log(`✅ [Master] Credencial "${credName}" localizada após retry:`, found.id);
                 return found.id;
               }
             }
           }
 
-          console.error('❌ [Master] Falha ao criar credencial:', createText);
+          console.error(`❌ [Master] Falha ao criar credencial "${credName}":`, createText);
           return null;
         }
 
@@ -661,14 +666,14 @@ serve(async (req) => {
         }
 
         if (!createdId) {
-          console.error('❌ [Master] ID da credencial não retornado:', createText);
+          console.error(`❌ [Master] ID da credencial "${credName}" não retornado:`, createText);
           return null;
         }
 
-        console.log('✅ [Master] Nova credencial criada:', createdId);
+        console.log(`✅ [Master] Nova credencial "${credName}" criada:`, createdId);
         return createdId;
       } catch (e) {
-        console.error('❌ [Master] Erro ao criar credencial:', e);
+        console.error(`❌ [Master] Erro ao criar credencial "${credName}":`, e);
         return null;
       }
     }
@@ -761,16 +766,9 @@ serve(async (req) => {
     const results: Record<string, { success: boolean; error?: string; botId?: string }> = {};
 
     // Sincronizar bots conforme solicitado
-    const botsToSync = botType ? [botType] : ['sales', 'recruitment', 'support'];
+    const botsToSync: BotType[] = botType ? [botType as BotType] : ['sales', 'recruitment', 'support'];
 
-    // 1. Garantir credenciais OpenAI ANTES de qualquer criação de bot
-    const openaiCredsId = await ensureOpenAiCreds(config.instance_name);
-    if (!openaiCredsId) {
-      throw new Error('Não foi possível obter/criar credenciais OpenAI na Evolution');
-    }
-    console.log('🔑 Usando openaiCredsId:', openaiCredsId);
-
-    // 2. Configurar default settings de OpenAI na instância (NECESSÁRIO para instância master!)
+    // Função para configurar settings de OpenAI na instância
     async function ensureOpenAiSettings(instanceName: string, credsId: string): Promise<boolean> {
       console.log('⚙️ Configurando OpenAI settings para instância:', instanceName);
       
@@ -809,12 +807,6 @@ serve(async (req) => {
         console.error('❌ Erro ao configurar settings:', e);
         return false;
       }
-    }
-
-    // Configurar settings antes de criar bots
-    const settingsOk = await ensureOpenAiSettings(config.instance_name, openaiCredsId);
-    if (!settingsOk) {
-      console.log('⚠️ Settings não configurados, mas continuando...');
     }
 
     // 3. NÃO deletar bots - usar UPDATE quando existir, CREATE apenas quando não existir
@@ -865,7 +857,21 @@ serve(async (req) => {
             continue;
         }
 
-        // 🔥 CORRIGIDO: Aplicar keywords quando configuradas
+        // 1. Obter credenciais OpenAI específicas para este bot
+        const openaiCredsId = await ensureOpenAiCreds(config.instance_name, bt);
+        if (!openaiCredsId) {
+          results[bt] = { success: false, error: 'Falha ao obter credenciais OpenAI' };
+          continue;
+        }
+        console.log(`🔑 Bot ${bt}: Usando openaiCredsId específico: ${openaiCredsId}`);
+
+        // 2. Configurar settings para este bot
+        const settingsOk = await ensureOpenAiSettings(config.instance_name, openaiCredsId);
+        if (!settingsOk) {
+          console.log(`⚠️ Settings não configurados para ${bt}, mas continuando...`);
+        }
+
+        // 3. Aplicar keywords quando configuradas
         const hasKeywords = triggerKeywords && triggerKeywords.length > 0 && triggerKeywords.some(k => k.trim());
         const triggerType = hasKeywords ? 'keyword' : 'all';
         const triggerValue = hasKeywords ? triggerKeywords.filter(k => k.trim()).join(',') : '';
@@ -883,7 +889,6 @@ serve(async (req) => {
             `Olá! 👋 Sou o ${botName}, assistente virtual da Mostralo. Como posso ajudar você hoje?`
           ],
           userMessages: ['Oi', 'Olá', 'Boa tarde', 'Boa noite', 'Bom dia'],
-          // 🔥 CORRIGIDO: Usar keywords quando disponíveis
           triggerType: triggerType,
           triggerOperator: 'contains',
           triggerValue: triggerValue,

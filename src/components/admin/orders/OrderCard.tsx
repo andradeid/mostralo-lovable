@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { OrderStatusBadge } from "./OrderStatusBadge";
 import { Badge } from "@/components/ui/badge";
-import { Phone, Package, Bike, DollarSign, Clock, AlertTriangle, Printer, Eye } from "lucide-react";
+import { Phone, Package, Bike, DollarSign, Clock, AlertTriangle, Printer, Eye, XCircle } from "lucide-react";
 import { Database } from "@/integrations/supabase/types";
 import { useOrderTimer } from "@/hooks/useOrderTimer";
 import { cn } from "@/lib/utils";
@@ -36,15 +36,20 @@ export const OrderCard = ({ order, onClick, isDragging, isViewed, onPrint, isSel
   const deliveryIcon = order.delivery_type === 'delivery' ? <Bike className="h-4 w-4" /> : <Package className="h-4 w-4" />;
   const { elapsedTime, color, minutes } = useOrderTimer(order.created_at);
   
+  // Detectar se pedido foi cancelado
+  const isCancelled = order.status === 'cancelado';
+  
   const paymentStatusColor = order.payment_status === 'paid' ? 'bg-green-500' : 
                              order.payment_status === 'cancelled' ? 'bg-red-500' : 
                              'bg-yellow-500';
 
-  const borderColorClass = color === 'green' ? 'border-t-green-500' : 
+  // Para pedidos cancelados, usar borda vermelha; caso contrário, usar cor baseada no timer
+  const borderColorClass = isCancelled ? 'border-t-red-500' :
+                          color === 'green' ? 'border-t-green-500' : 
                           color === 'yellow' ? 'border-t-yellow-500' : 
                           'border-t-red-500';
 
-  const isUrgent = color === 'red';
+  const isUrgent = color === 'red' && !isCancelled;
 
   const handleQuickPrint = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -111,7 +116,9 @@ export const OrderCard = ({ order, onClick, isDragging, isViewed, onPrint, isSel
         borderColorClass,
         isDragging && 'opacity-50',
         isUrgent && 'animate-pulse',
-        order.status === 'entrada' && !isViewed && 'animate-blink-border border-2'
+        order.status === 'entrada' && !isViewed && 'animate-blink-border border-2',
+        // Estilo visual para pedidos cancelados
+        isCancelled && 'bg-red-50/60 dark:bg-red-950/30 opacity-80'
       )}
       onClick={onClick}
     >
@@ -129,14 +136,24 @@ export const OrderCard = ({ order, onClick, isDragging, isViewed, onPrint, isSel
               className="h-4 w-4 rounded border-gray-300 cursor-pointer flex-shrink-0"
             />
           )}
-          <span className="text-sm font-semibold whitespace-nowrap">#{order.order_number}</span>
+          <span className={cn(
+            "text-sm font-semibold whitespace-nowrap",
+            isCancelled && "line-through text-muted-foreground"
+          )}>#{order.order_number}</span>
           {order.source === 'ifood' && (
             <Badge className="bg-red-500 hover:bg-red-600 text-white text-[10px] px-1.5 py-0">iF</Badge>
           )}
           {order.source === 'ifood' && isIfoodTestOrder(order.external_data) && (
             <Badge className="bg-amber-500 hover:bg-amber-600 text-white text-[10px] px-1.5 py-0">Teste</Badge>
           )}
-          <OrderStatusBadge status={order.status} />
+          {/* Badge CANCELADO para pedidos cancelados */}
+          {isCancelled && (
+            <Badge className="bg-red-600 hover:bg-red-700 text-white text-[10px] px-1.5 py-0 gap-0.5">
+              <XCircle className="h-3 w-3" />
+              CANCELADO
+            </Badge>
+          )}
+          {!isCancelled && <OrderStatusBadge status={order.status} />}
           {order.estimated_delivery_minutes && order.status !== 'concluido' && order.status !== 'cancelado' && (
             <EstimatedDeliveryBadge 
               createdAt={order.created_at}

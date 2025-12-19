@@ -899,13 +899,8 @@ serve(async (req) => {
     }
     console.log('🔑 Usando openaiCredsId:', openaiCredsId);
 
-    // 2. 🔥 CONFIGURAR SETTINGS NA INSTÂNCIA (OBRIGATÓRIO antes de criar bots!)
-    const settingsOk = await ensureOpenAiSettings(config.instance_name, openaiCredsId);
-    if (!settingsOk) {
-      console.warn('⚠️ Falha ao configurar settings, tentando continuar mesmo assim...');
-    }
-
     // 2. Buscar e deletar TODOS os bots existentes para recriar com configurações atualizadas
+    // 🔥 NOTA: Removido ensureOpenAiSettings - openai-bot-sync NÃO usa isso e funciona!
     const existingBots = await findExistingBots(config.instance_name);
     if (existingBots.length > 0) {
       console.log(`🗑️ Removendo ${existingBots.length} bot(s) existente(s)...`);
@@ -963,38 +958,34 @@ serve(async (req) => {
             continue;
         }
 
-        // 🔥 Criar novo bot COM CONFIGURAÇÕES CORRETAS (chatCompletion, não assistant!)
+        // 🔥 REPLICANDO EXATAMENTE O PAYLOAD DO openai-bot-sync QUE FUNCIONA!
         const createPayload = {
           enabled: true,
           openaiCredsId: openaiCredsId,
-          botType: 'chatCompletion', // 🔥 CORRIGIDO: era 'assistant'
+          botType: 'chatCompletion',
           model: evolutionConfig.openai_default_model || 'gpt-4o-mini',
-          systemMessages: [prompt],
-          // 🔥 CORREÇÃO: Valores padrão obrigatórios (arrays vazios causam erro!)
-          assistantMessages: [
-            `Olá! 👋 Sou o assistente virtual da Mostralo. Como posso ajudar você hoje?`
-          ],
-          userMessages: [
-            'Oi', 'Olá', 'Boa tarde', 'Boa noite', 'Bom dia', 
-            'Quero saber mais', 'Como funciona', 'Preço', 'Planos'
-          ],
           maxTokens: evolutionConfig.openai_max_tokens || 1000,
-          triggerType: 'keyword',
+          systemMessages: [prompt],
+          assistantMessages: [
+            `Olá! 👋 Sou o ${botName}, assistente virtual da Mostralo. Como posso ajudar você hoje?`
+          ],
+          userMessages: ['Oi', 'Olá', 'Boa tarde', 'Boa noite', 'Bom dia'],
+          // 🔥 IGUAL AO openai-bot-sync: triggerType 'all' e triggerValue vazio
+          triggerType: 'all',
           triggerOperator: 'contains',
-          triggerValue: triggerKeywords.join(','),
-          description: `Bot ${botName} - Mostralo`,
-          // 🔥 USAR VALORES DO BANCO AO INVÉS DE FIXOS
-          expire: behaviorConfig.expire_minutes,
-          keywordFinish: behaviorConfig.keyword_finish,
-          delayMessage: behaviorConfig.delay_message,
-          unknownMessage: behaviorConfig.unknown_message,
-          listeningFromMe: behaviorConfig.listening_from_me,
-          stopBotFromMe: behaviorConfig.stop_from_me,
-          keepOpen: behaviorConfig.keep_open,
-          debounceTime: behaviorConfig.debounce_time,
-          splitMessages: behaviorConfig.split_messages,
-          timePerChar: behaviorConfig.time_per_char,
-          ignoreJids: []
+          triggerValue: '',
+          // 🔥 NÃO ENVIAR description - openai-bot-sync não envia
+          expire: behaviorConfig.expire_minutes || 20,
+          keywordFinish: behaviorConfig.keyword_finish || '#SAIR',
+          delayMessage: behaviorConfig.delay_message || 4000,
+          unknownMessage: behaviorConfig.unknown_message || 'Desculpe, não entendi.',
+          listeningFromMe: behaviorConfig.listening_from_me || false,
+          stopBotFromMe: behaviorConfig.stop_from_me !== undefined ? behaviorConfig.stop_from_me : true,
+          keepOpen: behaviorConfig.keep_open || false,
+          debounceTime: behaviorConfig.debounce_time || 10,
+          ignoreJids: [],
+          splitMessages: behaviorConfig.split_messages !== undefined ? behaviorConfig.split_messages : true,
+          timePerChar: behaviorConfig.time_per_char || 0,
         };
 
         console.log(`📤 Criando bot ${bt} com ${prompt.length} caracteres de prompt`);

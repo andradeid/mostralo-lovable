@@ -29,6 +29,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PromptPreviewCard } from "./PromptPreviewCard";
 import { MasterBotBehaviorCard } from "./MasterBotBehaviorCard";
 import { BotSyncStatusBadge } from "./BotSyncStatusBadge";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { generateSalesPrompt, PromptType } from "@/utils/salesPromptGenerator";
 import { generateRecruitmentPrompt, RecruitmentPromptType, BonusTier } from "@/utils/recruitmentPromptGenerator";
@@ -110,7 +111,10 @@ function KeywordsEditor({
 
   return (
     <div className="space-y-2">
-      <Label>{label}</Label>
+      <div className="flex items-center gap-1.5">
+        <Label>{label}</Label>
+        <InfoTooltip text="Palavras-chave que, quando presentes na mensagem do cliente, ativam este bot. Ex: 'preço', 'quanto custa', 'quero saber mais'. Clique na keyword para remover." />
+      </div>
       <div className="flex gap-2">
         <input
           type="text"
@@ -148,10 +152,10 @@ function SalesApproachSelector({
   value: SalesApproach; 
   onChange: (v: SalesApproach) => void;
 }) {
-  const options: { value: SalesApproach; label: string; icon: typeof Zap; description: string }[] = [
-    { value: 'basic', label: 'Consultivo', icon: MessageSquare, description: 'Tom amigável e educador' },
-    { value: 'intermediate', label: 'Persuasivo', icon: TrendingUp, description: 'Foco em números e resultados' },
-    { value: 'aggressive', label: 'Urgência', icon: Flame, description: 'FOMO e pressão direta' },
+  const options: { value: SalesApproach; label: string; icon: typeof Zap; description: string; tooltip: string }[] = [
+    { value: 'basic', label: 'Consultivo', icon: MessageSquare, description: 'Tom amigável e educador', tooltip: 'Abordagem suave e educativa. Ideal para leads que precisam entender o produto antes de comprar.' },
+    { value: 'intermediate', label: 'Persuasivo', icon: TrendingUp, description: 'Foco em números e resultados', tooltip: 'Abordagem focada em benefícios e ROI. Usa dados e comparações para convencer.' },
+    { value: 'aggressive', label: 'Urgência', icon: Flame, description: 'FOMO e pressão direta', tooltip: 'Abordagem direta com senso de urgência. Usa escassez e FOMO para acelerar a decisão.' },
   ];
 
   return (
@@ -162,11 +166,12 @@ function SalesApproachSelector({
           type="button"
           onClick={() => onChange(opt.value)}
           className={cn(
-            "flex flex-col items-center p-3 rounded-lg border-2 transition-all",
+            "flex flex-col items-center p-3 rounded-lg border-2 transition-all relative group",
             value === opt.value 
               ? "border-primary bg-primary/5" 
               : "border-transparent bg-muted/50 hover:bg-muted"
           )}
+          title={opt.tooltip}
         >
           <opt.icon className={cn(
             "w-5 h-5 mb-1",
@@ -389,6 +394,7 @@ export function MasterBotConfigTab() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Label htmlFor="sales-toggle">Ativo</Label>
+                  <InfoTooltip text="Quando ativado, o bot responde automaticamente às mensagens que contêm as keywords configuradas. Desativar pausa o bot sem excluí-lo." />
                   <Switch
                     id="sales-toggle"
                     checked={config.sales_bot_enabled}
@@ -402,7 +408,10 @@ export function MasterBotConfigTab() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label>Nível de Abordagem</Label>
+                <div className="flex items-center gap-1.5">
+                  <Label>Nível de Abordagem</Label>
+                  <InfoTooltip text="Define o tom e intensidade das respostas do bot. Consultivo é mais educativo, Persuasivo foca em benefícios, e Urgência usa FOMO e pressão." />
+                </div>
                 <SalesApproachSelector
                   value={config.sales_bot_approach}
                   onChange={(v) => updateApproach('sales', v)}

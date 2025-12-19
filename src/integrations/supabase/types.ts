@@ -1917,6 +1917,128 @@ export type Database = {
         }
         Relationships: []
       }
+      master_whatsapp_config: {
+        Row: {
+          admin_user_id: string | null
+          created_at: string | null
+          evolution_instance_id: string | null
+          id: string
+          instance_name: string | null
+          instance_phone: string | null
+          instance_status: string | null
+          recruitment_bot_approach: string | null
+          recruitment_bot_enabled: boolean | null
+          recruitment_bot_evolution_id: string | null
+          recruitment_bot_keywords: string[] | null
+          sales_bot_approach: string | null
+          sales_bot_enabled: boolean | null
+          sales_bot_evolution_id: string | null
+          sales_bot_keywords: string[] | null
+          support_bot_custom_prompt: string | null
+          support_bot_enabled: boolean | null
+          support_bot_evolution_id: string | null
+          support_bot_keywords: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          admin_user_id?: string | null
+          created_at?: string | null
+          evolution_instance_id?: string | null
+          id?: string
+          instance_name?: string | null
+          instance_phone?: string | null
+          instance_status?: string | null
+          recruitment_bot_approach?: string | null
+          recruitment_bot_enabled?: boolean | null
+          recruitment_bot_evolution_id?: string | null
+          recruitment_bot_keywords?: string[] | null
+          sales_bot_approach?: string | null
+          sales_bot_enabled?: boolean | null
+          sales_bot_evolution_id?: string | null
+          sales_bot_keywords?: string[] | null
+          support_bot_custom_prompt?: string | null
+          support_bot_enabled?: boolean | null
+          support_bot_evolution_id?: string | null
+          support_bot_keywords?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          admin_user_id?: string | null
+          created_at?: string | null
+          evolution_instance_id?: string | null
+          id?: string
+          instance_name?: string | null
+          instance_phone?: string | null
+          instance_status?: string | null
+          recruitment_bot_approach?: string | null
+          recruitment_bot_enabled?: boolean | null
+          recruitment_bot_evolution_id?: string | null
+          recruitment_bot_keywords?: string[] | null
+          sales_bot_approach?: string | null
+          sales_bot_enabled?: boolean | null
+          sales_bot_evolution_id?: string | null
+          sales_bot_keywords?: string[] | null
+          support_bot_custom_prompt?: string | null
+          support_bot_enabled?: boolean | null
+          support_bot_evolution_id?: string | null
+          support_bot_keywords?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      master_whatsapp_sessions: {
+        Row: {
+          active_bot_type: string | null
+          bot_paused: boolean | null
+          config_id: string | null
+          contact_name: string | null
+          created_at: string | null
+          id: string
+          last_message_at: string | null
+          messages_count: number | null
+          paused_at: string | null
+          paused_reason: string | null
+          phone_number: string
+          updated_at: string | null
+        }
+        Insert: {
+          active_bot_type?: string | null
+          bot_paused?: boolean | null
+          config_id?: string | null
+          contact_name?: string | null
+          created_at?: string | null
+          id?: string
+          last_message_at?: string | null
+          messages_count?: number | null
+          paused_at?: string | null
+          paused_reason?: string | null
+          phone_number: string
+          updated_at?: string | null
+        }
+        Update: {
+          active_bot_type?: string | null
+          bot_paused?: boolean | null
+          config_id?: string | null
+          contact_name?: string | null
+          created_at?: string | null
+          id?: string
+          last_message_at?: string | null
+          messages_count?: number | null
+          paused_at?: string | null
+          paused_reason?: string | null
+          phone_number?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "master_whatsapp_sessions_config_id_fkey"
+            columns: ["config_id"]
+            isOneToOne: false
+            referencedRelation: "master_whatsapp_config"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       merchant_contract_acceptance: {
         Row: {
           accepted_at: string

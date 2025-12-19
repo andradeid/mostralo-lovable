@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useMasterWhatsAppConfig } from "@/hooks/useMasterWhatsAppConfig";
 import { toast } from "sonner";
@@ -260,6 +261,9 @@ export default function MasterWhatsAppPage() {
   const [loadingBots, setLoadingBots] = useState(false);
   const [syncingBotId, setSyncingBotId] = useState<string | null>(null);
   const [stats, setStats] = useState({ totalSessions: 0, totalMessages: 0, pausedSessions: 0 });
+  const [deletingBotId, setDeletingBotId] = useState<string | null>(null);
+  const [botToDelete, setBotToDelete] = useState<EvolutionBot | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   useEffect(() => {
     if (config?.instance_name) {
@@ -354,6 +358,50 @@ export default function MasterWhatsAppPage() {
     } finally {
       setSyncingBotId(null);
     }
+  };
+
+  // Deletar bot
+  const handleDeleteBot = async () => {
+    if (!botToDelete?.botType || !config?.id) {
+      toast.error('Não foi possível identificar o bot para deletar');
+      return;
+    }
+
+    setDeletingBotId(botToDelete.id);
+    try {
+      const { data, error } = await supabase.functions.invoke('master-bot-delete', {
+        body: {
+          configId: config.id,
+          botType: botToDelete.botType,
+          evolutionBotId: botToDelete.id
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast.success(`Bot de ${botToDelete.botTypeName?.replace(/^[^\s]+\s/, '')} deletado!`);
+        setShowDeleteDialog(false);
+        setBotToDelete(null);
+        await fetchEvolutionBots();
+      } else {
+        throw new Error(data?.error || 'Erro ao deletar bot');
+      }
+    } catch (error) {
+      console.error('Erro ao deletar bot:', error);
+      toast.error(error instanceof Error ? error.message : 'Erro ao deletar bot');
+    } finally {
+      setDeletingBotId(null);
+    }
+  };
+
+  const openDeleteDialog = (bot: EvolutionBot) => {
+    if (!bot.botType) {
+      toast.error('Não é possível deletar um bot não vinculado');
+      return;
+    }
+    setBotToDelete(bot);
+    setShowDeleteDialog(true);
   };
 
   // Buscar histórico de mensagens de teste
@@ -1185,31 +1233,57 @@ export default function MasterWhatsAppPage() {
                             {bot.id?.slice(0, 8)}...
                           </TableCell>
                           <TableCell>
-                            {bot.botType ? (
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => handleSyncIndividualBot(bot)}
-                                      disabled={syncingBotId === bot.id || syncing}
-                                    >
-                                      {syncingBotId === bot.id ? (
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                      ) : (
-                                        <RefreshCw className="w-4 h-4" />
-                                      )}
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    Sincronizar bot de {bot.botTypeName?.replace(/^[^\s]+\s/, '')}
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            ) : (
-                              <span className="text-muted-foreground text-xs">-</span>
-                            )}
+                            <div className="flex items-center gap-1">
+                              {bot.botType ? (
+                                <>
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => handleSyncIndividualBot(bot)}
+                                          disabled={syncingBotId === bot.id || syncing || deletingBotId === bot.id}
+                                        >
+                                          {syncingBotId === bot.id ? (
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                          ) : (
+                                            <RefreshCw className="w-4 h-4" />
+                                          )}
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        Sincronizar bot de {bot.botTypeName?.replace(/^[^\s]+\s/, '')}
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => openDeleteDialog(bot)}
+                                          disabled={syncingBotId === bot.id || syncing || deletingBotId === bot.id}
+                                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                        >
+                                          {deletingBotId === bot.id ? (
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                          ) : (
+                                            <Trash2 className="w-4 h-4" />
+                                          )}
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        Deletar bot de {bot.botTypeName?.replace(/^[^\s]+\s/, '')}
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                </>
+                              ) : (
+                                <span className="text-muted-foreground text-xs">-</span>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -1228,6 +1302,57 @@ export default function MasterWhatsAppPage() {
           <MasterSessionsTab />
         </TabsContent>
       </Tabs>
+
+      {/* Modal de Confirmação de Delete */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash2 className="w-5 h-5" />
+              Deletar Bot
+            </DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja deletar o bot de <strong>{botToDelete?.botTypeName?.replace(/^[^\s]+\s/, '')}</strong>?
+              <br /><br />
+              Esta ação irá:
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>Remover o bot da Evolution API</li>
+                <li>O bot deixará de responder mensagens</li>
+                <li>Você poderá recriá-lo depois sincronizando novamente</li>
+              </ul>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDeleteDialog(false);
+                setBotToDelete(null);
+              }}
+              disabled={!!deletingBotId}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteBot}
+              disabled={!!deletingBotId}
+            >
+              {deletingBotId ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Deletando...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Confirmar Exclusão
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

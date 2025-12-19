@@ -87,6 +87,53 @@ export function useIFoodIntegration(storeId: string | null) {
     fetchEvents();
   }, [fetchIntegration, fetchEvents]);
 
+  // Polling automático a cada 30 segundos quando conectado
+  useEffect(() => {
+    if (!storeId || !integration?.is_active || !integration?.access_token) {
+      return;
+    }
+
+    // Verificar se token não está expirado
+    if (integration.token_expires_at && new Date(integration.token_expires_at) < new Date()) {
+      return;
+    }
+
+    console.log('[iFood] Iniciando polling automático (30s)...');
+    
+    const interval = setInterval(async () => {
+      console.log('[iFood] Polling automático executando...');
+      try {
+        const { data, error } = await supabase.functions.invoke('ifood-webhook', {
+          body: {
+            action: 'poll_events',
+            store_id: storeId
+          }
+        });
+
+        if (error) {
+          console.error('[iFood] Erro no polling:', error);
+          return;
+        }
+
+        if (data?.events_count > 0) {
+          console.log(`[iFood] ${data.events_count} evento(s) recebido(s)`);
+          toast({
+            title: 'iFood: Novos eventos',
+            description: `${data.events_count} evento(s) processado(s)`
+          });
+          await fetchEvents();
+        }
+      } catch (err) {
+        console.error('[iFood] Erro no polling automático:', err);
+      }
+    }, 30000); // 30 segundos
+
+    return () => {
+      console.log('[iFood] Parando polling automático');
+      clearInterval(interval);
+    };
+  }, [storeId, integration?.is_active, integration?.access_token, integration?.token_expires_at, fetchEvents, toast]);
+
   // Salvar credenciais
   const saveCredentials = async (clientId: string, clientSecret: string) => {
     if (!storeId) return false;

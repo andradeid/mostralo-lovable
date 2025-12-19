@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useMasterWhatsAppConfig } from "@/hooks/useMasterWhatsAppConfig";
 import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   Loader2, 
   Smartphone, 
@@ -21,7 +22,8 @@ import {
   Bot,
   MessageSquare,
   Users,
-  HelpCircle
+  HelpCircle,
+  Send
 } from "lucide-react";
 import { MasterBotConfigTab } from "@/components/admin/master-whatsapp/MasterBotConfigTab";
 import { MasterSessionsTab } from "@/components/admin/master-whatsapp/MasterSessionsTab";
@@ -32,6 +34,8 @@ export default function MasterWhatsAppPage() {
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [instanceStatus, setInstanceStatus] = useState<string>("disconnected");
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
+  const [testPhone, setTestPhone] = useState("");
+  const [testMessage, setTestMessage] = useState("");
 
   useEffect(() => {
     if (config?.instance_name) {
@@ -144,6 +148,42 @@ export default function MasterWhatsAppPage() {
     }
   };
 
+  // Enviar mensagem de teste
+  const sendTestMessage = async () => {
+    if (!testPhone.trim()) {
+      toast.error('Digite o número de telefone');
+      return;
+    }
+
+    setLoadingAction('sendTest');
+    try {
+      const { data, error } = await supabase.functions.invoke('master-whatsapp-instance', {
+        body: { 
+          action: 'sendTest', 
+          phoneNumber: testPhone.trim(),
+          message: testMessage.trim() || undefined
+        }
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      toast.success('✅ Mensagem enviada com sucesso!');
+      setTestPhone("");
+      setTestMessage("");
+    } catch (error) {
+      console.error('Erro:', error);
+      toast.error(error instanceof Error ? error.message : 'Erro ao enviar mensagem');
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
   const getStatusBadge = () => {
     switch (instanceStatus) {
       case 'open':
@@ -196,7 +236,7 @@ export default function MasterWhatsAppPage() {
 
         {/* Tab Conexão */}
         <TabsContent value="connection">
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-3">
             {/* Criar/Gerenciar Instância */}
             <Card>
               <CardHeader>
@@ -307,6 +347,57 @@ export default function MasterWhatsAppPage() {
                     </p>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+
+            {/* Card de Teste de Envio */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Send className="w-5 h-5" />
+                  Testar Envio
+                </CardTitle>
+                <CardDescription>
+                  Envie uma mensagem de teste
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Número do WhatsApp</Label>
+                  <Input
+                    placeholder="ex: 11999998888"
+                    value={testPhone}
+                    onChange={(e) => setTestPhone(e.target.value)}
+                    disabled={instanceStatus !== 'connected'}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Com DDD, sem espaços
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Mensagem (opcional)</Label>
+                  <Textarea
+                    placeholder="✅ Mensagem de teste do WhatsApp Master"
+                    value={testMessage}
+                    onChange={(e) => setTestMessage(e.target.value)}
+                    disabled={instanceStatus !== 'connected'}
+                    rows={3}
+                  />
+                </div>
+                
+                <Button 
+                  onClick={sendTestMessage}
+                  disabled={!testPhone || instanceStatus !== 'connected' || loadingAction === 'sendTest'}
+                  className="w-full"
+                >
+                  {loadingAction === 'sendTest' ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4 mr-2" />
+                  )}
+                  Enviar Teste
+                </Button>
               </CardContent>
             </Card>
           </div>

@@ -271,6 +271,41 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
       updateData.completed_at = new Date().toISOString();
     }
 
+    // Se for pedido do iFood, sincronizar status com a API
+    if (order.source === 'ifood' && order.external_id) {
+      try {
+        console.log('🔄 Sincronizando status com iFood...');
+        const { data: syncResult, error: syncError } = await supabase.functions.invoke('ifood-status-update', {
+          body: {
+            order_id: order.id,
+            new_status: newStatus
+          }
+        });
+
+        if (syncError) {
+          console.error('Erro ao sincronizar com iFood:', syncError);
+          toast.error('Erro ao sincronizar com iFood. Tente novamente.');
+          setIsLoading(false);
+          return;
+        }
+
+        if (!syncResult.success && !syncResult.skipped) {
+          toast.error(syncResult.error || 'Erro ao sincronizar com iFood');
+          setIsLoading(false);
+          return;
+        }
+
+        if (syncResult.success && !syncResult.skipped) {
+          console.log('✅ Status sincronizado com iFood');
+        }
+      } catch (error) {
+        console.error('Erro ao chamar ifood-status-update:', error);
+        toast.error('Erro ao conectar com iFood. Verifique a integração.');
+        setIsLoading(false);
+        return;
+      }
+    }
+
     const { error } = await supabase
       .from('orders')
       .update(updateData)
@@ -296,7 +331,14 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     }
 
     setIsLoading(false);
-    toast.success('Status atualizado com sucesso!');
+    
+    // Mensagem diferenciada para pedidos iFood
+    if (order.source === 'ifood') {
+      toast.success('Status atualizado e sincronizado com iFood!');
+    } else {
+      toast.success('Status atualizado com sucesso!');
+    }
+    
     setSelectedStatus(newStatus);
     onStatusChange();
   };
@@ -335,6 +377,39 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     if (!order) return;
 
     setIsLoading(true);
+
+    // Se for pedido do iFood, sincronizar cancelamento
+    if (order.source === 'ifood' && order.external_id) {
+      try {
+        console.log('🔄 Sincronizando cancelamento com iFood...');
+        const { data: syncResult, error: syncError } = await supabase.functions.invoke('ifood-status-update', {
+          body: {
+            order_id: order.id,
+            new_status: 'cancelado',
+            cancellation_reason: reason
+          }
+        });
+
+        if (syncError) {
+          console.error('Erro ao sincronizar cancelamento com iFood:', syncError);
+          toast.error('Erro ao cancelar no iFood. Tente novamente.');
+          setIsLoading(false);
+          return;
+        }
+
+        if (!syncResult.success && !syncResult.skipped) {
+          toast.error(syncResult.error || 'Erro ao cancelar no iFood');
+          setIsLoading(false);
+          return;
+        }
+      } catch (error) {
+        console.error('Erro ao chamar ifood-status-update:', error);
+        toast.error('Erro ao conectar com iFood.');
+        setIsLoading(false);
+        return;
+      }
+    }
+
     const { error } = await supabase
       .from('orders')
       .update({
@@ -354,7 +429,12 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
       return;
     }
 
-    toast.success('Pedido cancelado com sucesso');
+    if (order.source === 'ifood') {
+      toast.success('Pedido cancelado e sincronizado com iFood');
+    } else {
+      toast.success('Pedido cancelado com sucesso');
+    }
+    
     setSelectedStatus('cancelado');
     onStatusChange();
     onOpenChange(false);

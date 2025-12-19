@@ -6,6 +6,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Função auxiliar para aguardar entre operações (evita rate limit na Evolution API)
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // Tipos de abordagem
 type SalesApproach = 'basic' | 'intermediate' | 'aggressive';
 type RecruitmentApproach = 'cold_lead' | 'moderate' | 'aggressive' | 'super_aggressive';
@@ -967,6 +972,12 @@ serve(async (req) => {
                 
                 results[bt] = { success: true, botId: newBotId };
                 console.log(`✅ Bot ${bt} criado com ID: ${newBotId}`);
+                
+                // Aguardar antes do próximo bot para evitar rate limit na Evolution API
+                if (botsToSync.indexOf(bt) < botsToSync.length - 1) {
+                  console.log(`⏳ Aguardando 2.5s antes do próximo bot...`);
+                  await delay(2500);
+                }
                 continue;
               }
             }
@@ -994,6 +1005,12 @@ serve(async (req) => {
         } else {
           results[bt] = { success: true, botId: existingBotId };
           console.log(`✅ Bot ${bt} atualizado (ID mantido: ${existingBotId})`);
+        }
+
+        // Aguardar antes do próximo bot para evitar rate limit na Evolution API
+        if (botsToSync.indexOf(bt) < botsToSync.length - 1) {
+          console.log(`⏳ Aguardando 2.5s antes do próximo bot...`);
+          await delay(2500);
         }
 
       } catch (botError) {

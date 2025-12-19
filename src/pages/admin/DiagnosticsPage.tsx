@@ -10,6 +10,7 @@ import { WebVitalsCard } from '@/components/admin/diagnostics/WebVitalsCard';
 import { PerformanceScoreCard } from '@/components/admin/diagnostics/PerformanceScoreCard';
 import { DiagnosticHistory } from '@/components/admin/diagnostics/DiagnosticHistory';
 import { DiagnosticInsights } from '@/components/admin/diagnostics/DiagnosticInsights';
+import { VpsRecommendationsCard } from '@/components/admin/diagnostics/VpsRecommendationsCard';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function DiagnosticsPage() {
@@ -124,6 +125,12 @@ export default function DiagnosticsPage() {
       {/* Web Vitals - Full width */}
       <WebVitalsCard 
         vitals={result?.webVitals ?? null}
+        isLoading={isRunning}
+      />
+      
+      {/* VPS Recommendations - Full width */}
+      <VpsRecommendationsCard 
+        currentMetrics={result}
         isLoading={isRunning}
       />
       

@@ -612,6 +612,19 @@ serve(async (req) => {
         return mostraloCredential.id;
       }
 
+      // Se já temos alguma credencial (qualquer uma), usar a primeira
+      if (existingCreds.length > 0 && existingCreds[0]?.id) {
+        const firstCred = existingCreds[0];
+        console.log('♻️ Usando primeira credencial disponível:', firstCred.id, firstCred.name || '');
+        
+        await supabase
+          .from('evolution_config')
+          .update({ openai_creds_id: firstCred.id, updated_at: new Date().toISOString() })
+          .eq('id', evolutionConfig.id);
+        
+        return firstCred.id;
+      }
+
       // Criar nova credencial
       console.log('🆕 Criando nova credencial OpenAI...');
       
@@ -631,7 +644,83 @@ serve(async (req) => {
         const createText = await createResp.text();
         console.log('📥 Resposta criação credencial:', createResp.status, createText);
 
+        // Se a API key já está registrada, buscar novamente as credenciais
         if (!createResp.ok) {
+          const isAlreadyRegistered = createText.includes('already registered') || 
+                                       createText.includes('already exists');
+          
+          if (isAlreadyRegistered) {
+            console.log('⚠️ API key já registrada, buscando credenciais novamente...');
+            
+            // Buscar em TODAS as instâncias - a Evolution pode ter a credencial em outro lugar
+            // Tentar buscar novamente na mesma instância
+            const retryResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
+              method: 'GET',
+              headers: { 'apikey': evolutionConfig.api_key },
+            });
+            
+            if (retryResp.ok) {
+              const retryData = await retryResp.json();
+              const retryCreds = Array.isArray(retryData) ? retryData : (retryData?.creds || retryData?.data || []);
+              console.log('📋 Credenciais após retry:', retryCreds.length);
+              
+              if (retryCreds.length > 0 && retryCreds[0]?.id) {
+                const foundCred = retryCreds[0];
+                console.log('✅ Credencial encontrada após retry:', foundCred.id);
+                
+                await supabase
+                  .from('evolution_config')
+                  .update({ openai_creds_id: foundCred.id, updated_at: new Date().toISOString() })
+                  .eq('id', evolutionConfig.id);
+                
+                return foundCred.id;
+              }
+            }
+            
+            // Se ainda não encontrou, tentar buscar todas as instâncias
+            console.log('🔍 Buscando credenciais em fetch/instances...');
+            try {
+              const instancesResp = await fetch(`${evolutionUrl}/instance/fetchInstances`, {
+                method: 'GET',
+                headers: { 'apikey': evolutionConfig.api_key },
+              });
+              
+              if (instancesResp.ok) {
+                const instances = await instancesResp.json();
+                console.log('📋 Instâncias encontradas:', Array.isArray(instances) ? instances.length : 0);
+                
+                // Para cada instância, buscar credenciais
+                for (const inst of (Array.isArray(instances) ? instances : [])) {
+                  const instName = inst.name || inst.instanceName || inst.instance?.instanceName;
+                  if (!instName) continue;
+                  
+                  const instCredsResp = await fetch(`${evolutionUrl}/openai/creds/${instName}`, {
+                    method: 'GET',
+                    headers: { 'apikey': evolutionConfig.api_key },
+                  });
+                  
+                  if (instCredsResp.ok) {
+                    const instCredsData = await instCredsResp.json();
+                    const instCreds = Array.isArray(instCredsData) ? instCredsData : (instCredsData?.creds || instCredsData?.data || []);
+                    
+                    if (instCreds.length > 0 && instCreds[0]?.id) {
+                      console.log(`✅ Credencial encontrada na instância ${instName}:`, instCreds[0].id);
+                      
+                      await supabase
+                        .from('evolution_config')
+                        .update({ openai_creds_id: instCreds[0].id, updated_at: new Date().toISOString() })
+                        .eq('id', evolutionConfig.id);
+                      
+                      return instCreds[0].id;
+                    }
+                  }
+                }
+              }
+            } catch (instError) {
+              console.log('⚠️ Erro ao buscar instâncias:', instError);
+            }
+          }
+          
           console.error('❌ Falha ao criar credencial:', createText);
           return null;
         }

@@ -588,13 +588,19 @@ const OrdersPage = () => {
   };
 
   const getOrdersByStatus = (status: OrderStatus, limit?: number) => {
-    const filtered = getFilteredOrders().filter((order) => order.status === status);
+    const filtered = getFilteredOrders().filter((order) => {
+      // Para "concluido", incluir também pedidos "cancelado"
+      if (status === 'concluido') {
+        return order.status === 'concluido' || order.status === 'cancelado';
+      }
+      return order.status === status;
+    });
     
     // Se for status "concluido", ordenar por data de conclusão (mais recentes primeiro)
     if (status === 'concluido') {
       const sorted = filtered.sort((a, b) => {
-        const dateA = new Date(a.completed_at || a.updated_at).getTime();
-        const dateB = new Date(b.completed_at || b.updated_at).getTime();
+        const dateA = new Date(a.completed_at || a.cancelled_at || a.updated_at).getTime();
+        const dateB = new Date(b.completed_at || b.cancelled_at || b.updated_at).getTime();
         return dateB - dateA;
       });
       return limit ? sorted.slice(0, limit) : sorted;

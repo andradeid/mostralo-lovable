@@ -22,6 +22,7 @@ import { Phone, Mail, MapPin, Package, CreditCard, FileText, X, Printer, Eye, Na
 import { mockOrderItems } from "@/utils/mockOrders";
 import { printOrder, executePrint } from "@/utils/printOrder";
 import { PrintPreviewDialog } from "@/components/admin/print/PrintPreviewDialog";
+import { isIfoodTestOrder } from "@/utils/ifoodHelpers";
 
 type Order = Database['public']['Tables']['orders']['Row'];
 type OrderItem = Database['public']['Tables']['order_items']['Row'];
@@ -520,6 +521,9 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
                 <DialogTitle className="text-2xl font-bold">{order.order_number}</DialogTitle>
                 {order.source === 'ifood' && (
                   <Badge className="bg-red-500 hover:bg-red-600 text-white">iFood</Badge>
+                )}
+                {order.source === 'ifood' && isIfoodTestOrder(order.external_data) && (
+                  <Badge className="bg-amber-500 hover:bg-amber-600 text-white">Teste</Badge>
                 )}
               </div>
               <OrderStatusBadge status={selectedStatus || order.status} />

@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { PrintPreviewDialog } from "@/components/admin/print/PrintPreviewDialog";
 import { useState } from "react";
 import { EstimatedDeliveryBadge } from "./EstimatedDeliveryBadge";
+import { isIfoodTestOrder } from "@/utils/ifoodHelpers";
 
 type Order = Database['public']['Tables']['orders']['Row'];
 
@@ -131,6 +132,9 @@ export const OrderCard = ({ order, onClick, isDragging, isViewed, onPrint, isSel
           <span className="text-sm font-semibold whitespace-nowrap">#{order.order_number}</span>
           {order.source === 'ifood' && (
             <Badge className="bg-red-500 hover:bg-red-600 text-white text-[10px] px-1.5 py-0">iF</Badge>
+          )}
+          {order.source === 'ifood' && isIfoodTestOrder(order.external_data) && (
+            <Badge className="bg-amber-500 hover:bg-amber-600 text-white text-[10px] px-1.5 py-0">Teste</Badge>
           )}
           <OrderStatusBadge status={order.status} />
           {order.estimated_delivery_minutes && order.status !== 'concluido' && order.status !== 'cancelado' && (

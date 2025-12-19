@@ -23,6 +23,7 @@ import {
   HelpCircle,
   X
 } from "lucide-react";
+import { isIfoodTestOrder } from "@/utils/ifoodHelpers";
 
 interface OrderDetail {
   id: string;
@@ -41,6 +42,7 @@ interface OrderDetail {
   notes?: string;
   source?: string;
   short_reference?: string;
+  external_data?: unknown;
   stores?: {
     name: string;
     logo_url?: string;
@@ -313,6 +315,9 @@ export default function CustomerOrderDetailModal({
                   <span>Pedido nº {order.order_number}</span>
                   {order.source === 'ifood' && (
                     <Badge className="bg-red-500 text-white text-[10px] px-1.5 py-0">iFood</Badge>
+                  )}
+                  {order.source === 'ifood' && isIfoodTestOrder(order.external_data) && (
+                    <Badge className="bg-amber-500 text-white text-[10px] px-1.5 py-0">Teste</Badge>
                   )}
                   <span>• {format(new Date(order.created_at), "dd/MM 'às' HH:mm", { locale: ptBR })}</span>
                 </p>

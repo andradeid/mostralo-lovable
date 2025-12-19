@@ -104,6 +104,7 @@ export interface MasterWhatsAppConfig {
   notify_daily_summary: boolean;
   // OpenAI
   openai_api_key: string | null;
+  openai_model: string;
   // Timestamps
   created_at: string;
   updated_at: string;
@@ -531,6 +532,15 @@ export function useMasterWhatsAppConfig() {
     return success;
   };
 
+  // Atualizar modelo OpenAI
+  const updateOpenAIModel = async (model: string) => {
+    const success = await updateConfig({ openai_model: model } as Partial<MasterWhatsAppConfig>);
+    if (success) {
+      toast.success(`Modelo alterado para ${model}`);
+    }
+    return success;
+  };
+
   // Pausar/retomar sessão
   const toggleSessionPause = async (sessionId: string, pause: boolean, reason?: string) => {
     try {
@@ -569,6 +579,7 @@ export function useMasterWhatsAppConfig() {
     updateKeywords,
     updateSupportPrompt,
     updatePrimaryBotType,
+    updateOpenAIModel,
     toggleSessionPause,
     hasUnsyncedChanges,
     lastSyncedAt

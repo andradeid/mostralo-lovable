@@ -1975,6 +1975,7 @@ export type Database = {
           notify_new_store: boolean | null
           notify_payment_received: boolean | null
           openai_api_key: string | null
+          openai_model: string | null
           primary_bot_type: string | null
           recruitment_bot_approach: string | null
           recruitment_bot_auto_reactivate_minutes: number | null
@@ -2041,6 +2042,7 @@ export type Database = {
           notify_new_store?: boolean | null
           notify_payment_received?: boolean | null
           openai_api_key?: string | null
+          openai_model?: string | null
           primary_bot_type?: string | null
           recruitment_bot_approach?: string | null
           recruitment_bot_auto_reactivate_minutes?: number | null
@@ -2107,6 +2109,7 @@ export type Database = {
           notify_new_store?: boolean | null
           notify_payment_received?: boolean | null
           openai_api_key?: string | null
+          openai_model?: string | null
           primary_bot_type?: string | null
           recruitment_bot_approach?: string | null
           recruitment_bot_auto_reactivate_minutes?: number | null

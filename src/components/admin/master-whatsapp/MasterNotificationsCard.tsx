@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { CountryCodeSelect } from "@/components/ui/country-code-select";
-import { Bell, User, Store, Briefcase, Package, CreditCard, AlertTriangle, BarChart3, Save, Loader2 } from "lucide-react";
+import { Bell, User, Store, Briefcase, Package, CreditCard, AlertTriangle, BarChart3, Save, Loader2, Send } from "lucide-react";
 import { formatBrazilianPhone, formatInternationalPhone } from "@/lib/utils";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import type { MasterWhatsAppConfig } from "@/hooks/useMasterWhatsAppConfig";
 
 interface NotificationOption {
@@ -80,6 +81,7 @@ export function MasterNotificationsCard({ config, updateConfig, instanceStatus }
   const [countryCode, setCountryCode] = useState(config?.notification_country_code || '+55');
   const [phone, setPhone] = useState(config?.notification_phone || '');
   const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
 
   const handleSavePhone = async () => {
     if (!phone.trim()) {
@@ -99,6 +101,60 @@ export function MasterNotificationsCard({ config, updateConfig, instanceStatus }
       }
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleTestNotifications = async () => {
+    const savedPhone = config?.notification_phone;
+    const savedCountryCode = config?.notification_country_code || '+55';
+    
+    if (!savedPhone) {
+      toast.error('Salve um número para notificações primeiro');
+      return;
+    }
+
+    setTesting(true);
+    try {
+      const activeNotifications: string[] = [];
+      
+      if (config?.notify_new_lead) activeNotifications.push('👤 Novo Lead cadastrado');
+      if (config?.notify_new_store) activeNotifications.push('🏪 Novo lojista assinou');
+      if (config?.notify_new_seller) activeNotifications.push('💼 Vendedor se cadastrou');
+      if (config?.notify_new_order) activeNotifications.push('📦 Novo pedido recebido');
+      if (config?.notify_payment_received) activeNotifications.push('💳 Pagamento processado');
+      if (config?.notify_instance_disconnected) activeNotifications.push('⚠️ Instância desconectou');
+      if (config?.notify_daily_summary) activeNotifications.push('📊 Resumo diário');
+
+      const testMessage = `🔔 *TESTE DE NOTIFICAÇÕES MOSTRALO*
+
+Você está recebendo este teste para verificar se as notificações estão funcionando corretamente.
+
+${activeNotifications.length > 0 
+  ? `*Notificações ativas:*\n${activeNotifications.join('\n')}`
+  : '_Nenhuma notificação ativa no momento_'}
+
+✅ Se você recebeu esta mensagem, tudo está funcionando!`;
+
+      const fullNumber = savedCountryCode.replace('+', '') + savedPhone;
+
+      const { data, error } = await supabase.functions.invoke('master-whatsapp-instance', {
+        body: {
+          action: 'sendTest',
+          phoneNumber: fullNumber,
+          message: testMessage
+        }
+      });
+
+      if (error || data?.error) {
+        throw new Error(data?.error || error?.message);
+      }
+
+      toast.success('✅ Teste enviado! Verifique seu WhatsApp');
+    } catch (error) {
+      console.error('Erro ao testar:', error);
+      toast.error(error instanceof Error ? error.message : 'Erro ao enviar teste');
+    } finally {
+      setTesting(false);
     }
   };
 
@@ -152,6 +208,23 @@ export function MasterNotificationsCard({ config, updateConfig, instanceStatus }
             {saving ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Save className="h-3 w-3 mr-1" />}
             Salvar Número
           </Button>
+          
+          {config?.notification_phone && (
+            <Button 
+              size="sm" 
+              variant="outline"
+              className="w-full mt-2"
+              onClick={handleTestNotifications}
+              disabled={!isConnected || testing}
+            >
+              {testing ? (
+                <Loader2 className="h-3 w-3 animate-spin mr-1" />
+              ) : (
+                <Send className="h-3 w-3 mr-1" />
+              )}
+              Testar Notificações
+            </Button>
+          )}
         </div>
 
         {/* Divisor */}

@@ -6,12 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useMasterWhatsAppConfig } from "@/hooks/useMasterWhatsAppConfig";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { CountryCodeSelect } from "@/components/ui/country-code-select";
-import { formatBrazilianPhone, formatInternationalPhone } from "@/lib/utils";
+import { formatBrazilianPhone, formatInternationalPhone, cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { 
@@ -56,10 +57,12 @@ interface EvolutionBot {
   stopBotFromMe: boolean;
   keepOpen: boolean;
   debounceTime: number;
+  botType?: 'sales' | 'recruitment' | 'support' | null;
+  botTypeName?: string;
 }
 
 export default function MasterWhatsAppPage() {
-  const { config, loading, updateConfig } = useMasterWhatsAppConfig();
+  const { config, loading, updateConfig, syncBots, syncing } = useMasterWhatsAppConfig();
   const [instanceName, setInstanceName] = useState("");
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [instanceStatus, setInstanceStatus] = useState<string>("disconnected");
@@ -71,6 +74,7 @@ export default function MasterWhatsAppPage() {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [evolutionBots, setEvolutionBots] = useState<EvolutionBot[]>([]);
   const [loadingBots, setLoadingBots] = useState(false);
+  const [syncingBotId, setSyncingBotId] = useState<string | null>(null);
 
   useEffect(() => {
     if (config?.instance_name) {
@@ -86,11 +90,50 @@ export default function MasterWhatsAppPage() {
       const { data, error } = await supabase.functions.invoke('master-whatsapp-list-bots');
       
       if (error) throw error;
-      setEvolutionBots(data?.bots || []);
+      
+      // Mapear tipo do bot baseado nos IDs salvos na config
+      const botsWithType = (data?.bots || []).map((bot: EvolutionBot) => {
+        let botType: 'sales' | 'recruitment' | 'support' | null = null;
+        let botTypeName = '';
+        
+        if (config?.sales_bot_evolution_id === bot.id) {
+          botType = 'sales';
+          botTypeName = '💰 Vendas';
+        } else if (config?.recruitment_bot_evolution_id === bot.id) {
+          botType = 'recruitment';
+          botTypeName = '👥 Recrutamento';
+        } else if (config?.support_bot_evolution_id === bot.id) {
+          botType = 'support';
+          botTypeName = '🎧 Suporte';
+        }
+        
+        return { ...bot, botType, botTypeName };
+      });
+      
+      setEvolutionBots(botsWithType);
     } catch (error) {
       console.error('Erro ao buscar bots:', error);
     } finally {
       setLoadingBots(false);
+    }
+  };
+
+  // Sincronizar bot individual
+  const handleSyncIndividualBot = async (bot: EvolutionBot) => {
+    if (!bot.botType) {
+      toast.error('Não foi possível identificar o tipo deste bot');
+      return;
+    }
+    
+    setSyncingBotId(bot.id);
+    try {
+      const success = await syncBots(bot.botType);
+      if (success) {
+        toast.success(`Bot de ${bot.botTypeName?.replace(/^[^\s]+\s/, '')} sincronizado!`);
+        await fetchEvolutionBots();
+      }
+    } finally {
+      setSyncingBotId(null);
     }
   };
 
@@ -619,6 +662,12 @@ export default function MasterWhatsAppPage() {
                       <TableRow>
                         <TableHead>
                           <div className="flex items-center gap-1">
+                            Tipo
+                            <InfoTooltip text="Identificação do bot baseado no ID salvo na configuração" />
+                          </div>
+                        </TableHead>
+                        <TableHead>
+                          <div className="flex items-center gap-1">
                             Status
                             <InfoTooltip text="Se o bot está ativo e respondendo mensagens" />
                           </div>
@@ -642,11 +691,34 @@ export default function MasterWhatsAppPage() {
                           </div>
                         </TableHead>
                         <TableHead>ID Evolution</TableHead>
+                        <TableHead>
+                          <div className="flex items-center gap-1">
+                            Ações
+                            <InfoTooltip text="Sincronizar configurações do bot com a Evolution API" />
+                          </div>
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {evolutionBots.map((bot, idx) => (
                         <TableRow key={bot.id || idx}>
+                          <TableCell>
+                            {bot.botType ? (
+                              <Badge 
+                                variant="outline" 
+                                className={cn(
+                                  "gap-1",
+                                  bot.botType === 'sales' && "border-green-500/50 text-green-600 dark:text-green-400",
+                                  bot.botType === 'recruitment' && "border-blue-500/50 text-blue-600 dark:text-blue-400",
+                                  bot.botType === 'support' && "border-purple-500/50 text-purple-600 dark:text-purple-400"
+                                )}
+                              >
+                                {bot.botTypeName}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground text-xs">Não vinculado</span>
+                            )}
+                          </TableCell>
                           <TableCell>
                             <Badge variant={bot.enabled ? 'default' : 'secondary'} className="gap-1">
                               {bot.enabled ? (
@@ -683,6 +755,33 @@ export default function MasterWhatsAppPage() {
                           </TableCell>
                           <TableCell className="font-mono text-xs text-muted-foreground">
                             {bot.id?.slice(0, 8)}...
+                          </TableCell>
+                          <TableCell>
+                            {bot.botType ? (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleSyncIndividualBot(bot)}
+                                      disabled={syncingBotId === bot.id || syncing}
+                                    >
+                                      {syncingBotId === bot.id ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                      ) : (
+                                        <RefreshCw className="w-4 h-4" />
+                                      )}
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    Sincronizar bot de {bot.botTypeName?.replace(/^[^\s]+\s/, '')}
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            ) : (
+                              <span className="text-muted-foreground text-xs">-</span>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}

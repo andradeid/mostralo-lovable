@@ -281,6 +281,9 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
   };
 
   const handleIfoodResponse = async (usesIfood: boolean) => {
+    // Prevenir cliques duplos
+    if (isSubmitting || currentStep !== 'ifood') return;
+    
     addUserMessage(usesIfood ? 'Sim, uso iFood' : 'Não uso iFood');
     
     const finalData = { ...leadData, uses_ifood: usesIfood };

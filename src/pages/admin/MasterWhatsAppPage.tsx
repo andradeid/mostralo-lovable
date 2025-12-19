@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { CountryCodeSelect } from "@/components/ui/country-code-select";
 import { formatBrazilianPhone, formatInternationalPhone } from "@/lib/utils";
 import { format } from "date-fns";
+import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { 
   Loader2, 
   Smartphone, 
@@ -28,7 +29,9 @@ import {
   Users,
   HelpCircle,
   Send,
-  History
+  History,
+  ExternalLink,
+  Zap
 } from "lucide-react";
 import { MasterBotConfigTab } from "@/components/admin/master-whatsapp/MasterBotConfigTab";
 import { MasterSessionsTab } from "@/components/admin/master-whatsapp/MasterSessionsTab";
@@ -42,6 +45,19 @@ interface TestMessage {
   sent_at: string;
 }
 
+interface EvolutionBot {
+  id: string;
+  enabled: boolean;
+  model: string;
+  triggerType: string;
+  triggerValue: string;
+  expire: number;
+  keywordFinish: string;
+  stopBotFromMe: boolean;
+  keepOpen: boolean;
+  debounceTime: number;
+}
+
 export default function MasterWhatsAppPage() {
   const { config, loading, updateConfig } = useMasterWhatsAppConfig();
   const [instanceName, setInstanceName] = useState("");
@@ -53,6 +69,8 @@ export default function MasterWhatsAppPage() {
   const [countryCode, setCountryCode] = useState("+55");
   const [testMessages, setTestMessages] = useState<TestMessage[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const [evolutionBots, setEvolutionBots] = useState<EvolutionBot[]>([]);
+  const [loadingBots, setLoadingBots] = useState(false);
 
   useEffect(() => {
     if (config?.instance_name) {
@@ -60,6 +78,21 @@ export default function MasterWhatsAppPage() {
       setInstanceStatus(config.instance_status || "disconnected");
     }
   }, [config]);
+
+  // Buscar bots da Evolution API
+  const fetchEvolutionBots = async () => {
+    setLoadingBots(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('master-whatsapp-list-bots');
+      
+      if (error) throw error;
+      setEvolutionBots(data?.bots || []);
+    } catch (error) {
+      console.error('Erro ao buscar bots:', error);
+    } finally {
+      setLoadingBots(false);
+    }
+  };
 
   // Buscar histórico de mensagens de teste
   const fetchTestMessages = async () => {
@@ -82,6 +115,7 @@ export default function MasterWhatsAppPage() {
 
   useEffect(() => {
     fetchTestMessages();
+    fetchEvolutionBots();
   }, []);
 
   // Criar instância via Edge Function
@@ -533,6 +567,122 @@ export default function MasterWhatsAppPage() {
                           </TableCell>
                           <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
                             {format(new Date(msg.sent_at), "dd/MM HH:mm")}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Card de Bots Criados na Evolution */}
+          <Card className="mt-6">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-yellow-500" />
+                    Bots na Evolution API
+                    <InfoTooltip text="Lista dos bots realmente criados na Evolution API. Estes são os bots que estão ativos respondendo mensagens." />
+                  </CardTitle>
+                  <CardDescription>
+                    Bots ativos na instância {config?.instance_name || 'não configurada'}
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={fetchEvolutionBots}
+                  disabled={loadingBots}
+                >
+                  <RefreshCw className={`w-4 h-4 ${loadingBots ? 'animate-spin' : ''}`} />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {loadingBots ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : evolutionBots.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Bot className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>Nenhum bot criado ainda</p>
+                  <p className="text-xs mt-1">Configure e sincronize os bots na aba "Configurar Bots"</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>
+                          <div className="flex items-center gap-1">
+                            Status
+                            <InfoTooltip text="Se o bot está ativo e respondendo mensagens" />
+                          </div>
+                        </TableHead>
+                        <TableHead>
+                          <div className="flex items-center gap-1">
+                            Trigger
+                            <InfoTooltip text="Como o bot é ativado: por keywords específicas ou todas as mensagens" />
+                          </div>
+                        </TableHead>
+                        <TableHead>
+                          <div className="flex items-center gap-1">
+                            Keywords
+                            <InfoTooltip text="Palavras-chave que ativam este bot quando presentes na mensagem" />
+                          </div>
+                        </TableHead>
+                        <TableHead>
+                          <div className="flex items-center gap-1">
+                            Expiração
+                            <InfoTooltip text="Tempo em minutos que a sessão fica ativa sem atividade" />
+                          </div>
+                        </TableHead>
+                        <TableHead>ID Evolution</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {evolutionBots.map((bot, idx) => (
+                        <TableRow key={bot.id || idx}>
+                          <TableCell>
+                            <Badge variant={bot.enabled ? 'default' : 'secondary'} className="gap-1">
+                              {bot.enabled ? (
+                                <CheckCircle className="w-3 h-3" />
+                              ) : (
+                                <XCircle className="w-3 h-3" />
+                              )}
+                              {bot.enabled ? 'Ativo' : 'Inativo'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            {bot.triggerType === 'all' ? 'Todas mensagens' : 'Keywords'}
+                          </TableCell>
+                          <TableCell className="max-w-xs">
+                            {bot.triggerValue ? (
+                              <div className="flex flex-wrap gap-1">
+                                {bot.triggerValue.split(',').slice(0, 3).map((kw, i) => (
+                                  <Badge key={i} variant="outline" className="text-xs">
+                                    {kw.trim()}
+                                  </Badge>
+                                ))}
+                                {bot.triggerValue.split(',').length > 3 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    +{bot.triggerValue.split(',').length - 3}
+                                  </Badge>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground text-xs">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            {bot.expire > 0 ? `${bot.expire} min` : 'Sem limite'}
+                          </TableCell>
+                          <TableCell className="font-mono text-xs text-muted-foreground">
+                            {bot.id?.slice(0, 8)}...
                           </TableCell>
                         </TableRow>
                       ))}

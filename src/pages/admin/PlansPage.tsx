@@ -11,7 +11,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
 import { usePageSEO } from '@/hooks/useSEO';
+import { PlanModuleSelector } from '@/components/admin/plans/PlanModuleSelector';
+import { usePlanModules } from '@/hooks/usePlanModules';
 import { 
   CreditCard, 
   Plus,
@@ -56,6 +59,8 @@ const PlansPage = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [planToDelete, setPlanToDelete] = useState<Plan | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [selectedModuleIds, setSelectedModuleIds] = useState<string[]>([]);
+  const { fetchPlanModules, savePlanModules } = usePlanModules();
   const { toast } = useToast();
 
   // Form states
@@ -129,7 +134,7 @@ const PlansPage = () => {
     }
   };
 
-  const handleEditPlan = (plan: Plan) => {
+  const handleEditPlan = async (plan: Plan) => {
     setSelectedPlan(plan);
     const planAny = plan as any;
     setFormData({
@@ -150,6 +155,11 @@ const PlansPage = () => {
       promotion_end_date: planAny.promotion_end_date || null,
       promotion_label: planAny.promotion_label || 'OFERTA LIMITADA'
     });
+    
+    // Buscar módulos do plano
+    const moduleIds = await fetchPlanModules(plan.id);
+    setSelectedModuleIds(moduleIds);
+    
     setEditDialogOpen(true);
   };
   
@@ -175,6 +185,7 @@ const PlansPage = () => {
     try {
       setSaving(true);
       
+      // 1. Atualizar dados do plano
       const { error } = await supabase
         .from('plans')
         .update({
@@ -200,12 +211,19 @@ const PlansPage = () => {
 
       if (error) throw error;
 
+      // 2. Salvar módulos do plano
+      const modulesSuccess = await savePlanModules(selectedPlan.id, selectedModuleIds);
+      if (!modulesSuccess) {
+        throw new Error('Erro ao salvar módulos do plano');
+      }
+
       toast({
         title: 'Sucesso',
         description: 'Plano atualizado com sucesso!',
       });
 
       setEditDialogOpen(false);
+      setSelectedModuleIds([]);
       fetchPlans();
     } catch (error) {
       console.error('Erro ao atualizar plano:', error);
@@ -675,54 +693,68 @@ const PlansPage = () => {
             </TabsContent>
 
             {/* ABA RECURSOS */}
-            <TabsContent value="recursos" className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <Label>Recursos do Plano</Label>
-                <p className="text-sm text-muted-foreground">
-                  Adicione os recursos incluídos neste plano (mínimo 3)
-                </p>
-              </div>
-
-              <div className="flex gap-2">
-                <Input
-                  value={newFeature}
-                  onChange={(e) => setNewFeature(e.target.value)}
-                  placeholder="Ex: Produtos ilimitados"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleAddFeature();
-                    }
-                  }}
+            <TabsContent value="recursos" className="space-y-6 mt-4">
+              {/* Seletor de Módulos */}
+              {selectedPlan && (
+                <PlanModuleSelector
+                  planId={selectedPlan.id}
+                  selectedModuleIds={selectedModuleIds}
+                  onModulesChange={setSelectedModuleIds}
                 />
-                <Button type="button" onClick={handleAddFeature} size="icon">
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
+              )}
 
-              <div className="space-y-2">
-                {Object.entries(formData.features).map(([key]) => (
-                  <div key={key} className="flex items-center justify-between p-2 border rounded-lg">
-                    <div className="flex items-center space-x-2">
-                      <Check className="w-4 h-4 text-green-500" />
-                      <span className="text-sm">{key}</span>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveFeature(key)}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
+              <Separator />
 
-                {Object.keys(formData.features).length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-8">
-                    Nenhum recurso adicionado ainda
+              {/* Recursos de texto livre (extras) */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-base font-semibold">Recursos Adicionais</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Adicione recursos extras em texto livre (ex: Suporte 24/7, Treinamento incluso)
                   </p>
-                )}
+                </div>
+
+                <div className="flex gap-2">
+                  <Input
+                    value={newFeature}
+                    onChange={(e) => setNewFeature(e.target.value)}
+                    placeholder="Ex: Suporte prioritário"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddFeature();
+                      }
+                    }}
+                  />
+                  <Button type="button" onClick={handleAddFeature} size="icon">
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                <div className="space-y-2">
+                  {Object.entries(formData.features).map(([key]) => (
+                    <div key={key} className="flex items-center justify-between p-2 border rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <Check className="w-4 h-4 text-green-500" />
+                        <span className="text-sm">{key}</span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveFeature(key)}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+
+                  {Object.keys(formData.features).length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-4 border rounded-lg bg-muted/30">
+                      Nenhum recurso adicional (opcional)
+                    </p>
+                  )}
+                </div>
               </div>
             </TabsContent>
 

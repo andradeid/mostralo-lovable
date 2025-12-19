@@ -34,7 +34,11 @@ import {
   ExternalLink,
   Zap,
   Phone,
-  Clock
+  Clock,
+  Key,
+  Eye,
+  EyeOff,
+  Trash2
 } from "lucide-react";
 import { MasterBotConfigTab } from "@/components/admin/master-whatsapp/MasterBotConfigTab";
 import { MasterSessionsTab } from "@/components/admin/master-whatsapp/MasterSessionsTab";
@@ -63,6 +67,160 @@ interface EvolutionBot {
   debounceTime: number;
   botType?: 'sales' | 'recruitment' | 'support' | null;
   botTypeName?: string;
+}
+
+// Componente para gerenciar OpenAI API Key
+function OpenAIKeySection({ 
+  config, 
+  updateConfig 
+}: { 
+  config: ReturnType<typeof useMasterWhatsAppConfig>['config'];
+  updateConfig: ReturnType<typeof useMasterWhatsAppConfig>['updateConfig'];
+}) {
+  const [apiKey, setApiKey] = useState("");
+  const [showKey, setShowKey] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const hasKey = !!config?.openai_api_key;
+  const maskedKey = hasKey ? `sk-...${config?.openai_api_key?.slice(-4)}` : "";
+
+  const testApiKey = async () => {
+    const keyToTest = apiKey || config?.openai_api_key;
+    if (!keyToTest) {
+      toast.error('Digite uma API Key para testar');
+      return;
+    }
+
+    setTesting(true);
+    try {
+      const response = await fetch('https://api.openai.com/v1/models', {
+        headers: { 'Authorization': `Bearer ${keyToTest}` }
+      });
+
+      if (response.ok) {
+        toast.success('API Key válida!');
+      } else {
+        const error = await response.json();
+        toast.error(`API Key inválida: ${error.error?.message || 'Erro desconhecido'}`);
+      }
+    } catch (error) {
+      toast.error('Erro ao testar API Key');
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  const saveApiKey = async () => {
+    if (!apiKey.trim()) {
+      toast.error('Digite uma API Key');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const success = await updateConfig({ openai_api_key: apiKey } as any);
+      if (success) {
+        toast.success('API Key salva com sucesso!');
+        setApiKey("");
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const removeApiKey = async () => {
+    setSaving(true);
+    try {
+      const success = await updateConfig({ openai_api_key: null } as any);
+      if (success) {
+        toast.success('API Key removida');
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="pt-4 border-t space-y-3">
+      <div className="flex items-center gap-2">
+        <Key className="w-4 h-4 text-muted-foreground" />
+        <Label className="font-medium">OpenAI API Key</Label>
+        {hasKey && (
+          <Badge variant="outline" className="text-green-600 border-green-600">
+            <CheckCircle className="w-3 h-3 mr-1" />
+            Configurada
+          </Badge>
+        )}
+      </div>
+
+      {hasKey ? (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 p-2 bg-muted rounded-md font-mono text-sm">
+            <span className="flex-1">{showKey ? config?.openai_api_key : maskedKey}</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowKey(!showKey)}
+              className="h-6 w-6 p-0"
+            >
+              {showKey ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+            </Button>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={testApiKey}
+              disabled={testing}
+              className="flex-1"
+            >
+              {testing ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null}
+              Testar
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={removeApiKey}
+              disabled={saving}
+            >
+              <Trash2 className="w-3 h-3" />
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <Input
+            type="password"
+            placeholder="sk-..."
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+          />
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={testApiKey}
+              disabled={testing || !apiKey}
+              className="flex-1"
+            >
+              {testing ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null}
+              Testar
+            </Button>
+            <Button
+              size="sm"
+              onClick={saveApiKey}
+              disabled={saving || !apiKey}
+              className="flex-1"
+            >
+              {saving ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null}
+              Salvar
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function MasterWhatsAppPage() {
@@ -436,6 +594,9 @@ export default function MasterWhatsAppPage() {
                     </div>
                   </>
                 )}
+
+                {/* OpenAI API Key Section */}
+                <OpenAIKeySection config={config} updateConfig={updateConfig} />
               </CardContent>
             </Card>
 

@@ -543,7 +543,7 @@ serve(async (req) => {
       throw new Error('Config not found');
     }
 
-    // Buscar Evolution Config
+    // Buscar Evolution Config (para URL e API key da Evolution)
     const { data: evolutionConfig } = await supabase
       .from('evolution_config')
       .select('*')
@@ -554,20 +554,24 @@ serve(async (req) => {
       throw new Error('Evolution config not found');
     }
 
-    if (!evolutionConfig.openai_api_key) {
-      throw new Error('Chave OpenAI não configurada na Evolution Config');
+    // Usar openai_api_key do master_whatsapp_config (não mais do evolution_config)
+    const openaiApiKey = config.openai_api_key;
+    if (!openaiApiKey) {
+      throw new Error('Configure a OpenAI API Key no painel WhatsApp Master');
     }
 
     const evolutionUrl = evolutionConfig.api_url.replace(/\/$/, '');
-    const openaiApiKey = evolutionConfig.openai_api_key;
 
     // ========================================
     // FUNÇÃO: Garantir credenciais OpenAI na Evolution
+    // Nome único para o master: "master_whatsapp_openai"
     // ========================================
+    const MASTER_CRED_NAME = 'master_whatsapp_openai';
+    
     async function ensureOpenAiCreds(instanceName: string): Promise<string | null> {
-      console.log('🔑 Verificando credenciais OpenAI para instância:', instanceName);
+      console.log('🔑 [Master] Verificando credenciais OpenAI para instância:', instanceName);
 
-      // 1) Listar credenciais existentes (SOMENTE desta instância)
+      // 1) Listar credenciais existentes desta instância
       let existingCreds: any[] = [];
 
       try {
@@ -581,46 +585,25 @@ serve(async (req) => {
           existingCreds = Array.isArray(data) ? data : (data?.creds || data?.data || []);
         }
 
-        console.log('📋 Credenciais encontradas:', existingCreds.length);
+        console.log('📋 [Master] Credenciais encontradas:', existingCreds.length);
       } catch (e) {
-        console.log('⚠️ Erro ao listar credenciais:', e);
+        console.log('⚠️ [Master] Erro ao listar credenciais:', e);
       }
 
-      // 2) Se temos ID salvo, ele precisa existir NESTA instância
-      if (evolutionConfig.openai_creds_id) {
-        const found = existingCreds.find((c) => c.id === evolutionConfig.openai_creds_id);
-        if (found) {
-          console.log('✅ Credencial salva é válida nesta instância:', evolutionConfig.openai_creds_id);
-          return evolutionConfig.openai_creds_id;
-        }
-
-        console.log('⚠️ ID salvo não é válido nesta instância, limpando no banco...');
-        await supabase
-          .from('evolution_config')
-          .update({ openai_creds_id: null, updated_at: new Date().toISOString() })
-          .eq('id', evolutionConfig.id);
+      // 2) Procurar credencial com nome específico do master
+      const masterCredential = existingCreds.find((c) => c.name === MASTER_CRED_NAME);
+      if (masterCredential?.id) {
+        console.log('✅ [Master] Credencial existente encontrada:', masterCredential.id);
+        return masterCredential.id;
       }
 
-      // 3) Reutilizar credencial "mostralo-openai" (se existir nesta instância)
-      const mostraloCredential = existingCreds.find((c) => c.name === 'mostralo-openai');
-      if (mostraloCredential?.id) {
-        console.log('♻️ Reutilizando credencial existente:', mostraloCredential.id);
-
-        await supabase
-          .from('evolution_config')
-          .update({ openai_creds_id: mostraloCredential.id, updated_at: new Date().toISOString() })
-          .eq('id', evolutionConfig.id);
-
-        return mostraloCredential.id;
-      }
-
-      // 4) Criar nova credencial nesta instância
+      // 3) Criar nova credencial com nome único do master
       if (!openaiApiKey) {
-        console.error('❌ openai_api_key ausente na evolution_config; não dá para criar credencial.');
+        console.error('❌ [Master] openai_api_key ausente; não dá para criar credencial.');
         return null;
       }
 
-      console.log('🆕 Criando nova credencial OpenAI na instância:', instanceName);
+      console.log('🆕 [Master] Criando nova credencial OpenAI:', MASTER_CRED_NAME);
 
       try {
         const createResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
@@ -630,92 +613,37 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            name: 'mostralo-openai',
+            name: MASTER_CRED_NAME,
             apiKey: openaiApiKey,
           }),
         });
 
         const createText = await createResp.text();
-        console.log('📥 Resposta criação credencial:', createResp.status, createText);
+        console.log('📥 [Master] Resposta criação credencial:', createResp.status, createText);
 
         if (!createResp.ok) {
-          const isAlreadyRegistered =
-            createText.includes('already registered') ||
-            createText.includes('already exists') ||
-            createText.includes('already');
+          // Se "already registered", tentar buscar novamente
+          if (createText.includes('already')) {
+            console.log('⚠️ [Master] Credencial já registrada, tentando localizar...');
+            
+            const retryResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
+              method: 'GET',
+              headers: { 'apikey': evolutionConfig.api_key },
+            });
 
-          if (isAlreadyRegistered) {
-            console.log('⚠️ API key já registrada. Tentando localizar credencial existente em outras instâncias...');
-
-            // 1) Tentar recarregar creds na própria instância (às vezes já existe e o POST só falhou por duplicidade)
-            try {
-              const retryListResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
-                method: 'GET',
-                headers: { 'apikey': evolutionConfig.api_key },
-              });
-
-              if (retryListResp.ok) {
-                const retryData = await retryListResp.json();
-                const retryCreds = Array.isArray(retryData) ? retryData : (retryData?.creds || retryData?.data || []);
-                const retryMostralo = retryCreds.find((c: any) => c.name === 'mostralo-openai') || retryCreds[0];
-
-                if (retryMostralo?.id) {
-                  console.log('✅ Credencial encontrada na própria instância após retry:', retryMostralo.id);
-                  await supabase
-                    .from('evolution_config')
-                    .update({ openai_creds_id: retryMostralo.id, updated_at: new Date().toISOString() })
-                    .eq('id', evolutionConfig.id);
-                  return retryMostralo.id;
-                }
+            if (retryResp.ok) {
+              const retryData = await retryResp.json();
+              const retryCreds = Array.isArray(retryData) ? retryData : (retryData?.creds || retryData?.data || []);
+              const found = retryCreds.find((c: any) => c.name === MASTER_CRED_NAME);
+              
+              if (found?.id) {
+                console.log('✅ [Master] Credencial localizada após retry:', found.id);
+                return found.id;
               }
-            } catch (e) {
-              console.log('⚠️ Falha ao buscar credenciais na própria instância após erro:', e);
-            }
-
-            // 2) Buscar em outras instâncias e reutilizar o openaiCredsId encontrado
-            try {
-              const instancesResp = await fetch(`${evolutionUrl}/instance/fetchInstances`, {
-                method: 'GET',
-                headers: { 'apikey': evolutionConfig.api_key },
-              });
-
-              if (instancesResp.ok) {
-                const instances = await instancesResp.json();
-                const list = Array.isArray(instances) ? instances : (instances?.instances || instances?.data || []);
-
-                for (const inst of list) {
-                  const instName = inst?.name || inst?.instanceName || inst?.instance?.instanceName;
-                  if (!instName) continue;
-
-                  const instCredsResp = await fetch(`${evolutionUrl}/openai/creds/${instName}`, {
-                    method: 'GET',
-                    headers: { 'apikey': evolutionConfig.api_key },
-                  });
-
-                  if (!instCredsResp.ok) continue;
-
-                  const instCredsData = await instCredsResp.json();
-                  const instCreds = Array.isArray(instCredsData) ? instCredsData : (instCredsData?.creds || instCredsData?.data || []);
-                  const found = instCreds.find((c: any) => c.name === 'mostralo-openai') || instCreds[0];
-
-                  if (found?.id) {
-                    console.log(`✅ Credencial localizada na instância ${instName}:`, found.id);
-
-                    await supabase
-                      .from('evolution_config')
-                      .update({ openai_creds_id: found.id, updated_at: new Date().toISOString() })
-                      .eq('id', evolutionConfig.id);
-
-                    return found.id;
-                  }
-                }
-              }
-            } catch (e) {
-              console.log('⚠️ Erro ao buscar instâncias/credenciais:', e);
             }
           }
 
-          console.error('❌ Falha ao criar credencial:', createText);
+          console.error('❌ [Master] Falha ao criar credencial:', createText);
           return null;
         }
 
@@ -728,19 +656,14 @@ serve(async (req) => {
         }
 
         if (!createdId) {
-          console.error('❌ ID da credencial não retornado pela Evolution:', createText);
+          console.error('❌ [Master] ID da credencial não retornado:', createText);
           return null;
         }
 
-        await supabase
-          .from('evolution_config')
-          .update({ openai_creds_id: createdId, updated_at: new Date().toISOString() })
-          .eq('id', evolutionConfig.id);
-
-        console.log('✅ Nova credencial criada:', createdId);
+        console.log('✅ [Master] Nova credencial criada:', createdId);
         return createdId;
       } catch (e) {
-        console.error('❌ Erro ao criar credencial:', e);
+        console.error('❌ [Master] Erro ao criar credencial:', e);
         return null;
       }
     }

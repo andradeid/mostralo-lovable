@@ -569,17 +569,15 @@ serve(async (req) => {
 
     // ========================================
     // FUNÇÃO: Garantir credenciais OpenAI na Evolution
-    // Nome único por tipo de bot para evitar conflito
+    // Usando credencial ÚNICA compartilhada entre todos os bots
     // ========================================
     type BotType = 'sales' | 'recruitment' | 'support';
     
-    function getMasterCredName(botType: BotType): string {
-      return `master_whatsapp_${botType}_openai`;
-    }
+    // Credencial única para todos os bots (mesma API Key = mesma credencial)
+    const MASTER_CRED_NAME = 'master_whatsapp_openai';
     
-    async function ensureOpenAiCreds(instanceName: string, botType: BotType): Promise<string | null> {
-      const credName = getMasterCredName(botType);
-      console.log(`🔑 [Master] Verificando credenciais OpenAI "${credName}" para instância:`, instanceName);
+    async function ensureOpenAiCreds(instanceName: string): Promise<string | null> {
+      console.log(`🔑 [Master] Verificando credenciais OpenAI "${MASTER_CRED_NAME}" para instância:`, instanceName);
 
       // 1) Listar credenciais existentes desta instância
       let existingCreds: any[] = [];
@@ -600,20 +598,20 @@ serve(async (req) => {
         console.log('⚠️ [Master] Erro ao listar credenciais:', e);
       }
 
-      // 2) Procurar credencial com nome específico do bot
-      const masterCredential = existingCreds.find((c) => c.name === credName);
+      // 2) Procurar credencial com nome único
+      const masterCredential = existingCreds.find((c) => c.name === MASTER_CRED_NAME);
       if (masterCredential?.id) {
-        console.log(`✅ [Master] Credencial "${credName}" existente encontrada:`, masterCredential.id);
+        console.log(`✅ [Master] Credencial "${MASTER_CRED_NAME}" existente encontrada:`, masterCredential.id);
         return masterCredential.id;
       }
 
-      // 3) Criar nova credencial com nome único do bot
+      // 3) Criar nova credencial única
       if (!openaiApiKey) {
         console.error('❌ [Master] openai_api_key ausente; não dá para criar credencial.');
         return null;
       }
 
-      console.log(`🆕 [Master] Criando nova credencial OpenAI: ${credName}`);
+      console.log(`🆕 [Master] Criando nova credencial OpenAI: ${MASTER_CRED_NAME}`);
 
       try {
         const createResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
@@ -623,18 +621,18 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            name: credName,
+            name: MASTER_CRED_NAME,
             apiKey: openaiApiKey,
           }),
         });
 
         const createText = await createResp.text();
-        console.log(`📥 [Master] Resposta criação credencial "${credName}":`, createResp.status, createText);
+        console.log(`📥 [Master] Resposta criação credencial "${MASTER_CRED_NAME}":`, createResp.status, createText);
 
         if (!createResp.ok) {
           // Se "already registered", tentar buscar novamente
           if (createText.includes('already')) {
-            console.log(`⚠️ [Master] Credencial "${credName}" já registrada, tentando localizar...`);
+            console.log(`⚠️ [Master] Credencial "${MASTER_CRED_NAME}" já registrada, tentando localizar...`);
             
             const retryResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
               method: 'GET',
@@ -644,16 +642,16 @@ serve(async (req) => {
             if (retryResp.ok) {
               const retryData = await retryResp.json();
               const retryCreds = Array.isArray(retryData) ? retryData : (retryData?.creds || retryData?.data || []);
-              const found = retryCreds.find((c: any) => c.name === credName);
+              const found = retryCreds.find((c: any) => c.name === MASTER_CRED_NAME);
               
               if (found?.id) {
-                console.log(`✅ [Master] Credencial "${credName}" localizada após retry:`, found.id);
+                console.log(`✅ [Master] Credencial "${MASTER_CRED_NAME}" localizada após retry:`, found.id);
                 return found.id;
               }
             }
           }
 
-          console.error(`❌ [Master] Falha ao criar credencial "${credName}":`, createText);
+          console.error(`❌ [Master] Falha ao criar credencial "${MASTER_CRED_NAME}":`, createText);
           return null;
         }
 
@@ -666,14 +664,14 @@ serve(async (req) => {
         }
 
         if (!createdId) {
-          console.error(`❌ [Master] ID da credencial "${credName}" não retornado:`, createText);
+          console.error(`❌ [Master] ID da credencial "${MASTER_CRED_NAME}" não retornado:`, createText);
           return null;
         }
 
-        console.log(`✅ [Master] Nova credencial "${credName}" criada:`, createdId);
+        console.log(`✅ [Master] Nova credencial "${MASTER_CRED_NAME}" criada:`, createdId);
         return createdId;
       } catch (e) {
-        console.error(`❌ [Master] Erro ao criar credencial "${credName}":`, e);
+        console.error(`❌ [Master] Erro ao criar credencial "${MASTER_CRED_NAME}":`, e);
         return null;
       }
     }
@@ -809,7 +807,26 @@ serve(async (req) => {
       }
     }
 
-    // 3. NÃO deletar bots - usar UPDATE quando existir, CREATE apenas quando não existir
+    // ========================================
+    // OBTER CREDENCIAL ÚNICA ANTES DE PROCESSAR OS BOTS
+    // ========================================
+    console.log('🔑 Obtendo credencial OpenAI única para todos os bots...');
+    
+    const openaiCredsId = await ensureOpenAiCreds(config.instance_name);
+    if (!openaiCredsId) {
+      throw new Error('Falha ao obter credenciais OpenAI. Verifique se a API Key está configurada corretamente.');
+    }
+    console.log(`✅ Credencial OpenAI obtida: ${openaiCredsId}`);
+
+    // Configurar settings UMA VEZ para a instância
+    const settingsOk = await ensureOpenAiSettings(config.instance_name, openaiCredsId);
+    if (!settingsOk) {
+      console.log('⚠️ Settings não configurados, mas continuando...');
+    }
+
+    // ========================================
+    // PROCESSAR BOTS SEQUENCIALMENTE COM DELAY
+    // ========================================
     for (const bt of botsToSync) {
       try {
         let prompt: string;
@@ -857,21 +874,9 @@ serve(async (req) => {
             continue;
         }
 
-        // 1. Obter credenciais OpenAI específicas para este bot
-        const openaiCredsId = await ensureOpenAiCreds(config.instance_name, bt);
-        if (!openaiCredsId) {
-          results[bt] = { success: false, error: 'Falha ao obter credenciais OpenAI' };
-          continue;
-        }
-        console.log(`🔑 Bot ${bt}: Usando openaiCredsId específico: ${openaiCredsId}`);
+        console.log(`🔑 Bot ${bt}: Usando credencial compartilhada: ${openaiCredsId}`);
 
-        // 2. Configurar settings para este bot
-        const settingsOk = await ensureOpenAiSettings(config.instance_name, openaiCredsId);
-        if (!settingsOk) {
-          console.log(`⚠️ Settings não configurados para ${bt}, mas continuando...`);
-        }
-
-        // 3. Aplicar keywords quando configuradas
+        // Aplicar keywords quando configuradas
         const hasKeywords = triggerKeywords && triggerKeywords.length > 0 && triggerKeywords.some(k => k.trim());
         const triggerType = hasKeywords ? 'keyword' : 'all';
         const triggerValue = hasKeywords ? triggerKeywords.filter(k => k.trim()).join(',') : '';
@@ -978,10 +983,10 @@ serve(async (req) => {
                 results[bt] = { success: true, botId: newBotId };
                 console.log(`✅ Bot ${bt} criado com ID: ${newBotId}`);
                 
-                // Aguardar antes do próximo bot para evitar rate limit na Evolution API
+                // Aguardar 3 segundos antes do próximo bot para evitar rate limit na Evolution API
                 if (botsToSync.indexOf(bt) < botsToSync.length - 1) {
-                  console.log(`⏳ Aguardando 2.5s antes do próximo bot...`);
-                  await delay(2500);
+                  console.log(`⏳ Aguardando 3s antes do próximo bot...`);
+                  await delay(3000);
                 }
                 continue;
               }
@@ -1012,10 +1017,10 @@ serve(async (req) => {
           console.log(`✅ Bot ${bt} atualizado (ID mantido: ${existingBotId})`);
         }
 
-        // Aguardar antes do próximo bot para evitar rate limit na Evolution API
+        // Aguardar 3 segundos antes do próximo bot para evitar rate limit na Evolution API
         if (botsToSync.indexOf(bt) < botsToSync.length - 1) {
-          console.log(`⏳ Aguardando 2.5s antes do próximo bot...`);
-          await delay(2500);
+          console.log(`⏳ Aguardando 3s antes do próximo bot...`);
+          await delay(3000);
         }
 
       } catch (botError) {

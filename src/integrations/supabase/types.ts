@@ -1927,17 +1927,47 @@ export type Database = {
           instance_phone: string | null
           instance_status: string | null
           recruitment_bot_approach: string | null
+          recruitment_bot_debounce_time: number | null
+          recruitment_bot_delay_message: number | null
           recruitment_bot_enabled: boolean | null
           recruitment_bot_evolution_id: string | null
+          recruitment_bot_expire_minutes: number | null
+          recruitment_bot_keep_open: boolean | null
+          recruitment_bot_keyword_finish: string | null
           recruitment_bot_keywords: string[] | null
+          recruitment_bot_listening_from_me: boolean | null
+          recruitment_bot_split_messages: boolean | null
+          recruitment_bot_stop_from_me: boolean | null
+          recruitment_bot_time_per_char: number | null
+          recruitment_bot_unknown_message: string | null
           sales_bot_approach: string | null
+          sales_bot_debounce_time: number | null
+          sales_bot_delay_message: number | null
           sales_bot_enabled: boolean | null
           sales_bot_evolution_id: string | null
+          sales_bot_expire_minutes: number | null
+          sales_bot_keep_open: boolean | null
+          sales_bot_keyword_finish: string | null
           sales_bot_keywords: string[] | null
+          sales_bot_listening_from_me: boolean | null
+          sales_bot_split_messages: boolean | null
+          sales_bot_stop_from_me: boolean | null
+          sales_bot_time_per_char: number | null
+          sales_bot_unknown_message: string | null
           support_bot_custom_prompt: string | null
+          support_bot_debounce_time: number | null
+          support_bot_delay_message: number | null
           support_bot_enabled: boolean | null
           support_bot_evolution_id: string | null
+          support_bot_expire_minutes: number | null
+          support_bot_keep_open: boolean | null
+          support_bot_keyword_finish: string | null
           support_bot_keywords: string[] | null
+          support_bot_listening_from_me: boolean | null
+          support_bot_split_messages: boolean | null
+          support_bot_stop_from_me: boolean | null
+          support_bot_time_per_char: number | null
+          support_bot_unknown_message: string | null
           updated_at: string | null
         }
         Insert: {
@@ -1949,17 +1979,47 @@ export type Database = {
           instance_phone?: string | null
           instance_status?: string | null
           recruitment_bot_approach?: string | null
+          recruitment_bot_debounce_time?: number | null
+          recruitment_bot_delay_message?: number | null
           recruitment_bot_enabled?: boolean | null
           recruitment_bot_evolution_id?: string | null
+          recruitment_bot_expire_minutes?: number | null
+          recruitment_bot_keep_open?: boolean | null
+          recruitment_bot_keyword_finish?: string | null
           recruitment_bot_keywords?: string[] | null
+          recruitment_bot_listening_from_me?: boolean | null
+          recruitment_bot_split_messages?: boolean | null
+          recruitment_bot_stop_from_me?: boolean | null
+          recruitment_bot_time_per_char?: number | null
+          recruitment_bot_unknown_message?: string | null
           sales_bot_approach?: string | null
+          sales_bot_debounce_time?: number | null
+          sales_bot_delay_message?: number | null
           sales_bot_enabled?: boolean | null
           sales_bot_evolution_id?: string | null
+          sales_bot_expire_minutes?: number | null
+          sales_bot_keep_open?: boolean | null
+          sales_bot_keyword_finish?: string | null
           sales_bot_keywords?: string[] | null
+          sales_bot_listening_from_me?: boolean | null
+          sales_bot_split_messages?: boolean | null
+          sales_bot_stop_from_me?: boolean | null
+          sales_bot_time_per_char?: number | null
+          sales_bot_unknown_message?: string | null
           support_bot_custom_prompt?: string | null
+          support_bot_debounce_time?: number | null
+          support_bot_delay_message?: number | null
           support_bot_enabled?: boolean | null
           support_bot_evolution_id?: string | null
+          support_bot_expire_minutes?: number | null
+          support_bot_keep_open?: boolean | null
+          support_bot_keyword_finish?: string | null
           support_bot_keywords?: string[] | null
+          support_bot_listening_from_me?: boolean | null
+          support_bot_split_messages?: boolean | null
+          support_bot_stop_from_me?: boolean | null
+          support_bot_time_per_char?: number | null
+          support_bot_unknown_message?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -1971,17 +2031,47 @@ export type Database = {
           instance_phone?: string | null
           instance_status?: string | null
           recruitment_bot_approach?: string | null
+          recruitment_bot_debounce_time?: number | null
+          recruitment_bot_delay_message?: number | null
           recruitment_bot_enabled?: boolean | null
           recruitment_bot_evolution_id?: string | null
+          recruitment_bot_expire_minutes?: number | null
+          recruitment_bot_keep_open?: boolean | null
+          recruitment_bot_keyword_finish?: string | null
           recruitment_bot_keywords?: string[] | null
+          recruitment_bot_listening_from_me?: boolean | null
+          recruitment_bot_split_messages?: boolean | null
+          recruitment_bot_stop_from_me?: boolean | null
+          recruitment_bot_time_per_char?: number | null
+          recruitment_bot_unknown_message?: string | null
           sales_bot_approach?: string | null
+          sales_bot_debounce_time?: number | null
+          sales_bot_delay_message?: number | null
           sales_bot_enabled?: boolean | null
           sales_bot_evolution_id?: string | null
+          sales_bot_expire_minutes?: number | null
+          sales_bot_keep_open?: boolean | null
+          sales_bot_keyword_finish?: string | null
           sales_bot_keywords?: string[] | null
+          sales_bot_listening_from_me?: boolean | null
+          sales_bot_split_messages?: boolean | null
+          sales_bot_stop_from_me?: boolean | null
+          sales_bot_time_per_char?: number | null
+          sales_bot_unknown_message?: string | null
           support_bot_custom_prompt?: string | null
+          support_bot_debounce_time?: number | null
+          support_bot_delay_message?: number | null
           support_bot_enabled?: boolean | null
           support_bot_evolution_id?: string | null
+          support_bot_expire_minutes?: number | null
+          support_bot_keep_open?: boolean | null
+          support_bot_keyword_finish?: string | null
           support_bot_keywords?: string[] | null
+          support_bot_listening_from_me?: boolean | null
+          support_bot_split_messages?: boolean | null
+          support_bot_stop_from_me?: boolean | null
+          support_bot_time_per_char?: number | null
+          support_bot_unknown_message?: string | null
           updated_at?: string | null
         }
         Relationships: []

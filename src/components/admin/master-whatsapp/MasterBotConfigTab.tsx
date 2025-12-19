@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { 
   useMasterWhatsAppConfig, 
   SalesApproach, 
-  RecruitmentApproach 
+  RecruitmentApproach,
+  getBotBehaviorConfig
 } from "@/hooks/useMasterWhatsAppConfig";
 import { toast } from "sonner";
 import { 
@@ -26,6 +27,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PromptPreviewCard } from "./PromptPreviewCard";
+import { MasterBotBehaviorCard } from "./MasterBotBehaviorCard";
 import { supabase } from "@/integrations/supabase/client";
 import { generateSalesPrompt, PromptType } from "@/utils/salesPromptGenerator";
 import { generateRecruitmentPrompt, RecruitmentPromptType, BonusTier } from "@/utils/recruitmentPromptGenerator";
@@ -223,6 +225,7 @@ export function MasterBotConfigTab() {
     updateApproach, 
     updateKeywords,
     updateSupportPrompt,
+    updateBotBehavior,
     syncBots 
   } = useMasterWhatsAppConfig();
   
@@ -284,6 +287,22 @@ export function MasterBotConfigTab() {
   const supportPromptPreview = useMemo(() => 
     getSupportPrompt(supportPrompt),
     [supportPrompt]
+  );
+
+  // Extrair configs de comportamento de cada bot
+  const salesBehaviorConfig = useMemo(() => 
+    config ? getBotBehaviorConfig(config, 'sales') : null,
+    [config]
+  );
+
+  const recruitmentBehaviorConfig = useMemo(() => 
+    config ? getBotBehaviorConfig(config, 'recruitment') : null,
+    [config]
+  );
+
+  const supportBehaviorConfig = useMemo(() => 
+    config ? getBotBehaviorConfig(config, 'support') : null,
+    [config]
   );
 
   if (loading || !config) {
@@ -351,7 +370,7 @@ export function MasterBotConfigTab() {
         </TabsList>
 
         {/* Bot de Vendas */}
-        <TabsContent value="sales">
+        <TabsContent value="sales" className="space-y-4">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -415,10 +434,20 @@ export function MasterBotConfigTab() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Card de Comportamento do Bot de Vendas */}
+          {salesBehaviorConfig && (
+            <MasterBotBehaviorCard
+              config={salesBehaviorConfig}
+              onUpdate={(updates) => updateBotBehavior('sales', updates)}
+              botType="sales"
+              disabled={!config.sales_bot_enabled}
+            />
+          )}
         </TabsContent>
 
         {/* Bot de Recrutamento */}
-        <TabsContent value="recruitment">
+        <TabsContent value="recruitment" className="space-y-4">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -482,10 +511,20 @@ export function MasterBotConfigTab() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Card de Comportamento do Bot de Recrutamento */}
+          {recruitmentBehaviorConfig && (
+            <MasterBotBehaviorCard
+              config={recruitmentBehaviorConfig}
+              onUpdate={(updates) => updateBotBehavior('recruitment', updates)}
+              botType="recruitment"
+              disabled={!config.recruitment_bot_enabled}
+            />
+          )}
         </TabsContent>
 
         {/* Bot de Suporte */}
-        <TabsContent value="support">
+        <TabsContent value="support" className="space-y-4">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -564,6 +603,16 @@ export function MasterBotConfigTab() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Card de Comportamento do Bot de Suporte */}
+          {supportBehaviorConfig && (
+            <MasterBotBehaviorCard
+              config={supportBehaviorConfig}
+              onUpdate={(updates) => updateBotBehavior('support', updates)}
+              botType="support"
+              disabled={!config.support_bot_enabled}
+            />
+          )}
         </TabsContent>
       </Tabs>
     </div>

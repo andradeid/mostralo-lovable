@@ -30,6 +30,20 @@ interface BonusTier {
   is_cumulative: boolean;
 }
 
+// Interface para configurações de comportamento do bot
+interface BotBehaviorConfig {
+  delay_message: number;
+  expire_minutes: number;
+  keyword_finish: string;
+  stop_from_me: boolean;
+  listening_from_me: boolean;
+  keep_open: boolean;
+  debounce_time: number;
+  split_messages: boolean;
+  time_per_char: number;
+  unknown_message: string;
+}
+
 // Formatador de moeda
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', {
@@ -452,6 +466,23 @@ WhatsApp: (61) 99555-0099
 Email: suporte@mostralo.com.br`;
 }
 
+// Helper para extrair configuração de comportamento de um bot
+function getBotBehaviorConfig(config: any, botType: string): BotBehaviorConfig {
+  const prefix = `${botType}_bot_`;
+  return {
+    delay_message: config[`${prefix}delay_message`] ?? 1500,
+    expire_minutes: config[`${prefix}expire_minutes`] ?? 60,
+    keyword_finish: config[`${prefix}keyword_finish`] ?? '#sair',
+    stop_from_me: config[`${prefix}stop_from_me`] ?? true,
+    listening_from_me: config[`${prefix}listening_from_me`] ?? false,
+    keep_open: config[`${prefix}keep_open`] ?? false,
+    debounce_time: config[`${prefix}debounce_time`] ?? 3,
+    split_messages: config[`${prefix}split_messages`] ?? true,
+    time_per_char: config[`${prefix}time_per_char`] ?? 50,
+    unknown_message: config[`${prefix}unknown_message`] ?? 'Desculpe, não entendi. Pode reformular?',
+  };
+}
+
 // =====================================================
 // HANDLER PRINCIPAL
 // =====================================================
@@ -570,6 +601,7 @@ serve(async (req) => {
         let botName: string;
         let triggerKeywords: string[];
         let evolutionBotId: string | null;
+        let behaviorConfig: BotBehaviorConfig;
 
         switch (bt) {
           case 'sales':
@@ -582,6 +614,7 @@ serve(async (req) => {
             botName = 'Mostralo Vendas';
             triggerKeywords = config.sales_bot_keywords;
             evolutionBotId = config.sales_bot_evolution_id;
+            behaviorConfig = getBotBehaviorConfig(config, 'sales');
             break;
 
           case 'recruitment':
@@ -594,6 +627,7 @@ serve(async (req) => {
             botName = 'Mostralo Recrutamento';
             triggerKeywords = config.recruitment_bot_keywords;
             evolutionBotId = config.recruitment_bot_evolution_id;
+            behaviorConfig = getBotBehaviorConfig(config, 'recruitment');
             break;
 
           case 'support':
@@ -605,6 +639,7 @@ serve(async (req) => {
             botName = 'Mostralo Suporte';
             triggerKeywords = config.support_bot_keywords;
             evolutionBotId = config.support_bot_evolution_id;
+            behaviorConfig = getBotBehaviorConfig(config, 'support');
             break;
 
           default:
@@ -628,7 +663,7 @@ serve(async (req) => {
           }
         }
 
-        // Criar novo bot
+        // 🔥 Criar novo bot COM CONFIGURAÇÕES DINÂMICAS DO BANCO
         const createPayload = {
           enabled: true,
           openaiCredsId: evolutionConfig.openai_creds_id,
@@ -643,19 +678,21 @@ serve(async (req) => {
           triggerType: 'keyword',
           triggerOperator: 'contains',
           triggerValue: triggerKeywords.join(','),
-          expire: 60,
-          keywordFinish: '#sair',
-          delayMessage: 1500,
-          unknownMessage: 'Desculpe, não entendi. Pode reformular?',
-          listeningFromMe: false,
-          stopBotFromMe: true,
-          keepOpen: false,
-          debounceTime: 3,
-          splitMessages: true,
-          timePerChar: 50
+          // 🔥 USAR VALORES DO BANCO AO INVÉS DE FIXOS
+          expire: behaviorConfig.expire_minutes,
+          keywordFinish: behaviorConfig.keyword_finish,
+          delayMessage: behaviorConfig.delay_message,
+          unknownMessage: behaviorConfig.unknown_message,
+          listeningFromMe: behaviorConfig.listening_from_me,
+          stopBotFromMe: behaviorConfig.stop_from_me,
+          keepOpen: behaviorConfig.keep_open,
+          debounceTime: behaviorConfig.debounce_time,
+          splitMessages: behaviorConfig.split_messages,
+          timePerChar: behaviorConfig.time_per_char
         };
 
         console.log(`📤 Criando bot ${bt} com ${prompt.length} caracteres de prompt`);
+        console.log(`⚙️ Configurações de comportamento:`, JSON.stringify(behaviorConfig, null, 2));
 
         const createResponse = await fetch(
           `${evolutionConfig.api_url}/openai/create/${config.instance_name}`,

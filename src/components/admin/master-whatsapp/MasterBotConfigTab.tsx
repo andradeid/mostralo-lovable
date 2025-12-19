@@ -337,23 +337,24 @@ export function MasterBotConfigTab() {
   return (
     <>
     <SyncErrorModal error={syncError} onClose={clearSyncError} />
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Botão de Sincronização Global */}
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+        <CardHeader className="pb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                 <RefreshCw className="w-5 h-5" />
                 Sincronizar Bots
               </CardTitle>
-              <CardDescription>
-                Atualize os bots na Evolution API com as configurações atuais
+              <CardDescription className="text-xs sm:text-sm">
+                Atualize os bots na Evolution API
               </CardDescription>
             </div>
             <Button 
               onClick={() => syncBots()} 
               disabled={syncing || !config.instance_name}
+              className="w-full sm:w-auto"
             >
               {syncing ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -368,23 +369,24 @@ export function MasterBotConfigTab() {
 
       {/* Tabs dos Bots */}
       <Tabs defaultValue="sales" className="space-y-4">
-        <TabsList className="grid grid-cols-3 w-full">
-          <TabsTrigger value="sales" className="gap-2">
+        <TabsList className="w-full flex overflow-x-auto gap-1 p-1">
+          <TabsTrigger value="sales" className="flex-1 sm:flex-none gap-1.5 text-xs sm:text-sm">
             <MessageSquare className="w-4 h-4" />
-            Vendas
+            <span>Vendas</span>
           </TabsTrigger>
-          <TabsTrigger value="recruitment" className="gap-2">
+          <TabsTrigger value="recruitment" className="flex-1 sm:flex-none gap-1.5 text-xs sm:text-sm">
             <Users className="w-4 h-4" />
-            Recrutamento
+            <span className="hidden xs:inline">Recrutamento</span>
+            <span className="xs:hidden">Recr.</span>
           </TabsTrigger>
-          <TabsTrigger value="support" className="gap-2">
+          <TabsTrigger value="support" className="flex-1 sm:flex-none gap-1.5 text-xs sm:text-sm">
             <HelpCircle className="w-4 h-4" />
-            Suporte
+            <span>Suporte</span>
           </TabsTrigger>
         </TabsList>
 
         {/* Bot de Vendas */}
-        <TabsContent value="sales" className="grid gap-4 md:grid-cols-2">
+        <TabsContent value="sales" className="grid gap-4 grid-cols-1 md:grid-cols-2">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -471,7 +473,7 @@ export function MasterBotConfigTab() {
         </TabsContent>
 
         {/* Bot de Recrutamento */}
-        <TabsContent value="recruitment" className="grid gap-4 md:grid-cols-2">
+        <TabsContent value="recruitment" className="grid gap-4 grid-cols-1 md:grid-cols-2">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">

@@ -16,6 +16,7 @@ import { CountryCodeSelect } from "@/components/ui/country-code-select";
 import { formatBrazilianPhone, formatInternationalPhone, cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { 
   Loader2, 
   Smartphone, 
@@ -82,6 +83,7 @@ interface EvolutionBot {
 
 export default function MasterWhatsAppPage() {
   const { config, loading, updateConfig, syncBots, syncing } = useMasterWhatsAppConfig();
+  const isMobile = useIsMobile();
   const [instanceName, setInstanceName] = useState("");
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [instanceStatus, setInstanceStatus] = useState<string>("disconnected");
@@ -434,11 +436,11 @@ export default function MasterWhatsAppPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-bold">WhatsApp Master</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-xl sm:text-2xl font-bold">WhatsApp Master</h1>
+          <p className="text-sm text-muted-foreground">
             Gerencie bots de vendas, recrutamento e suporte
           </p>
         </div>
@@ -446,24 +448,24 @@ export default function MasterWhatsAppPage() {
       </div>
 
       <Tabs defaultValue="connection" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="connection" className="gap-2">
+        <TabsList className="w-full flex overflow-x-auto gap-1 p-1">
+          <TabsTrigger value="connection" className="flex-shrink-0 gap-1.5 text-xs sm:text-sm">
             <Smartphone className="w-4 h-4" />
-            Conexão
+            <span className="hidden xs:inline">Conexão</span>
           </TabsTrigger>
-          <TabsTrigger value="bots" className="gap-2">
+          <TabsTrigger value="bots" className="flex-shrink-0 gap-1.5 text-xs sm:text-sm">
             <Bot className="w-4 h-4" />
-            Configurar Bots
+            <span className="hidden xs:inline">Configurar</span> Bots
           </TabsTrigger>
-          <TabsTrigger value="sessions" className="gap-2">
+          <TabsTrigger value="sessions" className="flex-shrink-0 gap-1.5 text-xs sm:text-sm">
             <MessageSquare className="w-4 h-4" />
-            Sessões
+            <span className="hidden xs:inline">Sessões</span>
           </TabsTrigger>
         </TabsList>
 
         {/* Tab Conexão */}
         <TabsContent value="connection">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {/* Criar/Gerenciar Instância - Card Redesenhado */}
             <Card className="lg:col-span-1">
               <CardHeader className="pb-3">
@@ -932,25 +934,26 @@ export default function MasterWhatsAppPage() {
         <TabsContent value="bots">
           {/* Card de Bots Criados na Evolution */}
           <Card className="mb-6">
-            <CardHeader>
-              <div className="flex items-center justify-between">
+            <CardHeader className="pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                     <Zap className="w-5 h-5 text-yellow-500" />
                     Bots na Evolution API
-                    <InfoTooltip text="Lista dos bots realmente criados na Evolution API. Estes são os bots que estão ativos respondendo mensagens." />
                   </CardTitle>
-                  <CardDescription>
-                    Bots ativos na instância {config?.instance_name || 'não configurada'}
+                  <CardDescription className="text-xs sm:text-sm">
+                    Bots ativos na instância {config?.instance_name?.slice(0, 20) || 'não configurada'}
                   </CardDescription>
                 </div>
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
                   onClick={fetchEvolutionBots}
                   disabled={loadingBots}
+                  className="w-full sm:w-auto"
                 >
-                  <RefreshCw className={`w-4 h-4 ${loadingBots ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={cn("w-4 h-4 mr-2", loadingBots && "animate-spin")} />
+                  Atualizar
                 </Button>
               </div>
             </CardHeader>
@@ -965,7 +968,110 @@ export default function MasterWhatsAppPage() {
                   <p>Nenhum bot criado ainda</p>
                   <p className="text-xs mt-1">Configure os bots abaixo e clique em "Sincronizar Bot"</p>
                 </div>
+              ) : isMobile ? (
+                /* Mobile: Cards empilhados */
+                <div className="space-y-3">
+                  {evolutionBots.map((bot, idx) => (
+                    <Card key={bot.id || idx} className="p-4 bg-muted/30">
+                      <div className="flex items-start justify-between mb-3">
+                        {bot.botType ? (
+                          <Badge 
+                            variant="outline" 
+                            className={cn(
+                              "gap-1",
+                              bot.botType === 'sales' && "border-green-500/50 text-green-600 dark:text-green-400",
+                              bot.botType === 'recruitment' && "border-blue-500/50 text-blue-600 dark:text-blue-400",
+                              bot.botType === 'support' && "border-purple-500/50 text-purple-600 dark:text-purple-400"
+                            )}
+                          >
+                            {bot.botTypeName}
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">Não vinculado</span>
+                        )}
+                        <Badge variant={bot.enabled ? 'default' : 'secondary'} className="gap-1">
+                          {bot.enabled ? (
+                            <CheckCircle className="w-3 h-3" />
+                          ) : (
+                            <XCircle className="w-3 h-3" />
+                          )}
+                          {bot.enabled ? 'Ativo' : 'Inativo'}
+                        </Badge>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                        <div>
+                          <span className="text-muted-foreground text-xs">Trigger:</span>
+                          <p className="font-medium text-xs">
+                            {bot.triggerType === 'all' ? 'Todas mensagens' : 'Keywords'}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground text-xs">Expiração:</span>
+                          <p className="font-medium text-xs">
+                            {bot.expire > 0 ? `${bot.expire} min` : 'Sem limite'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {bot.triggerValue && (
+                        <div className="mb-3">
+                          <span className="text-muted-foreground text-xs">Keywords:</span>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {bot.triggerValue.split(',').slice(0, 4).map((kw, i) => (
+                              <Badge key={i} variant="outline" className="text-xs">
+                                {kw.trim()}
+                              </Badge>
+                            ))}
+                            {bot.triggerValue.split(',').length > 4 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{bot.triggerValue.split(',').length - 4}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="text-xs text-muted-foreground mb-3 font-mono">
+                        ID: {bot.id?.slice(0, 12)}...
+                      </div>
+
+                      {bot.botType && (
+                        <div className="flex gap-2 pt-3 border-t">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleSyncIndividualBot(bot)}
+                            disabled={syncingBotId === bot.id || syncing || deletingBotId === bot.id}
+                            className="flex-1"
+                          >
+                            {syncingBotId === bot.id ? (
+                              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                            ) : (
+                              <RefreshCw className="w-4 h-4 mr-1" />
+                            )}
+                            Sincronizar
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openDeleteDialog(bot)}
+                            disabled={syncingBotId === bot.id || syncing || deletingBotId === bot.id}
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          >
+                            {deletingBotId === bot.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </div>
+                      )}
+                    </Card>
+                  ))}
+                </div>
               ) : (
+                /* Desktop: Tabela */
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>

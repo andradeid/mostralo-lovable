@@ -38,8 +38,15 @@ import {
   Key,
   Eye,
   EyeOff,
-  Trash2
+  Trash2,
+  Copy,
+  Hash,
+  Calendar,
+  ShoppingCart,
+  Headphones,
+  Activity
 } from "lucide-react";
+import { ptBR } from "date-fns/locale";
 import { MasterBotConfigTab } from "@/components/admin/master-whatsapp/MasterBotConfigTab";
 import { MasterSessionsTab } from "@/components/admin/master-whatsapp/MasterSessionsTab";
 import { MasterNotificationsCard } from "@/components/admin/master-whatsapp/MasterNotificationsCard";
@@ -252,6 +259,7 @@ export default function MasterWhatsAppPage() {
   const [evolutionBots, setEvolutionBots] = useState<EvolutionBot[]>([]);
   const [loadingBots, setLoadingBots] = useState(false);
   const [syncingBotId, setSyncingBotId] = useState<string | null>(null);
+  const [stats, setStats] = useState({ totalSessions: 0, totalMessages: 0, pausedSessions: 0 });
 
   useEffect(() => {
     if (config?.instance_name) {
@@ -259,6 +267,40 @@ export default function MasterWhatsAppPage() {
       setInstanceStatus(config.instance_status || "disconnected");
     }
   }, [config]);
+
+  // Buscar estatísticas das sessões
+  useEffect(() => {
+    const fetchStats = async () => {
+      const { data } = await supabase
+        .from('master_whatsapp_sessions')
+        .select('id, messages_count, bot_paused');
+      
+      if (data) {
+        setStats({
+          totalSessions: data.length,
+          totalMessages: data.reduce((acc, s) => acc + (s.messages_count || 0), 0),
+          pausedSessions: data.filter(s => s.bot_paused).length
+        });
+      }
+    };
+    fetchStats();
+  }, []);
+
+  const copyToClipboard = (text: string | null | undefined) => {
+    if (text) {
+      navigator.clipboard.writeText(text);
+      toast.success('Copiado!');
+    }
+  };
+
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return 'Não disponível';
+    try {
+      return format(new Date(dateString), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+    } catch {
+      return 'Data inválida';
+    }
+  };
 
   // Buscar bots da Evolution API
   const fetchEvolutionBots = async () => {
@@ -539,12 +581,12 @@ export default function MasterWhatsAppPage() {
 
         {/* Tab Conexão */}
         <TabsContent value="connection">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {/* Criar/Gerenciar Instância */}
-            <Card>
-              <CardHeader>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Criar/Gerenciar Instância - Card Redesenhado */}
+            <Card className="lg:col-span-1">
+              <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2">
-                  <Smartphone className="w-5 h-5" />
+                  <Smartphone className="w-5 h-5 text-primary" />
                   Instância WhatsApp
                 </CardTitle>
                 <CardDescription>
@@ -576,29 +618,169 @@ export default function MasterWhatsAppPage() {
                     </Button>
                   </>
                 ) : (
-                  <>
-                    <div className="p-3 bg-muted rounded-lg">
-                      <p className="text-sm text-muted-foreground">Instância ativa:</p>
-                      <p className="font-mono text-sm truncate">{config.instance_name}</p>
+                  <div className="space-y-4">
+                    {/* Status em Destaque */}
+                    <div className={cn(
+                      "flex items-center gap-3 p-3 rounded-lg border-2 transition-colors",
+                      instanceStatus === 'connected' || instanceStatus === 'open'
+                        ? "bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-800"
+                        : "bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-800"
+                    )}>
+                      <div className={cn(
+                        "w-3 h-3 rounded-full",
+                        instanceStatus === 'connected' || instanceStatus === 'open' 
+                          ? "bg-green-500 animate-pulse" 
+                          : "bg-red-500"
+                      )} />
+                      <div className="flex-1 min-w-0">
+                        <p className={cn(
+                          "font-semibold text-sm",
+                          instanceStatus === 'connected' || instanceStatus === 'open'
+                            ? "text-green-700 dark:text-green-300"
+                            : "text-red-700 dark:text-red-300"
+                        )}>
+                          {instanceStatus === 'connected' || instanceStatus === 'open' ? 'CONECTADO' : 'DESCONECTADO'}
+                        </p>
+                        <p className="text-xs text-muted-foreground font-mono truncate">
+                          {config?.instance_name}
+                        </p>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-7 w-7 p-0 shrink-0"
+                        onClick={() => copyToClipboard(config?.instance_name)}
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                      </Button>
                     </div>
-                    <div className="flex gap-2">
+
+                    {/* Informações da Instância */}
+                    <div className="space-y-3 p-3 bg-muted/50 rounded-lg">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+                        <Activity className="w-3.5 h-3.5" />
+                        Informações da Instância
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <Hash className="w-3 h-3" />
+                            <span className="text-xs">Evolution ID</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <p className="font-mono text-xs truncate">
+                              {config?.evolution_instance_id?.slice(0, 8) || 'N/A'}...
+                            </p>
+                            {config?.evolution_instance_id && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-5 w-5 p-0"
+                                onClick={() => copyToClipboard(config?.evolution_instance_id)}
+                              >
+                                <Copy className="w-2.5 h-2.5" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <Phone className="w-3 h-3" />
+                            <span className="text-xs">Telefone</span>
+                          </div>
+                          <p className="text-xs font-medium">
+                            {config?.instance_phone || 'Não detectado'}
+                          </p>
+                        </div>
+                        <div className="col-span-2 space-y-1">
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <Calendar className="w-3 h-3" />
+                            <span className="text-xs">Última atualização</span>
+                          </div>
+                          <p className="text-xs font-medium">
+                            {formatDate(config?.updated_at)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Status dos Bots */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+                        <Bot className="w-3.5 h-3.5" />
+                        Status dos Bots
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge 
+                          variant={config?.sales_bot_enabled ? "default" : "outline"}
+                          className={cn(
+                            "text-xs",
+                            config?.sales_bot_enabled && "bg-blue-500 hover:bg-blue-600"
+                          )}
+                        >
+                          <ShoppingCart className="w-3 h-3 mr-1" />
+                          Vendas
+                        </Badge>
+                        <Badge 
+                          variant={config?.recruitment_bot_enabled ? "default" : "outline"}
+                          className={cn(
+                            "text-xs",
+                            config?.recruitment_bot_enabled && "bg-purple-500 hover:bg-purple-600"
+                          )}
+                        >
+                          <Users className="w-3 h-3 mr-1" />
+                          Recrutamento
+                        </Badge>
+                        <Badge 
+                          variant={config?.support_bot_enabled ? "default" : "outline"}
+                          className={cn(
+                            "text-xs",
+                            config?.support_bot_enabled && "bg-orange-500 hover:bg-orange-600"
+                          )}
+                        >
+                          <Headphones className="w-3 h-3 mr-1" />
+                          Suporte
+                        </Badge>
+                      </div>
+                    </div>
+
+                    {/* Estatísticas Rápidas */}
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="p-2 bg-muted rounded-lg text-center">
+                        <p className="text-lg font-bold text-primary">{stats.totalSessions}</p>
+                        <p className="text-[10px] text-muted-foreground">Sessões</p>
+                      </div>
+                      <div className="p-2 bg-muted rounded-lg text-center">
+                        <p className="text-lg font-bold text-primary">{stats.totalMessages}</p>
+                        <p className="text-[10px] text-muted-foreground">Mensagens</p>
+                      </div>
+                      <div className="p-2 bg-muted rounded-lg text-center">
+                        <p className="text-lg font-bold text-yellow-600 dark:text-yellow-400">{stats.pausedSessions}</p>
+                        <p className="text-[10px] text-muted-foreground">Pausados</p>
+                      </div>
+                    </div>
+
+                    {/* Botões de Ação */}
+                    <div className="flex gap-2 pt-2">
                       <Button
                         variant="outline"
                         onClick={checkStatus}
                         disabled={loadingAction === 'status'}
                         className="flex-1"
+                        size="sm"
                       >
                         {loadingAction === 'status' ? (
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                         ) : (
                           <RefreshCw className="w-4 h-4 mr-2" />
                         )}
-                        Atualizar
+                        Atualizar Status
                       </Button>
                       <Button
                         variant="destructive"
                         onClick={disconnect}
                         disabled={loadingAction === 'disconnect'}
+                        size="sm"
                       >
                         {loadingAction === 'disconnect' ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
@@ -607,7 +789,7 @@ export default function MasterWhatsAppPage() {
                         )}
                       </Button>
                     </div>
-                  </>
+                  </div>
                 )}
 
                 {/* OpenAI API Key Section */}

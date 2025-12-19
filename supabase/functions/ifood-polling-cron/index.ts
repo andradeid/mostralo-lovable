@@ -324,13 +324,14 @@ async function createOrderFromEvent(supabase: any, storeId: string, event: any):
     ? `${deliveryAddress.streetName}, ${deliveryAddress.streetNumber}${deliveryAddress.complement ? ` - ${deliveryAddress.complement}` : ''}, ${deliveryAddress.neighborhood}, ${deliveryAddress.city}/${deliveryAddress.state}`
     : null
 
-  // Criar pedido
+  // Criar pedido COM short_reference (localizador do iFood)
   const { data: newOrder, error: orderError } = await supabase
     .from('orders')
     .insert({
       store_id: storeId,
       external_id: orderId,
       order_number: orderNumber || `IFOOD-${Date.now()}`,
+      short_reference: orderDetails.shortReference || null, // Localizador do iFood
       source: 'ifood',
       status: 'entrada',
       customer_name: orderDetails.customer?.name || 'Cliente iFood',
@@ -375,32 +376,39 @@ async function updateOrderStatus(supabase: any, storeId: string, event: any): Pr
   const eventCode = event.code || event.fullCode
   const orderId = event.orderId || event.correlationId
 
-  const newStatus = STATUS_MAP[eventCode]
+  // Tentar mapear pelo código abreviado OU pelo fullCode
+  const newStatus = STATUS_MAP[eventCode] || STATUS_MAP[event.fullCode]
   if (!newStatus) {
-    console.log(`[CRON] Status não mapeado para código: ${eventCode}`)
+    console.log(`[CRON] Status não mapeado para código: ${eventCode} / ${event.fullCode}`)
     return
   }
 
   const updateData: any = { status: newStatus, updated_at: new Date().toISOString() }
 
+  // Tratar cancelamento
   if (newStatus === 'cancelado') {
     updateData.cancelled_at = new Date().toISOString()
+    updateData.cancellation_reason = event.metadata?.reason || 'Cancelado pelo iFood'
   } else if (newStatus === 'concluido') {
     updateData.completed_at = new Date().toISOString()
   }
 
-  const { error } = await supabase
+  const { error, data } = await supabase
     .from('orders')
     .update(updateData)
     .eq('external_id', orderId)
     .eq('store_id', storeId)
+    .select('id, order_number')
+    .single()
 
   if (error) {
     console.error(`[CRON] Erro ao atualizar status do pedido ${orderId}:`, error)
     throw error
+  } else if (data) {
+    console.log(`[CRON] Pedido ${data.order_number} atualizado para status: ${newStatus}`)
+  } else {
+    console.log(`[CRON] Nenhum pedido encontrado com external_id ${orderId}`)
   }
-
-  console.log(`[CRON] Pedido ${orderId} atualizado para status: ${newStatus}`)
 }
 
 async function acknowledgeEvents(accessToken: string, eventIds: string[]): Promise<void> {

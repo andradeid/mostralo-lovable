@@ -262,18 +262,40 @@ async function processEvent(supabase: any, event: any, defaultStoreId?: string) 
   const eventCode = event.fullCode || event.code
   console.log(`🎯 Código do evento: ${event.code} | fullCode: ${event.fullCode} | usando: ${eventCode}`)
 
+  // Se for evento de novo pedido, criar pedido
   if (eventCode === 'PLACED' || event.code === 'PLC') {
     await createOrderFromEvent(supabase, storeId, event)
-  } else if (['CONFIRMED', 'CFM', 'CANCELLED', 'CAN', 'CONCLUDED', 'CON'].includes(eventCode) || 
-             ['CONFIRMED', 'CFM', 'CANCELLED', 'CAN', 'CONCLUDED', 'CON'].includes(event.code)) {
+  } else {
+    // TODOS os outros eventos atualizam status (incluindo DSP, RTP, CAR, etc.)
     await updateOrderStatus(supabase, storeId, event)
   }
+
+  // Marcar evento como processado
+  await supabase
+    .from('ifood_events_log')
+    .update({ processed: true, processed_at: new Date().toISOString() })
+    .eq('event_id', event.id)
 
   return { event_id: event.id, success: true }
 }
 
 async function createOrderFromEvent(supabase: any, storeId: string, event: any) {
   console.log(`📝 Criando pedido a partir do evento PLACED`)
+
+  const orderId = event.orderId
+
+  // VERIFICAR SE PEDIDO JÁ EXISTE (evitar duplicatas)
+  const { data: existingOrder } = await supabase
+    .from('orders')
+    .select('id, status, order_number')
+    .eq('external_id', orderId)
+    .eq('store_id', storeId)
+    .single()
+
+  if (existingOrder) {
+    console.log(`⏭️ Pedido ${orderId} já existe (${existingOrder.order_number}), ignorando criação`)
+    return existingOrder
+  }
 
   // Buscar detalhes do pedido no iFood
   const { data: integration } = await supabase
@@ -299,7 +321,7 @@ async function createOrderFromEvent(supabase: any, storeId: string, event: any) 
   }
 
   const orderData = await orderResponse.json()
-  console.log(`📋 Dados do pedido recebidos:`, orderData.displayId)
+  console.log(`📋 Dados do pedido recebidos:`, orderData.displayId, `| Localizador: ${orderData.shortReference}`)
 
   // Gerar order_number
   const { data: nextNumber } = await supabase.rpc('get_next_order_number', { store_uuid: storeId })
@@ -316,12 +338,13 @@ async function createOrderFromEvent(supabase: any, storeId: string, event: any) 
     ? `${delivery.streetName}, ${delivery.streetNumber}${delivery.complement ? ' - ' + delivery.complement : ''}, ${delivery.neighborhood}, ${delivery.city} - ${delivery.state}`
     : null
 
-  // Criar pedido
+  // Criar pedido COM short_reference (localizador do iFood)
   const { data: order, error: orderError } = await supabase
     .from('orders')
     .insert({
       store_id: storeId,
       order_number: orderNumber,
+      short_reference: orderData.shortReference || null, // Localizador do iFood (ex: "2677 3093")
       customer_name: orderData.customer?.name || 'Cliente iFood',
       customer_phone: orderData.customer?.phone?.number || '',
       customer_address: customerAddress,
@@ -344,7 +367,7 @@ async function createOrderFromEvent(supabase: any, storeId: string, event: any) 
     return
   }
 
-  console.log(`✅ Pedido ${orderNumber} criado com sucesso`)
+  console.log(`✅ Pedido ${orderNumber} criado com sucesso | Localizador: ${orderData.shortReference}`)
 
   // Criar itens do pedido
   for (const item of orderData.items || []) {
@@ -366,37 +389,46 @@ async function createOrderFromEvent(supabase: any, storeId: string, event: any) 
 }
 
 async function updateOrderStatus(supabase: any, storeId: string, event: any) {
-  const newStatus = STATUS_MAP[event.code]
+  // Tentar mapear pelo código abreviado OU pelo fullCode
+  const eventCode = event.fullCode || event.code
+  const newStatus = STATUS_MAP[eventCode] || STATUS_MAP[event.code]
+  
   if (!newStatus) {
-    console.log(`⚠️ Status não mapeado: ${event.code}`)
+    console.log(`⚠️ Status não mapeado: ${event.code} / ${event.fullCode}`)
     return
   }
 
-  console.log(`🔄 Atualizando pedido ${event.orderId} para status ${newStatus}`)
+  console.log(`🔄 Atualizando pedido ${event.orderId} para status ${newStatus} (evento: ${eventCode})`)
 
   const updateData: any = {
     status: newStatus,
     updated_at: new Date().toISOString()
   }
 
-  if (event.code === 'CANCELLED') {
+  // Tratar cancelamento (CAN ou CANCELLED)
+  if (event.code === 'CAN' || event.code === 'CANCELLED' || eventCode === 'CANCELLED') {
     updateData.cancelled_at = new Date().toISOString()
-    updateData.cancellation_reason = event.cancellationReason || 'Cancelado pelo iFood'
+    updateData.cancellation_reason = event.metadata?.reason || event.cancellationReason || 'Cancelado pelo iFood'
   }
 
-  if (event.code === 'CONCLUDED') {
+  // Tratar conclusão (CON ou CONCLUDED)
+  if (event.code === 'CON' || event.code === 'CONCLUDED' || eventCode === 'CONCLUDED') {
     updateData.completed_at = new Date().toISOString()
   }
 
-  const { error } = await supabase
+  const { error, data } = await supabase
     .from('orders')
     .update(updateData)
     .eq('external_id', event.orderId)
     .eq('store_id', storeId)
+    .select('id, order_number')
+    .single()
 
   if (error) {
     console.error('❌ Erro ao atualizar status:', error)
+  } else if (data) {
+    console.log(`✅ Pedido ${data.order_number} atualizado para ${newStatus}`)
   } else {
-    console.log(`✅ Status atualizado para ${newStatus}`)
+    console.log(`⚠️ Nenhum pedido encontrado com external_id ${event.orderId}`)
   }
 }

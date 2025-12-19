@@ -2038,6 +2038,7 @@ export type Database = {
           promotion_id: string | null
           requires_zone_approval: boolean | null
           scheduled_for: string | null
+          short_reference: string | null
           source: string | null
           status: Database["public"]["Enums"]["order_status"]
           store_id: string
@@ -2073,6 +2074,7 @@ export type Database = {
           promotion_id?: string | null
           requires_zone_approval?: boolean | null
           scheduled_for?: string | null
+          short_reference?: string | null
           source?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           store_id: string
@@ -2108,6 +2110,7 @@ export type Database = {
           promotion_id?: string | null
           requires_zone_approval?: boolean | null
           scheduled_for?: string | null
+          short_reference?: string | null
           source?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           store_id?: string

@@ -1991,6 +1991,8 @@ export type Database = {
           recruitment_bot_split_messages: boolean | null
           recruitment_bot_stop_from_me: boolean | null
           recruitment_bot_time_per_char: number | null
+          recruitment_bot_trigger_operator: string | null
+          recruitment_bot_trigger_type: string | null
           recruitment_bot_unknown_message: string | null
           sales_bot_approach: string | null
           sales_bot_auto_reactivate_minutes: number | null
@@ -2006,6 +2008,8 @@ export type Database = {
           sales_bot_split_messages: boolean | null
           sales_bot_stop_from_me: boolean | null
           sales_bot_time_per_char: number | null
+          sales_bot_trigger_operator: string | null
+          sales_bot_trigger_type: string | null
           sales_bot_unknown_message: string | null
           support_bot_auto_reactivate_minutes: number | null
           support_bot_custom_prompt: string | null
@@ -2021,6 +2025,8 @@ export type Database = {
           support_bot_split_messages: boolean | null
           support_bot_stop_from_me: boolean | null
           support_bot_time_per_char: number | null
+          support_bot_trigger_operator: string | null
+          support_bot_trigger_type: string | null
           support_bot_unknown_message: string | null
           updated_at: string | null
         }
@@ -2058,6 +2064,8 @@ export type Database = {
           recruitment_bot_split_messages?: boolean | null
           recruitment_bot_stop_from_me?: boolean | null
           recruitment_bot_time_per_char?: number | null
+          recruitment_bot_trigger_operator?: string | null
+          recruitment_bot_trigger_type?: string | null
           recruitment_bot_unknown_message?: string | null
           sales_bot_approach?: string | null
           sales_bot_auto_reactivate_minutes?: number | null
@@ -2073,6 +2081,8 @@ export type Database = {
           sales_bot_split_messages?: boolean | null
           sales_bot_stop_from_me?: boolean | null
           sales_bot_time_per_char?: number | null
+          sales_bot_trigger_operator?: string | null
+          sales_bot_trigger_type?: string | null
           sales_bot_unknown_message?: string | null
           support_bot_auto_reactivate_minutes?: number | null
           support_bot_custom_prompt?: string | null
@@ -2088,6 +2098,8 @@ export type Database = {
           support_bot_split_messages?: boolean | null
           support_bot_stop_from_me?: boolean | null
           support_bot_time_per_char?: number | null
+          support_bot_trigger_operator?: string | null
+          support_bot_trigger_type?: string | null
           support_bot_unknown_message?: string | null
           updated_at?: string | null
         }
@@ -2125,6 +2137,8 @@ export type Database = {
           recruitment_bot_split_messages?: boolean | null
           recruitment_bot_stop_from_me?: boolean | null
           recruitment_bot_time_per_char?: number | null
+          recruitment_bot_trigger_operator?: string | null
+          recruitment_bot_trigger_type?: string | null
           recruitment_bot_unknown_message?: string | null
           sales_bot_approach?: string | null
           sales_bot_auto_reactivate_minutes?: number | null
@@ -2140,6 +2154,8 @@ export type Database = {
           sales_bot_split_messages?: boolean | null
           sales_bot_stop_from_me?: boolean | null
           sales_bot_time_per_char?: number | null
+          sales_bot_trigger_operator?: string | null
+          sales_bot_trigger_type?: string | null
           sales_bot_unknown_message?: string | null
           support_bot_auto_reactivate_minutes?: number | null
           support_bot_custom_prompt?: string | null
@@ -2155,6 +2171,8 @@ export type Database = {
           support_bot_split_messages?: boolean | null
           support_bot_stop_from_me?: boolean | null
           support_bot_time_per_char?: number | null
+          support_bot_trigger_operator?: string | null
+          support_bot_trigger_type?: string | null
           support_bot_unknown_message?: string | null
           updated_at?: string | null
         }

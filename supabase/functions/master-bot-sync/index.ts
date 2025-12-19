@@ -901,12 +901,26 @@ serve(async (req) => {
 
         console.log(`🔑 Bot ${bt}: Usando credencial compartilhada: ${openaiCredsId}`);
 
-        // Aplicar keywords quando configuradas
-        const hasKeywords = triggerKeywords && triggerKeywords.length > 0 && triggerKeywords.some(k => k.trim());
-        const triggerType = hasKeywords ? 'keyword' : 'all';
-        const triggerValue = hasKeywords ? triggerKeywords.filter(k => k.trim()).join(',') : '';
+        // Usar trigger type e operator do banco de dados (ou fallback para lógica antiga)
+        const configTriggerType = config[`${bt}_bot_trigger_type`] as string || null;
+        const configTriggerOperator = config[`${bt}_bot_trigger_operator`] as string || 'contains';
+        
+        // Determinar triggerType final
+        let triggerType: string;
+        let triggerValue: string;
+        
+        if (configTriggerType) {
+          // Usar valor do banco de dados
+          triggerType = configTriggerType;
+          triggerValue = triggerKeywords.filter(k => k.trim()).join(',');
+        } else {
+          // Fallback: lógica antiga baseada em keywords
+          const hasKeywords = triggerKeywords && triggerKeywords.length > 0 && triggerKeywords.some(k => k.trim());
+          triggerType = hasKeywords ? 'keyword' : 'all';
+          triggerValue = hasKeywords ? triggerKeywords.filter(k => k.trim()).join(',') : '';
+        }
 
-        console.log(`🔑 Bot ${bt}: triggerType=${triggerType}, triggerValue="${triggerValue}", keywords:`, triggerKeywords);
+        console.log(`🔑 Bot ${bt}: triggerType=${triggerType}, triggerOperator="${configTriggerOperator}", triggerValue="${triggerValue}"`);
 
         // Gerar descrição baseada no tipo de bot
         const botDescriptions: Record<string, string> = {
@@ -928,7 +942,7 @@ serve(async (req) => {
           ],
           userMessages: ['Oi', 'Olá', 'Boa tarde', 'Boa noite', 'Bom dia'],
           triggerType: triggerType,
-          triggerOperator: 'contains',
+          triggerOperator: configTriggerOperator,
           triggerValue: triggerValue,
           expire: behaviorConfig.expire_minutes || 20,
           keywordFinish: behaviorConfig.keyword_finish || '#SAIR',

@@ -97,6 +97,7 @@ export default function MasterWhatsAppPage() {
     updateBotBehavior,
     updatePrimaryBotType,
     updateOpenAIModel,
+    updateTriggerConfig,
     hasUnsyncedChanges,
     lastSyncedAt
   } = useMasterWhatsAppConfig();
@@ -1264,6 +1265,7 @@ export default function MasterWhatsAppPage() {
             syncBots={syncBots}
             updatePrimaryBotType={updatePrimaryBotType}
             updateOpenAIModel={updateOpenAIModel}
+            updateTriggerConfig={updateTriggerConfig}
             hasUnsyncedChanges={hasUnsyncedChanges}
             lastSyncedAt={lastSyncedAt}
           />

@@ -34,6 +34,8 @@ export interface BotBehaviorConfig {
 }
 
 export type PrimaryBotType = 'sales' | 'recruitment' | 'support';
+export type TriggerType = 'all' | 'keyword' | 'advanced' | 'none';
+export type TriggerOperator = 'contains' | 'equals' | 'startsWith' | 'endsWith' | 'regex';
 
 export interface MasterWhatsAppConfig {
   id: string;
@@ -60,6 +62,8 @@ export interface MasterWhatsAppConfig {
   sales_bot_time_per_char: number;
   sales_bot_unknown_message: string;
   sales_bot_auto_reactivate_minutes: number;
+  sales_bot_trigger_type: TriggerType;
+  sales_bot_trigger_operator: TriggerOperator;
   // Bot de Recrutamento
   recruitment_bot_enabled: boolean;
   recruitment_bot_approach: RecruitmentApproach;
@@ -76,6 +80,8 @@ export interface MasterWhatsAppConfig {
   recruitment_bot_time_per_char: number;
   recruitment_bot_unknown_message: string;
   recruitment_bot_auto_reactivate_minutes: number;
+  recruitment_bot_trigger_type: TriggerType;
+  recruitment_bot_trigger_operator: TriggerOperator;
   // Bot de Suporte
   support_bot_enabled: boolean;
   support_bot_keywords: string[];
@@ -92,6 +98,8 @@ export interface MasterWhatsAppConfig {
   support_bot_time_per_char: number;
   support_bot_unknown_message: string;
   support_bot_auto_reactivate_minutes: number;
+  support_bot_trigger_type: TriggerType;
+  support_bot_trigger_operator: TriggerOperator;
   // Notificações
   notification_phone: string | null;
   notification_country_code: string | null;
@@ -541,6 +549,19 @@ export function useMasterWhatsAppConfig() {
     return success;
   };
 
+  // Atualizar configuração de trigger
+  const updateTriggerConfig = async (
+    botType: 'sales' | 'recruitment' | 'support',
+    triggerType: TriggerType,
+    triggerOperator: TriggerOperator
+  ) => {
+    const updates = {
+      [`${botType}_bot_trigger_type`]: triggerType,
+      [`${botType}_bot_trigger_operator`]: triggerOperator,
+    } as Partial<MasterWhatsAppConfig>;
+    return updateConfig(updates);
+  };
+
   // Pausar/retomar sessão
   const toggleSessionPause = async (sessionId: string, pause: boolean, reason?: string) => {
     try {
@@ -580,6 +601,7 @@ export function useMasterWhatsAppConfig() {
     updateSupportPrompt,
     updatePrimaryBotType,
     updateOpenAIModel,
+    updateTriggerConfig,
     toggleSessionPause,
     hasUnsyncedChanges,
     lastSyncedAt

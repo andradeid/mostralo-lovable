@@ -10,9 +10,8 @@ import { ModuleCardsView } from '@/components/admin/modules/ModuleCardsView';
 import { ModuleMatrixView } from '@/components/admin/modules/ModuleMatrixView';
 import { 
   Package, LayoutGrid, Table, Store, Lock, Unlock, 
-  RefreshCw, ArrowLeft 
+  RefreshCw 
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 const ModuleAccessManagementPage = () => {
   usePageSEO({
@@ -65,21 +64,14 @@ const ModuleAccessManagementPage = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Link to="/dashboard/modulos">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Package className="w-7 h-7 text-primary" />
-              Gerenciar Acesso a Módulos
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Controle quais lojas têm acesso a cada módulo
-            </p>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <Package className="w-7 h-7 text-primary" />
+            Gerenciar Acesso a Módulos
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Controle quais lojas têm acesso a cada módulo
+          </p>
         </div>
         <Button variant="outline" onClick={refetch}>
           <RefreshCw className="w-4 h-4 mr-2" />

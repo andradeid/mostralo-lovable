@@ -29,6 +29,15 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
+interface PlanModule {
+  module_id: string;
+  modules: {
+    name: string;
+    icon: string | null;
+    key: string | null;
+  };
+}
+
 interface Plan {
   id: string;
   name: string;
@@ -42,6 +51,7 @@ interface Plan {
   created_at: string;
   updated_at: string;
   stores_count?: number;
+  plan_modules?: PlanModule[];
 }
 
 const PlansPage = () => {
@@ -107,6 +117,17 @@ const PlansPage = () => {
 
       if (storesError) throw storesError;
 
+      // Buscar módulos de cada plano
+      const { data: planModulesData, error: planModulesError } = await supabase
+        .from('plan_modules')
+        .select(`
+          plan_id,
+          module_id,
+          modules!inner(name, icon, key)
+        `);
+
+      if (planModulesError) throw planModulesError;
+
       // Contar lojas por plano
       const countMap = (storesData || []).reduce((acc, store) => {
         if (store.plan_id) {
@@ -115,13 +136,19 @@ const PlansPage = () => {
         return acc;
       }, {} as Record<string, number>);
 
-      // Adicionar contagem aos planos
-      const plansWithCount = (plansData || []).map(plan => ({
+      // Adicionar contagem e módulos aos planos
+      const plansWithData = (plansData || []).map(plan => ({
         ...plan,
-        stores_count: countMap[plan.id] || 0
+        stores_count: countMap[plan.id] || 0,
+        plan_modules: (planModulesData || [])
+          .filter(pm => pm.plan_id === plan.id)
+          .map(pm => ({
+            module_id: pm.module_id,
+            modules: pm.modules as { name: string; icon: string | null; key: string | null }
+          }))
       }));
 
-      setPlans(plansWithCount);
+      setPlans(plansWithData);
     } catch (error) {
       console.error('Erro ao buscar planos:', error);
       toast({
@@ -496,6 +523,40 @@ const PlansPage = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Módulos do Plano */}
+                {plan.plan_modules && plan.plan_modules.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-sm flex items-center gap-2">
+                      Módulos 
+                      <Badge variant="secondary" className="text-xs">
+                        {plan.plan_modules.length}
+                      </Badge>
+                    </h4>
+                    <div className="flex flex-wrap gap-1">
+                      {plan.plan_modules.slice(0, 6).map((pm) => (
+                        <Badge 
+                          key={pm.module_id} 
+                          variant="outline" 
+                          className="text-xs font-normal"
+                        >
+                          {pm.modules?.name || 'Módulo'}
+                        </Badge>
+                      ))}
+                      {plan.plan_modules.length > 6 && (
+                        <Badge variant="secondary" className="text-xs">
+                          +{plan.plan_modules.length - 6}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {plan.plan_modules?.length === 0 && (
+                  <div className="text-xs text-muted-foreground italic">
+                    Nenhum módulo selecionado
+                  </div>
+                )}
 
                 {/* Features */}
                 {plan.features && Object.keys(plan.features).length > 0 && (

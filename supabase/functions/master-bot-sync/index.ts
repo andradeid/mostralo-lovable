@@ -842,8 +842,54 @@ serve(async (req) => {
     }
     console.log('🔑 Usando openaiCredsId:', openaiCredsId);
 
-    // 2. Buscar e deletar TODOS os bots existentes para recriar com configurações atualizadas
-    // 🔥 NOTA: Removido ensureOpenAiSettings - openai-bot-sync NÃO usa isso e funciona!
+    // 2. Configurar default settings de OpenAI na instância (NECESSÁRIO para instância master!)
+    async function ensureOpenAiSettings(instanceName: string, credsId: string): Promise<boolean> {
+      console.log('⚙️ Configurando OpenAI settings para instância:', instanceName);
+      
+      try {
+        const settingsUrl = `${evolutionUrl}/openai/settings/${instanceName}`;
+        const settingsPayload = {
+          openaiCredsId: credsId,
+          expire: 0,
+          keywordFinish: '',
+          delayMessage: 1000,
+          unknownMessage: '',
+          listeningFromMe: false,
+          stopBotFromMe: false,
+          keepOpen: false,
+          debounceTime: 0,
+          ignoreJids: [],
+          triggerType: 'none',
+          triggerOperator: 'equals',
+          triggerValue: ''
+        };
+        
+        const response = await fetch(settingsUrl, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json', 
+            'apikey': evolutionConfig.api_key 
+          },
+          body: JSON.stringify(settingsPayload)
+        });
+        
+        const responseText = await response.text();
+        console.log('📥 Resposta settings:', response.status, responseText);
+        
+        return response.ok;
+      } catch (e) {
+        console.error('❌ Erro ao configurar settings:', e);
+        return false;
+      }
+    }
+
+    // Configurar settings antes de criar bots
+    const settingsOk = await ensureOpenAiSettings(config.instance_name, openaiCredsId);
+    if (!settingsOk) {
+      console.log('⚠️ Settings não configurados, mas continuando...');
+    }
+
+    // 3. Buscar e deletar TODOS os bots existentes para recriar com configurações atualizadas
     const existingBots = await findExistingBots(config.instance_name);
     if (existingBots.length > 0) {
       console.log(`🗑️ Removendo ${existingBots.length} bot(s) existente(s)...`);

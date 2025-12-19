@@ -42,9 +42,9 @@ serve(async (req) => {
       });
     }
 
-    // Verificar se instância está conectada
-    if (config.instance_status !== 'open') {
-      console.log('[send-master-notification] Instância não conectada');
+    // Verificar se instância está conectada (aceita 'open' ou 'connected')
+    if (config.instance_status !== 'open' && config.instance_status !== 'connected') {
+      console.log('[send-master-notification] Instância não conectada:', config.instance_status);
       return new Response(JSON.stringify({ success: false, reason: 'not_connected' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });

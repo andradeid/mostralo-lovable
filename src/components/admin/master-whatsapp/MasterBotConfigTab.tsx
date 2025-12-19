@@ -358,12 +358,8 @@ export function MasterBotConfigTab({
     <>
     <SyncErrorModal error={syncError} onClose={clearSyncError} />
     <div className="space-y-4 sm:space-y-6">
-      {/* Seletor de Bot Principal */}
-      <PrimaryBotSelector
-        value={config.primary_bot_type || 'sales'}
-        onChange={updatePrimaryBotType}
-        disabled={syncing}
-      />
+      {/* Indicador do Bot Ativo */}
+      <PrimaryBotSelector value={config.primary_bot_type || 'sales'} />
       {/* Botão de Sincronização Global */}
       <Card>
         <CardHeader className="pb-3">

@@ -52,7 +52,11 @@ import {
   Target,
   Menu,
   Briefcase,
-  Wallet
+  Wallet,
+  Image as ImageIcon,
+  Utensils,
+  Code,
+  QrCode
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -1679,7 +1683,7 @@ const Index = () => {
                           Módulos Inclusos
                         </p>
                         <ul className="space-y-1.5 text-left">
-                          {plan.plan_modules.slice(0, 8).map((pm, idx) => {
+                          {plan.plan_modules.map((pm, idx) => {
                             const iconName = pm.modules?.icon;
                             const IconComponent = iconName ? (
                               iconName === 'Menu' ? Menu :
@@ -1695,6 +1699,10 @@ const Index = () => {
                               iconName === 'ExternalLink' ? Zap :
                               iconName === 'Wallet' ? Wallet :
                               iconName === 'Users' ? Users :
+                              iconName === 'Image' ? ImageIcon :
+                              iconName === 'Utensils' ? Utensils :
+                              iconName === 'Code' ? Code :
+                              iconName === 'QrCode' ? QrCode :
                               Check
                             ) : Check;
                             
@@ -1705,11 +1713,6 @@ const Index = () => {
                               </li>
                             );
                           })}
-                          {plan.plan_modules.length > 8 && (
-                            <li className="text-xs text-muted-foreground pl-6">
-                              + {plan.plan_modules.length - 8} módulos
-                            </li>
-                          )}
                         </ul>
                       </div>
                     )}

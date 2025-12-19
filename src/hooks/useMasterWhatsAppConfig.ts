@@ -18,6 +18,7 @@ export interface BotBehaviorConfig {
   split_messages: boolean;
   time_per_char: number;
   unknown_message: string;
+  auto_reactivate_minutes: number;
 }
 
 export interface MasterWhatsAppConfig {
@@ -42,6 +43,7 @@ export interface MasterWhatsAppConfig {
   sales_bot_split_messages: boolean;
   sales_bot_time_per_char: number;
   sales_bot_unknown_message: string;
+  sales_bot_auto_reactivate_minutes: number;
   // Bot de Recrutamento
   recruitment_bot_enabled: boolean;
   recruitment_bot_approach: RecruitmentApproach;
@@ -57,6 +59,7 @@ export interface MasterWhatsAppConfig {
   recruitment_bot_split_messages: boolean;
   recruitment_bot_time_per_char: number;
   recruitment_bot_unknown_message: string;
+  recruitment_bot_auto_reactivate_minutes: number;
   // Bot de Suporte
   support_bot_enabled: boolean;
   support_bot_keywords: string[];
@@ -72,6 +75,7 @@ export interface MasterWhatsAppConfig {
   support_bot_split_messages: boolean;
   support_bot_time_per_char: number;
   support_bot_unknown_message: string;
+  support_bot_auto_reactivate_minutes: number;
   // Timestamps
   created_at: string;
   updated_at: string;
@@ -108,6 +112,7 @@ export function getBotBehaviorConfig(
     split_messages: (config as any)[`${prefix}split_messages`] ?? true,
     time_per_char: (config as any)[`${prefix}time_per_char`] ?? 50,
     unknown_message: (config as any)[`${prefix}unknown_message`] ?? 'Desculpe, não entendi. Pode reformular?',
+    auto_reactivate_minutes: (config as any)[`${prefix}auto_reactivate_minutes`] ?? 0,
   };
 }
 
@@ -260,6 +265,7 @@ export function useMasterWhatsAppConfig() {
     if (updates.split_messages !== undefined) mappedUpdates[`${prefix}split_messages`] = updates.split_messages;
     if (updates.time_per_char !== undefined) mappedUpdates[`${prefix}time_per_char`] = updates.time_per_char;
     if (updates.unknown_message !== undefined) mappedUpdates[`${prefix}unknown_message`] = updates.unknown_message;
+    if (updates.auto_reactivate_minutes !== undefined) mappedUpdates[`${prefix}auto_reactivate_minutes`] = updates.auto_reactivate_minutes;
 
     return updateConfig(mappedUpdates as Partial<MasterWhatsAppConfig>);
   };

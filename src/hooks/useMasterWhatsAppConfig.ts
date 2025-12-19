@@ -3,6 +3,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { toast } from 'sonner';
 
+// Interface para detalhes de erro de sincronização
+export interface SyncErrorDetails {
+  status: number | null;
+  message: string;
+  payload: {
+    configId: string;
+    botType?: 'sales' | 'recruitment' | 'support';
+  };
+  responseData: any;
+  timestamp: string;
+}
+
 export type SalesApproach = 'basic' | 'intermediate' | 'aggressive';
 export type RecruitmentApproach = 'cold_lead' | 'moderate' | 'aggressive' | 'super_aggressive';
 
@@ -139,6 +151,7 @@ export function useMasterWhatsAppConfig() {
   const [sessions, setSessions] = useState<MasterWhatsAppSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [syncError, setSyncError] = useState<SyncErrorDetails | null>(null);
   const [lastSyncedState, setLastSyncedState] = useState<LastSyncedState>({
     sales: null,
     recruitment: null,
@@ -149,6 +162,8 @@ export function useMasterWhatsAppConfig() {
     recruitment: string | null;
     support: string | null;
   }>({ sales: null, recruitment: null, support: null });
+
+  const clearSyncError = () => setSyncError(null);
 
   // Buscar ou criar configuração
   useEffect(() => {
@@ -288,15 +303,50 @@ export function useMasterWhatsAppConfig() {
     }
 
     setSyncing(true);
+    clearSyncError();
+    
+    const payload = { configId: config.id, botType };
+    
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Não autenticado');
 
       const response = await supabase.functions.invoke('master-bot-sync', {
-        body: { configId: config.id, botType }
+        body: payload
       });
 
-      if (response.error) throw response.error;
+      // Capturar detalhes do erro se houver
+      if (response.error) {
+        const errorDetails: SyncErrorDetails = {
+          status: null,
+          message: response.error.message || 'Erro desconhecido',
+          payload,
+          responseData: response.error,
+          timestamp: new Date().toISOString()
+        };
+        setSyncError(errorDetails);
+        toast.error('Erro ao sincronizar bots. Clique para ver detalhes.', {
+          action: {
+            label: 'Ver detalhes',
+            onClick: () => {} // O modal será aberto via estado
+          }
+        });
+        return false;
+      }
+
+      // Verificar se a resposta indica erro
+      if (response.data && response.data.success === false) {
+        const errorDetails: SyncErrorDetails = {
+          status: 500,
+          message: response.data.error || 'Erro retornado pela edge function',
+          payload,
+          responseData: response.data,
+          timestamp: new Date().toISOString()
+        };
+        setSyncError(errorDetails);
+        toast.error('Erro ao sincronizar bots. Clique para ver detalhes.');
+        return false;
+      }
 
       const { results } = response.data;
       const now = new Date().toISOString();
@@ -304,13 +354,13 @@ export function useMasterWhatsAppConfig() {
       // Atualizar IDs dos bots
       const updates: Partial<MasterWhatsAppConfig> = {};
       
-      if (results.sales?.botId) {
+      if (results?.sales?.botId) {
         updates.sales_bot_evolution_id = results.sales.botId;
       }
-      if (results.recruitment?.botId) {
+      if (results?.recruitment?.botId) {
         updates.recruitment_bot_evolution_id = results.recruitment.botId;
       }
-      if (results.support?.botId) {
+      if (results?.support?.botId) {
         updates.support_bot_evolution_id = results.support.botId;
       }
 
@@ -356,8 +406,17 @@ export function useMasterWhatsAppConfig() {
 
       toast.success('Bots sincronizados com sucesso!');
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao sincronizar:', error);
+      
+      const errorDetails: SyncErrorDetails = {
+        status: error?.status || null,
+        message: error?.message || 'Erro de conexão',
+        payload,
+        responseData: error,
+        timestamp: new Date().toISOString()
+      };
+      setSyncError(errorDetails);
       toast.error('Erro ao sincronizar bots');
       return false;
     } finally {
@@ -465,6 +524,8 @@ export function useMasterWhatsAppConfig() {
     sessions,
     loading,
     syncing,
+    syncError,
+    clearSyncError,
     updateConfig,
     updateBotBehavior,
     syncBots,

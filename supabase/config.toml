@@ -191,3 +191,6 @@ verify_jwt = false
 
 [functions.master-bot-sync]
 verify_jwt = true
+
+[functions.master-whatsapp-instance]
+verify_jwt = true

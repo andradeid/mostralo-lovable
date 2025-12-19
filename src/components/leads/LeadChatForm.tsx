@@ -134,6 +134,7 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
   });
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const isProcessingIfoodRef = useRef(false);
 
   const getCurrentTime = () => {
     return new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -353,8 +354,10 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
   };
 
   const handleIfoodResponse = async (usesIfood: boolean) => {
-    // Prevenir cliques duplos
-    if (isSubmitting || currentStep !== 'ifood') return;
+    // Prevenir cliques duplos com ref síncrona + estado
+    if (isProcessingIfoodRef.current || isSubmitting || currentStep !== 'ifood') return;
+    isProcessingIfoodRef.current = true;
+    setIsSubmitting(true);
     
     addUserMessage(usesIfood ? 'Sim, uso iFood' : 'Não uso iFood');
     
@@ -365,20 +368,21 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
     setIsTyping(true);
     
     // Salvar lead no banco
-    setIsSubmitting(true);
     try {
       const referralCode = localStorage.getItem('mostralo_referral_code');
       const urlParams = new URLSearchParams(window.location.search);
       
-      // Buscar salesperson_id se tiver referral_code
+      // Buscar salesperson_id e nome se tiver referral_code
       let salespersonId = null;
+      let salespersonName = null;
       if (referralCode) {
         const { data: salesperson } = await supabase
           .from('salespeople')
-          .select('id')
+          .select('id, full_name')
           .eq('referral_code', referralCode)
           .single();
         salespersonId = salesperson?.id;
+        salespersonName = salesperson?.full_name;
       }
 
       await supabase.from('leads').insert({
@@ -399,7 +403,7 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
         user_agent: navigator.userAgent
       });
       
-      // Enviar notificação master de novo lead
+      // Enviar notificação master de novo lead (incluindo nome do vendedor se houver)
       try {
         await supabase.functions.invoke('send-master-notification', {
           body: {
@@ -411,7 +415,9 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
               company_name: finalData.company_name,
               city: finalData.city,
               uses_ifood: finalData.uses_ifood,
-              source: 'website'
+              source: 'website',
+              referral_code: referralCode,
+              salesperson_name: salespersonName
             }
           }
         });
@@ -425,6 +431,7 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
       console.error('Erro ao salvar lead:', error);
     } finally {
       setIsSubmitting(false);
+      isProcessingIfoodRef.current = false;
     }
 
     setTimeout(() => {
@@ -546,14 +553,16 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
             <Button
               onClick={() => handleIfoodResponse(true)}
               variant="outline"
-              className="flex-1 bg-[#005c4b] border-[#005c4b] text-white hover:bg-[#007c65]"
+              disabled={isSubmitting}
+              className="flex-1 bg-[#005c4b] border-[#005c4b] text-white hover:bg-[#007c65] disabled:opacity-50"
             >
               Sim, uso
             </Button>
             <Button
               onClick={() => handleIfoodResponse(false)}
               variant="outline"
-              className="flex-1 bg-[#202c33] border-[#3b4a54] text-[#e9edef] hover:bg-[#2a373f]"
+              disabled={isSubmitting}
+              className="flex-1 bg-[#202c33] border-[#3b4a54] text-[#e9edef] hover:bg-[#2a373f] disabled:opacity-50"
             >
               Não uso
             </Button>

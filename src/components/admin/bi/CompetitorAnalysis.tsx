@@ -8,25 +8,29 @@ const competitors = [
     name: "Mostralo",
     price: "R$ 397,90",
     marketing: true,
-    differentiator: "Marketing + Delivery integrado",
+    financialAuto: true,
+    differentiator: "Marketing + Delivery + Financeiro automático",
     highlight: true
   },
   {
     name: "Anota AI",
     price: "R$ 399+",
     marketing: false,
+    financialAuto: false,
     differentiator: "Apenas delivery"
   },
   {
     name: "Goomer",
     price: "R$ 299+",
     marketing: false,
+    financialAuto: false,
     differentiator: "Apenas cardápio digital"
   },
   {
     name: "Cardápio Web",
     price: "R$ 397+",
     marketing: false,
+    financialAuto: false,
     differentiator: "Apenas delivery"
   }
 ];
@@ -67,6 +71,16 @@ export function CompetitorAnalysis() {
                   Marketing {competitor.marketing ? 'Incluso' : 'Não Incluso'}
                 </span>
               </div>
+              <div className="flex items-center gap-1.5 mt-1">
+                {competitor.financialAuto ? (
+                  <Check className="h-3.5 w-3.5 text-green-500" />
+                ) : (
+                  <X className="h-3.5 w-3.5 text-red-500" />
+                )}
+                <span className="text-[10px] text-muted-foreground">
+                  Financeiro {competitor.financialAuto ? 'Automático' : 'Manual'}
+                </span>
+              </div>
               <p className="text-[10px] text-muted-foreground mt-1">{competitor.differentiator}</p>
             </div>
           ))}
@@ -80,6 +94,7 @@ export function CompetitorAnalysis() {
                 <TableHead>Plataforma</TableHead>
                 <TableHead>Preço Inicial</TableHead>
                 <TableHead className="text-center">Marketing Incluso</TableHead>
+                <TableHead className="text-center">Financeiro Automático</TableHead>
                 <TableHead>Diferencial</TableHead>
               </TableRow>
             </TableHeader>
@@ -103,6 +118,13 @@ export function CompetitorAnalysis() {
                       <X className="h-5 w-5 text-red-500 mx-auto" />
                     )}
                   </TableCell>
+                  <TableCell className="text-center">
+                    {competitor.financialAuto ? (
+                      <Check className="h-5 w-5 text-green-500 mx-auto" />
+                    ) : (
+                      <X className="h-5 w-5 text-red-500 mx-auto" />
+                    )}
+                  </TableCell>
                   <TableCell className="text-muted-foreground">
                     {competitor.differentiator}
                   </TableCell>
@@ -115,7 +137,7 @@ export function CompetitorAnalysis() {
         <div className="mt-4 md:mt-6 p-3 md:p-4 bg-muted rounded-lg">
           <h4 className="font-semibold text-xs md:text-sm mb-1 md:mb-2">🎯 Nosso Diferencial</h4>
           <p className="text-[10px] md:text-sm text-muted-foreground">
-            Mostralo é a <strong>ÚNICA</strong> plataforma com Delivery + Marketing Digital integrado no mesmo preço.
+            Mostralo é a <strong>ÚNICA</strong> plataforma com Delivery + Marketing Digital + <strong>Gestão Financeira Automática</strong> integrado no mesmo preço.
           </p>
         </div>
       </CardContent>

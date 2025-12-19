@@ -13,6 +13,7 @@ import { useCountUp } from '@/hooks/useCountUp';
 import WhatsAppMockup from '@/components/WhatsAppMockup';
 import { PromotionBanner } from '@/components/coupons/PromotionBanner';
 import { WhatsAppMarketingSection } from '@/components/landing/WhatsAppMarketingSection';
+import { FinancialAutomationSection } from '@/components/landing/FinancialAutomationSection';
 import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
 import { 
   Store, 
@@ -50,7 +51,8 @@ import {
   Percent,
   Target,
   Menu,
-  Briefcase
+  Briefcase,
+  Wallet
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -421,6 +423,12 @@ const Index = () => {
               className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
             >
               WhatsApp
+            </a>
+            <a 
+              href="#gestao-financeira" 
+              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+            >
+              Financeiro
             </a>
             <a 
               href="#integracao-ia" 
@@ -1122,13 +1130,27 @@ const Index = () => {
                   ✅
                 </div>
               </div>
+
+              {/* Gestão Financeira Automática */}
+              <div className="grid grid-cols-5 border-t bg-muted/20">
+                <div className="p-4 font-medium border-r flex items-center gap-2">
+                  <Wallet className="w-4 h-4 text-emerald-600" />
+                  Gestão Financeira Automática
+                </div>
+                <div className="p-4 text-center border-r text-destructive">❌</div>
+                <div className="p-4 text-center border-r text-destructive">❌</div>
+                <div className="p-4 text-center border-r text-destructive">❌</div>
+                <div className="p-4 text-center bg-green-50 dark:bg-green-950/20">
+                  <Badge className="bg-emerald-600">✅ INCLUSO</Badge>
+                </div>
+              </div>
             </div>
           </div>
 
           {/* CTA */}
           <div className="text-center mt-12">
             <p className="text-xl font-bold mb-6 text-primary">
-              🚀 Único no Brasil: Delivery + Marketing em uma só plataforma
+              🚀 Único no Brasil: Delivery + Marketing + Financeiro Automático
             </p>
             <Link to="/signup">
               <Button size="lg" className="text-lg h-14 px-8 shadow-lg hover:shadow-xl">
@@ -1139,6 +1161,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* Gestão Financeira Automática */}
+      <FinancialAutomationSection />
 
       {/* WhatsApp Demo Section */}
       <section id="integracao-ia" className="py-12 md:py-20 lg:py-32 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/10 dark:to-green-900/10">

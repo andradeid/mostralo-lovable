@@ -328,6 +328,77 @@ serve(async (req) => {
         });
       }
 
+      case 'sendTest': {
+        // Pegar parâmetros do body (já foi parseado antes, precisamos do req original)
+        const body = await req.clone().json();
+        const { phoneNumber, message } = body;
+
+        if (!masterConfig?.instance_name) {
+          return new Response(JSON.stringify({ error: 'Nenhuma instância configurada' }), {
+            status: 404,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        if (masterConfig.instance_status !== 'connected') {
+          return new Response(JSON.stringify({ error: 'WhatsApp não está conectado' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        if (!phoneNumber) {
+          return new Response(JSON.stringify({ error: 'Número de telefone é obrigatório' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Normalizar número (remover caracteres e adicionar 55 se necessário)
+        let formattedPhone = phoneNumber.replace(/\D/g, '');
+        if (!formattedPhone.startsWith('55')) {
+          formattedPhone = '55' + formattedPhone;
+        }
+
+        console.log(`[master-whatsapp-instance] Enviando mensagem de teste para: ${formattedPhone}`);
+
+        const testMessage = message || '✅ Mensagem de teste do WhatsApp Master - Mostralo';
+
+        // Enviar via Evolution API
+        const sendResponse = await fetch(`${api_url}/message/sendText/${masterConfig.instance_name}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': api_key,
+          },
+          body: JSON.stringify({
+            number: formattedPhone,
+            text: testMessage,
+          }),
+        });
+
+        const sendData = await sendResponse.json();
+        console.log('[master-whatsapp-instance] Send response:', sendData);
+
+        if (!sendResponse.ok) {
+          return new Response(JSON.stringify({ 
+            error: 'Erro ao enviar mensagem', 
+            details: sendData 
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        return new Response(JSON.stringify({ 
+          success: true, 
+          messageId: sendData.key?.id,
+          phone: formattedPhone,
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       default:
         return new Response(JSON.stringify({ error: 'Ação inválida' }), {
           status: 400,

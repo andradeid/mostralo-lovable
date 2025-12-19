@@ -201,7 +201,19 @@ function generateSalesPrompt(approach: SalesApproach, plans: Plan[]): string {
 - **Marketing Digital Incluso**: 1 perfil de rede social com agendamento ilimitado de posts incluído em todos os planos.
 - **WhatsApp Marketing Automático**: Recupere clientes inativos automaticamente com campanhas personalizadas.
 - **Relatórios com IA**: Inteligência artificial que ajuda a tomar decisões melhores.
+- **Gestão Financeira Completa**: Dashboard com receitas, despesas, fluxo de caixa e relatórios em tempo real.
 - **Independência total**: Seu negócio não depende de nenhum marketplace.
+
+## 💰 GESTÃO FINANCEIRA COMPLETA
+
+O Mostralo inclui módulo de Gestão Financeira para o lojista:
+- Dashboard com KPIs de receitas, despesas e saldo em tempo real
+- Controle de entradas e saídas por categoria personalizada
+- Gráficos de evolução mensal do fluxo de caixa
+- Relatórios financeiros detalhados
+- Integração automática com vendas do delivery
+
+👉 O lojista tem controle TOTAL do seu negócio em um só lugar!
 
 ## WHATSAPP MARKETING INTEGRADO
 
@@ -367,7 +379,7 @@ function generateRecruitmentPrompt(approach: RecruitmentApproach, plans: Plan[],
 
 Enquanto seu cliente usar o Mostralo, a comissão cai na sua conta. É renda recorrente de verdade - não uma comissão única que some.
 
-O Mostralo é uma plataforma completa de **Delivery + Marketing Digital** para negócios locais.
+O Mostralo é uma plataforma completa de **Delivery + Marketing Digital + Gestão Financeira** para negócios locais.
 Enquanto iFood e outros marketplaces cobram 12-27% de cada venda, o Mostralo cobra uma mensalidade fixa.
 
 **Por que é fácil vender:**
@@ -375,6 +387,13 @@ Enquanto iFood e outros marketplaces cobram 12-27% de cada venda, o Mostralo cob
 - Marketing Digital incluído (o que custa R$ 2.000+ no mercado)
 - Lojista mantém 100% dos clientes dele
 - Sistema completo sem comissão por venda
+- **Gestão Financeira incluída** (dashboard, fluxo de caixa, relatórios)
+
+**Novidade: Gestão Financeira Completa!**
+- Dashboard com receitas, despesas e saldo em tempo real
+- Controle por categorias personalizadas
+- Gráficos de fluxo de caixa mensal
+- O lojista controla TODO o negócio em um só lugar
 
 ## 📊 AFILIADO PF vs PARCEIRO PJ
 
@@ -450,6 +469,8 @@ SOBRE O MOSTRALO:
 - 0% de taxa por pedido
 - WhatsApp Marketing integrado
 - Relatórios com IA
+- Gestão Financeira completa (receitas, despesas, fluxo de caixa)
+- Dashboard com KPIs em tempo real
 
 FAQ COMUM:
 1. "Como funciona o pagamento?" → Assinatura mensal, paga via PIX ou cartão

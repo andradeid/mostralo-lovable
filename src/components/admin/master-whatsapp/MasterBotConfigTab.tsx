@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PromptPreviewCard } from "./PromptPreviewCard";
 import { MasterBotBehaviorCard } from "./MasterBotBehaviorCard";
+import { BotSyncStatusBadge } from "./BotSyncStatusBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { generateSalesPrompt, PromptType } from "@/utils/salesPromptGenerator";
 import { generateRecruitmentPrompt, RecruitmentPromptType, BonusTier } from "@/utils/recruitmentPromptGenerator";
@@ -226,7 +227,9 @@ export function MasterBotConfigTab() {
     updateKeywords,
     updateSupportPrompt,
     updateBotBehavior,
-    syncBots 
+    syncBots,
+    hasUnsyncedChanges,
+    lastSyncedAt
   } = useMasterWhatsAppConfig();
   
   const [supportPrompt, setSupportPrompt] = useState(config?.support_bot_custom_prompt || "");
@@ -374,14 +377,15 @@ export function MasterBotConfigTab() {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <MessageSquare className="w-5 h-5 text-green-500" />
-                    Bot de Vendas
-                  </CardTitle>
-                  <CardDescription>
-                    Atende leads interessados em conhecer a plataforma Mostralo
-                  </CardDescription>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <MessageSquare className="w-5 h-5 text-green-500" />
+                  <CardTitle>Bot de Vendas</CardTitle>
+                  <BotSyncStatusBadge
+                    evolutionId={config.sales_bot_evolution_id}
+                    botEnabled={config.sales_bot_enabled}
+                    hasUnsyncedChanges={hasUnsyncedChanges('sales')}
+                    syncing={syncing}
+                  />
                 </div>
                 <div className="flex items-center gap-2">
                   <Label htmlFor="sales-toggle">Ativo</Label>
@@ -392,6 +396,9 @@ export function MasterBotConfigTab() {
                   />
                 </div>
               </div>
+              <CardDescription>
+                Atende leads interessados em conhecer a plataforma Mostralo
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
@@ -416,6 +423,8 @@ export function MasterBotConfigTab() {
                   config.sales_bot_approach === 'aggressive' ? 'destructive' : 
                   config.sales_bot_approach === 'intermediate' ? 'default' : 'secondary'
                 }
+                isSynced={!hasUnsyncedChanges('sales')}
+                lastSyncedAt={lastSyncedAt.sales || undefined}
               />
 
               <div className="flex justify-end">
@@ -451,14 +460,15 @@ export function MasterBotConfigTab() {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-blue-500" />
-                    Bot de Recrutamento
-                  </CardTitle>
-                  <CardDescription>
-                    Recruta novos vendedores e afiliados para a plataforma
-                  </CardDescription>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Users className="w-5 h-5 text-blue-500" />
+                  <CardTitle>Bot de Recrutamento</CardTitle>
+                  <BotSyncStatusBadge
+                    evolutionId={config.recruitment_bot_evolution_id}
+                    botEnabled={config.recruitment_bot_enabled}
+                    hasUnsyncedChanges={hasUnsyncedChanges('recruitment')}
+                    syncing={syncing}
+                  />
                 </div>
                 <div className="flex items-center gap-2">
                   <Label htmlFor="recruitment-toggle">Ativo</Label>
@@ -469,6 +479,9 @@ export function MasterBotConfigTab() {
                   />
                 </div>
               </div>
+              <CardDescription>
+                Recruta novos vendedores e afiliados para a plataforma
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
@@ -493,6 +506,8 @@ export function MasterBotConfigTab() {
                   config.recruitment_bot_approach === 'super_aggressive' ? 'destructive' : 
                   config.recruitment_bot_approach === 'aggressive' ? 'default' : 'secondary'
                 }
+                isSynced={!hasUnsyncedChanges('recruitment')}
+                lastSyncedAt={lastSyncedAt.recruitment || undefined}
               />
 
               <div className="flex justify-end">
@@ -528,14 +543,15 @@ export function MasterBotConfigTab() {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <HelpCircle className="w-5 h-5 text-purple-500" />
-                    Bot de Suporte
-                  </CardTitle>
-                  <CardDescription>
-                    Responde dúvidas gerais sobre a plataforma
-                  </CardDescription>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <HelpCircle className="w-5 h-5 text-purple-500" />
+                  <CardTitle>Bot de Suporte</CardTitle>
+                  <BotSyncStatusBadge
+                    evolutionId={config.support_bot_evolution_id}
+                    botEnabled={config.support_bot_enabled}
+                    hasUnsyncedChanges={hasUnsyncedChanges('support')}
+                    syncing={syncing}
+                  />
                 </div>
                 <div className="flex items-center gap-2">
                   <Label htmlFor="support-toggle">Ativo</Label>
@@ -546,6 +562,9 @@ export function MasterBotConfigTab() {
                   />
                 </div>
               </div>
+              <CardDescription>
+                Responde dúvidas gerais sobre a plataforma
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <KeywordsEditor
@@ -573,6 +592,8 @@ export function MasterBotConfigTab() {
                 prompt={supportPromptPreview}
                 approachLabel={supportPrompt.trim() ? "Customizado" : "Padrão"}
                 approachVariant={supportPrompt.trim() ? "default" : "secondary"}
+                isSynced={!hasUnsyncedChanges('support')}
+                lastSyncedAt={lastSyncedAt.support || undefined}
               />
 
               <div className="flex justify-end gap-2">

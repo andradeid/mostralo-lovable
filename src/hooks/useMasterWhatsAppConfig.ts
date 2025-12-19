@@ -111,12 +111,29 @@ export function getBotBehaviorConfig(
   };
 }
 
+// Interface para rastrear última config sincronizada
+interface LastSyncedState {
+  sales: { approach: string; keywords: string[]; enabled: boolean } | null;
+  recruitment: { approach: string; keywords: string[]; enabled: boolean } | null;
+  support: { customPrompt: string | null; keywords: string[]; enabled: boolean } | null;
+}
+
 export function useMasterWhatsAppConfig() {
   const { user } = useAuth();
   const [config, setConfig] = useState<MasterWhatsAppConfig | null>(null);
   const [sessions, setSessions] = useState<MasterWhatsAppSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [lastSyncedState, setLastSyncedState] = useState<LastSyncedState>({
+    sales: null,
+    recruitment: null,
+    support: null
+  });
+  const [lastSyncedAt, setLastSyncedAt] = useState<{
+    sales: string | null;
+    recruitment: string | null;
+    support: string | null;
+  }>({ sales: null, recruitment: null, support: null });
 
   // Buscar ou criar configuração
   useEffect(() => {
@@ -266,6 +283,7 @@ export function useMasterWhatsAppConfig() {
       if (response.error) throw response.error;
 
       const { results } = response.data;
+      const now = new Date().toISOString();
       
       // Atualizar IDs dos bots
       const updates: Partial<MasterWhatsAppConfig> = {};
@@ -284,6 +302,42 @@ export function useMasterWhatsAppConfig() {
         setConfig(prev => prev ? { ...prev, ...updates } : null);
       }
 
+      // Salvar estado sincronizado para detectar mudanças futuras
+      const botsToUpdate = botType ? [botType] : ['sales', 'recruitment', 'support'] as const;
+      setLastSyncedState(prev => {
+        const newState = { ...prev };
+        for (const bt of botsToUpdate) {
+          if (bt === 'sales') {
+            newState.sales = {
+              approach: config.sales_bot_approach,
+              keywords: [...config.sales_bot_keywords],
+              enabled: config.sales_bot_enabled
+            };
+          } else if (bt === 'recruitment') {
+            newState.recruitment = {
+              approach: config.recruitment_bot_approach,
+              keywords: [...config.recruitment_bot_keywords],
+              enabled: config.recruitment_bot_enabled
+            };
+          } else if (bt === 'support') {
+            newState.support = {
+              customPrompt: config.support_bot_custom_prompt,
+              keywords: [...config.support_bot_keywords],
+              enabled: config.support_bot_enabled
+            };
+          }
+        }
+        return newState;
+      });
+
+      setLastSyncedAt(prev => {
+        const newAt = { ...prev };
+        for (const bt of botsToUpdate) {
+          newAt[bt] = now;
+        }
+        return newAt;
+      });
+
       toast.success('Bots sincronizados com sucesso!');
       return true;
     } catch (error) {
@@ -293,6 +347,43 @@ export function useMasterWhatsAppConfig() {
     } finally {
       setSyncing(false);
     }
+  };
+
+  // Detectar se há mudanças não sincronizadas
+  const hasUnsyncedChanges = (botType: 'sales' | 'recruitment' | 'support'): boolean => {
+    if (!config) return false;
+    
+    const lastState = lastSyncedState[botType];
+    if (!lastState) return true; // Nunca sincronizado
+    
+    if (botType === 'sales') {
+      const salesState = lastState as { approach: string; keywords: string[]; enabled: boolean };
+      return (
+        config.sales_bot_approach !== salesState.approach ||
+        JSON.stringify(config.sales_bot_keywords) !== JSON.stringify(salesState.keywords) ||
+        config.sales_bot_enabled !== salesState.enabled
+      );
+    }
+    
+    if (botType === 'recruitment') {
+      const recruitState = lastState as { approach: string; keywords: string[]; enabled: boolean };
+      return (
+        config.recruitment_bot_approach !== recruitState.approach ||
+        JSON.stringify(config.recruitment_bot_keywords) !== JSON.stringify(recruitState.keywords) ||
+        config.recruitment_bot_enabled !== recruitState.enabled
+      );
+    }
+    
+    if (botType === 'support') {
+      const supportState = lastState as { customPrompt: string | null; keywords: string[]; enabled: boolean };
+      return (
+        config.support_bot_custom_prompt !== supportState.customPrompt ||
+        JSON.stringify(config.support_bot_keywords) !== JSON.stringify(supportState.keywords) ||
+        config.support_bot_enabled !== supportState.enabled
+      );
+    }
+    
+    return false;
   };
 
   // Toggle bot
@@ -365,7 +456,9 @@ export function useMasterWhatsAppConfig() {
     updateApproach,
     updateKeywords,
     updateSupportPrompt,
-    toggleSessionPause
+    toggleSessionPause,
+    hasUnsyncedChanges,
+    lastSyncedAt
   };
 }
 

@@ -38,7 +38,7 @@ import { PromptPreviewCard } from "./PromptPreviewCard";
 import { MasterBotBehaviorCard } from "./MasterBotBehaviorCard";
 import { BotSyncStatusBadge } from "./BotSyncStatusBadge";
 import { SyncErrorModal } from "./SyncErrorModal";
-import { PrimaryBotSelector } from "./PrimaryBotSelector";
+
 import { TriggerConfigCard } from "./TriggerConfigCard";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { supabase } from "@/integrations/supabase/client";
@@ -358,77 +358,45 @@ export function MasterBotConfigTab({
     <>
     <SyncErrorModal error={syncError} onClose={clearSyncError} />
     <div className="space-y-4 sm:space-y-6">
-      {/* Indicador do Bot Ativo */}
-      <PrimaryBotSelector value={config.primary_bot_type || 'sales'} />
-      {/* Botão de Sincronização Global */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                <RefreshCw className="w-5 h-5" />
-                Sincronizar Bots
-              </CardTitle>
-              <CardDescription className="text-xs sm:text-sm">
-                Atualize os bots na Evolution API
-              </CardDescription>
-            </div>
-            <Button 
-              onClick={() => syncBots()} 
-              disabled={syncing || !config.instance_name}
-              className="w-full sm:w-auto"
-            >
-              {syncing ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <RefreshCw className="w-4 h-4 mr-2" />
-              )}
-              Sincronizar Todos
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-            <div className="flex items-center gap-2">
-              <Brain className="w-4 h-4 text-muted-foreground" />
-              <Label className="text-sm">Modelo de IA:</Label>
-              <InfoTooltip text="Modelo de linguagem usado pelos bots. GPT-4o-mini é mais rápido e barato. GPT-4o é mais inteligente." />
-            </div>
+      {/* Tabs dos Bots com Seletor de Modelo de IA */}
+      <Tabs defaultValue="sales" className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <TabsList className="w-full sm:w-auto flex overflow-x-auto gap-1 p-1">
+            <TabsTrigger value="sales" className="flex-1 sm:flex-none gap-1.5 text-xs sm:text-sm">
+              <MessageSquare className="w-4 h-4" />
+              <span>Vendas</span>
+            </TabsTrigger>
+            <TabsTrigger value="recruitment" className="flex-1 sm:flex-none gap-1.5 text-xs sm:text-sm">
+              <Users className="w-4 h-4" />
+              <span className="hidden xs:inline">Recrutamento</span>
+              <span className="xs:hidden">Recr.</span>
+            </TabsTrigger>
+            <TabsTrigger value="support" className="flex-1 sm:flex-none gap-1.5 text-xs sm:text-sm">
+              <HelpCircle className="w-4 h-4" />
+              <span>Suporte</span>
+            </TabsTrigger>
+          </TabsList>
+          
+          {/* Seletor de Modelo de IA */}
+          <div className="flex items-center gap-2">
+            <Brain className="w-4 h-4 text-muted-foreground" />
+            <Label className="text-sm whitespace-nowrap">Modelo IA:</Label>
             <Select
               value={config.openai_model || 'gpt-4o-mini'}
               onValueChange={updateOpenAIModel}
             >
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder="Selecione o modelo" />
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Modelo" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="gpt-4o-mini">GPT-4o Mini (Rápido)</SelectItem>
-                <SelectItem value="gpt-4o">GPT-4o (Inteligente)</SelectItem>
+                <SelectItem value="gpt-4o-mini">GPT-4o Mini</SelectItem>
+                <SelectItem value="gpt-4o">GPT-4o</SelectItem>
                 <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
-                <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo (Básico)</SelectItem>
+                <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
               </SelectContent>
             </Select>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Tabs dos Bots */}
-      <Tabs defaultValue="sales" className="space-y-4">
-        <TabsList className="w-full flex overflow-x-auto gap-1 p-1">
-          <TabsTrigger value="sales" className="flex-1 sm:flex-none gap-1.5 text-xs sm:text-sm">
-            <MessageSquare className="w-4 h-4" />
-            <span>Vendas</span>
-          </TabsTrigger>
-          <TabsTrigger value="recruitment" className="flex-1 sm:flex-none gap-1.5 text-xs sm:text-sm">
-            <Users className="w-4 h-4" />
-            <span className="hidden xs:inline">Recrutamento</span>
-            <span className="xs:hidden">Recr.</span>
-          </TabsTrigger>
-          <TabsTrigger value="support" className="flex-1 sm:flex-none gap-1.5 text-xs sm:text-sm">
-            <HelpCircle className="w-4 h-4" />
-            <span>Suporte</span>
-          </TabsTrigger>
-        </TabsList>
+        </div>
 
         {/* Bot de Vendas */}
         <TabsContent value="sales" className="grid gap-4 grid-cols-1 md:grid-cols-2">

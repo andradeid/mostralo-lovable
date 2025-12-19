@@ -1619,7 +1619,7 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
             {plans.map((plan) => {
               const formatPrice = (price: number) => {
                 return new Intl.NumberFormat('pt-BR', {
@@ -1631,7 +1631,7 @@ const Index = () => {
               const featuresArray = Object.keys(plan.features || {});
 
               return (
-                <Card key={plan.id} className={`p-6 text-center relative w-full md:w-96 ${plan.is_popular ? 'border-primary shadow-2xl scale-105' : 'shadow-lg'}`}>
+                <Card key={plan.id} className={`p-6 text-center relative w-full ${plan.is_popular ? 'border-primary shadow-2xl scale-105' : 'shadow-lg'}`}>
                   {plan.is_popular && (
                     <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white">
                       ⭐ Mais Popular

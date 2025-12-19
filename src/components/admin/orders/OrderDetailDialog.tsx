@@ -385,7 +385,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     setShowEditTimeSelector(false);
   };
 
-  const handleCancelOrder = async (reason: string) => {
+  const handleCancelOrder = async (reason: string, cancellationCode?: string) => {
     if (!order) return;
 
     setIsLoading(true);
@@ -393,12 +393,13 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     // Se for pedido do iFood, sincronizar cancelamento
     if (order.source === 'ifood' && order.external_id) {
       try {
-        console.log('🔄 Sincronizando cancelamento com iFood...');
+        console.log('🔄 Sincronizando cancelamento com iFood...', { reason, cancellationCode });
         const { data: syncResult, error: syncError } = await supabase.functions.invoke('ifood-status-update', {
           body: {
             order_id: order.id,
             new_status: 'cancelado',
-            cancellation_reason: reason
+            cancellation_reason: reason,
+            cancellation_code: cancellationCode
           }
         });
 
@@ -919,6 +920,7 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
         onOpenChange={setCancelDialogOpen}
         onConfirm={handleCancelOrder}
         isLoading={isLoading}
+        isIfoodOrder={order?.source === 'ifood'}
       />
 
       <PrintPreviewDialog

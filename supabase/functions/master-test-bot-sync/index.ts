@@ -247,9 +247,59 @@ serve(async (req) => {
     const instanceName = testConfig.test_instance_name;
 
     // ========================================
+    // FUNÇÃO: Verificar se instância existe na Evolution API
+    // ========================================
+    async function checkInstanceExists(instanceName: string): Promise<boolean> {
+      try {
+        console.log('Verificando se instância existe:', instanceName);
+        const resp = await fetch(`${evolutionUrl}/instance/connectionState/${instanceName}`, {
+          method: 'GET',
+          headers: { 'apikey': evolutionConfig.api_key },
+        });
+        
+        if (resp.status === 404) {
+          console.log('Instância não existe na Evolution API');
+          return false;
+        }
+        
+        console.log('Instância existe, status:', resp.status);
+        return true;
+      } catch (e) {
+        console.log('Erro ao verificar instância:', e);
+        return false;
+      }
+    }
+
+    // ========================================
     // FUNÇÃO: Consultar e garantir credenciais OpenAI
     // ========================================
     async function ensureOpenAiCreds(instanceName: string): Promise<string | null> {
+      // Primeiro verificar se a instância existe
+      const instanceExists = await checkInstanceExists(instanceName);
+      if (!instanceExists) {
+        steps.push({
+          step: 'instance_check',
+          status: 'error',
+          message: 'Instância não existe na Evolution API',
+          details: `A instância "${instanceName}" foi deletada. Crie uma nova instância de teste.`,
+        });
+        
+        // Limpar dados da instância no banco
+        await supabaseClient
+          .from('master_admin_test_config')
+          .update({ 
+            test_instance_name: null,
+            test_instance_id: null,
+            test_instance_status: null,
+            test_instance_qr_code: null,
+            bot_evolution_id: null,
+            updated_at: new Date().toISOString() 
+          })
+          .eq('id', testConfig.id);
+        
+        return null;
+      }
+
       steps.push({
         step: 'openai_creds_check',
         status: 'success',

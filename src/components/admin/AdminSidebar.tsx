@@ -45,7 +45,8 @@ import {
   Megaphone,
   Building2,
   Cloud,
-  Activity
+  Activity,
+  ClipboardCheck
 } from "lucide-react";
 
 import {
@@ -375,6 +376,7 @@ export function AdminSidebar() {
         { title: 'Gerenciar Novidades', url: '/dashboard/system-updates', icon: Megaphone, group: 'Sistema' },
         { title: 'Diagnósticos', url: '/dashboard/diagnostics', icon: Activity, group: 'Sistema' },
         { title: 'Guia Cloudflare', url: '/dashboard/cloudflare-guide', icon: Cloud, group: 'Sistema' },
+        { title: 'Homologação iFood', url: '/dashboard/ifood-homologation', icon: ClipboardCheck, group: 'Sistema' },
         { title: 'Novidades', url: '/dashboard/novidades', icon: Megaphone, group: 'Conta' },
         { title: 'Perfil', url: '/dashboard/profile', icon: User, group: 'Conta' }
       ];

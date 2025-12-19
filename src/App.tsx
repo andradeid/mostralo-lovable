@@ -145,6 +145,7 @@ import SystemUpdatesPage from "./pages/SystemUpdatesPage";
 import SystemUpdatesManagementPage from "./pages/admin/SystemUpdatesManagementPage";
 import DiagnosticsPage from "./pages/admin/DiagnosticsPage";
 import CloudflareGuidePage from "./pages/admin/CloudflareGuidePage";
+import IFoodHomologationPage from "./pages/admin/IFoodHomologationPage";
 import { UpdatesRedirect } from "./components/system-updates/UpdatesRedirect";
 const queryClient = new QueryClient();
 
@@ -290,6 +291,13 @@ const App = () => (
               <ProtectedRoute allowedRoles={['master_admin']}>
                 <AdminLayout pageTitle="Guia Cloudflare">
                   <CloudflareGuidePage />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/ifood-homologation" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Homologação iFood">
+                  <IFoodHomologationPage />
                 </AdminLayout>
               </ProtectedRoute>
             } />

@@ -15,6 +15,19 @@ const IFOOD_CANCEL_REASONS = [
   { code: '505', label: 'Problema com pagamento do cliente' },
 ];
 
+// Motivos de cancelamento padronizados do Mostralo
+const MOSTRALO_CANCEL_REASONS = [
+  { code: 'M01', label: 'Cliente solicitou cancelamento' },
+  { code: 'M02', label: 'Produto indisponível' },
+  { code: 'M03', label: 'Endereço fora da área de entrega' },
+  { code: 'M04', label: 'Cliente não encontrado/não atende' },
+  { code: 'M05', label: 'Problema com forma de pagamento' },
+  { code: 'M06', label: 'Pedido duplicado' },
+  { code: 'M07', label: 'Erro no pedido (item errado)' },
+  { code: 'M08', label: 'Tempo de espera muito longo' },
+  { code: 'M09', label: 'Outro motivo' },
+];
+
 interface CancelOrderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -37,9 +50,15 @@ export const CancelOrderDialog = ({ open, onOpenChange, onConfirm, isLoading, is
         setReason("");
       }
     } else {
-      // Para outros pedidos, usar texto livre
-      if (reason.trim()) {
-        onConfirm(reason);
+      // Para pedidos Mostralo, usar as opções padronizadas
+      if (selectedCode) {
+        const selectedReason = MOSTRALO_CANCEL_REASONS.find(r => r.code === selectedCode);
+        // Se for "Outro motivo", usar texto personalizado
+        const finalReason = selectedCode === 'M09' && reason.trim() 
+          ? reason.trim() 
+          : selectedReason?.label;
+        onConfirm(finalReason || '', selectedCode);
+        setSelectedCode("");
         setReason("");
       }
     }
@@ -53,7 +72,10 @@ export const CancelOrderDialog = ({ open, onOpenChange, onConfirm, isLoading, is
     onOpenChange(open);
   };
 
-  const isConfirmDisabled = isIfoodOrder ? !selectedCode : !reason.trim();
+  // Validação: para iFood precisa de código, para Mostralo precisa de código e texto se for M09
+  const isConfirmDisabled = isIfoodOrder 
+    ? !selectedCode 
+    : !selectedCode || (selectedCode === 'M09' && !reason.trim());
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -98,15 +120,35 @@ export const CancelOrderDialog = ({ open, onOpenChange, onConfirm, isLoading, is
               </div>
             </>
           ) : (
-            <div className="space-y-2">
-              <Label htmlFor="reason">Motivo do cancelamento *</Label>
-              <Textarea
-                id="reason"
-                placeholder="Ex: Cliente solicitou cancelamento, produto indisponível, etc."
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                rows={4}
-              />
+            <div className="space-y-4">
+              {/* Opções de cancelamento Mostralo */}
+              <div className="space-y-2">
+                <Label>Motivo do cancelamento *</Label>
+                <RadioGroup value={selectedCode} onValueChange={setSelectedCode} className="space-y-2">
+                  {MOSTRALO_CANCEL_REASONS.map((item) => (
+                    <div key={item.code} className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors">
+                      <RadioGroupItem value={item.code} id={`reason-${item.code}`} />
+                      <Label htmlFor={`reason-${item.code}`} className="flex-1 cursor-pointer text-sm">
+                        {item.label}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
+
+              {/* Campo de texto adicional para "Outro motivo" */}
+              {selectedCode === 'M09' && (
+                <div className="space-y-2">
+                  <Label htmlFor="custom-reason">Descreva o motivo *</Label>
+                  <Textarea
+                    id="custom-reason"
+                    placeholder="Digite o motivo do cancelamento..."
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>

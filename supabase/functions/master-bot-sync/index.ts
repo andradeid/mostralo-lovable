@@ -763,8 +763,12 @@ serve(async (req) => {
 
     const results: Record<string, { success: boolean; error?: string; botId?: string }> = {};
 
-    // Sincronizar bots conforme solicitado
-    const botsToSync: BotType[] = botType ? [botType as BotType] : ['sales', 'recruitment', 'support'];
+    // Determinar bot principal (apenas 1 bot pode estar ativo por limitação da Evolution API)
+    const primaryBotType: BotType = config.primary_bot_type || 'sales';
+    console.log(`🎯 Bot principal configurado: ${primaryBotType}`);
+
+    // Se botType foi especificado, usar ele; senão usar apenas o bot principal
+    const botsToSync: BotType[] = botType ? [botType as BotType] : [primaryBotType];
 
     // Função para configurar settings de OpenAI na instância
     async function ensureOpenAiSettings(instanceName: string, credsId: string): Promise<boolean> {

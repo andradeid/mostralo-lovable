@@ -95,6 +95,7 @@ export default function MasterWhatsAppPage() {
     updateKeywords,
     updateSupportPrompt,
     updateBotBehavior,
+    updatePrimaryBotType,
     hasUnsyncedChanges,
     lastSyncedAt
   } = useMasterWhatsAppConfig();
@@ -1260,6 +1261,7 @@ export default function MasterWhatsAppPage() {
             updateSupportPrompt={updateSupportPrompt}
             updateBotBehavior={updateBotBehavior}
             syncBots={syncBots}
+            updatePrimaryBotType={updatePrimaryBotType}
             hasUnsyncedChanges={hasUnsyncedChanges}
             lastSyncedAt={lastSyncedAt}
           />

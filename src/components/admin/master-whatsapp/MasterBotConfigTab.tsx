@@ -11,6 +11,7 @@ import {
   RecruitmentApproach,
   BotBehaviorConfig,
   SyncErrorDetails,
+  PrimaryBotType,
   getBotBehaviorConfig
 } from "@/hooks/useMasterWhatsAppConfig";
 import { toast } from "sonner";
@@ -33,6 +34,7 @@ import { PromptPreviewCard } from "./PromptPreviewCard";
 import { MasterBotBehaviorCard } from "./MasterBotBehaviorCard";
 import { BotSyncStatusBadge } from "./BotSyncStatusBadge";
 import { SyncErrorModal } from "./SyncErrorModal";
+import { PrimaryBotSelector } from "./PrimaryBotSelector";
 import { InfoTooltip } from "@/components/ui/info-tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { generateSalesPrompt, PromptType } from "@/utils/salesPromptGenerator";
@@ -238,6 +240,7 @@ interface MasterBotConfigTabProps {
   updateSupportPrompt: (prompt: string) => Promise<boolean>;
   updateBotBehavior: (botType: 'sales' | 'recruitment' | 'support', updates: Partial<BotBehaviorConfig>) => Promise<boolean>;
   syncBots: (botType?: 'sales' | 'recruitment' | 'support') => Promise<boolean>;
+  updatePrimaryBotType: (botType: PrimaryBotType) => Promise<boolean>;
   hasUnsyncedChanges: (botType: 'sales' | 'recruitment' | 'support') => boolean;
   lastSyncedAt: { sales: string | null; recruitment: string | null; support: string | null };
 }
@@ -253,6 +256,7 @@ export function MasterBotConfigTab({
   updateSupportPrompt,
   updateBotBehavior,
   syncBots,
+  updatePrimaryBotType,
   hasUnsyncedChanges,
   lastSyncedAt
 }: MasterBotConfigTabProps) {
@@ -345,6 +349,12 @@ export function MasterBotConfigTab({
     <>
     <SyncErrorModal error={syncError} onClose={clearSyncError} />
     <div className="space-y-4 sm:space-y-6">
+      {/* Seletor de Bot Principal */}
+      <PrimaryBotSelector
+        value={config.primary_bot_type || 'sales'}
+        onChange={updatePrimaryBotType}
+        disabled={syncing}
+      />
       {/* Botão de Sincronização Global */}
       <Card>
         <CardHeader className="pb-3">

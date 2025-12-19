@@ -33,6 +33,8 @@ export interface BotBehaviorConfig {
   auto_reactivate_minutes: number;
 }
 
+export type PrimaryBotType = 'sales' | 'recruitment' | 'support';
+
 export interface MasterWhatsAppConfig {
   id: string;
   admin_user_id: string;
@@ -40,6 +42,8 @@ export interface MasterWhatsAppConfig {
   instance_status: string;
   instance_phone: string | null;
   evolution_instance_id: string | null;
+  // Bot Principal
+  primary_bot_type: PrimaryBotType;
   // Bot de Vendas
   sales_bot_enabled: boolean;
   sales_bot_approach: SalesApproach;
@@ -518,6 +522,15 @@ export function useMasterWhatsAppConfig() {
     return updateConfig({ support_bot_custom_prompt: prompt });
   };
 
+  // Atualizar bot principal
+  const updatePrimaryBotType = async (botType: PrimaryBotType) => {
+    const success = await updateConfig({ primary_bot_type: botType });
+    if (success) {
+      toast.success(`Bot principal alterado para ${getBotLabel(botType)}`);
+    }
+    return success;
+  };
+
   // Pausar/retomar sessão
   const toggleSessionPause = async (sessionId: string, pause: boolean, reason?: string) => {
     try {
@@ -555,6 +568,7 @@ export function useMasterWhatsAppConfig() {
     updateApproach,
     updateKeywords,
     updateSupportPrompt,
+    updatePrimaryBotType,
     toggleSessionPause,
     hasUnsyncedChanges,
     lastSyncedAt

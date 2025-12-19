@@ -370,7 +370,7 @@ export function MasterBotConfigTab() {
         </TabsList>
 
         {/* Bot de Vendas */}
-        <TabsContent value="sales" className="space-y-4">
+        <TabsContent value="sales" className="grid gap-4 md:grid-cols-2">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -447,7 +447,7 @@ export function MasterBotConfigTab() {
         </TabsContent>
 
         {/* Bot de Recrutamento */}
-        <TabsContent value="recruitment" className="space-y-4">
+        <TabsContent value="recruitment" className="grid gap-4 md:grid-cols-2">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -524,7 +524,7 @@ export function MasterBotConfigTab() {
         </TabsContent>
 
         {/* Bot de Suporte */}
-        <TabsContent value="support" className="space-y-4">
+        <TabsContent value="support" className="grid gap-4 md:grid-cols-2">
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">

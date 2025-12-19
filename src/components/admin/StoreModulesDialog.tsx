@@ -53,7 +53,7 @@ export function StoreModulesDialog({
   storeId, 
   storeName 
 }: StoreModulesDialogProps) {
-  const { modules, loading, blockModule, unblockModule } = useStoreModules(storeId);
+  const { modules, loading, blockModule, unblockModule, grantExtraAccess } = useStoreModules(storeId);
   const [blockingModule, setBlockingModule] = useState<string | null>(null);
   const [blockReason, setBlockReason] = useState('');
   const [processingModule, setProcessingModule] = useState<string | null>(null);
@@ -74,13 +74,23 @@ export function StoreModulesDialog({
 
   const handleUnblock = async (moduleId: string) => {
     setProcessingModule(moduleId);
-    const success = await unblockModule(moduleId);
+    const module = modules.find(m => m.id === moduleId);
+    
+    let success: boolean;
+    if (module?.isFromPlan) {
+      // Módulo está no plano - remover bloqueio
+      success = await unblockModule(moduleId);
+    } else {
+      // Módulo fora do plano - conceder acesso extra
+      success = await grantExtraAccess(moduleId);
+    }
+    
     setProcessingModule(null);
     
     if (success) {
-      toast.success('Módulo desbloqueado com sucesso');
+      toast.success('Módulo liberado com sucesso');
     } else {
-      toast.error('Erro ao desbloquear módulo');
+      toast.error('Erro ao liberar módulo');
     }
   };
 

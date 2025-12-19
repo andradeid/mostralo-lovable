@@ -997,9 +997,22 @@ serve(async (req) => {
         console.log(`📥 Resposta ${action} ${bt}:`, response.status, responseText);
 
         if (!response.ok) {
-          // Se update falhar (bot não existe mais), tentar criar
-          if (action === 'update' && (response.status === 404 || responseText.includes('not found'))) {
-            console.log(`⚠️ Bot ${bt} não encontrado, criando novo...`);
+          // Se update falhar (bot não existe mais ou erro 500), deletar e recriar
+          if (action === 'update' && (response.status === 404 || response.status === 500 || responseText.includes('not found'))) {
+            console.log(`⚠️ Bot ${bt} com erro (${response.status}), tentando deletar e recriar...`);
+            
+            // Tentar deletar bot antigo se houver ID
+            if (existingBotId) {
+              console.log(`🗑️ Deletando bot antigo ${existingBotId}...`);
+              await deleteExistingBot(config.instance_name, existingBotId);
+              await delay(1000); // Aguardar 1s após deletar
+            }
+            
+            // Limpar ID no banco antes de criar novo
+            await supabase
+              .from('master_whatsapp_config')
+              .update({ [existingBotIdField]: null })
+              .eq('id', configId);
             
             const createResponse = await fetch(
               `${evolutionUrl}/openai/create/${config.instance_name}`,
@@ -1028,7 +1041,7 @@ serve(async (req) => {
                   .eq('id', configId);
                 
                 results[bt] = { success: true, botId: newBotId };
-                console.log(`✅ Bot ${bt} criado com ID: ${newBotId}`);
+                console.log(`✅ Bot ${bt} recriado com novo ID: ${newBotId}`);
                 
                 // Aguardar 3 segundos antes do próximo bot para evitar rate limit na Evolution API
                 if (botsToSync.indexOf(bt) < botsToSync.length - 1) {
@@ -1039,7 +1052,7 @@ serve(async (req) => {
               }
             }
             
-            throw new Error(`Falha ao criar bot: ${createText}`);
+            throw new Error(`Falha ao recriar bot: ${createText}`);
           }
           
           throw new Error(`Falha ao ${action} bot: ${responseText}`);

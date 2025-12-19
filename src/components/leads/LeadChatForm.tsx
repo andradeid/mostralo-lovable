@@ -288,7 +288,11 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
         console.log('[LeadChatForm] Validando telefone:', phoneToValidate);
         
         const { data, error } = await supabase.functions.invoke('validate-whatsapp-number', {
-          body: { phone: phoneToValidate }
+          body: { 
+            phone: phoneToValidate,
+            leadName: updatedData.name,
+            sendWelcome: true
+          }
         });
 
         console.log('[LeadChatForm] Resposta validação:', data, error);
@@ -310,7 +314,10 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
         setIsTyping(true);
         setTimeout(() => {
           setIsTyping(false);
-          addBotMessage('✅ WhatsApp verificado!');
+          const welcomeMsg = data?.welcomeSent 
+            ? '✅ WhatsApp verificado! Acabei de te mandar uma mensagem lá 😉'
+            : '✅ WhatsApp verificado!';
+          addBotMessage(welcomeMsg);
           
           // Avançar para próximo passo
           setTimeout(() => {

@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { phone } = await req.json();
+    const { phone, leadName, sendWelcome } = await req.json();
 
     if (!phone) {
       console.log('[validate-whatsapp] Número não fornecido');
@@ -109,10 +109,52 @@ serve(async (req) => {
 
     console.log('[validate-whatsapp] Número válido:', isValid);
 
+    // Se válido e sendWelcome=true, enviar mensagem de boas-vindas
+    let welcomeSent = false;
+    if (isValid && sendWelcome && leadName) {
+      try {
+        const firstName = leadName.split(' ')[0];
+        const welcomeMessage = `Olá ${firstName}! 👋
+
+Obrigado pelo interesse no *Mostralo*! 🚀
+
+Em instantes um consultor vai entrar em contato para te mostrar como podemos transformar seu delivery.
+
+Enquanto isso, pode mandar qualquer dúvida aqui! 😊`;
+
+        const sendUrl = `${evolutionConfig.api_url}/message/sendText/${masterConfig.instance_name}`;
+        
+        console.log('[validate-whatsapp] Enviando boas-vindas para:', normalizedPhone);
+        
+        const sendResponse = await fetch(sendUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': evolutionConfig.api_key
+          },
+          body: JSON.stringify({
+            number: normalizedPhone,
+            text: welcomeMessage
+          })
+        });
+
+        if (sendResponse.ok) {
+          welcomeSent = true;
+          console.log('[validate-whatsapp] Mensagem de boas-vindas enviada com sucesso');
+        } else {
+          const errorText = await sendResponse.text();
+          console.error('[validate-whatsapp] Erro ao enviar boas-vindas:', sendResponse.status, errorText);
+        }
+      } catch (welcomeError) {
+        console.error('[validate-whatsapp] Erro ao enviar boas-vindas:', welcomeError);
+      }
+    }
+
     return new Response(
       JSON.stringify({ 
         valid: isValid,
-        jid: isValid ? result[0]?.jid : null
+        jid: isValid ? result[0]?.jid : null,
+        welcomeSent
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

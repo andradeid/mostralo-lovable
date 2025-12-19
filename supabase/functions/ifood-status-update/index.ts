@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    const { order_id, new_status, cancellation_reason } = await req.json()
+    const { order_id, new_status, cancellation_reason, cancellation_code } = await req.json()
 
     if (!order_id || !new_status) {
       throw new Error('order_id e new_status são obrigatórios')
@@ -177,8 +177,11 @@ Deno.serve(async (req) => {
         results.push({ action: 'startPreparation', success: true })
       }
     } else if (new_status === 'cancelado') {
-      // Cancelamento requer motivo
-      console.log(`📤 Solicitando cancelamento do pedido ${ifoodOrderId}`)
+      // Cancelamento requer motivo e código
+      // Códigos oficiais: 501, 502, 503, 504, 505
+      const cancelCode = cancellation_code || '502' // Default: dificuldades internas
+      console.log(`📤 Solicitando cancelamento do pedido ${ifoodOrderId} com código ${cancelCode}`)
+      
       const cancelResponse = await fetch(`${baseUrl}/${ifoodOrderId}/requestCancellation`, {
         method: 'POST',
         headers: {
@@ -187,7 +190,7 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           reason: cancellation_reason || 'Cancelado pelo estabelecimento',
-          cancellationCode: 'INTERNAL' // Código genérico de cancelamento interno
+          cancellationCode: cancelCode
         })
       })
 
@@ -198,7 +201,7 @@ Deno.serve(async (req) => {
       }
 
       console.log('✅ Cancelamento solicitado no iFood')
-      results.push({ action: 'requestCancellation', success: true })
+      results.push({ action: 'requestCancellation', success: true, cancellationCode: cancelCode })
     } else {
       // Outros status: chamar endpoint diretamente
       const url = `${baseUrl}/${ifoodOrderId}${statusConfig.endpoint}`

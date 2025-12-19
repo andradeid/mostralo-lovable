@@ -1962,6 +1962,15 @@ export type Database = {
           instance_name: string | null
           instance_phone: string | null
           instance_status: string | null
+          notification_country_code: string | null
+          notification_phone: string | null
+          notify_daily_summary: boolean | null
+          notify_instance_disconnected: boolean | null
+          notify_new_lead: boolean | null
+          notify_new_order: boolean | null
+          notify_new_seller: boolean | null
+          notify_new_store: boolean | null
+          notify_payment_received: boolean | null
           recruitment_bot_approach: string | null
           recruitment_bot_auto_reactivate_minutes: number | null
           recruitment_bot_debounce_time: number | null
@@ -2017,6 +2026,15 @@ export type Database = {
           instance_name?: string | null
           instance_phone?: string | null
           instance_status?: string | null
+          notification_country_code?: string | null
+          notification_phone?: string | null
+          notify_daily_summary?: boolean | null
+          notify_instance_disconnected?: boolean | null
+          notify_new_lead?: boolean | null
+          notify_new_order?: boolean | null
+          notify_new_seller?: boolean | null
+          notify_new_store?: boolean | null
+          notify_payment_received?: boolean | null
           recruitment_bot_approach?: string | null
           recruitment_bot_auto_reactivate_minutes?: number | null
           recruitment_bot_debounce_time?: number | null
@@ -2072,6 +2090,15 @@ export type Database = {
           instance_name?: string | null
           instance_phone?: string | null
           instance_status?: string | null
+          notification_country_code?: string | null
+          notification_phone?: string | null
+          notify_daily_summary?: boolean | null
+          notify_instance_disconnected?: boolean | null
+          notify_new_lead?: boolean | null
+          notify_new_order?: boolean | null
+          notify_new_seller?: boolean | null
+          notify_new_store?: boolean | null
+          notify_payment_received?: boolean | null
           recruitment_bot_approach?: string | null
           recruitment_bot_auto_reactivate_minutes?: number | null
           recruitment_bot_debounce_time?: number | null

@@ -76,6 +76,16 @@ export interface MasterWhatsAppConfig {
   support_bot_time_per_char: number;
   support_bot_unknown_message: string;
   support_bot_auto_reactivate_minutes: number;
+  // Notificações
+  notification_phone: string | null;
+  notification_country_code: string | null;
+  notify_new_lead: boolean;
+  notify_new_store: boolean;
+  notify_new_seller: boolean;
+  notify_new_order: boolean;
+  notify_payment_received: boolean;
+  notify_instance_disconnected: boolean;
+  notify_daily_summary: boolean;
   // Timestamps
   created_at: string;
   updated_at: string;

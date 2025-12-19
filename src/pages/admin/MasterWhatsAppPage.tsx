@@ -38,6 +38,7 @@ import {
 } from "lucide-react";
 import { MasterBotConfigTab } from "@/components/admin/master-whatsapp/MasterBotConfigTab";
 import { MasterSessionsTab } from "@/components/admin/master-whatsapp/MasterSessionsTab";
+import { MasterNotificationsCard } from "@/components/admin/master-whatsapp/MasterNotificationsCard";
 
 interface TestMessage {
   id: string;
@@ -365,7 +366,7 @@ export default function MasterWhatsAppPage() {
 
         {/* Tab Conexão */}
         <TabsContent value="connection">
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {/* Criar/Gerenciar Instância */}
             <Card>
               <CardHeader>
@@ -543,6 +544,13 @@ export default function MasterWhatsAppPage() {
                 </Button>
               </CardContent>
             </Card>
+
+            {/* Card de Notificações */}
+            <MasterNotificationsCard 
+              config={config}
+              updateConfig={updateConfig}
+              instanceStatus={instanceStatus}
+            />
           </div>
 
           {/* Histórico de Mensagens de Teste */}

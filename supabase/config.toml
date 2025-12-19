@@ -185,3 +185,9 @@ verify_jwt = false
 
 [functions.ifood-status-update]
 verify_jwt = true
+
+[functions.master-whatsapp-webhook]
+verify_jwt = false
+
+[functions.master-bot-sync]
+verify_jwt = true

@@ -51,7 +51,8 @@ serve(async (req) => {
       });
     }
 
-    const { action, instanceName } = await req.json();
+    const body = await req.json();
+    const { action, instanceName, phoneNumber, message } = body;
     console.log(`[master-whatsapp-instance] Action: ${action}, User: ${user.id}`);
 
     // Buscar configuração da Evolution API
@@ -329,10 +330,6 @@ serve(async (req) => {
       }
 
       case 'sendTest': {
-        // Pegar parâmetros do body (já foi parseado antes, precisamos do req original)
-        const body = await req.clone().json();
-        const { phoneNumber, message } = body;
-
         if (!masterConfig?.instance_name) {
           return new Response(JSON.stringify({ error: 'Nenhuma instância configurada' }), {
             status: 404,

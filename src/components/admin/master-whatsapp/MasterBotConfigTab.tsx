@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   MasterWhatsAppConfig,
   SalesApproach, 
@@ -26,7 +27,8 @@ import {
   Flame,
   Snowflake,
   Save,
-  AlertTriangle
+  AlertTriangle,
+  Brain
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -241,6 +243,7 @@ interface MasterBotConfigTabProps {
   updateBotBehavior: (botType: 'sales' | 'recruitment' | 'support', updates: Partial<BotBehaviorConfig>) => Promise<boolean>;
   syncBots: (botType?: 'sales' | 'recruitment' | 'support') => Promise<boolean>;
   updatePrimaryBotType: (botType: PrimaryBotType) => Promise<boolean>;
+  updateOpenAIModel: (model: string) => Promise<boolean>;
   hasUnsyncedChanges: (botType: 'sales' | 'recruitment' | 'support') => boolean;
   lastSyncedAt: { sales: string | null; recruitment: string | null; support: string | null };
 }
@@ -257,6 +260,7 @@ export function MasterBotConfigTab({
   updateBotBehavior,
   syncBots,
   updatePrimaryBotType,
+  updateOpenAIModel,
   hasUnsyncedChanges,
   lastSyncedAt
 }: MasterBotConfigTabProps) {
@@ -382,6 +386,29 @@ export function MasterBotConfigTab({
             </Button>
           </div>
         </CardHeader>
+        <CardContent className="pt-0">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Brain className="w-4 h-4 text-muted-foreground" />
+              <Label className="text-sm">Modelo de IA:</Label>
+              <InfoTooltip text="Modelo de linguagem usado pelos bots. GPT-4o-mini é mais rápido e barato. GPT-4o é mais inteligente." />
+            </div>
+            <Select
+              value={config.openai_model || 'gpt-4o-mini'}
+              onValueChange={updateOpenAIModel}
+            >
+              <SelectTrigger className="w-full sm:w-[200px]">
+                <SelectValue placeholder="Selecione o modelo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="gpt-4o-mini">GPT-4o Mini (Rápido)</SelectItem>
+                <SelectItem value="gpt-4o">GPT-4o (Inteligente)</SelectItem>
+                <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
+                <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo (Básico)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
       </Card>
 
       {/* Tabs dos Bots */}

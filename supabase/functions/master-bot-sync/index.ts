@@ -908,12 +908,20 @@ serve(async (req) => {
 
         console.log(`🔑 Bot ${bt}: triggerType=${triggerType}, triggerValue="${triggerValue}", keywords:`, triggerKeywords);
 
+        // Gerar descrição baseada no tipo de bot
+        const botDescriptions: Record<string, string> = {
+          sales: 'Bot de Vendas - Atendimento e captação de novos lojistas para a plataforma Mostralo',
+          recruitment: 'Bot de Recrutamento - Captação de vendedores e afiliados para a rede Mostralo',
+          support: 'Bot de Suporte - Atendimento ao cliente e suporte técnico da plataforma Mostralo'
+        };
+
         const botPayload = {
           enabled: true,
           openaiCredsId: openaiCredsId,
           botType: 'chatCompletion',
-          model: evolutionConfig.openai_default_model || 'gpt-4o-mini',
+          model: config.openai_model || evolutionConfig.openai_default_model || 'gpt-4o-mini',
           maxTokens: evolutionConfig.openai_max_tokens || 1000,
+          description: botDescriptions[bt] || `Bot ${botName} - Mostralo`,
           systemMessages: [prompt],
           assistantMessages: [
             `Olá! 👋 Sou o ${botName}, assistente virtual da Mostralo. Como posso ajudar você hoje?`

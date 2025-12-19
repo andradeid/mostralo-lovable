@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { CountryCodeSelect } from "@/components/ui/country-code-select";
-import { Bell, User, Store, Briefcase, Package, CreditCard, AlertTriangle, BarChart3, Save, Loader2, Send } from "lucide-react";
+import { Bell, User, Store, Briefcase, Package, CreditCard, AlertTriangle, BarChart3, Save, Loader2, Send, Sun, Moon } from "lucide-react";
 import { formatBrazilianPhone, formatInternationalPhone } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -82,6 +82,8 @@ export function MasterNotificationsCard({ config, updateConfig, instanceStatus }
   const [phone, setPhone] = useState(config?.notification_phone || '');
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [testingMorning, setTestingMorning] = useState(false);
+  const [testingEvening, setTestingEvening] = useState(false);
 
   const handleSavePhone = async () => {
     if (!phone.trim()) {
@@ -162,6 +164,32 @@ ${activeNotifications.length > 0
     await updateConfig({ [key]: enabled } as Partial<MasterWhatsAppConfig>);
   };
 
+  const handleTestDailySummary = async (period: 'morning' | 'evening') => {
+    const setTestingState = period === 'morning' ? setTestingMorning : setTestingEvening;
+    setTestingState(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('send-daily-summary', {
+        body: { period }
+      });
+
+      if (error || data?.error) {
+        throw new Error(data?.error || error?.message);
+      }
+
+      toast.success(
+        period === 'morning' 
+          ? '🌅 Resumo da manhã enviado!' 
+          : '🌆 Resumo da noite enviado!'
+      );
+    } catch (error) {
+      console.error('Erro ao enviar resumo:', error);
+      toast.error(error instanceof Error ? error.message : 'Erro ao enviar resumo');
+    } finally {
+      setTestingState(false);
+    }
+  };
+
   const isConnected = instanceStatus === 'connected' || instanceStatus === 'open';
 
   return (
@@ -237,19 +265,55 @@ ${activeNotifications.length > 0
             const isEnabled = currentValue ?? option.defaultEnabled;
             
             return (
-              <div key={option.key} className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  {option.icon}
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium truncate">{option.label}</p>
-                    <p className="text-[10px] text-muted-foreground truncate">{option.description}</p>
+              <div key={option.key} className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    {option.icon}
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium truncate">{option.label}</p>
+                      <p className="text-[10px] text-muted-foreground truncate">{option.description}</p>
+                    </div>
                   </div>
+                  <Switch
+                    checked={isEnabled}
+                    onCheckedChange={(checked) => handleToggleNotification(option.key, checked)}
+                    disabled={!isConnected}
+                  />
                 </div>
-                <Switch
-                  checked={isEnabled}
-                  onCheckedChange={(checked) => handleToggleNotification(option.key, checked)}
-                  disabled={!isConnected}
-                />
+                
+                {/* Botões de teste para Resumo Diário */}
+                {option.key === 'notify_daily_summary' && isEnabled && config?.notification_phone && (
+                  <div className="flex gap-2 pl-6">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 h-7 text-xs"
+                      onClick={() => handleTestDailySummary('morning')}
+                      disabled={!isConnected || testingMorning}
+                    >
+                      {testingMorning ? (
+                        <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                      ) : (
+                        <Sun className="h-3 w-3 mr-1 text-amber-500" />
+                      )}
+                      Manhã
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 h-7 text-xs"
+                      onClick={() => handleTestDailySummary('evening')}
+                      disabled={!isConnected || testingEvening}
+                    >
+                      {testingEvening ? (
+                        <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                      ) : (
+                        <Moon className="h-3 w-3 mr-1 text-indigo-500" />
+                      )}
+                      Noite
+                    </Button>
+                  </div>
+                )}
               </div>
             );
           })}

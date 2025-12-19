@@ -18,7 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Phone, Mail, MapPin, Package, CreditCard, FileText, X, Printer, Eye, Navigation, Clock, AlertCircle } from "lucide-react";
+import { Phone, Mail, MapPin, Package, CreditCard, FileText, X, Printer, Eye, Navigation, Clock, AlertCircle, XCircle } from "lucide-react";
 import { mockOrderItems } from "@/utils/mockOrders";
 import { printOrder, executePrint } from "@/utils/printOrder";
 import { PrintPreviewDialog } from "@/components/admin/print/PrintPreviewDialog";
@@ -561,6 +561,30 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
                     <p className="text-sm text-blue-700 dark:text-blue-300">
                       Para: {format(new Date(order.scheduled_for), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                     </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Informações de Cancelamento */}
+            {order.status === 'cancelado' && (
+              <div className="mt-2 p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <XCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-red-900 dark:text-red-100">
+                      Pedido Cancelado
+                    </p>
+                    {order.cancelled_at && (
+                      <p className="text-xs text-red-600 dark:text-red-400">
+                        Em: {format(new Date(order.cancelled_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                      </p>
+                    )}
+                    {order.cancellation_reason && (
+                      <p className="text-sm text-red-700 dark:text-red-300 mt-2">
+                        <strong>Motivo:</strong> {order.cancellation_reason}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>

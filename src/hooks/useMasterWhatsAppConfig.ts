@@ -98,6 +98,8 @@ export interface MasterWhatsAppConfig {
   notify_payment_received: boolean;
   notify_instance_disconnected: boolean;
   notify_daily_summary: boolean;
+  // OpenAI
+  openai_api_key: string | null;
   // Timestamps
   created_at: string;
   updated_at: string;

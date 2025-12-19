@@ -4,7 +4,8 @@ import {
   Store, Menu, X, ChevronRight, Smartphone, Package, Truck, MessageCircle, 
   BarChart3, Tag, Calendar, Printer, Palette, Map, Users, Megaphone, 
   Link2, Image, AlertTriangle, Check, ArrowRight, Star, Shield, Database,
-  Heart, Clock, Target, Zap, TrendingUp, Bell, MapPin, CreditCard, Copy, FileText
+  Heart, Clock, Target, Zap, TrendingUp, Bell, MapPin, CreditCard, Copy, FileText,
+  Wallet, PieChart, ArrowUpDown, Filter
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ const sections = [
   { id: 'entregadores', title: 'Sistema de Entregadores', icon: Truck },
   { id: 'whatsapp', title: 'WhatsApp Marketing', icon: MessageCircle },
   { id: 'relatorios', title: 'Relatórios', icon: BarChart3 },
+  { id: 'financeiro', title: 'Gestão Financeira', icon: Wallet },
   { id: 'promocoes', title: 'Promoções e Cupons', icon: Tag },
   { id: 'agendados', title: 'Pedidos Agendados', icon: Calendar },
   { id: 'impressao', title: 'Impressão Automática', icon: Printer },
@@ -96,6 +98,14 @@ Funcionalidades:
 - Horários de pico
 - Clientes fiéis x novos
 - Exportação de dados (CSV, Excel)
+
+## GESTÃO FINANCEIRA (NOVO!)
+- Dashboard com KPIs de receitas, despesas e saldo
+- Controle de entradas e saídas por categoria
+- Gráficos de evolução mensal do fluxo de caixa
+- Categorias personalizáveis (receita/despesa)
+- Filtros por tipo, categoria e busca
+- Relatórios financeiros completos
 
 ## PROMOÇÕES E CUPONS
 - Cupons de desconto personalizados
@@ -715,6 +725,53 @@ Site: mostralo.com.br`;
               <p className="text-sm text-muted-foreground">
                 Exporte todos os seus dados quando quiser. Diferente de marketplaces que escondem suas métricas, 
                 aqui você tem acesso completo a tudo sobre seu negócio.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Section: Gestão Financeira - NOVO */}
+        <section id="financeiro" className="py-16 bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950/20 dark:to-green-950/20">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center">
+                <Wallet className="h-6 w-6 text-emerald-500" />
+              </div>
+              <div className="flex items-center gap-3">
+                <div>
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">Gestão Financeira</h2>
+                  <p className="text-muted-foreground">Controle total das finanças do seu negócio</p>
+                </div>
+                <span className="bg-emerald-500 text-white text-xs font-bold px-2 py-1 rounded-full">NOVO!</span>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {[
+                { title: 'Dashboard Financeiro', desc: 'KPIs de receitas, despesas e saldo em tempo real', icon: TrendingUp },
+                { title: 'Controle de Entradas', desc: 'Registre todas as receitas por categoria', icon: ArrowUpDown },
+                { title: 'Controle de Saídas', desc: 'Gerencie despesas e custos operacionais', icon: CreditCard },
+                { title: 'Gráficos de Evolução', desc: 'Visualize a evolução mensal do fluxo de caixa', icon: PieChart },
+                { title: 'Categorias Personalizáveis', desc: 'Crie categorias de receita e despesa do seu jeito', icon: Tag },
+                { title: 'Filtros Avançados', desc: 'Filtre por tipo, categoria, período e busca', icon: Filter },
+              ].map((item, i) => (
+                <Card key={i} className="bg-card hover:shadow-md transition-shadow">
+                  <CardContent className="p-5">
+                    <item.icon className="h-8 w-8 text-emerald-500 mb-3" />
+                    <h4 className="font-semibold text-foreground mb-1">{item.title}</h4>
+                    <p className="text-sm text-muted-foreground">{item.desc}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-6">
+              <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                <Wallet className="h-5 w-5 text-emerald-500" /> Fluxo de Caixa em Tempo Real
+              </h4>
+              <p className="text-sm text-muted-foreground">
+                Saiba exatamente quanto entra e quanto sai do seu negócio. Relatórios financeiros completos 
+                para tomar decisões estratégicas e manter suas finanças sob controle.
               </p>
             </div>
           </div>

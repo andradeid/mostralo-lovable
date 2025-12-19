@@ -1917,6 +1917,42 @@ export type Database = {
         }
         Relationships: []
       }
+      master_test_messages: {
+        Row: {
+          country_code: string
+          created_by: string | null
+          error_message: string | null
+          evolution_message_id: string | null
+          id: string
+          message: string
+          phone_number: string
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          country_code?: string
+          created_by?: string | null
+          error_message?: string | null
+          evolution_message_id?: string | null
+          id?: string
+          message: string
+          phone_number: string
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          country_code?: string
+          created_by?: string | null
+          error_message?: string | null
+          evolution_message_id?: string | null
+          id?: string
+          message?: string
+          phone_number?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       master_whatsapp_config: {
         Row: {
           admin_user_id: string | null

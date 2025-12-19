@@ -351,10 +351,19 @@ serve(async (req) => {
           });
         }
 
-        // Normalizar número (remover caracteres e adicionar 55 se necessário)
-        let formattedPhone = phoneNumber.replace(/\D/g, '');
-        if (!formattedPhone.startsWith('55')) {
-          formattedPhone = '55' + formattedPhone;
+        // Extrair DDI do número (já vem com DDI do frontend)
+        const formattedPhone = phoneNumber.replace(/\D/g, '');
+        // Detectar DDI - assume que números >= 12 dígitos já têm DDI
+        let countryCode = '+55';
+        if (formattedPhone.length >= 12 && !formattedPhone.startsWith('55')) {
+          // Tenta extrair DDI de 1-3 dígitos
+          if (formattedPhone.startsWith('1') && formattedPhone.length >= 11) {
+            countryCode = '+1';
+          } else {
+            countryCode = '+' + formattedPhone.slice(0, 2);
+          }
+        } else if (formattedPhone.startsWith('55')) {
+          countryCode = '+55';
         }
 
         console.log(`[master-whatsapp-instance] Enviando mensagem de teste para: ${formattedPhone}`);
@@ -376,6 +385,21 @@ serve(async (req) => {
 
         const sendData = await sendResponse.json();
         console.log('[master-whatsapp-instance] Send response:', sendData);
+
+        const sendSuccess = sendResponse.ok && sendData.key?.id;
+
+        // Salvar no histórico
+        await supabase
+          .from('master_test_messages')
+          .insert({
+            phone_number: formattedPhone,
+            country_code: countryCode,
+            message: testMessage,
+            status: sendSuccess ? 'sent' : 'failed',
+            evolution_message_id: sendData.key?.id || null,
+            error_message: !sendSuccess ? (sendData.message || JSON.stringify(sendData)) : null,
+            created_by: user.id,
+          });
 
         if (!sendResponse.ok) {
           return new Response(JSON.stringify({ 

@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { 
   Loader2, Save, Server, Key, CheckCircle, XCircle, Eye, EyeOff, 
   RefreshCw, Smartphone, Users, MessageSquare, Wifi, WifiOff, 
-  Copy, Phone, Store, AlertCircle, Link, FileText
+  Copy, Phone, Store, AlertCircle, Link, FileText, Shield
 } from "lucide-react";
 
 interface LinkedStore {
@@ -35,6 +35,7 @@ interface EvolutionInstance {
   chatsCount: number;
   isLinked: boolean;
   linkedStore: LinkedStore | null;
+  isMasterAdmin: boolean;
 }
 
 interface InstanceStats {
@@ -43,6 +44,7 @@ interface InstanceStats {
   connecting: number;
   offline: number;
   linked: number;
+  masterAdmin: number;
   orphan: number;
 }
 
@@ -54,7 +56,7 @@ export default function EvolutionConfigPage() {
   const [showApiKey, setShowApiKey] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'unknown' | 'connected' | 'error'>('unknown');
   const [instances, setInstances] = useState<EvolutionInstance[]>([]);
-  const [stats, setStats] = useState<InstanceStats>({ total: 0, connected: 0, connecting: 0, offline: 0, linked: 0, orphan: 0 });
+  const [stats, setStats] = useState<InstanceStats>({ total: 0, connected: 0, connecting: 0, offline: 0, linked: 0, masterAdmin: 0, orphan: 0 });
   const [loadingInstances, setLoadingInstances] = useState(false);
   
   const [config, setConfig] = useState({
@@ -301,7 +303,7 @@ export default function EvolutionConfigPage() {
             </div>
           </CardHeader>
           <CardContent className="p-4 md:p-6 pt-0">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 md:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 md:gap-4">
               <div className="text-center p-2 md:p-3 rounded-lg bg-background/50 border">
                 <div className="text-xl md:text-2xl font-bold text-foreground">{stats.total}</div>
                 <div className="text-[10px] md:text-xs text-muted-foreground flex items-center justify-center gap-1">
@@ -330,6 +332,12 @@ export default function EvolutionConfigPage() {
                 <div className="text-xl md:text-2xl font-bold text-primary">{stats.linked}</div>
                 <div className="text-[10px] md:text-xs text-primary flex items-center justify-center gap-1">
                   <Store className="h-3 w-3" /> <span className="hidden xs:inline">Vinculadas</span><span className="xs:hidden">Vinc</span>
+                </div>
+              </div>
+              <div className="text-center p-2 md:p-3 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                <div className="text-xl md:text-2xl font-bold text-purple-500">{stats.masterAdmin}</div>
+                <div className="text-[10px] md:text-xs text-purple-600 flex items-center justify-center gap-1">
+                  <Shield className="h-3 w-3" /> Master
                 </div>
               </div>
               <div className="text-center p-2 md:p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
@@ -431,6 +439,21 @@ export default function EvolutionConfigPage() {
                           <span className="truncate">/loja/{instance.linkedStore.slug}</span>
                         </div>
                       </div>
+                    </div>
+                  ) : instance.isMasterAdmin ? (
+                    <div className="p-2 md:p-3 rounded-lg bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/30">
+                      <div className="flex items-center gap-1.5 md:gap-2 font-medium text-xs md:text-sm">
+                        <div className="p-1 rounded-full bg-purple-500/20">
+                          <Shield className="h-3.5 w-3.5 md:h-4 md:w-4 text-purple-500" />
+                        </div>
+                        <span className="text-purple-600 dark:text-purple-400">
+                          Painel Master Admin
+                        </span>
+                      </div>
+                      <p className="text-[10px] md:text-xs text-purple-600/80 dark:text-purple-400/80 mt-0.5 md:mt-1 ml-6">
+                        <span className="hidden sm:inline">Instância do sistema central de bots</span>
+                        <span className="sm:hidden">Sistema central</span>
+                      </p>
                     </div>
                   ) : (
                     <div className="p-2 md:p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">

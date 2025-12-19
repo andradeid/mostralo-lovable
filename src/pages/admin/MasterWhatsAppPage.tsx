@@ -620,8 +620,66 @@ export default function MasterWhatsAppPage() {
             </CardContent>
           </Card>
 
+
+          {/* Info dos Bots */}
+          <div className="grid gap-4 md:grid-cols-3 mt-6">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <div className="p-2 rounded-full bg-green-500/10">
+                    <MessageSquare className="w-4 h-4 text-green-500" />
+                  </div>
+                  Bot de Vendas
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Atende leads interessados em conhecer a plataforma. 
+                  3 níveis: Consultivo, Persuasivo, Urgência.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <div className="p-2 rounded-full bg-blue-500/10">
+                    <Users className="w-4 h-4 text-blue-500" />
+                  </div>
+                  Bot de Recrutamento
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Recruta novos vendedores/afiliados. 
+                  4 níveis: Lead Frio, Moderado, Agressivo, Super Agressivo.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <div className="p-2 rounded-full bg-purple-500/10">
+                    <HelpCircle className="w-4 h-4 text-purple-500" />
+                  </div>
+                  Bot de Suporte
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Responde dúvidas gerais sobre a plataforma.
+                  Prompt customizável.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Tab Configuração dos Bots */}
+        <TabsContent value="bots">
           {/* Card de Bots Criados na Evolution */}
-          <Card className="mt-6">
+          <Card className="mb-6">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -653,7 +711,7 @@ export default function MasterWhatsAppPage() {
                 <div className="text-center py-8 text-muted-foreground">
                   <Bot className="w-12 h-12 mx-auto mb-2 opacity-50" />
                   <p>Nenhum bot criado ainda</p>
-                  <p className="text-xs mt-1">Configure e sincronize os bots na aba "Configurar Bots"</p>
+                  <p className="text-xs mt-1">Configure os bots abaixo e clique em "Sincronizar Bot"</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
@@ -792,63 +850,6 @@ export default function MasterWhatsAppPage() {
             </CardContent>
           </Card>
 
-          {/* Info dos Bots */}
-          <div className="grid gap-4 md:grid-cols-3 mt-6">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <div className="p-2 rounded-full bg-green-500/10">
-                    <MessageSquare className="w-4 h-4 text-green-500" />
-                  </div>
-                  Bot de Vendas
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Atende leads interessados em conhecer a plataforma. 
-                  3 níveis: Consultivo, Persuasivo, Urgência.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <div className="p-2 rounded-full bg-blue-500/10">
-                    <Users className="w-4 h-4 text-blue-500" />
-                  </div>
-                  Bot de Recrutamento
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Recruta novos vendedores/afiliados. 
-                  4 níveis: Lead Frio, Moderado, Agressivo, Super Agressivo.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <div className="p-2 rounded-full bg-purple-500/10">
-                    <HelpCircle className="w-4 h-4 text-purple-500" />
-                  </div>
-                  Bot de Suporte
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Responde dúvidas gerais sobre a plataforma.
-                  Prompt customizável.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        {/* Tab Configuração dos Bots */}
-        <TabsContent value="bots">
           <MasterBotConfigTab />
         </TabsContent>
 

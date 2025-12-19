@@ -610,6 +610,25 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
                       </Button>
                     </div>
                   )}
+
+                  {/* Botão Especial: Enviar para Entrega (apenas para delivery) */}
+                  {order.delivery_type === 'delivery' && order.status === 'em_preparo' && (
+                    <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                      <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
+                        ✅ Pedido em preparo
+                      </p>
+                      <p className="text-xs text-blue-700 dark:text-blue-300 mb-3">
+                        Quando o pedido estiver pronto, clique no botão abaixo para enviar para entrega
+                      </p>
+                      <Button 
+                        onClick={() => handleStatusChange('em_transito')}
+                        disabled={isLoading}
+                        className="w-full bg-blue-600 hover:bg-blue-700"
+                      >
+                        🚚 Enviar para Entrega
+                      </Button>
+                    </div>
+                  )}
                   
                   <Select value={selectedStatus || order.status} onValueChange={handleStatusChange}>
                     <SelectTrigger>

@@ -20,20 +20,19 @@ export function useWhatsAppStatus(storeId?: string): WhatsAppStatusResult {
       
       try {
         setIsLoading(true);
-        // Use explicit typing to avoid TS2589 with deep type instantiation
-        const response = await (supabase as unknown as { 
-          from: (table: string) => { 
-            select: (cols: string) => { 
-              eq: (col: string, val: string) => { 
-                eq: (col: string, val: boolean) => { 
-                  limit: (n: number) => Promise<{ data: Array<{ status: string }> | null; error: unknown }> 
-                } 
-              } 
-            } 
-          } 
-        }).from('whatsapp_instances').select('status').eq('store_id', storeId).eq('is_active', true).limit(1);
+        const { data, error } = await supabase
+          .from('whatsapp_instances')
+          .select('status')
+          .eq('store_id', storeId)
+          .limit(1);
         
-        const instance = response.data?.[0];
+        if (error) {
+          console.error('Error checking WhatsApp:', error);
+          setHasConnectedWhatsApp(false);
+          return;
+        }
+        
+        const instance = data?.[0];
         setHasConnectedWhatsApp(instance?.status === 'connected');
       } catch (err) {
         console.error('Error checking WhatsApp:', err);

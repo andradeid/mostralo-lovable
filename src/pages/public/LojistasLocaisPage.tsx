@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useMasterWhatsApp } from '@/hooks/useMasterWhatsApp';
 import { toast } from '@/hooks/use-toast';
 import { 
   Store, ShoppingBag, Smartphone, MessageCircle, Users, Megaphone,
@@ -24,6 +25,9 @@ const LojistasLocaisPage = () => {
   const [activeSection, setActiveSection] = useState('hero');
   const [faturamento, setFaturamento] = useState([15000]);
   const [copied, setCopied] = useState(false);
+  
+  // Hook para buscar configurações de WhatsApp
+  const { getWhatsAppLink } = useMasterWhatsApp();
 
   // Scroll reveal hooks for each section
   const heroRef = useScrollReveal({ threshold: 0.1 });
@@ -1665,7 +1669,7 @@ WhatsApp: 5561994009368
                   size="lg" 
                   variant="outline" 
                   className="text-lg px-8 py-6 bg-transparent border-white text-white hover:bg-white/10"
-                  onClick={() => window.open('https://wa.me/5561994009368?text=Olá! Tenho uma loja física e quero criar minha loja online com o Mostralo', '_blank')}
+                  onClick={() => window.open(getWhatsAppLink('lojistas'), '_blank')}
                 >
                   <MessageCircle className="w-5 h-5 mr-2" />
                   Falar com Consultor

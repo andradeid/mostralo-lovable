@@ -52,6 +52,7 @@ import { ptBR } from "date-fns/locale";
 import { MasterBotConfigTab } from "@/components/admin/master-whatsapp/MasterBotConfigTab";
 import { MasterSessionsTab } from "@/components/admin/master-whatsapp/MasterSessionsTab";
 import { MasterNotificationsCard } from "@/components/admin/master-whatsapp/MasterNotificationsCard";
+import { WhatsAppLinkConfigCard } from "@/components/admin/master-whatsapp/WhatsAppLinkConfigCard";
 import { OpenAIConfigCard } from "@/components/shared/OpenAIConfigCard";
 
 interface TestMessage {
@@ -810,6 +811,12 @@ export default function MasterWhatsAppPage() {
               config={config}
               updateConfig={updateConfig}
               instanceStatus={instanceStatus}
+            />
+
+            {/* Card Links WhatsApp por Página */}
+            <WhatsAppLinkConfigCard 
+              configId={config?.id || null}
+              instancePhone={config?.instance_phone || null}
             />
           </div>
 

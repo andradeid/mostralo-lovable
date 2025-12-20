@@ -14,6 +14,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { DashboardFooter } from '@/components/admin/DashboardFooter';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { useMasterWhatsApp } from '@/hooks/useMasterWhatsApp';
 
 const sections = [
   { id: 'dor-suplementos', title: 'A Dor do Mercado', icon: AlertTriangle },
@@ -41,6 +42,9 @@ export default function SuplementosPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [faturamento, setFaturamento] = useState(50000);
+  
+  // Hook para buscar configurações de WhatsApp
+  const { getWhatsAppLink } = useMasterWhatsApp();
 
   const heroRef = useScrollReveal();
   const dorRef = useScrollReveal();
@@ -1774,6 +1778,11 @@ Site: mostralo.com.br`;
                   Criar Minha Loja Agora <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
+              <a href={getWhatsAppLink('suplementos_guia')} target="_blank" rel="noopener noreferrer">
+                <Button size="lg" variant="outline" className="gap-2 border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-950">
+                  <MessageCircle className="h-4 w-4" /> Falar no WhatsApp
+                </Button>
+              </a>
               <Link to="/#plans">
                 <Button variant="outline" size="lg">
                   Ver Planos

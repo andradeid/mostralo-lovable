@@ -95,13 +95,14 @@ serve(async (req) => {
         .from('whatsapp_instances')
         .select('instance_name, status')
         .eq('store_id', store_id)
-        .eq('is_active', true)
+        .in('status', ['connected', 'open'])
         .limit(1)
         .single();
 
       if (instance) {
         instanceToUse = instance.instance_name;
-        instanceConnected = instance.status === 'open' || instance.status === 'connected';
+        instanceConnected = true; // Já filtramos por status connected/open
+        console.log(`[send-store-notification] Usando instância da loja: ${instanceToUse}`);
       }
     }
 

@@ -81,6 +81,7 @@ const variablesList = [
   { key: '{link_loja}', description: 'Link do cardápio' },
   { key: '{numero_pedido}', description: 'Número do pedido (ex: 0001)' },
   { key: '{valor_total}', description: 'Valor total formatado' },
+  { key: '{itens_pedido}', description: 'Lista de itens do pedido' },
   { key: '{endereco_entrega}', description: 'Endereço de entrega' },
   { key: '{tipo_entrega}', description: 'Delivery ou Retirada' },
   { key: '{link_pedido}', description: 'Link de acompanhamento' },

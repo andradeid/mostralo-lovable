@@ -269,6 +269,31 @@ Deno.serve(async (req) => {
       },
     });
 
+    // 5. Enviar notificação master de novo vendedor
+    try {
+      await fetch(`${supabaseUrl}/functions/v1/send-master-notification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseServiceKey}`,
+        },
+        body: JSON.stringify({
+          type: 'new_seller',
+          data: {
+            full_name: salesperson.full_name,
+            email: salesperson.email,
+            phone: salesperson.phone,
+            salesperson_type: salesperson.salesperson_type,
+            referral_code: salesperson.referral_code,
+          },
+        }),
+      });
+      console.log('✅ Notificação master enviada para novo vendedor');
+    } catch (notifyError) {
+      console.error('Erro ao enviar notificação master:', notifyError);
+      // Não falha o cadastro se a notificação falhar
+    }
+
     // Mensagem de sucesso diferenciada por tipo
     const successMessage = salesperson_type === 'affiliate'
       ? 'Cadastro de Afiliado realizado com sucesso! Aguarde aprovação do administrador.'

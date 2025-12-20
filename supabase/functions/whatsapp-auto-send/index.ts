@@ -171,6 +171,12 @@ function formatEstimatedTime(minutes: number | null): string {
   return `${minutes} minutos`;
 }
 
+// Gerar link do Google Maps a partir de coordenadas
+function buildGoogleMapsLink(lat: number | null, lng: number | null): string {
+  if (!lat || !lng) return '';
+  return `https://www.google.com/maps?q=${lat},${lng}`;
+}
+
 // Substituir variáveis na mensagem
 function replaceVariables(template: string, data: {
   customerName?: string;
@@ -192,6 +198,7 @@ function replaceVariables(template: string, data: {
   totalSpent?: number;
   orderItems?: string;
   estimatedTime?: string;
+  googleMapsLink?: string;
 }): string {
   let message = template;
   
@@ -234,6 +241,7 @@ function replaceVariables(template: string, data: {
   message = message.replace(/{total_pedidos}/g, String(data.totalOrders || 0));
   message = message.replace(/{total_gasto}/g, formattedTotalSpent);
   message = message.replace(/{tempo_estimado}/g, data.estimatedTime || '');
+  message = message.replace(/{link_maps}/g, data.googleMapsLink || '');
   
   return message;
 }
@@ -338,14 +346,31 @@ serve(async (req) => {
     let orderData: any = null;
     let orderItemsFormatted = '';
     
+    // Variável para guardar o link do Google Maps
+    let googleMapsLink = '';
+    
     if (orderId) {
       const { data: order } = await supabase
         .from('orders')
-        .select('order_number, total, customer_address, delivery_type, customer_name, customer_phone, estimated_delivery_minutes')
+        .select('order_number, total, customer_address, delivery_type, customer_name, customer_phone, estimated_delivery_minutes, customer_id')
         .eq('id', orderId)
         .single();
       
       orderData = order;
+      
+      // Buscar coordenadas do cliente se tiver customer_id
+      if (order?.customer_id) {
+        const { data: customer } = await supabase
+          .from('customers')
+          .select('latitude, longitude')
+          .eq('id', order.customer_id)
+          .single();
+        
+        if (customer?.latitude && customer?.longitude) {
+          googleMapsLink = buildGoogleMapsLink(customer.latitude, customer.longitude);
+          console.log(`[whatsapp-auto-send] Link do mapa gerado: ${googleMapsLink}`);
+        }
+      }
       
       // Buscar itens do pedido
       const { data: orderItems } = await supabase
@@ -391,7 +416,8 @@ serve(async (req) => {
           totalOrders: classification.totalOrders,
           totalSpent: classification.totalSpent,
           orderItems: orderItemsFormatted,
-          estimatedTime: formatEstimatedTime(orderData?.estimated_delivery_minutes)
+          estimatedTime: formatEstimatedTime(orderData?.estimated_delivery_minutes),
+          googleMapsLink: googleMapsLink
         });
       } else {
         // Usar template inteligente baseado no tipo de cliente E status da loja
@@ -418,7 +444,8 @@ serve(async (req) => {
           totalOrders: classification.totalOrders,
           totalSpent: classification.totalSpent,
           orderItems: orderItemsFormatted,
-          estimatedTime: formatEstimatedTime(orderData?.estimated_delivery_minutes)
+          estimatedTime: formatEstimatedTime(orderData?.estimated_delivery_minutes),
+          googleMapsLink: googleMapsLink
         });
       }
     } else {
@@ -442,7 +469,8 @@ serve(async (req) => {
         totalOrders: classification.totalOrders,
         totalSpent: classification.totalSpent,
         orderItems: orderItemsFormatted,
-        estimatedTime: formatEstimatedTime(orderData?.estimated_delivery_minutes)
+        estimatedTime: formatEstimatedTime(orderData?.estimated_delivery_minutes),
+        googleMapsLink: googleMapsLink
       });
     }
 

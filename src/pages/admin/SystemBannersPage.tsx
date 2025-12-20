@@ -16,7 +16,8 @@ import { Plus, Pencil, Trash2, Eye, EyeOff, Megaphone, Calendar, Code, HelpCircl
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-const HTML_EXAMPLES = [
+// Exemplos Básicos
+const BASIC_EXAMPLES = [
   {
     name: "Banner Informativo (Azul)",
     html: `<div style="background: #3b82f6; padding: 16px; border-radius: 8px; color: white; text-align: center;">
@@ -48,6 +49,129 @@ const HTML_EXAMPLES = [
   <a href="#" style="color: white; text-decoration: underline; margin-left: 8px;">Saiba mais</a>
 </div>`
   },
+];
+
+// Exemplos Comemorativos
+const COMMEMORATIVE_EXAMPLES = [
+  {
+    name: "🎄 Banner de Natal (Vermelho/Verde)",
+    html: `<div style="background: linear-gradient(90deg, #dc2626, #166534); padding: 16px; border-radius: 8px; color: white; text-align: center;">
+  <strong>🎄 Feliz Natal!</strong> Desejamos boas festas a todos os nossos clientes! 🎁✨
+</div>`
+  },
+  {
+    name: "🎆 Banner de Ano Novo (Dourado/Azul)",
+    html: `<div style="background: linear-gradient(90deg, #1e3a5f, #0f172a); padding: 16px; border-radius: 8px; color: white; text-align: center; border: 2px solid #fbbf24;">
+  <strong>🎆 Feliz Ano Novo 2025!</strong> Que este ano seja repleto de conquistas! 🥂✨
+</div>`
+  },
+  {
+    name: "🎁 Banner Natal com Promoção",
+    html: `<div style="background: linear-gradient(135deg, #991b1b 0%, #166534 50%, #991b1b 100%); padding: 16px; border-radius: 8px; color: white; text-align: center;">
+  <strong>🎁 Promoção de Natal!</strong> Até 30% OFF em produtos selecionados até 25/12! 🎄
+</div>`
+  },
+  {
+    name: "🎉 Banner Réveillon (Festivo)",
+    html: `<div style="background: linear-gradient(90deg, #7c3aed, #c026d3, #f97316); padding: 16px; border-radius: 8px; color: white; text-align: center;">
+  <strong>🎉 Promoção de Réveillon!</strong> Aproveite ofertas especiais para começar 2025 com tudo! 🎊
+</div>`
+  },
+  {
+    name: "📅 Banner Recesso de Fim de Ano",
+    html: `<div style="background: #fef3c7; border: 2px solid #f59e0b; padding: 16px; border-radius: 8px; color: #92400e; text-align: center;">
+  <strong>📅 Aviso de Recesso:</strong> Estaremos em recesso de 24/12 a 02/01. Voltamos dia 03/01! 🎄
+</div>`
+  },
+  {
+    name: "⏰ Banner Contagem Regressiva",
+    html: `<div style="background: linear-gradient(90deg, #0f172a, #1e40af); padding: 16px; border-radius: 8px; color: white; text-align: center; border: 1px solid #fbbf24;">
+  <strong>⏰ Contagem Regressiva!</strong> Faltam poucos dias para 2025! Prepare-se para as novidades! 🚀✨
+</div>`
+  },
+];
+
+// Banners Animados
+const ANIMATED_EXAMPLES = [
+  {
+    name: "❄️ Natal com Neve Caindo",
+    html: `<div style="background: linear-gradient(180deg, #1e3a5f 0%, #166534 100%); padding: 16px; border-radius: 8px; color: white; text-align: center; position: relative; overflow: hidden; min-height: 60px;">
+  <style>
+    @keyframes snowfall { 0% { transform: translateY(-10px); opacity: 1; } 100% { transform: translateY(60px); opacity: 0; } }
+    .snow { position: absolute; color: white; font-size: 14px; animation: snowfall 3s linear infinite; top: 0; }
+  </style>
+  <span class="snow" style="left: 10%; animation-delay: 0s;">❄</span>
+  <span class="snow" style="left: 25%; animation-delay: 0.5s;">❅</span>
+  <span class="snow" style="left: 50%; animation-delay: 1s;">❄</span>
+  <span class="snow" style="left: 75%; animation-delay: 1.5s;">❅</span>
+  <span class="snow" style="left: 90%; animation-delay: 2s;">❄</span>
+  <strong style="position: relative; z-index: 1;">🎄 Feliz Natal!</strong> <span style="position: relative; z-index: 1;">Desejamos boas festas a todos! 🎁✨</span>
+</div>`
+  },
+  {
+    name: "✨ Ano Novo com Brilhos Pulsantes",
+    html: `<div style="background: linear-gradient(90deg, #0f172a, #1e40af); padding: 16px; border-radius: 8px; color: white; text-align: center; position: relative; overflow: hidden;">
+  <style>
+    @keyframes sparkle { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.3); } }
+    .spark { position: absolute; animation: sparkle 1.5s ease-in-out infinite; }
+  </style>
+  <span class="spark" style="left: 5%; top: 20%; animation-delay: 0s;">✨</span>
+  <span class="spark" style="left: 15%; top: 60%; animation-delay: 0.3s;">⭐</span>
+  <span class="spark" style="right: 15%; top: 30%; animation-delay: 0.6s;">✨</span>
+  <span class="spark" style="right: 5%; top: 70%; animation-delay: 0.9s;">⭐</span>
+  <strong style="position: relative; z-index: 1;">🎆 Feliz Ano Novo 2025!</strong> <span style="position: relative; z-index: 1;">Que seja repleto de conquistas! 🥂</span>
+</div>`
+  },
+  {
+    name: "🔥 Promoção com Texto Pulsante",
+    html: `<div style="background: linear-gradient(90deg, #dc2626, #991b1b); padding: 16px; border-radius: 8px; color: white; text-align: center;">
+  <style>
+    @keyframes pulse-text { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+    .pulse-promo { display: inline-block; animation: pulse-text 1s ease-in-out infinite; }
+  </style>
+  <span class="pulse-promo"><strong>🔥 MEGA PROMOÇÃO!</strong></span> Até 50% OFF só hoje! ⏰
+</div>`
+  },
+  {
+    name: "🌈 Gradiente Animado",
+    html: `<div style="padding: 16px; border-radius: 8px; color: white; text-align: center; background: linear-gradient(270deg, #f97316, #ec4899, #8b5cf6, #3b82f6); background-size: 400% 400%; animation: gradient-shift 5s ease infinite;">
+  <style>
+    @keyframes gradient-shift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+  </style>
+  <strong>🎉 Novidades Chegando!</strong> Fique ligado nas atualizações! 🚀
+</div>`
+  },
+  {
+    name: "🔔 Sino Balançando (Natal)",
+    html: `<div style="background: linear-gradient(90deg, #166534, #15803d); padding: 16px; border-radius: 8px; color: white; text-align: center;">
+  <style>
+    @keyframes ring-bell { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(20deg); } 75% { transform: rotate(-20deg); } }
+    .bell { display: inline-block; animation: ring-bell 0.6s ease-in-out infinite; transform-origin: top center; }
+  </style>
+  <span class="bell">🔔</span> <strong>Ofertas de Natal!</strong> Últimos dias para aproveitar! <span class="bell">🔔</span>
+</div>`
+  },
+  {
+    name: "🎊 Réveillon com Confetes",
+    html: `<div style="background: linear-gradient(90deg, #7c3aed, #c026d3); padding: 16px; border-radius: 8px; color: white; text-align: center; position: relative; overflow: hidden; min-height: 60px;">
+  <style>
+    @keyframes confetti { 0% { transform: translateY(-10px) rotate(0deg); opacity: 1; } 100% { transform: translateY(70px) rotate(360deg); opacity: 0; } }
+    .confetti { position: absolute; animation: confetti 2.5s linear infinite; font-size: 14px; top: 0; }
+  </style>
+  <span class="confetti" style="left: 8%; animation-delay: 0s;">🎊</span>
+  <span class="confetti" style="left: 22%; animation-delay: 0.4s;">🎉</span>
+  <span class="confetti" style="left: 78%; animation-delay: 0.8s;">🎊</span>
+  <span class="confetti" style="left: 92%; animation-delay: 1.2s;">🎉</span>
+  <strong style="position: relative; z-index: 1;">🥳 Réveillon 2025!</strong> <span style="position: relative; z-index: 1;">Vamos celebrar juntos! 🍾</span>
+</div>`
+  },
+];
+
+// Todos os exemplos organizados por categoria
+const HTML_EXAMPLES = [
+  { category: "📦 Exemplos Básicos", examples: BASIC_EXAMPLES },
+  { category: "🎄 Exemplos Comemorativos", examples: COMMEMORATIVE_EXAMPLES },
+  { category: "✨ Banners Animados", examples: ANIMATED_EXAMPLES },
 ];
 
 interface SystemBanner {
@@ -264,34 +388,44 @@ const SystemBannersPage = () => {
                   Use HTML com CSS inline para criar banners. Copie um dos exemplos abaixo e personalize:
                 </p>
                 
-                <div className="space-y-3">
-                  {HTML_EXAMPLES.map((example, index) => (
-                    <div key={index} className="border rounded-lg overflow-hidden">
-                      <div className="flex items-center justify-between p-3 bg-muted/30">
-                        <span className="font-medium text-sm">{example.name}</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleCopyExample(example.html, index)}
-                          className="h-8"
-                        >
-                          {copiedIndex === index ? (
-                            <>
-                              <Check className="h-4 w-4 mr-1 text-green-500" />
-                              Copiado
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="h-4 w-4 mr-1" />
-                              Copiar
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                      <div 
-                        className="p-3 border-t"
-                        dangerouslySetInnerHTML={{ __html: example.html }}
-                      />
+                <div className="space-y-6">
+                  {HTML_EXAMPLES.map((categoryGroup, categoryIndex) => (
+                    <div key={categoryIndex} className="space-y-3">
+                      <h4 className="font-semibold text-sm text-muted-foreground border-b pb-2">
+                        {categoryGroup.category}
+                      </h4>
+                      {categoryGroup.examples.map((example, exampleIndex) => {
+                        const globalIndex = categoryIndex * 100 + exampleIndex;
+                        return (
+                          <div key={exampleIndex} className="border rounded-lg overflow-hidden">
+                            <div className="flex items-center justify-between p-3 bg-muted/30">
+                              <span className="font-medium text-sm">{example.name}</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleCopyExample(example.html, globalIndex)}
+                                className="h-8"
+                              >
+                                {copiedIndex === globalIndex ? (
+                                  <>
+                                    <Check className="h-4 w-4 mr-1 text-green-500" />
+                                    Copiado
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy className="h-4 w-4 mr-1" />
+                                    Copiar
+                                  </>
+                                )}
+                              </Button>
+                            </div>
+                            <div 
+                              className="p-3 border-t"
+                              dangerouslySetInnerHTML={{ __html: example.html }}
+                            />
+                          </div>
+                        );
+                      })}
                     </div>
                   ))}
                 </div>

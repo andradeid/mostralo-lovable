@@ -95,74 +95,80 @@ const COMMEMORATIVE_EXAMPLES = [
 const ANIMATED_EXAMPLES = [
   {
     name: "❄️ Natal com Neve Caindo",
-    html: `<div style="background: linear-gradient(180deg, #1e3a5f 0%, #166534 100%); padding: 16px; border-radius: 8px; color: white; text-align: center; position: relative; overflow: hidden; min-height: 60px;">
+    html: `<div style="background: linear-gradient(180deg, #1e3a5f 0%, #166534 100%); padding: 20px 16px; border-radius: 8px; color: white; text-align: center; position: relative; overflow: hidden; min-height: 80px;">
   <style>
-    @keyframes snowfall { 0% { transform: translateY(-10px); opacity: 1; } 100% { transform: translateY(60px); opacity: 0; } }
-    .snow { position: absolute; color: white; font-size: 14px; animation: snowfall 3s linear infinite; top: 0; }
+    @keyframes snowfall { 0% { transform: translateY(-10px); opacity: 1; } 100% { transform: translateY(100px); opacity: 0; } }
+    .snow { position: absolute; color: white; font-size: 16px; animation: snowfall 3s linear infinite; top: 0; }
   </style>
-  <span class="snow" style="left: 10%; animation-delay: 0s;">❄</span>
-  <span class="snow" style="left: 25%; animation-delay: 0.5s;">❅</span>
-  <span class="snow" style="left: 50%; animation-delay: 1s;">❄</span>
-  <span class="snow" style="left: 75%; animation-delay: 1.5s;">❅</span>
-  <span class="snow" style="left: 90%; animation-delay: 2s;">❄</span>
-  <strong style="position: relative; z-index: 1;">🎄 Feliz Natal!</strong> <span style="position: relative; z-index: 1;">Desejamos boas festas a todos! 🎁✨</span>
+  <span class="snow" style="left: 5%; animation-delay: 0s;">❄</span>
+  <span class="snow" style="left: 20%; animation-delay: 0.3s;">❅</span>
+  <span class="snow" style="left: 35%; animation-delay: 0.6s;">❄</span>
+  <span class="snow" style="left: 50%; animation-delay: 0.9s;">❅</span>
+  <span class="snow" style="left: 65%; animation-delay: 1.2s;">❄</span>
+  <span class="snow" style="left: 80%; animation-delay: 1.5s;">❅</span>
+  <span class="snow" style="left: 95%; animation-delay: 1.8s;">❄</span>
+  <strong style="position: relative; z-index: 1; font-size: 18px;">🎄 Feliz Natal!</strong> <span style="position: relative; z-index: 1;">Desejamos boas festas a todos! 🎁✨</span>
 </div>`
   },
   {
     name: "✨ Ano Novo com Brilhos Pulsantes",
-    html: `<div style="background: linear-gradient(90deg, #0f172a, #1e40af); padding: 16px; border-radius: 8px; color: white; text-align: center; position: relative; overflow: hidden;">
+    html: `<div style="background: linear-gradient(90deg, #0f172a, #1e40af); padding: 20px 16px; border-radius: 8px; color: white; text-align: center; position: relative; overflow: hidden; min-height: 80px;">
   <style>
-    @keyframes sparkle { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.3); } }
-    .spark { position: absolute; animation: sparkle 1.5s ease-in-out infinite; }
+    @keyframes sparkle { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.5); } }
+    .spark { position: absolute; animation: sparkle 1.5s ease-in-out infinite; font-size: 18px; }
   </style>
-  <span class="spark" style="left: 5%; top: 20%; animation-delay: 0s;">✨</span>
-  <span class="spark" style="left: 15%; top: 60%; animation-delay: 0.3s;">⭐</span>
-  <span class="spark" style="right: 15%; top: 30%; animation-delay: 0.6s;">✨</span>
-  <span class="spark" style="right: 5%; top: 70%; animation-delay: 0.9s;">⭐</span>
-  <strong style="position: relative; z-index: 1;">🎆 Feliz Ano Novo 2025!</strong> <span style="position: relative; z-index: 1;">Que seja repleto de conquistas! 🥂</span>
+  <span class="spark" style="left: 5%; top: 15%; animation-delay: 0s;">✨</span>
+  <span class="spark" style="left: 15%; top: 65%; animation-delay: 0.3s;">⭐</span>
+  <span class="spark" style="left: 30%; top: 25%; animation-delay: 0.5s;">✨</span>
+  <span class="spark" style="right: 30%; top: 70%; animation-delay: 0.7s;">⭐</span>
+  <span class="spark" style="right: 15%; top: 20%; animation-delay: 0.9s;">✨</span>
+  <span class="spark" style="right: 5%; top: 60%; animation-delay: 1.1s;">⭐</span>
+  <strong style="position: relative; z-index: 1; font-size: 18px;">🎆 Feliz Ano Novo 2025!</strong> <span style="position: relative; z-index: 1;">Que seja repleto de conquistas! 🥂</span>
 </div>`
   },
   {
     name: "🔥 Promoção com Texto Pulsante",
-    html: `<div style="background: linear-gradient(90deg, #dc2626, #991b1b); padding: 16px; border-radius: 8px; color: white; text-align: center;">
+    html: `<div style="background: linear-gradient(90deg, #dc2626, #991b1b); padding: 20px 16px; border-radius: 8px; color: white; text-align: center; min-height: 80px; display: flex; align-items: center; justify-content: center; gap: 8px;">
   <style>
-    @keyframes pulse-text { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
-    .pulse-promo { display: inline-block; animation: pulse-text 1s ease-in-out infinite; }
+    @keyframes pulse-text { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+    .pulse-promo { display: inline-block; animation: pulse-text 1s ease-in-out infinite; font-size: 20px; }
   </style>
-  <span class="pulse-promo"><strong>🔥 MEGA PROMOÇÃO!</strong></span> Até 50% OFF só hoje! ⏰
+  <span class="pulse-promo"><strong>🔥 MEGA PROMOÇÃO!</strong></span> <span style="font-size: 16px;">Até 50% OFF só hoje! ⏰</span>
 </div>`
   },
   {
     name: "🌈 Gradiente Animado",
-    html: `<div style="padding: 16px; border-radius: 8px; color: white; text-align: center; background: linear-gradient(270deg, #f97316, #ec4899, #8b5cf6, #3b82f6); background-size: 400% 400%; animation: gradient-shift 5s ease infinite;">
+    html: `<div style="padding: 20px 16px; border-radius: 8px; color: white; text-align: center; background: linear-gradient(270deg, #f97316, #ec4899, #8b5cf6, #3b82f6); background-size: 400% 400%; animation: gradient-shift 5s ease infinite; min-height: 80px; display: flex; align-items: center; justify-content: center; gap: 8px;">
   <style>
     @keyframes gradient-shift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
   </style>
-  <strong>🎉 Novidades Chegando!</strong> Fique ligado nas atualizações! 🚀
+  <strong style="font-size: 18px;">🎉 Novidades Chegando!</strong> <span>Fique ligado nas atualizações! 🚀</span>
 </div>`
   },
   {
     name: "🔔 Sino Balançando (Natal)",
-    html: `<div style="background: linear-gradient(90deg, #166534, #15803d); padding: 16px; border-radius: 8px; color: white; text-align: center;">
+    html: `<div style="background: linear-gradient(90deg, #166534, #15803d); padding: 20px 16px; border-radius: 8px; color: white; text-align: center; min-height: 80px; display: flex; align-items: center; justify-content: center; gap: 8px;">
   <style>
-    @keyframes ring-bell { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(20deg); } 75% { transform: rotate(-20deg); } }
-    .bell { display: inline-block; animation: ring-bell 0.6s ease-in-out infinite; transform-origin: top center; }
+    @keyframes ring-bell { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(25deg); } 75% { transform: rotate(-25deg); } }
+    .bell { display: inline-block; animation: ring-bell 0.5s ease-in-out infinite; transform-origin: top center; font-size: 24px; }
   </style>
-  <span class="bell">🔔</span> <strong>Ofertas de Natal!</strong> Últimos dias para aproveitar! <span class="bell">🔔</span>
+  <span class="bell">🔔</span> <strong style="font-size: 18px;">Ofertas de Natal!</strong> <span>Últimos dias para aproveitar!</span> <span class="bell">🔔</span>
 </div>`
   },
   {
     name: "🎊 Réveillon com Confetes",
-    html: `<div style="background: linear-gradient(90deg, #7c3aed, #c026d3); padding: 16px; border-radius: 8px; color: white; text-align: center; position: relative; overflow: hidden; min-height: 60px;">
+    html: `<div style="background: linear-gradient(90deg, #7c3aed, #c026d3); padding: 20px 16px; border-radius: 8px; color: white; text-align: center; position: relative; overflow: hidden; min-height: 80px;">
   <style>
-    @keyframes confetti { 0% { transform: translateY(-10px) rotate(0deg); opacity: 1; } 100% { transform: translateY(70px) rotate(360deg); opacity: 0; } }
-    .confetti { position: absolute; animation: confetti 2.5s linear infinite; font-size: 14px; top: 0; }
+    @keyframes confetti { 0% { transform: translateY(-10px) rotate(0deg); opacity: 1; } 100% { transform: translateY(100px) rotate(360deg); opacity: 0; } }
+    .confetti { position: absolute; animation: confetti 2.5s linear infinite; font-size: 18px; top: 0; }
   </style>
-  <span class="confetti" style="left: 8%; animation-delay: 0s;">🎊</span>
-  <span class="confetti" style="left: 22%; animation-delay: 0.4s;">🎉</span>
-  <span class="confetti" style="left: 78%; animation-delay: 0.8s;">🎊</span>
-  <span class="confetti" style="left: 92%; animation-delay: 1.2s;">🎉</span>
-  <strong style="position: relative; z-index: 1;">🥳 Réveillon 2025!</strong> <span style="position: relative; z-index: 1;">Vamos celebrar juntos! 🍾</span>
+  <span class="confetti" style="left: 5%; animation-delay: 0s;">🎊</span>
+  <span class="confetti" style="left: 18%; animation-delay: 0.3s;">🎉</span>
+  <span class="confetti" style="left: 35%; animation-delay: 0.6s;">🎊</span>
+  <span class="confetti" style="left: 65%; animation-delay: 0.9s;">🎉</span>
+  <span class="confetti" style="left: 82%; animation-delay: 1.2s;">🎊</span>
+  <span class="confetti" style="left: 95%; animation-delay: 1.5s;">🎉</span>
+  <strong style="position: relative; z-index: 1; font-size: 18px;">🥳 Réveillon 2025!</strong> <span style="position: relative; z-index: 1;">Vamos celebrar juntos! 🍾</span>
 </div>`
   },
 ];

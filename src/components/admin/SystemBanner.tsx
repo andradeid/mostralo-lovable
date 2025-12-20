@@ -66,11 +66,11 @@ export function SystemBanner({ position }: SystemBannerProps) {
   }
 
   return (
-    <div className="space-y-2 mb-4">
+    <div className="space-y-2 w-full">
       {banners.map(banner => (
         <div 
           key={banner.id}
-          className="rounded-lg overflow-hidden"
+          className="rounded-lg overflow-hidden border-2 border-yellow-500/60 shadow-lg min-h-[80px]"
           dangerouslySetInnerHTML={{ 
             __html: sanitizeHTML(banner.html_content) 
           }}

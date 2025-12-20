@@ -1,7 +1,7 @@
-const CACHE_NAME = 'mostralo-v1';
-const RUNTIME_CACHE = 'mostralo-runtime';
-const IMAGE_CACHE = 'mostralo-images';
-const FONT_CACHE = 'mostralo-fonts';
+const CACHE_NAME = 'mostralo-v2';
+const RUNTIME_CACHE = 'mostralo-runtime-v2';
+const IMAGE_CACHE = 'mostralo-images-v2';
+const FONT_CACHE = 'mostralo-fonts-v2';
 
 // Workbox manifest injection point (necessário para vite-plugin-pwa)
 // ✅ Proteção contra erro no Safari/iPhones onde __WB_MANIFEST pode não existir

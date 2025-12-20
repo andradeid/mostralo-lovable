@@ -176,6 +176,19 @@ serve(async (req) => {
       ? (delivery_address || customer_address || 'Não informado')
       : 'Retirada no local';
 
+    // Gerar link do Google Maps
+    const generateGoogleMapsLink = (): string => {
+      // Prioridade: coordenadas do cliente > endereço de entrega
+      if (data.customer_latitude && data.customer_longitude) {
+        return `https://www.google.com/maps/search/?api=1&query=${data.customer_latitude},${data.customer_longitude}`;
+      }
+      if (delivery_type === 'delivery' && addressToShow !== 'Não informado') {
+        return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressToShow)}`;
+      }
+      return '';
+    };
+    const googleMapsLink = generateGoogleMapsLink();
+
     // Formatar valores monetários
     const formatCurrency = (value: number | string | undefined | null): string => {
       if (value === undefined || value === null) return 'R$ 0,00';
@@ -211,6 +224,7 @@ ${notes ? `📝 *Obs:* ${notes}` : ''}
         .replace(/{taxa_entrega}/g, formatCurrency(delivery_fee))
         .replace(/{tipo_entrega}/g, deliveryTypeText)
         .replace(/{endereco}/g, addressToShow)
+        .replace(/{link_google_maps}/g, googleMapsLink || 'Link não disponível')
         .replace(/{forma_pagamento}/g, paymentMethodText)
         .replace(/{observacoes}/g, notes || 'Nenhuma')
         .replace(/{data_hora}/g, formattedDate)

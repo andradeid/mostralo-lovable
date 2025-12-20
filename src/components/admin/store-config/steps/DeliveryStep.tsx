@@ -114,6 +114,7 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId }: Deli
     { key: '{taxa_entrega}', label: 'Taxa Entrega', example: 'R$ 10,00' },
     { key: '{tipo_entrega}', label: 'Tipo', example: '🚗 Delivery' },
     { key: '{endereco}', label: 'Endereço', example: 'Rua X, 123' },
+    { key: '{link_google_maps}', label: 'Link Maps', example: 'https://maps.google.com/...' },
     { key: '{forma_pagamento}', label: 'Pagamento', example: '💳 PIX' },
     { key: '{observacoes}', label: 'Obs', example: 'Sem cebola' },
     { key: '{data_hora}', label: 'Data/Hora', example: '20/12/2025 14:30' },
@@ -129,6 +130,7 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId }: Deli
 💰 *Total:* {total}
 {tipo_entrega}
 📍 *Endereço:* {endereco}
+🗺️ *Navegação:* {link_google_maps}
 💳 *Pagamento:* {forma_pagamento}
 📝 *Obs:* {observacoes}
 
@@ -171,7 +173,7 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId }: Deli
 
       await new Promise(r => setTimeout(r, 300));
 
-      if (data?.exists) {
+      if (data?.valid) {
         setValid(true);
         setStep('WhatsApp válido!');
         toast.success('Número validado com sucesso!');

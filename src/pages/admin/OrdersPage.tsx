@@ -26,6 +26,7 @@ import { printOrder } from "@/utils/printOrder";
 import { MarketplaceSavingsCard } from "@/components/admin/MarketplaceSavingsCard";
 import { SystemBanner } from "@/components/admin/SystemBanner";
 import { useStoreAccess } from "@/hooks/useStoreAccess";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 type Order = Database['public']['Tables']['orders']['Row'];
 type OrderStatus = Database['public']['Enums']['order_status'];
@@ -78,6 +79,9 @@ const OrdersPage = () => {
 
   // Hook do sidebar para controlar colapso
   const { setOpen: setSidebarOpen } = useSidebar();
+
+  // Hook para detectar tela grande (lg+)
+  const isLargeScreen = useMediaQuery('(min-width: 1024px)');
 
   // Hook para browser notifications
   const { 
@@ -1143,67 +1147,137 @@ const OrdersPage = () => {
             ))}
           </KanbanColumn>
 
-          <KanbanColumn
-            id="em_preparo"
-            title="Em Preparo"
-            icon={ChefHat}
-            count={getOrdersByStatus('em_preparo').length}
-            color="bg-orange-500"
-          >
-            {getOrdersByStatus('em_preparo').map((order, index) => (
-              <Draggable key={order.id} draggableId={order.id} index={index}>
-                {(provided, snapshot) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.draggableProps}
-                    {...provided.dragHandleProps}
-                  >
-                    <OrderCard
-                      order={order}
-                      onClick={() => {
-                        setSelectedOrder(order);
-                        setDetailDialogOpen(true);
-                        setViewedOrderIds(prev => new Set(prev).add(order.id));
-                      }}
-                      isDragging={snapshot.isDragging}
-                      isViewed={viewedOrderIds.has(order.id)}
-                    />
-                  </div>
-                )}
-              </Draggable>
-            ))}
-          </KanbanColumn>
+          {/* Em Preparo + Aguarda Retirada - Responsivo */}
+          {isLargeScreen ? (
+            // Desktop: 2 colunas separadas
+            <>
+              <KanbanColumn
+                id="em_preparo"
+                title="Em Preparo"
+                icon={ChefHat}
+                count={getOrdersByStatus('em_preparo').length}
+                color="bg-orange-500"
+              >
+                {getOrdersByStatus('em_preparo').map((order, index) => (
+                  <Draggable key={order.id} draggableId={order.id} index={index}>
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                      >
+                        <OrderCard
+                          order={order}
+                          onClick={() => {
+                            setSelectedOrder(order);
+                            setDetailDialogOpen(true);
+                            setViewedOrderIds(prev => new Set(prev).add(order.id));
+                          }}
+                          isDragging={snapshot.isDragging}
+                          isViewed={viewedOrderIds.has(order.id)}
+                        />
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+              </KanbanColumn>
 
-          <KanbanColumn
-            id="aguarda_retirada"
-            title="Aguarda Retirada"
-            icon={Package}
-            count={getOrdersByStatus('aguarda_retirada').length}
-            color="bg-purple-500"
-          >
-            {getOrdersByStatus('aguarda_retirada').map((order, index) => (
-              <Draggable key={order.id} draggableId={order.id} index={index}>
-                {(provided, snapshot) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.draggableProps}
-                    {...provided.dragHandleProps}
-                  >
-                    <OrderCard
-                      order={order}
-                      onClick={() => {
-                        setSelectedOrder(order);
-                        setDetailDialogOpen(true);
-                        setViewedOrderIds(prev => new Set(prev).add(order.id));
-                      }}
-                      isDragging={snapshot.isDragging}
-                      isViewed={viewedOrderIds.has(order.id)}
-                    />
-                  </div>
-                )}
-              </Draggable>
-            ))}
-          </KanbanColumn>
+              <KanbanColumn
+                id="aguarda_retirada"
+                title="Aguarda Retirada"
+                icon={Package}
+                count={getOrdersByStatus('aguarda_retirada').length}
+                color="bg-purple-500"
+              >
+                {getOrdersByStatus('aguarda_retirada').map((order, index) => (
+                  <Draggable key={order.id} draggableId={order.id} index={index}>
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                      >
+                        <OrderCard
+                          order={order}
+                          onClick={() => {
+                            setSelectedOrder(order);
+                            setDetailDialogOpen(true);
+                            setViewedOrderIds(prev => new Set(prev).add(order.id));
+                          }}
+                          isDragging={snapshot.isDragging}
+                          isViewed={viewedOrderIds.has(order.id)}
+                        />
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+              </KanbanColumn>
+            </>
+          ) : (
+            // Mobile/Tablet: colunas combinadas (empilhadas)
+            <KanbanCombinedColumn
+              sections={[
+                {
+                  id: "em_preparo",
+                  title: "Em Preparo",
+                  icon: ChefHat,
+                  count: getOrdersByStatus('em_preparo').length,
+                  color: "bg-orange-500",
+                  children: getOrdersByStatus('em_preparo').map((order, index) => (
+                    <Draggable key={order.id} draggableId={order.id} index={index}>
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                        >
+                          <OrderCard
+                            order={order}
+                            onClick={() => {
+                              setSelectedOrder(order);
+                              setDetailDialogOpen(true);
+                              setViewedOrderIds(prev => new Set(prev).add(order.id));
+                            }}
+                            isDragging={snapshot.isDragging}
+                            isViewed={viewedOrderIds.has(order.id)}
+                          />
+                        </div>
+                      )}
+                    </Draggable>
+                  ))
+                },
+                {
+                  id: "aguarda_retirada",
+                  title: "Aguarda Retirada",
+                  icon: Package,
+                  count: getOrdersByStatus('aguarda_retirada').length,
+                  color: "bg-purple-500",
+                  children: getOrdersByStatus('aguarda_retirada').map((order, index) => (
+                    <Draggable key={order.id} draggableId={order.id} index={index}>
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                        >
+                          <OrderCard
+                            order={order}
+                            onClick={() => {
+                              setSelectedOrder(order);
+                              setDetailDialogOpen(true);
+                              setViewedOrderIds(prev => new Set(prev).add(order.id));
+                            }}
+                            isDragging={snapshot.isDragging}
+                            isViewed={viewedOrderIds.has(order.id)}
+                          />
+                        </div>
+                      )}
+                    </Draggable>
+                  ))
+                }
+              ]}
+            />
+          )}
 
             <KanbanCombinedColumn
               sections={[

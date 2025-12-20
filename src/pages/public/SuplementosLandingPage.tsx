@@ -142,7 +142,7 @@ export default function SuplementosLandingPage() {
 
             {/* Coluna 2: Vídeo */}
             <div className="flex justify-center lg:justify-end order-first lg:order-last">
-              <div className="relative max-w-xs">
+              <div className="relative max-w-md lg:max-w-lg">
                 <video 
                   src="/videos/suplementos-notificacao.mp4"
                   autoPlay
@@ -305,12 +305,11 @@ export default function SuplementosLandingPage() {
             <p className="text-lg font-medium text-muted-foreground mb-6">
               👇 Veja como funciona a notificação de reposição:
             </p>
-            <div className="max-w-sm mx-auto">
+            <div className="max-w-2xl mx-auto">
               <video 
                 src="/videos/suplementos-notificacao.mp4"
-                controls
-                muted
-                loop
+            controls
+            loop
                 playsInline
                 className="w-full rounded-2xl shadow-2xl border border-green-500/30"
               />

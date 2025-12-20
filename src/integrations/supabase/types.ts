@@ -4956,6 +4956,9 @@ export type Database = {
           longitude: number | null
           min_order_value: number | null
           name: string
+          notification_country_code: string | null
+          notification_phone: string | null
+          notify_new_orders: boolean | null
           online_payment_commission: number | null
           openai_api_key: string | null
           owner_id: string | null
@@ -5018,6 +5021,9 @@ export type Database = {
           longitude?: number | null
           min_order_value?: number | null
           name: string
+          notification_country_code?: string | null
+          notification_phone?: string | null
+          notify_new_orders?: boolean | null
           online_payment_commission?: number | null
           openai_api_key?: string | null
           owner_id?: string | null
@@ -5080,6 +5086,9 @@ export type Database = {
           longitude?: number | null
           min_order_value?: number | null
           name?: string
+          notification_country_code?: string | null
+          notification_phone?: string | null
+          notify_new_orders?: boolean | null
           online_payment_commission?: number | null
           openai_api_key?: string | null
           owner_id?: string | null

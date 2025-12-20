@@ -6,7 +6,8 @@ import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Clock, MessageCircle, QrCode, Package, Timer, Map } from "lucide-react";
+import { MapPin, Clock, MessageCircle, QrCode, Package, Timer, Map, Bell, Phone } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DeliveryZonesPicker, DeliveryZone } from "../DeliveryZonesPicker";
 import { MapLocationPicker } from "../MapLocationPicker";
 import { BusinessHoursManager } from "../BusinessHoursManager";
@@ -501,6 +502,105 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId }: Deli
               </div>
           )}
         </div>
+      </CardContent>
+    </Card>
+
+    {/* Notificações WhatsApp de Novos Pedidos */}
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <Bell className="w-4 h-4 mr-2" />
+          Notificações de Novos Pedidos via WhatsApp
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-sm text-muted-foreground border-l-4 border-primary pl-3">
+          Configure para receber notificações no WhatsApp sempre que um novo pedido for criado. 
+          A mensagem será enviada automaticamente para o número configurado abaixo.
+        </p>
+        
+        <div className="flex items-center justify-between p-4 border rounded-lg bg-secondary/30">
+          <div className="space-y-1 flex-1 pr-4">
+            <Label className="text-base">Ativar notificações de novos pedidos</Label>
+            <p className="text-sm text-muted-foreground">
+              Receba uma mensagem no WhatsApp sempre que um cliente fizer um pedido
+            </p>
+          </div>
+          <Switch 
+            checked={formData.notify_new_orders ?? true}
+            onCheckedChange={(checked) => updateFormData({ notify_new_orders: checked })}
+          />
+        </div>
+
+        {formData.notify_new_orders !== false && (
+          <div className="space-y-4 border-l-4 border-primary pl-4 mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="md:col-span-1">
+                <Label htmlFor="notification_country_code">País</Label>
+                <Select
+                  value={formData.notification_country_code || '+55'}
+                  onValueChange={(value) => updateFormData({ notification_country_code: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="+55" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="+55">🇧🇷 +55</SelectItem>
+                    <SelectItem value="+1">🇺🇸 +1</SelectItem>
+                    <SelectItem value="+351">🇵🇹 +351</SelectItem>
+                    <SelectItem value="+34">🇪🇸 +34</SelectItem>
+                    <SelectItem value="+54">🇦🇷 +54</SelectItem>
+                    <SelectItem value="+595">🇵🇾 +595</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="md:col-span-3">
+                <Label htmlFor="notification_phone">Número para Notificações</Label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="notification_phone"
+                    value={formData.notification_phone || ''}
+                    onChange={(e) => {
+                      // Remove non-digits
+                      const value = e.target.value.replace(/\D/g, '');
+                      updateFormData({ notification_phone: value });
+                    }}
+                    placeholder="61999999999"
+                    className="pl-10"
+                    maxLength={11}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Digite apenas números (DDD + número). Ex: 61999999999
+                </p>
+              </div>
+            </div>
+            
+            <div className="p-3 bg-muted rounded-lg text-sm">
+              <p className="font-medium mb-1">Exemplo de mensagem que será enviada:</p>
+              <div className="text-muted-foreground whitespace-pre-line text-xs">
+📦 *NOVO PEDIDO!*
+
+🔢 *Pedido:* #ABC12345
+👤 *Cliente:* João Silva
+📱 *Tel:* 61999999999
+💰 *Total:* R$ 89,90
+🚗 Delivery
+📍 *Endereço:* Rua X, 123
+
+⏰ 20/12/2025 às 14:30
+              </div>
+            </div>
+            
+            {!formData.notification_phone && (
+              <p className="text-xs text-amber-600 flex items-center gap-1">
+                <Bell className="h-3 w-3" />
+                Configure um número acima para receber as notificações. Caso contrário, será usado o WhatsApp da loja.
+              </p>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
 

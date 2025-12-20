@@ -2,9 +2,9 @@ import { Link } from 'react-router-dom';
 import { 
   Store, Menu, X, ArrowRight, Check, Smartphone, Package,
   MessageCircle, Users, DollarSign, Zap, Clock, ShieldCheck,
-  ChevronDown, Dumbbell, RefreshCw, Brain, Heart
+  ChevronDown, Dumbbell, RefreshCw, Brain, Heart, Play, VolumeX
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -19,6 +19,16 @@ import {
 
 export default function SuplementosLandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handlePlayWithSound = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = false;
+      videoRef.current.play();
+      setIsVideoPlaying(true);
+    }
+  };
 
   const heroRef = useScrollReveal();
   const dorRef = useScrollReveal();
@@ -144,12 +154,32 @@ export default function SuplementosLandingPage() {
             <div className="flex justify-center lg:justify-end order-first lg:order-last">
               <div className="relative max-w-md lg:max-w-lg">
                 <video 
+                  ref={videoRef}
                   src="/videos/suplementos-notificacao.mp4"
-                  controls
-                  loop
+                  muted
                   playsInline
                   className="w-full rounded-3xl shadow-2xl border-4 border-green-500/30"
+                  onEnded={() => setIsVideoPlaying(false)}
                 />
+                
+                {/* Overlay com botão de play */}
+                {!isVideoPlaying && (
+                  <button
+                    onClick={handlePlayWithSound}
+                    className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-3xl cursor-pointer hover:bg-black/50 transition-colors"
+                  >
+                    <div className="flex flex-col items-center gap-3 text-white">
+                      <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center shadow-xl hover:bg-green-600 transition-colors">
+                        <Play className="w-10 h-10 text-white fill-white ml-1" />
+                      </div>
+                      <span className="text-sm font-medium flex items-center gap-2 bg-black/50 px-4 py-2 rounded-full">
+                        <VolumeX className="w-4 h-4" />
+                        Clique para reproduzir com som
+                      </span>
+                    </div>
+                  </button>
+                )}
+                
                 {/* Efeito de brilho atrás */}
                 <div className="absolute -inset-4 bg-gradient-to-r from-green-500/20 to-orange-500/20 blur-xl rounded-3xl -z-10" />
               </div>

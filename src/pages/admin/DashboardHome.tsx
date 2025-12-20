@@ -32,6 +32,7 @@ import { GrowthProjections } from '@/components/admin/dashboard/GrowthProjection
 import { RecentActivityReal } from '@/components/admin/dashboard/RecentActivityReal';
 import { PendingActions } from '@/components/admin/dashboard/PendingActions';
 import { StoreHealthIndicators } from '@/components/admin/dashboard/StoreHealthIndicators';
+import { SystemBanner } from '@/components/admin/SystemBanner';
 
 interface DashboardStats {
   totalUsers: number;
@@ -302,6 +303,9 @@ const DashboardHome = () => {
 
     return (
       <div className="space-y-4 md:space-y-6">
+        {/* Banner do Sistema */}
+        <SystemBanner position="dashboard" />
+        
         {/* Header Contextual */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
@@ -438,6 +442,9 @@ const DashboardHome = () => {
 
     return (
       <div className="space-y-6">
+        {/* Banner do Sistema */}
+        <SystemBanner position="dashboard" />
+        
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
           <p className="text-muted-foreground">

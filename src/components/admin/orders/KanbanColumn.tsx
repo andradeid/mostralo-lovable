@@ -36,7 +36,7 @@ export const KanbanColumn = ({
 
   if (!collapsible) {
     return (
-      <div className="flex-1 min-w-[280px] flex-shrink-0 flex flex-col bg-muted/30 rounded-lg">
+      <div className="flex-1 min-w-[220px] sm:min-w-[260px] lg:min-w-[280px] flex-shrink-0 flex flex-col bg-muted/30 rounded-lg">
         {/* Header */}
         <div className={`p-4 ${color} text-primary-foreground rounded-t-lg`}>
           <div className="flex items-center justify-between">
@@ -75,7 +75,7 @@ export const KanbanColumn = ({
     <Collapsible
       open={isOpen}
       onOpenChange={setIsOpen}
-      className="flex-1 min-w-[280px] flex-shrink-0 flex flex-col bg-muted/30 rounded-lg"
+      className="flex-1 min-w-[220px] sm:min-w-[260px] lg:min-w-[280px] flex-shrink-0 flex flex-col bg-muted/30 rounded-lg"
     >
       {/* Header */}
       <CollapsibleTrigger asChild>

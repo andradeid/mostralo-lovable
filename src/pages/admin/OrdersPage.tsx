@@ -721,42 +721,50 @@ const OrdersPage = () => {
   const averageTicket = todayOrders.length > 0 ? todayRevenue / todayOrders.length : 0;
 
   return (
-    <div className={`p-6 space-y-6 ${pendingOrders.length > 0 ? 'animate-screen-flash' : ''}`}>
+    <div className={`p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 ${pendingOrders.length > 0 ? 'animate-screen-flash' : ''}`}>
       {/* Header */}
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div>
-              <h1 className="text-3xl font-bold">Pedidos</h1>
-              <p className="text-muted-foreground">Gerencie seus pedidos em tempo real</p>
+      <div className="flex flex-col gap-3 sm:gap-4">
+        {/* Title Row */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold truncate">Pedidos</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Gerencie seus pedidos em tempo real</p>
             </div>
             {pendingOrders.length > 0 && (
               <Badge 
                 variant="destructive" 
-                className="animate-pulse text-lg px-3 py-1"
+                className="animate-pulse text-sm sm:text-lg px-2 sm:px-3 py-0.5 sm:py-1 flex-shrink-0"
               >
-                <AlertCircle className="h-4 w-4 mr-1" />
+                <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                 {pendingOrders.length} {pendingOrders.length === 1 ? 'Novo' : 'Novos'}
               </Badge>
             )}
           </div>
         
-        {/* Controles de Som e Criar Pedido */}
-        <div className="flex items-center gap-3 flex-wrap">
-          <Button onClick={() => setCreateOrderDialogOpen(true)}>
+          {/* Botão Criar Pedido - Destaque */}
+          <Button 
+            onClick={() => setCreateOrderDialogOpen(true)} 
+            size="sm"
+            className="w-full sm:w-auto"
+          >
             <Plus className="h-4 w-4 mr-2" />
-            Criar Pedido
+            <span className="sm:hidden">Novo</span>
+            <span className="hidden sm:inline">Criar Pedido</span>
           </Button>
-          
+        </div>
+        
+        {/* Controles de Som - Linha separada */}
+        <div className="flex items-center gap-2 flex-wrap">
           {!audioUnlocked && soundEnabled && (
             <Button
               variant="default"
               size="sm"
               onClick={unlockAudio}
-              className="gap-2 bg-orange-500 hover:bg-orange-600 animate-pulse"
+              className="gap-1 sm:gap-2 bg-orange-500 hover:bg-orange-600 animate-pulse text-xs sm:text-sm h-8 sm:h-9"
             >
-              <Bell className="h-4 w-4" />
-              <span>Ativar Som</span>
+              <Bell className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline">Ativar Som</span>
             </Button>
           )}
           
@@ -765,10 +773,11 @@ const OrdersPage = () => {
               variant="outline"
               size="sm"
               onClick={() => setShowPermissionDialog(true)}
-              className="gap-2"
+              className="gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-9"
             >
-              <Bell className="h-4 w-4" />
-              Ativar Notificações
+              <Bell className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Ativar Notificações</span>
+              <span className="sm:hidden">Notif.</span>
             </Button>
           )}
           
@@ -778,27 +787,27 @@ const OrdersPage = () => {
             variant="outline"
             size="sm"
             onClick={handleTestSound}
-            className="gap-2"
+            className="gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-9"
           >
-            <Bell className="h-4 w-4" />
-            <span className="hidden sm:inline">Testar Som</span>
+            <Bell className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Testar</span>
           </Button>
           
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg border bg-card">
+          <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border bg-card">
             {soundEnabled ? (
-              <Volume2 className="h-4 w-4 text-primary" />
+              <Volume2 className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
             ) : (
-              <VolumeX className="h-4 w-4 text-muted-foreground" />
+              <VolumeX className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             )}
-            <Label htmlFor="sound-toggle" className="text-sm cursor-pointer">
+            <Label htmlFor="sound-toggle" className="text-xs sm:text-sm cursor-pointer hidden sm:block">
               Som
             </Label>
             <Switch
               id="sound-toggle"
               checked={soundEnabled}
               onCheckedChange={handleToggleSound}
+              className="scale-90 sm:scale-100"
             />
-          </div>
           </div>
         </div>
         
@@ -878,40 +887,42 @@ const OrdersPage = () => {
         </Card>
       )}
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {/* Economia como primeiro card */}
-        <MarketplaceSavingsCard variant="inline" />
-        
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Pedidos Hoje</p>
-              <p className="text-3xl font-bold">{todayOrders.length}</p>
+      {/* Stats - Scroll horizontal em telas pequenas */}
+      <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 min-w-[320px]">
+          {/* Economia como primeiro card */}
+          <MarketplaceSavingsCard variant="inline" />
+          
+          <Card className="p-3 sm:p-4 lg:p-6">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">Pedidos Hoje</p>
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold">{todayOrders.length}</p>
+              </div>
+              <ShoppingBag className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-primary opacity-20 flex-shrink-0" />
             </div>
-            <ShoppingBag className="h-12 w-12 text-primary opacity-20" />
-          </div>
-        </Card>
+          </Card>
 
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Receita do Dia</p>
-              <p className="text-3xl font-bold">R$ {todayRevenue.toFixed(2)}</p>
+          <Card className="p-3 sm:p-4 lg:p-6">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">Receita do Dia</p>
+                <p className="text-lg sm:text-xl lg:text-3xl font-bold truncate">R$ {todayRevenue.toFixed(2)}</p>
+              </div>
+              <DollarSign className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-green-500 opacity-20 flex-shrink-0" />
             </div>
-            <DollarSign className="h-12 w-12 text-green-500 opacity-20" />
-          </div>
-        </Card>
+          </Card>
 
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Ticket Médio</p>
-              <p className="text-3xl font-bold">R$ {averageTicket.toFixed(2)}</p>
+          <Card className="p-3 sm:p-4 lg:p-6">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">Ticket Médio</p>
+                <p className="text-lg sm:text-xl lg:text-3xl font-bold truncate">R$ {averageTicket.toFixed(2)}</p>
+              </div>
+              <TrendingUp className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-blue-500 opacity-20 flex-shrink-0" />
             </div>
-            <TrendingUp className="h-12 w-12 text-blue-500 opacity-20" />
-          </div>
-        </Card>
+          </Card>
+        </div>
       </div>
 
       {/* Filters */}
@@ -956,10 +967,15 @@ const OrdersPage = () => {
         </div>
       )}
 
-      {/* Kanban Board */}
+      {/* Kanban Board - Com scroll horizontal e indicador */}
       {orders.length > 0 && (
         <DragDropContext onDragEnd={handleDragEnd}>
-          <div className="flex gap-4 overflow-x-auto pb-4 min-h-[500px]">
+          <div className="relative">
+            {/* Indicador de scroll - gradiente nas bordas */}
+            <div className="absolute left-0 top-0 bottom-4 w-4 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none sm:hidden" />
+            <div className="absolute right-0 top-0 bottom-4 w-4 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none sm:hidden" />
+            
+            <div className="flex gap-2 sm:gap-3 lg:gap-4 overflow-x-auto pb-4 min-h-[400px] sm:min-h-[500px] scroll-smooth snap-x snap-mandatory sm:snap-none -mx-3 sm:mx-0 px-3 sm:px-0">
           <KanbanColumn
             id="entrada"
             title="Entrada"
@@ -1125,6 +1141,7 @@ const OrdersPage = () => {
                 </Draggable>
               ))}
             </KanbanColumn>
+            </div>
           </div>
         </DragDropContext>
       )}

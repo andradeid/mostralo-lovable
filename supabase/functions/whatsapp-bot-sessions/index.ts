@@ -99,9 +99,11 @@ serve(async (req) => {
     }
 
     if (!effectiveBotId || !effectiveInstanceName) {
+      // Retornar lista vazia em vez de erro quando bot não está configurado
+      console.log("[whatsapp-bot-sessions] Bot não configurado - retornando lista vazia");
       return new Response(
-        JSON.stringify({ success: false, error: "Bot não configurado para esta loja" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ success: true, sessions: [], reason: "no_bot_configured" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 

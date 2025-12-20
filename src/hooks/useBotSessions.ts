@@ -38,13 +38,23 @@ export function useBotSessions(storeId: string | null) {
 
       if (response.data?.success) {
         setSessions(response.data.sessions || []);
+      } else if (response.data?.error === "Bot não configurado para esta loja") {
+        // Bot não configurado - não é um erro, apenas não há sessões
+        setSessions([]);
+        setError(null);
       } else {
         throw new Error(response.data?.error || "Erro ao buscar sessões");
       }
     } catch (err: any) {
       console.error("Erro ao buscar sessões:", err);
-      setError(err.message);
-      setSessions([]);
+      // Se for erro de bot não configurado, silenciar
+      if (err.message?.includes("Bot não configurado")) {
+        setSessions([]);
+        setError(null);
+      } else {
+        setError(err.message);
+        setSessions([]);
+      }
     } finally {
       setLoading(false);
     }

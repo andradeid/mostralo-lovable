@@ -434,27 +434,7 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
         user_agent: navigator.userAgent
       });
       
-      // Enviar notificação master de novo lead (incluindo nome do vendedor se houver)
-      try {
-        await supabase.functions.invoke('send-master-notification', {
-          body: {
-            type: 'new_lead',
-            data: {
-              name: finalData.name,
-              email: finalData.email,
-              phone: finalData.phone,
-              company_name: finalData.company_name,
-              city: finalData.city,
-              uses_ifood: finalData.uses_ifood,
-              source: 'website',
-              referral_code: referralCode,
-              salesperson_name: salespersonName
-            }
-          }
-        });
-      } catch (notifyError) {
-        console.error('Erro ao enviar notificação:', notifyError);
-      }
+      // Notificação enviada automaticamente via trigger do banco de dados
       
       // Limpar progresso salvo após envio bem-sucedido
       clearProgress();

@@ -11,7 +11,7 @@ import { OrderDetailDialog } from "@/components/admin/orders/OrderDetailDialog";
 import { OrderFilters } from "@/components/admin/orders/OrderFilters";
 import { CreateOrderDialog } from "@/components/admin/orders/CreateOrderDialog";
 import { toast } from "sonner";
-import { Inbox, ChefHat, Package, Truck, DollarSign, ShoppingBag, TrendingUp, Bell, Volume2, VolumeX, Plus, AlertCircle, CheckCircle2, Printer, Loader2 } from "lucide-react";
+import { Inbox, ChefHat, Package, Truck, DollarSign, ShoppingBag, TrendingUp, Bell, Volume2, VolumeX, Plus, AlertCircle, CheckCircle2, Printer, Loader2, Settings, ChevronDown, ChevronUp } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -64,6 +64,12 @@ const OrdersPage = () => {
   const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
   const [isPrintingBatch, setIsPrintingBatch] = useState(false);
 
+  // Estado para seção de configurações colapsável
+  const [configExpanded, setConfigExpanded] = useState<boolean>(() => {
+    const saved = localStorage.getItem('ordersConfigExpanded');
+    return saved !== 'false'; // Padrão: expandido
+  });
+
   // Hook para browser notifications
   const { 
     showPermissionDialog, 
@@ -76,6 +82,11 @@ const OrdersPage = () => {
   useEffect(() => {
     localStorage.setItem('orderSoundEnabled', String(soundEnabled));
   }, [soundEnabled]);
+
+  // Persistir estado da seção colapsável
+  useEffect(() => {
+    localStorage.setItem('ordersConfigExpanded', String(configExpanded));
+  }, [configExpanded]);
 
   // Listener para mudanças no som selecionado
   useEffect(() => {
@@ -754,64 +765,44 @@ const OrdersPage = () => {
           </Button>
         </div>
         
-        {/* Controles de Som - Linha separada */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {!audioUnlocked && soundEnabled && (
-            <Button
-              variant="default"
-              size="sm"
-              onClick={unlockAudio}
-              className="gap-1 sm:gap-2 bg-orange-500 hover:bg-orange-600 animate-pulse text-xs sm:text-sm h-8 sm:h-9"
-            >
-              <Bell className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden xs:inline">Ativar Som</span>
-            </Button>
-          )}
-          
-          {permission !== 'granted' && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowPermissionDialog(true)}
-              className="gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-9"
-            >
-              <Bell className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Ativar Notificações</span>
-              <span className="sm:hidden">Notif.</span>
-            </Button>
-          )}
-          
-          <SoundSelector />
-          
+        {/* Botão Toggle Configurações + Badges Resumo */}
+        <div className="flex items-center justify-between gap-2 flex-wrap">
           <Button
             variant="outline"
             size="sm"
-            onClick={handleTestSound}
-            className="gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-9"
+            onClick={() => setConfigExpanded(!configExpanded)}
+            className="gap-2"
           >
-            <Bell className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline">Testar</span>
+            <Settings className="h-4 w-4" />
+            <span className="hidden sm:inline">Configurações</span>
+            {configExpanded ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
           </Button>
           
-          <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border bg-card">
-            {soundEnabled ? (
-              <Volume2 className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
-            ) : (
-              <VolumeX className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-            )}
-            <Label htmlFor="sound-toggle" className="text-xs sm:text-sm cursor-pointer hidden sm:block">
-              Som
-            </Label>
-            <Switch
-              id="sound-toggle"
-              checked={soundEnabled}
-              onCheckedChange={handleToggleSound}
-              className="scale-90 sm:scale-100"
-            />
-          </div>
+          {/* Badges de resumo quando colapsado */}
+          {!configExpanded && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge variant="secondary" className="text-xs sm:text-sm">
+                📊 {todayOrders.length} pedidos • R$ {todayRevenue.toFixed(2)}
+              </Badge>
+              {soundEnabled && (
+                <Badge variant="outline" className="text-xs sm:text-sm">
+                  🔊 Som ativo
+                </Badge>
+              )}
+              {permission === 'granted' && (
+                <Badge variant="outline" className="text-xs sm:text-sm">
+                  🔔 Notificações ativas
+                </Badge>
+              )}
+            </div>
+          )}
         </div>
         
-        {/* Impressão em Lote */}
+        {/* Impressão em Lote - sempre visível */}
         {selectedOrderIds.size > 0 && (
           <div className="flex items-center justify-between p-4 bg-primary/10 border border-primary/20 rounded-lg">
             <div className="flex items-center gap-3">
@@ -860,95 +851,156 @@ const OrdersPage = () => {
         )}
       </div>
 
-      {/* Banner de Alerta de Som Bloqueado */}
-      {soundEnabled && audioBlocked && (
-        <Card className="bg-orange-500/10 border-orange-500/50">
-          <div className="p-4 flex items-center justify-between gap-4 flex-col sm:flex-row">
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              <AlertCircle className="h-6 w-6 text-orange-500 flex-shrink-0" />
-              <div>
-                <h3 className="font-semibold text-orange-700 dark:text-orange-400">
-                  ⚠️ Som de Notificação Bloqueado
-                </h3>
-                <p className="text-sm text-orange-600 dark:text-orange-300">
-                  Clique no botão ao lado para ativar o som e receber alertas de novos pedidos
-                </p>
-              </div>
-            </div>
+      {/* Seção Colapsável de Configurações */}
+      {configExpanded && (
+        <div className="space-y-4 animate-in slide-in-from-top-2 duration-200">
+          {/* Controles de Som */}
+          <div className="flex items-center gap-2 flex-wrap p-3 bg-muted/30 rounded-lg border">
+            {!audioUnlocked && soundEnabled && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={unlockAudio}
+                className="gap-1 sm:gap-2 bg-orange-500 hover:bg-orange-600 animate-pulse text-xs sm:text-sm h-8 sm:h-9"
+              >
+                <Bell className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">Ativar Som</span>
+              </Button>
+            )}
+            
+            {permission !== 'granted' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPermissionDialog(true)}
+                className="gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-9"
+              >
+                <Bell className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Ativar Notificações</span>
+                <span className="sm:hidden">Notif.</span>
+              </Button>
+            )}
+            
+            <SoundSelector />
+            
             <Button
-              onClick={unlockAudio}
-              size="lg"
-              className="bg-orange-500 hover:bg-orange-600 text-white flex-shrink-0 w-full sm:w-auto"
+              variant="outline"
+              size="sm"
+              onClick={handleTestSound}
+              className="gap-1 sm:gap-2 text-xs sm:text-sm h-8 sm:h-9"
             >
-              <Volume2 className="h-5 w-5 mr-2" />
-              Ativar Som
+              <Bell className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Testar</span>
             </Button>
+            
+            <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border bg-card">
+              {soundEnabled ? (
+                <Volume2 className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
+              ) : (
+                <VolumeX className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+              )}
+              <Label htmlFor="sound-toggle" className="text-xs sm:text-sm cursor-pointer hidden sm:block">
+                Som
+              </Label>
+              <Switch
+                id="sound-toggle"
+                checked={soundEnabled}
+                onCheckedChange={handleToggleSound}
+                className="scale-90 sm:scale-100"
+              />
+            </div>
           </div>
-        </Card>
-      )}
 
-      {/* Stats - Scroll horizontal em telas pequenas */}
-      <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 min-w-[320px]">
-          {/* Economia como primeiro card */}
-          <MarketplaceSavingsCard variant="inline" />
-          
-          <Card className="p-3 sm:p-4 lg:p-6">
-            <div className="flex items-center justify-between gap-2">
-              <div className="min-w-0">
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">Pedidos Hoje</p>
-                <p className="text-xl sm:text-2xl lg:text-3xl font-bold">{todayOrders.length}</p>
+          {/* Banner de Alerta de Som Bloqueado */}
+          {soundEnabled && audioBlocked && (
+            <Card className="bg-orange-500/10 border-orange-500/50">
+              <div className="p-4 flex items-center justify-between gap-4 flex-col sm:flex-row">
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <AlertCircle className="h-6 w-6 text-orange-500 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-semibold text-orange-700 dark:text-orange-400">
+                      ⚠️ Som de Notificação Bloqueado
+                    </h3>
+                    <p className="text-sm text-orange-600 dark:text-orange-300">
+                      Clique no botão ao lado para ativar o som e receber alertas de novos pedidos
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  onClick={unlockAudio}
+                  size="lg"
+                  className="bg-orange-500 hover:bg-orange-600 text-white flex-shrink-0 w-full sm:w-auto"
+                >
+                  <Volume2 className="h-5 w-5 mr-2" />
+                  Ativar Som
+                </Button>
               </div>
-              <ShoppingBag className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-primary opacity-20 flex-shrink-0" />
-            </div>
-          </Card>
+            </Card>
+          )}
 
-          <Card className="p-3 sm:p-4 lg:p-6">
-            <div className="flex items-center justify-between gap-2">
-              <div className="min-w-0">
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">Receita do Dia</p>
-                <p className="text-lg sm:text-xl lg:text-3xl font-bold truncate">R$ {todayRevenue.toFixed(2)}</p>
-              </div>
-              <DollarSign className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-green-500 opacity-20 flex-shrink-0" />
-            </div>
-          </Card>
+          {/* Stats Cards */}
+          <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 min-w-[320px]">
+              <MarketplaceSavingsCard variant="inline" />
+              
+              <Card className="p-3 sm:p-4 lg:p-6">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">Pedidos Hoje</p>
+                    <p className="text-xl sm:text-2xl lg:text-3xl font-bold">{todayOrders.length}</p>
+                  </div>
+                  <ShoppingBag className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-primary opacity-20 flex-shrink-0" />
+                </div>
+              </Card>
 
-          <Card className="p-3 sm:p-4 lg:p-6">
-            <div className="flex items-center justify-between gap-2">
-              <div className="min-w-0">
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">Ticket Médio</p>
-                <p className="text-lg sm:text-xl lg:text-3xl font-bold truncate">R$ {averageTicket.toFixed(2)}</p>
-              </div>
-              <TrendingUp className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-blue-500 opacity-20 flex-shrink-0" />
+              <Card className="p-3 sm:p-4 lg:p-6">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">Receita do Dia</p>
+                    <p className="text-lg sm:text-xl lg:text-3xl font-bold truncate">R$ {todayRevenue.toFixed(2)}</p>
+                  </div>
+                  <DollarSign className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-green-500 opacity-20 flex-shrink-0" />
+                </div>
+              </Card>
+
+              <Card className="p-3 sm:p-4 lg:p-6">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">Ticket Médio</p>
+                    <p className="text-lg sm:text-xl lg:text-3xl font-bold truncate">R$ {averageTicket.toFixed(2)}</p>
+                  </div>
+                  <TrendingUp className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-blue-500 opacity-20 flex-shrink-0" />
+                </div>
+              </Card>
             </div>
-          </Card>
+          </div>
+
+          {/* Filters */}
+          <OrderFilters
+            searchTerm={searchTerm}
+            onSearchChange={(value) => {
+              setSearchTerm(value);
+              setFinishedOrdersVisible(5);
+            }}
+            paymentStatusFilter={paymentStatusFilter}
+            onPaymentStatusChange={(value) => {
+              setPaymentStatusFilter(value);
+              setFinishedOrdersVisible(5);
+            }}
+            deliveryTypeFilter={deliveryTypeFilter}
+            onDeliveryTypeChange={(value) => {
+              setDeliveryTypeFilter(value);
+              setFinishedOrdersVisible(5);
+            }}
+            onClearFilters={() => {
+              setSearchTerm("");
+              setPaymentStatusFilter('all');
+              setDeliveryTypeFilter('all');
+              setFinishedOrdersVisible(5);
+            }}
+          />
         </div>
-      </div>
-
-      {/* Filters */}
-      <OrderFilters
-        searchTerm={searchTerm}
-        onSearchChange={(value) => {
-          setSearchTerm(value);
-          setFinishedOrdersVisible(5); // Reset ao filtrar
-        }}
-        paymentStatusFilter={paymentStatusFilter}
-        onPaymentStatusChange={(value) => {
-          setPaymentStatusFilter(value);
-          setFinishedOrdersVisible(5); // Reset ao filtrar
-        }}
-        deliveryTypeFilter={deliveryTypeFilter}
-        onDeliveryTypeChange={(value) => {
-          setDeliveryTypeFilter(value);
-          setFinishedOrdersVisible(5); // Reset ao filtrar
-        }}
-        onClearFilters={() => {
-          setSearchTerm("");
-          setPaymentStatusFilter('all');
-          setDeliveryTypeFilter('all');
-          setFinishedOrdersVisible(5); // Reset ao limpar filtros
-        }}
-      />
+      )}
 
       {/* Mensagem quando não há pedidos */}
       {orders.length === 0 && !isLoading && (

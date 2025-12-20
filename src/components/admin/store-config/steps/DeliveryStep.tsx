@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Clock, MessageCircle, QrCode, Package, Timer, Map, Bell, Phone, AlertTriangle, CheckCircle2, XCircle, Loader2, Send, Plus } from "lucide-react";
+import { MapPin, Clock, MessageCircle, QrCode, Package, Timer, Map, Bell, Phone, AlertTriangle, CheckCircle2, XCircle, Loader2, Send, Plus, X } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DeliveryZonesPicker, DeliveryZone } from "../DeliveryZonesPicker";
 import { MapLocationPicker } from "../MapLocationPicker";
@@ -767,7 +767,7 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId }: Deli
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="md:col-span-6">
+                <div className="md:col-span-5">
                   <Label htmlFor="notification_phone">Número</Label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -784,6 +784,27 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId }: Deli
                       maxLength={11}
                     />
                   </div>
+                </div>
+                <div className="md:col-span-1 flex items-end">
+                  {formData.notification_phone && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        updateFormData({ 
+                          notification_phone: '', 
+                          notification_country_code: '+55' 
+                        });
+                        setPhone1Valid(null);
+                        toast.info('Número removido');
+                      }}
+                      className="text-muted-foreground hover:text-destructive"
+                      title="Limpar número"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
                 <div className="md:col-span-4 flex items-end">
                   <Button
@@ -850,7 +871,7 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId }: Deli
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="md:col-span-6">
+                <div className="md:col-span-5">
                   <Label htmlFor="notification_phone_2">Número</Label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -867,6 +888,27 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId }: Deli
                       maxLength={11}
                     />
                   </div>
+                </div>
+                <div className="md:col-span-1 flex items-end">
+                  {formData.notification_phone_2 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        updateFormData({ 
+                          notification_phone_2: '', 
+                          notification_country_code_2: '+55' 
+                        });
+                        setPhone2Valid(null);
+                        toast.info('Número removido');
+                      }}
+                      className="text-muted-foreground hover:text-destructive"
+                      title="Limpar número"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
                 <div className="md:col-span-4 flex items-end">
                   <Button

@@ -6,6 +6,7 @@ import { useNotificationPermission } from '@/hooks/useNotificationPermission';
 import { NotificationPermissionDialog } from '@/components/delivery/NotificationPermissionDialog';
 import { Database } from "@/integrations/supabase/types";
 import { KanbanColumn } from "@/components/admin/orders/KanbanColumn";
+import { KanbanCombinedColumn } from "@/components/admin/orders/KanbanCombinedColumn";
 import { OrderCard } from "@/components/admin/orders/OrderCard";
 import { OrderDetailDialog } from "@/components/admin/orders/OrderDetailDialog";
 import { OrderFilters } from "@/components/admin/orders/OrderFilters";
@@ -1200,75 +1201,76 @@ const OrdersPage = () => {
             ))}
           </KanbanColumn>
 
-            <KanbanColumn
-              id="em_transito"
-              title="Em Trânsito"
-              icon={Truck}
-              count={getOrdersByStatus('em_transito').length}
-              color="bg-green-500"
-            >
-              {getOrdersByStatus('em_transito').map((order, index) => (
-                <Draggable key={order.id} draggableId={order.id} index={index}>
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                    >
-                      <OrderCard
-                        order={order}
-                        onClick={() => {
-                          setSelectedOrder(order);
-                          setDetailDialogOpen(true);
-                          setViewedOrderIds(prev => new Set(prev).add(order.id));
-                        }}
-                        isDragging={snapshot.isDragging}
-                        isViewed={viewedOrderIds.has(order.id)}
-                      />
-                    </div>
-                  )}
-                </Draggable>
-              ))}
-            </KanbanColumn>
-
-            <KanbanColumn
-              id="concluido"
-              title="Finalizados"
-              icon={CheckCircle2}
-              count={getOrdersByStatus('concluido').length}
-              color="bg-emerald-500"
-              collapsible={true}
-              defaultCollapsed={false}
-              onLoadMore={loadMoreFinishedOrders}
-              hasMore={getOrdersByStatus('concluido').length > finishedOrdersVisible}
-              isLoadingMore={isLoadingMoreFinished}
-            >
-              {getOrdersByStatus('concluido', finishedOrdersVisible).map((order, index) => (
-                <Draggable key={order.id} draggableId={order.id} index={index}>
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                    >
-                      <OrderCard
-                        order={order}
-                        onClick={() => {
-                          setSelectedOrder(order);
-                          setDetailDialogOpen(true);
-                          setViewedOrderIds(prev => new Set(prev).add(order.id));
-                        }}
-                        isDragging={snapshot.isDragging}
-                        isViewed={viewedOrderIds.has(order.id)}
-                        isSelected={selectedOrderIds.has(order.id)}
-                        onSelectChange={(selected) => toggleOrderSelection(order.id)}
-                        onPrint={() => toast.success('Impressão iniciada!')}
-                      />
-                    </div>
-                  )}
-                </Draggable>
-              ))}
-            </KanbanColumn>
+            <KanbanCombinedColumn
+              sections={[
+                {
+                  id: "em_transito",
+                  title: "Em Trânsito",
+                  icon: Truck,
+                  count: getOrdersByStatus('em_transito').length,
+                  color: "bg-green-500",
+                  children: getOrdersByStatus('em_transito').map((order, index) => (
+                    <Draggable key={order.id} draggableId={order.id} index={index}>
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                        >
+                          <OrderCard
+                            order={order}
+                            onClick={() => {
+                              setSelectedOrder(order);
+                              setDetailDialogOpen(true);
+                              setViewedOrderIds(prev => new Set(prev).add(order.id));
+                            }}
+                            isDragging={snapshot.isDragging}
+                            isViewed={viewedOrderIds.has(order.id)}
+                          />
+                        </div>
+                      )}
+                    </Draggable>
+                  ))
+                },
+                {
+                  id: "concluido",
+                  title: "Finalizados",
+                  icon: CheckCircle2,
+                  count: getOrdersByStatus('concluido').length,
+                  color: "bg-emerald-500",
+                  collapsible: true,
+                  defaultCollapsed: false,
+                  onLoadMore: loadMoreFinishedOrders,
+                  hasMore: getOrdersByStatus('concluido').length > finishedOrdersVisible,
+                  isLoadingMore: isLoadingMoreFinished,
+                  children: getOrdersByStatus('concluido', finishedOrdersVisible).map((order, index) => (
+                    <Draggable key={order.id} draggableId={order.id} index={index}>
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                        >
+                          <OrderCard
+                            order={order}
+                            onClick={() => {
+                              setSelectedOrder(order);
+                              setDetailDialogOpen(true);
+                              setViewedOrderIds(prev => new Set(prev).add(order.id));
+                            }}
+                            isDragging={snapshot.isDragging}
+                            isViewed={viewedOrderIds.has(order.id)}
+                            isSelected={selectedOrderIds.has(order.id)}
+                            onSelectChange={(selected) => toggleOrderSelection(order.id)}
+                            onPrint={() => toast.success('Impressão iniciada!')}
+                          />
+                        </div>
+                      )}
+                    </Draggable>
+                  ))
+                }
+              ]}
+            />
             </div>
           </div>
         </DragDropContext>

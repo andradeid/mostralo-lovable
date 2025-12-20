@@ -72,9 +72,7 @@ const OrdersPage = () => {
   });
 
   // Estado para modo tela cheia do Kanban
-  const [isFullscreen, setIsFullscreen] = useState<boolean>(() => {
-    return localStorage.getItem('kanbanFullscreen') === 'true';
-  });
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(true);
 
   // Hook do sidebar para controlar colapso
   const { setOpen: setSidebarOpen } = useSidebar();

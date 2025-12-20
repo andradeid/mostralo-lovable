@@ -442,9 +442,6 @@ const DashboardHome = () => {
 
     return (
       <div className="space-y-6">
-        {/* Banner do Sistema */}
-        <SystemBanner position="dashboard" />
-        
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
           <p className="text-muted-foreground">
@@ -463,6 +460,9 @@ const DashboardHome = () => {
             )}
           </div>
         </div>
+
+        {/* Banner do Sistema */}
+        <SystemBanner position="dashboard" />
 
         {/* Alerta de Assinatura */}
         {subscriptionAlert.type && (

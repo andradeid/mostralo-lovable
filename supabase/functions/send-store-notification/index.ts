@@ -277,7 +277,8 @@ serve(async (req) => {
 📱 *Tel:* ${customer_phone || 'N/A'}
 💰 *Total:* ${formatCurrency(total)}
 ${deliveryTypeText}
-${delivery_type === 'delivery' ? `📍 *Endereço:* ${addressToShow}` : ''}
+${delivery_type === 'delivery' ? `📍 *Endereço:* ${addressToShow}` : ''}${delivery_type === 'delivery' && googleMapsLink ? `
+🗺️ *Navegação:* ${googleMapsLink}` : ''}
 💳 *Pagamento:* ${paymentMethodText}
 ${notes ? `📝 *Obs:* ${notes}` : ''}
 

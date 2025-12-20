@@ -19,7 +19,7 @@ import {
 
 export default function SuplementosLandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  
   const [isVideo2Playing, setIsVideo2Playing] = useState(false);
   const [isVideo3Playing, setIsVideo3Playing] = useState(false);
   const video2Ref = useRef<HTMLVideoElement>(null);
@@ -164,39 +164,19 @@ export default function SuplementosLandingPage() {
             {/* Coluna 2: Vídeo YouTube */}
             <div className="flex justify-center lg:justify-end order-first lg:order-last">
               <div className="relative max-w-md lg:max-w-lg w-full">
-                {!isVideoPlaying ? (
-                  <div className="relative">
-                    <img 
-                      src="https://img.youtube.com/vi/qAVS6FeQrBU/maxresdefault.jpg"
-                      alt="Vídeo demonstração Mostralo para Suplementos"
-                      className="w-full rounded-3xl shadow-2xl border-4 border-green-500/30 aspect-video object-cover"
-                    />
-                    <button
-                      onClick={() => setIsVideoPlaying(true)}
-                      className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-3xl cursor-pointer hover:bg-black/50 transition-colors"
-                    >
-                      <div className="flex flex-col items-center gap-3 text-white">
-                        <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center shadow-xl hover:bg-green-600 transition-colors">
-                          <Play className="w-10 h-10 text-white fill-white ml-1" />
-                        </div>
-                        <span className="text-sm font-medium flex items-center gap-2 bg-black/50 px-4 py-2 rounded-full">
-                          <VolumeX className="w-4 h-4" />
-                          Clique para reproduzir com som
-                        </span>
-                      </div>
-                    </button>
-                  </div>
-                ) : (
-                  <div className="relative aspect-video rounded-3xl overflow-hidden shadow-2xl border-4 border-green-500/30">
-                    <iframe
-                      src="https://www.youtube.com/embed/qAVS6FeQrBU?autoplay=1&rel=0"
-                      title="Demonstração Mostralo para Suplementos"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      className="absolute inset-0 w-full h-full"
-                    />
-                  </div>
-                )}
+                <div className="relative aspect-video rounded-3xl overflow-hidden shadow-2xl border-4 border-green-500/30">
+                  <iframe 
+                    width="100%" 
+                    height="100%" 
+                    src="https://www.youtube.com/embed/qAVS6FeQrBU?si=TSEEj6CTXkYM6cYE&controls=0" 
+                    title="YouTube video player" 
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    referrerPolicy="strict-origin-when-cross-origin" 
+                    allowFullScreen
+                    className="absolute inset-0 w-full h-full"
+                  />
+                </div>
                 
                 {/* Efeito de brilho atrás */}
                 <div className="absolute -inset-4 bg-gradient-to-r from-green-500/20 to-orange-500/20 blur-xl rounded-3xl -z-10" />

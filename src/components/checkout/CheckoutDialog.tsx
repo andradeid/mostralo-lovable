@@ -603,6 +603,7 @@ export const CheckoutDialog = ({
           payment_details: paymentDetails,
           payment_status: 'pending',
           status: 'entrada',
+          source: 'cardapio_digital',
           subtotal,
           delivery_fee: deliveryType === 'delivery' ? finalDeliveryFee : 0,
           total: subtotal + finalDeliveryFee - finalPromotionDiscount,

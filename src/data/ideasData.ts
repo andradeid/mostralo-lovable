@@ -2044,5 +2044,168 @@ Situação atual:
       '□ [FASE 5] Remover AdminLayout das rotas de atendente (após validação)',
       '□ [FASE 5] Documentar arquitetura de chunks'
     ]
+  },
+  {
+    id: 19,
+    title: '📍 Rastreamento em Tempo Real do Entregador',
+    status: 'idea',
+    priority: 'high',
+    createdAt: '2025-12-20',
+    description: 'Implementar rastreamento GPS em tempo real do entregador usando Mapbox, permitindo que clientes vejam a localização exata do entregador no mapa durante a entrega.',
+    
+    context: `O sistema já possui integração com Mapbox funcional:
+• Edge Function get-mapbox-token para token público
+• Mapbox GL JS instalado e configurado
+• Usado atualmente para geolocalização de clientes e áreas de entrega
+• Supabase Realtime já implementado para presença de entregadores (useDriverPresence)
+
+Infraestrutura existente que pode ser aproveitada:
+• Tabela orders com assigned_driver_id
+• Sistema de status de pedidos (saiu_para_entrega)
+• Hook useDriverPresence com channel global
+• Componente OrderTracking.tsx para clientes`,
+
+    problem: `Clientes não sabem onde o entregador está após o pedido sair para entrega:
+• Não há visibilidade do progresso da entrega
+• Aumenta ansiedade e ligações perguntando "cadê meu pedido?"
+• Concorrentes (iFood, Rappi) oferecem rastreamento em tempo real
+• Entregadores não têm como informar localização sem ligar
+
+Benefícios do rastreamento:
+• Reduz ligações de "onde está meu pedido" em até 70%
+• Aumenta confiança e satisfação do cliente
+• Diferencial competitivo vs delivery manual
+• Lojista pode acompanhar todos os entregadores ativos`,
+
+    technicalDetails: {
+      title: '🔧 Arquitetura Técnica',
+      items: [
+        'Tabela driver_locations: id, driver_id, latitude, longitude, heading, accuracy, speed, updated_at',
+        'REPLICA IDENTITY FULL para Realtime na tabela driver_locations',
+        'RLS: Entregador atualiza própria localização, cliente lê localização do entregador do SEU pedido',
+        'Hook useDriverLocationTracking: navigator.geolocation.watchPosition() no app do entregador',
+        'Hook useDriverLiveLocation: Supabase Realtime subscription filtrado por driver_id do pedido',
+        'Componente DriverLiveMap: Mapa Mapbox com marcador do entregador atualizado em tempo real',
+        'Frequência de updates: a cada 10 segundos (balanceio bateria vs precisão)',
+        'Ativar tracking apenas quando status = saiu_para_entrega'
+      ]
+    },
+
+    phases: [
+      {
+        name: 'Fase 1 - Infraestrutura de Banco de Dados',
+        description: 'Criar tabela e políticas para armazenar localização dos entregadores',
+        items: [
+          'Criar tabela driver_locations com campos de geolocalização',
+          'Habilitar Realtime na tabela (REPLICA IDENTITY FULL)',
+          'Criar política RLS para entregador atualizar própria localização',
+          'Criar política RLS para cliente ler localização do entregador do seu pedido',
+          'Criar política RLS para lojista ver entregadores da sua loja',
+          'Criar índice em driver_id para queries rápidas'
+        ]
+      },
+      {
+        name: 'Fase 2 - Tracking no App do Entregador',
+        description: 'Implementar captura e envio de localização GPS do entregador',
+        items: [
+          'Criar hook useDriverLocationTracking.ts',
+          'Usar navigator.geolocation.watchPosition() para tracking contínuo',
+          'Enviar updates para Supabase a cada 10 segundos',
+          'Ativar apenas quando entregador tem pedido em saiu_para_entrega',
+          'Criar componente LocationPermissionBanner para solicitar permissão',
+          'Adicionar indicador de GPS ativo no header do painel',
+          'Implementar fallback para última localização conhecida'
+        ]
+      },
+      {
+        name: 'Fase 3 - Mapa ao Vivo para o Cliente',
+        description: 'Exibir posição do entregador em tempo real na página de tracking',
+        items: [
+          'Criar hook useDriverLiveLocation.ts com subscription Realtime',
+          'Criar componente DriverLiveMap.tsx com Mapbox GL JS',
+          'Marcador fixo: destino (endereço do cliente)',
+          'Marcador móvel: entregador (atualizado em tempo real)',
+          'Integrar mapa na página OrderTracking.tsx',
+          'Exibir mapa apenas quando status = saiu_para_entrega',
+          'Mostrar distância aproximada até a entrega'
+        ]
+      },
+      {
+        name: 'Fase 4 - Visualização para Lojista (Opcional)',
+        description: 'Mapa com todos os entregadores ativos da loja',
+        items: [
+          'Criar componente DriversMapOverview.tsx',
+          'Mostrar posição de todos os entregadores ativos',
+          'Indicar qual pedido cada entregador está transportando',
+          'Útil para gestão de entregas e redistribuição'
+        ]
+      }
+    ],
+
+    riskAnalysis: {
+      title: '⚠️ Análise de Riscos',
+      sections: [
+        {
+          level: 'low',
+          title: '🟢 Risco BAIXO',
+          items: [
+            'Tabela driver_locations: Nova tabela, sem impacto em código existente',
+            'Componente DriverLiveMap: Novo, usado apenas em OrderTracking',
+            'Mapbox já configurado: Apenas adiciona marcadores no mapa existente'
+          ]
+        },
+        {
+          level: 'medium',
+          title: '🟡 Risco MÉDIO',
+          items: [
+            'Consumo de bateria do entregador: watchPosition pode drenar bateria rapidamente',
+            'Permissão de localização: Usuário pode negar, precisa de fallback',
+            'Privacidade: Entregador pode não querer ser rastreado, considerar toggle',
+            'Performance Realtime: Muitos entregadores = muitos updates, monitorar'
+          ]
+        }
+      ]
+    },
+
+    recommendation: `**Recomendação: Implementação em 3 Fases Incrementais**
+
+🎯 ESTRATÉGIA:
+
+**Etapa 1 - MVP Simples (1 semana)**
+• Tabela driver_locations + políticas RLS
+• Hook básico de tracking no entregador
+• Mapa simples no OrderTracking apenas com marcador do entregador
+• Sem rota traçada, sem distância (adicionar depois)
+
+**Etapa 2 - Refinamentos (1 semana)**
+• Indicador de GPS ativo no painel do entregador
+• Banner de permissão de localização
+• Distância aproximada até a entrega
+• Toggle para entregador pausar tracking
+
+**Etapa 3 - Features Avançadas (opcional)**
+• Rota traçada entre entregador e destino
+• Mapa de todos entregadores para lojista
+• Histórico de rotas para análise
+
+📋 CONSIDERAÇÕES:
+• Frequência de 10s é suficiente (não precisa de updates a cada segundo)
+• Parar tracking automaticamente ao entregar ou fechar app
+• Considerar economia de bateria com precisão média
+• Fallback se GPS falhar: manter última posição conhecida`,
+
+    nextSteps: [
+      '□ [FASE 1] Criar migração SQL para tabela driver_locations',
+      '□ [FASE 1] Habilitar Realtime na tabela',
+      '□ [FASE 1] Criar políticas RLS apropriadas',
+      '□ [FASE 2] Criar hook useDriverLocationTracking.ts',
+      '□ [FASE 2] Integrar tracking no DeliveryDriverPanel',
+      '□ [FASE 2] Criar componente LocationPermissionBanner.tsx',
+      '□ [FASE 3] Criar hook useDriverLiveLocation.ts',
+      '□ [FASE 3] Criar componente DriverLiveMap.tsx',
+      '□ [FASE 3] Integrar mapa na página OrderTracking.tsx',
+      '□ [FASE 3] Testar fluxo completo com entregador real',
+      '□ [FASE 4] Criar mapa de entregadores para lojista (opcional)'
+    ]
   }
 ];

@@ -150,7 +150,13 @@ export default function OrderTracking() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                if (order?.stores?.slug) {
+                  navigate(`/loja/${order.stores.slug}`);
+                } else {
+                  navigate(-1);
+                }
+              }}
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>

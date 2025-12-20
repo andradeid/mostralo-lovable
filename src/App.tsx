@@ -146,6 +146,7 @@ import StoreOnlinePaymentPage from "./pages/admin/StoreOnlinePaymentPage";
 import IdeasPage from "./pages/admin/IdeasPage";
 import SystemUpdatesPage from "./pages/SystemUpdatesPage";
 import SystemUpdatesManagementPage from "./pages/admin/SystemUpdatesManagementPage";
+import SystemBannersPage from "./pages/admin/SystemBannersPage";
 import DiagnosticsPage from "./pages/admin/DiagnosticsPage";
 import CloudflareGuidePage from "./pages/admin/CloudflareGuidePage";
 import IFoodHomologationPage from "./pages/admin/IFoodHomologationPage";
@@ -882,6 +883,13 @@ const App = () => (
               <ProtectedRoute allowedRoles={['master_admin']}>
                 <AdminLayout pageTitle="Gerenciar Novidades">
                   <SystemUpdatesManagementPage />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/system-banners" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Banners do Sistema">
+                  <SystemBannersPage />
                 </AdminLayout>
               </ProtectedRoute>
             } />

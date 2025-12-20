@@ -377,6 +377,7 @@ export function AdminSidebar() {
         { title: 'Cupons', url: '/dashboard/coupons', icon: Ticket, group: 'Sistema' },
         { title: 'Aceites de Contratos', url: '/dashboard/contract-acceptances', icon: FileText, group: 'Sistema' },
         { title: 'Gerenciar Novidades', url: '/dashboard/system-updates', icon: Megaphone, group: 'Sistema' },
+        { title: 'Banners do Sistema', url: '/dashboard/system-banners', icon: Image, group: 'Sistema' },
         { title: 'Diagnósticos', url: '/dashboard/diagnostics', icon: Activity, group: 'Sistema' },
         { title: 'Guia Cloudflare', url: '/dashboard/cloudflare-guide', icon: Cloud, group: 'Sistema' },
         { title: 'Homologação iFood', url: '/dashboard/ifood-homologation', icon: ClipboardCheck, group: 'Sistema' },

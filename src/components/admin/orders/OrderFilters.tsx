@@ -27,44 +27,49 @@ export const OrderFilters = ({
   onClearFilters
 }: OrderFiltersProps) => {
   return (
-    <div className="flex flex-col md:flex-row gap-4 p-4 bg-background rounded-lg border">
-      <div className="flex-1 relative">
+    <div className="flex flex-col gap-3 p-3 sm:p-4 bg-background rounded-lg border">
+      {/* Search - Full width sempre */}
+      <div className="relative w-full">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Buscar por número ou nome do cliente..."
+          placeholder="Buscar pedido..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10"
+          className="pl-10 text-sm"
         />
       </div>
+      
+      {/* Filters Row */}
+      <div className="flex flex-wrap gap-2 sm:gap-3">
 
-      <Select value={paymentStatusFilter} onValueChange={onPaymentStatusChange}>
-        <SelectTrigger className="w-full md:w-[200px]">
-          <SelectValue placeholder="Status do pagamento" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Todos os pagamentos</SelectItem>
-          <SelectItem value="pending">Pendente</SelectItem>
-          <SelectItem value="paid">Pago</SelectItem>
-          <SelectItem value="cancelled">Cancelado</SelectItem>
-        </SelectContent>
-      </Select>
+        <Select value={paymentStatusFilter} onValueChange={onPaymentStatusChange}>
+          <SelectTrigger className="w-[130px] sm:w-[160px] text-xs sm:text-sm">
+            <SelectValue placeholder="Pagamento" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="pending">Pendente</SelectItem>
+            <SelectItem value="paid">Pago</SelectItem>
+            <SelectItem value="cancelled">Cancelado</SelectItem>
+          </SelectContent>
+        </Select>
 
-      <Select value={deliveryTypeFilter} onValueChange={onDeliveryTypeChange}>
-        <SelectTrigger className="w-full md:w-[200px]">
-          <SelectValue placeholder="Tipo de entrega" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Todos os tipos</SelectItem>
-          <SelectItem value="delivery">Delivery</SelectItem>
-          <SelectItem value="pickup">Retirada</SelectItem>
-        </SelectContent>
-      </Select>
+        <Select value={deliveryTypeFilter} onValueChange={onDeliveryTypeChange}>
+          <SelectTrigger className="w-[110px] sm:w-[140px] text-xs sm:text-sm">
+            <SelectValue placeholder="Entrega" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="delivery">Delivery</SelectItem>
+            <SelectItem value="pickup">Retirada</SelectItem>
+          </SelectContent>
+        </Select>
 
-      <Button variant="outline" onClick={onClearFilters}>
-        <X className="h-4 w-4 mr-2" />
-        Limpar
-      </Button>
+        <Button variant="outline" size="sm" onClick={onClearFilters} className="h-9 sm:h-10">
+          <X className="h-4 w-4 sm:mr-2" />
+          <span className="hidden sm:inline">Limpar</span>
+        </Button>
+      </div>
     </div>
   );
 };

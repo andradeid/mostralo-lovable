@@ -37,7 +37,7 @@ export function SystemBanner({ position }: SystemBannerProps) {
         const { data, error } = await supabase
           .from('system_banners')
           .select('id, title, html_content, position, display_order')
-          .eq('position', position)
+          .or(`position.eq.${position},position.eq.all_pages`)
           .eq('is_active', true)
           .or(`start_date.is.null,start_date.lte.${now}`)
           .or(`end_date.is.null,end_date.gte.${now}`)

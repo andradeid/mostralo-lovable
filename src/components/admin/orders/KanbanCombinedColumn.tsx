@@ -141,28 +141,11 @@ const KanbanSection = ({
 };
 
 export const KanbanCombinedColumn = ({ sections }: KanbanCombinedColumnProps) => {
-  const totalCount = sections.reduce((sum, section) => sum + section.count, 0);
-
   return (
-    <div className="flex-1 min-w-[220px] sm:min-w-[260px] lg:min-w-[280px] flex flex-col bg-muted/30 rounded-lg h-full">
-      {/* Main Header */}
-      <div className="p-4 bg-gradient-to-r from-green-500 to-emerald-500 text-primary-foreground rounded-t-lg">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold">Entrega/Concluído</span>
-          </div>
-          <div className="bg-background/20 px-3 py-1 rounded-full">
-            <span className="font-bold">{totalCount}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Sections Container with Scroll */}
-      <div className="flex-1 overflow-y-auto p-4">
-        {sections.map((section) => (
-          <KanbanSection key={section.id} {...section} />
-        ))}
-      </div>
+    <div className="flex-1 min-w-[220px] sm:min-w-[260px] lg:min-w-[280px] flex flex-col h-full gap-4">
+      {sections.map((section) => (
+        <KanbanSection key={section.id} {...section} />
+      ))}
     </div>
   );
 };

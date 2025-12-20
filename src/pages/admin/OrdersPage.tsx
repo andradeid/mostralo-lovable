@@ -1103,7 +1103,7 @@ const OrdersPage = () => {
             <div className="absolute left-0 top-0 bottom-4 w-4 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none sm:hidden" />
             <div className="absolute right-0 top-0 bottom-4 w-4 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none sm:hidden" />
             
-            <div className="flex gap-2 sm:gap-3 lg:gap-4 overflow-x-auto pb-4 h-[calc(100vh-120px)] scroll-smooth snap-x snap-mandatory sm:snap-none -mx-3 sm:mx-0 px-3 sm:px-0">
+            <div className="flex gap-2 sm:gap-3 lg:gap-4 overflow-x-auto pb-4 h-[calc(100vh-200px)] scroll-smooth snap-x snap-mandatory sm:snap-none -mx-3 sm:mx-0 px-3 sm:px-0">
           <KanbanColumn
             id="entrada"
             title="Entrada"

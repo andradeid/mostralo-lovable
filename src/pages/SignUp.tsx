@@ -854,7 +854,30 @@ const SignUp = () => {
         console.error('Erro ao chamar Edge Function de contrato:', contractError);
       }
 
-      // 9. Redirecionar para página de comprovante
+      // 9. Enviar notificação master de nova loja (auto-cadastro)
+      try {
+        await supabase.functions.invoke('send-master-notification', {
+          body: {
+            type: 'new_store',
+            data: {
+              name: formData.companyName,
+              slug: storeData.slug,
+              city: formData.city,
+              state: formData.state,
+              owner_name: formData.fullName,
+              owner_email: formData.email,
+              owner_phone: formData.phone,
+              plan_name: selectedPlan?.name,
+              source: 'self_registration',
+            },
+          },
+        });
+        console.log('✅ Notificação master enviada para nova loja (auto-cadastro)');
+      } catch (notifyError) {
+        console.error('Erro ao enviar notificação master:', notifyError);
+      }
+
+      // 10. Redirecionar para página de comprovante
       // 🧹 Limpar código de referência após cadastro bem-sucedido
       localStorage.removeItem('mostralo_referral_code');
       localStorage.removeItem('mostralo_referral_timestamp');

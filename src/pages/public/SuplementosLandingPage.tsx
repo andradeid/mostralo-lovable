@@ -94,45 +94,66 @@ export default function SuplementosLandingPage() {
         ref={heroRef.ref}
         className={`pt-24 pb-16 md:pt-32 md:pb-24 bg-gradient-to-br from-green-500/10 via-background to-orange-500/10 dark:from-green-500/5 dark:to-orange-500/5 transition-all duration-700 ${heroRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
       >
-        <div className="container mx-auto px-4 text-center max-w-4xl">
-          <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/20 rounded-full px-4 py-2 mb-6">
-            <Dumbbell className="h-4 w-4 text-green-500" />
-            <span className="text-sm font-medium text-green-600 dark:text-green-400">Para Lojas de Suplementos</span>
-          </div>
-          
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
-            Transforme seu WhatsApp em uma{' '}
-            <span className="text-green-600 dark:text-green-400">Máquina de Vendas Recorrentes</span>{' '}
-            com Taxa 0%
-          </h1>
-          
-          <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Pare de perder <span className="text-red-500 font-semibold">25% do seu lucro</span> para os marketplaces. 
-            Recupere sua margem, blinde seus clientes contra a internet e automatize a reposição de Whey e Creatina.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
-              <Button size="lg" className="w-full sm:w-auto gap-2 bg-green-600 hover:bg-green-700 text-lg px-8 py-6">
-                <MessageCircle className="h-5 w-5" />
-                QUERO UMA SIMULAÇÃO DE ECONOMIA
-              </Button>
-            </a>
-          </div>
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            {/* Coluna 1: Texto */}
+            <div className="text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/20 rounded-full px-4 py-2 mb-6">
+                <Dumbbell className="h-4 w-4 text-green-500" />
+                <span className="text-sm font-medium text-green-600 dark:text-green-400">Para Lojas de Suplementos</span>
+              </div>
+              
+              <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
+                Transforme seu WhatsApp em uma{' '}
+                <span className="text-green-600 dark:text-green-400">Máquina de Vendas Recorrentes</span>{' '}
+                com Taxa 0%
+              </h1>
+              
+              <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto lg:mx-0">
+                Pare de perder <span className="text-red-500 font-semibold">25% do seu lucro</span> para os marketplaces. 
+                Recupere sua margem, blinde seus clientes contra a internet e automatize a reposição de Whey e Creatina.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
+                <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
+                  <Button size="lg" className="w-full sm:w-auto gap-2 bg-green-600 hover:bg-green-700 text-lg px-8 py-6">
+                    <MessageCircle className="h-5 w-5" />
+                    QUERO UMA SIMULAÇÃO DE ECONOMIA
+                  </Button>
+                </a>
+              </div>
 
-          {/* Trust badges */}
-          <div className="flex flex-wrap justify-center gap-6 mt-10 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-green-500" />
-              <span>0% de taxas</span>
+              {/* Trust badges */}
+              <div className="flex flex-wrap justify-center lg:justify-start gap-6 mt-10 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-green-500" />
+                  <span>0% de taxas</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-green-500" />
+                  <span>Setup em 48h</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-green-500" />
+                  <span>+500 lojas ativas</span>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-green-500" />
-              <span>Setup em 48h</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-green-500" />
-              <span>+500 lojas ativas</span>
+
+            {/* Coluna 2: Vídeo */}
+            <div className="flex justify-center lg:justify-end order-first lg:order-last">
+              <div className="relative max-w-xs">
+                <video 
+                  src="/videos/suplementos-notificacao.mp4"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="w-full rounded-3xl shadow-2xl border-4 border-green-500/30"
+                />
+                {/* Efeito de brilho atrás */}
+                <div className="absolute -inset-4 bg-gradient-to-r from-green-500/20 to-orange-500/20 blur-xl rounded-3xl -z-10" />
+              </div>
             </div>
           </div>
         </div>
@@ -277,6 +298,23 @@ export default function SuplementosLandingPage() {
                 </div>
               </CardContent>
             </Card>
+          </div>
+
+          {/* Vídeo demonstrativo */}
+          <div className="mt-12 text-center">
+            <p className="text-lg font-medium text-muted-foreground mb-6">
+              👇 Veja como funciona a notificação de reposição:
+            </p>
+            <div className="max-w-sm mx-auto">
+              <video 
+                src="/videos/suplementos-notificacao.mp4"
+                controls
+                muted
+                loop
+                playsInline
+                className="w-full rounded-2xl shadow-2xl border border-green-500/30"
+              />
+            </div>
           </div>
         </div>
       </section>

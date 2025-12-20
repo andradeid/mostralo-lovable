@@ -191,6 +191,25 @@ export const CreateStoreOwnerDialog = ({ open, onOpenChange, onSuccess }: Create
         console.error('Erro ao criar configuração:', configError);
       }
 
+      // 7. Enviar notificação master de nova loja
+      try {
+        await supabase.functions.invoke('send-master-notification', {
+          body: {
+            type: 'new_store',
+            data: {
+              name: formData.storeName,
+              slug: formData.storeSlug,
+              city: formData.storeCity,
+              state: formData.storeState,
+            },
+          },
+        });
+        console.log('✅ Notificação master enviada para nova loja');
+      } catch (notifyError) {
+        console.error('Erro ao enviar notificação master:', notifyError);
+        // Não falha o cadastro se a notificação falhar
+      }
+
       toast.success(`Loja "${formData.storeName}" criada com sucesso!`);
       
       // Reset form

@@ -98,7 +98,7 @@ Bem-vindo ao *Mostralo*! 🚀
 
 Sua loja *${storeName}* foi criada com sucesso!
 
-🔗 Acesse: mostralo.com.br/${slug}
+🔗 Acesse: mostralo.com.br/loja/${slug}
 
 Em breve você receberá mais informações sobre como configurar seu cardápio e começar a vender.
 
@@ -113,7 +113,12 @@ Bem-vindo à equipe *Mostralo*! 🚀
 
 Seu cadastro como *${salespersonType}* foi recebido com sucesso!
 
-🔗 Seu código de indicação: *${referralCode}*
+🔗 *Seu código de indicação:* ${referralCode}
+
+📌 *Seus links para divulgar:*
+
+🌐 Site: mostralo.com.br/?ref=${referralCode}
+📝 Cadastro: mostralo.com.br/signup?ref=${referralCode}
 
 Aguarde a aprovação do seu cadastro para começar a indicar clientes e ganhar comissões!
 

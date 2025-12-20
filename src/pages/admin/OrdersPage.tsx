@@ -732,7 +732,7 @@ const OrdersPage = () => {
   const averageTicket = todayOrders.length > 0 ? todayRevenue / todayOrders.length : 0;
 
   return (
-    <div className={`p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 ${pendingOrders.length > 0 ? 'animate-screen-flash' : ''}`}>
+    <div className={`p-2 sm:p-3 lg:p-4 space-y-2 sm:space-y-3 ${pendingOrders.length > 0 ? 'animate-screen-flash' : ''}`}>
       {/* Header */}
       <div className="flex flex-col gap-0">
         {/* Title Row */}

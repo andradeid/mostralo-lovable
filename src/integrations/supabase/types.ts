@@ -1961,6 +1961,7 @@ export type Database = {
           admin_user_id: string | null
           created_at: string | null
           evolution_instance_id: string | null
+          fallback_phone: string | null
           id: string
           instance_name: string | null
           instance_phone: string | null
@@ -2029,11 +2030,13 @@ export type Database = {
           support_bot_trigger_type: string | null
           support_bot_unknown_message: string | null
           updated_at: string | null
+          whatsapp_messages: Json | null
         }
         Insert: {
           admin_user_id?: string | null
           created_at?: string | null
           evolution_instance_id?: string | null
+          fallback_phone?: string | null
           id?: string
           instance_name?: string | null
           instance_phone?: string | null
@@ -2102,11 +2105,13 @@ export type Database = {
           support_bot_trigger_type?: string | null
           support_bot_unknown_message?: string | null
           updated_at?: string | null
+          whatsapp_messages?: Json | null
         }
         Update: {
           admin_user_id?: string | null
           created_at?: string | null
           evolution_instance_id?: string | null
+          fallback_phone?: string | null
           id?: string
           instance_name?: string | null
           instance_phone?: string | null
@@ -2175,6 +2180,7 @@ export type Database = {
           support_bot_trigger_type?: string | null
           support_bot_unknown_message?: string | null
           updated_at?: string | null
+          whatsapp_messages?: Json | null
         }
         Relationships: []
       }

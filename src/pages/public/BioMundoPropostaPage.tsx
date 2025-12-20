@@ -6,6 +6,7 @@ import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useMasterWhatsApp } from '@/hooks/useMasterWhatsApp';
 import { toast } from 'sonner';
 import {
   Leaf, TrendingUp, DollarSign, Store, ShoppingCart, MessageCircle,
@@ -20,6 +21,9 @@ const BioMundoPropostaPage = () => {
   const [activeSection, setActiveSection] = useState('oportunidade');
   const [faturamentoLoja, setFaturamentoLoja] = useState([100000]);
   const [percentualDelivery, setPercentualDelivery] = useState([30]);
+  
+  // Hook para buscar configurações de WhatsApp
+  const { getWhatsAppLink } = useMasterWhatsApp();
   
   const sectionRefs = {
     oportunidade: useRef<HTMLElement>(null),

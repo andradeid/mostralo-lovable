@@ -12,6 +12,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { useMasterWhatsApp } from '@/hooks/useMasterWhatsApp';
 import { toast } from 'sonner';
 
 const sections = [
@@ -56,6 +57,9 @@ export default function SupermercadosPage() {
   // Calculator state
   const [faturamento, setFaturamento] = useState(300000);
   const [percentualDelivery, setPercentualDelivery] = useState(20);
+  
+  // Hook para buscar configurações de WhatsApp
+  const { getWhatsAppLink } = useMasterWhatsApp();
 
   const deliveryValue = faturamento * (percentualDelivery / 100);
   const taxaMarketplace = deliveryValue * 0.27;
@@ -1763,13 +1767,13 @@ Fontes: ABRAS 2025, NielsenIQ 2024, IBGE 2024, MDIC 2024, Kantar 2024, SA Mais V
 
               <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
                 <Button size="lg" className="h-16 bg-green-600 hover:bg-green-700" asChild>
-                  <a href="https://wa.me/5511941941427?text=Olá! Tenho um supermercado e quero saber mais sobre o Mostralo" target="_blank" rel="noopener noreferrer">
+                  <a href={getWhatsAppLink('supermercados')} target="_blank" rel="noopener noreferrer">
                     <MessageCircle className="w-6 h-6 mr-2" />
                     Falar com Consultor
                   </a>
                 </Button>
                 <Button size="lg" variant="outline" className="h-16" asChild>
-                  <a href="https://wa.me/5511941941427?text=Olá! Gostaria de agendar uma demonstração do Mostralo para meu supermercado" target="_blank" rel="noopener noreferrer">
+                  <a href={getWhatsAppLink('supermercados')} target="_blank" rel="noopener noreferrer">
                     <Calendar className="w-6 h-6 mr-2" />
                     Agendar Demonstração
                   </a>

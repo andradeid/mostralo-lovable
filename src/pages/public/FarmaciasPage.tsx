@@ -14,6 +14,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { DashboardFooter } from '@/components/admin/DashboardFooter';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { useMasterWhatsApp } from '@/hooks/useMasterWhatsApp';
 
 const sections = [
   { id: 'dor-farmacia', title: 'A Dor da Farmácia', icon: AlertTriangle },
@@ -40,6 +41,9 @@ export default function FarmaciasPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  
+  // Hook para buscar configurações de WhatsApp
+  const { getWhatsAppLink } = useMasterWhatsApp();
 
   const heroRef = useScrollReveal();
   const dorRef = useScrollReveal();
@@ -1682,11 +1686,16 @@ Site: mostralo.com.br`;
                   Criar Minha Farmácia Online <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
-              <Link to="https://wa.me/5561994009368" target="_blank">
+              <Link to="/#plans">
                 <Button variant="outline" size="lg" className="gap-2">
-                  <MessageCircle className="h-4 w-4" /> Falar com Consultor
+                  Ver Planos
                 </Button>
               </Link>
+              <a href={getWhatsAppLink('farmacias')} target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" size="lg" className="gap-2 border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-950">
+                  <MessageCircle className="h-4 w-4" /> Falar com Consultor
+                </Button>
+              </a>
             </div>
 
             {/* Trust Badges */}

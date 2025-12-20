@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { useMasterWhatsApp } from '@/hooks/useMasterWhatsApp';
 import { toast } from 'sonner';
 import {
   Store,
@@ -46,6 +47,9 @@ const AcouguesPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useScrollReveal();
+  
+  // Hook para buscar configurações de WhatsApp
+  const { getWhatsAppLink } = useMasterWhatsApp();
 
   const deliveryRevenue = (monthlyRevenue[0] * deliveryPercent[0]) / 100;
   const marketplaceFee = deliveryRevenue * 0.27;
@@ -1423,7 +1427,7 @@ Site: mostralo.com.br
                   </Link>
                 </Button>
                 <Button size="lg" variant="outline" asChild>
-                  <a href="https://wa.me/5561994009368" target="_blank" rel="noopener noreferrer">
+                  <a href={getWhatsAppLink('acougues')} target="_blank" rel="noopener noreferrer">
                     <MessageCircle className="mr-2 h-5 w-5" />
                     Falar com Consultor
                   </a>

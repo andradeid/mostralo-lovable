@@ -32,6 +32,210 @@ const sections = [
   { id: 'banners', title: 'Banners Promocionais', icon: Image },
 ];
 
+const whatsappTexts: Record<string, string> = {
+  'porque-sair': `🚨 *POR QUE SAIR DO IFOOD?*
+
+❌ *Problemas:*
+• 25% de taxa por pedido
+• Clientes fiéis ao app, não a você
+• Seus dados vendidos para concorrentes
+• Sem controle sobre promoções
+
+✅ *Solução Mostralo:*
+• 0% de taxa por pedido
+• 100% dos clientes são SEUS
+• Seus dados nunca são compartilhados
+• Total liberdade para criar promoções`,
+
+  'cardapio': `📱 *CARDÁPIO DIGITAL PROFISSIONAL*
+
+✅ Produtos Ilimitados com fotos de alta qualidade
+✅ Categorias Organizadas
+✅ Variações e Tamanhos (P, M, G, sabores, bordas)
+✅ Adicionais/Complementos
+✅ Preços Promocionais com destaque
+✅ Disponibilidade controlada com um clique
+
+📊 *Benefícios:*
+• Fotos profissionais aumentam 35% das vendas
+• Adicionais geram ticket médio maior
+• Atualize a qualquer momento!`,
+
+  'pedidos': `📦 *CENTRAL DE PEDIDOS EM TEMPO REAL*
+
+✅ Recebimento instantâneo sem atrasos
+✅ Notificações sonoras e visuais
+✅ Kanban visual: Entrada → Preparo → Saída → Entregue
+✅ Aceitar ou rejeitar pedidos com motivo
+✅ Histórico completo de pedidos
+✅ Detalhes do cliente salvos
+
+📊 *Benefícios:*
+• Nunca perde um pedido
+• Controle visual de onde está cada pedido
+• Dados do cliente salvos para remarketing`,
+
+  'entregadores': `🛵 *SISTEMA COMPLETO DE ENTREGADORES*
+
+✅ Cadastro de motoboys próprios
+✅ App exclusivo para entregadores (PWA)
+✅ Rastreamento GPS em tempo real
+✅ Pagamento fixo ou por comissão
+✅ Mínimo garantido para o motoboy
+
+📊 *Benefícios:*
+• Não depende de entregador terceirizado
+• Cliente acompanha entrega em tempo real
+• Sem taxas de apps de entrega`,
+
+  'whatsapp': `💬 *WHATSAPP MARKETING - EXCLUSIVO!*
+
+⚠️ *Problema:* 68% dos clientes nunca mais voltam após primeira compra
+
+✅ Conexão via QR Code do seu WhatsApp
+✅ Sincronização automática de contatos
+✅ Etiquetas coloridas (VIP, Novo, Inativo)
+✅ Recuperação automática de inativos
+✅ Templates personalizados com variáveis
+✅ Campanhas agendadas anti-bloqueio
+
+📊 *Resultados:*
+• 23% dos inativos voltam a comprar
+• R$ 2.400/mês de aumento médio
+• 98% de taxa de abertura`,
+
+  'relatorios': `📊 *RELATÓRIOS E ANÁLISES*
+
+✅ Dashboard em tempo real
+✅ Faturamento diário, semanal, mensal
+✅ Produtos mais vendidos
+✅ Horários de pico
+✅ Clientes top (mais compraram)
+✅ Exportação de dados (CSV, Excel)
+
+📊 *Benefícios:*
+• Decisões baseadas em dados reais
+• SEUS DADOS SÃO SEUS - exporte quando quiser`,
+
+  'financeiro': `💰 *GESTÃO FINANCEIRA - NOVO!*
+
+✅ Dashboard com KPIs de receitas e despesas
+✅ Controle de entradas e saídas por categoria
+✅ Gráficos de evolução mensal
+✅ Categorias personalizáveis
+✅ Filtros avançados
+✅ Relatórios financeiros completos
+
+📊 *Benefícios:*
+• Fluxo de caixa em tempo real
+• Decisões estratégicas baseadas em dados`,
+
+  'promocoes': `🏷️ *PROMOÇÕES E CUPONS*
+
+✅ Cupons de desconto (% ou valor fixo)
+✅ Frete grátis condicional
+✅ Happy Hour automático
+✅ Combos e kits promocionais
+✅ Descontos por categoria
+✅ Pop-ups promocionais
+
+📊 *Benefícios:*
+• Total liberdade para criar promoções
+• Sem pedir permissão, sem limites`,
+
+  'agendados': `📅 *PEDIDOS AGENDADOS*
+
+✅ Encomendas para datas futuras
+✅ Calendário visual de pedidos
+✅ Confirmação antecipada
+
+📊 *Benefícios:*
+• Ideal para festas e eventos
+• Planeje a produção com antecedência`,
+
+  'impressao': `🖨️ *IMPRESSÃO AUTOMÁTICA*
+
+✅ Compatível com impressoras térmicas
+✅ Impressão automática ao aceitar pedido
+✅ Múltiplas impressoras (cozinha, caixa, bar)
+✅ Integração com QZ Tray
+
+📊 *Benefícios:*
+• Pedido entra, comanda sai automaticamente
+• Reduz erros e agiliza a produção`,
+
+  'personalizacao': `🎨 *PERSONALIZAÇÃO DA LOJA*
+
+✅ Logo e banner da sua marca
+✅ Cores personalizadas
+✅ Horários de funcionamento
+✅ Scripts personalizados (chat, pixels)
+✅ Domínio próprio (seurestaurante.com.br)
+✅ Informações de contato
+
+📊 *Benefícios:*
+• Cliente acessa seu site, não o iFood
+• Profissionalismo e credibilidade`,
+
+  'delivery': `🗺️ *DELIVERY INTELIGENTE*
+
+✅ Mapa interativo para desenhar áreas
+✅ Frete por distância (cálculo automático)
+✅ Múltiplas zonas com preços diferentes
+✅ Tempo estimado de entrega
+✅ Frete grátis configurável
+✅ Verificação instantânea de cobertura
+
+📊 *Benefícios:*
+• Cliente sabe na hora se você entrega
+• Taxas justas por região`,
+
+  'atendentes': `👥 *GESTÃO DE ATENDENTES*
+
+✅ Cadastro de funcionários
+✅ Permissões limitadas por função
+✅ Múltiplos atendentes simultâneos
+✅ Controle de acesso (auditoria)
+
+📊 *Benefícios:*
+• Cada um vê só o que precisa
+• Saiba quem fez o quê`,
+
+  'marketing': `📣 *MARKETING DIGITAL - INCLUSO!*
+
+✅ 1 perfil de rede social incluso
+✅ Posts ilimitados agendados
+✅ IA para criar legendas
+✅ Análise de concorrentes
+✅ Integração com Facebook e Google Ads
+✅ Relatórios de performance
+
+📊 *Economia:*
+• Valor de mercado: R$ 800-2.000/mês
+• INCLUSO no seu plano Mostralo!`,
+
+  'integracoes': `🔗 *INTEGRAÇÕES EXTERNAS*
+
+✅ Menus customizados (iframes)
+✅ APIs para agentes de IA
+✅ Feeds para Google Shopping
+✅ Feeds para Instagram/Meta Shopping
+
+📊 *Benefícios:*
+• Conecte suas ferramentas favoritas
+• Automação e escalabilidade`,
+
+  'banners': `🖼️ *BANNERS PROMOCIONAIS*
+
+✅ Banners rotativos na entrada da loja
+✅ Destaques de ofertas
+✅ Links diretos para produtos/categorias
+
+📊 *Benefícios:*
+• Chame atenção para suas promoções
+• Aumente a conversão de visitantes`,
+};
+
 export default function FeaturesPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -228,6 +432,18 @@ Site: mostralo.com.br`;
     }
   };
 
+  const copyWhatsAppText = async (sectionId: string) => {
+    const text = whatsappTexts[sectionId];
+    if (text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        toast.success('Texto copiado!');
+      } catch {
+        toast.error('Erro ao copiar texto');
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -357,8 +573,17 @@ Site: mostralo.com.br`;
               <div className="w-12 h-12 bg-destructive/10 rounded-xl flex items-center justify-center">
                 <AlertTriangle className="h-6 w-6 text-destructive" />
               </div>
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground">Por Que Sair do iFood?</h2>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">Por Que Sair do iFood?</h2>
+                  <button
+                    onClick={() => copyWhatsAppText('porque-sair')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
                 <p className="text-muted-foreground">O problema de depender de marketplaces</p>
               </div>
             </div>
@@ -457,8 +682,17 @@ Site: mostralo.com.br`;
               <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center">
                 <Smartphone className="h-6 w-6 text-blue-500" />
               </div>
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground">Cardápio Digital Profissional</h2>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">Cardápio Digital Profissional</h2>
+                  <button
+                    onClick={() => copyWhatsAppText('cardapio')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
                 <p className="text-muted-foreground">Seu cardápio completo online, sempre atualizado</p>
               </div>
             </div>
@@ -503,8 +737,17 @@ Site: mostralo.com.br`;
               <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center">
                 <Package className="h-6 w-6 text-purple-500" />
               </div>
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground">Central de Pedidos em Tempo Real</h2>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">Central de Pedidos em Tempo Real</h2>
+                  <button
+                    onClick={() => copyWhatsAppText('pedidos')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
                 <p className="text-muted-foreground">Gerencie todos os pedidos em um só lugar</p>
               </div>
             </div>
@@ -549,8 +792,17 @@ Site: mostralo.com.br`;
               <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center">
                 <Truck className="h-6 w-6 text-green-500" />
               </div>
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground">Sistema Completo de Entregadores</h2>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">Sistema Completo de Entregadores</h2>
+                  <button
+                    onClick={() => copyWhatsAppText('entregadores')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
                 <p className="text-muted-foreground">Gerencie seus motoboys de forma profissional</p>
               </div>
             </div>
@@ -595,10 +847,17 @@ Site: mostralo.com.br`;
               <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center">
                 <MessageCircle className="h-6 w-6 text-white" />
               </div>
-              <div>
+              <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <h2 className="text-2xl md:text-3xl font-bold text-foreground">WhatsApp Marketing</h2>
                   <span className="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded">EXCLUSIVO!</span>
+                  <button
+                    onClick={() => copyWhatsAppText('whatsapp')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
                 </div>
                 <p className="text-muted-foreground">Recupere clientes e aumente suas vendas automaticamente</p>
               </div>
@@ -693,8 +952,17 @@ Site: mostralo.com.br`;
               <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center">
                 <BarChart3 className="h-6 w-6 text-amber-500" />
               </div>
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground">Relatórios e Análises</h2>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">Relatórios e Análises</h2>
+                  <button
+                    onClick={() => copyWhatsAppText('relatorios')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
                 <p className="text-muted-foreground">Tome decisões baseadas em dados reais</p>
               </div>
             </div>
@@ -737,12 +1005,19 @@ Site: mostralo.com.br`;
               <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center">
                 <Wallet className="h-6 w-6 text-emerald-500" />
               </div>
-              <div className="flex items-center gap-3">
-                <div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
                   <h2 className="text-2xl md:text-3xl font-bold text-foreground">Gestão Financeira</h2>
-                  <p className="text-muted-foreground">Controle total das finanças do seu negócio</p>
+                  <span className="bg-emerald-500 text-white text-xs font-bold px-2 py-1 rounded-full">NOVO!</span>
+                  <button
+                    onClick={() => copyWhatsAppText('financeiro')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
                 </div>
-                <span className="bg-emerald-500 text-white text-xs font-bold px-2 py-1 rounded-full">NOVO!</span>
+                <p className="text-muted-foreground">Controle total das finanças do seu negócio</p>
               </div>
             </div>
 
@@ -784,8 +1059,17 @@ Site: mostralo.com.br`;
               <div className="w-12 h-12 bg-pink-500/10 rounded-xl flex items-center justify-center">
                 <Tag className="h-6 w-6 text-pink-500" />
               </div>
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground">Promoções e Cupons</h2>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">Promoções e Cupons</h2>
+                  <button
+                    onClick={() => copyWhatsAppText('promocoes')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
                 <p className="text-muted-foreground">Crie ofertas do seu jeito, sem pedir permissão</p>
               </div>
             </div>
@@ -828,8 +1112,17 @@ Site: mostralo.com.br`;
               <div className="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center">
                 <Calendar className="h-6 w-6 text-indigo-500" />
               </div>
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground">Pedidos Agendados</h2>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">Pedidos Agendados</h2>
+                  <button
+                    onClick={() => copyWhatsAppText('agendados')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
                 <p className="text-muted-foreground">Encomendas para datas futuras</p>
               </div>
             </div>
@@ -866,8 +1159,17 @@ Site: mostralo.com.br`;
               <div className="w-12 h-12 bg-slate-500/10 rounded-xl flex items-center justify-center">
                 <Printer className="h-6 w-6 text-slate-500" />
               </div>
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground">Impressão Automática</h2>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">Impressão Automática</h2>
+                  <button
+                    onClick={() => copyWhatsAppText('impressao')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
                 <p className="text-muted-foreground">Comandas direto na cozinha</p>
               </div>
             </div>
@@ -905,8 +1207,17 @@ Site: mostralo.com.br`;
               <div className="w-12 h-12 bg-violet-500/10 rounded-xl flex items-center justify-center">
                 <Palette className="h-6 w-6 text-violet-500" />
               </div>
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground">Personalização da Loja</h2>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">Personalização da Loja</h2>
+                  <button
+                    onClick={() => copyWhatsAppText('personalizacao')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
                 <p className="text-muted-foreground">Sua identidade visual completa</p>
               </div>
             </div>
@@ -946,8 +1257,17 @@ Site: mostralo.com.br`;
               <div className="w-12 h-12 bg-cyan-500/10 rounded-xl flex items-center justify-center">
                 <Map className="h-6 w-6 text-cyan-500" />
               </div>
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground">Delivery Inteligente</h2>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">Delivery Inteligente</h2>
+                  <button
+                    onClick={() => copyWhatsAppText('delivery')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
                 <p className="text-muted-foreground">Mapa interativo e frete automático</p>
               </div>
             </div>
@@ -980,8 +1300,17 @@ Site: mostralo.com.br`;
               <div className="w-12 h-12 bg-orange-500/10 rounded-xl flex items-center justify-center">
                 <Users className="h-6 w-6 text-orange-500" />
               </div>
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground">Gestão de Atendentes</h2>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">Gestão de Atendentes</h2>
+                  <button
+                    onClick={() => copyWhatsAppText('atendentes')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
                 <p className="text-muted-foreground">Múltiplos usuários com permissões</p>
               </div>
             </div>
@@ -1012,10 +1341,17 @@ Site: mostralo.com.br`;
               <div className="w-12 h-12 bg-fuchsia-500/10 rounded-xl flex items-center justify-center">
                 <Megaphone className="h-6 w-6 text-fuchsia-500" />
               </div>
-              <div>
+              <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <h2 className="text-2xl md:text-3xl font-bold text-foreground">Marketing Digital</h2>
                   <span className="bg-fuchsia-500 text-white text-xs font-bold px-2 py-1 rounded">INCLUSO!</span>
+                  <button
+                    onClick={() => copyWhatsAppText('marketing')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
                 </div>
                 <p className="text-muted-foreground">Gestão de redes sociais integrada (mLabs)</p>
               </div>
@@ -1056,8 +1392,17 @@ Site: mostralo.com.br`;
               <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center">
                 <Link2 className="h-6 w-6 text-blue-500" />
               </div>
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground">Integrações Externas</h2>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">Integrações Externas</h2>
+                  <button
+                    onClick={() => copyWhatsAppText('integracoes')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
                 <p className="text-muted-foreground">Conecte outras ferramentas</p>
               </div>
             </div>
@@ -1087,8 +1432,17 @@ Site: mostralo.com.br`;
               <div className="w-12 h-12 bg-yellow-500/10 rounded-xl flex items-center justify-center">
                 <Image className="h-6 w-6 text-yellow-500" />
               </div>
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground">Banners Promocionais</h2>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">Banners Promocionais</h2>
+                  <button
+                    onClick={() => copyWhatsAppText('banners')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
                 <p className="text-muted-foreground">Destaque suas ofertas</p>
               </div>
             </div>

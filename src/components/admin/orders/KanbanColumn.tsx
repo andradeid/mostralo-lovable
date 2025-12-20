@@ -36,7 +36,7 @@ export const KanbanColumn = ({
 
   if (!collapsible) {
     return (
-      <div className="flex-1 min-w-[220px] sm:min-w-[260px] lg:min-w-[280px] flex-shrink-0 flex flex-col bg-muted/30 rounded-lg">
+      <div className="min-w-[220px] sm:min-w-[260px] lg:min-w-[280px] flex-shrink-0 flex flex-col bg-muted/30 rounded-lg h-full">
         {/* Header */}
         <div className={`p-4 ${color} text-primary-foreground rounded-t-lg`}>
           <div className="flex items-center justify-between">
@@ -53,18 +53,18 @@ export const KanbanColumn = ({
         {/* Drop Area */}
         <Droppable droppableId={id}>
           {(provided, snapshot) => (
-            <ScrollArea className="flex-1 p-4">
+            <div className="flex-1 overflow-y-auto p-4">
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className={`space-y-3 min-h-[200px] ${
+                className={`space-y-3 min-h-[100px] ${
                   snapshot.isDraggingOver ? 'bg-accent/50 rounded-lg' : ''
                 }`}
               >
                 {children}
                 {provided.placeholder}
               </div>
-            </ScrollArea>
+            </div>
           )}
         </Droppable>
       </div>
@@ -75,7 +75,7 @@ export const KanbanColumn = ({
     <Collapsible
       open={isOpen}
       onOpenChange={setIsOpen}
-      className="flex-1 min-w-[220px] sm:min-w-[260px] lg:min-w-[280px] flex-shrink-0 flex flex-col bg-muted/30 rounded-lg"
+      className="min-w-[220px] sm:min-w-[260px] lg:min-w-[280px] flex-shrink-0 flex flex-col bg-muted/30 rounded-lg h-full"
     >
       {/* Header */}
       <CollapsibleTrigger asChild>
@@ -98,14 +98,14 @@ export const KanbanColumn = ({
       </CollapsibleTrigger>
 
       {/* Drop Area */}
-      <CollapsibleContent>
+      <CollapsibleContent className="flex-1 overflow-hidden">
         <Droppable droppableId={id}>
           {(provided, snapshot) => (
-            <ScrollArea className="flex-1 p-4">
+            <div className="h-full overflow-y-auto p-4">
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className={`space-y-3 min-h-[200px] ${
+                className={`space-y-3 min-h-[100px] ${
                   snapshot.isDraggingOver ? 'bg-accent/50 rounded-lg' : ''
                 }`}
               >
@@ -134,7 +134,7 @@ export const KanbanColumn = ({
                   </div>
                 )}
               </div>
-            </ScrollArea>
+            </div>
           )}
         </Droppable>
       </CollapsibleContent>

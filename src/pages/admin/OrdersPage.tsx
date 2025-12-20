@@ -1209,8 +1209,6 @@ const OrdersPage = () => {
                   icon: Truck,
                   count: getOrdersByStatus('em_transito').length,
                   color: "bg-green-500",
-                  collapsible: true,
-                  defaultCollapsed: false,
                   children: getOrdersByStatus('em_transito').map((order, index) => (
                     <Draggable key={order.id} draggableId={order.id} index={index}>
                       {(provided, snapshot) => (
@@ -1240,8 +1238,6 @@ const OrdersPage = () => {
                   icon: CheckCircle2,
                   count: getOrdersByStatus('concluido').length,
                   color: "bg-emerald-500",
-                  collapsible: true,
-                  defaultCollapsed: true,
                   onLoadMore: loadMoreFinishedOrders,
                   hasMore: getOrdersByStatus('concluido').length > finishedOrdersVisible,
                   isLoadingMore: isLoadingMoreFinished,

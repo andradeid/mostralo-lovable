@@ -480,6 +480,10 @@ export default function MasterWhatsAppPage() {
             <MessageSquare className="w-4 h-4" />
             <span className="hidden xs:inline">Sessões</span>
           </TabsTrigger>
+          <TabsTrigger value="links" className="flex-shrink-0 gap-1.5 text-xs sm:text-sm">
+            <ExternalLink className="w-4 h-4" />
+            <span className="hidden xs:inline">Links</span> Páginas
+          </TabsTrigger>
         </TabsList>
 
         {/* Tab Conexão */}
@@ -813,11 +817,6 @@ export default function MasterWhatsAppPage() {
               instanceStatus={instanceStatus}
             />
 
-            {/* Card Links WhatsApp por Página */}
-            <WhatsAppLinkConfigCard 
-              configId={config?.id || null}
-              instancePhone={config?.instance_phone || null}
-            />
           </div>
 
           {/* Histórico de Mensagens de Teste */}
@@ -1281,6 +1280,14 @@ export default function MasterWhatsAppPage() {
         {/* Tab Sessões */}
         <TabsContent value="sessions">
           <MasterSessionsTab />
+        </TabsContent>
+
+        {/* Tab Links Páginas */}
+        <TabsContent value="links">
+          <WhatsAppLinkConfigCard 
+            configId={config?.id || null}
+            instancePhone={config?.instance_phone || null}
+          />
         </TabsContent>
       </Tabs>
 

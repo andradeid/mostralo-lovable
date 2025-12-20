@@ -15,6 +15,7 @@ import {
   Target, Users, Package, Percent, Clock, Shield, Star, Building2,
   Copy, Menu, X, ExternalLink, Zap, PiggyBank, Trophy, MapPin
 } from 'lucide-react';
+import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
 
 const BioMundoPropostaPage = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -1890,6 +1891,8 @@ Proposta gerada por Mostralo - Delivery + Marketing Digital em Uma Só Plataform
           </div>
         </footer>
       </main>
+
+      <WhatsAppLeadButton />
     </div>
   );
 };

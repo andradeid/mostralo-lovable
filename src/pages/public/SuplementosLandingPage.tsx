@@ -4,6 +4,7 @@ import {
   MessageCircle, Users, DollarSign, Zap, Clock, ShieldCheck,
   ChevronDown, Dumbbell, RefreshCw, Brain, Heart, Play, VolumeX
 } from 'lucide-react';
+import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -622,6 +623,8 @@ export default function SuplementosLandingPage() {
       </section>
 
       <DashboardFooter />
+
+      <WhatsAppLeadButton />
     </div>
   );
 }

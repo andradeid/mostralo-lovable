@@ -8,6 +8,7 @@ import {
   Globe, Percent, Calendar, Gift, Camera, Share2, Pill, Moon, FileText,
   Stethoscope, Truck, Baby, Dumbbell, Droplets, Phone, Building2
 } from 'lucide-react';
+import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -1753,6 +1754,8 @@ Site: mostralo.com.br`;
         {/* Footer */}
         <DashboardFooter />
       </main>
+
+      <WhatsAppLeadButton />
     </div>
   );
 }

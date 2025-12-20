@@ -7,6 +7,7 @@ import {
   Heart, Clock, Target, Zap, TrendingUp, Bell, MapPin, CreditCard, Copy, FileText,
   Wallet, PieChart, ArrowUpDown, Filter
 } from 'lucide-react';
+import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -1574,6 +1575,8 @@ Site: mostralo.com.br`;
           onClick={() => setSidebarOpen(false)}
         />
       )}
+
+      <WhatsAppLeadButton />
     </div>
   );
 }

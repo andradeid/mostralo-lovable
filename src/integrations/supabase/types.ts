@@ -5366,6 +5366,48 @@ export type Database = {
         }
         Relationships: []
       }
+      system_banners: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          display_order: number | null
+          end_date: string | null
+          html_content: string
+          id: string
+          is_active: boolean | null
+          position: string | null
+          start_date: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          display_order?: number | null
+          end_date?: string | null
+          html_content: string
+          id?: string
+          is_active?: boolean | null
+          position?: string | null
+          start_date?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          display_order?: number | null
+          end_date?: string | null
+          html_content?: string
+          id?: string
+          is_active?: boolean | null
+          position?: string | null
+          start_date?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       system_terms_config: {
         Row: {
           config_key: string

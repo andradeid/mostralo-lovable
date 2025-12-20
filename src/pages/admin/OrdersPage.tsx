@@ -24,6 +24,7 @@ import { playNewOrderSound, playOrderAlertLoop, stopOrderAlertLoop, getSelectedS
 import { SoundSelector } from "@/components/admin/orders/SoundSelector";
 import { printOrder } from "@/utils/printOrder";
 import { MarketplaceSavingsCard } from "@/components/admin/MarketplaceSavingsCard";
+import { SystemBanner } from "@/components/admin/SystemBanner";
 import { useStoreAccess } from "@/hooks/useStoreAccess";
 
 type Order = Database['public']['Tables']['orders']['Row'];
@@ -1078,6 +1079,9 @@ const OrdersPage = () => {
           />
         </div>
       )}
+
+      {/* Banner do Sistema - Master Admin */}
+      <SystemBanner position="orders_page" />
 
       {/* Mensagem quando não há pedidos */}
       {orders.length === 0 && !isLoading && (

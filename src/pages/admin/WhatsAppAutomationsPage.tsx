@@ -86,6 +86,7 @@ const variablesList = [
   { key: '{tipo_entrega}', description: 'Delivery ou Retirada' },
   { key: '{tempo_estimado}', description: 'Tempo estimado de entrega (ex: 30 minutos)' },
   { key: '{link_pedido}', description: 'Link de acompanhamento' },
+  { key: '{link_maps}', description: 'Link do Google Maps com localização do cliente' },
   { key: '{whatsapp_loja}', description: 'WhatsApp da loja' },
 ];
 

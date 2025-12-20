@@ -217,35 +217,53 @@ export function CreateOrderDialog({ open, onOpenChange, onSuccess }: CreateOrder
         if (addonsError) throw addonsError;
       }
       
+      console.log('[manual-order] ✅ Pedido criado com sucesso!', {
+        orderId: order.id,
+        orderNumber: order.order_number,
+        storeId: validatedStoreId
+      });
+
       toast.success('Pedido criado com sucesso!', {
         description: `Número do pedido: #${order.order_number}`,
       });
 
-      // Enviar notificação WhatsApp para o lojista
-      console.log('[manual-order] Enviando notificação para lojista...');
-      supabase.functions.invoke('send-store-notification', {
-        body: {
+      // Enviar notificação WhatsApp para o lojista (com await para garantir execução)
+      try {
+        console.log('[manual-order] 🚀 Iniciando chamada send-store-notification...', {
           store_id: validatedStoreId,
           order_id: order.id,
           order_number: order.order_number,
-          customer_name: selectedCustomer.name,
-          customer_phone: selectedCustomer.phone,
-          customer_address: deliveryType === 'delivery' ? selectedCustomer.address : null,
-          customer_latitude: selectedCustomer.latitude || null,
-          customer_longitude: selectedCustomer.longitude || null,
-          total: total,
-          subtotal: subtotal,
-          delivery_fee: finalDeliveryFee,
-          delivery_type: deliveryType,
-          payment_method: paymentMethod,
-          notes: orderNotes || null,
-          created_at: order.created_at
+          customer_name: selectedCustomer.name
+        });
+        
+        const notificationResult = await supabase.functions.invoke('send-store-notification', {
+          body: {
+            store_id: validatedStoreId,
+            order_id: order.id,
+            order_number: order.order_number,
+            customer_name: selectedCustomer.name,
+            customer_phone: selectedCustomer.phone,
+            customer_address: deliveryType === 'delivery' ? selectedCustomer.address : null,
+            customer_latitude: selectedCustomer.latitude || null,
+            customer_longitude: selectedCustomer.longitude || null,
+            total: total,
+            subtotal: subtotal,
+            delivery_fee: finalDeliveryFee,
+            delivery_type: deliveryType,
+            payment_method: paymentMethod,
+            notes: orderNotes || null,
+            created_at: order.created_at
+          }
+        });
+        
+        console.log('[manual-order] ✅ Resposta da notificação:', JSON.stringify(notificationResult, null, 2));
+        
+        if (notificationResult.error) {
+          console.error('[manual-order] ❌ Erro retornado pela função:', notificationResult.error);
         }
-      }).then(res => {
-        console.log('[manual-order] Notificação lojista enviada:', res);
-      }).catch(err => {
-        console.error('[manual-order] Erro ao notificar lojista:', err);
-      });
+      } catch (notifyErr) {
+        console.error('[manual-order] ❌ ERRO ao chamar send-store-notification:', notifyErr);
+      }
       
       // Reset e fechar
       resetForm();

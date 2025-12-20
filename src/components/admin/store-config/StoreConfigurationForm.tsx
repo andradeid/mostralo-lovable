@@ -127,6 +127,11 @@ interface FormData {
   responsible_email: string;
   responsible_phone: string;
   responsible_cpf: string;
+  
+  // Notificações WhatsApp
+  notification_phone: string;
+  notification_country_code: string;
+  notify_new_orders: boolean;
 }
 
 const steps = [
@@ -252,6 +257,11 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
       responsible_email: store.responsible_email || '',
       responsible_phone: store.responsible_phone || '',
       responsible_cpf: store.responsible_cpf || '',
+      
+      // Notificações WhatsApp
+      notification_phone: store.notification_phone || '',
+      notification_country_code: store.notification_country_code || '+55',
+      notify_new_orders: store.notify_new_orders ?? true,
     };
   });
 
@@ -399,6 +409,10 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
         custom_domain_verified: formData.custom_domain_verified,
         custom_domain_requested_at: formData.custom_domain_requested_at,
         efi_pix_enabled: formData.efi_pix_enabled,
+        // Notificações WhatsApp
+        notification_phone: formData.notification_phone || null,
+        notification_country_code: formData.notification_country_code || '+55',
+        notify_new_orders: formData.notify_new_orders ?? true,
         // JSON com opções adicionais de funcionamento/entrega
         delivery_config: {
           send_whatsapp_copy: formData.send_whatsapp_copy,

@@ -204,6 +204,9 @@ verify_jwt = true
 [functions.send-master-notification]
 verify_jwt = false
 
+[functions.send-store-notification]
+verify_jwt = false
+
 [functions.send-daily-summary]
 verify_jwt = false
 

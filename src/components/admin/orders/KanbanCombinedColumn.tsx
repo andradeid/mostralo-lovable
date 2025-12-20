@@ -59,7 +59,7 @@ const KanbanSection = ({
             <div
               ref={provided.innerRef}
               {...provided.droppableProps}
-              className={`p-3 bg-muted/20 rounded-b-lg space-y-3 min-h-[60px] ${
+              className={`p-3 bg-muted/20 rounded-b-lg space-y-3 min-h-[120px] ${
                 snapshot.isDraggingOver ? 'bg-accent/50' : ''
               }`}
             >
@@ -101,7 +101,7 @@ const KanbanSection = ({
             <div
               ref={provided.innerRef}
               {...provided.droppableProps}
-              className={`p-3 bg-muted/20 rounded-b-lg space-y-3 min-h-[60px] ${
+              className={`p-3 bg-muted/20 rounded-b-lg space-y-3 min-h-[120px] ${
                 snapshot.isDraggingOver ? 'bg-accent/50' : ''
               }`}
             >

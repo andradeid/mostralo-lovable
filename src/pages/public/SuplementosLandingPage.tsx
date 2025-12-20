@@ -145,8 +145,7 @@ export default function SuplementosLandingPage() {
               <div className="relative max-w-md lg:max-w-lg">
                 <video 
                   src="/videos/suplementos-notificacao.mp4"
-                  autoPlay
-                  muted
+                  controls
                   loop
                   playsInline
                   className="w-full rounded-3xl shadow-2xl border-4 border-green-500/30"

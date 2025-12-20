@@ -88,20 +88,20 @@ serve(async (req) => {
 
     // Buscar instância WhatsApp da loja (se não veio do trigger)
     let instanceToUse = instance_name;
-    let instanceConnected = instance_status === 'open' || instance_status === 'connected';
+    let instanceConnected = instance_status === 'connected';
 
     if (!instanceToUse) {
       const { data: instance } = await supabase
         .from('whatsapp_instances')
         .select('instance_name, status')
         .eq('store_id', store_id)
-        .in('status', ['connected', 'open'])
+        .eq('status', 'connected')
         .limit(1)
         .single();
 
       if (instance) {
         instanceToUse = instance.instance_name;
-        instanceConnected = true; // Já filtramos por status connected/open
+        instanceConnected = true;
         console.log(`[send-store-notification] Usando instância da loja: ${instanceToUse}`);
       }
     }
@@ -116,7 +116,7 @@ serve(async (req) => {
         .limit(1)
         .single();
 
-      if (masterConfig && (masterConfig.instance_status === 'open' || masterConfig.instance_status === 'connected')) {
+      if (masterConfig && masterConfig.instance_status === 'connected') {
         instanceToUse = masterConfig.instance_name;
         instanceConnected = true;
         console.log('[send-store-notification] Usando instância master:', instanceToUse);

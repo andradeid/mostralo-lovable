@@ -681,7 +681,7 @@ function MessageConfigCard({
         <CardContent className="pt-0">
           <div className="space-y-3">
             <div className="flex flex-wrap gap-1">
-              {variablesList.slice(0, 6).map((v) => (
+              {variablesList.slice(0, 7).map((v) => (
                 <Button
                   key={v.key}
                   variant="ghost"

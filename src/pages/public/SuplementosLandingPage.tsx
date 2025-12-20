@@ -4,12 +4,13 @@ import {
   MessageCircle, Users, DollarSign, Zap, Clock, ShieldCheck,
   ChevronDown, Dumbbell, RefreshCw, Brain, Heart, Play, VolumeX
 } from 'lucide-react';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { DashboardFooter } from '@/components/admin/DashboardFooter';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Accordion,
   AccordionContent,
@@ -19,11 +20,34 @@ import {
 
 export default function SuplementosLandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [whatsappNumber, setWhatsappNumber] = useState('');
   
   const [isVideo2Playing, setIsVideo2Playing] = useState(false);
   const [isVideo3Playing, setIsVideo3Playing] = useState(false);
   const video2Ref = useRef<HTMLVideoElement>(null);
   const video3Ref = useRef<HTMLVideoElement>(null);
+  
+  // Buscar número do WhatsApp da instância master
+  useEffect(() => {
+    const fetchMasterWhatsApp = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('master_whatsapp_config')
+          .select('instance_phone')
+          .not('instance_phone', 'is', null)
+          .limit(1)
+          .single();
+        
+        if (data?.instance_phone && !error) {
+          setWhatsappNumber(data.instance_phone);
+        }
+      } catch (err) {
+        console.error('Erro ao buscar WhatsApp master:', err);
+      }
+    };
+    
+    fetchMasterWhatsApp();
+  }, []);
 
   const handlePlayVideo2WithSound = () => {
     if (video2Ref.current) {
@@ -49,7 +73,9 @@ export default function SuplementosLandingPage() {
   const faqRef = useScrollReveal();
   const ctaRef = useScrollReveal();
 
-  const whatsappLink = "https://wa.me/5500000000000?text=Olá! Quero uma simulação de economia para minha loja de suplementos";
+  const whatsappLink = whatsappNumber 
+    ? `https://wa.me/${whatsappNumber}?text=Olá! Quero uma simulação de economia para minha loja de suplementos`
+    : '#';
 
   return (
     <div className="min-h-screen bg-background">

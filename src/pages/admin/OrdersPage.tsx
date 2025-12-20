@@ -734,7 +734,7 @@ const OrdersPage = () => {
   return (
     <div className={`p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 ${pendingOrders.length > 0 ? 'animate-screen-flash' : ''}`}>
       {/* Header */}
-      <div className="flex flex-col gap-3 sm:gap-4">
+      <div className="flex flex-col gap-0">
         {/* Title Row */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap">

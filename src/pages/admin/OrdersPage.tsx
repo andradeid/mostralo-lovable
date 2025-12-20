@@ -792,62 +792,45 @@ const OrdersPage = () => {
 
   return (
     <div className={`p-2 sm:p-3 lg:p-4 space-y-2 sm:space-y-3 ${pendingOrders.length > 0 ? 'animate-screen-flash' : ''}`}>
-      {/* Header */}
-      <div className="flex flex-col gap-0">
-        {/* Title Row */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      {/* Header - Grid de 3 colunas */}
+      <div className="grid grid-cols-1 lg:grid-cols-[20%_60%_20%] gap-4 items-start">
+        {/* Coluna Esquerda - Título e Configurações */}
+        <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             <div className="min-w-0">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold truncate">Pedidos</h1>
-              <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Gerencie seus pedidos em tempo real</p>
+              <h1 className="text-xl sm:text-2xl lg:text-2xl font-bold truncate">Pedidos</h1>
+              <p className="text-xs text-muted-foreground hidden sm:block">Gerencie seus pedidos em tempo real</p>
             </div>
             {pendingOrders.length > 0 && (
               <Badge 
                 variant="destructive" 
-                className="animate-pulse text-sm sm:text-lg px-2 sm:px-3 py-0.5 sm:py-1 flex-shrink-0"
+                className="animate-pulse text-sm px-2 py-0.5 flex-shrink-0"
               >
-                <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                <AlertCircle className="h-3 w-3 mr-1" />
                 {pendingOrders.length} {pendingOrders.length === 1 ? 'Novo' : 'Novos'}
               </Badge>
             )}
           </div>
-        
-          {/* Botão Criar Pedido - Destaque */}
-          <Button 
-            onClick={() => setCreateOrderDialogOpen(true)} 
-            size="sm"
-            className="w-full sm:w-auto"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            <span className="sm:hidden">Novo</span>
-            <span className="hidden sm:inline">Criar Pedido</span>
-          </Button>
-        </div>
-        
-        {/* Botão Toggle Configurações + Tela Cheia + Badges Resumo */}
-        <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setConfigExpanded(!configExpanded)}
-              className="gap-2"
+              className="gap-1"
             >
               <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">Configurações</span>
+              <span className="hidden sm:inline">Config</span>
               {configExpanded ? (
                 <ChevronUp className="h-4 w-4" />
               ) : (
                 <ChevronDown className="h-4 w-4" />
               )}
             </Button>
-            
-            {/* Botão Tela Cheia */}
             <Button
               variant={isFullscreen ? "default" : "outline"}
               size="sm"
               onClick={toggleFullscreen}
-              className="gap-2"
+              className="gap-1"
               title={isFullscreen ? "Sair da tela cheia (Esc)" : "Modo tela cheia"}
             >
               {isFullscreen ? (
@@ -863,26 +846,47 @@ const OrdersPage = () => {
               )}
             </Button>
           </div>
-          
-          {/* Badges de resumo quando colapsado */}
+        </div>
+
+        {/* Coluna Central - Banner */}
+        <div className="flex items-center justify-center order-first lg:order-none">
+          <div className="w-full">
+            <SystemBanner position="orders_page" />
+          </div>
+        </div>
+
+        {/* Coluna Direita - Criar Pedido e Stats */}
+        <div className="flex flex-col items-start lg:items-end gap-2">
+          <Button 
+            onClick={() => setCreateOrderDialogOpen(true)} 
+            size="sm"
+            className="w-full sm:w-auto"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            <span className="sm:hidden">Novo</span>
+            <span className="hidden sm:inline">Criar Pedido</span>
+          </Button>
           {!configExpanded && (
-            <div className="flex items-center gap-2 flex-wrap">
-              <Badge variant="secondary" className="text-xs sm:text-sm">
+            <div className="flex items-center gap-2 flex-wrap justify-start lg:justify-end">
+              <Badge variant="secondary" className="text-xs">
                 📊 {todayOrders.length} pedidos • R$ {todayRevenue.toFixed(2)}
               </Badge>
               {soundEnabled && (
-                <Badge variant="outline" className="text-xs sm:text-sm">
+                <Badge variant="outline" className="text-xs">
                   🔊 Som ativo
                 </Badge>
               )}
               {permission === 'granted' && (
-                <Badge variant="outline" className="text-xs sm:text-sm">
-                  🔔 Notificações ativas
+                <Badge variant="outline" className="text-xs">
+                  🔔 Notificações
                 </Badge>
               )}
             </div>
           )}
         </div>
+      </div>
+      
+      <div className="flex flex-col gap-0">
         
         {/* Impressão em Lote - sempre visível */}
         {selectedOrderIds.size > 0 && (
@@ -1084,8 +1088,7 @@ const OrdersPage = () => {
         </div>
       )}
 
-      {/* Banner do Sistema - Master Admin */}
-      <SystemBanner position="orders_page" />
+      {/* Banner removido do header - agora está no grid de 3 colunas */}
 
       {/* Mensagem quando não há pedidos */}
       {orders.length === 0 && !isLoading && (

@@ -10,6 +10,10 @@ type Order = Database['public']['Tables']['orders']['Row'] & {
     full_name: string;
     avatar_url?: string;
   };
+  stores?: {
+    slug: string;
+    name: string;
+  };
 };
 
 type OrderStatus = Database['public']['Enums']['order_status'];
@@ -92,6 +96,10 @@ export const useOrderTracking = (orderId: string) => {
           profiles:assigned_driver_id (
             full_name,
             avatar_url
+          ),
+          stores:store_id (
+            slug,
+            name
           )
         `)
         .eq('id', orderId)

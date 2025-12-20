@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Clock, MessageCircle, QrCode, Package, Timer, Map, Bell, Phone } from "lucide-react";
+import { MapPin, Clock, MessageCircle, QrCode, Package, Timer, Map, Bell, Phone, AlertTriangle } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DeliveryZonesPicker, DeliveryZone } from "../DeliveryZonesPicker";
 import { MapLocationPicker } from "../MapLocationPicker";
@@ -14,6 +14,9 @@ import { BusinessHoursManager } from "../BusinessHoursManager";
 import { ScheduledOrdersManager } from "../ScheduledOrdersManager";
 import { NavigationAppSelector } from "@/components/admin/NavigationAppSelector";
 import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Link } from "react-router-dom";
+import { useWhatsAppStatus } from "@/hooks/useWhatsAppStatus";
 
 interface DeliveryStepProps {
   formData: any;
@@ -25,6 +28,9 @@ interface DeliveryStepProps {
 export function DeliveryStep({ formData, updateFormData, onSave, storeId }: DeliveryStepProps) {
   const [showZonesPicker, setShowZonesPicker] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
+  
+  // Verificar se existe instância WhatsApp conectada
+  const { hasConnectedWhatsApp } = useWhatsAppStatus(storeId);
   
   const weekDays = [
     { key: 'monday', label: 'Segunda-feira' },
@@ -514,25 +520,44 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId }: Deli
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-sm text-muted-foreground border-l-4 border-primary pl-3">
-          Configure para receber notificações no WhatsApp sempre que um novo pedido for criado. 
-          A mensagem será enviada automaticamente para o número configurado abaixo.
-        </p>
-        
-        <div className="flex items-center justify-between p-4 border rounded-lg bg-secondary/30">
-          <div className="space-y-1 flex-1 pr-4">
-            <Label className="text-base">Ativar notificações de novos pedidos</Label>
-            <p className="text-sm text-muted-foreground">
-              Receba uma mensagem no WhatsApp sempre que um cliente fizer um pedido
+        {!hasConnectedWhatsApp ? (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription className="flex flex-col gap-2">
+              <span>
+                Para receber notificações de novos pedidos, você precisa configurar uma instância WhatsApp primeiro.
+              </span>
+              <Link 
+                to="/dashboard/whatsapp" 
+                className="text-sm font-medium underline hover:no-underline"
+              >
+                Configurar WhatsApp →
+              </Link>
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <>
+            <p className="text-sm text-muted-foreground border-l-4 border-primary pl-3">
+              Configure para receber notificações no WhatsApp sempre que um novo pedido for criado. 
+              A mensagem será enviada automaticamente para o número configurado abaixo.
             </p>
-          </div>
-          <Switch 
-            checked={formData.notify_new_orders ?? true}
-            onCheckedChange={(checked) => updateFormData({ notify_new_orders: checked })}
-          />
-        </div>
+            
+            <div className="flex items-center justify-between p-4 border rounded-lg bg-secondary/30">
+              <div className="space-y-1 flex-1 pr-4">
+                <Label className="text-base">Ativar notificações de novos pedidos</Label>
+                <p className="text-sm text-muted-foreground">
+                  Receba uma mensagem no WhatsApp sempre que um cliente fizer um pedido
+                </p>
+              </div>
+              <Switch 
+                checked={formData.notify_new_orders ?? false}
+                onCheckedChange={(checked) => updateFormData({ notify_new_orders: checked })}
+              />
+            </div>
+          </>
+        )}
 
-        {formData.notify_new_orders !== false && (
+        {hasConnectedWhatsApp && formData.notify_new_orders && (
           <div className="space-y-4 border-l-4 border-primary pl-4 mt-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="md:col-span-1">

@@ -19,6 +19,7 @@ import {
   DollarSign, Percent, Timer, Eye, MousePointer, Tag, Menu, X,
   Copy, Check, FileText
 } from 'lucide-react';
+import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
 
 const LojistasLocaisPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -1751,6 +1752,8 @@ WhatsApp: 5561994009368
           </div>
         </footer>
       </main>
+
+      <WhatsAppLeadButton />
     </div>
   );
 };

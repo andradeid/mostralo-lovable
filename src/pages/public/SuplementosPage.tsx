@@ -8,6 +8,7 @@ import {
   Globe, Percent, Calendar, Gift, Camera, Share2, Dumbbell, Timer,
   Flame, Apple, Award, Sparkles, Trophy, RefreshCw, Bell, Truck
 } from 'lucide-react';
+import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -1805,6 +1806,8 @@ Site: mostralo.com.br`;
         {/* Footer */}
         <DashboardFooter />
       </main>
+
+      <WhatsAppLeadButton />
     </div>
   );
 }

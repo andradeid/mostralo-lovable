@@ -7,6 +7,7 @@ import {
   Building2, Percent, Clock, Heart, Star, Zap, Target, Award,
   ArrowRight, ShoppingBag, Truck, Bell, Calendar, DollarSign
 } from 'lucide-react';
+import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
@@ -1828,6 +1829,8 @@ Fontes: ABRAS 2025, NielsenIQ 2024, IBGE 2024, MDIC 2024, Kantar 2024, SA Mais V
           onClick={() => setSidebarOpen(false)}
         />
       )}
+
+      <WhatsAppLeadButton />
     </div>
   );
 }

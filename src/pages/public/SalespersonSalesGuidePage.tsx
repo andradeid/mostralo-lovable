@@ -9,6 +9,7 @@ import {
   Trophy, Crown, Gem, Medal, UserPlus, CreditCard, Calendar,
   TrendingDown, AlertTriangle, Lightbulb, Quote, ExternalLink, Copy, Check
 } from "lucide-react";
+import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -1485,6 +1486,8 @@ Site: mostralo.com.br/seja-vendedor`;
         {/* Footer */}
         <DashboardFooter />
       </main>
+
+      <WhatsAppLeadButton />
     </div>
   );
 };

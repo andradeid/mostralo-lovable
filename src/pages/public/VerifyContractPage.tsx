@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CheckCircle2, XCircle, Shield, Home, Loader2, Store } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
 
 interface ContractVerification {
   id: string;
@@ -235,6 +236,8 @@ export default function VerifyContractPage() {
           firmados eletronicamente através da plataforma Mostralo.
         </p>
       </div>
+
+      <WhatsAppLeadButton />
     </div>
   );
 }

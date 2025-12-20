@@ -39,6 +39,7 @@ import {
   Utensils,
   Menu
 } from 'lucide-react';
+import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
 
 const AcouguesPage = () => {
   const [monthlyRevenue, setMonthlyRevenue] = useState([150000]);
@@ -1474,6 +1475,8 @@ Site: mostralo.com.br
           </p>
         </div>
       </footer>
+
+      <WhatsAppLeadButton />
     </div>
   );
 };

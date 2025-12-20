@@ -13,6 +13,7 @@ type Order = Database['public']['Tables']['orders']['Row'] & {
   stores?: {
     slug: string;
     name: string;
+    logo_url?: string;
   };
 };
 
@@ -99,7 +100,8 @@ export const useOrderTracking = (orderId: string) => {
           ),
           stores:store_id (
             slug,
-            name
+            name,
+            logo_url
           )
         `)
         .eq('id', orderId)

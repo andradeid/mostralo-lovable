@@ -877,6 +877,24 @@ const SignUp = () => {
         console.error('Erro ao enviar notificação master:', notifyError);
       }
 
+      // 10. Enviar boas-vindas WhatsApp para o lojista
+      try {
+        await supabase.functions.invoke('send-welcome-message', {
+          body: {
+            type: 'store_owner',
+            name: formData.fullName,
+            phone: formData.phone,
+            extra_data: {
+              store_name: formData.companyName,
+              slug: storeData.slug,
+            },
+          },
+        });
+        console.log('✅ Boas-vindas WhatsApp enviada para lojista');
+      } catch (welcomeError) {
+        console.error('Erro ao enviar boas-vindas:', welcomeError);
+      }
+
       // 10. Redirecionar para página de comprovante
       // 🧹 Limpar código de referência após cadastro bem-sucedido
       localStorage.removeItem('mostralo_referral_code');

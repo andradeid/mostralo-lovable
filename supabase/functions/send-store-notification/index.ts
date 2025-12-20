@@ -176,18 +176,36 @@ serve(async (req) => {
       ? (delivery_address || customer_address || 'Não informado')
       : 'Retirada no local';
 
-    // Gerar link do Google Maps
-    const generateGoogleMapsLink = (): string => {
-      // Prioridade: coordenadas do cliente > endereço de entrega
+    // Gerar link de navegação (página Mostralo com escolha Google Maps/Waze)
+    const generateNavigationLink = (): string => {
+      // Se tem coordenadas, usar a página /navegar do Mostralo
       if (data.customer_latitude && data.customer_longitude) {
-        return `https://www.google.com/maps/search/?api=1&query=${data.customer_latitude},${data.customer_longitude}`;
+        const baseUrl = 'https://mostralo-lovable.lovable.app/navegar';
+        const params = new URLSearchParams();
+        params.set('lat', String(data.customer_latitude));
+        params.set('lng', String(data.customer_longitude));
+        
+        // Adicionar slug da loja se disponível
+        if (data.store_slug) {
+          params.set('store', data.store_slug);
+        }
+        
+        // Adicionar endereço se disponível
+        if (addressToShow && addressToShow !== 'Não informado' && addressToShow !== 'Retirada no local') {
+          params.set('address', addressToShow);
+        }
+        
+        return `${baseUrl}?${params.toString()}`;
       }
+      
+      // Fallback: se não tem coordenadas mas tem endereço, usar Google Maps direto
       if (delivery_type === 'delivery' && addressToShow !== 'Não informado') {
         return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressToShow)}`;
       }
+      
       return '';
     };
-    const googleMapsLink = generateGoogleMapsLink();
+    const googleMapsLink = generateNavigationLink();
 
     // Formatar valores monetários
     const formatCurrency = (value: number | string | undefined | null): string => {

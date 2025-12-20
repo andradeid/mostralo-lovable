@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    if (masterConfig.instance_status !== 'open') {
+    if (masterConfig.instance_status !== 'open' && masterConfig.instance_status !== 'connected') {
       console.warn('⚠️ Instância master não está conectada');
       return new Response(
         JSON.stringify({ error: 'Instância master não conectada', status: masterConfig.instance_status }),

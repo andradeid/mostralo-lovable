@@ -9,11 +9,46 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Eye, EyeOff, Megaphone, Calendar, Code } from "lucide-react";
+import { Plus, Pencil, Trash2, Eye, EyeOff, Megaphone, Calendar, Code, HelpCircle, ChevronDown, Copy, Check } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+
+const HTML_EXAMPLES = [
+  {
+    name: "Banner Informativo (Azul)",
+    html: `<div style="background: #3b82f6; padding: 16px; border-radius: 8px; color: white; text-align: center;">
+  <strong>ℹ️ Informação:</strong> Atualizamos nosso sistema. Confira as novidades!
+</div>`
+  },
+  {
+    name: "Banner Promocional (Gradiente)",
+    html: `<div style="background: linear-gradient(90deg, #f97316, #ea580c); padding: 16px; border-radius: 8px; color: white; text-align: center;">
+  <strong>🎉 Promoção!</strong> 20% de desconto em todos os produtos até sexta-feira!
+</div>`
+  },
+  {
+    name: "Banner de Alerta (Amarelo)",
+    html: `<div style="background: #fef3c7; border: 1px solid #f59e0b; padding: 16px; border-radius: 8px; color: #92400e; text-align: center;">
+  <strong>⚠️ Atenção:</strong> Manutenção programada para amanhã das 2h às 4h.
+</div>`
+  },
+  {
+    name: "Banner de Sucesso (Verde)",
+    html: `<div style="background: #10b981; padding: 16px; border-radius: 8px; color: white; text-align: center;">
+  <strong>✅ Novidade!</strong> Nova funcionalidade de relatórios disponível no menu.
+</div>`
+  },
+  {
+    name: "Banner com Link/Botão",
+    html: `<div style="background: linear-gradient(90deg, #6366f1, #8b5cf6); padding: 16px; border-radius: 8px; color: white; text-align: center;">
+  <strong>🚀 Novo recurso!</strong> Agora você pode exportar relatórios em PDF.
+  <a href="#" style="color: white; text-decoration: underline; margin-left: 8px;">Saiba mais</a>
+</div>`
+  },
+];
 
 interface SystemBanner {
   id: string;
@@ -40,6 +75,8 @@ const SystemBannersPage = () => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [editingBanner, setEditingBanner] = useState<SystemBanner | null>(null);
   const [previewHtml, setPreviewHtml] = useState("");
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   
   // Form state
   const [title, setTitle] = useState("");
@@ -50,6 +87,13 @@ const SystemBannersPage = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const handleCopyExample = async (html: string, index: number) => {
+    await navigator.clipboard.writeText(html);
+    setCopiedIndex(index);
+    toast.success("HTML copiado!");
+    setTimeout(() => setCopiedIndex(null), 2000);
+  };
 
   const fetchBanners = async () => {
     setLoading(true);
@@ -208,6 +252,72 @@ const SystemBannersPage = () => {
             Novo Banner
           </Button>
         </div>
+
+        {/* Seção de Ajuda */}
+        <Collapsible open={helpOpen} onOpenChange={setHelpOpen}>
+          <Card>
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <HelpCircle className="h-5 w-5 text-primary" />
+                    <CardTitle className="text-base">Como criar banners HTML</CardTitle>
+                  </div>
+                  <ChevronDown className={`h-5 w-5 transition-transform ${helpOpen ? "rotate-180" : ""}`} />
+                </div>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="pt-0 space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Use HTML com CSS inline para criar banners. Copie um dos exemplos abaixo e personalize:
+                </p>
+                
+                <div className="space-y-3">
+                  {HTML_EXAMPLES.map((example, index) => (
+                    <div key={index} className="border rounded-lg overflow-hidden">
+                      <div className="flex items-center justify-between p-3 bg-muted/30">
+                        <span className="font-medium text-sm">{example.name}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleCopyExample(example.html, index)}
+                          className="h-8"
+                        >
+                          {copiedIndex === index ? (
+                            <>
+                              <Check className="h-4 w-4 mr-1 text-green-500" />
+                              Copiado
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="h-4 w-4 mr-1" />
+                              Copiar
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                      <div 
+                        className="p-3 border-t"
+                        dangerouslySetInnerHTML={{ __html: example.html }}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm">
+                  <strong className="text-amber-700 dark:text-amber-400">⚠️ Dicas importantes:</strong>
+                  <ul className="mt-2 space-y-1 text-amber-600 dark:text-amber-300 list-disc list-inside">
+                    <li>Use sempre CSS inline (style="...") em vez de tags &lt;style&gt;</li>
+                    <li>Emojis chamam atenção! Use moderadamente</li>
+                    <li>Scripts são removidos por segurança</li>
+                    <li>Teste o preview antes de salvar</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
 
         {/* Lista de Banners */}
         {loading ? (

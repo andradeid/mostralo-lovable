@@ -146,6 +146,16 @@ function getSmartGreetingTemplate(
   }
 }
 
+// Formatar itens do pedido para exibição
+function formatOrderItems(items: any[]): string {
+  if (!items || items.length === 0) return '';
+  
+  return items.map(item => {
+    const subtotal = (item.subtotal || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+    return `• ${item.quantity}x ${item.product_name} (R$ ${subtotal})`;
+  }).join('\n');
+}
+
 // Substituir variáveis na mensagem
 function replaceVariables(template: string, data: {
   customerName?: string;
@@ -165,6 +175,7 @@ function replaceVariables(template: string, data: {
   daysSinceOrder?: number | null;
   totalOrders?: number;
   totalSpent?: number;
+  orderItems?: string;
 }): string {
   let message = template;
   
@@ -195,6 +206,7 @@ function replaceVariables(template: string, data: {
   message = message.replace(/{link_loja}/g, storeLink);
   message = message.replace(/{numero_pedido}/g, data.orderNumber || '');
   message = message.replace(/{valor_total}/g, formattedTotal);
+  message = message.replace(/{itens_pedido}/g, data.orderItems || '');
   message = message.replace(/{endereco_entrega}/g, data.deliveryAddress || '');
   message = message.replace(/{tipo_entrega}/g, data.deliveryType === 'delivery' ? 'Delivery' : 'Retirada no Balcão');
   message = message.replace(/{link_pedido}/g, orderLink);
@@ -307,6 +319,8 @@ serve(async (req) => {
 
     // Buscar dados do pedido se necessário
     let orderData: any = null;
+    let orderItemsFormatted = '';
+    
     if (orderId) {
       const { data: order } = await supabase
         .from('orders')
@@ -315,6 +329,15 @@ serve(async (req) => {
         .single();
       
       orderData = order;
+      
+      // Buscar itens do pedido
+      const { data: orderItems } = await supabase
+        .from('order_items')
+        .select('product_name, quantity, unit_price, subtotal')
+        .eq('order_id', orderId);
+      
+      orderItemsFormatted = formatOrderItems(orderItems || []);
+      console.log(`[whatsapp-auto-send] Itens do pedido: ${orderItems?.length || 0} itens`);
     }
 
     // ========== LÓGICA DE SAUDAÇÃO INTELIGENTE ==========
@@ -349,7 +372,8 @@ serve(async (req) => {
           greeting: greeting,
           daysSinceOrder: classification.daysSinceOrder,
           totalOrders: classification.totalOrders,
-          totalSpent: classification.totalSpent
+          totalSpent: classification.totalSpent,
+          orderItems: orderItemsFormatted
         });
       } else {
         // Usar template inteligente baseado no tipo de cliente E status da loja
@@ -374,7 +398,8 @@ serve(async (req) => {
           greeting: greeting,
           daysSinceOrder: classification.daysSinceOrder,
           totalOrders: classification.totalOrders,
-          totalSpent: classification.totalSpent
+          totalSpent: classification.totalSpent,
+          orderItems: orderItemsFormatted
         });
       }
     } else {
@@ -396,7 +421,8 @@ serve(async (req) => {
         greeting: greeting,
         daysSinceOrder: classification.daysSinceOrder,
         totalOrders: classification.totalOrders,
-        totalSpent: classification.totalSpent
+        totalSpent: classification.totalSpent,
+        orderItems: orderItemsFormatted
       });
     }
 

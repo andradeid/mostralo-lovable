@@ -229,31 +229,33 @@ export function WhatsAppLinkConfigCard({ configId, instancePhone }: Props) {
         <div className="space-y-4">
           <Label className="text-base">Mensagens por Página</Label>
           
-          {NICHOS.map((nicho) => (
-            <div key={nicho.key} className="space-y-2 p-4 rounded-lg border bg-card">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {nicho.icon}
-                  <span className="font-medium">{nicho.label}</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {NICHOS.map((nicho) => (
+              <div key={nicho.key} className="space-y-2 p-4 rounded-lg border bg-card h-full flex flex-col">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {nicho.icon}
+                    <span className="font-medium text-sm">{nicho.label}</span>
+                  </div>
+                  <a 
+                    href={getPreviewLink(nicho.key)} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-xs text-primary hover:underline flex items-center gap-1"
+                  >
+                    Testar <ExternalLink className="h-3 w-3" />
+                  </a>
                 </div>
-                <a 
-                  href={getPreviewLink(nicho.key)} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-xs text-primary hover:underline flex items-center gap-1"
-                >
-                  Testar <ExternalLink className="h-3 w-3" />
-                </a>
+                <p className="text-xs text-muted-foreground">{nicho.description}</p>
+                <Textarea
+                  placeholder={DEFAULT_MESSAGES[nicho.key] || DEFAULT_MESSAGES.default}
+                  value={messages[nicho.key] || ''}
+                  onChange={(e) => updateMessage(nicho.key, e.target.value)}
+                  className="min-h-[80px] text-sm flex-1"
+                />
               </div>
-              <p className="text-xs text-muted-foreground">{nicho.description}</p>
-              <Textarea
-                placeholder={DEFAULT_MESSAGES[nicho.key] || DEFAULT_MESSAGES.default}
-                value={messages[nicho.key] || ''}
-                onChange={(e) => updateMessage(nicho.key, e.target.value)}
-                className="min-h-[60px] text-sm"
-              />
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         <Button onClick={handleSave} disabled={saving} className="w-full">

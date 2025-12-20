@@ -177,28 +177,15 @@ export default function IFoodIntegrationPage() {
         </div>
       </div>
 
-      {/* Banner de Homologação */}
+      {/* Banner Em Breve */}
       <Alert className="border-amber-300 bg-amber-50 dark:bg-amber-950/50 dark:border-amber-700">
         <AlertCircle className="h-4 w-4 text-amber-600" />
         <AlertDescription className="text-amber-900 dark:text-amber-100">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <div>
-              <strong className="text-amber-700 dark:text-amber-300">🚧 Em Fase de Homologação</strong>
-              <p className="text-sm mt-1">
-                Esta integração está sendo homologada junto ao iFood. 
-                Algumas funcionalidades podem estar em fase de testes.
-              </p>
-            </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="border-amber-400 text-amber-700 hover:bg-amber-100 dark:border-amber-600 dark:text-amber-300 dark:hover:bg-amber-900/50 shrink-0"
-              onClick={() => window.location.href = '/admin/ifood-homologation'}
-            >
-              Ver Progresso
-              <ExternalLink className="h-3 w-3 ml-1" />
-            </Button>
-          </div>
+          <strong className="text-amber-700 dark:text-amber-300">🔜 Em Breve: Integração iFood</strong>
+          <p className="text-sm mt-1">
+            Estamos trabalhando para trazer a integração completa com o iFood. 
+            Acompanhe as novidades pelo painel.
+          </p>
         </AlertDescription>
       </Alert>
 

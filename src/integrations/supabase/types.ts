@@ -4956,8 +4956,11 @@ export type Database = {
           longitude: number | null
           min_order_value: number | null
           name: string
+          new_order_message_template: string | null
           notification_country_code: string | null
+          notification_country_code_2: string | null
           notification_phone: string | null
+          notification_phone_2: string | null
           notify_new_orders: boolean | null
           online_payment_commission: number | null
           openai_api_key: string | null
@@ -5021,8 +5024,11 @@ export type Database = {
           longitude?: number | null
           min_order_value?: number | null
           name: string
+          new_order_message_template?: string | null
           notification_country_code?: string | null
+          notification_country_code_2?: string | null
           notification_phone?: string | null
+          notification_phone_2?: string | null
           notify_new_orders?: boolean | null
           online_payment_commission?: number | null
           openai_api_key?: string | null
@@ -5086,8 +5092,11 @@ export type Database = {
           longitude?: number | null
           min_order_value?: number | null
           name?: string
+          new_order_message_template?: string | null
           notification_country_code?: string | null
+          notification_country_code_2?: string | null
           notification_phone?: string | null
+          notification_phone_2?: string | null
           notify_new_orders?: boolean | null
           online_payment_commission?: number | null
           openai_api_key?: string | null

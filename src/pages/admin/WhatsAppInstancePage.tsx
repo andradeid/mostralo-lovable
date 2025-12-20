@@ -29,7 +29,9 @@ import {
   History,
   HelpCircle,
   ArrowRight,
-  Bot
+  Bot,
+  Users,
+  Pause
 } from "lucide-react";
 import {
   Accordion,
@@ -148,14 +150,38 @@ export default function WhatsAppInstancePage() {
   const [logsLoading, setLogsLoading] = useState(false);
   const [showAllLogs, setShowAllLogs] = useState(false);
 
+  // Estados para estatísticas da instância
+  const [contactsCount, setContactsCount] = useState<number>(0);
+  const [messagesCount, setMessagesCount] = useState<number>(0);
+  const [pausedSessionsCount, setPausedSessionsCount] = useState<number>(0);
+
   useEffect(() => {
     if (storeId) {
       fetchInstance();
       fetchTemplates();
       fetchStoreInfo();
       fetchMessageLogs();
+      fetchInstanceStats();
     }
   }, [storeId]);
+
+  const fetchInstanceStats = async () => {
+    if (!storeId) return;
+    
+    try {
+      const [contactsRes, messagesRes, pausedRes] = await Promise.all([
+        supabase.from('whatsapp_contacts' as any).select('id', { count: 'exact', head: true }).eq('store_id', storeId),
+        supabase.from('whatsapp_messages' as any).select('id', { count: 'exact', head: true }).eq('store_id', storeId),
+        supabase.from('whatsapp_paused_contacts' as any).select('id', { count: 'exact', head: true }).eq('store_id', storeId).eq('status', 'paused'),
+      ]);
+      
+      setContactsCount(contactsRes.count || 0);
+      setMessagesCount(messagesRes.count || 0);
+      setPausedSessionsCount(pausedRes.count || 0);
+    } catch (error) {
+      console.error('Erro ao buscar estatísticas:', error);
+    }
+  };
 
   useEffect(() => {
     if (storeId && showAllLogs) {
@@ -695,6 +721,27 @@ export default function WhatsAppInstancePage() {
                     )}
                   </div>
                 </div>
+
+                {/* Estatísticas da Instância - quando conectado */}
+                {instance.status === 'connected' && (
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="text-center p-3 bg-background rounded-lg border">
+                      <Users className="h-5 w-5 mx-auto mb-1 text-blue-500" />
+                      <div className="text-2xl font-bold">{contactsCount}</div>
+                      <div className="text-xs text-muted-foreground">Contatos</div>
+                    </div>
+                    <div className="text-center p-3 bg-background rounded-lg border">
+                      <MessageSquare className="h-5 w-5 mx-auto mb-1 text-green-500" />
+                      <div className="text-2xl font-bold">{messagesCount}</div>
+                      <div className="text-xs text-muted-foreground">Mensagens</div>
+                    </div>
+                    <div className="text-center p-3 bg-background rounded-lg border">
+                      <Pause className="h-5 w-5 mx-auto mb-1 text-orange-500" />
+                      <div className="text-2xl font-bold">{pausedSessionsCount}</div>
+                      <div className="text-xs text-muted-foreground">Pausadas</div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex flex-wrap gap-2">
                   {instance.status !== 'connected' && (

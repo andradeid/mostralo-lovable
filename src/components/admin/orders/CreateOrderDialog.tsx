@@ -220,6 +220,32 @@ export function CreateOrderDialog({ open, onOpenChange, onSuccess }: CreateOrder
       toast.success('Pedido criado com sucesso!', {
         description: `Número do pedido: #${order.order_number}`,
       });
+
+      // Enviar notificação WhatsApp para o lojista
+      console.log('[manual-order] Enviando notificação para lojista...');
+      supabase.functions.invoke('send-store-notification', {
+        body: {
+          store_id: validatedStoreId,
+          order_id: order.id,
+          order_number: order.order_number,
+          customer_name: selectedCustomer.name,
+          customer_phone: selectedCustomer.phone,
+          customer_address: deliveryType === 'delivery' ? selectedCustomer.address : null,
+          customer_latitude: selectedCustomer.latitude || null,
+          customer_longitude: selectedCustomer.longitude || null,
+          total: total,
+          subtotal: subtotal,
+          delivery_fee: finalDeliveryFee,
+          delivery_type: deliveryType,
+          payment_method: paymentMethod,
+          notes: orderNotes || null,
+          created_at: order.created_at
+        }
+      }).then(res => {
+        console.log('[manual-order] Notificação lojista enviada:', res);
+      }).catch(err => {
+        console.error('[manual-order] Erro ao notificar lojista:', err);
+      });
       
       // Reset e fechar
       resetForm();

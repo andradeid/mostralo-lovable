@@ -688,34 +688,8 @@ export const CheckoutDialog = ({
         }).catch(err => console.log('📱 WhatsApp cliente error:', err));
       }
 
-      // Enviar notificação WhatsApp de novo pedido para o LOJISTA (COM AWAIT para garantir envio antes do redirect)
-      if (order) {
-        console.log('[checkout] 🔔 Enviando notificação para lojista...');
-        try {
-          const notifyResult = await supabase.functions.invoke('send-store-notification', {
-            body: {
-              store_id: storeId,
-              order_id: order.id,
-              order_number: order.order_number,
-              customer_name: customerName,
-              customer_phone: normalizedPhone,
-              customer_address: deliveryType === 'delivery' ? customerAddress : null,
-              customer_latitude: latitude,
-              customer_longitude: longitude,
-              total: order.total,
-              subtotal: order.subtotal,
-              delivery_fee: order.delivery_fee,
-              delivery_type: deliveryType,
-              payment_method: paymentMethod,
-              notes: finalNotes || null,
-              created_at: order.created_at
-            }
-          });
-          console.log('[checkout] ✅ Notificação lojista enviada com sucesso:', notifyResult);
-        } catch (notifyErr) {
-          console.error('[checkout] ❌ Erro ao notificar lojista:', notifyErr);
-        }
-      }
+      // ✅ Notificação para o lojista é enviada automaticamente pelo trigger do banco (notify_store_new_order)
+      // Não chamar aqui para evitar duplicação
 
       toast.success('Pedido realizado com sucesso!', {
         description: `Número do pedido: ${order.order_number}`,

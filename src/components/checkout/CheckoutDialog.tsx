@@ -673,7 +673,7 @@ export const CheckoutDialog = ({
       };
       localStorage.setItem(`customer_${storeId}`, JSON.stringify(profile));
 
-      // Enviar notificação WhatsApp de pedido recebido (se configurado)
+      // Enviar notificação WhatsApp de pedido recebido para o CLIENTE (se configurado)
       if (order && normalizedPhone) {
         supabase.functions.invoke('whatsapp-auto-send', {
           body: {
@@ -684,7 +684,35 @@ export const CheckoutDialog = ({
             orderId: order.id,
             baseUrl: window.location.origin
           }
-        }).catch(err => console.log('📱 WhatsApp notification error:', err));
+        }).catch(err => console.log('📱 WhatsApp cliente error:', err));
+      }
+
+      // Enviar notificação WhatsApp de novo pedido para o LOJISTA (igual padrão do cliente)
+      if (order) {
+        console.log('[checkout] Enviando notificação para lojista...');
+        supabase.functions.invoke('send-store-notification', {
+          body: {
+            store_id: storeId,
+            order_id: order.id,
+            order_number: order.order_number,
+            customer_name: customerName,
+            customer_phone: normalizedPhone,
+            customer_address: deliveryType === 'delivery' ? customerAddress : null,
+            customer_latitude: latitude,
+            customer_longitude: longitude,
+            total: order.total,
+            subtotal: order.subtotal,
+            delivery_fee: order.delivery_fee,
+            delivery_type: deliveryType,
+            payment_method: paymentMethod,
+            notes: finalNotes || null,
+            created_at: order.created_at
+          }
+        }).then(res => {
+          console.log('[checkout] Notificação lojista enviada:', res);
+        }).catch(err => {
+          console.error('[checkout] Erro ao notificar lojista:', err);
+        });
       }
 
       toast.success('Pedido realizado com sucesso!', {

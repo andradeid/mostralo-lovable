@@ -20,24 +20,16 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Extrair dados do payload
     const {
       store_id,
       order_id,
-      store_name,
-      notification_phone,
-      notification_country_code,
-      notification_phone_2,
-      notification_country_code_2,
-      new_order_message_template,
-      instance_phone,
-      instance_name,
-      instance_status,
-      store_whatsapp,
-      store_phone,
       order_number,
       customer_name,
       customer_phone,
       customer_address,
+      customer_latitude,
+      customer_longitude,
       delivery_address,
       total,
       subtotal,
@@ -48,6 +40,68 @@ serve(async (req) => {
       created_at,
       is_test
     } = data;
+
+    // Buscar dados da loja (notificação, template, etc.) - SEMPRE buscar para garantir dados atualizados
+    console.log('[send-store-notification] Buscando dados da loja:', store_id);
+    
+    const { data: storeData, error: storeError } = await supabase
+      .from('stores')
+      .select(`
+        id,
+        name,
+        slug,
+        notification_phone,
+        notification_country_code,
+        notification_phone_2,
+        notification_country_code_2,
+        new_order_message_template,
+        notify_new_orders,
+        whatsapp,
+        phone
+      `)
+      .eq('id', store_id)
+      .single();
+
+    if (storeError || !storeData) {
+      console.error('[send-store-notification] Loja não encontrada:', storeError);
+      return new Response(JSON.stringify({ success: false, reason: 'store_not_found' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    console.log('[send-store-notification] Dados da loja:', JSON.stringify(storeData, null, 2));
+
+    // Verificar se notificações estão ativas
+    if (storeData.notify_new_orders === false) {
+      console.log('[send-store-notification] Notificações desativadas para esta loja');
+      return new Response(JSON.stringify({ success: false, reason: 'notifications_disabled' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Usar dados da loja
+    const store_name = storeData.name;
+    const store_slug = storeData.slug;
+    const notification_phone = storeData.notification_phone;
+    const notification_country_code = storeData.notification_country_code;
+    const notification_phone_2 = storeData.notification_phone_2;
+    const notification_country_code_2 = storeData.notification_country_code_2;
+    const new_order_message_template = storeData.new_order_message_template;
+    const store_whatsapp = storeData.whatsapp;
+    const store_phone = storeData.phone;
+
+    // Buscar instância WhatsApp da loja
+    const { data: instanceData } = await supabase
+      .from('whatsapp_instances')
+      .select('instance_name, phone_number, status')
+      .eq('store_id', store_id)
+      .eq('status', 'connected')
+      .limit(1)
+      .single();
+
+    const instance_phone = instanceData?.phone_number;
+    const instance_name = instanceData?.instance_name;
+    const instance_status = instanceData?.status;
 
     // Lista de números para enviar (pode ter até 2)
     const phoneNumbers: Array<{ phone: string; countryCode: string }> = [];
@@ -180,15 +234,15 @@ serve(async (req) => {
     // Gerar link de navegação (página Mostralo com escolha Google Maps/Waze)
     const generateNavigationLink = (): string => {
       // Se tem coordenadas, usar a página /navegar do Mostralo
-      if (data.customer_latitude && data.customer_longitude) {
+      if (customer_latitude && customer_longitude) {
         const baseUrl = 'https://mostralo-lovable.lovable.app/navegar';
         const params = new URLSearchParams();
-        params.set('lat', String(data.customer_latitude));
-        params.set('lng', String(data.customer_longitude));
+        params.set('lat', String(customer_latitude));
+        params.set('lng', String(customer_longitude));
         
         // Adicionar slug da loja se disponível
-        if (data.store_slug) {
-          params.set('store', data.store_slug);
+        if (store_slug) {
+          params.set('store', store_slug);
         }
         
         // Adicionar endereço se disponível

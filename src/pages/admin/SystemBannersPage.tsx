@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { AdminLayout } from "@/components/admin/AdminLayout";
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -235,8 +235,7 @@ const SystemBannersPage = () => {
   };
 
   return (
-    <AdminLayout pageTitle="Banners do Sistema">
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Botão Novo Banner */}
         <div className="flex justify-end">
           <Button onClick={handleOpenCreate}>
@@ -581,8 +580,7 @@ const SystemBannersPage = () => {
             />
           </DialogContent>
         </Dialog>
-      </div>
-    </AdminLayout>
+    </div>
   );
 };
 

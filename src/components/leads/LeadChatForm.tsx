@@ -275,16 +275,30 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
     // Validação especial para telefone - verificar no WhatsApp
     if (currentStep === 'phone') {
       setIsTyping(true);
+      setIsValidatingPhone(true);
       
-      // Mostrar mensagem de verificação
-      setTimeout(() => {
+      // Função helper para mostrar mensagens em sequência
+      const showValidationMessages = async () => {
+        // Mensagem 1 - após 800ms
+        await new Promise(resolve => setTimeout(resolve, 800));
         setIsTyping(false);
-        addBotMessage('⏳ Aguarde, estou verificando seu WhatsApp...');
-        setIsValidatingPhone(true);
-      }, 500);
+        addBotMessage('⏳ Um momento, estou verificando seu WhatsApp...');
+        
+        // Mensagem 2 - após 1.5s
+        setIsTyping(true);
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        setIsTyping(false);
+        addBotMessage('🔍 Conectando com o WhatsApp...');
+        
+        // Mensagem 3 - após 1.5s
+        setIsTyping(true);
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        setIsTyping(false);
+        addBotMessage('📱 Quase lá, validando o número...');
+      };
 
-      // Chamar edge function para validar
-      try {
+      // Chamar edge function para validar em paralelo com as mensagens
+      const validatePhone = async () => {
         const phoneToValidate = updatedData.phone;
         console.log('[LeadChatForm] Validando telefone:', phoneToValidate);
         
@@ -297,41 +311,58 @@ export function LeadChatForm({ onComplete, onClose }: LeadChatFormProps) {
         });
 
         console.log('[LeadChatForm] Resposta validação:', data, error);
+        return { data, error };
+      };
+
+      try {
+        // Executar mensagens e validação em paralelo
+        const [, validationResult] = await Promise.all([
+          showValidationMessages(),
+          validatePhone()
+        ]);
+
+        const { data, error } = validationResult;
 
         if (error || !data?.valid) {
-          // Número inválido - pedir novamente
+          // Número inválido - mostrar mensagens de erro em sequência
           setIsTyping(true);
-          setTimeout(() => {
-            setIsTyping(false);
-            addBotMessage('❌ Não encontrei esse número no WhatsApp. Pode verificar e digitar novamente?');
-            setIsValidatingPhone(false);
-            // Voltar o dado para vazio para permitir nova tentativa
-            setLeadData(prev => ({ ...prev, phone: '' }));
-          }, 600);
+          await new Promise(resolve => setTimeout(resolve, 1200));
+          setIsTyping(false);
+          addBotMessage('❌ Hmm, parece que esse número não está no WhatsApp...');
+          
+          setIsTyping(true);
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          setIsTyping(false);
+          addBotMessage('📲 Pode verificar se digitou corretamente? O número precisa ter WhatsApp ativo para continuarmos!');
+          
+          setIsValidatingPhone(false);
+          // Voltar o dado para vazio para permitir nova tentativa
+          setLeadData(prev => ({ ...prev, phone: '' }));
           return;
         }
 
-        // Número válido - continuar
+        // Número válido - mostrar mensagens de sucesso em sequência
         setIsTyping(true);
-        setTimeout(() => {
+        await new Promise(resolve => setTimeout(resolve, 1200));
+        setIsTyping(false);
+        addBotMessage('✅ Perfeito! Encontrei seu WhatsApp!');
+        
+        if (data?.welcomeSent) {
+          setIsTyping(true);
+          await new Promise(resolve => setTimeout(resolve, 1500));
           setIsTyping(false);
-          const welcomeMsg = data?.welcomeSent 
-            ? '✅ WhatsApp verificado! Acabei de te mandar uma mensagem lá 😉'
-            : '✅ WhatsApp verificado!';
-          addBotMessage(welcomeMsg);
-          
-          // Avançar para próximo passo
-          setTimeout(() => {
-            const nextStep = getNextStep(currentStep);
-            setCurrentStep(nextStep);
-            setIsTyping(true);
-            setTimeout(() => {
-              setIsTyping(false);
-              addBotMessage(STEPS_CONFIG[nextStep].question.replace('{name}', updatedData.name));
-              setIsValidatingPhone(false);
-            }, 600);
-          }, 800);
-        }, 500);
+          addBotMessage('💬 Acabei de te mandar uma mensagem lá, dá uma olhada! 😉');
+        }
+        
+        // Avançar para próximo passo
+        await new Promise(resolve => setTimeout(resolve, 1200));
+        const nextStep = getNextStep(currentStep);
+        setCurrentStep(nextStep);
+        setIsTyping(true);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setIsTyping(false);
+        addBotMessage(STEPS_CONFIG[nextStep].question.replace('{name}', updatedData.name));
+        setIsValidatingPhone(false);
         
         return;
       } catch (err) {

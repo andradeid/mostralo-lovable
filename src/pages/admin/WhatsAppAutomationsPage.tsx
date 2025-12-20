@@ -84,6 +84,7 @@ const variablesList = [
   { key: '{itens_pedido}', description: 'Lista de itens do pedido' },
   { key: '{endereco_entrega}', description: 'Endereço de entrega' },
   { key: '{tipo_entrega}', description: 'Delivery ou Retirada' },
+  { key: '{tempo_estimado}', description: 'Tempo estimado de entrega (ex: 30 minutos)' },
   { key: '{link_pedido}', description: 'Link de acompanhamento' },
   { key: '{whatsapp_loja}', description: 'WhatsApp da loja' },
 ];

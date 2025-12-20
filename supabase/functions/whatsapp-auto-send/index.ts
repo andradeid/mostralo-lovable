@@ -156,6 +156,21 @@ function formatOrderItems(items: any[]): string {
   }).join('\n');
 }
 
+// Formatar tempo estimado de entrega
+function formatEstimatedTime(minutes: number | null): string {
+  if (!minutes) return '';
+  
+  if (minutes >= 60) {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (mins === 0) {
+      return hours === 1 ? '1 hora' : `${hours} horas`;
+    }
+    return `${hours}h${mins}min`;
+  }
+  return `${minutes} minutos`;
+}
+
 // Substituir variáveis na mensagem
 function replaceVariables(template: string, data: {
   customerName?: string;
@@ -176,6 +191,7 @@ function replaceVariables(template: string, data: {
   totalOrders?: number;
   totalSpent?: number;
   orderItems?: string;
+  estimatedTime?: string;
 }): string {
   let message = template;
   
@@ -217,6 +233,7 @@ function replaceVariables(template: string, data: {
   message = message.replace(/{dias_sem_pedir}/g, data.daysSinceOrder !== null && data.daysSinceOrder !== undefined ? String(data.daysSinceOrder) : '');
   message = message.replace(/{total_pedidos}/g, String(data.totalOrders || 0));
   message = message.replace(/{total_gasto}/g, formattedTotalSpent);
+  message = message.replace(/{tempo_estimado}/g, data.estimatedTime || '');
   
   return message;
 }
@@ -324,7 +341,7 @@ serve(async (req) => {
     if (orderId) {
       const { data: order } = await supabase
         .from('orders')
-        .select('order_number, total, customer_address, delivery_type, customer_name, customer_phone')
+        .select('order_number, total, customer_address, delivery_type, customer_name, customer_phone, estimated_delivery_minutes')
         .eq('id', orderId)
         .single();
       
@@ -373,7 +390,8 @@ serve(async (req) => {
           daysSinceOrder: classification.daysSinceOrder,
           totalOrders: classification.totalOrders,
           totalSpent: classification.totalSpent,
-          orderItems: orderItemsFormatted
+          orderItems: orderItemsFormatted,
+          estimatedTime: formatEstimatedTime(orderData?.estimated_delivery_minutes)
         });
       } else {
         // Usar template inteligente baseado no tipo de cliente E status da loja
@@ -399,7 +417,8 @@ serve(async (req) => {
           daysSinceOrder: classification.daysSinceOrder,
           totalOrders: classification.totalOrders,
           totalSpent: classification.totalSpent,
-          orderItems: orderItemsFormatted
+          orderItems: orderItemsFormatted,
+          estimatedTime: formatEstimatedTime(orderData?.estimated_delivery_minutes)
         });
       }
     } else {
@@ -422,7 +441,8 @@ serve(async (req) => {
         daysSinceOrder: classification.daysSinceOrder,
         totalOrders: classification.totalOrders,
         totalSpent: classification.totalSpent,
-        orderItems: orderItemsFormatted
+        orderItems: orderItemsFormatted,
+        estimatedTime: formatEstimatedTime(orderData?.estimated_delivery_minutes)
       });
     }
 

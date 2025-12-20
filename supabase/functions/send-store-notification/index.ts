@@ -277,10 +277,10 @@ serve(async (req) => {
 📱 *Tel:* ${customer_phone || 'N/A'}
 💰 *Total:* ${formatCurrency(total)}
 ${deliveryTypeText}
-${delivery_type === 'delivery' ? `📍 *Endereço:* ${addressToShow}` : ''}${delivery_type === 'delivery' && googleMapsLink ? `
-🗺️ *Navegação:* ${googleMapsLink}` : ''}
+📍 *Endereço:* ${delivery_type === 'delivery' ? addressToShow : 'Retirada no local'}
 💳 *Pagamento:* ${paymentMethodText}
-${notes ? `📝 *Obs:* ${notes}` : ''}
+📝 *Obs:* ${notes || 'Nenhuma'}
+${delivery_type === 'delivery' && googleMapsLink ? `🗺️ *Navegação:* ${googleMapsLink}` : ''}
 
 ⏰ ${formattedDate}`;
 

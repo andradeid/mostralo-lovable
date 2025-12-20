@@ -92,11 +92,19 @@ ${data.source ? `🔗 *Origem:* ${data.source}` : ''}${data.salesperson_name ? `
       case 'new_store':
         if (config.notify_new_store) {
           shouldSend = true;
-          message = `🏪 *NOVA LOJA ATIVADA*
+          const isAutoRegistration = data.source === 'self_registration';
+          
+          message = `🏪 *${isAutoRegistration ? 'NOVO LOJISTA CADASTRADO' : 'NOVA LOJA ATIVADA'}*
 
 📋 *Loja:* ${data.name || 'N/A'}
 🔗 *Slug:* ${data.slug || 'N/A'}
-📍 *Cidade:* ${data.city || 'N/A'}${data.state ? ` - ${data.state}` : ''}
+📍 *Cidade:* ${data.city || 'N/A'}${data.state ? ` - ${data.state}` : ''}${isAutoRegistration ? `
+
+👤 *Proprietário:* ${data.owner_name || 'N/A'}
+📧 *Email:* ${data.owner_email || 'N/A'}
+📱 *Telefone:* ${data.owner_phone || 'N/A'}
+📦 *Plano:* ${data.plan_name || 'N/A'}
+🔔 *Origem:* Cadastro próprio` : ''}
 
 ⏰ ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`;
         }

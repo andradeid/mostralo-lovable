@@ -20,13 +20,33 @@ import {
 export default function SuplementosLandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [isVideo2Playing, setIsVideo2Playing] = useState(false);
+  const [isVideo3Playing, setIsVideo3Playing] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const video2Ref = useRef<HTMLVideoElement>(null);
+  const video3Ref = useRef<HTMLVideoElement>(null);
 
   const handlePlayWithSound = () => {
     if (videoRef.current) {
       videoRef.current.muted = false;
       videoRef.current.play();
       setIsVideoPlaying(true);
+    }
+  };
+
+  const handlePlayVideo2WithSound = () => {
+    if (video2Ref.current) {
+      video2Ref.current.muted = false;
+      video2Ref.current.play();
+      setIsVideo2Playing(true);
+    }
+  };
+
+  const handlePlayVideo3WithSound = () => {
+    if (video3Ref.current) {
+      video3Ref.current.muted = false;
+      video3Ref.current.play();
+      setIsVideo3Playing(true);
     }
   };
 
@@ -244,6 +264,41 @@ export default function SuplementosLandingPage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Vídeo demonstrativo do problema */}
+          <div className="mt-12 text-center">
+            <p className="text-lg font-medium text-muted-foreground mb-6">
+              👇 Veja na prática o que está acontecendo:
+            </p>
+            <div className="max-w-2xl mx-auto relative">
+              <video 
+                ref={video3Ref}
+                src="/videos/wheydestruindo.mp4"
+                muted
+                playsInline
+                className="w-full rounded-2xl shadow-2xl border border-red-500/30"
+                onEnded={() => setIsVideo3Playing(false)}
+              />
+              
+              {/* Overlay com botão de play - vermelho para combinar com tema */}
+              {!isVideo3Playing && (
+                <button
+                  onClick={handlePlayVideo3WithSound}
+                  className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-2xl cursor-pointer hover:bg-black/50 transition-colors"
+                >
+                  <div className="flex flex-col items-center gap-3 text-white">
+                    <div className="w-20 h-20 bg-red-500 rounded-full flex items-center justify-center shadow-xl hover:bg-red-600 transition-colors">
+                      <Play className="w-10 h-10 text-white fill-white ml-1" />
+                    </div>
+                    <span className="text-sm font-medium flex items-center gap-2 bg-black/50 px-4 py-2 rounded-full">
+                      <VolumeX className="w-4 h-4" />
+                      Clique para reproduzir com som
+                    </span>
+                  </div>
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -334,14 +389,33 @@ export default function SuplementosLandingPage() {
             <p className="text-lg font-medium text-muted-foreground mb-6">
               👇 Veja como funciona a notificação de reposição:
             </p>
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-2xl mx-auto relative">
               <video 
+                ref={video2Ref}
                 src="/videos/suplementos-notificacao.mp4"
-            controls
-            loop
+                muted
                 playsInline
                 className="w-full rounded-2xl shadow-2xl border border-green-500/30"
+                onEnded={() => setIsVideo2Playing(false)}
               />
+              
+              {/* Overlay com botão de play */}
+              {!isVideo2Playing && (
+                <button
+                  onClick={handlePlayVideo2WithSound}
+                  className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-2xl cursor-pointer hover:bg-black/50 transition-colors"
+                >
+                  <div className="flex flex-col items-center gap-3 text-white">
+                    <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center shadow-xl hover:bg-green-600 transition-colors">
+                      <Play className="w-10 h-10 text-white fill-white ml-1" />
+                    </div>
+                    <span className="text-sm font-medium flex items-center gap-2 bg-black/50 px-4 py-2 rounded-full">
+                      <VolumeX className="w-4 h-4" />
+                      Clique para reproduzir com som
+                    </span>
+                  </div>
+                </button>
+              )}
             </div>
           </div>
         </div>

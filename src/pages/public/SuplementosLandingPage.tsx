@@ -22,17 +22,8 @@ export default function SuplementosLandingPage() {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [isVideo2Playing, setIsVideo2Playing] = useState(false);
   const [isVideo3Playing, setIsVideo3Playing] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
   const video2Ref = useRef<HTMLVideoElement>(null);
   const video3Ref = useRef<HTMLVideoElement>(null);
-
-  const handlePlayWithSound = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = false;
-      videoRef.current.play();
-      setIsVideoPlaying(true);
-    }
-  };
 
   const handlePlayVideo2WithSound = () => {
     if (video2Ref.current) {
@@ -170,34 +161,41 @@ export default function SuplementosLandingPage() {
               </div>
             </div>
 
-            {/* Coluna 2: Vídeo */}
+            {/* Coluna 2: Vídeo YouTube */}
             <div className="flex justify-center lg:justify-end order-first lg:order-last">
-              <div className="relative max-w-md lg:max-w-lg">
-                <video 
-                  ref={videoRef}
-                  src="/videos/suplementos-notificacao.mp4"
-                  muted
-                  playsInline
-                  className="w-full rounded-3xl shadow-2xl border-4 border-green-500/30"
-                  onEnded={() => setIsVideoPlaying(false)}
-                />
-                
-                {/* Overlay com botão de play */}
-                {!isVideoPlaying && (
-                  <button
-                    onClick={handlePlayWithSound}
-                    className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-3xl cursor-pointer hover:bg-black/50 transition-colors"
-                  >
-                    <div className="flex flex-col items-center gap-3 text-white">
-                      <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center shadow-xl hover:bg-green-600 transition-colors">
-                        <Play className="w-10 h-10 text-white fill-white ml-1" />
+              <div className="relative max-w-md lg:max-w-lg w-full">
+                {!isVideoPlaying ? (
+                  <div className="relative">
+                    <img 
+                      src="https://img.youtube.com/vi/qAVS6FeQrBU/maxresdefault.jpg"
+                      alt="Vídeo demonstração Mostralo para Suplementos"
+                      className="w-full rounded-3xl shadow-2xl border-4 border-green-500/30 aspect-video object-cover"
+                    />
+                    <button
+                      onClick={() => setIsVideoPlaying(true)}
+                      className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-3xl cursor-pointer hover:bg-black/50 transition-colors"
+                    >
+                      <div className="flex flex-col items-center gap-3 text-white">
+                        <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center shadow-xl hover:bg-green-600 transition-colors">
+                          <Play className="w-10 h-10 text-white fill-white ml-1" />
+                        </div>
+                        <span className="text-sm font-medium flex items-center gap-2 bg-black/50 px-4 py-2 rounded-full">
+                          <VolumeX className="w-4 h-4" />
+                          Clique para reproduzir com som
+                        </span>
                       </div>
-                      <span className="text-sm font-medium flex items-center gap-2 bg-black/50 px-4 py-2 rounded-full">
-                        <VolumeX className="w-4 h-4" />
-                        Clique para reproduzir com som
-                      </span>
-                    </div>
-                  </button>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="relative aspect-video rounded-3xl overflow-hidden shadow-2xl border-4 border-green-500/30">
+                    <iframe
+                      src="https://www.youtube.com/embed/qAVS6FeQrBU?autoplay=1&rel=0"
+                      title="Demonstração Mostralo para Suplementos"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="absolute inset-0 w-full h-full"
+                    />
+                  </div>
                 )}
                 
                 {/* Efeito de brilho atrás */}

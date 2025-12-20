@@ -31,7 +31,8 @@ import {
   ArrowRight,
   Bot,
   Users,
-  Pause
+  Pause,
+  RotateCcw
 } from "lucide-react";
 import {
   Accordion,
@@ -454,6 +455,33 @@ export default function WhatsAppInstancePage() {
     }
   };
 
+  const restartInstance = async () => {
+    setActionLoading('restart');
+    try {
+      const result = await callInstanceFunction('restart');
+      
+      if (result.success) {
+        setInstance(result.instance);
+        toast({
+          title: "Reiniciando...",
+          description: "A instância está sendo reiniciada. Aguarde alguns segundos.",
+        });
+        // Verificar status após 5 segundos
+        setTimeout(() => checkStatus(), 5000);
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao reiniciar instância",
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const testConnection = async () => {
     if (!testPhone) {
       toast({
@@ -773,18 +801,33 @@ export default function WhatsAppInstancePage() {
                   </Button>
 
                   {instance.status === 'connected' && (
-                    <Button 
-                      variant="outline" 
-                      onClick={disconnectInstance}
-                      disabled={actionLoading === 'disconnect'}
-                    >
-                      {actionLoading === 'disconnect' ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <PowerOff className="h-4 w-4 mr-2" />
-                      )}
-                      Desconectar
-                    </Button>
+                    <>
+                      <Button 
+                        variant="outline" 
+                        onClick={restartInstance}
+                        disabled={actionLoading === 'restart'}
+                        className="text-yellow-600 border-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950"
+                      >
+                        {actionLoading === 'restart' ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <RotateCcw className="h-4 w-4 mr-2" />
+                        )}
+                        Reiniciar
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={disconnectInstance}
+                        disabled={actionLoading === 'disconnect'}
+                      >
+                        {actionLoading === 'disconnect' ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <PowerOff className="h-4 w-4 mr-2" />
+                        )}
+                        Desconectar
+                      </Button>
+                    </>
                   )}
 
                   <AlertDialog>

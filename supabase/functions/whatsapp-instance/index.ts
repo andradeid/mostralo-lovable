@@ -255,17 +255,19 @@ serve(async (req) => {
             const instancesList = await instancesResponse.json();
             console.log('[whatsapp-instance] Lista de instâncias:', JSON.stringify(instancesList));
             
-            // Encontrar a instância atual na lista
+            // Encontrar a instância atual na lista - Evolution API v2 usa 'name' no root
             const thisInstance = instancesList?.find?.((i: any) => 
-              i.instance?.instanceName === instance.instance_name || 
-              i.instanceName === instance.instance_name
+              i.name === instance.instance_name || 
+              i.instance?.instanceName === instance.instance_name
             );
             
             if (thisInstance) {
               console.log('[whatsapp-instance] Instância encontrada:', JSON.stringify(thisInstance));
-              const instanceData = thisInstance.instance || thisInstance;
-              updateData.profile_name = instanceData.profileName || instanceData.wuid?.split('@')[0] || owner;
-              updateData.profile_picture_url = instanceData.profilePictureUrl || instanceData.profilePicUrl;
+              // Evolution API v2: campos no root do objeto
+              const phone = thisInstance.ownerJid?.split('@')[0] || owner;
+              updateData.phone_number = phone;
+              updateData.profile_name = thisInstance.profileName || phone;
+              updateData.profile_picture_url = thisInstance.profilePicUrl || thisInstance.profilePictureUrl;
             } else {
               // Fallback: usar número como nome
               updateData.profile_name = owner;
@@ -362,6 +364,48 @@ serve(async (req) => {
           .eq('id', instance.id);
 
         return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      case 'restart': {
+        const { data: instance } = await supabase
+          .from('whatsapp_instances')
+          .select('*')
+          .eq('store_id', storeId)
+          .single();
+
+        if (!instance) {
+          return new Response(JSON.stringify({ error: 'Instância não encontrada' }), {
+            status: 404,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Reiniciar na Evolution API
+        console.log(`[whatsapp-instance] Reiniciando: ${instance.instance_name}`);
+        
+        const restartResponse = await fetch(`${api_url}/instance/restart/${instance.instance_name}`, {
+          method: 'PUT',
+          headers: {
+            'apikey': api_key,
+          },
+        });
+
+        const restartData = await restartResponse.json();
+        console.log('[whatsapp-instance] Restart response:', JSON.stringify(restartData));
+
+        // Atualizar status no banco
+        await supabase
+          .from('whatsapp_instances')
+          .update({ status: 'connecting' })
+          .eq('id', instance.id);
+
+        return new Response(JSON.stringify({ 
+          success: true,
+          message: 'Instância reiniciando...',
+          instance: { ...instance, status: 'connecting' }
+        }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }

@@ -67,7 +67,7 @@ const OrdersPage = () => {
   // Estado para seção de configurações colapsável
   const [configExpanded, setConfigExpanded] = useState<boolean>(() => {
     const saved = localStorage.getItem('ordersConfigExpanded');
-    return saved !== 'false'; // Padrão: expandido
+    return saved === 'true'; // Padrão: fechado
   });
 
   // Hook para browser notifications

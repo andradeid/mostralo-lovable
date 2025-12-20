@@ -11,7 +11,8 @@ import { OrderDetailDialog } from "@/components/admin/orders/OrderDetailDialog";
 import { OrderFilters } from "@/components/admin/orders/OrderFilters";
 import { CreateOrderDialog } from "@/components/admin/orders/CreateOrderDialog";
 import { toast } from "sonner";
-import { Inbox, ChefHat, Package, Truck, DollarSign, ShoppingBag, TrendingUp, Bell, Volume2, VolumeX, Plus, AlertCircle, CheckCircle2, Printer, Loader2, Settings, ChevronDown, ChevronUp } from "lucide-react";
+import { Inbox, ChefHat, Package, Truck, DollarSign, ShoppingBag, TrendingUp, Bell, Volume2, VolumeX, Plus, AlertCircle, CheckCircle2, Printer, Loader2, Settings, ChevronDown, ChevronUp, Maximize2, Minimize2 } from "lucide-react";
+import { useSidebar } from "@/components/ui/sidebar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -70,6 +71,14 @@ const OrdersPage = () => {
     return saved === 'true'; // Padrão: fechado
   });
 
+  // Estado para modo tela cheia do Kanban
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(() => {
+    return localStorage.getItem('kanbanFullscreen') === 'true';
+  });
+
+  // Hook do sidebar para controlar colapso
+  const { setOpen: setSidebarOpen } = useSidebar();
+
   // Hook para browser notifications
   const { 
     showPermissionDialog, 
@@ -87,6 +96,52 @@ const OrdersPage = () => {
   useEffect(() => {
     localStorage.setItem('ordersConfigExpanded', String(configExpanded));
   }, [configExpanded]);
+
+  // Toggle e persistência do modo tela cheia
+  const toggleFullscreen = () => {
+    const newState = !isFullscreen;
+    setIsFullscreen(newState);
+    localStorage.setItem('kanbanFullscreen', String(newState));
+    
+    // Dispara evento para AdminLayout ocultar/mostrar header
+    window.dispatchEvent(new CustomEvent('kanbanFullscreenChange', { 
+      detail: { isFullscreen: newState } 
+    }));
+    
+    // Colapsa ou expande sidebar
+    setSidebarOpen(!newState);
+  };
+
+  // Atalho Escape para sair do modo tela cheia
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        toggleFullscreen();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFullscreen]);
+
+  // Sincronizar estado do fullscreen ao montar (caso venha do localStorage)
+  useEffect(() => {
+    if (isFullscreen) {
+      window.dispatchEvent(new CustomEvent('kanbanFullscreenChange', { 
+        detail: { isFullscreen: true } 
+      }));
+      setSidebarOpen(false);
+    }
+    
+    // Cleanup: restaurar ao desmontar
+    return () => {
+      if (isFullscreen) {
+        window.dispatchEvent(new CustomEvent('kanbanFullscreenChange', { 
+          detail: { isFullscreen: false } 
+        }));
+      }
+    };
+  }, []);
 
   // Listener para mudanças no som selecionado
   useEffect(() => {
@@ -765,22 +820,45 @@ const OrdersPage = () => {
           </Button>
         </div>
         
-        {/* Botão Toggle Configurações + Badges Resumo */}
+        {/* Botão Toggle Configurações + Tela Cheia + Badges Resumo */}
         <div className="flex items-center justify-between gap-2 flex-wrap">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setConfigExpanded(!configExpanded)}
-            className="gap-2"
-          >
-            <Settings className="h-4 w-4" />
-            <span className="hidden sm:inline">Configurações</span>
-            {configExpanded ? (
-              <ChevronUp className="h-4 w-4" />
-            ) : (
-              <ChevronDown className="h-4 w-4" />
-            )}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setConfigExpanded(!configExpanded)}
+              className="gap-2"
+            >
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline">Configurações</span>
+              {configExpanded ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+            
+            {/* Botão Tela Cheia */}
+            <Button
+              variant={isFullscreen ? "default" : "outline"}
+              size="sm"
+              onClick={toggleFullscreen}
+              className="gap-2"
+              title={isFullscreen ? "Sair da tela cheia (Esc)" : "Modo tela cheia"}
+            >
+              {isFullscreen ? (
+                <>
+                  <Minimize2 className="h-4 w-4" />
+                  <span className="hidden sm:inline">Sair</span>
+                </>
+              ) : (
+                <>
+                  <Maximize2 className="h-4 w-4" />
+                  <span className="hidden sm:inline">Tela Cheia</span>
+                </>
+              )}
+            </Button>
+          </div>
           
           {/* Badges de resumo quando colapsado */}
           {!configExpanded && (

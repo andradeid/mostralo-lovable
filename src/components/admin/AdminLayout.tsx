@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AdminSidebar } from "./AdminSidebar";
 import { UserProfileHeader } from "./UserProfileHeader";
@@ -19,6 +20,21 @@ export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
   const { user, profile, loading, userRole } = useAuth();
   const { isImpersonating } = useImpersonation();
   const location = useLocation();
+  
+  // Estado para modo tela cheia do Kanban
+  const [isKanbanFullscreen, setIsKanbanFullscreen] = useState(false);
+
+  // Listener para evento de fullscreen do Kanban
+  useEffect(() => {
+    const handleFullscreenChange = (e: CustomEvent<{ isFullscreen: boolean }>) => {
+      setIsKanbanFullscreen(e.detail.isFullscreen);
+    };
+    
+    window.addEventListener('kanbanFullscreenChange', handleFullscreenChange as EventListener);
+    return () => {
+      window.removeEventListener('kanbanFullscreenChange', handleFullscreenChange as EventListener);
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -80,21 +96,24 @@ export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
           <AdminSidebar />
           
           <div className="flex-1 flex flex-col">
-            <header className={`h-16 border-b bg-background flex items-center px-6 ${isImpersonating ? 'mt-12' : ''}`}>
-              <SidebarTrigger className="mr-4" />
-              <div className="flex items-center justify-between w-full">
-                <h1 className="text-xl font-semibold">
-                  {pageTitle || (
-                    profile?.user_type === 'master_admin' 
-                      ? 'Painel Administrativo' 
-                      : userRole === 'attendant'
-                      ? 'Painel do Atendente'
-                      : 'Painel da Loja'
-                  )}
-                </h1>
-                <UserProfileHeader />
-              </div>
-            </header>
+            {/* Header - oculto em modo tela cheia */}
+            {!isKanbanFullscreen && (
+              <header className={`h-16 border-b bg-background flex items-center px-6 ${isImpersonating ? 'mt-12' : ''}`}>
+                <SidebarTrigger className="mr-4" />
+                <div className="flex items-center justify-between w-full">
+                  <h1 className="text-xl font-semibold">
+                    {pageTitle || (
+                      profile?.user_type === 'master_admin' 
+                        ? 'Painel Administrativo' 
+                        : userRole === 'attendant'
+                        ? 'Painel do Atendente'
+                        : 'Painel da Loja'
+                    )}
+                  </h1>
+                  <UserProfileHeader />
+                </div>
+              </header>
+            )}
             
             <main className="flex-1 p-6 bg-muted/30">
               {children}

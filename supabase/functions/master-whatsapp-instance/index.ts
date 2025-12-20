@@ -230,11 +230,28 @@ serve(async (req) => {
         }
 
         // Atualizar status no banco
-        const updateData: Record<string, string> = { instance_status: newStatus };
+        const updateData: Record<string, string | null> = { instance_status: newStatus };
         
-        // Buscar telefone se conectado
-        if (newStatus === 'connected' && statusData.instance?.owner) {
-          updateData.instance_phone = statusData.instance.owner.split('@')[0];
+        // Buscar telefone se conectado via fetchInstances (endpoint que retorna o número corretamente)
+        if (newStatus === 'connected') {
+          try {
+            const infoResponse = await fetch(`${api_url}/instance/fetchInstances`, {
+              method: 'GET',
+              headers: { 'apikey': api_key },
+            });
+            
+            if (infoResponse.ok) {
+              const instances = await infoResponse.json();
+              const instance = instances.find((i: any) => i.name === masterConfig.instance_name);
+              const phoneNumber = instance?.number || instance?.ownerJid?.split('@')[0] || instance?.wuid?.split('@')[0];
+              console.log('[master-whatsapp-instance] Número encontrado:', phoneNumber);
+              if (phoneNumber) {
+                updateData.instance_phone = phoneNumber;
+              }
+            }
+          } catch (e) {
+            console.error('[master-whatsapp-instance] Erro ao buscar número:', e);
+          }
         }
 
         await supabase

@@ -10,17 +10,23 @@ import { CustomerLocationPicker } from '@/components/checkout/CustomerLocationPi
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { normalizePhone, formatPhone } from '@/lib/utils';
-import { MapPin, Loader2 } from 'lucide-react';
+import { MapPin, Loader2, Navigation, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useGeolocation } from '@/hooks/useGeolocation';
 import { z } from 'zod';
 
+const MAPBOX_TOKEN = 'pk.eyJ1IjoibW9zdHJhbG8iLCJhIjoiY200eWI2ZmtvMDFhNjJrczgyaWd4eXJpeSJ9.EWExgXOHVjFpEsLNVdORkQ';
+
+// Schema de validação - localização obrigatória
 const customerSchema = z.object({
   name: z.string().trim().min(1, 'Nome obrigatório').max(120, 'Nome deve ter no máximo 120 caracteres'),
   phone: z.string().regex(/^\d{10,11}$/, 'Telefone deve ter 10 ou 11 dígitos'),
   email: z.string().email('E-mail inválido').max(255, 'E-mail deve ter no máximo 255 caracteres').optional().or(z.literal('')),
-  address: z.string().trim().max(500, 'Endereço deve ter no máximo 500 caracteres').optional().or(z.literal('')),
+  address: z.string().trim().min(1, 'Endereço é obrigatório').max(500, 'Endereço deve ter no máximo 500 caracteres'),
   notes: z.string().trim().max(500, 'Observações devem ter no máximo 500 caracteres').optional().or(z.literal('')),
+  latitude: z.number({ error: 'Localização GPS é obrigatória' }),
+  longitude: z.number({ error: 'Localização GPS é obrigatória' }),
 });
 
 interface CustomerFormDialogProps {
@@ -36,14 +42,13 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess }: CustomerFormDia
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [storeId, setStoreId] = useState<string>('');
 
+  const geolocation = useGeolocation();
+
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     email: '',
-    address: '',
     notes: '',
-    latitude: null as number | null,
-    longitude: null as number | null,
     createPanelAccess: false,
   });
 
@@ -65,23 +70,36 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess }: CustomerFormDia
     }
   }, [open, user]);
 
+  // Reset form when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setFormData({
+        name: '',
+        phone: '',
+        email: '',
+        notes: '',
+        createPanelAccess: false,
+      });
+      geolocation.clearLocation();
+    }
+  }, [open]);
+
   const handlePhoneChange = (value: string) => {
     const normalized = normalizePhone(value);
     setFormData(prev => ({ ...prev, phone: normalized }));
   };
 
   const handleLocationSelect = (data: { address: string; latitude: number; longitude: number }) => {
-    setFormData(prev => ({
-      ...prev,
-      address: data.address,
-      latitude: data.latitude,
-      longitude: data.longitude,
-    }));
+    geolocation.setLocation(data.latitude, data.longitude, data.address);
     setShowLocationPicker(false);
     toast({
       title: 'Localização selecionada',
       description: 'Endereço atualizado com sucesso',
     });
+  };
+
+  const handleGetCurrentLocation = () => {
+    geolocation.getCurrentLocation(MAPBOX_TOKEN);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -101,8 +119,10 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess }: CustomerFormDia
       name: formData.name,
       phone: formData.phone,
       email: formData.email || '',
-      address: formData.address || '',
+      address: geolocation.address || '',
       notes: formData.notes || '',
+      latitude: geolocation.latitude,
+      longitude: geolocation.longitude,
     });
 
     if (!validation.success) {
@@ -146,10 +166,10 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess }: CustomerFormDia
           .update({
             name: formData.name.trim(),
             email: formData.email?.trim() || null,
-            address: formData.address?.trim() || null,
+            address: geolocation.address?.trim() || null,
             notes: formData.notes?.trim() || null,
-            latitude: formData.latitude || null,
-            longitude: formData.longitude || null,
+            latitude: geolocation.latitude,
+            longitude: geolocation.longitude,
           })
           .eq('id', existingCustomer.id);
 
@@ -163,10 +183,10 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess }: CustomerFormDia
             name: formData.name.trim(),
             phone: normalizedPhone,
             email: formData.email?.trim() || null,
-            address: formData.address?.trim() || null,
+            address: geolocation.address?.trim() || null,
             notes: formData.notes?.trim() || null,
-            latitude: formData.latitude || null,
-            longitude: formData.longitude || null,
+            latitude: geolocation.latitude,
+            longitude: geolocation.longitude,
           })
           .select('id')
           .single();
@@ -203,12 +223,10 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess }: CustomerFormDia
         name: '',
         phone: '',
         email: '',
-        address: '',
         notes: '',
-        latitude: null,
-        longitude: null,
         createPanelAccess: false,
       });
+      geolocation.clearLocation();
 
       onSuccess();
       onClose();
@@ -263,26 +281,82 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess }: CustomerFormDia
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="address">Endereço</Label>
-        <Textarea
-          id="address"
-          value={formData.address}
-          onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
-          placeholder="Rua, número, bairro, complemento..."
-          maxLength={500}
-          rows={3}
-        />
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => setShowLocationPicker(true)}
-          className="w-full mt-2"
-        >
-          <MapPin className="h-4 w-4 mr-2" />
-          Selecionar no Mapa
-        </Button>
+      {/* Localização - OBRIGATÓRIA */}
+      <div className="space-y-3">
+        <Label className="flex items-center gap-1">
+          <MapPin className="h-4 w-4" />
+          Localização *
+          <span className="text-xs text-muted-foreground">(obrigatório)</span>
+        </Label>
+
+        {geolocation.hasLocation ? (
+          <div className="p-3 rounded-lg border border-green-500/30 bg-green-500/10">
+            <div className="flex items-start gap-2">
+              <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-green-700">Localização capturada</p>
+                <p className="text-sm text-muted-foreground break-words">{geolocation.address}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {geolocation.latitude?.toFixed(6)}, {geolocation.longitude?.toFixed(6)}
+                </p>
+              </div>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={geolocation.clearLocation}
+              className="mt-2 text-xs"
+            >
+              Alterar localização
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <Button
+              type="button"
+              variant="default"
+              onClick={handleGetCurrentLocation}
+              disabled={geolocation.loading}
+              className="w-full"
+            >
+              {geolocation.loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Obtendo localização...
+                </>
+              ) : (
+                <>
+                  <Navigation className="h-4 w-4 mr-2" />
+                  Usar minha localização
+                </>
+              )}
+            </Button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">ou</span>
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowLocationPicker(true)}
+              className="w-full"
+            >
+              <MapPin className="h-4 w-4 mr-2" />
+              Selecionar no Mapa
+            </Button>
+
+            {geolocation.error && (
+              <p className="text-sm text-destructive">{geolocation.error}</p>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -326,7 +400,7 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess }: CustomerFormDia
         <Button
           type="submit"
           className="flex-1"
-          disabled={loading}
+          disabled={loading || !geolocation.hasLocation}
         >
           {loading ? (
             <>
@@ -372,8 +446,8 @@ export const CustomerFormDialog = ({ open, onClose, onSuccess }: CustomerFormDia
         onClose={() => setShowLocationPicker(false)}
         onLocationSelect={handleLocationSelect}
         initialCoords={
-          formData.latitude && formData.longitude
-            ? { latitude: formData.latitude, longitude: formData.longitude }
+          geolocation.hasLocation
+            ? { latitude: geolocation.latitude!, longitude: geolocation.longitude! }
             : undefined
         }
         storeId={storeId}

@@ -4,21 +4,26 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { MapPin, Search, Info } from 'lucide-react';
+import { MapPin, Search, Info, Navigation, Loader2, CheckCircle2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { CustomerLocationPicker } from './CustomerLocationPicker';
 import { normalizePhone, formatPhone } from '@/lib/utils';
 import { z } from 'zod';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useGeolocation } from '@/hooks/useGeolocation';
 
-// Schema de validação
+const MAPBOX_TOKEN = 'pk.eyJ1IjoibW9zdHJhbG8iLCJhIjoiY200eWI2ZmtvMDFhNjJrczgyaWd4eXJpeSJ9.EWExgXOHVjFpEsLNVdORkQ';
+
+// Schema de validação - localização obrigatória
 const customerSchema = z.object({
   name: z.string().trim().min(1, 'Nome é obrigatório').max(120, 'Nome deve ter no máximo 120 caracteres'),
   phone: z.string().regex(/^\d{10,11}$/, 'Telefone deve ter 10 ou 11 dígitos'),
   email: z.string().trim().email('E-mail inválido').max(255, 'E-mail deve ter no máximo 255 caracteres').optional().or(z.literal('')),
-  address: z.string().trim().max(500, 'Endereço deve ter no máximo 500 caracteres').optional().or(z.literal('')),
+  address: z.string().trim().min(1, 'Endereço é obrigatório').max(500, 'Endereço deve ter no máximo 500 caracteres'),
   notes: z.string().trim().max(500, 'Observações devem ter no máximo 500 caracteres').optional().or(z.literal('')),
+  latitude: z.number({ error: 'Localização GPS é obrigatória' }),
+  longitude: z.number({ error: 'Localização GPS é obrigatória' }),
 });
 
 interface CustomerRegisterDialogProps {
@@ -31,13 +36,12 @@ export function CustomerRegisterDialog({ open, onOpenChange, storeId }: Customer
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [address, setAddress] = useState('');
   const [notes, setNotes] = useState('');
-  const [latitude, setLatitude] = useState<number | null>(null);
-  const [longitude, setLongitude] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
   const [showMapPicker, setShowMapPicker] = useState(false);
+
+  const geolocation = useGeolocation();
 
   // Carregar dados do localStorage ao abrir
   useEffect(() => {
@@ -49,10 +53,10 @@ export function CustomerRegisterDialog({ open, onOpenChange, storeId }: Customer
           setName(profile.name || '');
           setPhone(formatPhone(profile.phone || ''));
           setEmail(profile.email || '');
-          setAddress(profile.address || '');
           setNotes(profile.notes || '');
-          setLatitude(profile.latitude || null);
-          setLongitude(profile.longitude || null);
+          if (profile.latitude && profile.longitude) {
+            geolocation.setLocation(profile.latitude, profile.longitude, profile.address || '');
+          }
         } catch (error) {
           console.error('Erro ao carregar perfil:', error);
         }
@@ -83,10 +87,10 @@ export function CustomerRegisterDialog({ open, onOpenChange, storeId }: Customer
         if (normalizePhone(profile.phone) === normalizedPhone) {
           setName(profile.name || '');
           setEmail(profile.email || '');
-          setAddress(profile.address || '');
           setNotes(profile.notes || '');
-          setLatitude(profile.latitude);
-          setLongitude(profile.longitude);
+          if (profile.latitude && profile.longitude) {
+            geolocation.setLocation(profile.latitude, profile.longitude, profile.address || '');
+          }
           toast.success('Dados encontrados no seu dispositivo!');
           return;
         }
@@ -105,7 +109,6 @@ export function CustomerRegisterDialog({ open, onOpenChange, storeId }: Customer
         .maybeSingle();
 
       if (error) {
-        // Se for erro de permissão RLS, avisar de forma amigável
         const errorMessage = error.message?.toLowerCase() || '';
         if (errorMessage.includes('permission') || errorMessage.includes('policy') || error.code === 'PGRST301' || error.code === '42501') {
           toast.info('Por segurança, a busca no servidor está desativada. Preencha seus dados e salve; nas próximas vezes reconhecemos pelo telefone.', { duration: 5000 });
@@ -117,10 +120,10 @@ export function CustomerRegisterDialog({ open, onOpenChange, storeId }: Customer
       if (data) {
         setName(data.name);
         setEmail(data.email || '');
-        setAddress(data.address || '');
         setNotes(data.notes || '');
-        setLatitude(data.latitude ? Number(data.latitude) : null);
-        setLongitude(data.longitude ? Number(data.longitude) : null);
+        if (data.latitude && data.longitude) {
+          geolocation.setLocation(Number(data.latitude), Number(data.longitude), data.address || '');
+        }
         toast.success('Cliente encontrado!');
       } else {
         toast.info('Cliente não encontrado. Preencha seus dados para se cadastrar.');
@@ -134,21 +137,21 @@ export function CustomerRegisterDialog({ open, onOpenChange, storeId }: Customer
   };
 
   const handleSave = async () => {
-    // Guarda 1: verificar storeId
     if (!storeId) {
       toast.error('Loja não identificada. Tente novamente.');
       return;
     }
 
-    // Guarda 2: validar com Zod
     const normalizedPhone = normalizePhone(phone);
     
     const validation = customerSchema.safeParse({
       name: name.trim(),
       phone: normalizedPhone,
       email: email?.trim() || '',
-      address: address?.trim() || '',
+      address: geolocation.address?.trim() || '',
       notes: notes?.trim() || '',
+      latitude: geolocation.latitude,
+      longitude: geolocation.longitude,
     });
 
     if (!validation.success) {
@@ -159,17 +162,16 @@ export function CustomerRegisterDialog({ open, onOpenChange, storeId }: Customer
 
     setLoading(true);
     try {
-      // UPSERT do cliente (global)
       const { data: customer, error } = await supabase
         .from('customers')
         .upsert({
           phone: normalizedPhone,
           name: name.trim(),
           email: email?.trim() || null,
-          address: address?.trim() || null,
+          address: geolocation.address?.trim() || null,
           notes: notes?.trim() || null,
-          latitude: latitude || null,
-          longitude: longitude || null,
+          latitude: geolocation.latitude,
+          longitude: geolocation.longitude,
         }, {
           onConflict: 'phone',
           ignoreDuplicates: false
@@ -179,7 +181,6 @@ export function CustomerRegisterDialog({ open, onOpenChange, storeId }: Customer
 
       if (error) throw error;
 
-      // Criar relacionamento com a loja
       await supabase
         .from('customer_stores')
         .upsert({
@@ -190,35 +191,23 @@ export function CustomerRegisterDialog({ open, onOpenChange, storeId }: Customer
           onConflict: 'customer_id,store_id'
         });
 
-      if (error) {
-        console.error('Erro detalhado ao salvar:', error);
-        const errorMessage = error?.message || 'Erro ao salvar cadastro';
-        toast.error(errorMessage, { duration: 4000 });
-        return;
-      }
-
-      // Salvar snapshot no localStorage com a nova chave padronizada
       const profile = {
         name: name.trim(),
         phone: normalizedPhone,
         email: email?.trim() || '',
-        address: address?.trim() || '',
+        address: geolocation.address?.trim() || '',
         notes: notes?.trim() || '',
-        latitude,
-        longitude,
+        latitude: geolocation.latitude,
+        longitude: geolocation.longitude,
       };
       localStorage.setItem(`customer_${storeId}`, JSON.stringify(profile));
 
       toast.success('Cadastro salvo com sucesso!');
-      
-      // Notificar Store.tsx para atualizar saudação
       window.dispatchEvent(new CustomEvent('customerProfileUpdated', { detail: profile }));
-      
       onOpenChange(false);
     } catch (error: any) {
       console.error('Erro ao salvar cadastro:', error);
       
-      // Mensagens de erro amigáveis baseadas no tipo de erro
       const errorCode = error?.code || '';
       const errorMessage = error?.message?.toLowerCase() || '';
       
@@ -228,8 +217,6 @@ export function CustomerRegisterDialog({ open, onOpenChange, storeId }: Customer
         toast.error('Erro de permissão. Tente novamente ou entre em contato com a loja.', { duration: 4000 });
       } else if (errorMessage.includes('network') || errorMessage.includes('fetch') || errorMessage.includes('connection')) {
         toast.error('Erro de conexão. Verifique sua internet e tente novamente.', { duration: 4000 });
-      } else if (errorMessage.includes('gen_salt') || errorMessage.includes('crypt')) {
-        toast.error('Erro interno do sistema. Por favor, tente novamente.', { duration: 4000 });
       } else {
         toast.error('Erro ao salvar cadastro. Tente novamente.', { duration: 4000 });
       }
@@ -239,10 +226,12 @@ export function CustomerRegisterDialog({ open, onOpenChange, storeId }: Customer
   };
 
   const handleLocationSelect = (data: { address: string; latitude: number; longitude: number }) => {
-    setAddress(data.address);
-    setLatitude(data.latitude);
-    setLongitude(data.longitude);
+    geolocation.setLocation(data.latitude, data.longitude, data.address);
     setShowMapPicker(false);
+  };
+
+  const handleGetCurrentLocation = () => {
+    geolocation.getCurrentLocation(MAPBOX_TOKEN);
   };
 
   return (
@@ -312,26 +301,82 @@ export function CustomerRegisterDialog({ open, onOpenChange, storeId }: Customer
               />
             </div>
 
-            {/* Endereço */}
-            <div className="space-y-2">
-              <Label htmlFor="address">Endereço</Label>
-              <Textarea
-                id="address"
-                placeholder="Rua, número, bairro, cidade..."
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                rows={3}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setShowMapPicker(true)}
-                className="w-full"
-              >
-                <MapPin className="h-4 w-4 mr-2" />
-                Selecionar no Mapa
-              </Button>
+            {/* Localização - OBRIGATÓRIA */}
+            <div className="space-y-3">
+              <Label className="flex items-center gap-1">
+                <MapPin className="h-4 w-4" />
+                Localização *
+                <span className="text-xs text-muted-foreground">(obrigatório)</span>
+              </Label>
+
+              {geolocation.hasLocation ? (
+                <div className="p-3 rounded-lg border border-green-500/30 bg-green-500/10">
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-green-700">Localização capturada</p>
+                      <p className="text-sm text-muted-foreground break-words">{geolocation.address}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {geolocation.latitude?.toFixed(6)}, {geolocation.longitude?.toFixed(6)}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={geolocation.clearLocation}
+                    className="mt-2 text-xs"
+                  >
+                    Alterar localização
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Button
+                    type="button"
+                    variant="default"
+                    onClick={handleGetCurrentLocation}
+                    disabled={geolocation.loading}
+                    className="w-full"
+                  >
+                    {geolocation.loading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Obtendo localização...
+                      </>
+                    ) : (
+                      <>
+                        <Navigation className="h-4 w-4 mr-2" />
+                        Usar minha localização
+                      </>
+                    )}
+                  </Button>
+
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">ou</span>
+                    </div>
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowMapPicker(true)}
+                    className="w-full"
+                  >
+                    <MapPin className="h-4 w-4 mr-2" />
+                    Selecionar no Mapa
+                  </Button>
+
+                  {geolocation.error && (
+                    <p className="text-sm text-destructive">{geolocation.error}</p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Notas */}
@@ -351,7 +396,7 @@ export function CustomerRegisterDialog({ open, onOpenChange, storeId }: Customer
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleSave} disabled={loading}>
+            <Button onClick={handleSave} disabled={loading || !geolocation.hasLocation}>
               {loading ? 'Salvando...' : 'Salvar Cadastro'}
             </Button>
           </DialogFooter>
@@ -362,7 +407,7 @@ export function CustomerRegisterDialog({ open, onOpenChange, storeId }: Customer
         open={showMapPicker}
         onClose={() => setShowMapPicker(false)}
         onLocationSelect={handleLocationSelect}
-        initialCoords={latitude && longitude ? { latitude, longitude } : undefined}
+        initialCoords={geolocation.hasLocation ? { latitude: geolocation.latitude!, longitude: geolocation.longitude! } : undefined}
         storeId={storeId}
       />
     </>

@@ -291,7 +291,29 @@ Deno.serve(async (req) => {
       console.log('✅ Notificação master enviada para novo vendedor');
     } catch (notifyError) {
       console.error('Erro ao enviar notificação master:', notifyError);
-      // Não falha o cadastro se a notificação falhar
+    }
+
+    // 6. Enviar boas-vindas WhatsApp para o vendedor
+    try {
+      await fetch(`${supabaseUrl}/functions/v1/send-welcome-message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseServiceKey}`,
+        },
+        body: JSON.stringify({
+          type: 'salesperson',
+          name: salesperson.full_name,
+          phone: salesperson.phone,
+          extra_data: {
+            salesperson_type: salesperson.salesperson_type,
+            referral_code: salesperson.referral_code,
+          },
+        }),
+      });
+      console.log('✅ Boas-vindas WhatsApp enviada para vendedor');
+    } catch (welcomeError) {
+      console.error('Erro ao enviar boas-vindas:', welcomeError);
     }
 
     // Mensagem de sucesso diferenciada por tipo

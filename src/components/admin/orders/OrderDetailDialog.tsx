@@ -344,6 +344,28 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
 
     setIsLoading(false);
     
+    // Enviar notificação WhatsApp baseada no novo status
+    const statusToEventMap: Record<string, string> = {
+      'em_preparo': 'order_confirmed',
+      'aguarda_retirada': 'order_ready',
+      'em_transito': 'order_in_transit',
+      'concluido': 'order_completed'
+    };
+    const eventType = statusToEventMap[newStatus];
+    
+    if (eventType && order.customer_phone) {
+      supabase.functions.invoke('whatsapp-auto-send', {
+        body: {
+          storeId: order.store_id,
+          eventType,
+          phoneNumber: order.customer_phone,
+          customerName: order.customer_name,
+          orderId: order.id,
+          baseUrl: window.location.origin
+        }
+      }).catch(err => console.log('📱 WhatsApp notification error:', err));
+    }
+    
     // Mensagem diferenciada para pedidos iFood
     if (order.source === 'ifood') {
       toast.success('Status atualizado e sincronizado com iFood!');
@@ -440,6 +462,20 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
       toast.error('Erro ao cancelar pedido');
       console.error(error);
       return;
+    }
+
+    // Enviar notificação WhatsApp de cancelamento
+    if (order.customer_phone) {
+      supabase.functions.invoke('whatsapp-auto-send', {
+        body: {
+          storeId: order.store_id,
+          eventType: 'order_cancelled',
+          phoneNumber: order.customer_phone,
+          customerName: order.customer_name,
+          orderId: order.id,
+          baseUrl: window.location.origin
+        }
+      }).catch(err => console.log('📱 WhatsApp notification error:', err));
     }
 
     if (order.source === 'ifood') {

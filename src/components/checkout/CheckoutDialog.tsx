@@ -673,6 +673,20 @@ export const CheckoutDialog = ({
       };
       localStorage.setItem(`customer_${storeId}`, JSON.stringify(profile));
 
+      // Enviar notificação WhatsApp de pedido recebido (se configurado)
+      if (order && normalizedPhone) {
+        supabase.functions.invoke('whatsapp-auto-send', {
+          body: {
+            storeId,
+            eventType: 'order_received',
+            phoneNumber: normalizedPhone,
+            customerName,
+            orderId: order.id,
+            baseUrl: window.location.origin
+          }
+        }).catch(err => console.log('📱 WhatsApp notification error:', err));
+      }
+
       toast.success('Pedido realizado com sucesso!', {
         description: `Número do pedido: ${order.order_number}`,
         duration: 2000

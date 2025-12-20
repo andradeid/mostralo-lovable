@@ -176,7 +176,10 @@ function buildNavigationLink(
   lat: number | null, 
   lng: number | null, 
   storeSlug: string,
-  address: string | null
+  address: string | null,
+  customDomain: string | null,
+  customDomainVerified: boolean,
+  baseUrl: string | null
 ): string {
   if (!lat || !lng) return '';
   
@@ -190,7 +193,17 @@ function buildNavigationLink(
     params.set('address', address);
   }
   
-  return `https://mostralo.com.br/navegar?${params.toString()}`;
+  // Determinar o domínio correto dinamicamente
+  let domain: string;
+  if (customDomain && customDomainVerified) {
+    domain = `https://${customDomain}`;
+  } else if (baseUrl) {
+    domain = baseUrl;
+  } else {
+    domain = Deno.env.get('PUBLIC_URL') || 'https://mostralo.com.br';
+  }
+  
+  return `${domain}/navegar?${params.toString()}`;
 }
 
 // Substituir variáveis na mensagem
@@ -387,7 +400,10 @@ serve(async (req) => {
             customer.latitude, 
             customer.longitude,
             store.slug,
-            order?.customer_address
+            order?.customer_address,
+            store.custom_domain,
+            store.custom_domain_verified,
+            baseUrl
           );
           console.log(`[whatsapp-auto-send] Link de navegação gerado: ${navigationLink}`);
         }

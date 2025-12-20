@@ -239,23 +239,43 @@ serve(async (req) => {
 
         // Buscar informações do perfil se conectado
         if (newStatus === 'connected') {
+          // Extrair número do owner
+          const owner = statusData.instance?.owner?.split('@')[0];
+          if (owner) {
+            updateData.phone_number = owner;
+          }
+          
+          // Tentar buscar nome e foto via endpoint fetchInstances
           try {
-            const profileResponse = await fetch(`${api_url}/chat/fetchProfile/${instance.instance_name}`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'apikey': api_key,
-              },
-              body: JSON.stringify({ number: statusData.instance?.owner?.split('@')[0] }),
+            console.log('[whatsapp-instance] Buscando dados do perfil via fetchInstances');
+            const instancesResponse = await fetch(`${api_url}/instance/fetchInstances`, {
+              method: 'GET',
+              headers: { 'apikey': api_key },
             });
-            const profileData = await profileResponse.json();
-            if (profileData) {
-              updateData.phone_number = statusData.instance?.owner?.split('@')[0];
-              updateData.profile_name = profileData.name || profileData.pushName;
-              updateData.profile_picture_url = profileData.picture;
+            const instancesList = await instancesResponse.json();
+            console.log('[whatsapp-instance] Lista de instâncias:', JSON.stringify(instancesList));
+            
+            // Encontrar a instância atual na lista
+            const thisInstance = instancesList?.find?.((i: any) => 
+              i.instance?.instanceName === instance.instance_name || 
+              i.instanceName === instance.instance_name
+            );
+            
+            if (thisInstance) {
+              console.log('[whatsapp-instance] Instância encontrada:', JSON.stringify(thisInstance));
+              const instanceData = thisInstance.instance || thisInstance;
+              updateData.profile_name = instanceData.profileName || instanceData.wuid?.split('@')[0] || owner;
+              updateData.profile_picture_url = instanceData.profilePictureUrl || instanceData.profilePicUrl;
+            } else {
+              // Fallback: usar número como nome
+              updateData.profile_name = owner;
             }
           } catch (e) {
-            console.log('[whatsapp-instance] Erro ao buscar perfil:', e);
+            console.log('[whatsapp-instance] Erro ao buscar perfil via fetchInstances:', e);
+            // Fallback: usar número como nome
+            if (owner) {
+              updateData.profile_name = owner;
+            }
           }
         }
 

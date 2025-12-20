@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Eye, EyeOff, Megaphone, Calendar, Code, HelpCircle, ChevronDown, Copy, Check } from "lucide-react";
+import { Plus, Pencil, Trash2, Eye, EyeOff, Megaphone, Calendar, Code, HelpCircle, ChevronDown, Copy, Check, Smartphone, Monitor } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -77,6 +77,7 @@ const SystemBannersPage = () => {
   const [previewHtml, setPreviewHtml] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [previewMode, setPreviewMode] = useState<'mobile' | 'desktop'>('desktop');
   
   // Form state
   const [title, setTitle] = useState("");
@@ -236,17 +237,8 @@ const SystemBannersPage = () => {
   return (
     <AdminLayout pageTitle="Banners do Sistema">
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Megaphone className="h-6 w-6 text-primary" />
-              Banners do Sistema
-            </h1>
-            <p className="text-muted-foreground">
-              Crie banners HTML que serão exibidos em todas as lojas
-            </p>
-          </div>
+        {/* Botão Novo Banner */}
+        <div className="flex justify-end">
           <Button onClick={handleOpenCreate}>
             <Plus className="h-4 w-4 mr-2" />
             Novo Banner
@@ -303,6 +295,16 @@ const SystemBannersPage = () => {
                       />
                     </div>
                   ))}
+                </div>
+
+                <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-sm">
+                  <strong className="text-blue-700 dark:text-blue-400">📏 Dimensões Recomendadas:</strong>
+                  <ul className="mt-2 space-y-1 text-blue-600 dark:text-blue-300 list-disc list-inside">
+                    <li><strong>Altura máxima:</strong> 80-100px (para não ocupar muito espaço)</li>
+                    <li><strong>Padding:</strong> 12px a 16px</li>
+                    <li><strong>Largura:</strong> 100% (responsivo)</li>
+                    <li>Evite mais de 2 linhas de texto em mobile</li>
+                  </ul>
                 </div>
 
                 <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-sm">
@@ -509,14 +511,49 @@ const SystemBannersPage = () => {
                 <Label htmlFor="is_active">Banner ativo</Label>
               </div>
 
-              {/* Preview inline */}
+              {/* Preview em tempo real melhorado */}
               {htmlContent && (
-                <div className="space-y-2">
-                  <Label>Preview</Label>
-                  <div 
-                    className="border rounded-lg overflow-hidden"
-                    dangerouslySetInnerHTML={{ __html: htmlContent }}
-                  />
+                <div className="space-y-3 border-t pt-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-base font-medium flex items-center gap-2">
+                      <Eye className="h-4 w-4" />
+                      Preview em Tempo Real
+                    </Label>
+                    <div className="flex gap-1 bg-muted rounded-lg p-1">
+                      <Button 
+                        type="button" 
+                        variant={previewMode === 'mobile' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => setPreviewMode('mobile')}
+                        className="h-7 px-2"
+                      >
+                        <Smartphone className="h-4 w-4 mr-1" />
+                        Mobile
+                      </Button>
+                      <Button 
+                        type="button" 
+                        variant={previewMode === 'desktop' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => setPreviewMode('desktop')}
+                        className="h-7 px-2"
+                      >
+                        <Monitor className="h-4 w-4 mr-1" />
+                        Desktop
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className={`bg-muted/30 rounded-lg p-4 flex justify-center ${previewMode === 'mobile' ? '' : ''}`}>
+                    <div className={`${previewMode === 'mobile' ? 'w-[375px]' : 'w-full'}`}>
+                      <p className="text-xs text-muted-foreground mb-2 text-center">
+                        {previewMode === 'mobile' ? '📱 Visualização Mobile (375px)' : '🖥️ Visualização Desktop'}
+                      </p>
+                      <div 
+                        className="border rounded-lg overflow-hidden bg-background"
+                        dangerouslySetInnerHTML={{ __html: htmlContent }}
+                      />
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

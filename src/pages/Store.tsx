@@ -448,35 +448,36 @@ const Store = () => {
         }
 
         if (productsResult.data) {
-          // Carregar variantes para todos os produtos de uma vez (otimizado)
-          // Usar Promise.all com limite de concorrência para não sobrecarregar
-          const productsWithVariants = await Promise.all(
-            productsResult.data.map(async (product) => {
-              const { data: variants } = await supabase
-                .from('product_variants')
-                .select('*')
-                .eq('product_id', product.id)
-                .eq('is_available', true)
-                .order('display_order')
-                .limit(1); // Apenas a variante padrão para otimização
+          // Buscar TODAS as variantes em uma única query (otimizado)
+          const productIds = productsResult.data.map(p => p.id);
+          
+          const { data: allVariants } = await supabase
+            .from('product_variants')
+            .select('*')
+            .in('product_id', productIds)
+            .eq('is_available', true)
+            .order('display_order');
 
-              if (variants && variants.length > 0) {
-                const defaultVariant = variants.find(v => v.is_default) || variants[0];
-                return {
-                  ...product,
-                  price: Number(defaultVariant.price),
-                  variants: variants
-                };
-              }
-
+          // Mapear variantes para cada produto
+          const productsWithVariants = productsResult.data.map((product) => {
+            const variants = allVariants?.filter(v => v.product_id === product.id) || [];
+            
+            if (variants.length > 0) {
+              const defaultVariant = variants.find(v => v.is_default) || variants[0];
               return {
                 ...product,
-                variants: []
+                price: Number(defaultVariant.price),
+                variants: variants
               };
-            })
-          );
+            }
 
-          // Garantir que não há produtos duplicados (usar Set para remover duplicatas por ID)
+            return {
+              ...product,
+              variants: []
+            };
+          });
+
+          // Garantir que não há produtos duplicados
           const uniqueProducts = Array.from(
             new Map(productsWithVariants.map(p => [p.id, p])).values()
           );

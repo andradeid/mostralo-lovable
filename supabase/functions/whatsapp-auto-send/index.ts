@@ -171,10 +171,26 @@ function formatEstimatedTime(minutes: number | null): string {
   return `${minutes} minutos`;
 }
 
-// Gerar link do Google Maps a partir de coordenadas
-function buildGoogleMapsLink(lat: number | null, lng: number | null): string {
+// Gerar link de navegação personalizado com escolha Google Maps/Waze
+function buildNavigationLink(
+  lat: number | null, 
+  lng: number | null, 
+  storeSlug: string,
+  address: string | null
+): string {
   if (!lat || !lng) return '';
-  return `https://www.google.com/maps?q=${lat},${lng}`;
+  
+  const params = new URLSearchParams({
+    lat: lat.toString(),
+    lng: lng.toString(),
+    store: storeSlug,
+  });
+  
+  if (address) {
+    params.set('address', address);
+  }
+  
+  return `https://mostralo.com.br/navegar?${params.toString()}`;
 }
 
 // Substituir variáveis na mensagem
@@ -346,8 +362,8 @@ serve(async (req) => {
     let orderData: any = null;
     let orderItemsFormatted = '';
     
-    // Variável para guardar o link do Google Maps
-    let googleMapsLink = '';
+    // Variável para guardar o link de navegação
+    let navigationLink = '';
     
     if (orderId) {
       const { data: order } = await supabase
@@ -367,8 +383,13 @@ serve(async (req) => {
           .single();
         
         if (customer?.latitude && customer?.longitude) {
-          googleMapsLink = buildGoogleMapsLink(customer.latitude, customer.longitude);
-          console.log(`[whatsapp-auto-send] Link do mapa gerado: ${googleMapsLink}`);
+          navigationLink = buildNavigationLink(
+            customer.latitude, 
+            customer.longitude,
+            store.slug,
+            order?.customer_address
+          );
+          console.log(`[whatsapp-auto-send] Link de navegação gerado: ${navigationLink}`);
         }
       }
       
@@ -417,7 +438,7 @@ serve(async (req) => {
           totalSpent: classification.totalSpent,
           orderItems: orderItemsFormatted,
           estimatedTime: formatEstimatedTime(orderData?.estimated_delivery_minutes),
-          googleMapsLink: googleMapsLink
+          googleMapsLink: navigationLink
         });
       } else {
         // Usar template inteligente baseado no tipo de cliente E status da loja
@@ -445,7 +466,7 @@ serve(async (req) => {
           totalSpent: classification.totalSpent,
           orderItems: orderItemsFormatted,
           estimatedTime: formatEstimatedTime(orderData?.estimated_delivery_minutes),
-          googleMapsLink: googleMapsLink
+          googleMapsLink: navigationLink
         });
       }
     } else {
@@ -470,7 +491,7 @@ serve(async (req) => {
         totalSpent: classification.totalSpent,
         orderItems: orderItemsFormatted,
         estimatedTime: formatEstimatedTime(orderData?.estimated_delivery_minutes),
-        googleMapsLink: googleMapsLink
+        googleMapsLink: navigationLink
       });
     }
 

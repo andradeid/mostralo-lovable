@@ -88,6 +88,7 @@ import QualificationBenefitsPage from './pages/admin/QualificationBenefitsPage';
 import SalespeopleListPage from './pages/admin/SalespeopleListPage';
 import ContractTemplateEditPage from './pages/admin/ContractTemplateEditPage';
 import VerifyContractPage from './pages/public/VerifyContractPage';
+import NavigatePage from './pages/public/NavigatePage';
 import FeaturesPage from './pages/public/FeaturesPage';
 import FeirantesPage from './pages/public/FeirantesPage';
 import LojistasLocaisPage from './pages/public/LojistasLocaisPage';
@@ -189,6 +190,7 @@ const App = () => (
             <Route path="/para-acougues" element={<AcouguesPage />} />
             <Route path="/guia-vendedor" element={<SalespersonSalesGuidePage />} />
             <Route path="/sitemap.xml" element={<Sitemap />} />
+            <Route path="/navegar" element={<NavigatePage />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/payment-proof" element={

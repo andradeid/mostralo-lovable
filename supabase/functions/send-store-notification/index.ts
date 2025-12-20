@@ -26,6 +26,9 @@ serve(async (req) => {
       store_name,
       notification_phone,
       notification_country_code,
+      notification_phone_2,
+      notification_country_code_2,
+      new_order_message_template,
       instance_phone,
       instance_name,
       instance_status,
@@ -37,29 +40,50 @@ serve(async (req) => {
       customer_address,
       delivery_address,
       total,
+      subtotal,
+      delivery_fee,
       delivery_type,
       payment_method,
       notes,
-      created_at
+      created_at,
+      is_test
     } = data;
 
-    // Determinar número de destino (prioridade: notification_phone > instance_phone > whatsapp > phone)
-    let targetPhone = notification_phone || instance_phone || store_whatsapp || store_phone;
-    
-    if (!targetPhone) {
+    // Lista de números para enviar (pode ter até 2)
+    const phoneNumbers: Array<{ phone: string; countryCode: string }> = [];
+
+    // Adicionar número 1 se existir
+    if (notification_phone) {
+      phoneNumbers.push({
+        phone: notification_phone,
+        countryCode: notification_country_code || '+55'
+      });
+    }
+
+    // Adicionar número 2 se existir
+    if (notification_phone_2) {
+      phoneNumbers.push({
+        phone: notification_phone_2,
+        countryCode: notification_country_code_2 || '+55'
+      });
+    }
+
+    // Fallback para outros números da loja
+    if (phoneNumbers.length === 0) {
+      const fallbackPhone = instance_phone || store_whatsapp || store_phone;
+      if (fallbackPhone) {
+        phoneNumbers.push({
+          phone: fallbackPhone,
+          countryCode: '+55'
+        });
+      }
+    }
+
+    if (phoneNumbers.length === 0) {
       console.log('[send-store-notification] Nenhum número de destino disponível');
       return new Response(JSON.stringify({ success: false, reason: 'no_phone' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
-    }
-
-    // Limpar número (remover caracteres não numéricos)
-    targetPhone = targetPhone.replace(/\D/g, '');
-    
-    // Adicionar código do país se necessário
-    const countryCode = (notification_country_code || '+55').replace('+', '');
-    if (!targetPhone.startsWith(countryCode) && !targetPhone.startsWith('55')) {
-      targetPhone = countryCode + targetPhone;
     }
 
     // Buscar instância WhatsApp da loja (se não veio do trigger)
@@ -152,13 +176,20 @@ serve(async (req) => {
       ? (delivery_address || customer_address || 'Não informado')
       : 'Retirada no local';
 
-    // Montar mensagem
-    const message = `📦 *NOVO PEDIDO!*
+    // Formatar valores monetários
+    const formatCurrency = (value: number | string | undefined | null): string => {
+      if (value === undefined || value === null) return 'R$ 0,00';
+      const num = typeof value === 'number' ? value : parseFloat(String(value)) || 0;
+      return `R$ ${num.toFixed(2).replace('.', ',')}`;
+    };
+
+    // Mensagem padrão
+    const defaultMessage = `📦 *NOVO PEDIDO!*
 
 🔢 *Pedido:* #${order_number || order_id?.slice(0, 8).toUpperCase()}
 👤 *Cliente:* ${customer_name || 'N/A'}
 📱 *Tel:* ${customer_phone || 'N/A'}
-💰 *Total:* R$ ${typeof total === 'number' ? total.toFixed(2) : total || '0.00'}
+💰 *Total:* ${formatCurrency(total)}
 ${deliveryTypeText}
 ${delivery_type === 'delivery' ? `📍 *Endereço:* ${addressToShow}` : ''}
 💳 *Pagamento:* ${paymentMethodText}
@@ -166,36 +197,86 @@ ${notes ? `📝 *Obs:* ${notes}` : ''}
 
 ⏰ ${formattedDate}`;
 
-    // Enviar mensagem via Evolution API
-    const apiUrl = evolutionConfig.api_url.replace(/\/$/, '');
-    const sendUrl = `${apiUrl}/message/sendText/${instanceToUse}`;
-
-    console.log(`[send-store-notification] Enviando para ${targetPhone} via ${instanceToUse}`);
-
-    const response = await fetch(sendUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': evolutionConfig.api_key
-      },
-      body: JSON.stringify({
-        number: targetPhone,
-        text: message
-      })
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      console.error('[send-store-notification] Erro ao enviar:', result);
-      return new Response(JSON.stringify({ success: false, error: result }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+    // Usar template customizado ou mensagem padrão
+    let message = defaultMessage;
+    
+    if (new_order_message_template && new_order_message_template.trim()) {
+      // Substituir variáveis no template
+      message = new_order_message_template
+        .replace(/{numero_pedido}/g, `#${order_number || order_id?.slice(0, 8).toUpperCase()}`)
+        .replace(/{cliente_nome}/g, customer_name || 'N/A')
+        .replace(/{cliente_telefone}/g, customer_phone || 'N/A')
+        .replace(/{total}/g, formatCurrency(total))
+        .replace(/{subtotal}/g, formatCurrency(subtotal))
+        .replace(/{taxa_entrega}/g, formatCurrency(delivery_fee))
+        .replace(/{tipo_entrega}/g, deliveryTypeText)
+        .replace(/{endereco}/g, addressToShow)
+        .replace(/{forma_pagamento}/g, paymentMethodText)
+        .replace(/{observacoes}/g, notes || 'Nenhuma')
+        .replace(/{data_hora}/g, formattedDate)
+        .replace(/{loja_nome}/g, store_name || 'Loja');
     }
 
-    console.log(`[send-store-notification] Mensagem enviada com sucesso para loja ${store_name}:`, result);
+    // Se for teste, adicionar indicador
+    if (is_test) {
+      message = `🧪 *MENSAGEM DE TESTE*\n\n${message}`;
+    }
 
-    return new Response(JSON.stringify({ success: true, result }), {
+    // Enviar mensagem para cada número
+    const apiUrl = evolutionConfig.api_url.replace(/\/$/, '');
+    const sendUrl = `${apiUrl}/message/sendText/${instanceToUse}`;
+    const results: any[] = [];
+
+    for (const phoneData of phoneNumbers) {
+      // Limpar número (remover caracteres não numéricos)
+      let targetPhone = phoneData.phone.replace(/\D/g, '');
+      
+      // Adicionar código do país se necessário
+      const countryCode = phoneData.countryCode.replace('+', '');
+      if (!targetPhone.startsWith(countryCode) && !targetPhone.startsWith('55')) {
+        targetPhone = countryCode + targetPhone;
+      }
+
+      console.log(`[send-store-notification] Enviando para ${targetPhone} via ${instanceToUse}`);
+
+      try {
+        const response = await fetch(sendUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': evolutionConfig.api_key
+          },
+          body: JSON.stringify({
+            number: targetPhone,
+            text: message
+          })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          console.error(`[send-store-notification] Erro ao enviar para ${targetPhone}:`, result);
+          results.push({ phone: targetPhone, success: false, error: result });
+        } else {
+          console.log(`[send-store-notification] Mensagem enviada com sucesso para ${targetPhone}`);
+          results.push({ phone: targetPhone, success: true, result });
+        }
+      } catch (error) {
+        console.error(`[send-store-notification] Erro ao enviar para ${targetPhone}:`, error);
+        results.push({ phone: targetPhone, success: false, error: String(error) });
+      }
+    }
+
+    // Verificar se pelo menos uma mensagem foi enviada com sucesso
+    const anySuccess = results.some(r => r.success);
+
+    console.log(`[send-store-notification] Resultado final para loja ${store_name}:`, results);
+
+    return new Response(JSON.stringify({ 
+      success: anySuccess, 
+      results,
+      message: anySuccess ? 'Mensagem enviada com sucesso' : 'Falha ao enviar mensagens'
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
 

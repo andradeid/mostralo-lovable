@@ -131,6 +131,9 @@ interface FormData {
   // Notificações WhatsApp
   notification_phone: string;
   notification_country_code: string;
+  notification_phone_2: string;
+  notification_country_code_2: string;
+  new_order_message_template: string;
   notify_new_orders: boolean;
 }
 
@@ -261,6 +264,9 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
       // Notificações WhatsApp
       notification_phone: store.notification_phone || '',
       notification_country_code: store.notification_country_code || '+55',
+      notification_phone_2: store.notification_phone_2 || '',
+      notification_country_code_2: store.notification_country_code_2 || '+55',
+      new_order_message_template: store.new_order_message_template || '',
       notify_new_orders: store.notify_new_orders ?? false,
     };
   });
@@ -412,6 +418,9 @@ export function StoreConfigurationForm({ store, onClose }: StoreConfigurationFor
         // Notificações WhatsApp
         notification_phone: formData.notification_phone || null,
         notification_country_code: formData.notification_country_code || '+55',
+        notification_phone_2: formData.notification_phone_2 || null,
+        notification_country_code_2: formData.notification_country_code_2 || '+55',
+        new_order_message_template: formData.new_order_message_template || null,
         notify_new_orders: formData.notify_new_orders ?? false,
         // JSON com opções adicionais de funcionamento/entrega
         delivery_config: {

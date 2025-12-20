@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Clock, MessageCircle, QrCode, Package, Timer, Map, Bell, Phone, AlertTriangle } from "lucide-react";
+import { MapPin, Clock, MessageCircle, QrCode, Package, Timer, Map, Bell, Phone, AlertTriangle, CheckCircle2, XCircle, Loader2, Send, Plus } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DeliveryZonesPicker, DeliveryZone } from "../DeliveryZonesPicker";
 import { MapLocationPicker } from "../MapLocationPicker";
@@ -17,6 +17,8 @@ import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Link } from "react-router-dom";
 import { useWhatsAppStatus } from "@/hooks/useWhatsAppStatus";
+import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
 
 interface DeliveryStepProps {
   formData: any;
@@ -28,6 +30,20 @@ interface DeliveryStepProps {
 export function DeliveryStep({ formData, updateFormData, onSave, storeId }: DeliveryStepProps) {
   const [showZonesPicker, setShowZonesPicker] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
+  
+  // Estado para validação de WhatsApp
+  const [validatingPhone1, setValidatingPhone1] = useState(false);
+  const [validatingPhone2, setValidatingPhone2] = useState(false);
+  const [phone1Valid, setPhone1Valid] = useState<boolean | null>(null);
+  const [phone2Valid, setPhone2Valid] = useState<boolean | null>(null);
+  const [validationStep1, setValidationStep1] = useState('');
+  const [validationStep2, setValidationStep2] = useState('');
+  
+  // Estado para teste de envio
+  const [sendingTest, setSendingTest] = useState(false);
+  
+  // Ref para textarea de mensagem
+  const messageTextareaRef = useRef<HTMLTextAreaElement>(null);
   
   // Verificar se existe instância WhatsApp conectada
   const { hasConnectedWhatsApp } = useWhatsAppStatus(storeId);
@@ -87,6 +103,169 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId }: Deli
   };
 
   const deliveryZones = formData.delivery_zones || [];
+
+  // Variáveis disponíveis para o template de mensagem
+  const messageVariables = [
+    { key: '{numero_pedido}', label: 'Nº Pedido', example: '#ABC12345' },
+    { key: '{cliente_nome}', label: 'Cliente', example: 'João Silva' },
+    { key: '{cliente_telefone}', label: 'Telefone', example: '61999999999' },
+    { key: '{total}', label: 'Total', example: 'R$ 89,90' },
+    { key: '{subtotal}', label: 'Subtotal', example: 'R$ 79,90' },
+    { key: '{taxa_entrega}', label: 'Taxa Entrega', example: 'R$ 10,00' },
+    { key: '{tipo_entrega}', label: 'Tipo', example: '🚗 Delivery' },
+    { key: '{endereco}', label: 'Endereço', example: 'Rua X, 123' },
+    { key: '{forma_pagamento}', label: 'Pagamento', example: '💳 PIX' },
+    { key: '{observacoes}', label: 'Obs', example: 'Sem cebola' },
+    { key: '{data_hora}', label: 'Data/Hora', example: '20/12/2025 14:30' },
+    { key: '{loja_nome}', label: 'Loja', example: 'Minha Loja' },
+  ];
+
+  // Mensagem padrão
+  const defaultMessageTemplate = `📦 *NOVO PEDIDO!*
+
+🔢 *Pedido:* {numero_pedido}
+👤 *Cliente:* {cliente_nome}
+📱 *Tel:* {cliente_telefone}
+💰 *Total:* {total}
+{tipo_entrega}
+📍 *Endereço:* {endereco}
+💳 *Pagamento:* {forma_pagamento}
+📝 *Obs:* {observacoes}
+
+⏰ {data_hora}`;
+
+  // Função para validar número WhatsApp
+  const validateWhatsAppNumber = async (phoneNumber: string, countryCode: string, phoneIndex: 1 | 2) => {
+    const setValidating = phoneIndex === 1 ? setValidatingPhone1 : setValidatingPhone2;
+    const setValid = phoneIndex === 1 ? setPhone1Valid : setPhone2Valid;
+    const setStep = phoneIndex === 1 ? setValidationStep1 : setValidationStep2;
+    
+    if (!phoneNumber || phoneNumber.length < 10) {
+      toast.error('Digite um número válido com DDD');
+      return;
+    }
+
+    setValidating(true);
+    setValid(null);
+    
+    try {
+      // Animação de verificação
+      setStep('Verificando WhatsApp...');
+      await new Promise(r => setTimeout(r, 600));
+      
+      setStep('Conectando...');
+      await new Promise(r => setTimeout(r, 500));
+      
+      setStep('Validando número...');
+      
+      // Formatar número
+      const cleanPhone = phoneNumber.replace(/\D/g, '');
+      const code = countryCode.replace('+', '');
+      const fullPhone = cleanPhone.startsWith(code) ? cleanPhone : `${code}${cleanPhone}`;
+
+      const { data, error } = await supabase.functions.invoke('validate-whatsapp-number', {
+        body: { phone: fullPhone, sendWelcome: false }
+      });
+
+      if (error) throw error;
+
+      await new Promise(r => setTimeout(r, 300));
+
+      if (data?.exists) {
+        setValid(true);
+        setStep('WhatsApp válido!');
+        toast.success('Número validado com sucesso!');
+      } else {
+        setValid(false);
+        setStep('WhatsApp não encontrado');
+        toast.error('Este número não possui WhatsApp ativo');
+      }
+    } catch (error) {
+      console.error('Erro ao validar WhatsApp:', error);
+      setValid(false);
+      setStep('Erro na validação');
+      toast.error('Erro ao validar número');
+    } finally {
+      setValidating(false);
+      setTimeout(() => setStep(''), 3000);
+    }
+  };
+
+  // Função para inserir variável na posição do cursor
+  const insertVariable = (variable: string) => {
+    const textarea = messageTextareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const currentValue = formData.new_order_message_template || defaultMessageTemplate;
+    
+    const newValue = currentValue.substring(0, start) + variable + currentValue.substring(end);
+    updateFormData({ new_order_message_template: newValue });
+    
+    // Reposicionar cursor após a variável inserida
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + variable.length, start + variable.length);
+    }, 0);
+  };
+
+  // Função para enviar teste
+  const handleSendTest = async () => {
+    const phone1 = formData.notification_phone;
+    const phone2 = formData.notification_phone_2;
+    
+    if (!phone1 && !phone2) {
+      toast.error('Configure pelo menos um número para receber o teste');
+      return;
+    }
+
+    setSendingTest(true);
+
+    try {
+      // Dados fictícios para teste
+      const testData = {
+        store_id: storeId,
+        order_id: 'TEST-' + Date.now(),
+        store_name: formData.name || 'Minha Loja',
+        notification_phone: phone1,
+        notification_country_code: formData.notification_country_code || '+55',
+        notification_phone_2: phone2,
+        notification_country_code_2: formData.notification_country_code_2 || '+55',
+        new_order_message_template: formData.new_order_message_template || defaultMessageTemplate,
+        order_number: 'TESTE123',
+        customer_name: 'Cliente Teste',
+        customer_phone: '61999999999',
+        customer_address: 'Rua de Teste, 123 - Centro',
+        delivery_address: 'Rua de Teste, 123 - Centro',
+        total: 89.90,
+        subtotal: 79.90,
+        delivery_fee: 10.00,
+        delivery_type: 'delivery',
+        payment_method: 'pix',
+        notes: 'Esta é uma mensagem de TESTE',
+        created_at: new Date().toISOString(),
+        is_test: true
+      };
+
+      const { data, error } = await supabase.functions.invoke('send-store-notification', {
+        body: testData
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast.success('Mensagem de teste enviada com sucesso!');
+      } else {
+        throw new Error(data?.reason || 'Erro desconhecido');
+      }
+    } catch (error: any) {
+      console.error('Erro ao enviar teste:', error);
+      toast.error(error.message || 'Erro ao enviar mensagem de teste');
+    } finally {
+      setSendingTest(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -539,7 +718,7 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId }: Deli
           <>
             <p className="text-sm text-muted-foreground border-l-4 border-primary pl-3">
               Configure para receber notificações no WhatsApp sempre que um novo pedido for criado. 
-              A mensagem será enviada automaticamente para o número configurado abaixo.
+              A mensagem será enviada automaticamente para os números configurados abaixo.
             </p>
             
             <div className="flex items-center justify-between p-4 border rounded-lg bg-secondary/30">
@@ -558,70 +737,257 @@ export function DeliveryStep({ formData, updateFormData, onSave, storeId }: Deli
         )}
 
         {hasConnectedWhatsApp && formData.notify_new_orders && (
-          <div className="space-y-4 border-l-4 border-primary pl-4 mt-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="md:col-span-1">
-                <Label htmlFor="notification_country_code">País</Label>
-                <Select
-                  value={formData.notification_country_code || '+55'}
-                  onValueChange={(value) => updateFormData({ notification_country_code: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="+55" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="+55">🇧🇷 +55</SelectItem>
-                    <SelectItem value="+1">🇺🇸 +1</SelectItem>
-                    <SelectItem value="+351">🇵🇹 +351</SelectItem>
-                    <SelectItem value="+34">🇪🇸 +34</SelectItem>
-                    <SelectItem value="+54">🇦🇷 +54</SelectItem>
-                    <SelectItem value="+595">🇵🇾 +595</SelectItem>
-                  </SelectContent>
-                </Select>
+          <div className="space-y-6 border-l-4 border-primary pl-4 mt-4">
+            
+            {/* Número 1 - Principal */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Badge variant="default" className="text-xs">Número 1</Badge>
+                <span className="text-sm font-medium">Principal</span>
               </div>
-              <div className="md:col-span-3">
-                <Label htmlFor="notification_phone">Número para Notificações</Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="notification_phone"
-                    value={formData.notification_phone || ''}
-                    onChange={(e) => {
-                      // Remove non-digits
-                      const value = e.target.value.replace(/\D/g, '');
-                      updateFormData({ notification_phone: value });
-                    }}
-                    placeholder="61999999999"
-                    className="pl-10"
-                    maxLength={11}
-                  />
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                <div className="md:col-span-2">
+                  <Label htmlFor="notification_country_code">País</Label>
+                  <Select
+                    value={formData.notification_country_code || '+55'}
+                    onValueChange={(value) => updateFormData({ notification_country_code: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="+55" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="+55">🇧🇷 +55</SelectItem>
+                      <SelectItem value="+1">🇺🇸 +1</SelectItem>
+                      <SelectItem value="+351">🇵🇹 +351</SelectItem>
+                      <SelectItem value="+34">🇪🇸 +34</SelectItem>
+                      <SelectItem value="+54">🇦🇷 +54</SelectItem>
+                      <SelectItem value="+595">🇵🇾 +595</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Digite apenas números (DDD + número). Ex: 61999999999
-                </p>
+                <div className="md:col-span-6">
+                  <Label htmlFor="notification_phone">Número</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="notification_phone"
+                      value={formData.notification_phone || ''}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, '');
+                        updateFormData({ notification_phone: value });
+                        setPhone1Valid(null);
+                      }}
+                      placeholder="61999999999"
+                      className="pl-10"
+                      maxLength={11}
+                    />
+                  </div>
+                </div>
+                <div className="md:col-span-4 flex items-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="default"
+                    onClick={() => validateWhatsAppNumber(
+                      formData.notification_phone || '',
+                      formData.notification_country_code || '+55',
+                      1
+                    )}
+                    disabled={validatingPhone1 || !formData.notification_phone}
+                    className="w-full"
+                  >
+                    {validatingPhone1 ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        {validationStep1}
+                      </>
+                    ) : phone1Valid === true ? (
+                      <>
+                        <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
+                        Válido
+                      </>
+                    ) : phone1Valid === false ? (
+                      <>
+                        <XCircle className="h-4 w-4 mr-2 text-red-500" />
+                        Inválido
+                      </>
+                    ) : (
+                      <>
+                        <MessageCircle className="h-4 w-4 mr-2" />
+                        Validar
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
-            
-            <div className="p-3 bg-muted rounded-lg text-sm">
-              <p className="font-medium mb-1">Exemplo de mensagem que será enviada:</p>
-              <div className="text-muted-foreground whitespace-pre-line text-xs">
-📦 *NOVO PEDIDO!*
 
-🔢 *Pedido:* #ABC12345
-👤 *Cliente:* João Silva
-📱 *Tel:* 61999999999
-💰 *Total:* R$ 89,90
-🚗 Delivery
-📍 *Endereço:* Rua X, 123
+            {/* Número 2 - Opcional */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="text-xs">Número 2</Badge>
+                <span className="text-sm font-medium">Opcional</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                <div className="md:col-span-2">
+                  <Label htmlFor="notification_country_code_2">País</Label>
+                  <Select
+                    value={formData.notification_country_code_2 || '+55'}
+                    onValueChange={(value) => updateFormData({ notification_country_code_2: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="+55" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="+55">🇧🇷 +55</SelectItem>
+                      <SelectItem value="+1">🇺🇸 +1</SelectItem>
+                      <SelectItem value="+351">🇵🇹 +351</SelectItem>
+                      <SelectItem value="+34">🇪🇸 +34</SelectItem>
+                      <SelectItem value="+54">🇦🇷 +54</SelectItem>
+                      <SelectItem value="+595">🇵🇾 +595</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="md:col-span-6">
+                  <Label htmlFor="notification_phone_2">Número</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="notification_phone_2"
+                      value={formData.notification_phone_2 || ''}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, '');
+                        updateFormData({ notification_phone_2: value });
+                        setPhone2Valid(null);
+                      }}
+                      placeholder="61888888888"
+                      className="pl-10"
+                      maxLength={11}
+                    />
+                  </div>
+                </div>
+                <div className="md:col-span-4 flex items-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="default"
+                    onClick={() => validateWhatsAppNumber(
+                      formData.notification_phone_2 || '',
+                      formData.notification_country_code_2 || '+55',
+                      2
+                    )}
+                    disabled={validatingPhone2 || !formData.notification_phone_2}
+                    className="w-full"
+                  >
+                    {validatingPhone2 ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        {validationStep2}
+                      </>
+                    ) : phone2Valid === true ? (
+                      <>
+                        <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
+                        Válido
+                      </>
+                    ) : phone2Valid === false ? (
+                      <>
+                        <XCircle className="h-4 w-4 mr-2 text-red-500" />
+                        Inválido
+                      </>
+                    ) : (
+                      <>
+                        <MessageCircle className="h-4 w-4 mr-2" />
+                        Validar
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Adicione um segundo número para receber as notificações (ex: sócio, gerente)
+              </p>
+            </div>
 
-⏰ 20/12/2025 às 14:30
+            {/* Mensagem Personalizada */}
+            <div className="space-y-3 pt-4 border-t">
+              <Label className="text-base font-semibold">Mensagem de Notificação</Label>
+              <p className="text-sm text-muted-foreground">
+                Personalize a mensagem que será enviada quando um novo pedido for recebido.
+              </p>
+              
+              {/* Chips de variáveis */}
+              <div className="space-y-2">
+                <Label className="text-sm">Clique para inserir variáveis:</Label>
+                <div className="flex flex-wrap gap-2">
+                  {messageVariables.map((variable) => (
+                    <Button
+                      key={variable.key}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => insertVariable(variable.key)}
+                      className="text-xs h-7"
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      {variable.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Textarea da mensagem */}
+              <Textarea
+                ref={messageTextareaRef}
+                value={formData.new_order_message_template || defaultMessageTemplate}
+                onChange={(e) => updateFormData({ new_order_message_template: e.target.value })}
+                placeholder="Digite sua mensagem personalizada..."
+                rows={12}
+                className="font-mono text-sm"
+              />
+
+              {/* Botão restaurar padrão */}
+              <div className="flex justify-between items-center">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => updateFormData({ new_order_message_template: defaultMessageTemplate })}
+                  className="text-xs"
+                >
+                  Restaurar mensagem padrão
+                </Button>
               </div>
             </div>
+
+            {/* Botão de Teste */}
+            <div className="pt-4 border-t">
+              <Button
+                type="button"
+                onClick={handleSendTest}
+                disabled={sendingTest || (!formData.notification_phone && !formData.notification_phone_2)}
+                className="w-full md:w-auto"
+              >
+                {sendingTest ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Enviando teste...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-2" />
+                    Enviar Mensagem de Teste
+                  </>
+                )}
+              </Button>
+              <p className="text-xs text-muted-foreground mt-2">
+                Envia uma mensagem de teste com dados fictícios para verificar se está funcionando.
+              </p>
+            </div>
             
-            {!formData.notification_phone && (
+            {!formData.notification_phone && !formData.notification_phone_2 && (
               <p className="text-xs text-amber-600 flex items-center gap-1">
                 <Bell className="h-3 w-3" />
-                Configure um número acima para receber as notificações. Caso contrário, será usado o WhatsApp da loja.
+                Configure pelo menos um número acima para receber as notificações.
               </p>
             )}
           </div>

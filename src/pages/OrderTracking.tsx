@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Phone, MapPin, Bell, Clock } from 'lucide-react';
+import { ArrowLeft, Phone, MapPin, Clock, Store } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import { useOrderTracking } from '@/hooks/useOrderTracking';
 import { OrderStatusTimeline } from '@/components/customer/OrderStatusTimeline';
@@ -145,8 +145,8 @@ export default function OrderTracking() {
       
       {/* Header Sticky */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-        <div className="container max-w-2xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+        <div className="container max-w-2xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between gap-3">
             <Button
               variant="ghost"
               size="icon"
@@ -160,9 +160,30 @@ export default function OrderTracking() {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div className="flex items-center gap-2">
-              <Bell className="h-5 w-5 text-muted-foreground" />
+            
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <Avatar className="h-8 w-8 border">
+                {order.stores?.logo_url ? (
+                  <AvatarImage src={order.stores.logo_url} alt={order.stores?.name || 'Loja'} />
+                ) : null}
+                <AvatarFallback className="bg-orange-100">
+                  <Store className="h-4 w-4 text-orange-500" />
+                </AvatarFallback>
+              </Avatar>
+              <span className="font-medium text-sm truncate">
+                {order.stores?.name || 'Loja'}
+              </span>
             </div>
+            
+            {order.stores?.slug && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate(`/loja/${order.stores?.slug}`)}
+              >
+                Ver cardápio
+              </Button>
+            )}
           </div>
         </div>
       </header>

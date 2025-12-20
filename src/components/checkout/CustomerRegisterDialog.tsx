@@ -217,8 +217,22 @@ export function CustomerRegisterDialog({ open, onOpenChange, storeId }: Customer
       onOpenChange(false);
     } catch (error: any) {
       console.error('Erro ao salvar cadastro:', error);
-      const errorMessage = error?.message || 'Erro ao salvar cadastro';
-      toast.error(errorMessage, { duration: 4000 });
+      
+      // Mensagens de erro amigáveis baseadas no tipo de erro
+      const errorCode = error?.code || '';
+      const errorMessage = error?.message?.toLowerCase() || '';
+      
+      if (errorCode === '23505' || errorMessage.includes('duplicate') || errorMessage.includes('unique')) {
+        toast.error('Este telefone já está cadastrado! Use o botão de busca (🔍) para carregar seus dados.', { duration: 5000 });
+      } else if (errorMessage.includes('permission') || errorMessage.includes('policy') || errorCode === '42501') {
+        toast.error('Erro de permissão. Tente novamente ou entre em contato com a loja.', { duration: 4000 });
+      } else if (errorMessage.includes('network') || errorMessage.includes('fetch') || errorMessage.includes('connection')) {
+        toast.error('Erro de conexão. Verifique sua internet e tente novamente.', { duration: 4000 });
+      } else if (errorMessage.includes('gen_salt') || errorMessage.includes('crypt')) {
+        toast.error('Erro interno do sistema. Por favor, tente novamente.', { duration: 4000 });
+      } else {
+        toast.error('Erro ao salvar cadastro. Tente novamente.', { duration: 4000 });
+      }
     } finally {
       setLoading(false);
     }

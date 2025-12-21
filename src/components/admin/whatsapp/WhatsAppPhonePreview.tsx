@@ -197,28 +197,28 @@ export function WhatsAppPhonePreview({
 
         {/* Frame do celular */}
         <div 
-          className="relative w-[280px] rounded-[2.5rem] p-2 shadow-2xl"
+          className="relative w-[360px] rounded-[3rem] p-2.5 shadow-2xl"
           style={{ backgroundColor: colors.frame }}
         >
           {/* Notch */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-5 bg-black rounded-b-xl z-10" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-black rounded-b-xl z-10" />
         
         {/* Tela */}
-        <div className="rounded-[2rem] overflow-hidden">
+        <div className="rounded-[2.5rem] overflow-hidden">
           {/* Status Bar */}
           <div 
-            className="flex items-center justify-between px-6 py-1.5 text-[10px]"
+            className="flex items-center justify-between px-8 py-2 text-xs"
             style={{ backgroundColor: colors.statusBar, color: colors.headerText }}
           >
             <span className="font-medium">9:41</span>
-            <div className="flex items-center gap-1">
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+            <div className="flex items-center gap-1.5">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M2 17h2v4H2v-4zm4-4h2v8H6v-8zm4-4h2v12h-2V9zm4-4h2v16h-2V5z"/>
               </svg>
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/>
               </svg>
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M17 4h-3V2h-4v2H7v18h10V4z"/>
               </svg>
             </div>
@@ -226,42 +226,42 @@ export function WhatsAppPhonePreview({
 
           {/* WhatsApp Header */}
           <div 
-            className="flex items-center gap-2 px-2 py-2"
+            className="flex items-center gap-3 px-3 py-2.5"
             style={{ backgroundColor: colors.header }}
           >
-            <ArrowLeft className="w-5 h-5" style={{ color: colors.headerText }} />
+            <ArrowLeft className="w-6 h-6" style={{ color: colors.headerText }} />
             
             {/* Avatar */}
-            <div className="w-9 h-9 rounded-full bg-gray-400 flex items-center justify-center text-white font-semibold text-sm">
+            <div className="w-10 h-10 rounded-full bg-gray-400 flex items-center justify-center text-white font-semibold text-base">
               {storeName.charAt(0).toUpperCase()}
             </div>
             
             <div className="flex-1 min-w-0">
               <p 
-                className="font-medium text-sm truncate"
+                className="font-medium text-base truncate"
                 style={{ color: colors.headerText }}
               >
                 {storeName || 'Sua Loja'}
               </p>
               <p 
-                className="text-[10px] opacity-80"
+                className="text-xs opacity-80"
                 style={{ color: colors.headerText }}
               >
                 online
               </p>
             </div>
             
-            <div className="flex items-center gap-3" style={{ color: colors.headerText }}>
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+            <div className="flex items-center gap-4" style={{ color: colors.headerText }}>
+              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 0 0-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
               </svg>
-              <MoreVertical className="w-5 h-5" />
+              <MoreVertical className="w-6 h-6" />
             </div>
           </div>
 
           {/* Chat Area */}
           <div 
-            className="h-[280px] px-3 py-3 overflow-y-auto"
+            className="h-[420px] px-4 py-4 overflow-y-auto"
             style={{ 
               backgroundColor: colors.chatBg,
               backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='${isDark ? '%23ffffff' : '%23000000'}' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
@@ -291,35 +291,35 @@ export function WhatsAppPhonePreview({
                   <img 
                     src={mediaUrl} 
                     alt="Media" 
-                    className="w-full max-h-32 object-cover rounded-t-lg"
+                    className="w-full max-h-44 object-cover rounded-t-lg"
                   />
                 )}
                 {mediaUrl && mediaType === 'video' && (
                   <div 
-                    className="w-full h-24 rounded-t-lg flex items-center justify-center"
+                    className="w-full h-32 rounded-t-lg flex items-center justify-center"
                     style={{ backgroundColor: isDark ? '#1a1a1a' : '#e0e0e0' }}
                   >
-                    <Video className="w-10 h-10 opacity-50" style={{ color: colors.bubbleText }} />
+                    <Video className="w-12 h-12 opacity-50" style={{ color: colors.bubbleText }} />
                   </div>
                 )}
                 {mediaUrl && mediaType === 'document' && (
                   <div 
-                    className="w-full h-16 rounded-t-lg flex items-center justify-center gap-2"
+                    className="w-full h-20 rounded-t-lg flex items-center justify-center gap-2"
                     style={{ backgroundColor: isDark ? '#1a1a1a' : '#e0e0e0' }}
                   >
-                    <FileText className="w-6 h-6 opacity-50" style={{ color: colors.bubbleText }} />
-                    <span className="text-xs opacity-60" style={{ color: colors.bubbleText }}>Documento</span>
+                    <FileText className="w-8 h-8 opacity-50" style={{ color: colors.bubbleText }} />
+                    <span className="text-sm opacity-60" style={{ color: colors.bubbleText }}>Documento</span>
                   </div>
                 )}
 
                 {/* Texto */}
-                <div className="px-2 py-1.5">
+                <div className="px-3 py-2">
                   {isTyping && !displayText ? (
                     <TypingIndicator />
                   ) : (
                     <>
                       <p 
-                        className="text-[13px] whitespace-pre-wrap leading-relaxed pr-12"
+                        className="text-sm whitespace-pre-wrap leading-relaxed pr-14"
                         style={{ color: colors.bubbleText }}
                       >
                         {displayText || message}
@@ -327,17 +327,17 @@ export function WhatsAppPhonePreview({
                       </p>
                       
                       {/* Horário e checks */}
-                      <div className="flex items-center justify-end gap-0.5 -mt-3">
+                      <div className="flex items-center justify-end gap-1 -mt-4">
                         <span 
-                          className="text-[10px]"
+                          className="text-xs"
                           style={{ color: colors.timeText }}
                         >
                           {currentTime}
                         </span>
                         {isComplete && (
                           <div className="flex -space-x-1">
-                            <Check className="w-3 h-3" style={{ color: colors.checkColor }} />
-                            <Check className="w-3 h-3 -ml-1.5" style={{ color: colors.checkColor }} />
+                            <Check className="w-3.5 h-3.5" style={{ color: colors.checkColor }} />
+                            <Check className="w-3.5 h-3.5 -ml-1.5" style={{ color: colors.checkColor }} />
                           </div>
                         )}
                       </div>
@@ -350,29 +350,29 @@ export function WhatsAppPhonePreview({
 
           {/* Input Bar */}
           <div 
-            className="flex items-center gap-2 px-2 py-2"
+            className="flex items-center gap-2 px-3 py-2.5"
             style={{ backgroundColor: isDark ? '#1F2C34' : '#f0f0f0' }}
           >
             <div 
-              className="flex-1 flex items-center gap-2 rounded-full px-3 py-2"
+              className="flex-1 flex items-center gap-2 rounded-full px-4 py-2.5"
               style={{ backgroundColor: isDark ? '#2A3942' : '#ffffff' }}
             >
-              <span className="text-lg">😊</span>
+              <span className="text-xl">😊</span>
               <span 
-                className="flex-1 text-sm"
+                className="flex-1 text-base"
                 style={{ color: colors.inputText }}
               >
                 Mensagem
               </span>
-              <svg className="w-5 h-5" style={{ color: colors.inputText }} viewBox="0 0 24 24" fill="currentColor">
+              <svg className="w-6 h-6" style={{ color: colors.inputText }} viewBox="0 0 24 24" fill="currentColor">
                 <path d="M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18z"/>
               </svg>
             </div>
             <div 
-              className="w-10 h-10 rounded-full flex items-center justify-center"
+              className="w-11 h-11 rounded-full flex items-center justify-center"
               style={{ backgroundColor: '#00A884' }}
             >
-              <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+              <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/>
               </svg>
             </div>
@@ -380,8 +380,8 @@ export function WhatsAppPhonePreview({
         </div>
 
           {/* Home indicator */}
-          <div className="flex justify-center py-1">
-            <div className="w-24 h-1 bg-gray-600 rounded-full" />
+          <div className="flex justify-center py-1.5">
+            <div className="w-28 h-1.5 bg-gray-600 rounded-full" />
           </div>
         </div>
       </div>

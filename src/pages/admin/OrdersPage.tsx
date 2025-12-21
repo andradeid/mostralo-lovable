@@ -89,7 +89,7 @@ const OrdersPage = () => {
     if (!showTutorial) return '';
     const stepMap = { exit: 0, config: 1, help: 2 };
     if (tutorialStep === stepMap[buttonType]) {
-      return 'ring-2 ring-primary ring-offset-2 relative z-[60] animate-pulse';
+      return 'ring-2 ring-primary ring-offset-2 relative z-[60] animate-pulse bg-white';
     }
     return '';
   };

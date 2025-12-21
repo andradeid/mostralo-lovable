@@ -37,7 +37,8 @@ import {
   TestTube,
   CheckCircle,
   XCircle,
-  Search
+  Search,
+  Save
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -72,6 +73,9 @@ export default function WhatsAppCampaignNewPage() {
   const [validatingTestNumber, setValidatingTestNumber] = useState(false);
   const [testNumberValid, setTestNumberValid] = useState<boolean | null>(null);
   const [validationStep, setValidationStep] = useState('');
+  
+  // Estado para salvar mensagem
+  const [savingMessage, setSavingMessage] = useState(false);
   
   const [form, setForm] = useState({
     name: '',
@@ -638,6 +642,64 @@ export default function WhatsAppCampaignNewPage() {
     }
   };
 
+  // Salvar apenas mensagem e mídia
+  const saveMessage = async () => {
+    if (!form.custom_message.trim()) {
+      toast({
+        title: "Erro",
+        description: "Digite uma mensagem para salvar",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSavingMessage(true);
+    try {
+      if (previewData?.campaignId) {
+        // Atualizar mensagem em campanha existente
+        await supabase
+          .from('whatsapp_campaigns' as any)
+          .update({
+            custom_message: form.custom_message,
+            media_url: form.media_url || null,
+            media_type: form.media_type || null,
+          })
+          .eq('id', previewData.campaignId);
+      } else {
+        // Criar rascunho apenas com mensagem
+        const { data: campaign } = await supabase
+          .from('whatsapp_campaigns' as any)
+          .insert({
+            store_id: storeId,
+            name: form.name || 'Rascunho - ' + new Date().toLocaleDateString('pt-BR'),
+            custom_message: form.custom_message,
+            media_url: form.media_url || null,
+            media_type: form.media_type || null,
+            status: 'draft',
+          })
+          .select()
+          .single();
+
+        if (campaign) {
+          setPreviewData((prev: any) => ({ ...prev, campaignId: (campaign as any).id }));
+        }
+      }
+
+      toast({
+        title: "Mensagem salva!",
+        description: "Você pode continuar configurando a campanha",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Não foi possível salvar",
+        variant: "destructive",
+      });
+    } finally {
+      setSavingMessage(false);
+    }
+  };
+
   const getMediaIcon = () => {
     switch (form.media_type) {
       case 'image': return <Image className="h-4 w-4" />;
@@ -688,314 +750,7 @@ export default function WhatsAppCampaignNewPage() {
             </CardContent>
           </Card>
 
-          {/* Card de Mídia */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                {getMediaIcon()}
-                Mídia da Campanha
-              </CardTitle>
-              <CardDescription>
-                Envie uma imagem ou vídeo junto com a mensagem (opcional)
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {mediaPreview || form.media_url ? (
-                <div className="relative">
-                  {form.media_type === 'image' && (
-                    <img 
-                      src={mediaPreview || form.media_url} 
-                      alt="Preview" 
-                      className="w-full max-h-48 object-contain rounded-lg bg-muted"
-                    />
-                  )}
-                  {form.media_type === 'video' && (
-                    <video 
-                      src={mediaPreview || form.media_url} 
-                      className="w-full max-h-48 rounded-lg bg-muted" 
-                      controls 
-                    />
-                  )}
-                  {form.media_type === 'document' && (
-                    <div className="flex items-center gap-3 p-4 bg-muted rounded-lg">
-                      <FileText className="h-8 w-8 text-primary" />
-                      <span className="text-sm truncate">{mediaFile?.name || 'Documento'}</span>
-                    </div>
-                  )}
-                  <Button 
-                    variant="destructive" 
-                    size="sm" 
-                    className="absolute top-2 right-2"
-                    onClick={removeMedia}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ) : (
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
-                  {uploadingMedia ? (
-                    <div className="flex flex-col items-center">
-                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-2" />
-                      <span className="text-sm text-muted-foreground">Enviando...</span>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center">
-                      <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                      <span className="text-sm text-muted-foreground">
-                        Arraste ou clique para enviar
-                      </span>
-                      <span className="text-xs text-muted-foreground mt-1">
-                        Imagem, vídeo ou documento
-                      </span>
-                    </div>
-                  )}
-                  <input 
-                    type="file" 
-                    className="hidden" 
-                    accept="image/*,video/*,.pdf,.doc,.docx"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleMediaUpload(file);
-                    }}
-                    disabled={uploadingMedia}
-                  />
-                </label>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Card de Mensagem */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <MessageCircle className="h-4 w-4" />
-                Mensagem da Campanha *
-              </CardTitle>
-              <CardDescription>
-                Escreva a mensagem ou use um template como base
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Seletor de template como base */}
-              <div className="space-y-2">
-                <Label>Usar template como base (opcional)</Label>
-                <Select
-                  value={form.template_id}
-                  onValueChange={(v) => {
-                    setForm(prev => ({ ...prev, template_id: v }));
-                    const template = templates.find(t => t.id === v);
-                    if (template) {
-                      setForm(prev => ({ ...prev, custom_message: template.content }));
-                    }
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um template (opcional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {templates.map(t => (
-                      <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Textarea para mensagem customizada */}
-              <div className="space-y-2">
-                <Label>Mensagem *</Label>
-                <Textarea
-                  value={form.custom_message}
-                  onChange={(e) => setForm(prev => ({ ...prev, custom_message: e.target.value }))}
-                  placeholder="Digite sua mensagem aqui..."
-                  rows={6}
-                  className="font-mono text-sm"
-                />
-              </div>
-
-              {/* Variáveis disponíveis */}
-              <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-                <p className="text-xs font-medium text-muted-foreground">Variáveis disponíveis (clique para inserir):</p>
-                <div className="flex flex-wrap gap-1">
-                  {Object.entries(variableDescriptions).map(([variable, desc]) => (
-                    <Badge 
-                      key={variable} 
-                      variant="secondary" 
-                      className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors text-xs"
-                      onClick={() => insertVariable(variable)}
-                      title={desc}
-                    >
-                      {variable}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              {/* Preview da mensagem */}
-              {form.custom_message && (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Eye className="h-4 w-4 text-green-600" />
-                    <Label className="text-sm font-medium">Preview</Label>
-                  </div>
-                  
-                  {/* Balão estilo WhatsApp */}
-                  <div className="bg-[#dcf8c6] rounded-lg rounded-tr-none p-3 relative max-w-full shadow-sm">
-                    {/* Preview da mídia */}
-                    {(mediaPreview || form.media_url) && form.media_type === 'image' && (
-                      <img 
-                        src={mediaPreview || form.media_url} 
-                        alt="Media" 
-                        className="w-full max-h-32 object-cover rounded mb-2"
-                      />
-                    )}
-                    {(mediaPreview || form.media_url) && form.media_type === 'video' && (
-                      <div className="bg-gray-200 rounded mb-2 p-4 flex items-center justify-center">
-                        <Video className="h-8 w-8 text-gray-500" />
-                      </div>
-                    )}
-                    <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
-                      {renderMessagePreview(form.custom_message)}
-                    </p>
-                    <span className="text-[10px] text-gray-500 float-right mt-1">
-                      {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-
-                  {/* Legenda de variáveis usadas */}
-                  {detectVariables(form.custom_message).length > 0 && (
-                    <div className="bg-muted/50 rounded-lg p-3 text-xs space-y-1">
-                      <p className="font-medium text-muted-foreground mb-2">Variáveis utilizadas:</p>
-                      {detectVariables(form.custom_message).map((variable) => (
-                        <div key={variable} className="flex items-center gap-2">
-                          <code className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[10px]">
-                            {variable}
-                          </code>
-                          <span className="text-muted-foreground">
-                            {variableDescriptions[variable] || 'Variável personalizada'}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Card de Teste */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <TestTube className="h-4 w-4" />
-                Testar Envio
-              </CardTitle>
-              <CardDescription>
-                Envie uma mensagem de teste para seu WhatsApp
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="space-y-2">
-                <Label>Número para teste</Label>
-                <div className="relative">
-                  <Input
-                    placeholder="Ex: 11941941427"
-                    value={testNumber}
-                    onChange={(e) => {
-                      setTestNumber(e.target.value);
-                      setTestNumberValid(null);
-                      setValidationStep('');
-                    }}
-                    disabled={validatingTestNumber}
-                    className={cn(
-                      "pr-10",
-                      testNumberValid === true && "border-green-500 focus-visible:ring-green-500",
-                      testNumberValid === false && "border-red-500 focus-visible:ring-red-500"
-                    )}
-                  />
-                  {testNumberValid === true && (
-                    <CheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500" />
-                  )}
-                  {testNumberValid === false && (
-                    <XCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-red-500" />
-                  )}
-                </div>
-                
-                {validatingTestNumber && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground animate-pulse">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    {validationStep}
-                  </div>
-                )}
-                
-                {!validatingTestNumber && validationStep && (
-                  <p className={cn(
-                    "text-sm",
-                    testNumberValid === true && "text-green-600",
-                    testNumberValid === false && "text-red-600"
-                  )}>
-                    {testNumberValid === true ? '✅' : '❌'} {validationStep}
-                  </p>
-                )}
-                
-                {!validationStep && !validatingTestNumber && (
-                  <p className="text-xs text-muted-foreground">
-                    As variáveis serão substituídas por dados de exemplo
-                  </p>
-                )}
-              </div>
-              
-              <div className="flex gap-2">
-                {/* Botão Validar Número */}
-                <Button 
-                  onClick={validateTestNumber} 
-                  disabled={validatingTestNumber || testNumber.replace(/\D/g, '').length < 10}
-                  variant={testNumberValid ? "default" : "secondary"}
-                  className={cn(
-                    "flex-1",
-                    testNumberValid && "bg-green-600 hover:bg-green-700"
-                  )}
-                >
-                  {validatingTestNumber ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Validando...
-                    </>
-                  ) : testNumberValid ? (
-                    <>
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Validado
-                    </>
-                  ) : (
-                    <>
-                      <Search className="h-4 w-4 mr-2" />
-                      Validar Número
-                    </>
-                  )}
-                </Button>
-
-                {/* Botão Enviar Teste */}
-                <Button 
-                  onClick={sendTestMessage} 
-                  disabled={sendingTest || !form.custom_message.trim() || !testNumberValid}
-                  variant="outline"
-                  className="flex-1"
-                >
-                  {sendingTest ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Enviando...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="h-4 w-4 mr-2" />
-                      Enviar Teste
-                    </>
-                  )}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
+          {/* Card Segmentação */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -1127,6 +882,7 @@ export default function WhatsAppCampaignNewPage() {
             </CardContent>
           </Card>
 
+          {/* Card Configuração de Envio */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -1271,7 +1027,327 @@ export default function WhatsAppCampaignNewPage() {
           </Card>
         </div>
 
+        {/* COLUNA DIREITA - Mensagem em primeiro */}
         <div className="space-y-6">
+          {/* Card de Mensagem Unificado (com mídia integrada) */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <MessageCircle className="h-4 w-4" />
+                Mensagem da Campanha *
+              </CardTitle>
+              <CardDescription>
+                Escreva a mensagem ou use um template como base
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Seletor de template como base */}
+              <div className="space-y-2">
+                <Label>Usar template como base (opcional)</Label>
+                <Select
+                  value={form.template_id}
+                  onValueChange={(v) => {
+                    setForm(prev => ({ ...prev, template_id: v }));
+                    const template = templates.find(t => t.id === v);
+                    if (template) {
+                      setForm(prev => ({ ...prev, custom_message: template.content }));
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um template (opcional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {templates.map(t => (
+                      <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Textarea para mensagem customizada */}
+              <div className="space-y-2">
+                <Label>Mensagem *</Label>
+                <Textarea
+                  value={form.custom_message}
+                  onChange={(e) => setForm(prev => ({ ...prev, custom_message: e.target.value }))}
+                  placeholder="Digite sua mensagem aqui..."
+                  rows={6}
+                  className="font-mono text-sm"
+                />
+              </div>
+
+              {/* Variáveis disponíveis */}
+              <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+                <p className="text-xs font-medium text-muted-foreground">Variáveis disponíveis (clique para inserir):</p>
+                <div className="flex flex-wrap gap-1">
+                  {Object.entries(variableDescriptions).map(([variable, desc]) => (
+                    <Badge 
+                      key={variable} 
+                      variant="secondary" 
+                      className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors text-xs"
+                      onClick={() => insertVariable(variable)}
+                      title={desc}
+                    >
+                      {variable}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              {/* Seção de Mídia Integrada */}
+              <div className="space-y-2 pt-2 border-t">
+                <Label className="flex items-center gap-2">
+                  {getMediaIcon()}
+                  Mídia (opcional)
+                </Label>
+                {mediaPreview || form.media_url ? (
+                  <div className="relative">
+                    {form.media_type === 'image' && (
+                      <img 
+                        src={mediaPreview || form.media_url} 
+                        alt="Preview" 
+                        className="w-full max-h-40 object-contain rounded-lg bg-muted"
+                      />
+                    )}
+                    {form.media_type === 'video' && (
+                      <video 
+                        src={mediaPreview || form.media_url} 
+                        className="w-full max-h-40 rounded-lg bg-muted" 
+                        controls 
+                      />
+                    )}
+                    {form.media_type === 'document' && (
+                      <div className="flex items-center gap-3 p-4 bg-muted rounded-lg">
+                        <FileText className="h-8 w-8 text-primary" />
+                        <span className="text-sm truncate">{mediaFile?.name || 'Documento'}</span>
+                      </div>
+                    )}
+                    <Button 
+                      variant="destructive" 
+                      size="sm" 
+                      className="absolute top-2 right-2"
+                      onClick={removeMedia}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                    {uploadingMedia ? (
+                      <div className="flex flex-col items-center">
+                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mb-1" />
+                        <span className="text-xs text-muted-foreground">Enviando...</span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center">
+                        <Upload className="h-6 w-6 text-muted-foreground mb-1" />
+                        <span className="text-xs text-muted-foreground">
+                          Arraste ou clique para enviar imagem/vídeo
+                        </span>
+                      </div>
+                    )}
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      accept="image/*,video/*,.pdf,.doc,.docx"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleMediaUpload(file);
+                      }}
+                      disabled={uploadingMedia}
+                    />
+                  </label>
+                )}
+              </div>
+
+              {/* Preview da mensagem */}
+              {form.custom_message && (
+                <div className="space-y-3 pt-2 border-t">
+                  <div className="flex items-center gap-2">
+                    <Eye className="h-4 w-4 text-green-600" />
+                    <Label className="text-sm font-medium">Preview WhatsApp</Label>
+                  </div>
+                  
+                  {/* Balão estilo WhatsApp */}
+                  <div className="bg-[#dcf8c6] rounded-lg rounded-tr-none p-3 relative max-w-full shadow-sm">
+                    {/* Preview da mídia */}
+                    {(mediaPreview || form.media_url) && form.media_type === 'image' && (
+                      <img 
+                        src={mediaPreview || form.media_url} 
+                        alt="Media" 
+                        className="w-full max-h-32 object-cover rounded mb-2"
+                      />
+                    )}
+                    {(mediaPreview || form.media_url) && form.media_type === 'video' && (
+                      <div className="bg-gray-200 rounded mb-2 p-4 flex items-center justify-center">
+                        <Video className="h-8 w-8 text-gray-500" />
+                      </div>
+                    )}
+                    <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
+                      {renderMessagePreview(form.custom_message)}
+                    </p>
+                    <span className="text-[10px] text-gray-500 float-right mt-1">
+                      {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+
+                  {/* Legenda de variáveis usadas */}
+                  {detectVariables(form.custom_message).length > 0 && (
+                    <div className="bg-muted/50 rounded-lg p-3 text-xs space-y-1">
+                      <p className="font-medium text-muted-foreground mb-2">Variáveis utilizadas:</p>
+                      {detectVariables(form.custom_message).map((variable) => (
+                        <div key={variable} className="flex items-center gap-2">
+                          <code className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[10px]">
+                            {variable}
+                          </code>
+                          <span className="text-muted-foreground">
+                            {variableDescriptions[variable] || 'Variável personalizada'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Botão Salvar Mensagem */}
+              <Button 
+                onClick={saveMessage} 
+                disabled={savingMessage || !form.custom_message.trim()}
+                variant="secondary"
+                className="w-full"
+              >
+                {savingMessage ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Salvar Mensagem
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Card de Teste */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <TestTube className="h-4 w-4" />
+                Testar Envio
+              </CardTitle>
+              <CardDescription>
+                Envie uma mensagem de teste para seu WhatsApp
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="space-y-2">
+                <Label>Número para teste</Label>
+                <div className="relative">
+                  <Input
+                    placeholder="Ex: 11941941427"
+                    value={testNumber}
+                    onChange={(e) => {
+                      setTestNumber(e.target.value);
+                      setTestNumberValid(null);
+                      setValidationStep('');
+                    }}
+                    disabled={validatingTestNumber}
+                    className={cn(
+                      "pr-10",
+                      testNumberValid === true && "border-green-500 focus-visible:ring-green-500",
+                      testNumberValid === false && "border-red-500 focus-visible:ring-red-500"
+                    )}
+                  />
+                  {testNumberValid === true && (
+                    <CheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500" />
+                  )}
+                  {testNumberValid === false && (
+                    <XCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-red-500" />
+                  )}
+                </div>
+                
+                {validatingTestNumber && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground animate-pulse">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    {validationStep}
+                  </div>
+                )}
+                
+                {!validatingTestNumber && validationStep && (
+                  <p className={cn(
+                    "text-sm",
+                    testNumberValid === true && "text-green-600",
+                    testNumberValid === false && "text-red-600"
+                  )}>
+                    {testNumberValid === true ? '✅' : '❌'} {validationStep}
+                  </p>
+                )}
+                
+                {!validationStep && !validatingTestNumber && (
+                  <p className="text-xs text-muted-foreground">
+                    As variáveis serão substituídas por dados de exemplo
+                  </p>
+                )}
+              </div>
+              
+              <div className="flex gap-2">
+                {/* Botão Validar Número */}
+                <Button 
+                  onClick={validateTestNumber} 
+                  disabled={validatingTestNumber || testNumber.replace(/\D/g, '').length < 10}
+                  variant={testNumberValid ? "default" : "secondary"}
+                  className={cn(
+                    "flex-1",
+                    testNumberValid && "bg-green-600 hover:bg-green-700"
+                  )}
+                >
+                  {validatingTestNumber ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Validando...
+                    </>
+                  ) : testNumberValid ? (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Validado
+                    </>
+                  ) : (
+                    <>
+                      <Search className="h-4 w-4 mr-2" />
+                      Validar Número
+                    </>
+                  )}
+                </Button>
+
+                {/* Botão Enviar Teste */}
+                <Button 
+                  onClick={sendTestMessage} 
+                  disabled={sendingTest || !form.custom_message.trim() || !testNumberValid}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  {sendingTest ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      Enviar Teste
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Card Preview e Ações */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">

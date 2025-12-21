@@ -144,20 +144,19 @@ export function MarketplaceSavingsCard({ variant = 'default', className = '' }: 
     );
   }
 
-  // Default variant para Dashboard (VERSÃO COMPACTA)
+  // Default variant para Dashboard (VERSÃO COMPACTA E DISCRETA)
   return (
-    <Card className={`border-2 border-emerald-300 bg-gradient-to-br from-emerald-500 to-green-600 text-white ${className}`}>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center justify-between text-lg">
+    <Card className={`border ${className}`}>
+      <CardHeader className="pb-2 pt-4 px-4">
+        <CardTitle className="flex items-center justify-between text-sm font-medium text-muted-foreground">
           <span className="flex items-center gap-2">
-            <Wallet className="w-5 h-5" />
             💰 Economia vs Marketplace
           </span>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 h-8 w-8">
-                  <HelpCircle className="w-4 h-4" />
+                <Button variant="ghost" size="icon" className="h-6 w-6">
+                  <HelpCircle className="w-3.5 h-3.5 text-muted-foreground" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
@@ -169,49 +168,46 @@ export function MarketplaceSavingsCard({ variant = 'default', className = '' }: 
           </TooltipProvider>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3 pt-0">
-        {/* Valor Principal - COMPACTO */}
-        <div className="text-center space-y-1 bg-white/10 rounded-lg p-3 backdrop-blur-sm">
-          <div className="flex items-center justify-center gap-2">
-            <Sparkles className="w-4 h-4 text-yellow-300" />
-            <p className="text-xs font-medium text-white/90">VOCÊ ECONOMIZOU</p>
+      
+      <CardContent className="space-y-3 pt-0 px-4 pb-4">
+        {/* 4 KPIs em linha */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {/* Card 1: Você Economizou */}
+          <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3 text-center">
+            <p className="text-xs text-muted-foreground mb-1">Você Economizou</p>
+            <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(animatedSavings)}</p>
           </div>
-          <p className="text-3xl font-bold drop-shadow-lg">
-            {formatCurrency(animatedSavings)}
-          </p>
-          <p className="text-xs text-white/80">em comissões</p>
+          
+          {/* Card 2: Receita Total */}
+          <div className="bg-muted/50 border rounded-lg p-3 text-center">
+            <p className="text-xs text-muted-foreground mb-1">Receita Total</p>
+            <p className="text-lg font-bold">{formatCurrency(totalRevenue)}</p>
+          </div>
+          
+          {/* Card 3: Ec. Mensal */}
+          <div className="bg-muted/50 border rounded-lg p-3 text-center">
+            <p className="text-xs text-muted-foreground mb-1">Ec. Mensal</p>
+            <p className="text-lg font-bold">{formatCurrency(monthlySavings)}</p>
+          </div>
+          
+          {/* Card 4: iFood = 25% */}
+          <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3 text-center">
+            <p className="text-xs text-muted-foreground mb-1">iFood = 25%</p>
+            <p className="text-lg font-bold text-red-500 dark:text-red-400">-{formatCurrency(totalSavings)}</p>
+          </div>
         </div>
-
-        {/* Estatísticas Unificadas */}
-        <div className="grid grid-cols-3 gap-2">
-          <div className="bg-white/10 rounded-lg p-2 backdrop-blur-sm text-center">
-            <p className="text-[10px] text-white/70 mb-0.5">Receita Total</p>
-            <p className="text-sm font-bold">{formatCurrency(totalRevenue)}</p>
-          </div>
-          <div className="bg-white/10 rounded-lg p-2 backdrop-blur-sm text-center">
-            <p className="text-[10px] text-white/70 mb-0.5">Ec. Mensal</p>
-            <p className="text-sm font-bold">{formatCurrency(monthlySavings)}</p>
-          </div>
-          <div className="bg-red-500/20 rounded-lg p-2 backdrop-blur-sm text-center border border-red-300/30">
-            <p className="text-[10px] text-white/70 mb-0.5">iFood = 25%</p>
-            <p className="text-sm font-bold text-red-200">-{formatCurrency(totalSavings)}</p>
-          </div>
-        </div>
-
-        {/* Sugestões Inline */}
-        <div className="bg-white/10 rounded-lg p-2 backdrop-blur-sm">
-          <p className="text-xs text-white/90">
+        
+        {/* Sugestões + Botão inline */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 bg-muted/30 rounded-lg px-3 py-2">
+          <p className="text-xs text-muted-foreground text-center sm:text-left">
             🚀 <span className="font-medium">Invista essa economia:</span> cardápio, marketing, equipamentos
           </p>
+          <NavLink to="/dashboard/reports">
+            <Button variant="link" size="sm" className="text-emerald-600 dark:text-emerald-400 h-auto p-0 text-xs">
+              Ver Relatórios <ArrowRight className="w-3 h-3 ml-1" />
+            </Button>
+          </NavLink>
         </div>
-
-        {/* Call to Action - Menor */}
-        <NavLink to="/dashboard/reports">
-          <Button variant="secondary" size="sm" className="w-full bg-white text-emerald-600 hover:bg-white/90">
-            Ver Relatórios Detalhados
-            <ArrowRight className="w-3 h-3 ml-2" />
-          </Button>
-        </NavLink>
       </CardContent>
     </Card>
   );

@@ -4931,6 +4931,7 @@ export type Database = {
           created_at: string
           id: string
           is_enabled: boolean
+          orientation: string
           show_clock: boolean
           store_id: string
           transition_duration_ms: number
@@ -4942,6 +4943,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_enabled?: boolean
+          orientation?: string
           show_clock?: boolean
           store_id: string
           transition_duration_ms?: number
@@ -4953,6 +4955,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_enabled?: boolean
+          orientation?: string
           show_clock?: boolean
           store_id?: string
           transition_duration_ms?: number

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -21,7 +22,8 @@ import {
   Phone,
   CheckCircle,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  HelpCircle
 } from "lucide-react";
 
 interface StoreNotificationData {
@@ -174,54 +176,86 @@ export default function StoreNotificationsManagementPage() {
   };
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        <Card>
-          <CardContent className="p-3 md:p-4">
-            <div className="flex items-center gap-2">
-              <Store className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
-              <div>
-                <div className="text-lg md:text-2xl font-bold">{stats.total}</div>
-                <div className="text-[10px] md:text-xs text-muted-foreground">Total de Lojas</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3 md:p-4">
-            <div className="flex items-center gap-2">
-              <Bell className="h-4 w-4 md:h-5 md:w-5 text-green-500" />
-              <div>
-                <div className="text-lg md:text-2xl font-bold text-green-500">{stats.notificationsActive}</div>
-                <div className="text-[10px] md:text-xs text-muted-foreground">Notificações Ativas</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3 md:p-4">
-            <div className="flex items-center gap-2">
-              <Wifi className="h-4 w-4 md:h-5 md:w-5 text-blue-500" />
-              <div>
-                <div className="text-lg md:text-2xl font-bold text-blue-500">{stats.withInstance}</div>
-                <div className="text-[10px] md:text-xs text-muted-foreground">Com Instância</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3 md:p-4">
-            <div className="flex items-center gap-2">
-              <Shield className="h-4 w-4 md:h-5 md:w-5 text-purple-500" />
-              <div>
-                <div className="text-lg md:text-2xl font-bold text-purple-500">{stats.usingMaster}</div>
-                <div className="text-[10px] md:text-xs text-muted-foreground">Usando Master</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+    <TooltipProvider delayDuration={300}>
+      <div className="space-y-4 md:space-y-6">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Card className="cursor-help">
+                <CardContent className="p-3 md:p-4">
+                  <div className="flex items-center gap-2">
+                    <Store className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
+                    <div>
+                      <div className="text-lg md:text-2xl font-bold">{stats.total}</div>
+                      <div className="text-[10px] md:text-xs text-muted-foreground">Total de Lojas</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Número total de lojas cadastradas no sistema</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Card className="cursor-help">
+                <CardContent className="p-3 md:p-4">
+                  <div className="flex items-center gap-2">
+                    <Bell className="h-4 w-4 md:h-5 md:w-5 text-green-500" />
+                    <div>
+                      <div className="text-lg md:text-2xl font-bold text-green-500">{stats.notificationsActive}</div>
+                      <div className="text-[10px] md:text-xs text-muted-foreground">Notificações Ativas</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Lojas com notificações de novos pedidos habilitadas</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Card className="cursor-help">
+                <CardContent className="p-3 md:p-4">
+                  <div className="flex items-center gap-2">
+                    <Wifi className="h-4 w-4 md:h-5 md:w-5 text-blue-500" />
+                    <div>
+                      <div className="text-lg md:text-2xl font-bold text-blue-500">{stats.withInstance}</div>
+                      <div className="text-[10px] md:text-xs text-muted-foreground">Com Instância</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Lojas com instância WhatsApp própria conectada</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Card className="cursor-help">
+                <CardContent className="p-3 md:p-4">
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4 md:h-5 md:w-5 text-purple-500" />
+                    <div>
+                      <div className="text-lg md:text-2xl font-bold text-purple-500">{stats.usingMaster}</div>
+                      <div className="text-[10px] md:text-xs text-muted-foreground">Usando Master</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Lojas que autorizaram uso da instância Master como fallback</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
 
       {/* Main Card */}
       <Card>
@@ -274,10 +308,58 @@ export default function StoreNotificationsManagementPage() {
                   <TableRow>
                     <TableHead>Loja</TableHead>
                     <TableHead className="hidden md:table-cell">Telefone</TableHead>
-                    <TableHead className="text-center">Instância</TableHead>
-                    <TableHead className="text-center">Fonte Atual</TableHead>
-                    <TableHead className="text-center">Notificações</TableHead>
-                    <TableHead className="text-center">Usar Master</TableHead>
+                    <TableHead className="text-center">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="inline-flex items-center gap-1 cursor-help">
+                            Instância
+                            <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Indica se a loja possui uma instância WhatsApp própria conectada</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TableHead>
+                    <TableHead className="text-center">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="inline-flex items-center gap-1 cursor-help">
+                            Fonte Atual
+                            <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>De onde as notificações serão enviadas</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TableHead>
+                    <TableHead className="text-center">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="inline-flex items-center gap-1 cursor-help">
+                            Notificações
+                            <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Ativa ou desativa o envio de notificações de novos pedidos</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TableHead>
+                    <TableHead className="text-center">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="inline-flex items-center gap-1 cursor-help">
+                            Usar Master
+                            <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Permite usar a instância Master quando a loja não tem WhatsApp próprio</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -312,36 +394,87 @@ export default function StoreNotificationsManagementPage() {
                         </TableCell>
                         <TableCell className="text-center">
                           {store.has_active_instance ? (
-                            <Badge variant="default" className="text-[10px]">
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              Conectada
-                            </Badge>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge variant="default" className="text-[10px] cursor-help">
+                                  <CheckCircle className="h-3 w-3 mr-1" />
+                                  Conectada
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Esta loja tem uma instância WhatsApp própria conectada e ativa</p>
+                              </TooltipContent>
+                            </Tooltip>
                           ) : (
-                            <Badge variant="outline" className="text-[10px]">
-                              <XCircle className="h-3 w-3 mr-1" />
-                              Sem instância
-                            </Badge>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge variant="outline" className="text-[10px] cursor-help">
+                                  <XCircle className="h-3 w-3 mr-1" />
+                                  Sem instância
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Esta loja não possui instância WhatsApp própria configurada</p>
+                              </TooltipContent>
+                            </Tooltip>
                           )}
                         </TableCell>
                         <TableCell className="text-center">
-                          <Badge variant={source.variant} className="text-[10px]">
-                            {source.icon}
-                            <span className="ml-1">{source.label}</span>
-                          </Badge>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge variant={source.variant} className="text-[10px] cursor-help">
+                                {source.icon}
+                                <span className="ml-1">{source.label}</span>
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>
+                                {source.label === "Instância Própria" && "Notificações enviadas pela instância WhatsApp da própria loja"}
+                                {source.label === "Master" && "Notificações enviadas pela instância Master do Mostralo"}
+                                {source.label === "Sem Envio" && "Notificações ativadas, mas sem instância própria e sem autorização para usar Master"}
+                                {source.label === "Desativado" && "Notificações de novos pedidos estão desativadas para esta loja"}
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
                         </TableCell>
                         <TableCell className="text-center">
-                          <Switch
-                            checked={store.notify_new_orders}
-                            onCheckedChange={() => toggleNotifyNewOrders(store.id, store.notify_new_orders)}
-                            disabled={isUpdating}
-                          />
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div>
+                                <Switch
+                                  checked={store.notify_new_orders}
+                                  onCheckedChange={() => toggleNotifyNewOrders(store.id, store.notify_new_orders)}
+                                  disabled={isUpdating}
+                                />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{store.notify_new_orders ? "Clique para desativar notificações" : "Clique para ativar notificações"}</p>
+                            </TooltipContent>
+                          </Tooltip>
                         </TableCell>
                         <TableCell className="text-center">
-                          <Switch
-                            checked={store.use_master_for_notifications}
-                            onCheckedChange={() => toggleUseMaster(store.id, store.use_master_for_notifications)}
-                            disabled={isUpdating || store.has_active_instance}
-                          />
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div>
+                                <Switch
+                                  checked={store.use_master_for_notifications}
+                                  onCheckedChange={() => toggleUseMaster(store.id, store.use_master_for_notifications)}
+                                  disabled={isUpdating || store.has_active_instance}
+                                />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>
+                                {store.has_active_instance 
+                                  ? "Não disponível - loja já possui instância própria" 
+                                  : store.use_master_for_notifications 
+                                    ? "Clique para desativar uso da instância Master" 
+                                    : "Clique para ativar uso da instância Master como fallback"
+                                }
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
                         </TableCell>
                       </TableRow>
                     );
@@ -386,7 +519,8 @@ export default function StoreNotificationsManagementPage() {
             </div>
           </div>
         </CardContent>
-      </Card>
-    </div>
+        </Card>
+      </div>
+    </TooltipProvider>
   );
 }

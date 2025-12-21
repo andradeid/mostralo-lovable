@@ -1391,6 +1391,8 @@ export default function WhatsAppCampaignNewPage() {
                     mediaUrl={mediaPreview || form.media_url}
                     mediaType={form.media_type as 'image' | 'video' | 'document'}
                     showTypingAnimation={true}
+                    playNotificationSound={true}
+                    allowThemeToggle={true}
                   />
 
                   {/* Legenda de variáveis usadas */}

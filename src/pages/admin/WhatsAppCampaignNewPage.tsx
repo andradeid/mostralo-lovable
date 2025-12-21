@@ -1027,8 +1027,121 @@ export default function WhatsAppCampaignNewPage() {
           </Card>
         </div>
 
-        {/* COLUNA DIREITA - Mensagem em primeiro */}
+        {/* COLUNA DIREITA - Preview e Ações em primeiro */}
         <div className="space-y-6">
+          {/* Card Preview */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Eye className="h-4 w-4" />
+                Preview
+              </CardTitle>
+              <CardDescription>
+                Veja quantos clientes serão impactados
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={previewCampaign} disabled={previewing} className="w-full">
+                {previewing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Calculando...
+                  </>
+                ) : (
+                  <>
+                    <Users className="h-4 w-4 mr-2" />
+                    Calcular Destinatários
+                  </>
+                )}
+              </Button>
+
+              {previewData && (
+                <div className="mt-4 p-4 bg-muted rounded-lg space-y-4">
+                  <div className="text-center">
+                    <p className="text-3xl font-bold text-primary">{previewData.totalRecipients}</p>
+                    <p className="text-sm text-muted-foreground">clientes serão contatados</p>
+                  </div>
+
+                  {/* Estimativa de tempo */}
+                  {calculateEstimate() && (
+                    <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 space-y-1">
+                      <p className="text-sm font-medium flex items-center gap-2">
+                        <Timer className="h-4 w-4 text-primary" />
+                        Estimativa de Tempo
+                      </p>
+                      <div className="text-xs text-muted-foreground space-y-0.5">
+                        <p>• Tempo total: <strong className="text-foreground">{calculateEstimate()?.time}</strong></p>
+                        <p>• Intervalo médio: <strong className="text-foreground">{calculateEstimate()?.avgInterval}</strong></p>
+                        {form.pause_enabled && calculateEstimate()!.pauseCount > 0 && (
+                          <p>• {calculateEstimate()?.pauseCount} pausas de {formatTime(form.pause_duration_seconds)}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {previewData.sampleRecipients?.length > 0 && (
+                    <div>
+                      <p className="text-sm font-medium mb-2">Exemplos:</p>
+                      <div className="space-y-2">
+                        {previewData.sampleRecipients.map((r: any, i: number) => (
+                          <div key={i} className="text-xs bg-background p-2 rounded">
+                            <p className="font-medium">{r.name}</p>
+                            <p className="text-muted-foreground">
+                              {r.total_orders} pedidos | Último: {r.last_order_at ? new Date(r.last_order_at).toLocaleDateString('pt-BR') : 'Nunca'}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Card Ações */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Ações</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button 
+                onClick={startCampaign} 
+                disabled={loading || !previewData || previewData.totalRecipients === 0}
+                className="w-full"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Iniciando...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-2" />
+                    Iniciar Campanha
+                  </>
+                )}
+              </Button>
+
+              <Button 
+                variant="outline" 
+                onClick={saveDraft} 
+                disabled={loading}
+                className="w-full"
+              >
+                Salvar como Rascunho
+              </Button>
+
+              <Button 
+                variant="ghost" 
+                onClick={() => navigate('/dashboard/whatsapp/campaigns')}
+                className="w-full"
+              >
+                Cancelar
+              </Button>
+            </CardContent>
+          </Card>
+
           {/* Card de Mensagem Unificado (com mídia integrada) */}
           <Card>
             <CardHeader>
@@ -1344,118 +1457,6 @@ export default function WhatsAppCampaignNewPage() {
                   )}
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Card Preview e Ações */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Eye className="h-4 w-4" />
-                Preview
-              </CardTitle>
-              <CardDescription>
-                Veja quantos clientes serão impactados
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button onClick={previewCampaign} disabled={previewing} className="w-full">
-                {previewing ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Calculando...
-                  </>
-                ) : (
-                  <>
-                    <Users className="h-4 w-4 mr-2" />
-                    Calcular Destinatários
-                  </>
-                )}
-              </Button>
-
-              {previewData && (
-                <div className="mt-4 p-4 bg-muted rounded-lg space-y-4">
-                  <div className="text-center">
-                    <p className="text-3xl font-bold text-primary">{previewData.totalRecipients}</p>
-                    <p className="text-sm text-muted-foreground">clientes serão contatados</p>
-                  </div>
-
-                  {/* Estimativa de tempo */}
-                  {calculateEstimate() && (
-                    <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 space-y-1">
-                      <p className="text-sm font-medium flex items-center gap-2">
-                        <Timer className="h-4 w-4 text-primary" />
-                        Estimativa de Tempo
-                      </p>
-                      <div className="text-xs text-muted-foreground space-y-0.5">
-                        <p>• Tempo total: <strong className="text-foreground">{calculateEstimate()?.time}</strong></p>
-                        <p>• Intervalo médio: <strong className="text-foreground">{calculateEstimate()?.avgInterval}</strong></p>
-                        {form.pause_enabled && calculateEstimate()!.pauseCount > 0 && (
-                          <p>• {calculateEstimate()?.pauseCount} pausas de {formatTime(form.pause_duration_seconds)}</p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {previewData.sampleRecipients?.length > 0 && (
-                    <div>
-                      <p className="text-sm font-medium mb-2">Exemplos:</p>
-                      <div className="space-y-2">
-                        {previewData.sampleRecipients.map((r: any, i: number) => (
-                          <div key={i} className="text-xs bg-background p-2 rounded">
-                            <p className="font-medium">{r.name}</p>
-                            <p className="text-muted-foreground">
-                              {r.total_orders} pedidos | Último: {r.last_order_at ? new Date(r.last_order_at).toLocaleDateString('pt-BR') : 'Nunca'}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Ações</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button 
-                onClick={startCampaign} 
-                disabled={loading || !previewData || previewData.totalRecipients === 0}
-                className="w-full"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Iniciando...
-                  </>
-                ) : (
-                  <>
-                    <Send className="h-4 w-4 mr-2" />
-                    Iniciar Campanha
-                  </>
-                )}
-              </Button>
-
-              <Button 
-                variant="outline" 
-                onClick={saveDraft} 
-                disabled={loading}
-                className="w-full"
-              >
-                Salvar como Rascunho
-              </Button>
-
-              <Button 
-                variant="ghost" 
-                onClick={() => navigate('/dashboard/whatsapp/campaigns')}
-                className="w-full"
-              >
-                Cancelar
-              </Button>
             </CardContent>
           </Card>
         </div>

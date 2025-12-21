@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTheme } from 'next-themes';
-import { Phone, Video, FileText, ArrowLeft, MoreVertical, Check } from 'lucide-react';
+import { Video, FileText, ArrowLeft, MoreVertical, Check, Sun, Moon } from 'lucide-react';
 import { useDebouncedCallback } from '@/hooks/useDebouncedCallback';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface WhatsAppPhonePreviewProps {
   storeName: string;
@@ -9,15 +10,24 @@ interface WhatsAppPhonePreviewProps {
   mediaUrl?: string;
   mediaType?: 'image' | 'video' | 'document';
   showTypingAnimation?: boolean;
+  playNotificationSound?: boolean;
+  allowThemeToggle?: boolean;
+  defaultTheme?: 'light' | 'dark' | 'system';
 }
 
 // Hook para animação de digitação
-function useTypingAnimation(text: string, enabled: boolean, speed: number = 25) {
+function useTypingAnimation(
+  text: string, 
+  enabled: boolean, 
+  speed: number = 25,
+  onComplete?: () => void
+) {
   const [displayText, setDisplayText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const animationRef = useRef<NodeJS.Timeout | null>(null);
   const indexRef = useRef(0);
+  const hasCalledComplete = useRef(false);
 
   const startAnimation = useDebouncedCallback(() => {
     if (!enabled || !text) {
@@ -32,6 +42,7 @@ function useTypingAnimation(text: string, enabled: boolean, speed: number = 25) 
     setIsComplete(false);
     setIsTyping(true);
     indexRef.current = 0;
+    hasCalledComplete.current = false;
 
     // Limpa animação anterior
     if (animationRef.current) {
@@ -47,6 +58,10 @@ function useTypingAnimation(text: string, enabled: boolean, speed: number = 25) 
         if (animationRef.current) clearInterval(animationRef.current);
         setIsTyping(false);
         setIsComplete(true);
+        if (onComplete && !hasCalledComplete.current) {
+          hasCalledComplete.current = true;
+          onComplete();
+        }
       }
     }, speed);
   }, 400);
@@ -81,11 +96,46 @@ export function WhatsAppPhonePreview({
   message,
   mediaUrl,
   mediaType,
-  showTypingAnimation = true
+  showTypingAnimation = true,
+  playNotificationSound = true,
+  allowThemeToggle = false,
+  defaultTheme = 'system'
 }: WhatsAppPhonePreviewProps) {
   const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === 'dark';
-  const { displayText, isTyping, isComplete } = useTypingAnimation(message, showTypingAnimation);
+  const [localTheme, setLocalTheme] = useState<'light' | 'dark' | null>(
+    defaultTheme === 'system' ? null : defaultTheme
+  );
+  
+  // Se tem tema local definido, usa ele; senão usa o do sistema
+  const isDark = localTheme 
+    ? localTheme === 'dark' 
+    : resolvedTheme === 'dark';
+
+  // Toggle de tema
+  const toggleTheme = useCallback(() => {
+    setLocalTheme(prev => {
+      if (prev === null) {
+        return resolvedTheme === 'dark' ? 'light' : 'dark';
+      }
+      return prev === 'dark' ? 'light' : 'dark';
+    });
+  }, [resolvedTheme]);
+
+  // Callback para tocar som quando animação completar
+  const handleAnimationComplete = useCallback(() => {
+    if (playNotificationSound && message) {
+      const audio = new Audio('/sounds/bell-1.mp3');
+      audio.volume = 0.25;
+      audio.play().catch(() => {});
+    }
+  }, [playNotificationSound, message]);
+
+  const { displayText, isTyping, isComplete } = useTypingAnimation(
+    message, 
+    showTypingAnimation,
+    25,
+    handleAnimationComplete
+  );
 
   const currentTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
@@ -120,13 +170,38 @@ export function WhatsAppPhonePreview({
 
   return (
     <div className="flex justify-center">
-      {/* Frame do celular */}
-      <div 
-        className="relative w-[280px] rounded-[2.5rem] p-2 shadow-2xl"
-        style={{ backgroundColor: colors.frame }}
-      >
-        {/* Notch */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-5 bg-black rounded-b-xl z-10" />
+      {/* Container com toggle */}
+      <div className="relative">
+        {/* Toggle de tema */}
+        {allowThemeToggle && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={toggleTheme}
+                  className="absolute -top-2 -right-2 z-20 bg-muted hover:bg-muted/80 rounded-full p-1.5 shadow-md transition-colors"
+                >
+                  {isDark ? (
+                    <Sun className="w-4 h-4 text-yellow-500" />
+                  ) : (
+                    <Moon className="w-4 h-4 text-slate-600" />
+                  )}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <p>Alternar tema do preview</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+
+        {/* Frame do celular */}
+        <div 
+          className="relative w-[280px] rounded-[2.5rem] p-2 shadow-2xl"
+          style={{ backgroundColor: colors.frame }}
+        >
+          {/* Notch */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-5 bg-black rounded-b-xl z-10" />
         
         {/* Tela */}
         <div className="rounded-[2rem] overflow-hidden">
@@ -304,9 +379,10 @@ export function WhatsAppPhonePreview({
           </div>
         </div>
 
-        {/* Home indicator */}
-        <div className="flex justify-center py-1">
-          <div className="w-24 h-1 bg-gray-600 rounded-full" />
+          {/* Home indicator */}
+          <div className="flex justify-center py-1">
+            <div className="w-24 h-1 bg-gray-600 rounded-full" />
+          </div>
         </div>
       </div>
     </div>

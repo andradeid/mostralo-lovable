@@ -120,8 +120,8 @@ export default function SuplementosLandingPage() {
         ref={heroRef.ref}
         className={`pt-24 pb-16 md:pt-32 md:pb-24 bg-gradient-to-br from-green-500/10 via-background to-orange-500/10 dark:from-green-500/5 dark:to-orange-500/5 transition-all duration-700 ${heroRef.isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
       >
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+        <div className="container mx-auto px-5 md:px-4 max-w-6xl">
+          <div className="grid lg:grid-cols-2 gap-6 md:gap-8 lg:gap-12 items-center">
             {/* Coluna 1: Texto */}
             <div className="text-center lg:text-left">
               <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/20 rounded-full px-4 py-2 mb-6">
@@ -129,47 +129,48 @@ export default function SuplementosLandingPage() {
                 <span className="text-sm font-medium text-green-600 dark:text-green-400">Para Lojas de Suplementos</span>
               </div>
               
-              <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
+              <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4 md:mb-6 leading-tight break-words">
                 Transforme seu WhatsApp em uma{' '}
                 <span className="text-green-600 dark:text-green-400">Máquina de Vendas Recorrentes</span>{' '}
                 com Taxa 0%
               </h1>
               
-              <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto lg:mx-0">
+              <p className="text-base md:text-lg lg:text-xl text-muted-foreground mb-6 md:mb-8 max-w-3xl mx-auto lg:mx-0">
                 Pare de perder <span className="text-red-500 font-semibold">25% do seu lucro</span> para os marketplaces. 
                 Recupere sua margem, blinde seus clientes contra a internet e automatize a reposição de Whey e Creatina.
               </p>
               
               <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
                 <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
-                  <Button size="lg" className="w-full sm:w-auto gap-2 bg-green-600 hover:bg-green-700 text-lg px-8 py-6">
-                    <MessageCircle className="h-5 w-5" />
-                    QUERO UMA SIMULAÇÃO DE ECONOMIA
+                  <Button size="lg" className="w-full sm:w-auto gap-2 bg-green-600 hover:bg-green-700 text-sm sm:text-base md:text-lg px-4 py-4 sm:px-6 md:px-8 md:py-6">
+                    <MessageCircle className="h-4 w-4 md:h-5 md:w-5" />
+                    <span className="hidden sm:inline">QUERO UMA SIMULAÇÃO DE ECONOMIA</span>
+                    <span className="sm:hidden">SIMULAR ECONOMIA</span>
                   </Button>
                 </a>
               </div>
 
               {/* Trust badges */}
-              <div className="flex flex-wrap justify-center lg:justify-start gap-6 mt-10 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4 text-green-500" />
+              <div className="flex flex-wrap justify-center lg:justify-start gap-3 md:gap-6 mt-6 md:mt-10 text-xs md:text-sm text-muted-foreground">
+                <div className="flex items-center gap-1.5 md:gap-2">
+                  <ShieldCheck className="h-3.5 w-3.5 md:h-4 md:w-4 text-green-500" />
                   <span>0% de taxas</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-green-500" />
+                <div className="flex items-center gap-1.5 md:gap-2">
+                  <Clock className="h-3.5 w-3.5 md:h-4 md:w-4 text-green-500" />
                   <span>Setup em 48h</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-green-500" />
+                <div className="flex items-center gap-1.5 md:gap-2">
+                  <Users className="h-3.5 w-3.5 md:h-4 md:w-4 text-green-500" />
                   <span>+500 lojas ativas</span>
                 </div>
               </div>
             </div>
 
             {/* Coluna 2: Vídeo YouTube */}
-            <div className="flex justify-center lg:justify-end order-first lg:order-last">
-              <div className="relative max-w-md lg:max-w-lg w-full">
-                <div className="relative aspect-video rounded-3xl overflow-hidden shadow-2xl border-4 border-green-500/30">
+            <div className="flex justify-center lg:justify-end order-first lg:order-last w-full">
+              <div className="relative w-full max-w-[280px] sm:max-w-sm md:max-w-md lg:max-w-lg">
+                <div className="relative aspect-video rounded-xl md:rounded-2xl lg:rounded-3xl overflow-hidden shadow-xl md:shadow-2xl border-2 md:border-4 border-green-500/30">
                   <iframe 
                     width="100%" 
                     height="100%" 
@@ -184,7 +185,7 @@ export default function SuplementosLandingPage() {
                 </div>
                 
                 {/* Efeito de brilho atrás */}
-                <div className="absolute -inset-4 bg-gradient-to-r from-green-500/20 to-orange-500/20 blur-xl rounded-3xl -z-10" />
+                <div className="absolute -inset-2 md:-inset-4 bg-gradient-to-r from-green-500/20 to-orange-500/20 blur-xl rounded-2xl md:rounded-3xl -z-10" />
               </div>
             </div>
           </div>
@@ -483,9 +484,10 @@ export default function SuplementosLandingPage() {
               Em 10 vendas de combo por mês, você <span className="text-red-500 font-semibold">perde R$ 1.125</span> para o marketplace.
             </p>
             <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
-              <Button size="lg" className="gap-2 bg-green-600 hover:bg-green-700">
-                <MessageCircle className="h-5 w-5" />
-                QUERO PARAR DE PERDER DINHEIRO
+              <Button size="lg" className="gap-2 bg-green-600 hover:bg-green-700 text-sm sm:text-base px-4 py-3 sm:px-6 sm:py-4">
+                <MessageCircle className="h-4 w-4 md:h-5 md:w-5" />
+                <span className="hidden sm:inline">QUERO PARAR DE PERDER DINHEIRO</span>
+                <span className="sm:hidden">PARAR DE PERDER</span>
               </Button>
             </a>
           </div>
@@ -606,17 +608,18 @@ export default function SuplementosLandingPage() {
 
           <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
             <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
-              <Button size="lg" className="w-full sm:w-auto gap-2 bg-green-600 hover:bg-green-700 text-lg px-8 py-6">
-                <MessageCircle className="h-5 w-5" />
-                FALAR COM UM CONSULTOR AGORA
+              <Button size="lg" className="w-full sm:w-auto gap-2 bg-green-600 hover:bg-green-700 text-sm sm:text-base md:text-lg px-4 py-4 sm:px-6 md:px-8 md:py-6">
+                <MessageCircle className="h-4 w-4 md:h-5 md:w-5" />
+                <span className="hidden sm:inline">FALAR COM UM CONSULTOR AGORA</span>
+                <span className="sm:hidden">FALAR COM CONSULTOR</span>
               </Button>
             </a>
           </div>
 
-          <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/30 rounded-full px-6 py-3">
-            <ShieldCheck className="h-5 w-5 text-green-500" />
-            <span className="text-sm font-medium text-green-600 dark:text-green-400">
-              Configuração em até 48 horas • Sem fidelidade • Cancele quando quiser
+          <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/30 rounded-full px-4 py-2 md:px-6 md:py-3">
+            <ShieldCheck className="h-4 w-4 md:h-5 md:w-5 text-green-500 shrink-0" />
+            <span className="text-xs md:text-sm font-medium text-green-600 dark:text-green-400 text-center">
+              Configuração em 48h • Sem fidelidade • Cancele quando quiser
             </span>
           </div>
         </div>

@@ -34,8 +34,11 @@ import {
   Image,
   Video,
   FileText,
-  TestTube
+  TestTube,
+  CheckCircle,
+  XCircle
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface SelectedTemplate {
   id: string;
@@ -65,6 +68,9 @@ export default function WhatsAppCampaignNewPage() {
   // Estados para teste de envio
   const [testNumber, setTestNumber] = useState('');
   const [sendingTest, setSendingTest] = useState(false);
+  const [validatingTestNumber, setValidatingTestNumber] = useState(false);
+  const [testNumberValid, setTestNumberValid] = useState<boolean | null>(null);
+  const [validationStep, setValidationStep] = useState('');
   
   const [form, setForm] = useState({
     name: '',
@@ -266,12 +272,79 @@ export default function WhatsAppCampaignNewPage() {
     }));
   };
 
+  // Validar número de teste
+  const validateTestNumber = async () => {
+    const cleanNumber = testNumber.replace(/\D/g, '');
+    
+    if (!cleanNumber || cleanNumber.length < 10) {
+      toast({
+        title: "Número inválido",
+        description: "Digite um número válido com DDD",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setValidatingTestNumber(true);
+    setTestNumberValid(null);
+
+    try {
+      setValidationStep('Aguarde um momento...');
+      await new Promise(r => setTimeout(r, 600));
+      
+      setValidationStep('Verificando WhatsApp...');
+      await new Promise(r => setTimeout(r, 500));
+      
+      setValidationStep('Validando número...');
+
+      const fullPhone = cleanNumber.startsWith('55') ? cleanNumber : `55${cleanNumber}`;
+
+      const { data, error } = await supabase.functions.invoke('validate-whatsapp-number', {
+        body: { phone: fullPhone, sendWelcome: false }
+      });
+
+      if (error) throw error;
+
+      await new Promise(r => setTimeout(r, 300));
+
+      if (data?.valid) {
+        setTestNumberValid(true);
+        setValidationStep('Número validado!');
+        toast({
+          title: "Número validado!",
+          description: "Agora você pode enviar o teste",
+        });
+      } else {
+        setTestNumberValid(false);
+        setValidationStep('WhatsApp não encontrado');
+        toast({
+          title: "Número inválido",
+          description: "Este número não possui WhatsApp ativo",
+          variant: "destructive",
+        });
+        setTestNumber('');
+      }
+    } catch (error) {
+      console.error('Erro ao validar:', error);
+      setTestNumberValid(false);
+      setValidationStep('Erro na validação');
+      toast({
+        title: "Erro",
+        description: "Não foi possível validar o número",
+        variant: "destructive",
+      });
+    } finally {
+      setValidatingTestNumber(false);
+      setTimeout(() => setValidationStep(''), 3000);
+    }
+  };
+
   // Testar envio
   const sendTestMessage = async () => {
-    if (!testNumber.trim()) {
+    if (!testNumberValid) {
       toast({
-        title: "Número obrigatório",
-        description: "Informe um número para testar",
+        title: "Número não validado",
+        description: "Valide o número antes de enviar",
         variant: "destructive",
       });
       return;
@@ -288,7 +361,6 @@ export default function WhatsAppCampaignNewPage() {
 
     setSendingTest(true);
     try {
-      // Substituir variáveis por exemplos para o teste
       const testContent = renderMessagePreview(form.custom_message);
       
       const payload: any = {
@@ -296,11 +368,10 @@ export default function WhatsAppCampaignNewPage() {
         phoneNumber: testNumber.replace(/\D/g, ''),
       };
 
-      // Se tem mídia, envia como mídia com legenda
       if (form.media_url && form.media_type) {
         payload.messageType = form.media_type;
         payload.mediaUrl = form.media_url;
-        payload.content = testContent; // vai como caption
+        payload.content = testContent;
       } else {
         payload.messageType = 'text';
         payload.content = testContent;
@@ -824,18 +895,61 @@ export default function WhatsAppCampaignNewPage() {
             <CardContent className="space-y-3">
               <div className="space-y-2">
                 <Label>Número para teste</Label>
-                <Input
-                  placeholder="Ex: 11941941427"
-                  value={testNumber}
-                  onChange={(e) => setTestNumber(e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground">
-                  As variáveis serão substituídas por dados de exemplo
-                </p>
+                <div className="relative">
+                  <Input
+                    placeholder="Ex: 11941941427"
+                    value={testNumber}
+                    onChange={(e) => {
+                      setTestNumber(e.target.value);
+                      setTestNumberValid(null);
+                      setValidationStep('');
+                    }}
+                    onBlur={() => {
+                      if (testNumber.replace(/\D/g, '').length >= 10 && !testNumberValid) {
+                        validateTestNumber();
+                      }
+                    }}
+                    disabled={validatingTestNumber}
+                    className={cn(
+                      "pr-10",
+                      testNumberValid === true && "border-green-500 focus-visible:ring-green-500",
+                      testNumberValid === false && "border-red-500 focus-visible:ring-red-500"
+                    )}
+                  />
+                  {testNumberValid === true && (
+                    <CheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500" />
+                  )}
+                  {testNumberValid === false && (
+                    <XCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-red-500" />
+                  )}
+                </div>
+                
+                {validatingTestNumber && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground animate-pulse">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    {validationStep}
+                  </div>
+                )}
+                
+                {!validatingTestNumber && validationStep && (
+                  <p className={cn(
+                    "text-sm",
+                    testNumberValid === true && "text-green-600",
+                    testNumberValid === false && "text-red-600"
+                  )}>
+                    {testNumberValid === true ? '✅' : '❌'} {validationStep}
+                  </p>
+                )}
+                
+                {!validationStep && !validatingTestNumber && (
+                  <p className="text-xs text-muted-foreground">
+                    As variáveis serão substituídas por dados de exemplo
+                  </p>
+                )}
               </div>
               <Button 
                 onClick={sendTestMessage} 
-                disabled={sendingTest || !form.custom_message.trim()}
+                disabled={sendingTest || !form.custom_message.trim() || !testNumberValid}
                 variant="outline"
                 className="w-full"
               >

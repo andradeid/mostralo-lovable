@@ -11,14 +11,14 @@ import {
   Package, Menu, ShoppingCart, BarChart3, Palette, MessageCircle,
   Truck, Users, Printer, Tag, Megaphone, Calendar, ExternalLink, 
   Image, Search, Filter, CheckCircle, XCircle, Sparkles, Shield, Zap,
-  Utensils, Settings2
+  Utensils, Settings2, Monitor, Wallet, Code, QrCode, MessageSquare
 } from 'lucide-react';
 
 // Mapeamento de ícones string -> componente
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Menu, ShoppingCart, BarChart3, Palette, MessageCircle,
   Truck, Printer, Tag, Megaphone, Calendar, ExternalLink,
-  Users, Image, Package, Utensils
+  Users, Image, Package, Utensils, Monitor, Wallet, Code, QrCode, MessageSquare
 };
 
 // Descrições detalhadas e categorias de cada módulo
@@ -81,6 +81,26 @@ const moduleDetails: Record<string, { description: string; category: 'core' | 'a
   },
   'ifood_integration': {
     description: 'Receba pedidos automaticamente do iFood. Configure credenciais, monitore eventos, acompanhe métricas de vendas e gerencie tudo integrado ao seu painel.',
+    category: 'premium'
+  },
+  'digital_signage': {
+    description: 'Exiba promoções, cardápios e conteúdo em TVs e totens de forma profissional. Configure slides, vídeos, tempo de exibição e orientação da tela.',
+    category: 'premium'
+  },
+  'financial_management': {
+    description: 'Gestão completa de entradas, saídas, contas a pagar/receber, fluxo de caixa e relatórios financeiros detalhados.',
+    category: 'premium'
+  },
+  'marketing_material': {
+    description: 'Geração de materiais de marketing com QR codes, cartazes promocionais e artes para redes sociais.',
+    category: 'advanced'
+  },
+  'custom_scripts': {
+    description: 'Adicione scripts personalizados (JavaScript, CSS, HTML) para integrações avançadas como pixels de rastreamento e chatbots.',
+    category: 'premium'
+  },
+  'whatsapp_recovery': {
+    description: 'Sistema automatizado de recuperação de carrinhos abandonados via WhatsApp, aumentando conversões.',
     category: 'premium'
   }
 };

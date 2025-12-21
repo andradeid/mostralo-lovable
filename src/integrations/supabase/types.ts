@@ -4990,6 +4990,7 @@ export type Database = {
           theme_colors: Json | null
           timezone: string | null
           updated_at: string
+          use_master_for_notifications: boolean | null
           wants_online_payment: boolean | null
           website: string | null
           whatsapp: string | null
@@ -5058,6 +5059,7 @@ export type Database = {
           theme_colors?: Json | null
           timezone?: string | null
           updated_at?: string
+          use_master_for_notifications?: boolean | null
           wants_online_payment?: boolean | null
           website?: string | null
           whatsapp?: string | null
@@ -5126,6 +5128,7 @@ export type Database = {
           theme_colors?: Json | null
           timezone?: string | null
           updated_at?: string
+          use_master_for_notifications?: boolean | null
           wants_online_payment?: boolean | null
           website?: string | null
           whatsapp?: string | null

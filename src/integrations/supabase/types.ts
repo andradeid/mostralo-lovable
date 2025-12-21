@@ -6644,6 +6644,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_campaign_counter: {
+        Args: { p_campaign_id: string; p_counter_name: string }
+        Returns: undefined
+      }
       increment_promotion_usage: {
         Args: { promotion_id_param: string }
         Returns: undefined

@@ -154,6 +154,8 @@ import CloudflareGuidePage from "./pages/admin/CloudflareGuidePage";
 import IFoodHomologationPage from "./pages/admin/IFoodHomologationPage";
 import FinancialManagementPage from "./pages/admin/FinancialManagementPage";
 import MasterWhatsAppPage from "./pages/admin/MasterWhatsAppPage";
+import SignageManagementPage from "./pages/admin/SignageManagementPage";
+import SignageDisplayPage from "./pages/public/SignageDisplayPage";
 import { UpdatesRedirect } from "./components/system-updates/UpdatesRedirect";
 const queryClient = new QueryClient();
 
@@ -192,6 +194,7 @@ const App = () => (
             <Route path="/para-supermercados" element={<SupermercadosPage />} />
             <Route path="/para-acougues" element={<AcouguesPage />} />
             <Route path="/guia-vendedor" element={<SalespersonSalesGuidePage />} />
+            <Route path="/painel/:slug" element={<SignageDisplayPage />} />
             <Route path="/sitemap.xml" element={<Sitemap />} />
             <Route path="/navegar" element={<NavigatePage />} />
             <Route path="/auth" element={<Auth />} />
@@ -568,6 +571,11 @@ const App = () => (
             <Route path="/dashboard/marketing-material" element={
               <ProtectedRoute allowedRoles={['store_admin']}>
                 <AdminLayout pageTitle="Material de Marketing"><StoreMarketingPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/signage" element={
+              <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
+                <AdminLayout pageTitle="Painel Digital"><SignageManagementPage /></AdminLayout>
               </ProtectedRoute>
             } />
             <Route path="/dashboard/leads" element={

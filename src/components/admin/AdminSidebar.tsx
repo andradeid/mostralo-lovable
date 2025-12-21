@@ -43,6 +43,7 @@ import {
   UserPlus,
   Film,
   Lightbulb,
+  Monitor,
   Megaphone,
   Building2,
   Cloud,
@@ -478,6 +479,11 @@ export function AdminSidebar() {
       // Material de Marketing - verifica módulo
       if (hasModule('marketing_material')) {
         menuItems.push({ title: 'Material de Marketing', url: '/dashboard/marketing-material', icon: QrCode, group: 'Marketing' });
+      }
+
+      // Painel Digital (Digital Signage)
+      if (hasModule('digital_signage')) {
+        menuItems.push({ title: 'Painel Digital', url: '/dashboard/signage', icon: Monitor, group: 'Marketing' });
       }
 
       // Promoções - verifica módulo

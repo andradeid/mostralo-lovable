@@ -128,6 +128,26 @@ export default function SuplementosLandingPage() {
                 <Dumbbell className="h-4 w-4 text-green-500" />
                 <span className="text-sm font-medium text-green-600 dark:text-green-400">Para Lojas de Suplementos</span>
               </div>
+
+              {/* Vídeo YouTube - Mobile (abaixo do badge) */}
+              <div className="flex justify-center lg:hidden w-full mb-6">
+                <div className="relative w-full max-w-[320px] sm:max-w-sm">
+                  <div className="relative aspect-video rounded-xl overflow-hidden shadow-xl border-2 border-green-500/30">
+                    <iframe 
+                      width="100%" 
+                      height="100%" 
+                      src="https://www.youtube.com/embed/qAVS6FeQrBU?si=TSEEj6CTXkYM6cYE&controls=0" 
+                      title="YouTube video player" 
+                      frameBorder="0" 
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                      referrerPolicy="strict-origin-when-cross-origin" 
+                      allowFullScreen
+                      className="absolute inset-0 w-full h-full"
+                    />
+                  </div>
+                  <div className="absolute -inset-2 bg-gradient-to-r from-green-500/20 to-orange-500/20 blur-xl rounded-2xl -z-10" />
+                </div>
+              </div>
               
               <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4 md:mb-6 leading-tight break-words">
                 Transforme seu WhatsApp em uma{' '}
@@ -167,10 +187,10 @@ export default function SuplementosLandingPage() {
               </div>
             </div>
 
-            {/* Coluna 2: Vídeo YouTube */}
-            <div className="flex justify-center lg:justify-end w-full">
-              <div className="relative w-full max-w-[280px] sm:max-w-sm md:max-w-md lg:max-w-lg">
-                <div className="relative aspect-video rounded-xl md:rounded-2xl lg:rounded-3xl overflow-hidden shadow-xl md:shadow-2xl border-2 md:border-4 border-green-500/30">
+            {/* Coluna 2: Vídeo YouTube - Desktop */}
+            <div className="hidden lg:flex justify-end w-full">
+              <div className="relative w-full max-w-lg">
+                <div className="relative aspect-video rounded-3xl overflow-hidden shadow-2xl border-4 border-green-500/30">
                   <iframe 
                     width="100%" 
                     height="100%" 
@@ -185,7 +205,7 @@ export default function SuplementosLandingPage() {
                 </div>
                 
                 {/* Efeito de brilho atrás */}
-                <div className="absolute -inset-2 md:-inset-4 bg-gradient-to-r from-green-500/20 to-orange-500/20 blur-xl rounded-2xl md:rounded-3xl -z-10" />
+                <div className="absolute -inset-4 bg-gradient-to-r from-green-500/20 to-orange-500/20 blur-xl rounded-3xl -z-10" />
               </div>
             </div>
           </div>

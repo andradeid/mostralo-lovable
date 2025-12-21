@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { Loader2, AlertCircle, Monitor, Maximize } from 'lucide-react';
+import { Loader2, AlertCircle, Monitor, Maximize, ImageOff, Info, Store } from 'lucide-react';
 import { usePublicSignage } from '@/hooks/usePublicSignage';
 import { Button } from '@/components/ui/button';
 
@@ -128,13 +128,15 @@ export default function SignageDisplayPage() {
     );
   }
 
-  if (error) {
+  if (error || !store) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-black">
         <div className="text-center text-white max-w-md px-8">
-          <AlertCircle className="h-16 w-16 mx-auto mb-4 text-red-400" />
-          <h1 className="text-2xl font-bold mb-2">Painel Indisponível</h1>
-          <p className="text-white/70">{error}</p>
+          <Store className="h-16 w-16 mx-auto mb-4 opacity-50" />
+          <h1 className="text-2xl font-bold mb-2">Loja Não Encontrada</h1>
+          <p className="text-white/70">
+            O painel "{slug}" não existe ou foi removido
+          </p>
         </div>
       </div>
     );
@@ -147,6 +149,52 @@ export default function SignageDisplayPage() {
           <Monitor className="h-16 w-16 mx-auto mb-4 opacity-50" />
           <h1 className="text-2xl font-bold mb-2">Painel Desativado</h1>
           <p className="text-white/70">Este painel não está ativo no momento</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Tela quando não há mídias cadastradas
+  if (items.length === 0) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-gray-900 to-black">
+        <div className="text-center text-white max-w-lg px-8">
+          <div className="w-24 h-24 mx-auto mb-6 bg-white/10 rounded-2xl flex items-center justify-center">
+            <ImageOff className="h-12 w-12 text-white/60" />
+          </div>
+          
+          <h1 className="text-3xl font-bold mb-3">
+            Nenhum conteúdo configurado
+          </h1>
+          
+          <p className="text-white/70 mb-8">
+            Este painel ainda não possui mídias para exibição
+          </p>
+          
+          <div className="bg-white/10 rounded-xl p-6 text-left">
+            <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
+              <Info className="h-5 w-5 text-orange-400" />
+              Como configurar:
+            </h2>
+            <ol className="space-y-3 text-white/80 text-sm">
+              <li className="flex gap-3">
+                <span className="bg-orange-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shrink-0">1</span>
+                <span>Acesse o painel administrativo da sua loja</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="bg-orange-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shrink-0">2</span>
+                <span>Vá em <strong>Marketing → Painel Digital</strong></span>
+              </li>
+              <li className="flex gap-3">
+                <span className="bg-orange-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shrink-0">3</span>
+                <span>Adicione imagens ou vídeos promocionais</span>
+              </li>
+            </ol>
+          </div>
+          
+          <div className="mt-8 text-white/40 text-sm">
+            {store.name}
+          </div>
         </div>
       </div>
     );

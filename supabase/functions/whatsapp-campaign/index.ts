@@ -75,8 +75,9 @@ serve(async (req) => {
       });
     }
 
-    const { action, campaignId, storeId } = await req.json();
-    console.log(`[whatsapp-campaign] Action: ${action}, Campaign: ${campaignId}`);
+    const body = await req.json();
+    const { action, campaignId, storeId, manualContacts } = body;
+    console.log(`[whatsapp-campaign] Action: ${action}, Campaign: ${campaignId}, Manual contacts: ${manualContacts?.length || 0}`);
 
     switch (action) {
       case 'preview': {
@@ -280,7 +281,11 @@ serve(async (req) => {
 
         let accumulatedTimeMs = 0;
         
-        const messages = filteredCustomers.map((customer: any, index: number) => {
+        const messages: any[] = [];
+        const processedPhones = new Set<string>();
+        
+        // Processar clientes da base
+        filteredCustomers.forEach((customer: any, index: number) => {
           // A cada X mensagens, adicionar pausa extra
           if (pauseAfterMessages > 0 && index > 0 && index % pauseAfterMessages === 0) {
             accumulatedTimeMs += pauseDurationSeconds * 1000;
@@ -293,21 +298,82 @@ serve(async (req) => {
 
           const scheduledTime = new Date(now.getTime() + accumulatedTimeMs);
           const finalContent = replaceVariables(baseMessageContent, customer, store);
+          const phoneNormalized = normalizePhoneForWhatsApp(customer.phone || '');
+          
+          processedPhones.add(phoneNormalized);
 
-          return {
+          messages.push({
             store_id: campaign.store_id,
             campaign_id: campaignId,
             customer_id: customer.id,
             template_id: campaign.template_id || null,
-            phone_number: normalizePhoneForWhatsApp(customer.phone || ''),
+            phone_number: phoneNormalized,
             customer_name: customer.name,
             message_type: messageType,
             content: finalContent,
             media_url: campaignMediaUrl,
             status: 'pending',
             scheduled_for: scheduledTime.toISOString(),
-          };
+          });
         });
+
+        // Processar contatos manuais (evitar duplicatas)
+        if (manualContacts && Array.isArray(manualContacts)) {
+          console.log(`[whatsapp-campaign] Processando ${manualContacts.length} contatos manuais`);
+          
+          for (const manual of manualContacts) {
+            const phoneNormalized = normalizePhoneForWhatsApp(manual.phone || '');
+            
+            // Evitar duplicatas
+            if (processedPhones.has(phoneNormalized)) {
+              console.log(`[whatsapp-campaign] Contato manual ${manual.name} já existe na base, ignorando`);
+              continue;
+            }
+            
+            // A cada X mensagens, adicionar pausa extra
+            const currentIndex = messages.length;
+            if (pauseAfterMessages > 0 && currentIndex > 0 && currentIndex % pauseAfterMessages === 0) {
+              accumulatedTimeMs += pauseDurationSeconds * 1000;
+              console.log(`[whatsapp-campaign] Pausa de ${pauseDurationSeconds}s aplicada após mensagem ${currentIndex}`);
+            }
+
+            // Intervalo aleatório entre 75-100% do configurado
+            const randomInterval = getRandomInterval(baseInterval);
+            accumulatedTimeMs += randomInterval * 1000;
+
+            const scheduledTime = new Date(now.getTime() + accumulatedTimeMs);
+            
+            // Criar objeto de cliente fictício para replaceVariables
+            const manualCustomer = {
+              name: manual.name,
+              phone: manual.phone,
+              email: null,
+              total_orders: 0,
+              total_spent: 0,
+              last_order_at: null,
+            };
+            
+            const finalContent = replaceVariables(baseMessageContent, manualCustomer, store);
+            
+            processedPhones.add(phoneNormalized);
+
+            messages.push({
+              store_id: campaign.store_id,
+              campaign_id: campaignId,
+              customer_id: null, // Contato manual, sem customer_id
+              template_id: campaign.template_id || null,
+              phone_number: phoneNormalized,
+              customer_name: manual.name, // Nome correto do contato manual
+              message_type: messageType,
+              content: finalContent,
+              media_url: campaignMediaUrl,
+              status: 'pending',
+              scheduled_for: scheduledTime.toISOString(),
+            });
+            
+            console.log(`[whatsapp-campaign] Contato manual adicionado: ${manual.name} - ${phoneNormalized}`);
+          }
+        }
 
         // Inserir mensagens
         if (messages.length > 0) {

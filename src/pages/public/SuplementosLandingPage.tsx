@@ -168,7 +168,7 @@ export default function SuplementosLandingPage() {
             </div>
 
             {/* Coluna 2: Vídeo YouTube */}
-            <div className="flex justify-center lg:justify-end order-first lg:order-last w-full">
+            <div className="flex justify-center lg:justify-end w-full">
               <div className="relative w-full max-w-[280px] sm:max-w-sm md:max-w-md lg:max-w-lg">
                 <div className="relative aspect-video rounded-xl md:rounded-2xl lg:rounded-3xl overflow-hidden shadow-xl md:shadow-2xl border-2 md:border-4 border-green-500/30">
                   <iframe 

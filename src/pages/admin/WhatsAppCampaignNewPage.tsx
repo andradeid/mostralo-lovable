@@ -85,6 +85,20 @@ export default function WhatsAppCampaignNewPage() {
   
   // Estado para validação em lote de WhatsApp
   const [validatingBatch, setValidatingBatch] = useState(false);
+  
+  // Estado para etapas de validação animada
+  const [validationStage, setValidationStage] = useState('');
+  const [validationProgress, setValidationProgress] = useState(0);
+  
+  // Estados para contatos manuais
+  const [manualContactsInput, setManualContactsInput] = useState('');
+  const [manualContacts, setManualContacts] = useState<{
+    name: string;
+    phone: string;
+    valid: boolean | null;
+    selected: boolean;
+  }[]>([]);
+  const [validatingManual, setValidatingManual] = useState(false);
 
   const [form, setForm] = useState({
     name: '',
@@ -521,7 +535,13 @@ export default function WhatsAppCampaignNewPage() {
     }
 
     setPreviewing(true);
+    setValidationProgress(0);
+    
     try {
+      // Etapa 1: Buscando clientes
+      setValidationStage('Buscando clientes...');
+      setValidationProgress(15);
+      await new Promise(r => setTimeout(r, 400));
       // Primeiro, criar a campanha como rascunho
       const { data: campaign, error: createError } = await supabase
         .from('whatsapp_campaigns' as any)
@@ -553,6 +573,15 @@ export default function WhatsAppCampaignNewPage() {
       
       const campaignData = campaign as any;
 
+      // Etapa 2: Aplicando filtros
+      setValidationStage('Aplicando filtros de segmentação...');
+      setValidationProgress(40);
+      await new Promise(r => setTimeout(r, 300));
+
+      // Etapa 3: Verificando números
+      setValidationStage('Verificando números WhatsApp...');
+      setValidationProgress(60);
+
       // Fazer preview
       const response = await supabase.functions.invoke('whatsapp-campaign', {
         body: { action: 'preview', campaignId: campaignData.id, storeId },
@@ -560,10 +589,19 @@ export default function WhatsAppCampaignNewPage() {
 
       if (response.error) throw response.error;
 
+      // Etapa 4: Finalizando
+      setValidationStage('Finalizando...');
+      setValidationProgress(90);
+      await new Promise(r => setTimeout(r, 200));
+
       setPreviewData({
         ...response.data,
         campaignId: campaignData.id,
       });
+      
+      setValidationProgress(100);
+      setValidationStage('Concluído!');
+      await new Promise(r => setTimeout(r, 300));
 
     } catch (error: any) {
       toast({
@@ -573,7 +611,119 @@ export default function WhatsAppCampaignNewPage() {
       });
     } finally {
       setPreviewing(false);
+      setTimeout(() => {
+        setValidationStage('');
+        setValidationProgress(0);
+      }, 500);
     }
+  };
+
+  // Parsear e adicionar contatos manuais
+  const parseManualContacts = () => {
+    const lines = manualContactsInput.trim().split('\n').filter(l => l.trim());
+    const parsed: typeof manualContacts = [];
+    
+    for (const line of lines) {
+      // Suporta: "Nome, Telefone" ou "Nome | Telefone" ou "Nome - Telefone" ou "Nome;Telefone"
+      const parts = line.split(/[,|;\-]/).map(p => p.trim());
+      if (parts.length >= 2) {
+        const name = parts[0];
+        const phone = parts[1].replace(/\D/g, '');
+        if (phone.length >= 10) {
+          // Verificar se já existe
+          if (!parsed.some(c => c.phone === phone) && 
+              !manualContacts.some(c => c.phone === phone)) {
+            parsed.push({ name, phone, valid: null, selected: true });
+          }
+        }
+      }
+    }
+    
+    if (parsed.length === 0) {
+      toast({
+        title: "Nenhum contato válido",
+        description: "Use o formato: Nome, Telefone (um por linha)",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setManualContacts(prev => [...prev, ...parsed]);
+    setManualContactsInput('');
+    toast({
+      title: `${parsed.length} contatos adicionados!`,
+      description: "Valide os números antes de enviar",
+    });
+  };
+
+  // Validar contatos manuais
+  const validateManualContacts = async () => {
+    const pending = manualContacts.filter(c => c.valid === null);
+    if (pending.length === 0) {
+      toast({ title: "Todos já validados" });
+      return;
+    }
+    
+    setValidatingManual(true);
+    try {
+      let validCount = 0;
+      let invalidCount = 0;
+      
+      for (let i = 0; i < pending.length; i++) {
+        const contact = pending[i];
+        const fullPhone = contact.phone.startsWith('55') ? contact.phone : `55${contact.phone}`;
+        
+        try {
+          const { data } = await supabase.functions.invoke('validate-whatsapp-number', {
+            body: { phone: fullPhone, sendWelcome: false }
+          });
+          
+          setManualContacts(prev => prev.map(c => 
+            c.phone === contact.phone 
+              ? { ...c, valid: data?.valid === true }
+              : c
+          ));
+          
+          if (data?.valid) validCount++;
+          else invalidCount++;
+        } catch {
+          setManualContacts(prev => prev.map(c => 
+            c.phone === contact.phone ? { ...c, valid: false } : c
+          ));
+          invalidCount++;
+        }
+        
+        // Pequeno delay entre validações
+        if (i < pending.length - 1) {
+          await new Promise(r => setTimeout(r, 500));
+        }
+      }
+      
+      toast({
+        title: "Validação concluída!",
+        description: `${validCount} válidos, ${invalidCount} inválidos`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Falha ao validar",
+        variant: "destructive",
+      });
+    } finally {
+      setValidatingManual(false);
+    }
+  };
+
+  // Remover contato manual
+  const removeManualContact = (phone: string) => {
+    setManualContacts(prev => prev.filter(c => c.phone !== phone));
+  };
+
+  // Toggle seleção de contato manual
+  const toggleManualContact = (phone: string) => {
+    setManualContacts(prev => prev.map(c => 
+      c.phone === phone ? { ...c, selected: !c.selected } : c
+    ));
   };
 
   const startCampaign = async () => {
@@ -1138,7 +1288,7 @@ export default function WhatsAppCampaignNewPage() {
                 {previewing ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Calculando...
+                    {validationStage || 'Calculando...'}
                   </>
                 ) : (
                   <>
@@ -1147,6 +1297,21 @@ export default function WhatsAppCampaignNewPage() {
                   </>
                 )}
               </Button>
+
+              {/* Barra de progresso animada */}
+              {previewing && validationProgress > 0 && (
+                <div className="mt-3 space-y-2">
+                  <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-primary transition-all duration-300 ease-out"
+                      style={{ width: `${validationProgress}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-center text-muted-foreground">
+                    {validationStage}
+                  </p>
+                </div>
+              )}
 
               {previewData && (
                 <div className="mt-4 p-4 bg-muted rounded-lg space-y-4">
@@ -1251,6 +1416,140 @@ export default function WhatsAppCampaignNewPage() {
                         ))}
                       </div>
                     </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Card Contatos Manuais */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Adicionar Contatos Manualmente
+              </CardTitle>
+              <CardDescription>
+                Cole uma lista de nome e telefone (um por linha)
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Textarea
+                  placeholder="Maria Silva, 11999887766
+João Santos, 21988776655
+Ana Costa, 31977665544"
+                  value={manualContactsInput}
+                  onChange={(e) => setManualContactsInput(e.target.value)}
+                  rows={4}
+                  className="text-sm"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Formato: Nome, Telefone (aceita vírgula, ponto-e-vírgula ou traço como separador)
+                </p>
+              </div>
+              
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full"
+                onClick={parseManualContacts}
+                disabled={!manualContactsInput.trim()}
+              >
+                <Users className="h-4 w-4 mr-2" />
+                Adicionar à Lista
+              </Button>
+
+              {manualContacts.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium">
+                      {manualContacts.length} contatos adicionados
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={validateManualContacts}
+                      disabled={validatingManual || manualContacts.every(c => c.valid !== null)}
+                    >
+                      {validatingManual ? (
+                        <>
+                          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                          Validando...
+                        </>
+                      ) : (
+                        <>
+                          <Shield className="h-3 w-3 mr-1" />
+                          Validar
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Stats de contatos manuais */}
+                  <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                    <div className="bg-green-500/10 rounded p-1.5">
+                      <p className="font-bold text-green-600">{manualContacts.filter(c => c.valid === true).length}</p>
+                      <p className="text-muted-foreground">Válidos</p>
+                    </div>
+                    <div className="bg-destructive/10 rounded p-1.5">
+                      <p className="font-bold text-destructive">{manualContacts.filter(c => c.valid === false).length}</p>
+                      <p className="text-muted-foreground">Inválidos</p>
+                    </div>
+                    <div className="bg-secondary rounded p-1.5">
+                      <p className="font-bold">{manualContacts.filter(c => c.valid === null).length}</p>
+                      <p className="text-muted-foreground">Pendentes</p>
+                    </div>
+                  </div>
+
+                  {/* Lista de contatos manuais */}
+                  <div className="max-h-48 overflow-y-auto space-y-1">
+                    {manualContacts.map((contact, i) => (
+                      <div 
+                        key={i} 
+                        className={cn(
+                          "flex items-center gap-2 p-2 rounded border text-xs",
+                          contact.valid === false && "opacity-50",
+                          contact.selected ? "bg-primary/5 border-primary/20" : "bg-background"
+                        )}
+                      >
+                        <Checkbox
+                          checked={contact.selected}
+                          onCheckedChange={() => toggleManualContact(contact.phone)}
+                          disabled={contact.valid === false}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{contact.name}</p>
+                          <p className="text-muted-foreground flex items-center gap-1">
+                            <Phone className="h-3 w-3" />
+                            {formatPhone(contact.phone)}
+                          </p>
+                        </div>
+                        {contact.valid === true && (
+                          <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />
+                        )}
+                        {contact.valid === false && (
+                          <XCircle className="h-4 w-4 text-destructive shrink-0" />
+                        )}
+                        {contact.valid === null && (
+                          <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 shrink-0"
+                          onClick={() => removeManualContact(contact.phone)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+
+                  {manualContacts.filter(c => c.selected && c.valid !== false).length > 0 && (
+                    <p className="text-xs text-center text-muted-foreground">
+                      {manualContacts.filter(c => c.selected && c.valid !== false).length} serão incluídos na campanha
+                    </p>
                   )}
                 </div>
               )}

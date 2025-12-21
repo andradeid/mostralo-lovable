@@ -180,8 +180,12 @@ serve(async (req) => {
           });
         }
 
-        if (!campaign.template) {
-          return new Response(JSON.stringify({ error: 'Template não encontrado' }), {
+        // Verificar se tem mensagem customizada OU template
+        const hasCustomMessage = campaign.custom_message && campaign.custom_message.trim();
+        const hasTemplate = campaign.template && campaign.template.content;
+        
+        if (!hasCustomMessage && !hasTemplate) {
+          return new Response(JSON.stringify({ error: 'Nenhuma mensagem ou template configurado' }), {
             status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
@@ -250,6 +254,17 @@ serve(async (req) => {
         const pauseAfterMessages = campaign.pause_after_messages || 0;
         const pauseDurationSeconds = campaign.pause_duration_seconds || 60;
 
+        // Determinar fonte da mensagem: custom_message tem prioridade sobre template
+        const baseMessageContent = campaign.custom_message || campaign.template?.content || '';
+        
+        // Determinar tipo de mensagem e mídia
+        // Se campanha tem media_url própria, usa ela. Senão, usa do template.
+        const campaignMediaUrl = campaign.media_url || campaign.template?.media_url || null;
+        const campaignMediaType = campaign.media_type || campaign.template?.message_type || 'text';
+        
+        // Se tem mídia, o tipo de mensagem é o tipo da mídia. Senão, é 'text'
+        const messageType = campaignMediaUrl ? campaignMediaType : 'text';
+
         let accumulatedTimeMs = 0;
         
         const messages = filteredCustomers.map((customer: any, index: number) => {
@@ -264,18 +279,18 @@ serve(async (req) => {
           accumulatedTimeMs += randomInterval * 1000;
 
           const scheduledTime = new Date(now.getTime() + accumulatedTimeMs);
-          const finalContent = replaceVariables(campaign.template.content, customer, store);
+          const finalContent = replaceVariables(baseMessageContent, customer, store);
 
           return {
             store_id: campaign.store_id,
             campaign_id: campaignId,
             customer_id: customer.id,
-            template_id: campaign.template_id,
+            template_id: campaign.template_id || null,
             phone_number: normalizePhoneForWhatsApp(customer.phone || ''),
             customer_name: customer.name,
-            message_type: campaign.template.message_type,
+            message_type: messageType,
             content: finalContent,
-            media_url: campaign.template.media_url,
+            media_url: campaignMediaUrl,
             status: 'pending',
             scheduled_for: scheduledTime.toISOString(),
           };

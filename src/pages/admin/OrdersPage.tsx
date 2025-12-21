@@ -82,6 +82,17 @@ const OrdersPage = () => {
   const [showTutorial, setShowTutorial] = useState<boolean>(() => {
     return localStorage.getItem('ordersPageTutorialHidden') !== 'true';
   });
+  const [tutorialStep, setTutorialStep] = useState(0);
+
+  // Classe de destaque para botões durante tutorial
+  const getHighlightClass = (buttonType: 'exit' | 'config' | 'help') => {
+    if (!showTutorial) return '';
+    const stepMap = { exit: 0, config: 1, help: 2 };
+    if (tutorialStep === stepMap[buttonType]) {
+      return 'ring-2 ring-primary ring-offset-2 relative z-[60] animate-pulse';
+    }
+    return '';
+  };
 
   // Hook do sidebar para controlar colapso
   const { setOpen: setSidebarOpen } = useSidebar();
@@ -822,7 +833,7 @@ const OrdersPage = () => {
               variant="outline"
               size="sm"
               onClick={() => setConfigExpanded(!configExpanded)}
-              className="gap-1"
+              className={`gap-1 ${getHighlightClass('config')}`}
             >
               <Settings className="h-4 w-4" />
               <span className="hidden sm:inline">Config</span>
@@ -836,7 +847,7 @@ const OrdersPage = () => {
               variant={isFullscreen ? "default" : "outline"}
               size="sm"
               onClick={toggleFullscreen}
-              className="gap-1"
+              className={`gap-1 ${getHighlightClass('exit')}`}
               title={isFullscreen ? "Sair da tela cheia (Esc)" : "Modo tela cheia"}
             >
               {isFullscreen ? (
@@ -858,7 +869,7 @@ const OrdersPage = () => {
               size="sm"
               onClick={() => setShowTutorial(true)}
               title="Ver instruções"
-              className="px-2"
+              className={`px-2 ${getHighlightClass('help')}`}
             >
               <HelpCircle className="h-4 w-4" />
             </Button>
@@ -1402,7 +1413,9 @@ const OrdersPage = () => {
             localStorage.setItem('ordersPageTutorialHidden', 'true');
           }
           setShowTutorial(false);
+          setTutorialStep(0);
         }}
+        onStepChange={setTutorialStep}
       />
     </div>
   );

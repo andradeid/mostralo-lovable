@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { WhatsAppPhonePreview } from "@/components/admin/whatsapp/WhatsAppPhonePreview";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -1375,36 +1376,22 @@ export default function WhatsAppCampaignNewPage() {
                 )}
               </div>
 
-              {/* Preview da mensagem */}
+              {/* Preview da mensagem com mockup de celular */}
               {form.custom_message && (
-                <div className="space-y-3 pt-2 border-t">
-                  <div className="flex items-center gap-2">
+                <div className="space-y-4 pt-4 border-t">
+                  <div className="flex items-center justify-center gap-2">
                     <Eye className="h-4 w-4 text-green-600" />
                     <Label className="text-sm font-medium">Preview WhatsApp</Label>
                   </div>
                   
-                  {/* Balão estilo WhatsApp */}
-                  <div className="bg-[#dcf8c6] rounded-lg rounded-tr-none p-3 relative max-w-full shadow-sm">
-                    {/* Preview da mídia */}
-                    {(mediaPreview || form.media_url) && form.media_type === 'image' && (
-                      <img 
-                        src={mediaPreview || form.media_url} 
-                        alt="Media" 
-                        className="w-full max-h-32 object-cover rounded mb-2"
-                      />
-                    )}
-                    {(mediaPreview || form.media_url) && form.media_type === 'video' && (
-                      <div className="bg-gray-200 rounded mb-2 p-4 flex items-center justify-center">
-                        <Video className="h-8 w-8 text-gray-500" />
-                      </div>
-                    )}
-                    <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
-                      {renderMessagePreview(form.custom_message)}
-                    </p>
-                    <span className="text-[10px] text-gray-500 float-right mt-1">
-                      {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
+                  {/* Mockup de celular */}
+                  <WhatsAppPhonePreview
+                    storeName={storeName || 'Sua Loja'}
+                    message={renderMessagePreview(form.custom_message)}
+                    mediaUrl={mediaPreview || form.media_url}
+                    mediaType={form.media_type as 'image' | 'video' | 'document'}
+                    showTypingAnimation={true}
+                  />
 
                   {/* Legenda de variáveis usadas */}
                   {detectVariables(form.custom_message).length > 0 && (

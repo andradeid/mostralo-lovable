@@ -5697,6 +5697,7 @@ export type Database = {
         Row: {
           completed_at: string | null
           created_at: string | null
+          custom_message: string | null
           daily_limit: number | null
           description: string | null
           end_hour: number | null
@@ -5708,6 +5709,8 @@ export type Database = {
           filter_min_orders: number | null
           filter_min_spent: number | null
           id: string
+          media_type: string | null
+          media_url: string | null
           message_interval_seconds: number | null
           messages_delivered: number | null
           messages_failed: number | null
@@ -5728,6 +5731,7 @@ export type Database = {
         Insert: {
           completed_at?: string | null
           created_at?: string | null
+          custom_message?: string | null
           daily_limit?: number | null
           description?: string | null
           end_hour?: number | null
@@ -5739,6 +5743,8 @@ export type Database = {
           filter_min_orders?: number | null
           filter_min_spent?: number | null
           id?: string
+          media_type?: string | null
+          media_url?: string | null
           message_interval_seconds?: number | null
           messages_delivered?: number | null
           messages_failed?: number | null
@@ -5761,6 +5767,7 @@ export type Database = {
         Update: {
           completed_at?: string | null
           created_at?: string | null
+          custom_message?: string | null
           daily_limit?: number | null
           description?: string | null
           end_hour?: number | null
@@ -5772,6 +5779,8 @@ export type Database = {
           filter_min_orders?: number | null
           filter_min_spent?: number | null
           id?: string
+          media_type?: string | null
+          media_url?: string | null
           message_interval_seconds?: number | null
           messages_delivered?: number | null
           messages_failed?: number | null

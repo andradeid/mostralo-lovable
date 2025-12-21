@@ -42,7 +42,9 @@ import {
   Search,
   Save,
   Calendar,
-  CalendarClock
+  CalendarClock,
+  Phone,
+  HelpCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -81,6 +83,9 @@ export default function WhatsAppCampaignNewPage() {
   // Estado para salvar mensagem
   const [savingMessage, setSavingMessage] = useState(false);
   
+  // Estado para validação em lote de WhatsApp
+  const [validatingBatch, setValidatingBatch] = useState(false);
+
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -443,6 +448,66 @@ export default function WhatsAppCampaignNewPage() {
     '{total_pedidos}': 'Total de pedidos do cliente',
     '{total_gasto}': 'Valor total gasto pelo cliente',
     '{ultimo_pedido}': 'Data do último pedido',
+  };
+
+  // Função para formatar telefone
+  const formatPhone = (phone: string) => {
+    const cleaned = phone?.replace(/\D/g, '') || '';
+    if (cleaned.length === 13) {
+      return `(${cleaned.slice(2, 4)}) ${cleaned.slice(4, 9)}-${cleaned.slice(9)}`;
+    }
+    if (cleaned.length === 12) {
+      return `(${cleaned.slice(2, 4)}) ${cleaned.slice(4, 8)}-${cleaned.slice(8)}`;
+    }
+    if (cleaned.length === 11) {
+      return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(7)}`;
+    }
+    if (cleaned.length === 10) {
+      return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 6)}-${cleaned.slice(6)}`;
+    }
+    return phone;
+  };
+
+  // Função para validar números em lote
+  const validateBatchNumbers = async () => {
+    if (!previewData?.sampleRecipients) return;
+    
+    const pendingIds = previewData.sampleRecipients
+      .filter((r: any) => r.whatsapp_valid === null)
+      .map((r: any) => r.id);
+    
+    if (pendingIds.length === 0) {
+      toast({
+        title: "Todos validados",
+        description: "Todos os números já foram validados",
+      });
+      return;
+    }
+
+    setValidatingBatch(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('validate-whatsapp-batch', {
+        body: { customerIds: pendingIds, storeId }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Validação concluída!",
+        description: `${data.valid} válidos, ${data.invalid} inválidos`,
+      });
+
+      // Recarregar preview para atualizar status
+      await previewCampaign();
+    } catch (error: any) {
+      toast({
+        title: "Erro na validação",
+        description: error.message || "Não foi possível validar",
+        variant: "destructive",
+      });
+    } finally {
+      setValidatingBatch(false);
+    }
   };
 
   const previewCampaign = async () => {
@@ -1107,13 +1172,78 @@ export default function WhatsAppCampaignNewPage() {
                     </div>
                   )}
 
+                  {/* Stats de validação */}
+                  {previewData.validationStats && (
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="bg-green-500/10 rounded-lg p-2">
+                        <p className="text-sm font-bold text-green-600">{previewData.validationStats.valid}</p>
+                        <p className="text-[10px] text-muted-foreground">Válidos</p>
+                      </div>
+                      <div className="bg-destructive/10 rounded-lg p-2">
+                        <p className="text-sm font-bold text-destructive">{previewData.validationStats.invalid}</p>
+                        <p className="text-[10px] text-muted-foreground">Inválidos</p>
+                      </div>
+                      <div className="bg-secondary rounded-lg p-2">
+                        <p className="text-sm font-bold">{previewData.validationStats.pending}</p>
+                        <p className="text-[10px] text-muted-foreground">Pendentes</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Botão validar pendentes */}
+                  {previewData.validationStats?.pending > 0 && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full"
+                      onClick={validateBatchNumbers}
+                      disabled={validatingBatch}
+                    >
+                      {validatingBatch ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Validando...
+                        </>
+                      ) : (
+                        <>
+                          <Shield className="h-4 w-4 mr-2" />
+                          Validar {previewData.validationStats.pending} Números Pendentes
+                        </>
+                      )}
+                    </Button>
+                  )}
+
                   {previewData.sampleRecipients?.length > 0 && (
                     <div>
-                      <p className="text-sm font-medium mb-2">Exemplos:</p>
+                      <p className="text-sm font-medium mb-2">Destinatários ({previewData.sampleRecipients.length} de {previewData.totalRecipients}):</p>
                       <div className="space-y-2">
                         {previewData.sampleRecipients.map((r: any, i: number) => (
-                          <div key={i} className="text-xs bg-background p-2 rounded">
-                            <p className="font-medium">{r.name}</p>
+                          <div key={i} className="text-xs bg-background p-2 rounded border">
+                            <div className="flex items-center justify-between mb-1">
+                              <p className="font-medium">{r.name}</p>
+                              {r.whatsapp_valid === true && (
+                                <Badge variant="default" className="bg-green-500/10 text-green-600 border-green-500/20 text-[10px] px-1.5">
+                                  <CheckCircle className="w-3 h-3 mr-0.5" />
+                                  Válido
+                                </Badge>
+                              )}
+                              {r.whatsapp_valid === false && (
+                                <Badge variant="destructive" className="text-[10px] px-1.5">
+                                  <XCircle className="w-3 h-3 mr-0.5" />
+                                  Inválido
+                                </Badge>
+                              )}
+                              {r.whatsapp_valid === null && (
+                                <Badge variant="secondary" className="text-[10px] px-1.5">
+                                  <HelpCircle className="w-3 h-3 mr-0.5" />
+                                  Pendente
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-muted-foreground flex items-center gap-1">
+                              <Phone className="h-3 w-3" />
+                              {formatPhone(r.phone)}
+                            </p>
                             <p className="text-muted-foreground">
                               {r.total_orders} pedidos | Último: {r.last_order_at ? new Date(r.last_order_at).toLocaleDateString('pt-BR') : 'Nunca'}
                             </p>

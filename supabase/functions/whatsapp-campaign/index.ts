@@ -101,7 +101,7 @@ serve(async (req) => {
         let query = supabase
           .from('customer_stores')
           .select(`
-            customer:customers(*)
+            customer:customers(id, name, phone, email, total_orders, total_spent, last_order_at, whatsapp_valid, whatsapp_validated_at, whatsapp_jid)
           `)
           .eq('store_id', campaign.store_id);
 
@@ -148,14 +148,27 @@ serve(async (req) => {
           });
         }
 
+        // Contar validação
+        const validCount = filteredCustomers.filter((c: any) => c.whatsapp_valid === true).length;
+        const invalidCount = filteredCustomers.filter((c: any) => c.whatsapp_valid === false).length;
+        const pendingCount = filteredCustomers.filter((c: any) => c.whatsapp_valid === null).length;
+
         return new Response(JSON.stringify({
           success: true,
           totalRecipients: filteredCustomers.length,
-          sampleRecipients: filteredCustomers.slice(0, 5).map((c: any) => ({
+          validationStats: {
+            valid: validCount,
+            invalid: invalidCount,
+            pending: pendingCount,
+          },
+          sampleRecipients: filteredCustomers.slice(0, 10).map((c: any) => ({
+            id: c.id,
             name: c.name,
             phone: c.phone,
             total_orders: c.total_orders,
             last_order_at: c.last_order_at,
+            whatsapp_valid: c.whatsapp_valid,
+            whatsapp_validated_at: c.whatsapp_validated_at,
           })),
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -133,6 +133,7 @@ import WhatsAppConversationsPage from "./pages/admin/WhatsAppConversationsPage";
 import WhatsAppTemplatesPage from "./pages/admin/WhatsAppTemplatesPage";
 import WhatsAppCampaignsPage from "./pages/admin/WhatsAppCampaignsPage";
 import WhatsAppCampaignNewPage from "./pages/admin/WhatsAppCampaignNewPage";
+import WhatsAppCampaignMessagesPage from "./pages/admin/WhatsAppCampaignMessagesPage";
 import WhatsAppAutomationsPage from "./pages/admin/WhatsAppAutomationsPage";
 import WhatsAppContactsPage from "./pages/admin/WhatsAppContactsPage";
 import MerchantContractHistoryPage from "./pages/admin/MerchantContractHistoryPage";
@@ -618,6 +619,11 @@ const App = () => (
             <Route path="/dashboard/whatsapp/campaigns/new" element={
               <ProtectedRoute allowedRoles={['store_admin']}>
                 <AdminLayout pageTitle="Nova Campanha"><WhatsAppCampaignNewPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/whatsapp/campaigns/:id/messages" element={
+              <ProtectedRoute allowedRoles={['store_admin']}>
+                <AdminLayout pageTitle="Histórico de Mensagens"><WhatsAppCampaignMessagesPage /></AdminLayout>
               </ProtectedRoute>
             } />
             <Route path="/dashboard/whatsapp/contacts" element={

@@ -404,6 +404,126 @@ serve(async (req) => {
       });
     }
 
+    // Evento: Status da mensagem atualizado (delivered/read)
+    if (body.event === 'messages.update') {
+      const updateData = body.data;
+      const instanceName = body.instance;
+      
+      console.log('📬 Evento de atualização de status:', JSON.stringify(updateData, null, 2));
+      
+      // Extrair informações do status
+      const messageId = updateData.id || updateData.key?.id;
+      const remoteJid = updateData.remoteJid || updateData.key?.remoteJid;
+      const newStatus = updateData.status;
+      
+      if (!messageId) {
+        console.log('⚠️ ID da mensagem não encontrado no evento de update');
+        return new Response(JSON.stringify({ success: true, skipped: 'no_message_id' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      console.log(`📨 Atualizando status da mensagem ${messageId}: ${newStatus}`);
+
+      // Mapear status da Evolution API para nosso sistema
+      // DELIVERY_ACK = entregue (dois ticks)
+      // READ = lida (dois ticks azuis)
+      // PLAYED = mídia reproduzida
+      
+      if (newStatus === 'DELIVERY_ACK' || newStatus === 3) {
+        // Mensagem entregue
+        const { data, error } = await supabase
+          .from('whatsapp_messages')
+          .update({ 
+            status: 'delivered', 
+            delivered_at: new Date().toISOString() 
+          })
+          .eq('evolution_message_id', messageId)
+          .select('id, campaign_id');
+
+        if (error) {
+          console.log('⚠️ Erro ao atualizar status delivered:', error);
+        } else if (data && data.length > 0) {
+          console.log(`✅ Mensagem ${messageId} marcada como entregue`);
+          
+          // Incrementar contador de delivered na campanha
+          if (data[0].campaign_id) {
+            const { error: rpcError } = await supabase.rpc('increment_campaign_counter', { 
+              p_campaign_id: data[0].campaign_id, 
+              p_counter_name: 'delivered_count' 
+            });
+            if (rpcError) console.log('⚠️ Erro ao incrementar delivered_count:', rpcError);
+          }
+        } else {
+          console.log(`ℹ️ Mensagem ${messageId} não encontrada no banco`);
+        }
+      }
+      
+      if (newStatus === 'READ' || newStatus === 4) {
+        // Mensagem lida
+        const { data, error } = await supabase
+          .from('whatsapp_messages')
+          .update({ 
+            status: 'read', 
+            read_at: new Date().toISOString() 
+          })
+          .eq('evolution_message_id', messageId)
+          .select('id, campaign_id');
+
+        if (error) {
+          console.log('⚠️ Erro ao atualizar status read:', error);
+        } else if (data && data.length > 0) {
+          console.log(`✅ Mensagem ${messageId} marcada como lida`);
+          
+          // Incrementar contador de read na campanha
+          if (data[0].campaign_id) {
+            const { error: rpcError } = await supabase.rpc('increment_campaign_counter', { 
+              p_campaign_id: data[0].campaign_id, 
+              p_counter_name: 'read_count' 
+            });
+            if (rpcError) console.log('⚠️ Erro ao incrementar read_count:', rpcError);
+          }
+        } else {
+          console.log(`ℹ️ Mensagem ${messageId} não encontrada no banco`);
+        }
+      }
+
+      if (newStatus === 'PLAYED' || newStatus === 5) {
+        // Mídia reproduzida (também conta como lida)
+        const { data, error } = await supabase
+          .from('whatsapp_messages')
+          .update({ 
+            status: 'read', 
+            read_at: new Date().toISOString() 
+          })
+          .eq('evolution_message_id', messageId)
+          .select('id, campaign_id');
+
+        if (error) {
+          console.log('⚠️ Erro ao atualizar status played:', error);
+        } else if (data && data.length > 0) {
+          console.log(`✅ Mensagem ${messageId} mídia reproduzida (lida)`);
+          
+          if (data[0].campaign_id) {
+            const { error: rpcError } = await supabase.rpc('increment_campaign_counter', { 
+              p_campaign_id: data[0].campaign_id, 
+              p_counter_name: 'read_count' 
+            });
+            if (rpcError) console.log('⚠️ Erro ao incrementar read_count:', rpcError);
+          }
+        }
+      }
+
+      return new Response(JSON.stringify({ 
+        success: true, 
+        event: 'messages.update',
+        messageId,
+        newStatus 
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Outros eventos podem ser processados aqui futuramente
     console.log('ℹ️ Evento não processado:', body.event);
     

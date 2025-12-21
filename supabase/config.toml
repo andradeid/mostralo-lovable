@@ -215,3 +215,6 @@ verify_jwt = false
 
 [functions.send-welcome-message]
 verify_jwt = false
+
+[functions.whatsapp-campaign-scheduler]
+verify_jwt = false

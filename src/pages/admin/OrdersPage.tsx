@@ -12,7 +12,8 @@ import { OrderDetailDialog } from "@/components/admin/orders/OrderDetailDialog";
 import { OrderFilters } from "@/components/admin/orders/OrderFilters";
 import { CreateOrderDialog } from "@/components/admin/orders/CreateOrderDialog";
 import { toast } from "sonner";
-import { Inbox, ChefHat, Package, Truck, DollarSign, ShoppingBag, TrendingUp, Bell, Volume2, VolumeX, Plus, AlertCircle, CheckCircle2, Printer, Loader2, Settings, ChevronDown, ChevronUp, Maximize2, Minimize2 } from "lucide-react";
+import { Inbox, ChefHat, Package, Truck, DollarSign, ShoppingBag, TrendingUp, Bell, Volume2, VolumeX, Plus, AlertCircle, CheckCircle2, Printer, Loader2, Settings, ChevronDown, ChevronUp, Maximize2, Minimize2, HelpCircle } from "lucide-react";
+import { OrdersPageTutorial } from "@/components/admin/orders/OrdersPageTutorial";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -76,6 +77,11 @@ const OrdersPage = () => {
 
   // Estado para modo tela cheia do Kanban
   const [isFullscreen, setIsFullscreen] = useState<boolean>(true);
+
+  // Estado para tutorial de onboarding
+  const [showTutorial, setShowTutorial] = useState<boolean>(() => {
+    return localStorage.getItem('ordersPageTutorialHidden') !== 'true';
+  });
 
   // Hook do sidebar para controlar colapso
   const { setOpen: setSidebarOpen } = useSidebar();
@@ -845,6 +851,17 @@ const OrdersPage = () => {
                 </>
               )}
             </Button>
+            
+            {/* Botão de Ajuda */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowTutorial(true)}
+              title="Ver instruções"
+              className="px-2"
+            >
+              <HelpCircle className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 
@@ -1375,6 +1392,17 @@ const OrdersPage = () => {
         open={showPermissionDialog}
         onOpenChange={setShowPermissionDialog}
         onRequestPermission={requestPermission}
+      />
+
+      {/* Tutorial de Onboarding */}
+      <OrdersPageTutorial
+        open={showTutorial}
+        onComplete={(dontShowAgain) => {
+          if (dontShowAgain) {
+            localStorage.setItem('ordersPageTutorialHidden', 'true');
+          }
+          setShowTutorial(false);
+        }}
       />
     </div>
   );

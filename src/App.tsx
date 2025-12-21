@@ -128,6 +128,7 @@ import SalespersonLeadsPage from "./pages/salesperson/SalespersonLeadsPage";
 import AdminSharePage from "./pages/admin/AdminSharePage";
 import StoreMarketingPage from "./pages/admin/StoreMarketingPage";
 import EvolutionConfigPage from "./pages/admin/EvolutionConfigPage";
+import StoreNotificationsManagementPage from "./pages/admin/StoreNotificationsManagementPage";
 import WhatsAppInstancePage from "./pages/admin/WhatsAppInstancePage";
 import WhatsAppConversationsPage from "./pages/admin/WhatsAppConversationsPage";
 import WhatsAppTemplatesPage from "./pages/admin/WhatsAppTemplatesPage";
@@ -314,6 +315,13 @@ const App = () => (
               <ProtectedRoute allowedRoles={['master_admin']}>
                 <AdminLayout pageTitle="WhatsApp Master">
                   <MasterWhatsAppPage />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/store-notifications" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Notificações das Lojas">
+                  <StoreNotificationsManagementPage />
                 </AdminLayout>
               </ProtectedRoute>
             } />

@@ -57,7 +57,8 @@ serve(async (req) => {
         new_order_message_template,
         notify_new_orders,
         whatsapp,
-        phone
+        phone,
+        use_master_for_notifications
       `)
       .eq('id', store_id)
       .single();
@@ -160,20 +161,27 @@ serve(async (req) => {
       }
     }
 
-    // Se não tem instância da loja, tentar usar a master
+    // Se não tem instância da loja, tentar usar a master APENAS se autorizado
     if (!instanceToUse || !instanceConnected) {
-      console.log('[send-store-notification] Loja sem instância ativa, usando master...');
+      // Verificar se a loja autoriza uso da instância master como fallback
+      const allowMasterFallback = storeData.use_master_for_notifications === true;
       
-      const { data: masterConfig } = await supabase
-        .from('master_whatsapp_config')
-        .select('instance_name, instance_status')
-        .limit(1)
-        .single();
+      if (allowMasterFallback) {
+        console.log('[send-store-notification] Loja sem instância ativa, usando master (autorizado)...');
+        
+        const { data: masterConfig } = await supabase
+          .from('master_whatsapp_config')
+          .select('instance_name, instance_status')
+          .limit(1)
+          .single();
 
-      if (masterConfig && masterConfig.instance_status === 'connected') {
-        instanceToUse = masterConfig.instance_name;
-        instanceConnected = true;
-        console.log('[send-store-notification] Usando instância master:', instanceToUse);
+        if (masterConfig && masterConfig.instance_status === 'connected') {
+          instanceToUse = masterConfig.instance_name;
+          instanceConnected = true;
+          console.log('[send-store-notification] Usando instância master:', instanceToUse);
+        }
+      } else {
+        console.log('[send-store-notification] Loja sem instância ativa e uso de master não autorizado (use_master_for_notifications = false)');
       }
     }
 
@@ -235,7 +243,7 @@ serve(async (req) => {
     const generateNavigationLink = (): string => {
       // Se tem coordenadas, usar a página /navegar do Mostralo
       if (customer_latitude && customer_longitude) {
-        const baseUrl = 'https://mostralo-lovable.lovable.app/navegar';
+        const baseUrl = 'https://mostralo.com.br/navegar';
         const params = new URLSearchParams();
         params.set('lat', String(customer_latitude));
         params.set('lng', String(customer_longitude));

@@ -36,7 +36,8 @@ import {
   FileText,
   TestTube,
   CheckCircle,
-  XCircle
+  XCircle,
+  Search
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -904,11 +905,6 @@ export default function WhatsAppCampaignNewPage() {
                       setTestNumberValid(null);
                       setValidationStep('');
                     }}
-                    onBlur={() => {
-                      if (testNumber.replace(/\D/g, '').length >= 10 && !testNumberValid) {
-                        validateTestNumber();
-                      }
-                    }}
                     disabled={validatingTestNumber}
                     className={cn(
                       "pr-10",
@@ -947,24 +943,56 @@ export default function WhatsAppCampaignNewPage() {
                   </p>
                 )}
               </div>
-              <Button 
-                onClick={sendTestMessage} 
-                disabled={sendingTest || !form.custom_message.trim() || !testNumberValid}
-                variant="outline"
-                className="w-full"
-              >
-                {sendingTest ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Enviando...
-                  </>
-                ) : (
-                  <>
-                    <Send className="h-4 w-4 mr-2" />
-                    Enviar Teste
-                  </>
-                )}
-              </Button>
+              
+              <div className="flex gap-2">
+                {/* Botão Validar Número */}
+                <Button 
+                  onClick={validateTestNumber} 
+                  disabled={validatingTestNumber || testNumber.replace(/\D/g, '').length < 10}
+                  variant={testNumberValid ? "default" : "secondary"}
+                  className={cn(
+                    "flex-1",
+                    testNumberValid && "bg-green-600 hover:bg-green-700"
+                  )}
+                >
+                  {validatingTestNumber ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Validando...
+                    </>
+                  ) : testNumberValid ? (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Validado
+                    </>
+                  ) : (
+                    <>
+                      <Search className="h-4 w-4 mr-2" />
+                      Validar Número
+                    </>
+                  )}
+                </Button>
+
+                {/* Botão Enviar Teste */}
+                <Button 
+                  onClick={sendTestMessage} 
+                  disabled={sendingTest || !form.custom_message.trim() || !testNumberValid}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  {sendingTest ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      Enviar Teste
+                    </>
+                  )}
+                </Button>
+              </div>
             </CardContent>
           </Card>
 

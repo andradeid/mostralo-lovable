@@ -47,7 +47,8 @@ import {
   Building2,
   Cloud,
   Activity,
-  ClipboardCheck
+  ClipboardCheck,
+  Bell
 } from "lucide-react";
 
 import {
@@ -363,6 +364,7 @@ export function AdminSidebar() {
         { title: 'Biblioteca de Mídias', url: '/dashboard/sales-media', icon: Film, group: 'Vendedores' },
         { title: 'Assinantes', url: '/dashboard/subscribers', icon: CreditCard, group: 'Gerenciamento' },
         { title: 'Lojas', url: '/dashboard/stores', icon: Store, group: 'Gerenciamento' },
+        { title: 'Notificações Lojas', url: '/dashboard/store-notifications', icon: Bell, group: 'Gerenciamento' },
         { title: 'Usuários', url: '/dashboard/users', icon: UserCircle, group: 'Gerenciamento' },
         { title: 'Módulos', url: '/dashboard/modules', icon: Package, group: 'Sistema' },
         { title: 'Acesso a Módulos', url: '/dashboard/modulos/gerenciar-acesso', icon: Settings, group: 'Sistema' },

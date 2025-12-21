@@ -20,33 +20,33 @@ import { ptBR } from "date-fns/locale";
 const BASIC_EXAMPLES = [
   {
     name: "Banner Informativo (Azul)",
-    html: `<div style="background: #3b82f6; padding: 16px; border-radius: 8px; color: white; text-align: center;">
-  <strong>ℹ️ Informação:</strong> Atualizamos nosso sistema. Confira as novidades!
+    html: `<div style="background: #3b82f6; padding: 16px; border-radius: 8px; color: white; text-align: center; min-height: 80px; display: flex; align-items: center; justify-content: center;">
+  <span><strong>ℹ️ Informação:</strong> Atualizamos nosso sistema. Confira as novidades!</span>
 </div>`
   },
   {
     name: "Banner Promocional (Gradiente)",
-    html: `<div style="background: linear-gradient(90deg, #f97316, #ea580c); padding: 16px; border-radius: 8px; color: white; text-align: center;">
-  <strong>🎉 Promoção!</strong> 20% de desconto em todos os produtos até sexta-feira!
+    html: `<div style="background: linear-gradient(90deg, #f97316, #ea580c); padding: 16px; border-radius: 8px; color: white; text-align: center; min-height: 80px; display: flex; align-items: center; justify-content: center;">
+  <span><strong>🎉 Promoção!</strong> 20% de desconto em todos os produtos até sexta-feira!</span>
 </div>`
   },
   {
     name: "Banner de Alerta (Amarelo)",
-    html: `<div style="background: #fef3c7; border: 1px solid #f59e0b; padding: 16px; border-radius: 8px; color: #92400e; text-align: center;">
-  <strong>⚠️ Atenção:</strong> Manutenção programada para amanhã das 2h às 4h.
+    html: `<div style="background: #fef3c7; border: 1px solid #f59e0b; padding: 16px; border-radius: 8px; color: #92400e; text-align: center; min-height: 80px; display: flex; align-items: center; justify-content: center;">
+  <span><strong>⚠️ Atenção:</strong> Manutenção programada para amanhã das 2h às 4h.</span>
 </div>`
   },
   {
     name: "Banner de Sucesso (Verde)",
-    html: `<div style="background: #10b981; padding: 16px; border-radius: 8px; color: white; text-align: center;">
-  <strong>✅ Novidade!</strong> Nova funcionalidade de relatórios disponível no menu.
+    html: `<div style="background: #10b981; padding: 16px; border-radius: 8px; color: white; text-align: center; min-height: 80px; display: flex; align-items: center; justify-content: center;">
+  <span><strong>✅ Novidade!</strong> Nova funcionalidade de relatórios disponível no menu.</span>
 </div>`
   },
   {
     name: "Banner com Link/Botão",
-    html: `<div style="background: linear-gradient(90deg, #6366f1, #8b5cf6); padding: 16px; border-radius: 8px; color: white; text-align: center;">
-  <strong>🚀 Novo recurso!</strong> Agora você pode exportar relatórios em PDF.
-  <a href="#" style="color: white; text-decoration: underline; margin-left: 8px;">Saiba mais</a>
+    html: `<div style="background: linear-gradient(90deg, #6366f1, #8b5cf6); padding: 16px; border-radius: 8px; color: white; text-align: center; min-height: 80px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+  <span><strong>🚀 Novo recurso!</strong> Agora você pode exportar relatórios em PDF.</span>
+  <a href="#" style="color: white; text-decoration: underline;">Saiba mais</a>
 </div>`
   },
 ];
@@ -55,38 +55,38 @@ const BASIC_EXAMPLES = [
 const COMMEMORATIVE_EXAMPLES = [
   {
     name: "🎄 Banner de Natal (Vermelho/Verde)",
-    html: `<div style="background: linear-gradient(90deg, #dc2626, #166534); padding: 16px; border-radius: 8px; color: white; text-align: center;">
-  <strong>🎄 Feliz Natal!</strong> Desejamos boas festas a todos os nossos clientes! 🎁✨
+    html: `<div style="background: linear-gradient(90deg, #dc2626, #166534); padding: 16px; border-radius: 8px; color: white; text-align: center; min-height: 80px; display: flex; align-items: center; justify-content: center;">
+  <span><strong>🎄 Feliz Natal!</strong> Desejamos boas festas a todos os nossos clientes! 🎁✨</span>
 </div>`
   },
   {
     name: "🎆 Banner de Ano Novo (Dourado/Azul)",
-    html: `<div style="background: linear-gradient(90deg, #1e3a5f, #0f172a); padding: 16px; border-radius: 8px; color: white; text-align: center; border: 2px solid #fbbf24;">
-  <strong>🎆 Feliz Ano Novo 2025!</strong> Que este ano seja repleto de conquistas! 🥂✨
+    html: `<div style="background: linear-gradient(90deg, #1e3a5f, #0f172a); padding: 16px; border-radius: 8px; color: white; text-align: center; border: 2px solid #fbbf24; min-height: 80px; display: flex; align-items: center; justify-content: center;">
+  <span><strong>🎆 Feliz Ano Novo 2025!</strong> Que este ano seja repleto de conquistas! 🥂✨</span>
 </div>`
   },
   {
     name: "🎁 Banner Natal com Promoção",
-    html: `<div style="background: linear-gradient(135deg, #991b1b 0%, #166534 50%, #991b1b 100%); padding: 16px; border-radius: 8px; color: white; text-align: center;">
-  <strong>🎁 Promoção de Natal!</strong> Até 30% OFF em produtos selecionados até 25/12! 🎄
+    html: `<div style="background: linear-gradient(135deg, #991b1b 0%, #166534 50%, #991b1b 100%); padding: 16px; border-radius: 8px; color: white; text-align: center; min-height: 80px; display: flex; align-items: center; justify-content: center;">
+  <span><strong>🎁 Promoção de Natal!</strong> Até 30% OFF em produtos selecionados até 25/12! 🎄</span>
 </div>`
   },
   {
     name: "🎉 Banner Réveillon (Festivo)",
-    html: `<div style="background: linear-gradient(90deg, #7c3aed, #c026d3, #f97316); padding: 16px; border-radius: 8px; color: white; text-align: center;">
-  <strong>🎉 Promoção de Réveillon!</strong> Aproveite ofertas especiais para começar 2025 com tudo! 🎊
+    html: `<div style="background: linear-gradient(90deg, #7c3aed, #c026d3, #f97316); padding: 16px; border-radius: 8px; color: white; text-align: center; min-height: 80px; display: flex; align-items: center; justify-content: center;">
+  <span><strong>🎉 Promoção de Réveillon!</strong> Aproveite ofertas especiais para começar 2025 com tudo! 🎊</span>
 </div>`
   },
   {
     name: "📅 Banner Recesso de Fim de Ano",
-    html: `<div style="background: #fef3c7; border: 2px solid #f59e0b; padding: 16px; border-radius: 8px; color: #92400e; text-align: center;">
-  <strong>📅 Aviso de Recesso:</strong> Estaremos em recesso de 24/12 a 02/01. Voltamos dia 03/01! 🎄
+    html: `<div style="background: #fef3c7; border: 2px solid #f59e0b; padding: 16px; border-radius: 8px; color: #92400e; text-align: center; min-height: 80px; display: flex; align-items: center; justify-content: center;">
+  <span><strong>📅 Aviso de Recesso:</strong> Estaremos em recesso de 24/12 a 02/01. Voltamos dia 03/01! 🎄</span>
 </div>`
   },
   {
     name: "⏰ Banner Contagem Regressiva",
-    html: `<div style="background: linear-gradient(90deg, #0f172a, #1e40af); padding: 16px; border-radius: 8px; color: white; text-align: center; border: 1px solid #fbbf24;">
-  <strong>⏰ Contagem Regressiva!</strong> Faltam poucos dias para 2025! Prepare-se para as novidades! 🚀✨
+    html: `<div style="background: linear-gradient(90deg, #0f172a, #1e40af); padding: 16px; border-radius: 8px; color: white; text-align: center; border: 1px solid #fbbf24; min-height: 80px; display: flex; align-items: center; justify-content: center;">
+  <span><strong>⏰ Contagem Regressiva!</strong> Faltam poucos dias para 2025! Prepare-se para as novidades! 🚀✨</span>
 </div>`
   },
 ];

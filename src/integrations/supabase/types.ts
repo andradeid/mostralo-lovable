@@ -4925,6 +4925,111 @@ export type Database = {
           },
         ]
       }
+      store_signage_config: {
+        Row: {
+          background_color: string
+          created_at: string
+          id: string
+          is_enabled: boolean
+          show_clock: boolean
+          store_id: string
+          transition_duration_ms: number
+          transition_type: string
+          updated_at: string
+        }
+        Insert: {
+          background_color?: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          show_clock?: boolean
+          store_id: string
+          transition_duration_ms?: number
+          transition_type?: string
+          updated_at?: string
+        }
+        Update: {
+          background_color?: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          show_clock?: boolean
+          store_id?: string
+          transition_duration_ms?: number
+          transition_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_signage_config_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_signage_config_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_signage_items: {
+        Row: {
+          created_at: string
+          duration_seconds: number
+          file_type: string
+          file_url: string
+          id: string
+          is_active: boolean
+          sort_order: number
+          store_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds?: number
+          file_type?: string
+          file_url: string
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          store_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number
+          file_type?: string
+          file_url?: string
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          store_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_signage_items_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_signage_items_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stores: {
         Row: {
           accepts_card: boolean | null

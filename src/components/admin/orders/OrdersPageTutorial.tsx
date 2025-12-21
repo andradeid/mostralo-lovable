@@ -8,11 +8,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Minimize2, Settings, Volume2 } from "lucide-react";
+import { HelpCircle, Minimize2, Settings, Volume2 } from "lucide-react";
 
 interface OrdersPageTutorialProps {
   open: boolean;
   onComplete: (dontShowAgain: boolean) => void;
+  onStepChange?: (step: number) => void;
 }
 
 const steps = [
@@ -28,11 +29,23 @@ const steps = [
     detail: "Clique no botão **'Config'** ao lado do título para acessar as configurações de som e notificações.",
     icon: "settings",
   },
+  {
+    title: "Precisa de Ajuda?",
+    description: "Estas dicas podem ser acessadas a qualquer momento.",
+    detail: "Se quiser ver estas instruções novamente, clique no ícone de **interrogação (?)** ao lado dos botões.",
+    icon: "help",
+  },
 ];
 
-export function OrdersPageTutorial({ open, onComplete }: OrdersPageTutorialProps) {
+export function OrdersPageTutorial({ open, onComplete, onStepChange }: OrdersPageTutorialProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [dontShowAgain, setDontShowAgain] = useState(false);
+
+  // Notificar mudança de passo
+  const handleStepChange = (step: number) => {
+    setCurrentStep(step);
+    onStepChange?.(step);
+  };
 
   const isLastStep = currentStep === steps.length - 1;
   const step = steps[currentStep];
@@ -40,16 +53,16 @@ export function OrdersPageTutorial({ open, onComplete }: OrdersPageTutorialProps
   const handleNext = () => {
     if (isLastStep) {
       onComplete(dontShowAgain);
-      setCurrentStep(0);
+      handleStepChange(0);
       setDontShowAgain(false);
     } else {
-      setCurrentStep((prev) => prev + 1);
+      handleStepChange(currentStep + 1);
     }
   };
 
   const handleClose = () => {
     onComplete(dontShowAgain);
-    setCurrentStep(0);
+    handleStepChange(0);
     setDontShowAgain(false);
   };
 
@@ -58,6 +71,13 @@ export function OrdersPageTutorial({ open, onComplete }: OrdersPageTutorialProps
       return (
         <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
           <Minimize2 className="h-8 w-8 text-primary" />
+        </div>
+      );
+    }
+    if (step.icon === "help") {
+      return (
+        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+          <HelpCircle className="h-8 w-8 text-primary" />
         </div>
       );
     }

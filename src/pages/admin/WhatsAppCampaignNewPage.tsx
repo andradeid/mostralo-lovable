@@ -99,6 +99,11 @@ export default function WhatsAppCampaignNewPage() {
     selected: boolean;
   }[]>([]);
   const [validatingManual, setValidatingManual] = useState(false);
+  
+  // Estados para busca de clientes
+  const [customerSearchQuery, setCustomerSearchQuery] = useState('');
+  const [customerSearchResults, setCustomerSearchResults] = useState<any[]>([]);
+  const [searchingCustomers, setSearchingCustomers] = useState(false);
 
   const [form, setForm] = useState({
     name: '',
@@ -726,6 +731,74 @@ export default function WhatsAppCampaignNewPage() {
     ));
   };
 
+  // Buscar clientes da base
+  const searchCustomers = async (query: string) => {
+    if (!query || query.length < 2) {
+      setCustomerSearchResults([]);
+      return;
+    }
+    
+    setSearchingCustomers(true);
+    try {
+      // Buscar clientes que batem com nome ou telefone
+      const { data } = await supabase
+        .from('customer_stores')
+        .select(`
+          customer:customers(id, name, phone, whatsapp_valid)
+        `)
+        .eq('store_id', storeId)
+        .limit(10);
+      
+      if (data) {
+        // Filtrar por nome ou telefone no frontend (mais flexível)
+        const results = data
+          .map((cs: any) => cs.customer)
+          .filter(Boolean)
+          .filter((c: any) => {
+            const nameMatch = c.name?.toLowerCase().includes(query.toLowerCase());
+            const phoneMatch = c.phone?.replace(/\D/g, '').includes(query.replace(/\D/g, ''));
+            return nameMatch || phoneMatch;
+          })
+          .slice(0, 5);
+        
+        setCustomerSearchResults(results);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar clientes:', error);
+    } finally {
+      setSearchingCustomers(false);
+    }
+  };
+
+  // Adicionar cliente da busca à lista manual
+  const addCustomerFromSearch = (customer: any) => {
+    const phone = customer.phone?.replace(/\D/g, '') || '';
+    
+    // Verificar se já existe
+    if (manualContacts.some(c => c.phone === phone)) {
+      toast({
+        title: "Cliente já adicionado",
+        description: `${customer.name} já está na lista`,
+      });
+      return;
+    }
+    
+    setManualContacts(prev => [...prev, {
+      name: customer.name,
+      phone: phone,
+      valid: customer.whatsapp_valid,
+      selected: true,
+    }]);
+    
+    setCustomerSearchQuery('');
+    setCustomerSearchResults([]);
+    
+    toast({
+      title: "Cliente adicionado!",
+      description: `${customer.name} foi adicionado à lista`,
+    });
+  };
+
   const startCampaign = async () => {
     if (!previewData?.campaignId) {
       toast({
@@ -736,10 +809,15 @@ export default function WhatsAppCampaignNewPage() {
       return;
     }
 
-    if (previewData.totalRecipients === 0) {
+    // Contatos manuais selecionados e válidos
+    const selectedManualContacts = manualContacts
+      .filter(c => c.selected && c.valid !== false)
+      .map(c => ({ name: c.name, phone: c.phone }));
+
+    if (previewData.totalRecipients === 0 && selectedManualContacts.length === 0) {
       toast({
         title: "Erro",
-        description: "Nenhum cliente encontrado com os filtros selecionados",
+        description: "Nenhum destinatário selecionado",
         variant: "destructive",
       });
       return;
@@ -781,9 +859,14 @@ export default function WhatsAppCampaignNewPage() {
         return;
       }
 
-      // Iniciar campanha imediatamente
+      // Iniciar campanha imediatamente - incluir contatos manuais
       const response = await supabase.functions.invoke('whatsapp-campaign', {
-        body: { action: 'start', campaignId: previewData.campaignId, storeId },
+        body: { 
+          action: 'start', 
+          campaignId: previewData.campaignId, 
+          storeId,
+          manualContacts: selectedManualContacts,
+        },
       });
 
       if (response.error) throw response.error;
@@ -1427,13 +1510,72 @@ export default function WhatsAppCampaignNewPage() {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                Adicionar Contatos Manualmente
+                Adicionar Contatos
               </CardTitle>
               <CardDescription>
-                Cole uma lista de nome e telefone (um por linha)
+                Busque clientes da base ou adicione manualmente
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Buscar cliente da base */}
+              <div className="space-y-2">
+                <Label className="text-sm">Buscar Cliente</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Digite nome ou telefone..."
+                    value={customerSearchQuery}
+                    onChange={(e) => {
+                      setCustomerSearchQuery(e.target.value);
+                      searchCustomers(e.target.value);
+                    }}
+                    className="pl-9"
+                  />
+                  {searchingCustomers && (
+                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                  )}
+                </div>
+                
+                {/* Resultados da busca */}
+                {customerSearchResults.length > 0 && (
+                  <div className="border rounded-lg overflow-hidden">
+                    {customerSearchResults.map((customer, i) => (
+                      <div
+                        key={customer.id}
+                        className={cn(
+                          "flex items-center justify-between p-2 hover:bg-muted/50 cursor-pointer text-sm",
+                          i > 0 && "border-t"
+                        )}
+                        onClick={() => addCustomerFromSearch(customer)}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{customer.name}</p>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Phone className="h-3 w-3" />
+                            {formatPhone(customer.phone)}
+                          </p>
+                        </div>
+                        {customer.whatsapp_valid === true && (
+                          <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />
+                        )}
+                        {customer.whatsapp_valid === false && (
+                          <XCircle className="h-4 w-4 text-destructive shrink-0" />
+                        )}
+                        {customer.whatsapp_valid === null && (
+                          <HelpCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Separador */}
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="flex-1 h-px bg-border" />
+                <span>ou cole manualmente</span>
+                <div className="flex-1 h-px bg-border" />
+              </div>
               <div className="space-y-2">
                 <Textarea
                   placeholder="Maria Silva, 11999887766

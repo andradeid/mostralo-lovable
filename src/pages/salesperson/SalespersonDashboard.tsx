@@ -11,6 +11,7 @@ import { DollarSign, TrendingUp, Users, AlertCircle, Sparkles, Building2, User, 
 import { toast } from "sonner";
 import PortfolioHealthCard from "@/components/salesperson/PortfolioHealthCard";
 import { SalespersonPerformanceChartSelf } from "@/components/salesperson/SalespersonPerformanceChartSelf";
+import { SystemBanner } from "@/components/admin/SystemBanner";
 import { format, startOfQuarter } from "date-fns";
 
 interface BonusTier {
@@ -138,6 +139,9 @@ export default function SalespersonDashboard() {
             )}
           </div>
         </div>
+
+        {/* Banner do Sistema para Vendedores */}
+        <SystemBanner position="salesperson_dashboard" />
 
         {salesperson?.status === 'pending_approval' && (
           <Alert>

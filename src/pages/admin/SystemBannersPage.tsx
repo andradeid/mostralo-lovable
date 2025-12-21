@@ -194,7 +194,8 @@ interface SystemBanner {
 
 const POSITION_OPTIONS = [
   { value: 'orders_page', label: 'Página de Pedidos' },
-  { value: 'dashboard', label: 'Dashboard' },
+  { value: 'dashboard', label: 'Dashboard (Lojista)' },
+  { value: 'salesperson_dashboard', label: 'Dashboard (Vendedor)' },
   { value: 'all_pages', label: 'Todas as Páginas' },
 ];
 

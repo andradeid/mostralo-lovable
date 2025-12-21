@@ -749,6 +749,9 @@ export type Database = {
           total_orders: number | null
           total_spent: number | null
           updated_at: string | null
+          whatsapp_jid: string | null
+          whatsapp_valid: boolean | null
+          whatsapp_validated_at: string | null
         }
         Insert: {
           address?: string | null
@@ -766,6 +769,9 @@ export type Database = {
           total_orders?: number | null
           total_spent?: number | null
           updated_at?: string | null
+          whatsapp_jid?: string | null
+          whatsapp_valid?: boolean | null
+          whatsapp_validated_at?: string | null
         }
         Update: {
           address?: string | null
@@ -783,6 +789,9 @@ export type Database = {
           total_orders?: number | null
           total_spent?: number | null
           updated_at?: string | null
+          whatsapp_jid?: string | null
+          whatsapp_valid?: boolean | null
+          whatsapp_validated_at?: string | null
         }
         Relationships: []
       }

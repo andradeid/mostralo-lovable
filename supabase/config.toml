@@ -218,3 +218,6 @@ verify_jwt = false
 
 [functions.whatsapp-campaign-scheduler]
 verify_jwt = false
+
+[functions.validate-whatsapp-batch]
+verify_jwt = true

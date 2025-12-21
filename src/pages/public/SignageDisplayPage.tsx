@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { Loader2, AlertCircle, Monitor } from 'lucide-react';
+import { Loader2, AlertCircle, Monitor, Maximize } from 'lucide-react';
 import { usePublicSignage } from '@/hooks/usePublicSignage';
+import { Button } from '@/components/ui/button';
 
 export default function SignageDisplayPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -10,9 +11,56 @@ export default function SignageDisplayPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showFullscreenButton, setShowFullscreenButton] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const currentItem = items[currentIndex];
+  const isVertical = config?.orientation === 'vertical';
+
+  // Fullscreen handler
+  const enterFullscreen = useCallback(async () => {
+    try {
+      if (containerRef.current) {
+        await containerRef.current.requestFullscreen();
+        setIsFullscreen(true);
+        setShowFullscreenButton(false);
+      }
+    } catch (err) {
+      console.log('Fullscreen não suportado:', err);
+    }
+  }, []);
+
+  // Monitorar estado do fullscreen
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+      if (!document.fullscreenElement) {
+        setShowFullscreenButton(true);
+      }
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  // Auto-hide fullscreen button após alguns segundos
+  useEffect(() => {
+    if (!isFullscreen && showFullscreenButton) {
+      const timer = setTimeout(() => {
+        setShowFullscreenButton(false);
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [isFullscreen, showFullscreenButton]);
+
+  // Mostrar botão ao mover o mouse
+  const handleMouseMove = useCallback(() => {
+    if (!isFullscreen) {
+      setShowFullscreenButton(true);
+    }
+  }, [isFullscreen]);
 
   // Atualizar relógio
   useEffect(() => {
@@ -82,9 +130,7 @@ export default function SignageDisplayPage() {
 
   if (error) {
     return (
-      <div 
-        className="fixed inset-0 flex items-center justify-center bg-black"
-      >
+      <div className="fixed inset-0 flex items-center justify-center bg-black">
         <div className="text-center text-white max-w-md px-8">
           <AlertCircle className="h-16 w-16 mx-auto mb-4 text-red-400" />
           <h1 className="text-2xl font-bold mb-2">Painel Indisponível</h1>
@@ -142,68 +188,106 @@ export default function SignageDisplayPage() {
     });
   };
 
+  // Estilos baseados na orientação
+  const containerStyle = {
+    backgroundColor: config?.background_color || '#000000',
+    aspectRatio: isVertical ? '9/16' : '16/9',
+  };
+
   return (
     <div 
-      className="fixed inset-0 overflow-hidden"
-      style={{ backgroundColor: config?.background_color || '#000000' }}
+      ref={containerRef}
+      className="fixed inset-0 overflow-hidden flex items-center justify-center bg-black"
+      onMouseMove={handleMouseMove}
+      onClick={handleMouseMove}
     >
-      {/* Conteúdo principal */}
+      {/* Container com aspect ratio correto */}
       <div 
-        className="absolute inset-0 flex items-center justify-center"
-        style={getTransitionStyle()}
+        className="relative w-full h-full max-w-full max-h-full"
+        style={containerStyle}
       >
-        {currentItem && (
-          currentItem.file_type === 'video' ? (
-            <video
-              ref={videoRef}
-              key={currentItem.id}
-              src={currentItem.file_url}
-              className="w-full h-full object-contain"
-              autoPlay
-              muted
-              playsInline
+        {/* Conteúdo principal */}
+        <div 
+          className="absolute inset-0 flex items-center justify-center"
+          style={getTransitionStyle()}
+        >
+          {currentItem && (
+            currentItem.file_type === 'video' ? (
+              <video
+                ref={videoRef}
+                key={currentItem.id}
+                src={currentItem.file_url}
+                className="w-full h-full object-cover"
+                autoPlay
+                muted
+                playsInline
+              />
+            ) : (
+              <img
+                key={currentItem.id}
+                src={currentItem.file_url}
+                alt={currentItem.title}
+                className="w-full h-full object-cover"
+              />
+            )
+          )}
+        </div>
+
+        {/* Relógio - posição ajustada para orientação */}
+        {config?.show_clock && (
+          <div className={`absolute drop-shadow-lg text-white ${
+            isVertical 
+              ? 'top-8 left-1/2 -translate-x-1/2 text-center' 
+              : 'top-6 right-6 text-right'
+          }`}>
+            <div className={`font-bold tracking-wider ${isVertical ? 'text-6xl' : 'text-5xl'}`}>
+              {formatTime()}
+            </div>
+            <div className={`capitalize text-white/80 mt-1 ${isVertical ? 'text-xl' : 'text-lg'}`}>
+              {formatDate()}
+            </div>
+          </div>
+        )}
+
+        {/* Indicador de slides */}
+        <div className={`absolute flex gap-2 ${
+          isVertical 
+            ? 'bottom-12 left-1/2 -translate-x-1/2' 
+            : 'bottom-6 left-1/2 -translate-x-1/2'
+        }`}>
+          {items.map((_, index) => (
+            <div
+              key={index}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                index === currentIndex
+                  ? 'bg-white w-6'
+                  : 'bg-white/40'
+              }`}
             />
-          ) : (
-            <img
-              key={currentItem.id}
-              src={currentItem.file_url}
-              alt={currentItem.title}
-              className="w-full h-full object-contain"
-            />
-          )
+          ))}
+        </div>
+
+        {/* Logo da loja (opcional) */}
+        {store && (
+          <div className={`absolute text-white/60 text-sm ${
+            isVertical ? 'bottom-4 left-1/2 -translate-x-1/2' : 'bottom-6 left-6'
+          }`}>
+            {store.name}
+          </div>
         )}
       </div>
 
-      {/* Relógio */}
-      {config?.show_clock && (
-        <div className="absolute top-6 right-6 text-right text-white drop-shadow-lg">
-          <div className="text-5xl font-bold tracking-wider">
-            {formatTime()}
-          </div>
-          <div className="text-lg capitalize text-white/80 mt-1">
-            {formatDate()}
-          </div>
-        </div>
-      )}
-
-      {/* Indicador de slides */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
-        {items.map((_, index) => (
-          <div
-            key={index}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${
-              index === currentIndex
-                ? 'bg-white w-6'
-                : 'bg-white/40'
-            }`}
-          />
-        ))}
-      </div>
-
-      {/* Logo da loja (opcional) */}
-      {store && (
-        <div className="absolute bottom-6 left-6 text-white/60 text-sm">
-          {store.name}
+      {/* Botão de Fullscreen */}
+      {showFullscreenButton && !isFullscreen && (
+        <div className="fixed top-4 right-4 z-50 animate-fade-in">
+          <Button 
+            onClick={enterFullscreen}
+            size="lg"
+            className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border border-white/30"
+          >
+            <Maximize className="h-5 w-5 mr-2" />
+            Tela Cheia
+          </Button>
         </div>
       )}
     </div>

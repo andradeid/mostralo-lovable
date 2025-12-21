@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Settings, Save, Loader2 } from 'lucide-react';
+import { Settings, Save, Loader2, Monitor, Smartphone } from 'lucide-react';
 import { SignageConfig } from '@/hooks/useSignage';
 
 interface SignageConfigPanelProps {
@@ -25,7 +25,8 @@ export function SignageConfigPanel({ config, onSave }: SignageConfigPanelProps) 
     transition_type: 'fade' as SignageConfig['transition_type'],
     transition_duration_ms: 500,
     show_clock: false,
-    background_color: '#000000'
+    background_color: '#000000',
+    orientation: 'horizontal' as SignageConfig['orientation']
   });
   const [saving, setSaving] = useState(false);
 
@@ -36,7 +37,8 @@ export function SignageConfigPanel({ config, onSave }: SignageConfigPanelProps) 
         transition_type: config.transition_type,
         transition_duration_ms: config.transition_duration_ms,
         show_clock: config.show_clock,
-        background_color: config.background_color
+        background_color: config.background_color,
+        orientation: config.orientation || 'horizontal'
       });
     }
   }, [config]);
@@ -72,6 +74,59 @@ export function SignageConfigPanel({ config, onSave }: SignageConfigPanelProps) 
             checked={formData.is_enabled}
             onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_enabled: checked }))}
           />
+        </div>
+
+        {/* Orientação da Tela */}
+        <div className="space-y-2">
+          <Label>Orientação da Tela</Label>
+          <Select
+            value={formData.orientation}
+            onValueChange={(value: SignageConfig['orientation']) => 
+              setFormData(prev => ({ ...prev, orientation: value }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="horizontal">
+                <div className="flex items-center gap-2">
+                  <Monitor className="h-4 w-4" />
+                  <span>Horizontal (Paisagem)</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="vertical">
+                <div className="flex items-center gap-2">
+                  <Smartphone className="h-4 w-4" />
+                  <span>Vertical (Retrato)</span>
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-sm text-muted-foreground">
+            {formData.orientation === 'horizontal' 
+              ? 'Para TVs convencionais e monitores de mesa (16:9)' 
+              : 'Para totens, vitrines e TVs rotacionadas (9:16)'}
+          </p>
+          {/* Preview visual */}
+          <div className="flex gap-4 mt-2">
+            <div 
+              className={`border-2 rounded transition-colors ${
+                formData.orientation === 'horizontal' 
+                  ? 'border-primary bg-primary/10' 
+                  : 'border-muted'
+              }`}
+              style={{ width: 64, height: 36 }}
+            />
+            <div 
+              className={`border-2 rounded transition-colors ${
+                formData.orientation === 'vertical' 
+                  ? 'border-primary bg-primary/10' 
+                  : 'border-muted'
+              }`}
+              style={{ width: 36, height: 64 }}
+            />
+          </div>
         </div>
 
         {/* Tipo de Transição */}

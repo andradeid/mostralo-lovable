@@ -16,6 +16,7 @@ export interface SignageConfig {
   transition_duration_ms: number;
   show_clock: boolean;
   background_color: string;
+  orientation: 'horizontal' | 'vertical';
 }
 
 export interface StoreInfo {
@@ -75,7 +76,8 @@ export function usePublicSignage(slug: string | undefined) {
           transition_type: configData.transition_type as SignageConfig['transition_type'],
           transition_duration_ms: configData.transition_duration_ms,
           show_clock: configData.show_clock,
-          background_color: configData.background_color
+          background_color: configData.background_color,
+          orientation: (configData.orientation as SignageConfig['orientation']) || 'horizontal'
         });
 
         // Buscar itens ativos

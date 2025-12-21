@@ -23,6 +23,7 @@ export interface SignageConfig {
   transition_duration_ms: number;
   show_clock: boolean;
   background_color: string;
+  orientation: 'horizontal' | 'vertical';
   created_at: string;
   updated_at: string;
 }

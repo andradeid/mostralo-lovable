@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { Bell, Loader2, Palette, Layout, Clock, History, Volume2, Mic, ExternalLink, Play } from 'lucide-react';
+import { Bell, Loader2, Palette, Layout, Clock, History, Volume2, Mic, ExternalLink, Play, MessageSquare, Sparkles } from 'lucide-react';
 import { PasswordCallConfig } from '@/hooks/usePasswordCallConfig';
 import { elevenLabsVoices, speakWithWebSpeech, speakWithElevenLabs, getCallText, playBeepSound } from '@/utils/passwordCallTTS';
 import { useToast } from '@/hooks/use-toast';
@@ -56,10 +57,17 @@ export function PasswordCallConfigPanel({ config, onSave }: PasswordCallConfigPa
   const [soundEnabled, setSoundEnabled] = useState(config?.sound_enabled ?? true);
   const [primaryColor, setPrimaryColor] = useState(config?.primary_color ?? '#f97316');
   
-  // Novos estados de áudio
+  // Estados de áudio
   const [audioType, setAudioType] = useState<'beep' | 'web_speech' | 'elevenlabs'>(config?.audio_type ?? 'beep');
   const [voiceTextTemplate, setVoiceTextTemplate] = useState<'simple' | 'counter' | 'pickup'>(config?.voice_text_template ?? 'simple');
   const [elevenLabsVoiceId, setElevenLabsVoiceId] = useState(config?.elevenlabs_voice_id ?? '');
+
+  // Estados de texto personalizado
+  const [customTextEnabled, setCustomTextEnabled] = useState(config?.custom_text_enabled ?? false);
+  const [customTextTemplate, setCustomTextTemplate] = useState(config?.custom_text_template ?? 'Atenção! {tipo} {numero} está pronto!');
+  const [customPrefix, setCustomPrefix] = useState(config?.custom_prefix ?? '');
+  const [customSuffix, setCustomSuffix] = useState(config?.custom_suffix ?? '');
+  const [useGreeting, setUseGreeting] = useState(config?.use_greeting ?? false);
 
   // Sync com config externo
   useEffect(() => {
@@ -75,8 +83,25 @@ export function PasswordCallConfigPanel({ config, onSave }: PasswordCallConfigPa
       setAudioType(config.audio_type ?? 'beep');
       setVoiceTextTemplate(config.voice_text_template ?? 'simple');
       setElevenLabsVoiceId(config.elevenlabs_voice_id ?? '');
+      setCustomTextEnabled(config.custom_text_enabled ?? false);
+      setCustomTextTemplate(config.custom_text_template ?? 'Atenção! {tipo} {numero} está pronto!');
+      setCustomPrefix(config.custom_prefix ?? '');
+      setCustomSuffix(config.custom_suffix ?? '');
+      setUseGreeting(config.use_greeting ?? false);
     }
   }, [config]);
+
+  // Preview em tempo real
+  const previewText = useMemo(() => {
+    const callTypeLabel = callTypes.find(t => t.value === callType)?.label || 'Senha';
+    return getCallText(voiceTextTemplate, callType, 42, {
+      customTextEnabled,
+      customTemplate: customTextTemplate,
+      prefix: customPrefix,
+      suffix: customSuffix,
+      useGreeting,
+    });
+  }, [callType, voiceTextTemplate, customTextEnabled, customTextTemplate, customPrefix, customSuffix, useGreeting]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -92,13 +117,24 @@ export function PasswordCallConfigPanel({ config, onSave }: PasswordCallConfigPa
       audio_type: audioType,
       voice_text_template: voiceTextTemplate,
       elevenlabs_voice_id: elevenLabsVoiceId || null,
+      custom_text_enabled: customTextEnabled,
+      custom_text_template: customTextTemplate,
+      custom_prefix: customPrefix || null,
+      custom_suffix: customSuffix || null,
+      use_greeting: useGreeting,
     });
     setSaving(false);
   };
 
   const handleTestAudio = async () => {
     setTesting(true);
-    const testText = getCallText(voiceTextTemplate, callType, 42);
+    const testText = getCallText(voiceTextTemplate, callType, 42, {
+      customTextEnabled,
+      customTemplate: customTextTemplate,
+      prefix: customPrefix,
+      suffix: customSuffix,
+      useGreeting,
+    });
     
     try {
       if (audioType === 'beep') {
@@ -265,8 +301,8 @@ export function PasswordCallConfigPanel({ config, onSave }: PasswordCallConfigPa
               </Select>
             </div>
 
-            {/* Template de Texto (para voz) */}
-            {(audioType === 'web_speech' || audioType === 'elevenlabs') && (
+            {/* Template de Texto (para voz) - só mostra se NÃO está usando texto personalizado */}
+            {(audioType === 'web_speech' || audioType === 'elevenlabs') && !customTextEnabled && (
               <div className="space-y-2">
                 <Label>Texto da Chamada</Label>
                 <Select value={voiceTextTemplate} onValueChange={(val) => setVoiceTextTemplate(val as 'simple' | 'counter' | 'pickup')}>
@@ -284,6 +320,89 @@ export function PasswordCallConfigPanel({ config, onSave }: PasswordCallConfigPa
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+            )}
+
+            {/* Texto Personalizado (para voz) */}
+            {(audioType === 'web_speech' || audioType === 'elevenlabs') && (
+              <div className="space-y-4 pt-2 border-t">
+                <div className="flex items-center justify-between">
+                  <Label className="flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    Texto Personalizado
+                  </Label>
+                  <Switch
+                    checked={customTextEnabled}
+                    onCheckedChange={setCustomTextEnabled}
+                  />
+                </div>
+
+                {customTextEnabled && (
+                  <div className="space-y-4 p-3 bg-background rounded-lg border">
+                    {/* Template personalizado */}
+                    <div className="space-y-2">
+                      <Label className="text-xs">Mensagem Principal</Label>
+                      <Textarea
+                        value={customTextTemplate}
+                        onChange={(e) => setCustomTextTemplate(e.target.value)}
+                        placeholder="Atenção! {tipo} {numero} está pronto!"
+                        className="min-h-[60px] text-sm"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Use <code className="bg-muted px-1 rounded">{'{tipo}'}</code> para Senha/Pedido/Mesa e{' '}
+                        <code className="bg-muted px-1 rounded">{'{numero}'}</code> para o número chamado.
+                      </p>
+                    </div>
+
+                    {/* Prefixo */}
+                    <div className="space-y-2">
+                      <Label className="text-xs">Prefixo (opcional)</Label>
+                      <Input
+                        value={customPrefix}
+                        onChange={(e) => setCustomPrefix(e.target.value)}
+                        placeholder="Ex: Olá cliente!"
+                        className="text-sm"
+                      />
+                    </div>
+
+                    {/* Sufixo */}
+                    <div className="space-y-2">
+                      <Label className="text-xs">Sufixo (opcional)</Label>
+                      <Input
+                        value={customSuffix}
+                        onChange={(e) => setCustomSuffix(e.target.value)}
+                        placeholder="Ex: Obrigado pela preferência!"
+                        className="text-sm"
+                      />
+                    </div>
+
+                    {/* Saudação automática */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label className="text-xs flex items-center gap-2">
+                          <Sparkles className="h-3 w-3" />
+                          Saudação Automática
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Adiciona "Bom dia/Boa tarde/Boa noite"
+                        </p>
+                      </div>
+                      <Switch
+                        checked={useGreeting}
+                        onCheckedChange={setUseGreeting}
+                      />
+                    </div>
+
+                    {/* Preview */}
+                    <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
+                      <div className="flex items-center gap-2 text-xs font-medium text-primary mb-1">
+                        <Volume2 className="h-3 w-3" />
+                        Preview do Áudio
+                      </div>
+                      <p className="text-sm italic">"{previewText}"</p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

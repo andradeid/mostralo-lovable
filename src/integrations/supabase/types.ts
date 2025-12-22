@@ -2646,6 +2646,10 @@ export type Database = {
           audio_type: string | null
           call_type: string
           created_at: string
+          custom_prefix: string | null
+          custom_suffix: string | null
+          custom_text_enabled: boolean | null
+          custom_text_template: string | null
           elevenlabs_api_key: string | null
           elevenlabs_voice_id: string | null
           highlight_duration_ms: number
@@ -2656,14 +2660,20 @@ export type Database = {
           show_history: boolean
           sound_enabled: boolean
           store_id: string
+          store_name_in_call: string | null
           template: string
           updated_at: string
+          use_greeting: boolean | null
           voice_text_template: string | null
         }
         Insert: {
           audio_type?: string | null
           call_type?: string
           created_at?: string
+          custom_prefix?: string | null
+          custom_suffix?: string | null
+          custom_text_enabled?: boolean | null
+          custom_text_template?: string | null
           elevenlabs_api_key?: string | null
           elevenlabs_voice_id?: string | null
           highlight_duration_ms?: number
@@ -2674,14 +2684,20 @@ export type Database = {
           show_history?: boolean
           sound_enabled?: boolean
           store_id: string
+          store_name_in_call?: string | null
           template?: string
           updated_at?: string
+          use_greeting?: boolean | null
           voice_text_template?: string | null
         }
         Update: {
           audio_type?: string | null
           call_type?: string
           created_at?: string
+          custom_prefix?: string | null
+          custom_suffix?: string | null
+          custom_text_enabled?: boolean | null
+          custom_text_template?: string | null
           elevenlabs_api_key?: string | null
           elevenlabs_voice_id?: string | null
           highlight_duration_ms?: number
@@ -2692,8 +2708,10 @@ export type Database = {
           show_history?: boolean
           sound_enabled?: boolean
           store_id?: string
+          store_name_in_call?: string | null
           template?: string
           updated_at?: string
+          use_greeting?: boolean | null
           voice_text_template?: string | null
         }
         Relationships: [

@@ -9,16 +9,61 @@ const callTypeLabels: Record<string, string> = {
   table: 'Mesa'
 };
 
+export interface CustomTextOptions {
+  customTextEnabled?: boolean;
+  customTemplate?: string | null;
+  prefix?: string | null;
+  suffix?: string | null;
+  useGreeting?: boolean;
+  storeName?: string | null;
+}
+
 /**
- * Gera o texto a ser falado baseado no template
+ * Retorna saudação baseada no horário atual
+ */
+const getTimeGreeting = (): string => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Bom dia!';
+  if (hour < 18) return 'Boa tarde!';
+  return 'Boa noite!';
+};
+
+/**
+ * Gera o texto a ser falado baseado no template ou texto personalizado
  */
 export const getCallText = (
   template: VoiceTextTemplate,
   callType: string,
-  number: string | number
+  number: string | number,
+  options?: CustomTextOptions
 ): string => {
   const label = callTypeLabels[callType] || 'Senha';
   
+  // Se texto personalizado está habilitado
+  if (options?.customTextEnabled && options?.customTemplate) {
+    let text = options.customTemplate
+      .replace(/{tipo}/gi, label)
+      .replace(/{numero}/gi, String(number));
+    
+    // Adiciona saudação por horário
+    if (options?.useGreeting) {
+      text = `${getTimeGreeting()} ${text}`;
+    }
+    
+    // Adiciona prefixo
+    if (options?.prefix?.trim()) {
+      text = `${options.prefix.trim()} ${text}`;
+    }
+    
+    // Adiciona sufixo
+    if (options?.suffix?.trim()) {
+      text = `${text} ${options.suffix.trim()}`;
+    }
+    
+    return text;
+  }
+  
+  // Templates padrão
   switch (template) {
     case 'counter':
       return `${label} ${number}, compareça ao balcão`;

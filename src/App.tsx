@@ -155,6 +155,7 @@ import IFoodHomologationPage from "./pages/admin/IFoodHomologationPage";
 import FinancialManagementPage from "./pages/admin/FinancialManagementPage";
 import MasterWhatsAppPage from "./pages/admin/MasterWhatsAppPage";
 import SignageManagementPage from "./pages/admin/SignageManagementPage";
+import PasswordCallManagementPage from "./pages/admin/PasswordCallManagementPage";
 import SignageDisplayPage from "./pages/public/SignageDisplayPage";
 import { UpdatesRedirect } from "./components/system-updates/UpdatesRedirect";
 const queryClient = new QueryClient();
@@ -576,6 +577,11 @@ const App = () => (
             <Route path="/dashboard/signage" element={
               <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
                 <AdminLayout pageTitle="Painel Digital"><SignageManagementPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/password-call" element={
+              <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
+                <AdminLayout pageTitle="Chamada de Senhas"><PasswordCallManagementPage /></AdminLayout>
               </ProtectedRoute>
             } />
             <Route path="/dashboard/leads" element={

@@ -486,6 +486,11 @@ export function AdminSidebar() {
         menuItems.push({ title: 'Painel Digital', url: '/dashboard/signage', icon: Monitor, group: 'Marketing' });
       }
 
+      // Chamada de Senhas - módulo independente
+      if (hasModule('password_call')) {
+        menuItems.push({ title: 'Chamada de Senhas', url: '/dashboard/password-call', icon: Megaphone, group: 'Marketing' });
+      }
+
       // Promoções - verifica módulo
       if (hasModule('promotions')) {
         menuItems.push({ title: 'Promoções', url: '/dashboard/promotions', icon: Tag, group: 'Vendas' });

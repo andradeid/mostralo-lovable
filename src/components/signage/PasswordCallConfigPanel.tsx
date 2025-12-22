@@ -104,15 +104,26 @@ export function PasswordCallConfigPanel({ config, onSave, storeId }: PasswordCal
 
   // Preview em tempo real
   const previewText = useMemo(() => {
-    const callTypeLabel = callTypes.find(t => t.value === callType)?.label || 'Senha';
     return getCallText(voiceTextTemplate, callType, 42, {
       customTextEnabled,
       customTemplate: customTextTemplate,
       prefix: customPrefix,
       suffix: customSuffix,
       useGreeting,
+      customerName: 'João', // Exemplo para preview
     });
   }, [callType, voiceTextTemplate, customTextEnabled, customTextTemplate, customPrefix, customSuffix, useGreeting]);
+
+  // Função para inserir variável nos campos de texto
+  const insertVariable = (variable: string, field: 'template' | 'prefix' | 'suffix') => {
+    if (field === 'template') {
+      setCustomTextTemplate(prev => prev + variable);
+    } else if (field === 'prefix') {
+      setCustomPrefix(prev => prev + variable);
+    } else if (field === 'suffix') {
+      setCustomSuffix(prev => prev + variable);
+    }
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -148,6 +159,7 @@ export function PasswordCallConfigPanel({ config, onSave, storeId }: PasswordCal
       prefix: customPrefix,
       suffix: customSuffix,
       useGreeting,
+      customerName: 'João', // Exemplo para teste
     });
     
     try {
@@ -400,11 +412,36 @@ export function PasswordCallConfigPanel({ config, onSave, storeId }: PasswordCal
                         placeholder="Atenção! {tipo} {numero} está pronto!"
                         className="min-h-[60px] text-sm"
                       />
-                      <p className="text-xs text-muted-foreground">
-                        Use <code className="bg-muted px-1 rounded">{'{tipo}'}</code> para Senha/Pedido/Mesa,{' '}
-                        <code className="bg-muted px-1 rounded">{'{numero}'}</code> para o número e{' '}
-                        <code className="bg-muted px-1 rounded">{'{cliente}'}</code> para o nome do cliente.
-                      </p>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-xs text-muted-foreground">Inserir:</span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-6 px-2 text-xs font-mono"
+                          onClick={() => insertVariable('{tipo}', 'template')}
+                        >
+                          {'{tipo}'}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-6 px-2 text-xs font-mono"
+                          onClick={() => insertVariable('{numero}', 'template')}
+                        >
+                          {'{numero}'}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-6 px-2 text-xs font-mono"
+                          onClick={() => insertVariable('{cliente}', 'template')}
+                        >
+                          {'{cliente}'}
+                        </Button>
+                      </div>
                     </div>
 
                     {/* Prefixo */}
@@ -413,9 +450,21 @@ export function PasswordCallConfigPanel({ config, onSave, storeId }: PasswordCal
                       <Input
                         value={customPrefix}
                         onChange={(e) => setCustomPrefix(e.target.value)}
-                        placeholder="Ex: Olá cliente!"
+                        placeholder="Ex: Olá {cliente}!"
                         className="text-sm"
                       />
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-xs text-muted-foreground">Inserir:</span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-6 px-2 text-xs font-mono"
+                          onClick={() => insertVariable('{cliente}', 'prefix')}
+                        >
+                          {'{cliente}'}
+                        </Button>
+                      </div>
                     </div>
 
                     {/* Sufixo */}
@@ -427,6 +476,18 @@ export function PasswordCallConfigPanel({ config, onSave, storeId }: PasswordCal
                         placeholder="Ex: Obrigado pela preferência!"
                         className="text-sm"
                       />
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-xs text-muted-foreground">Inserir:</span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-6 px-2 text-xs font-mono"
+                          onClick={() => insertVariable('{cliente}', 'suffix')}
+                        >
+                          {'{cliente}'}
+                        </Button>
+                      </div>
                     </div>
 
                     {/* Saudação automática */}

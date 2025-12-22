@@ -98,64 +98,63 @@ export default function PasswordCallManagementPage() {
         </Badge>
       </div>
 
-      {/* Teclado + Link do Painel (PRIMEIRO) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Teclado de Chamada - Compacto */}
+      {/* Grid 4 colunas (desktop) / 2 colunas (tablet/mobile) */}
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+        {/* 1. Teclado de Chamada */}
         <PasswordCallKeypad storeId={storeId} config={config} />
 
-        {/* Link do Painel */}
+        {/* 2. Chamadas Hoje */}
+        <Card className="flex flex-col justify-center">
+          <CardContent className="p-4 text-center">
+            <p className="text-xs text-muted-foreground mb-1">Chamadas Hoje</p>
+            <p className="text-3xl font-bold">{todayCalls}</p>
+          </CardContent>
+        </Card>
+
+        {/* 3. Tipo e Template */}
+        <Card className="flex flex-col justify-center">
+          <CardContent className="p-4 space-y-2">
+            <div>
+              <p className="text-xs text-muted-foreground">Tipo</p>
+              <p className="text-sm font-bold capitalize">
+                {config?.call_type === 'password' ? 'Senha' : 
+                 config?.call_type === 'order' ? 'Pedido' : 
+                 config?.call_type === 'table' ? 'Mesa' : 'Senha'}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Template</p>
+              <p className="text-sm font-bold capitalize">{config?.template || 'Moderno'}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 4. Painel de Exibição */}
         {storeSlug && (
-          <Card className="h-fit">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Tv className="h-5 w-5 text-primary" />
-                Painel de Exibição
+          <Card className="flex flex-col">
+            <CardHeader className="pb-2 py-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Tv className="h-4 w-4 text-primary" />
+                Painel TV
               </CardTitle>
-              <CardDescription>Abra este link na TV da sua loja</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Input value={publicUrl} readOnly className="bg-muted text-sm" />
-                <Button variant="outline" size="icon" onClick={handleCopyLink}>
-                  <Copy className="h-4 w-4" />
+            <CardContent className="flex-1 flex flex-col justify-center space-y-2 pt-0">
+              <div className="flex items-center gap-1">
+                <Input value={publicUrl} readOnly className="bg-muted text-xs h-8" />
+                <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" onClick={handleCopyLink}>
+                  <Copy className="h-3 w-3" />
                 </Button>
-                <Button variant="outline" size="icon" onClick={() => window.open(publicUrl, '_blank')}>
-                  <ExternalLink className="h-4 w-4" />
+                <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" onClick={() => window.open(publicUrl, '_blank')}>
+                  <ExternalLink className="h-3 w-3" />
                 </Button>
               </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Info className="h-3 w-3" />
-                <span>Pressione F11 para tela cheia no navegador</span>
-              </div>
+              <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                <Info className="h-2.5 w-2.5" />
+                F11 para tela cheia
+              </p>
             </CardContent>
           </Card>
         )}
-      </div>
-
-      {/* Stats Compactos */}
-      <div className="grid grid-cols-3 gap-3">
-        <Card>
-          <CardContent className="p-3">
-            <p className="text-xs text-muted-foreground">Chamadas Hoje</p>
-            <p className="text-xl font-bold">{todayCalls}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3">
-            <p className="text-xs text-muted-foreground">Tipo</p>
-            <p className="text-sm font-bold capitalize">
-              {config?.call_type === 'password' ? 'Senha' : 
-               config?.call_type === 'order' ? 'Pedido' : 
-               config?.call_type === 'table' ? 'Mesa' : 'Senha'}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3">
-            <p className="text-xs text-muted-foreground">Template</p>
-            <p className="text-sm font-bold capitalize">{config?.template || 'Moderno'}</p>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Configurações */}

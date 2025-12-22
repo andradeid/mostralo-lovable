@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { Loader2, AlertCircle, Monitor, Maximize, ImageOff, Info, Store } from 'lucide-react';
+import { Loader2, AlertCircle, Monitor, Maximize, ImageOff, Info, Store, Volume2 } from 'lucide-react';
 import { usePublicSignage } from '@/hooks/usePublicSignage';
 import { usePublicPasswordCalls } from '@/hooks/usePublicPasswordCalls';
 import { PasswordCallDisplay } from '@/components/signage/PasswordCallDisplay';
 import { PasswordCallHistory } from '@/components/signage/PasswordCallHistory';
 import { Button } from '@/components/ui/button';
-
+import { toast } from 'sonner';
 export default function SignageDisplayPage() {
   const { slug } = useParams<{ slug: string }>();
   const { store, items, config, passwordCallConfig, loading, error } = usePublicSignage(slug);
@@ -20,8 +20,33 @@ export default function SignageDisplayPage() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showFullscreenButton, setShowFullscreenButton] = useState(true);
+  const [audioEnabled, setAudioEnabled] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Ativar áudio (desbloqueia autoplay do navegador)
+  const enableAudio = useCallback(() => {
+    // Criar contexto de áudio para desbloquear
+    try {
+      const audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      audioContext.resume();
+      
+      // Pré-carregar vozes do Web Speech
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.getVoices();
+        // Falar texto vazio para "aquecer" o sistema
+        const warmup = new SpeechSynthesisUtterance('');
+        window.speechSynthesis.speak(warmup);
+      }
+      
+      setAudioEnabled(true);
+      toast.success('Áudio ativado! As chamadas serão anunciadas.');
+      console.log('[Signage] Áudio ativado pelo usuário');
+    } catch (e) {
+      console.error('[Signage] Erro ao ativar áudio:', e);
+      toast.error('Erro ao ativar áudio');
+    }
+  }, []);
 
   const currentItem = items[currentIndex];
   const isVertical = config?.orientation === 'vertical';
@@ -386,9 +411,21 @@ export default function SignageDisplayPage() {
         show={showPopup} 
       />
 
-      {/* Botão de Fullscreen */}
+      {/* Botões de controle */}
       {showFullscreenButton && !isFullscreen && (
-        <div className="fixed top-4 right-4 z-50 animate-fade-in">
+        <div className="fixed top-4 right-4 z-50 animate-fade-in flex gap-2">
+          {/* Botão Ativar Som - só aparece se som está habilitado nas configs e ainda não foi ativado */}
+          {passwordCallConfig?.sound_enabled && !audioEnabled && (
+            <Button 
+              onClick={enableAudio}
+              size="lg"
+              className="bg-orange-500/90 hover:bg-orange-600 backdrop-blur-sm text-white border border-orange-400/50"
+            >
+              <Volume2 className="h-5 w-5 mr-2" />
+              Ativar Som
+            </Button>
+          )}
+          
           <Button 
             onClick={enterFullscreen}
             size="lg"

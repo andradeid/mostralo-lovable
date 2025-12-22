@@ -11,10 +11,8 @@ import {
   Info,
   Tv,
   Lightbulb,
-  ChevronDown,
   Maximize,
-  Wifi,
-  Settings
+  Wifi
 } from 'lucide-react';
 import {
   Collapsible,
@@ -105,72 +103,72 @@ export default function PasswordCallManagementPage() {
           <PasswordCallKeypad storeId={storeId} config={config} />
         </div>
 
-        {/* Coluna 2: Card único com todas as informações */}
+        {/* Coluna 2: Card com 2 colunas internas */}
         <Card className="flex flex-col flex-1">
-          <CardContent className="p-4 space-y-4">
-            {/* Seção: Configurações */}
-            <div>
-              <h3 className="flex items-center gap-2 font-medium text-sm mb-3">
-                <Settings className="h-4 w-4 text-primary" />
-                Configurações
-              </h3>
+          <CardContent className="p-4">
+            {/* Grid de 2 colunas internas */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Coluna interna 1: Configurações */}
               <PasswordCallConfigPanel config={config} onSave={saveConfig} />
-            </div>
 
-            <div className="border-t" />
+              {/* Coluna interna 2: Como usar + Painel TV */}
+              <div className="border rounded-lg p-4 space-y-4">
+                {/* Header Como Usar */}
+                <h3 className="flex items-center gap-2 font-medium text-sm text-primary">
+                  <Lightbulb className="h-4 w-4 text-amber-500" />
+                  COMO USAR
+                </h3>
 
-            {/* Seção: Como usar */}
-            <div>
-              <h3 className="flex items-center gap-2 font-medium text-sm mb-3">
-                <Lightbulb className="h-4 w-4 text-amber-500" />
-                Como usar
-              </h3>
-              <div className="grid grid-cols-3 gap-2 text-xs">
-                <div className="flex flex-col items-center text-center p-2 rounded-lg bg-muted/50">
-                  <div className="flex items-center justify-center h-6 w-6 rounded-full bg-primary text-primary-foreground text-xs font-medium mb-1">1</div>
-                  <span className="text-muted-foreground">Ative o sistema</span>
-                </div>
-                <div className="flex flex-col items-center text-center p-2 rounded-lg bg-muted/50">
-                  <div className="flex items-center justify-center h-6 w-6 rounded-full bg-primary text-primary-foreground text-xs font-medium mb-1">2</div>
-                  <span className="text-muted-foreground">Abra na TV</span>
-                </div>
-                <div className="flex flex-col items-center text-center p-2 rounded-lg bg-muted/50">
-                  <div className="flex items-center justify-center h-6 w-6 rounded-full bg-primary text-primary-foreground text-xs font-medium mb-1">3</div>
-                  <span className="text-muted-foreground">Use o teclado</span>
-                </div>
-              </div>
-              <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1"><Maximize className="h-3 w-3" /> F11 = tela cheia</span>
-                <span className="flex items-center gap-1"><Wifi className="h-3 w-3" /> Mantenha conectado</span>
-              </div>
-            </div>
-
-            {storeSlug && (
-              <>
-                <div className="border-t" />
-
-                {/* Seção: Painel TV */}
-                <div>
-                  <h3 className="flex items-center gap-2 font-medium text-sm mb-3">
-                    <Tv className="h-4 w-4 text-primary" />
-                    Painel TV
-                  </h3>
-                  <div className="flex items-center gap-2">
-                    <Input value={publicUrl} readOnly className="bg-muted text-xs h-9 flex-1" />
-                    <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={handleCopyLink}>
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => window.open(publicUrl, '_blank')}>
-                      <ExternalLink className="h-4 w-4" />
-                    </Button>
+                {/* 3 Passos */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center h-6 w-6 rounded-full bg-primary text-primary-foreground text-xs font-medium shrink-0">1</div>
+                    <span className="text-sm">Ative o sistema no painel ao lado</span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
-                    <Info className="h-3 w-3" />
-                    Copie o link e abra no navegador da TV
-                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center h-6 w-6 rounded-full bg-primary text-primary-foreground text-xs font-medium shrink-0">2</div>
+                    <span className="text-sm">Copie o link abaixo e abra na TV</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center h-6 w-6 rounded-full bg-primary text-primary-foreground text-xs font-medium shrink-0">3</div>
+                    <span className="text-sm">Use o teclado para chamar as senhas</span>
+                  </div>
                 </div>
-              </>
-            )}
+
+                {/* Dicas extras */}
+                <div className="flex flex-col gap-1 text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">
+                  <span className="flex items-center gap-2"><Maximize className="h-3 w-3" /> Pressione F11 para tela cheia</span>
+                  <span className="flex items-center gap-2"><Wifi className="h-3 w-3" /> Mantenha o navegador conectado</span>
+                </div>
+
+                {storeSlug && (
+                  <>
+                    <div className="border-t" />
+
+                    {/* Painel TV */}
+                    <div>
+                      <h4 className="flex items-center gap-2 font-medium text-sm mb-2">
+                        <Tv className="h-4 w-4 text-primary" />
+                        Painel TV
+                      </h4>
+                      <div className="flex items-center gap-2">
+                        <Input value={publicUrl} readOnly className="bg-muted text-xs h-9 flex-1" />
+                        <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={handleCopyLink}>
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                        <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => window.open(publicUrl, '_blank')}>
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+                        <Info className="h-3 w-3" />
+                        Copie o link e abra no navegador da TV
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>

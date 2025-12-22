@@ -14,8 +14,19 @@ import {
   PlayCircle,
   CheckCircle,
   XCircle,
-  Info
+  Info,
+  Tv,
+  Lightbulb,
+  ChevronDown,
+  Settings,
+  Maximize,
+  Wifi
 } from 'lucide-react';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useSignage } from '@/hooks/useSignage';
@@ -158,6 +169,82 @@ export default function SignageManagementPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Instruções de Uso */}
+      <Collapsible defaultOpen={items.length === 0}>
+        <Card>
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Tv className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-base">Como usar o Painel Digital</CardTitle>
+                </div>
+                <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="pt-0 space-y-4">
+              {/* Passo a passo */}
+              <div className="space-y-3">
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="flex items-center justify-center h-6 w-6 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
+                    1
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">Copie o link do painel</p>
+                    <p className="text-sm text-muted-foreground">Use o botão de copiar acima para copiar o link público do seu painel.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="flex items-center justify-center h-6 w-6 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
+                    2
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">Abra no navegador da TV/Totem</p>
+                    <p className="text-sm text-muted-foreground">Cole o link no navegador (Chrome, Edge, etc.) do dispositivo onde deseja exibir as mídias.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="flex items-center justify-center h-6 w-6 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
+                    3
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Maximize className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium text-sm">Ative a tela cheia</p>
+                      <p className="text-sm text-muted-foreground">Pressione F11 ou clique no ícone de tela cheia no painel para maximizar a exibição.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Dicas */}
+              <div className="border-t pt-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Lightbulb className="h-4 w-4 text-amber-500" />
+                  <span className="font-medium text-sm">Dicas importantes</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                  <div className="flex items-start gap-2 p-2 rounded-lg border bg-background">
+                    <Settings className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                    <span className="text-muted-foreground">Use o <strong>modo quiosque</strong> do navegador para evitar interrupções.</span>
+                  </div>
+                  <div className="flex items-start gap-2 p-2 rounded-lg border bg-background">
+                    <Tv className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                    <span className="text-muted-foreground">Configure a <strong>orientação</strong> (horizontal/vertical) nas configurações.</span>
+                  </div>
+                  <div className="flex items-start gap-2 p-2 rounded-lg border bg-background">
+                    <Wifi className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                    <span className="text-muted-foreground">Mantenha <strong>internet conectada</strong> para atualizações automáticas.</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

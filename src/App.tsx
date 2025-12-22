@@ -580,7 +580,7 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/dashboard/password-call" element={
-              <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
+              <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
                 <AdminLayout pageTitle="Chamada de Senhas"><PasswordCallManagementPage /></AdminLayout>
               </ProtectedRoute>
             } />

@@ -46,6 +46,8 @@ export function usePublicSignage(slug: string | undefined) {
       }
 
       try {
+        console.log('[SignageDebug] 1. Buscando loja pelo slug:', slug);
+        
         // Buscar loja pelo slug
         const { data: storeData, error: storeError } = await supabase
           .from('stores')
@@ -54,11 +56,16 @@ export function usePublicSignage(slug: string | undefined) {
           .eq('status', 'active')
           .single();
 
+        console.log('[SignageDebug] 2. Resultado da busca:', { storeData, storeError });
+
         if (storeError || !storeData) {
+          console.error('[SignageDebug] Erro ao buscar loja:', storeError);
           setError('Loja não encontrada');
           setLoading(false);
           return;
         }
+
+        console.log('[SignageDebug] 3. Loja encontrada:', storeData.name);
 
         setStore(storeData);
 

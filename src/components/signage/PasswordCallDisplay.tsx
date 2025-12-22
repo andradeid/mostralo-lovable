@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { PasswordCall } from '@/hooks/usePublicPasswordCalls';
 import { PasswordCallConfig } from '@/hooks/usePasswordCallConfig';
+import { playPasswordCallAudio, getCallText, playBeepSound } from '@/utils/passwordCallTTS';
 
 interface PasswordCallDisplayProps {
   call: PasswordCall | null;
@@ -14,42 +15,38 @@ const callTypeLabels: Record<string, string> = {
   table: 'MESA'
 };
 
-// Som de notificação (beep simples)
-const playNotificationSound = () => {
-  try {
-    const audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    oscillator.frequency.value = 880;
-    oscillator.type = 'sine';
-    
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-    
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.5);
-  } catch (e) {
-    console.log('Som não suportado:', e);
-  }
-};
-
 export function PasswordCallDisplay({ call, config, show }: PasswordCallDisplayProps) {
   const hasPlayedSound = useRef(false);
 
-  // Tocar som quando aparecer
+  // Tocar som/voz quando aparecer
   useEffect(() => {
-    if (show && config?.sound_enabled && !hasPlayedSound.current) {
-      playNotificationSound();
+    if (show && config?.sound_enabled && call && !hasPlayedSound.current) {
       hasPlayedSound.current = true;
+      
+      const audioType = config.audio_type || 'beep';
+      const voiceTemplate = config.voice_text_template || 'simple';
+      
+      if (audioType === 'beep') {
+        playBeepSound();
+      } else {
+        const text = getCallText(voiceTemplate, call.call_type, call.call_number);
+        
+        playPasswordCallAudio(
+          audioType,
+          text,
+          config.elevenlabs_voice_id,
+          config.elevenlabs_api_key
+        ).catch((error) => {
+          console.error('Erro ao reproduzir áudio:', error);
+          // Fallback para beep em caso de erro
+          playBeepSound();
+        });
+      }
     }
     if (!show) {
       hasPlayedSound.current = false;
     }
-  }, [show, config?.sound_enabled]);
+  }, [show, config?.sound_enabled, config?.audio_type, config?.voice_text_template, config?.elevenlabs_voice_id, config?.elevenlabs_api_key, call]);
 
   if (!show || !call || !config) return null;
 

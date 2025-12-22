@@ -69,23 +69,23 @@ export function PasswordCallConfigPanel({ config, onSave }: PasswordCallConfigPa
   };
 
   return (
-    <Card>
-      <CardHeader>
+    <div className="border rounded-lg">
+      <div className="p-4 border-b">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Bell className="h-5 w-5 text-primary" />
-            <CardTitle className="text-base">Chamada de Senhas</CardTitle>
+            <span className="font-semibold">Chamada de Senhas</span>
           </div>
           <Switch
             checked={isEnabled}
             onCheckedChange={setIsEnabled}
           />
         </div>
-        <CardDescription>
+        <p className="text-sm text-muted-foreground mt-1">
           Configure como as senhas aparecem no painel público
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
+        </p>
+      </div>
+      <div className="p-4 space-y-6">
         {/* Tipo de Chamada */}
         <div className="space-y-2">
           <Label className="flex items-center gap-2">
@@ -220,7 +220,7 @@ export function PasswordCallConfigPanel({ config, onSave }: PasswordCallConfigPa
           {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
           Salvar Configurações
         </Button>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

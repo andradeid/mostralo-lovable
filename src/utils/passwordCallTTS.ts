@@ -52,14 +52,22 @@ export const getCallText = (
       text = `${getTimeGreeting()} ${text}`;
     }
     
-    // Adiciona prefixo
+    // Adiciona prefixo (com substituição de variáveis)
     if (options?.prefix?.trim()) {
-      text = `${options.prefix.trim()} ${text}`;
+      const prefix = options.prefix.trim()
+        .replace(/{tipo}/gi, label)
+        .replace(/{numero}/gi, String(number))
+        .replace(/{cliente}/gi, options?.customerName || '');
+      text = `${prefix} ${text}`;
     }
     
-    // Adiciona sufixo
+    // Adiciona sufixo (com substituição de variáveis)
     if (options?.suffix?.trim()) {
-      text = `${text} ${options.suffix.trim()}`;
+      const suffix = options.suffix.trim()
+        .replace(/{tipo}/gi, label)
+        .replace(/{numero}/gi, String(number))
+        .replace(/{cliente}/gi, options?.customerName || '');
+      text = `${text} ${suffix}`;
     }
     
     return text;

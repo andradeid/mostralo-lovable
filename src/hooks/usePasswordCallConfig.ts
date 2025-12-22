@@ -13,11 +13,18 @@ export interface PasswordCallConfig {
   highlight_duration_ms: number;
   sound_enabled: boolean;
   primary_color: string;
-  // Novos campos de áudio
+  // Campos de áudio
   audio_type: 'beep' | 'web_speech' | 'elevenlabs';
   voice_text_template: 'simple' | 'counter' | 'pickup';
   elevenlabs_voice_id: string | null;
   elevenlabs_api_key: string | null;
+  // Campos de texto personalizado
+  custom_text_enabled: boolean;
+  custom_text_template: string | null;
+  custom_prefix: string | null;
+  custom_suffix: string | null;
+  use_greeting: boolean;
+  store_name_in_call: string | null;
   created_at: string;
   updated_at: string;
 }

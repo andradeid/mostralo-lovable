@@ -29,7 +29,14 @@ export function PasswordCallDisplay({ call, config, show }: PasswordCallDisplayP
       if (audioType === 'beep') {
         playBeepSound();
       } else {
-        const text = getCallText(voiceTemplate, call.call_type, call.call_number);
+        // Passar opções de texto personalizado
+        const text = getCallText(voiceTemplate, call.call_type, call.call_number, {
+          customTextEnabled: config.custom_text_enabled,
+          customTemplate: config.custom_text_template,
+          prefix: config.custom_prefix,
+          suffix: config.custom_suffix,
+          useGreeting: config.use_greeting,
+        });
         
         playPasswordCallAudio(
           audioType,
@@ -45,7 +52,7 @@ export function PasswordCallDisplay({ call, config, show }: PasswordCallDisplayP
     if (!show) {
       hasPlayedSound.current = false;
     }
-  }, [show, config?.sound_enabled, config?.audio_type, config?.voice_text_template, config?.elevenlabs_voice_id, call]);
+  }, [show, config, call]);
 
   if (!show || !call || !config) return null;
 

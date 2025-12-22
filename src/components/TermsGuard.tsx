@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useTermsReAccept } from '@/hooks/useTermsReAccept';
 import { TermsReAcceptModal } from './TermsReAcceptModal';
 import { useAuth } from '@/hooks/use-auth';
@@ -8,9 +9,19 @@ interface TermsGuardProps {
   children: ReactNode;
 }
 
+// Rotas que devem ser completamente públicas (sem verificação de auth)
+const PUBLIC_ROUTES = ['/painel/', '/sitemap.xml', '/robots.txt'];
+
 export const TermsGuard = ({ children }: TermsGuardProps) => {
+  const location = useLocation();
   const { user, loading: authLoading } = useAuth();
   const { needsReAccept, isLoading, currentVersion, changelog, acceptTerms } = useTermsReAccept();
+
+  // Bypass completo para rotas públicas - não esperar auth
+  const isPublicRoute = PUBLIC_ROUTES.some(route => location.pathname.startsWith(route));
+  if (isPublicRoute) {
+    return <>{children}</>;
+  }
 
   // Não mostrar nada enquanto carrega auth
   if (authLoading) {

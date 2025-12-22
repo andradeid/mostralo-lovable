@@ -147,39 +147,80 @@ export const speakWithElevenLabs = async (
   console.log('[ElevenLabs] Iniciando síntese:', text, 'Voice:', voiceId || 'padrão');
   
   const { data, error } = await supabase.functions.invoke('text-to-speech', {
-    body: { text, voiceId: voiceId || 'JBFqnCBsd6RMkjVDRZzb' }
+    body: { text, voiceId: voiceId || 'onwK4e9ZLuTAKqWW03F9' }
   });
 
   if (error) {
     console.error('[ElevenLabs] Erro na chamada:', error);
-    throw new Error(error.message);
+    throw new Error(`Erro ao chamar serviço de voz: ${error.message}`);
   }
 
   const { audioContent, error: apiError } = data;
   
   if (apiError) {
     console.error('[ElevenLabs] Erro da API:', apiError);
-    throw new Error(apiError);
+    throw new Error(`Erro da API ElevenLabs: ${apiError}`);
   }
 
   if (!audioContent) {
-    throw new Error('Nenhum áudio retornado');
+    throw new Error('Nenhum áudio retornado pelo serviço');
   }
 
-  console.log('[ElevenLabs] Áudio recebido, reproduzindo...');
+  // Validar tamanho do áudio
+  const audioSize = audioContent.length;
+  console.log('[ElevenLabs] Áudio recebido. Tamanho base64:', audioSize, 'caracteres');
   
-  // Tocar o áudio base64
+  if (audioSize < 100) {
+    throw new Error('Áudio recebido é muito pequeno, pode estar corrompido');
+  }
+
+  // Criar URL do áudio
   const audioUrl = `data:audio/mpeg;base64,${audioContent}`;
-  const audio = new Audio(audioUrl);
+  const audio = new Audio();
   
   return new Promise((resolve, reject) => {
+    // Usar canplaythrough para garantir que o áudio está pronto
+    audio.oncanplaythrough = () => {
+      console.log('[ElevenLabs] Áudio pronto para reprodução');
+      audio.play()
+        .then(() => console.log('[ElevenLabs] Reprodução iniciada'))
+        .catch((playError) => {
+          console.error('[ElevenLabs] Erro ao iniciar reprodução:', playError);
+          reject(new Error(`Falha ao reproduzir: ${playError.message || 'Verifique o volume do dispositivo'}`));
+        });
+    };
+    
     audio.onended = () => {
-      console.log('[ElevenLabs] Reprodução finalizada');
+      console.log('[ElevenLabs] Reprodução finalizada com sucesso');
       resolve();
     };
-    audio.onerror = (e) => reject(e);
-    audio.play().catch(reject);
+    
+    audio.onerror = () => {
+      const mediaError = audio.error;
+      const errorMessage = mediaError 
+        ? `Código ${mediaError.code}: ${mediaError.message || getMediaErrorMessage(mediaError.code)}`
+        : 'Erro desconhecido na reprodução';
+      console.error('[ElevenLabs] Erro de mídia:', errorMessage);
+      reject(new Error(`Erro ao reproduzir áudio: ${errorMessage}`));
+    };
+
+    // Definir src após configurar os handlers
+    audio.src = audioUrl;
+    audio.load();
   });
+};
+
+/**
+ * Retorna mensagem legível para códigos de erro de mídia
+ */
+const getMediaErrorMessage = (code: number): string => {
+  switch (code) {
+    case 1: return 'Reprodução abortada pelo usuário';
+    case 2: return 'Erro de rede ao carregar áudio';
+    case 3: return 'Erro ao decodificar áudio';
+    case 4: return 'Formato de áudio não suportado';
+    default: return 'Erro desconhecido';
+  }
 };
 
 /**

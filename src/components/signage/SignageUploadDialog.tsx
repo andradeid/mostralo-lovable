@@ -117,6 +117,17 @@ export function SignageUploadDialog({ open, onOpenChange, onUpload }: SignageUpl
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* Aviso sobre formatos de vídeo */}
+          <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
+            <p className="text-xs text-amber-700 dark:text-amber-400 font-medium mb-1">
+              📹 Dica para vídeos:
+            </p>
+            <p className="text-xs text-amber-600/80 dark:text-amber-400/70">
+              Use <strong>MP4 (H.264)</strong> ou <strong>WebM</strong> para garantir compatibilidade. 
+              Vídeos do iPhone (HEVC/H.265) podem não funcionar — exporte em "Mais Compatível" ou converta com HandBrake.
+            </p>
+          </div>
+
           {/* Dropzone */}
           <div
             onClick={() => fileInputRef.current?.click()}
@@ -127,7 +138,7 @@ export function SignageUploadDialog({ open, onOpenChange, onUpload }: SignageUpl
               Clique para selecionar ou arraste arquivos aqui
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              JPG, PNG, GIF, WEBP, MP4, WEBM (máx. 100MB)
+              Imagens: JPG, PNG, GIF, WEBP • Vídeos: MP4 (H.264), WEBM
             </p>
             <input
               ref={fileInputRef}

@@ -1,12 +1,27 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { Loader2, AlertCircle, Monitor, Maximize, ImageOff, Info, Store, Volume2 } from 'lucide-react';
+import { Loader2, AlertCircle, Monitor, Maximize, ImageOff, Info, Store, Volume2, AlertTriangle } from 'lucide-react';
 import { usePublicSignage } from '@/hooks/usePublicSignage';
 import { usePublicPasswordCalls } from '@/hooks/usePublicPasswordCalls';
 import { PasswordCallDisplay } from '@/components/signage/PasswordCallDisplay';
 import { PasswordCallHistory } from '@/components/signage/PasswordCallHistory';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+
+// Mapeia códigos de erro de vídeo para mensagens amigáveis
+const VIDEO_ERROR_MESSAGES: Record<number, { title: string; cause: string; solution: string }> = {
+  1: { title: 'Download interrompido', cause: 'O carregamento do vídeo foi cancelado', solution: 'Tente recarregar a página' },
+  2: { title: 'Erro de rede', cause: 'Falha na conexão ao carregar o vídeo', solution: 'Verifique sua conexão de internet' },
+  3: { title: 'Formato não suportado', cause: 'Codec incompatível (provavelmente HEVC/H.265)', solution: 'Exporte o vídeo em MP4 (H.264) ou WebM' },
+  4: { title: 'Vídeo não suportado', cause: 'O formato do arquivo não é reconhecido', solution: 'Use MP4 (H.264) ou WebM' },
+};
+
+interface VideoError {
+  code: number;
+  message: string;
+  src: string;
+}
+
 export default function SignageDisplayPage() {
   const { slug } = useParams<{ slug: string }>();
   const { store, items, config, passwordCallConfig, loading, error } = usePublicSignage(slug);
@@ -22,8 +37,11 @@ export default function SignageDisplayPage() {
   const [showFullscreenButton, setShowFullscreenButton] = useState(true);
   const [audioEnabled, setAudioEnabled] = useState(false);
   const [zoomDirection, setZoomDirection] = useState<'in' | 'out'>('in');
+  const [videoError, setVideoError] = useState<VideoError | null>(null);
+  const [isVideoLoading, setIsVideoLoading] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Ativar áudio (desbloqueia autoplay do navegador)
   const enableAudio = useCallback(() => {
@@ -106,18 +124,32 @@ export default function SignageDisplayPage() {
     return () => clearInterval(interval);
   }, [config?.show_clock]);
 
+  // Limpar timeout de erro quando mudar de item
+  useEffect(() => {
+    return () => {
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+      }
+    };
+  }, [currentIndex]);
+
   // Controlar transições - apenas para imagens
   // Vídeos usam o evento onEnded diretamente no elemento <video>
   useEffect(() => {
     if (items.length === 0 || !currentItem) return;
 
+    // Limpar estado de erro anterior
+    setVideoError(null);
+
     // Para vídeos, o controle é feito via onEnded no próprio elemento
     if (currentItem.file_type === 'video') {
-      console.log('[Signage] Exibindo vídeo:', currentItem.title, 'URL:', currentItem.file_url);
+      console.log('[Signage] 🎬 Iniciando carregamento de vídeo:', currentItem.title);
+      console.log('[Signage] 📂 URL:', currentItem.file_url);
+      setIsVideoLoading(true);
       
       // Timeout de segurança máximo (5 minutos) caso o vídeo trave
       const maxTimeout = setTimeout(() => {
-        console.warn('[Signage] Timeout de segurança - vídeo não terminou em 5 min:', currentItem.title);
+        console.warn('[Signage] ⚠️ Timeout de segurança - vídeo não terminou em 5 min:', currentItem.title);
         goToNext();
       }, 5 * 60 * 1000);
 
@@ -125,12 +157,37 @@ export default function SignageDisplayPage() {
     }
 
     // Para imagens, usar a duração definida
-    console.log('[Signage] Exibindo imagem:', currentItem.title, 'por', currentItem.duration_seconds, 'segundos');
+    setIsVideoLoading(false);
+    console.log('[Signage] 🖼️ Exibindo imagem:', currentItem.title, 'por', currentItem.duration_seconds, 'segundos');
     const timer = setTimeout(goToNext, currentItem.duration_seconds * 1000);
     return () => clearTimeout(timer);
   }, [currentIndex, items, currentItem]);
 
-  const goToNext = () => {
+  // Tentar dar play no vídeo quando carregar
+  useEffect(() => {
+    if (currentItem?.file_type === 'video' && videoRef.current) {
+      const playVideo = async () => {
+        try {
+          await videoRef.current?.play();
+          console.log('[Signage] ▶️ Play iniciado com sucesso');
+        } catch (err) {
+          const error = err as Error;
+          console.error('[Signage] ❌ Erro ao dar play:', error.name, error.message);
+          if (error.name === 'NotAllowedError') {
+            console.warn('[Signage] 🔇 Autoplay bloqueado pelo navegador - tente clicar na tela');
+          }
+        }
+      };
+      // Pequeno delay para garantir que o vídeo foi montado
+      setTimeout(playVideo, 100);
+    }
+  }, [currentItem?.id]);
+
+  const goToNext = useCallback(() => {
+    // Limpar erro e loading ao avançar
+    setVideoError(null);
+    setIsVideoLoading(false);
+    
     if (config?.transition_type !== 'none') {
       setIsTransitioning(true);
       setTimeout(() => {
@@ -142,7 +199,53 @@ export default function SignageDisplayPage() {
       setCurrentIndex(prev => (prev + 1) % items.length);
       setZoomDirection(prev => prev === 'in' ? 'out' : 'in');
     }
-  };
+  }, [config?.transition_type, config?.transition_duration_ms, items.length]);
+
+  // Handlers de vídeo
+  const handleVideoLoadedMetadata = useCallback((e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const video = e.currentTarget;
+    console.log('[Signage] 📊 Vídeo metadata carregado:', {
+      duration: video.duration,
+      width: video.videoWidth,
+      height: video.videoHeight,
+      readyState: video.readyState
+    });
+  }, []);
+
+  const handleVideoCanPlay = useCallback(() => {
+    console.log('[Signage] ✅ Vídeo pronto para reprodução');
+    setIsVideoLoading(false);
+  }, []);
+
+  const handleVideoError = useCallback((e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const video = e.currentTarget;
+    const mediaError = video.error;
+    const errorCode = mediaError?.code || 0;
+    const errorMessage = mediaError?.message || 'Erro desconhecido';
+    
+    console.error('[Signage] ❌ Erro no vídeo:', {
+      code: errorCode,
+      message: errorMessage,
+      src: video.currentSrc,
+      readyState: video.readyState,
+      networkState: video.networkState
+    });
+
+    setIsVideoLoading(false);
+    
+    // Mostrar erro por 4 segundos antes de avançar
+    setVideoError({
+      code: errorCode,
+      message: errorMessage,
+      src: video.currentSrc
+    });
+
+    // Agendar avanço após exibir o erro
+    errorTimeoutRef.current = setTimeout(() => {
+      setVideoError(null);
+      goToNext();
+    }, 4000);
+  }, [goToNext]);
 
   // Estados de loading e erro
   if (loading) {
@@ -325,29 +428,64 @@ export default function SignageDisplayPage() {
           className="absolute inset-0 flex items-center justify-center overflow-hidden"
           style={getTransitionStyle()}
         >
-          {currentItem && (
+        {currentItem && (
             currentItem.file_type === 'video' ? (
-              <video
-                ref={videoRef}
-                key={currentItem.id}
-                src={currentItem.file_url}
-                className="w-full h-full object-cover"
-                autoPlay
-                muted
-                playsInline
-                preload="auto"
-                onLoadedData={() => console.log('[Signage] Vídeo carregado:', currentItem.title, currentItem.file_url)}
-                onPlay={() => console.log('[Signage] Vídeo iniciou:', currentItem.title)}
-                onEnded={() => {
-                  console.log('[Signage] Vídeo terminou:', currentItem.title);
-                  goToNext();
-                }}
-                onError={(e) => {
-                  console.error('[Signage] Erro no vídeo:', currentItem.title, e);
-                  // Se houver erro, avança para o próximo item
-                  goToNext();
-                }}
-              />
+              <>
+                <video
+                  ref={videoRef}
+                  key={currentItem.id}
+                  src={currentItem.file_url}
+                  className="w-full h-full object-cover"
+                  autoPlay
+                  muted
+                  playsInline
+                  preload="auto"
+                  onLoadedMetadata={handleVideoLoadedMetadata}
+                  onCanPlay={handleVideoCanPlay}
+                  onPlay={() => console.log('[Signage] ▶️ Vídeo iniciou:', currentItem.title)}
+                  onEnded={() => {
+                    console.log('[Signage] ✅ Vídeo terminou:', currentItem.title);
+                    goToNext();
+                  }}
+                  onError={handleVideoError}
+                />
+
+                {/* Loading spinner para vídeo */}
+                {isVideoLoading && !videoError && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                    <div className="text-center text-white">
+                      <Loader2 className="h-12 w-12 animate-spin mx-auto mb-3" />
+                      <p className="text-lg font-medium">Carregando vídeo...</p>
+                      <p className="text-sm text-white/70 mt-1">{currentItem.title}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Overlay de erro de vídeo */}
+                {videoError && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/80 animate-fade-in">
+                    <div className="text-center text-white max-w-md px-6">
+                      <div className="w-16 h-16 mx-auto mb-4 bg-red-500/20 rounded-full flex items-center justify-center">
+                        <AlertTriangle className="h-8 w-8 text-red-400" />
+                      </div>
+                      <h3 className="text-xl font-bold mb-2">
+                        {VIDEO_ERROR_MESSAGES[videoError.code]?.title || 'Erro ao reproduzir vídeo'}
+                      </h3>
+                      <p className="text-white/70 mb-3">
+                        {VIDEO_ERROR_MESSAGES[videoError.code]?.cause || videoError.message}
+                      </p>
+                      <div className="bg-white/10 rounded-lg p-3 text-sm">
+                        <p className="text-orange-300 font-medium">
+                          💡 {VIDEO_ERROR_MESSAGES[videoError.code]?.solution || 'Tente converter o vídeo para MP4 (H.264)'}
+                        </p>
+                      </div>
+                      <p className="text-white/50 text-xs mt-4">
+                        Avançando em alguns segundos...
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </>
             ) : (
               <img
                 key={`${currentItem.id}-${zoomDirection}`}

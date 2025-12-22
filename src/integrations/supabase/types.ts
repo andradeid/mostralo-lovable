@@ -2641,6 +2641,105 @@ export type Database = {
           },
         ]
       }
+      password_call_config: {
+        Row: {
+          call_type: string
+          created_at: string
+          highlight_duration_ms: number
+          history_count: number
+          id: string
+          is_enabled: boolean
+          primary_color: string | null
+          show_history: boolean
+          sound_enabled: boolean
+          store_id: string
+          template: string
+          updated_at: string
+        }
+        Insert: {
+          call_type?: string
+          created_at?: string
+          highlight_duration_ms?: number
+          history_count?: number
+          id?: string
+          is_enabled?: boolean
+          primary_color?: string | null
+          show_history?: boolean
+          sound_enabled?: boolean
+          store_id: string
+          template?: string
+          updated_at?: string
+        }
+        Update: {
+          call_type?: string
+          created_at?: string
+          highlight_duration_ms?: number
+          history_count?: number
+          id?: string
+          is_enabled?: boolean
+          primary_color?: string | null
+          show_history?: boolean
+          sound_enabled?: boolean
+          store_id?: string
+          template?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "password_call_config_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "password_call_config_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      password_calls: {
+        Row: {
+          call_number: string
+          call_type: string
+          created_at: string
+          id: string
+          store_id: string
+        }
+        Insert: {
+          call_number: string
+          call_type?: string
+          created_at?: string
+          id?: string
+          store_id: string
+        }
+        Update: {
+          call_number?: string
+          call_type?: string
+          created_at?: string
+          id?: string
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "password_calls_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "password_calls_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_approvals: {
         Row: {
           address: Json | null

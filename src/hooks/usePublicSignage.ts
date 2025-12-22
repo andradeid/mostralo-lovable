@@ -16,6 +16,8 @@ export interface SignageConfig {
   transition_type: 'fade' | 'slide' | 'none';
   transition_duration_ms: number;
   show_clock: boolean;
+  clock_position: 'left' | 'center' | 'right';
+  clock_size: 'small' | 'medium' | 'large';
   background_color: string;
   orientation: 'horizontal' | 'vertical';
 }
@@ -24,6 +26,7 @@ export interface StoreInfo {
   id: string;
   name: string;
   slug: string;
+  logo_url: string | null;
 }
 
 export function usePublicSignage(slug: string | undefined) {
@@ -46,7 +49,7 @@ export function usePublicSignage(slug: string | undefined) {
         // Buscar loja pelo slug
         const { data: storeData, error: storeError } = await supabase
           .from('stores')
-          .select('id, name, slug')
+          .select('id, name, slug, logo_url')
           .eq('slug', slug)
           .eq('status', 'active')
           .single();
@@ -78,6 +81,8 @@ export function usePublicSignage(slug: string | undefined) {
           transition_type: configData.transition_type as SignageConfig['transition_type'],
           transition_duration_ms: configData.transition_duration_ms,
           show_clock: configData.show_clock,
+          clock_position: (configData.clock_position as SignageConfig['clock_position']) || 'right',
+          clock_size: (configData.clock_size as SignageConfig['clock_size']) || 'medium',
           background_color: configData.background_color,
           orientation: (configData.orientation as SignageConfig['orientation']) || 'horizontal'
         });

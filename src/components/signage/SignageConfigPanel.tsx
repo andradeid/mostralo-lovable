@@ -25,6 +25,8 @@ export function SignageConfigPanel({ config, onSave }: SignageConfigPanelProps) 
     transition_type: 'fade' as SignageConfig['transition_type'],
     transition_duration_ms: 500,
     show_clock: false,
+    clock_position: 'right' as SignageConfig['clock_position'],
+    clock_size: 'medium' as SignageConfig['clock_size'],
     background_color: '#000000',
     orientation: 'horizontal' as SignageConfig['orientation']
   });
@@ -37,6 +39,8 @@ export function SignageConfigPanel({ config, onSave }: SignageConfigPanelProps) 
         transition_type: config.transition_type,
         transition_duration_ms: config.transition_duration_ms,
         show_clock: config.show_clock,
+        clock_position: config.clock_position || 'right',
+        clock_size: config.clock_size || 'medium',
         background_color: config.background_color,
         orientation: config.orientation || 'horizontal'
       });
@@ -171,7 +175,7 @@ export function SignageConfigPanel({ config, onSave }: SignageConfigPanelProps) 
           <div>
             <Label htmlFor="show_clock">Mostrar Relógio</Label>
             <p className="text-sm text-muted-foreground">
-              Exibir hora atual no canto da tela
+              Exibir hora atual na tela
             </p>
           </div>
           <Switch
@@ -180,6 +184,51 @@ export function SignageConfigPanel({ config, onSave }: SignageConfigPanelProps) 
             onCheckedChange={(checked) => setFormData(prev => ({ ...prev, show_clock: checked }))}
           />
         </div>
+
+        {/* Configurações do Relógio - Só aparece quando show_clock está ativo */}
+        {formData.show_clock && (
+          <div className="ml-4 pl-4 border-l-2 border-primary/20 space-y-4">
+            {/* Posição do Relógio */}
+            <div className="space-y-2">
+              <Label>Posição do Relógio</Label>
+              <Select
+                value={formData.clock_position}
+                onValueChange={(value: SignageConfig['clock_position']) => 
+                  setFormData(prev => ({ ...prev, clock_position: value }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="left">Esquerda</SelectItem>
+                  <SelectItem value="center">Centro</SelectItem>
+                  <SelectItem value="right">Direita</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Tamanho do Relógio */}
+            <div className="space-y-2">
+              <Label>Tamanho do Relógio</Label>
+              <Select
+                value={formData.clock_size}
+                onValueChange={(value: SignageConfig['clock_size']) => 
+                  setFormData(prev => ({ ...prev, clock_size: value }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="small">Pequeno</SelectItem>
+                  <SelectItem value="medium">Médio</SelectItem>
+                  <SelectItem value="large">Grande</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        )}
 
         {/* Cor de Fundo */}
         <div className="space-y-2">

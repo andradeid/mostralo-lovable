@@ -243,6 +243,41 @@ export default function SignageDisplayPage() {
     });
   };
 
+  // Classes de posição do relógio
+  const getClockPositionClasses = () => {
+    const position = config?.clock_position || 'right';
+    
+    if (isVertical) {
+      // Em modo vertical, sempre centralizado no topo
+      return 'top-8 left-1/2 -translate-x-1/2 text-center';
+    }
+    
+    switch (position) {
+      case 'left':
+        return 'top-6 left-6 text-left';
+      case 'center':
+        return 'top-6 left-1/2 -translate-x-1/2 text-center';
+      case 'right':
+      default:
+        return 'top-6 right-6 text-right';
+    }
+  };
+
+  // Classes de tamanho do relógio
+  const getClockSizeClasses = () => {
+    const size = config?.clock_size || 'medium';
+    
+    switch (size) {
+      case 'small':
+        return { time: 'text-3xl', date: 'text-sm' };
+      case 'large':
+        return { time: isVertical ? 'text-8xl' : 'text-7xl', date: isVertical ? 'text-2xl' : 'text-xl' };
+      case 'medium':
+      default:
+        return { time: isVertical ? 'text-6xl' : 'text-5xl', date: isVertical ? 'text-xl' : 'text-lg' };
+    }
+  };
+
   // Estilos baseados na orientação
   const containerStyle = {
     backgroundColor: config?.background_color || '#000000',
@@ -288,17 +323,13 @@ export default function SignageDisplayPage() {
           )}
         </div>
 
-        {/* Relógio - posição ajustada para orientação */}
+        {/* Relógio - posição e tamanho configuráveis */}
         {config?.show_clock && (
-          <div className={`absolute drop-shadow-lg text-white ${
-            isVertical 
-              ? 'top-8 left-1/2 -translate-x-1/2 text-center' 
-              : 'top-6 right-6 text-right'
-          }`}>
-            <div className={`font-bold tracking-wider ${isVertical ? 'text-6xl' : 'text-5xl'}`}>
+          <div className={`absolute drop-shadow-lg text-white ${getClockPositionClasses()}`}>
+            <div className={`font-bold tracking-wider ${getClockSizeClasses().time}`}>
               {formatTime()}
             </div>
-            <div className={`capitalize text-white/80 mt-1 ${isVertical ? 'text-xl' : 'text-lg'}`}>
+            <div className={`capitalize text-white/80 mt-1 ${getClockSizeClasses().date}`}>
               {formatDate()}
             </div>
           </div>
@@ -322,12 +353,21 @@ export default function SignageDisplayPage() {
           ))}
         </div>
 
-        {/* Logo da loja (opcional) */}
+        {/* Logo e nome da loja */}
         {store && (
-          <div className={`absolute text-white/60 text-sm ${
+          <div className={`absolute flex items-center gap-3 ${
             isVertical ? 'bottom-4 left-1/2 -translate-x-1/2' : 'bottom-6 left-6'
           }`}>
-            {store.name}
+            {store.logo_url && (
+              <img 
+                src={store.logo_url} 
+                alt={store.name} 
+                className="h-10 w-10 rounded-lg object-cover shadow-lg"
+              />
+            )}
+            <span className="text-white/80 text-sm font-medium drop-shadow-lg">
+              {store.name}
+            </span>
           </div>
         )}
       </div>

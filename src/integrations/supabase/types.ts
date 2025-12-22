@@ -5027,6 +5027,8 @@ export type Database = {
       store_signage_config: {
         Row: {
           background_color: string
+          clock_position: string
+          clock_size: string
           created_at: string
           id: string
           is_enabled: boolean
@@ -5039,6 +5041,8 @@ export type Database = {
         }
         Insert: {
           background_color?: string
+          clock_position?: string
+          clock_size?: string
           created_at?: string
           id?: string
           is_enabled?: boolean
@@ -5051,6 +5055,8 @@ export type Database = {
         }
         Update: {
           background_color?: string
+          clock_position?: string
+          clock_size?: string
           created_at?: string
           id?: string
           is_enabled?: boolean

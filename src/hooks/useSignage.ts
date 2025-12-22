@@ -22,6 +22,8 @@ export interface SignageConfig {
   transition_type: 'fade' | 'slide' | 'none';
   transition_duration_ms: number;
   show_clock: boolean;
+  clock_position: 'left' | 'center' | 'right';
+  clock_size: 'small' | 'medium' | 'large';
   background_color: string;
   orientation: 'horizontal' | 'vertical';
   created_at: string;

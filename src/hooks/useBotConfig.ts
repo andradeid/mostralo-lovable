@@ -75,6 +75,7 @@ export function useBotConfig(storeId: string | null) {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [hasUnsyncedChanges, setHasUnsyncedChanges] = useState(false);
   const [promptSettings, setPromptSettings] = useState<PromptSettings>(defaultPromptSettings);
+  const [hasOpenAIKey, setHasOpenAIKey] = useState<boolean | null>(null);
   
   // Guardar config sincronizada para comparar
   const lastSyncedConfig = useRef<BotConfig | null>(null);
@@ -84,6 +85,15 @@ export function useBotConfig(storeId: string | null) {
     
     setLoading(true);
     try {
+      // Verificar se a loja tem chave OpenAI configurada
+      const { data: storeData } = await supabase
+        .from('stores')
+        .select('openai_api_key')
+        .eq('id', storeId)
+        .single();
+      
+      setHasOpenAIKey(!!storeData?.openai_api_key);
+
       const { data, error } = await supabase
         .from('store_bot_config')
         .select('*')
@@ -387,6 +397,7 @@ export function useBotConfig(storeId: string | null) {
     promptData,
     lastUpdated,
     hasUnsyncedChanges,
+    hasOpenAIKey,
     promptSettings,
     updateConfig,
     updatePromptSettings,

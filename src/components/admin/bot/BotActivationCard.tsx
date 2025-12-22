@@ -12,6 +12,7 @@ interface BotActivationCardProps {
   syncing: boolean;
   isConnected: boolean;
   hasUnsyncedChanges?: boolean;
+  hasOpenAIKey?: boolean | null;
   onUpdate: (updates: Partial<BotConfig>) => void;
   onSync: (action: 'create' | 'update' | 'delete') => Promise<{ success: boolean } | undefined>;
 }
@@ -21,10 +22,12 @@ export function BotActivationCard({
   syncing, 
   isConnected,
   hasUnsyncedChanges = false,
+  hasOpenAIKey,
   onUpdate, 
   onSync 
 }: BotActivationCardProps) {
   const isActive = config.enabled && config.evolution_bot_status === 'active';
+  const canActivate = isConnected && hasOpenAIKey !== false;
 
   const handleToggle = async (enabled: boolean) => {
     if (!isConnected) return;
@@ -74,7 +77,26 @@ export function BotActivationCard({
         </div>
       </CardHeader>
       <CardContent className="!p-3 !pt-0 sm:!p-6 sm:!pt-0 space-y-3 sm:space-y-4">
-        {!isConnected && (
+        {/* Alerta: Assistente não disponível (sem chave OpenAI) */}
+        {hasOpenAIKey === false && (
+          <div className="p-2.5 sm:p-3 bg-red-500/10 border border-red-500/20 rounded-lg overflow-hidden">
+            <div className="flex items-start gap-2">
+              <Bot className="h-4 w-4 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 font-medium">
+                  Assistente de IA não disponível
+                </p>
+                <p className="text-[10px] sm:text-xs text-red-600/80 dark:text-red-400/80 mt-1">
+                  A chave secreta da OpenAI não está configurada para esta loja. 
+                  Entre em contato com o administrador master para habilitar este recurso.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Alerta: WhatsApp não conectado */}
+        {!isConnected && hasOpenAIKey !== false && (
           <div className="p-2.5 sm:p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg overflow-hidden">
             <p className="text-xs sm:text-sm text-orange-600 dark:text-orange-400 break-words hyphens-auto">
               ⚠️ Conecte seu WhatsApp primeiro para ativar o assistente
@@ -103,14 +125,16 @@ export function BotActivationCard({
           <div className="space-y-0.5 min-w-0 flex-1">
             <Label htmlFor="bot-enabled" className="text-sm">Ativar Assistente</Label>
             <p className="text-[10px] sm:text-xs text-muted-foreground break-words">
-              O bot responderá automaticamente seus clientes
+              {hasOpenAIKey === false 
+                ? "Recurso indisponível - contate o administrador" 
+                : "O bot responderá automaticamente seus clientes"}
             </p>
           </div>
           <Switch
             id="bot-enabled"
             checked={config.enabled}
             onCheckedChange={handleToggle}
-            disabled={!isConnected || syncing}
+            disabled={!canActivate || syncing}
             className="shrink-0"
           />
         </div>

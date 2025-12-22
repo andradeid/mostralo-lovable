@@ -118,6 +118,7 @@ export default function WhatsAppInstancePage() {
     promptData,
     lastUpdated,
     hasUnsyncedChanges,
+    hasOpenAIKey,
     promptSettings,
     updateConfig: updateBotConfig,
     updatePromptSettings,
@@ -1376,6 +1377,7 @@ export default function WhatsAppInstancePage() {
                       syncing={botSyncing}
                       isConnected={isConnected}
                       hasUnsyncedChanges={hasUnsyncedChanges}
+                      hasOpenAIKey={hasOpenAIKey}
                       onUpdate={updateBotConfig}
                       onSync={syncWithEvolution}
                     />

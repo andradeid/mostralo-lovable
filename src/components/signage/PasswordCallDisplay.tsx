@@ -7,6 +7,7 @@ interface PasswordCallDisplayProps {
   call: PasswordCall | null;
   config: PasswordCallConfig | null;
   show: boolean;
+  storeId?: string | null;
 }
 
 const callTypeLabels: Record<string, string> = {
@@ -15,7 +16,7 @@ const callTypeLabels: Record<string, string> = {
   table: 'MESA'
 };
 
-export function PasswordCallDisplay({ call, config, show }: PasswordCallDisplayProps) {
+export function PasswordCallDisplay({ call, config, show, storeId }: PasswordCallDisplayProps) {
   const hasPlayedSound = useRef(false);
 
   // Tocar som/voz quando aparecer
@@ -41,7 +42,8 @@ export function PasswordCallDisplay({ call, config, show }: PasswordCallDisplayP
         playPasswordCallAudio(
           audioType,
           text,
-          config.elevenlabs_voice_id
+          config.elevenlabs_voice_id,
+          storeId // Passa storeId para Edge Function buscar API key do lojista
         ).catch((error) => {
           console.error('Erro ao reproduzir áudio:', error);
           // Fallback para beep em caso de erro
@@ -52,7 +54,7 @@ export function PasswordCallDisplay({ call, config, show }: PasswordCallDisplayP
     if (!show) {
       hasPlayedSound.current = false;
     }
-  }, [show, config, call]);
+  }, [show, config, call, storeId]);
 
   if (!show || !call || !config) return null;
 

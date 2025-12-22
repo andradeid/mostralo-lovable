@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { Bell, Loader2, Palette, Layout, Clock, History, Volume2, Mic, ExternalLink, Play, MessageSquare, Sparkles } from 'lucide-react';
+import { Bell, Loader2, Palette, Layout, Clock, History, Volume2, Mic, ExternalLink, Play, MessageSquare, Sparkles, Key, Eye, EyeOff } from 'lucide-react';
 import { PasswordCallConfig } from '@/hooks/usePasswordCallConfig';
 import { elevenLabsVoices, speakWithWebSpeech, speakWithElevenLabs, getCallText, playBeepSound } from '@/utils/passwordCallTTS';
 import { useToast } from '@/hooks/use-toast';
@@ -61,6 +61,8 @@ export function PasswordCallConfigPanel({ config, onSave }: PasswordCallConfigPa
   const [audioType, setAudioType] = useState<'beep' | 'web_speech' | 'elevenlabs'>(config?.audio_type ?? 'beep');
   const [voiceTextTemplate, setVoiceTextTemplate] = useState<'simple' | 'counter' | 'pickup'>(config?.voice_text_template ?? 'simple');
   const [elevenLabsVoiceId, setElevenLabsVoiceId] = useState(config?.elevenlabs_voice_id ?? '');
+  const [elevenLabsApiKey, setElevenLabsApiKey] = useState(config?.elevenlabs_api_key ?? '');
+  const [showApiKey, setShowApiKey] = useState(false);
 
   // Estados de texto personalizado
   const [customTextEnabled, setCustomTextEnabled] = useState(config?.custom_text_enabled ?? false);
@@ -83,6 +85,7 @@ export function PasswordCallConfigPanel({ config, onSave }: PasswordCallConfigPa
       setAudioType(config.audio_type ?? 'beep');
       setVoiceTextTemplate(config.voice_text_template ?? 'simple');
       setElevenLabsVoiceId(config.elevenlabs_voice_id ?? '');
+      setElevenLabsApiKey(config.elevenlabs_api_key ?? '');
       setCustomTextEnabled(config.custom_text_enabled ?? false);
       setCustomTextTemplate(config.custom_text_template ?? 'Atenção! {tipo} {numero} está pronto!');
       setCustomPrefix(config.custom_prefix ?? '');
@@ -117,6 +120,7 @@ export function PasswordCallConfigPanel({ config, onSave }: PasswordCallConfigPa
       audio_type: audioType,
       voice_text_template: voiceTextTemplate,
       elevenlabs_voice_id: elevenLabsVoiceId || null,
+      elevenlabs_api_key: elevenLabsApiKey || null,
       custom_text_enabled: customTextEnabled,
       custom_text_template: customTextTemplate,
       custom_prefix: customPrefix || null,
@@ -409,13 +413,58 @@ export function PasswordCallConfigPanel({ config, onSave }: PasswordCallConfigPa
             {/* Configurações ElevenLabs */}
             {audioType === 'elevenlabs' && (
               <div className="space-y-4 pt-2 border-t">
+                {/* Mensagem sobre API key global */}
                 <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
                   <p className="text-sm text-green-700 dark:text-green-400">
-                    ✓ API Key configurada de forma segura no servidor
+                    ✓ API Key global configurada no servidor
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    A chave está protegida nas Secrets do Supabase e nunca é exposta ao navegador.
+                    Você pode usar a chave global ou configurar sua própria chave ElevenLabs abaixo.
                   </p>
+                </div>
+
+                {/* Campo para API key própria do lojista */}
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Key className="h-4 w-4" />
+                    Sua API Key (opcional)
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      type={showApiKey ? 'text' : 'password'}
+                      value={elevenLabsApiKey}
+                      onChange={(e) => setElevenLabsApiKey(e.target.value)}
+                      placeholder="sk_..."
+                      className="pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowApiKey(!showApiKey)}
+                    >
+                      {showApiKey ? (
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Se você tem uma conta ElevenLabs, use sua própria API key.{' '}
+                    <a 
+                      href="https://elevenlabs.io/app/api-keys" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline inline-flex items-center gap-1"
+                    >
+                      Obter API key <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </p>
+                  <div className="p-2 bg-blue-500/10 border border-blue-500/20 rounded text-xs text-blue-700 dark:text-blue-400">
+                    🔒 Sua chave é armazenada de forma segura e processada apenas no servidor.
+                  </div>
                 </div>
 
                 <div className="space-y-2">

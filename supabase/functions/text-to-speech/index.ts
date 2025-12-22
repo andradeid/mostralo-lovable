@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,14 +27,41 @@ serve(async (req) => {
   }
 
   try {
-    const { text, voiceId } = await req.json();
+    const { text, voiceId, storeId } = await req.json();
 
     if (!text) {
       throw new Error("Text is required");
     }
 
-    // Busca a API key do ambiente (seguro - nunca exposta ao frontend)
-    const apiKey = Deno.env.get('ELEVENLABS_API_KEY');
+    // Determinar qual API key usar
+    let apiKey = Deno.env.get('ELEVENLABS_API_KEY'); // Fallback global
+    let usingStoreKey = false;
+
+    // Se storeId foi fornecido, tentar buscar API key própria do lojista
+    if (storeId) {
+      console.log(`[TTS] Buscando API key do lojista para store: ${storeId}`);
+      
+      const supabaseAdmin = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      );
+
+      const { data: configData, error: configError } = await supabaseAdmin
+        .from('password_call_config')
+        .select('elevenlabs_api_key')
+        .eq('store_id', storeId)
+        .maybeSingle();
+
+      if (configError) {
+        console.error('[TTS] Erro ao buscar config do lojista:', configError);
+      } else if (configData?.elevenlabs_api_key) {
+        apiKey = configData.elevenlabs_api_key;
+        usingStoreKey = true;
+        console.log(`[TTS] Usando API key própria do lojista`);
+      } else {
+        console.log(`[TTS] Lojista não tem API key própria, usando global`);
+      }
+    }
     
     if (!apiKey) {
       console.error("ELEVENLABS_API_KEY não configurada no servidor");
@@ -42,7 +70,7 @@ serve(async (req) => {
 
     const selectedVoiceId = voiceId || "onwK4e9ZLuTAKqWW03F9"; // Daniel como padrão (recomendado para pt-BR)
     
-    console.log(`[TTS] Gerando áudio para: "${text.substring(0, 50)}..." com voz: ${selectedVoiceId}`);
+    console.log(`[TTS] Gerando áudio para: "${text.substring(0, 50)}..." com voz: ${selectedVoiceId} (key: ${usingStoreKey ? 'lojista' : 'global'})`);
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}`,

@@ -34,8 +34,7 @@ export function PasswordCallDisplay({ call, config, show }: PasswordCallDisplayP
         playPasswordCallAudio(
           audioType,
           text,
-          config.elevenlabs_voice_id,
-          config.elevenlabs_api_key
+          config.elevenlabs_voice_id
         ).catch((error) => {
           console.error('Erro ao reproduzir áudio:', error);
           // Fallback para beep em caso de erro
@@ -46,7 +45,7 @@ export function PasswordCallDisplay({ call, config, show }: PasswordCallDisplayP
     if (!show) {
       hasPlayedSound.current = false;
     }
-  }, [show, config?.sound_enabled, config?.audio_type, config?.voice_text_template, config?.elevenlabs_voice_id, config?.elevenlabs_api_key, call]);
+  }, [show, config?.sound_enabled, config?.audio_type, config?.voice_text_template, config?.elevenlabs_voice_id, call]);
 
   if (!show || !call || !config) return null;
 

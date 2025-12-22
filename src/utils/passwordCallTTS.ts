@@ -137,77 +137,71 @@ export const speakWithWebSpeech = (text: string): Promise<void> => {
 };
 
 /**
- * Usa ElevenLabs API (premium) para falar o texto
+ * Reproduz áudio usando ElevenLabs via Edge Function
+ * A API key é gerenciada de forma segura no servidor (Supabase Secrets)
  */
 export const speakWithElevenLabs = async (
   text: string,
-  voiceId: string,
-  apiKey: string
+  voiceId?: string | null
 ): Promise<void> => {
-  try {
-    const response = await supabase.functions.invoke('text-to-speech', {
-      body: { text, voiceId, apiKey }
-    });
+  console.log('[ElevenLabs] Iniciando síntese:', text, 'Voice:', voiceId || 'padrão');
+  
+  const { data, error } = await supabase.functions.invoke('text-to-speech', {
+    body: { text, voiceId: voiceId || 'JBFqnCBsd6RMkjVDRZzb' }
+  });
 
-    if (response.error) {
-      throw new Error(response.error.message);
-    }
-
-    const { audioContent, error } = response.data;
-    
-    if (error) {
-      throw new Error(error);
-    }
-
-    if (!audioContent) {
-      throw new Error('Nenhum áudio retornado');
-    }
-
-    // Tocar o áudio base64
-    const audioUrl = `data:audio/mpeg;base64,${audioContent}`;
-    const audio = new Audio(audioUrl);
-    
-    return new Promise((resolve, reject) => {
-      audio.onended = () => resolve();
-      audio.onerror = (e) => reject(e);
-      audio.play().catch(reject);
-    });
-  } catch (error) {
-    console.error('Erro ElevenLabs TTS:', error);
-    throw error;
+  if (error) {
+    console.error('[ElevenLabs] Erro na chamada:', error);
+    throw new Error(error.message);
   }
+
+  const { audioContent, error: apiError } = data;
+  
+  if (apiError) {
+    console.error('[ElevenLabs] Erro da API:', apiError);
+    throw new Error(apiError);
+  }
+
+  if (!audioContent) {
+    throw new Error('Nenhum áudio retornado');
+  }
+
+  console.log('[ElevenLabs] Áudio recebido, reproduzindo...');
+  
+  // Tocar o áudio base64
+  const audioUrl = `data:audio/mpeg;base64,${audioContent}`;
+  const audio = new Audio(audioUrl);
+  
+  return new Promise((resolve, reject) => {
+    audio.onended = () => {
+      console.log('[ElevenLabs] Reprodução finalizada');
+      resolve();
+    };
+    audio.onerror = (e) => reject(e);
+    audio.play().catch(reject);
+  });
 };
 
 /**
- * Função principal que escolhe o tipo de áudio baseado na config
+ * Função principal para reproduzir áudio de chamada
+ * Nota: ElevenLabs agora usa API key segura no servidor
  */
 export const playPasswordCallAudio = async (
   audioType: AudioType,
   text: string,
-  elevenLabsVoiceId?: string | null,
-  elevenLabsApiKey?: string | null
+  elevenLabsVoiceId?: string | null
 ): Promise<void> => {
+  console.log('[Audio] Reproduzindo tipo:', audioType);
+  
   switch (audioType) {
+    case 'beep':
+      playBeepSound();
+      break;
     case 'web_speech':
       await speakWithWebSpeech(text);
       break;
-    
     case 'elevenlabs':
-      if (!elevenLabsApiKey) {
-        console.warn('API key ElevenLabs não configurada, usando beep');
-        playBeepSound();
-        return;
-      }
-      await speakWithElevenLabs(
-        text,
-        elevenLabsVoiceId || 'JBFqnCBsd6RMkjVDRZzb',
-        elevenLabsApiKey
-      );
-      break;
-    
-    case 'beep':
-    default:
-      playBeepSound();
+      await speakWithElevenLabs(text, elevenLabsVoiceId);
       break;
   }
 };

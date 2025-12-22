@@ -13,19 +13,23 @@ serve(async (req) => {
   }
 
   try {
-    const { text, voiceId, apiKey } = await req.json();
+    const { text, voiceId } = await req.json();
 
     if (!text) {
       throw new Error("Text is required");
     }
 
+    // Busca a API key do ambiente (seguro - nunca exposta ao frontend)
+    const apiKey = Deno.env.get('ELEVENLABS_API_KEY');
+    
     if (!apiKey) {
-      throw new Error("ElevenLabs API key is required");
+      console.error("ELEVENLABS_API_KEY não configurada no servidor");
+      throw new Error("ELEVENLABS_API_KEY não configurada. Configure nas secrets do Supabase.");
     }
 
     const selectedVoiceId = voiceId || "JBFqnCBsd6RMkjVDRZzb"; // George como padrão
-
-    console.log(`Generating TTS for text: "${text}" with voice: ${selectedVoiceId}`);
+    
+    console.log(`[TTS] Gerando áudio para: "${text.substring(0, 50)}..." com voz: ${selectedVoiceId}`);
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}`,

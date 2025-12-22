@@ -12,16 +12,10 @@ interface TermsGuardProps {
 // Rotas que devem ser completamente públicas (sem verificação de auth)
 const PUBLIC_ROUTES = ['/painel/', '/sitemap.xml', '/robots.txt'];
 
-export const TermsGuard = ({ children }: TermsGuardProps) => {
-  const location = useLocation();
+// Componente interno que usa os hooks de auth
+const TermsGuardInner = ({ children }: TermsGuardProps) => {
   const { user, loading: authLoading } = useAuth();
   const { needsReAccept, isLoading, currentVersion, changelog, acceptTerms } = useTermsReAccept();
-
-  // Bypass completo para rotas públicas - não esperar auth
-  const isPublicRoute = PUBLIC_ROUTES.some(route => location.pathname.startsWith(route));
-  if (isPublicRoute) {
-    return <>{children}</>;
-  }
 
   // Não mostrar nada enquanto carrega auth
   if (authLoading) {
@@ -69,4 +63,17 @@ export const TermsGuard = ({ children }: TermsGuardProps) => {
 
   // Termos aceitos, renderiza normalmente
   return <>{children}</>;
+};
+
+export const TermsGuard = ({ children }: TermsGuardProps) => {
+  const location = useLocation();
+
+  // Bypass completo para rotas públicas - não chamar hooks de auth
+  const isPublicRoute = PUBLIC_ROUTES.some(route => location.pathname.startsWith(route));
+  if (isPublicRoute) {
+    return <>{children}</>;
+  }
+
+  // Para outras rotas, usar o guard interno com hooks de auth
+  return <TermsGuardInner>{children}</TermsGuardInner>;
 };

@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { Bell, Loader2, Palette, Layout, Clock, History, Volume2, Mic, ExternalLink, Play, MessageSquare, Sparkles, Key, Eye, EyeOff, Megaphone } from 'lucide-react';
+import { Bell, Loader2, Palette, Layout, Clock, History, Volume2, Mic, ExternalLink, Play, MessageSquare, Sparkles, Key, Eye, EyeOff, Megaphone, Package } from 'lucide-react';
 import { PasswordCallConfig } from '@/hooks/usePasswordCallConfig';
 import { elevenLabsVoices, speakWithWebSpeech, speakWithElevenLabs, getCallText, playBeepSound } from '@/utils/passwordCallTTS';
 import { useToast } from '@/hooks/use-toast';
@@ -74,6 +74,7 @@ export function PasswordCallConfigPanel({ config, onSave, storeId }: PasswordCal
 
   // Estado para exibição no painel de pedidos
   const [showInOrdersPage, setShowInOrdersPage] = useState(config?.show_in_orders_page ?? false);
+  const [enableOrderCallButton, setEnableOrderCallButton] = useState(config?.enable_order_call_button ?? false);
 
   // Sync com config externo
   useEffect(() => {
@@ -96,6 +97,7 @@ export function PasswordCallConfigPanel({ config, onSave, storeId }: PasswordCal
       setCustomSuffix(config.custom_suffix ?? '');
       setUseGreeting(config.use_greeting ?? false);
       setShowInOrdersPage(config.show_in_orders_page ?? false);
+      setEnableOrderCallButton(config.enable_order_call_button ?? false);
     }
   }, [config]);
 
@@ -133,6 +135,7 @@ export function PasswordCallConfigPanel({ config, onSave, storeId }: PasswordCal
       custom_suffix: customSuffix || null,
       use_greeting: useGreeting,
       show_in_orders_page: showInOrdersPage,
+      enable_order_call_button: enableOrderCallButton,
     });
     setSaving(false);
   };
@@ -183,7 +186,7 @@ export function PasswordCallConfigPanel({ config, onSave, storeId }: PasswordCal
 
       {/* Toggle para exibir no painel de pedidos */}
       {isEnabled && (
-        <div className="px-4 pb-2">
+        <div className="px-4 pb-2 space-y-2">
           <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border">
             <div className="space-y-0.5">
               <Label className="flex items-center gap-2 text-sm font-medium">
@@ -197,6 +200,22 @@ export function PasswordCallConfigPanel({ config, onSave, storeId }: PasswordCal
             <Switch
               checked={showInOrdersPage}
               onCheckedChange={setShowInOrdersPage}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border">
+            <div className="space-y-0.5">
+              <Label className="flex items-center gap-2 text-sm font-medium">
+                <Package className="h-4 w-4" />
+                Chamar cliente pelo modal do pedido
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Mostra botão de chamada nos detalhes do pedido com nome do cliente
+              </p>
+            </div>
+            <Switch
+              checked={enableOrderCallButton}
+              onCheckedChange={setEnableOrderCallButton}
             />
           </div>
         </div>
@@ -382,8 +401,9 @@ export function PasswordCallConfigPanel({ config, onSave, storeId }: PasswordCal
                         className="min-h-[60px] text-sm"
                       />
                       <p className="text-xs text-muted-foreground">
-                        Use <code className="bg-muted px-1 rounded">{'{tipo}'}</code> para Senha/Pedido/Mesa e{' '}
-                        <code className="bg-muted px-1 rounded">{'{numero}'}</code> para o número chamado.
+                        Use <code className="bg-muted px-1 rounded">{'{tipo}'}</code> para Senha/Pedido/Mesa,{' '}
+                        <code className="bg-muted px-1 rounded">{'{numero}'}</code> para o número e{' '}
+                        <code className="bg-muted px-1 rounded">{'{cliente}'}</code> para o nome do cliente.
                       </p>
                     </div>
 

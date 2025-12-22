@@ -28,6 +28,8 @@ export interface PasswordCallConfig {
   store_name_in_call: string | null;
   // Exibição no painel de pedidos
   show_in_orders_page: boolean;
+  // Botão de chamar pedido real
+  enable_order_call_button: boolean;
   created_at: string;
   updated_at: string;
 }

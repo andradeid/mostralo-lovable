@@ -13,12 +13,15 @@ import { EstimatedDeliveryBadge } from "./EstimatedDeliveryBadge";
 import { CustomerMap } from "../CustomerMap";
 import { DriverBadge } from "./DriverBadge";
 import { useDriverPresence } from "@/hooks/useDriverPresence";
+import { usePasswordCallConfig } from "@/hooks/usePasswordCallConfig";
+import { usePasswordCalls } from "@/hooks/usePasswordCalls";
+import { getCallText, playPasswordCallAudio } from "@/utils/passwordCallTTS";
 import { Database } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Phone, Mail, MapPin, Package, CreditCard, FileText, X, Printer, Eye, Navigation, Clock, AlertCircle, XCircle } from "lucide-react";
+import { Phone, Mail, MapPin, Package, CreditCard, FileText, X, Printer, Eye, Navigation, Clock, AlertCircle, XCircle, Megaphone } from "lucide-react";
 import { mockOrderItems } from "@/utils/mockOrders";
 import { printOrder, executePrint } from "@/utils/printOrder";
 import { PrintPreviewDialog } from "@/components/admin/print/PrintPreviewDialog";
@@ -62,6 +65,14 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
   const [showTimeSelector, setShowTimeSelector] = useState(false);
   const [pendingNewStatus, setPendingNewStatus] = useState<OrderStatus | null>(null);
   const [showEditTimeSelector, setShowEditTimeSelector] = useState(false);
+  const [callingCustomer, setCallingCustomer] = useState(false);
+
+  // Hook de configuração de chamada de senha
+  const { config: passwordCallConfig } = usePasswordCallConfig(order?.store_id || null);
+  const { createCallFromOrder } = usePasswordCalls({ storeId: order?.store_id || null });
+
+  // Verifica se botão de chamar deve aparecer
+  const showCallButton = passwordCallConfig?.is_enabled && passwordCallConfig?.enable_order_call_button;
 
   useEffect(() => {
     if (order && open) {
@@ -538,6 +549,53 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     executePrint(previewHtmls);
   };
 
+  // Função para chamar cliente pelo nome
+  const handleCallCustomer = async () => {
+    if (!order || !passwordCallConfig) return;
+
+    setCallingCustomer(true);
+    try {
+      // Gerar texto da chamada
+      const callText = getCallText(
+        passwordCallConfig.voice_text_template || 'simple',
+        'order',
+        order.order_number || String(order.id).slice(-4),
+        {
+          customTextEnabled: passwordCallConfig.custom_text_enabled,
+          customTemplate: passwordCallConfig.custom_text_template,
+          prefix: passwordCallConfig.custom_prefix,
+          suffix: passwordCallConfig.custom_suffix,
+          useGreeting: passwordCallConfig.use_greeting,
+          customerName: order.customer_name
+        }
+      );
+
+      // Criar registro na password_calls
+      await createCallFromOrder(
+        order.id,
+        order.order_number || String(order.id).slice(-4),
+        order.customer_name
+      );
+
+      // Reproduzir áudio se habilitado
+      if (passwordCallConfig.sound_enabled) {
+        await playPasswordCallAudio(
+          passwordCallConfig.audio_type || 'beep',
+          callText,
+          passwordCallConfig.elevenlabs_voice_id,
+          order.store_id
+        );
+      }
+
+      toast.success(`Chamando: ${order.customer_name}`);
+    } catch (error) {
+      console.error('Erro ao chamar cliente:', error);
+      toast.error('Erro ao chamar cliente');
+    } finally {
+      setCallingCustomer(false);
+    }
+  };
+
   if (!order) return null;
 
   // Filtrar status baseado no tipo de entrega
@@ -941,7 +999,18 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
             </div>
           </div>
 
-          <div className="flex gap-2 pt-4 border-t flex-shrink-0 mt-auto">
+          <div className="flex gap-2 pt-4 border-t flex-shrink-0 mt-auto flex-wrap">
+            {showCallButton && (
+              <Button
+                variant="secondary"
+                onClick={handleCallCustomer}
+                disabled={callingCustomer}
+                className="gap-2"
+              >
+                <Megaphone className="h-4 w-4" />
+                {callingCustomer ? 'Chamando...' : 'Chamar Cliente'}
+              </Button>
+            )}
             {canChangeStatus && (
               <Button
                 variant="destructive"

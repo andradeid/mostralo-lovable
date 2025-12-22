@@ -8,6 +8,8 @@ export interface PasswordCall {
   call_number: string;
   call_type: 'password' | 'order' | 'table';
   created_at: string;
+  order_id?: string | null;
+  customer_name?: string | null;
 }
 
 interface UsePasswordCallsOptions {
@@ -123,6 +125,38 @@ export function usePasswordCalls({ storeId, limit = 7, realtime = false }: UsePa
     }
   }, [storeId, toast]);
 
+  // Criar chamada a partir de pedido real
+  const createCallFromOrder = useCallback(async (
+    orderId: string, 
+    orderNumber: string, 
+    customerName: string
+  ) => {
+    if (!storeId) return false;
+
+    try {
+      const { error } = await supabase
+        .from('password_calls')
+        .insert({
+          store_id: storeId,
+          call_number: orderNumber,
+          call_type: 'order',
+          order_id: orderId,
+          customer_name: customerName
+        });
+
+      if (error) throw error;
+      
+      toast({ 
+        title: `Pedido ${orderNumber} - ${customerName} chamado!` 
+      });
+      return true;
+    } catch (error) {
+      console.error('Erro ao criar chamada:', error);
+      toast({ title: 'Erro ao chamar', variant: 'destructive' });
+      return false;
+    }
+  }, [storeId, toast]);
+
   // Limpar histórico
   const clearHistory = useCallback(async () => {
     if (!storeId) return false;
@@ -155,7 +189,8 @@ export function usePasswordCalls({ storeId, limit = 7, realtime = false }: UsePa
     calls, 
     latestCall, 
     loading, 
-    createCall, 
+    createCall,
+    createCallFromOrder,
     clearHistory, 
     clearLatestCall,
     refetch: fetchCalls 

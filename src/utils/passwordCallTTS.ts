@@ -57,10 +57,14 @@ export const playBeepSound = (): void => {
 
 /**
  * Usa Web Speech API (gratuito) para falar o texto
+ * Com carregamento assíncrono de vozes e logs de debug
  */
 export const speakWithWebSpeech = (text: string): Promise<void> => {
   return new Promise((resolve, reject) => {
+    console.log('[Web Speech] Iniciando síntese:', text);
+    
     if (!('speechSynthesis' in window)) {
+      console.error('[Web Speech] API não suportada neste navegador');
       reject(new Error('Web Speech API não suportada neste navegador'));
       return;
     }
@@ -74,17 +78,61 @@ export const speakWithWebSpeech = (text: string): Promise<void> => {
     utterance.pitch = 1;
     utterance.volume = 1;
 
-    // Tentar encontrar uma voz em português
+    // Função que executa a fala após vozes carregadas
+    const speak = () => {
+      const voices = window.speechSynthesis.getVoices();
+      console.log('[Web Speech] Vozes disponíveis:', voices.length, voices.map(v => `${v.name} (${v.lang})`).slice(0, 5));
+      
+      const ptVoice = voices.find(v => v.lang.startsWith('pt'));
+      if (ptVoice) {
+        console.log('[Web Speech] Usando voz pt-BR:', ptVoice.name);
+        utterance.voice = ptVoice;
+      } else {
+        console.log('[Web Speech] Voz pt-BR não encontrada, usando padrão do sistema');
+      }
+
+      utterance.onend = () => {
+        console.log('[Web Speech] Síntese finalizada com sucesso');
+        resolve();
+      };
+      
+      utterance.onerror = (e) => {
+        console.error('[Web Speech] Erro na síntese:', e);
+        reject(e);
+      };
+
+      window.speechSynthesis.speak(utterance);
+    };
+
+    // Verificar se vozes já estão carregadas
     const voices = window.speechSynthesis.getVoices();
-    const ptVoice = voices.find(v => v.lang.startsWith('pt'));
-    if (ptVoice) {
-      utterance.voice = ptVoice;
+    if (voices.length > 0) {
+      console.log('[Web Speech] Vozes já carregadas, falando imediatamente');
+      speak();
+    } else {
+      console.log('[Web Speech] Aguardando carregamento das vozes...');
+      
+      let hasSpoken = false;
+      
+      const voicesChangedHandler = () => {
+        if (hasSpoken) return;
+        hasSpoken = true;
+        window.speechSynthesis.onvoiceschanged = null;
+        console.log('[Web Speech] Vozes carregadas via evento');
+        speak();
+      };
+      
+      window.speechSynthesis.onvoiceschanged = voicesChangedHandler;
+      
+      // Timeout de segurança - tenta falar mesmo sem seleção de voz
+      setTimeout(() => {
+        if (hasSpoken) return;
+        hasSpoken = true;
+        window.speechSynthesis.onvoiceschanged = null;
+        console.log('[Web Speech] Timeout - tentando falar com voz padrão');
+        speak();
+      }, 2000);
     }
-
-    utterance.onend = () => resolve();
-    utterance.onerror = (e) => reject(e);
-
-    window.speechSynthesis.speak(utterance);
   });
 };
 

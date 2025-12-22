@@ -2652,6 +2652,7 @@ export type Database = {
           custom_text_template: string | null
           elevenlabs_api_key: string | null
           elevenlabs_voice_id: string | null
+          enable_order_call_button: boolean | null
           highlight_duration_ms: number
           history_count: number
           id: string
@@ -2677,6 +2678,7 @@ export type Database = {
           custom_text_template?: string | null
           elevenlabs_api_key?: string | null
           elevenlabs_voice_id?: string | null
+          enable_order_call_button?: boolean | null
           highlight_duration_ms?: number
           history_count?: number
           id?: string
@@ -2702,6 +2704,7 @@ export type Database = {
           custom_text_template?: string | null
           elevenlabs_api_key?: string | null
           elevenlabs_voice_id?: string | null
+          enable_order_call_button?: boolean | null
           highlight_duration_ms?: number
           history_count?: number
           id?: string
@@ -2739,24 +2742,37 @@ export type Database = {
           call_number: string
           call_type: string
           created_at: string
+          customer_name: string | null
           id: string
+          order_id: string | null
           store_id: string
         }
         Insert: {
           call_number: string
           call_type?: string
           created_at?: string
+          customer_name?: string | null
           id?: string
+          order_id?: string | null
           store_id: string
         }
         Update: {
           call_number?: string
           call_type?: string
           created_at?: string
+          customer_name?: string | null
           id?: string
+          order_id?: string | null
           store_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "password_calls_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "password_calls_store_id_fkey"
             columns: ["store_id"]
@@ -6974,7 +6990,9 @@ export type Database = {
           call_number: string
           call_type: string
           created_at: string
+          customer_name: string | null
           id: string
+          order_id: string | null
           store_id: string
         }[]
         SetofOptions: {

@@ -16,6 +16,7 @@ export interface CustomTextOptions {
   suffix?: string | null;
   useGreeting?: boolean;
   storeName?: string | null;
+  customerName?: string | null;
 }
 
 /**
@@ -43,7 +44,8 @@ export const getCallText = (
   if (options?.customTextEnabled && options?.customTemplate) {
     let text = options.customTemplate
       .replace(/{tipo}/gi, label)
-      .replace(/{numero}/gi, String(number));
+      .replace(/{numero}/gi, String(number))
+      .replace(/{cliente}/gi, options?.customerName || '');
     
     // Adiciona saudação por horário
     if (options?.useGreeting) {

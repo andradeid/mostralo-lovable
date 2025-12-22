@@ -55,6 +55,9 @@ interface Plan {
   price: number;
 }
 
+// Tipo interno para o formulário (inclui final_price)
+type FormDiscountType = 'percentage' | 'fixed' | 'final_price';
+
 const AdminCouponsPage = () => {
   usePageSEO({
     title: 'Cupons - Mostralo | Gerenciar Cupons de Desconto',
@@ -74,8 +77,9 @@ const AdminCouponsPage = () => {
     code: '',
     name: '',
     description: '',
-    discount_type: 'percentage' as 'percentage' | 'fixed',
+    discount_type: 'percentage' as FormDiscountType,
     discount_value: 0,
+    final_price: 0, // Novo campo: preço final que o cliente paga
     applies_to: 'all_plans' as 'all_plans' | 'specific_plans',
     plan_ids: [] as string[],
     max_uses: null as number | null,
@@ -136,6 +140,7 @@ const AdminCouponsPage = () => {
       description: '',
       discount_type: 'percentage',
       discount_value: 0,
+      final_price: 0,
       applies_to: 'all_plans',
       plan_ids: [],
       max_uses: null,
@@ -158,6 +163,7 @@ const AdminCouponsPage = () => {
       description: coupon.description || '',
       discount_type: coupon.discount_type,
       discount_value: coupon.discount_value,
+      final_price: 0,
       applies_to: coupon.applies_to,
       plan_ids: coupon.plan_ids || [],
       max_uses: coupon.max_uses,
@@ -172,19 +178,66 @@ const AdminCouponsPage = () => {
     setDialogOpen(true);
   };
 
+  // Calcula o desconto baseado no preço final
+  const getCalculatedDiscount = () => {
+    if (formData.discount_type !== 'final_price') return null;
+    if (formData.plan_ids.length !== 1) return null;
+    
+    const selectedPlan = plans.find(p => p.id === formData.plan_ids[0]);
+    if (!selectedPlan) return null;
+    
+    const discount = selectedPlan.price - formData.final_price;
+    const percentage = ((discount / selectedPlan.price) * 100).toFixed(1);
+    
+    return {
+      originalPrice: selectedPlan.price,
+      finalPrice: formData.final_price,
+      discount,
+      percentage,
+      planName: selectedPlan.name,
+      isValid: formData.final_price > 0 && formData.final_price < selectedPlan.price
+    };
+  };
+
   const handleSave = async () => {
     try {
       setSaving(true);
 
-      const data = {
-        ...formData,
-        code: formData.code.toUpperCase().replace(/\s/g, '')
+      // Se for preço final, converter para desconto fixo
+      let dataToSave: any = {
+        code: formData.code.toUpperCase().replace(/\s/g, ''),
+        name: formData.name,
+        description: formData.description,
+        applies_to: formData.applies_to,
+        plan_ids: formData.plan_ids,
+        max_uses: formData.max_uses,
+        max_uses_per_user: formData.max_uses_per_user,
+        start_date: formData.start_date,
+        end_date: formData.end_date,
+        status: formData.status,
+        is_public: formData.is_public,
+        promotion_label: formData.promotion_label,
+        show_countdown: formData.show_countdown
       };
+
+      if (formData.discount_type === 'final_price') {
+        // Converter preço final para desconto fixo
+        const selectedPlan = plans.find(p => p.id === formData.plan_ids[0]);
+        if (!selectedPlan) {
+          throw new Error('Selecione um plano específico para usar Preço Final');
+        }
+        const calculatedDiscount = selectedPlan.price - formData.final_price;
+        dataToSave.discount_type = 'fixed';
+        dataToSave.discount_value = calculatedDiscount;
+      } else {
+        dataToSave.discount_type = formData.discount_type;
+        dataToSave.discount_value = formData.discount_value;
+      }
 
       if (selectedCoupon) {
         const { error } = await (supabase as any)
           .from('coupons')
-          .update(data)
+          .update(dataToSave)
           .eq('id', selectedCoupon.id);
 
         if (error) throw error;
@@ -192,7 +245,7 @@ const AdminCouponsPage = () => {
       } else {
         const { error } = await (supabase as any)
           .from('coupons')
-          .insert([data]);
+          .insert([dataToSave]);
 
         if (error) throw error;
         toast({ title: 'Sucesso', description: 'Cupom criado!' });
@@ -527,9 +580,18 @@ const AdminCouponsPage = () => {
                 <Label htmlFor="discount_type" className="text-xs md:text-sm">Tipo de Desconto</Label>
                 <Select
                   value={formData.discount_type}
-                  onValueChange={(value: 'percentage' | 'fixed') => 
-                    setFormData({ ...formData, discount_type: value })
-                  }
+                  onValueChange={(value: FormDiscountType) => {
+                    // Se mudar para final_price, forçar plano específico
+                    if (value === 'final_price') {
+                      setFormData({ 
+                        ...formData, 
+                        discount_type: value,
+                        applies_to: 'specific_plans'
+                      });
+                    } else {
+                      setFormData({ ...formData, discount_type: value });
+                    }
+                  }}
                 >
                   <SelectTrigger className="h-9 md:h-10 text-sm">
                     <SelectValue />
@@ -547,25 +609,92 @@ const AdminCouponsPage = () => {
                         Valor Fixo (R$)
                       </div>
                     </SelectItem>
+                    <SelectItem value="final_price">
+                      <div className="flex items-center">
+                        <DollarSign className="w-3.5 h-3.5 md:w-4 md:h-4 mr-2 text-green-600" />
+                        💰 Preço Final (R$)
+                      </div>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="space-y-1.5 md:space-y-2">
-                <Label htmlFor="discount_value" className="text-xs md:text-sm">Valor *</Label>
-                <Input
-                  id="discount_value"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max={formData.discount_type === 'percentage' ? 100 : undefined}
-                  value={formData.discount_value}
-                  onChange={(e) => setFormData({ ...formData, discount_value: parseFloat(e.target.value) || 0 })}
-                  placeholder={formData.discount_type === 'percentage' ? '90' : '100.00'}
-                  className="h-9 md:h-10 text-sm"
-                />
-              </div>
+              {/* Campo de valor/preço final */}
+              {formData.discount_type === 'final_price' ? (
+                <div className="space-y-1.5 md:space-y-2">
+                  <Label htmlFor="final_price" className="text-xs md:text-sm">
+                    Preço que o cliente paga *
+                  </Label>
+                  <Input
+                    id="final_price"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.final_price || ''}
+                    onChange={(e) => setFormData({ ...formData, final_price: parseFloat(e.target.value) || 0 })}
+                    placeholder="297.90"
+                    className="h-9 md:h-10 text-sm"
+                  />
+                </div>
+              ) : (
+                <div className="space-y-1.5 md:space-y-2">
+                  <Label htmlFor="discount_value" className="text-xs md:text-sm">
+                    {formData.discount_type === 'percentage' ? 'Porcentagem *' : 'Valor do Desconto *'}
+                  </Label>
+                  <Input
+                    id="discount_value"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max={formData.discount_type === 'percentage' ? 100 : undefined}
+                    value={formData.discount_value || ''}
+                    onChange={(e) => setFormData({ ...formData, discount_value: parseFloat(e.target.value) || 0 })}
+                    placeholder={formData.discount_type === 'percentage' ? '90' : '100.00'}
+                    className="h-9 md:h-10 text-sm"
+                  />
+                </div>
+              )}
             </div>
+
+            {/* Preview do desconto calculado (apenas para final_price) */}
+            {formData.discount_type === 'final_price' && (() => {
+              const calc = getCalculatedDiscount();
+              if (!calc) {
+                return (
+                  <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+                    <p className="text-xs md:text-sm text-amber-700 dark:text-amber-400">
+                      ⚠️ Selecione <strong>1 plano específico</strong> abaixo para calcular o desconto automaticamente.
+                    </p>
+                  </div>
+                );
+              }
+              
+              if (!calc.isValid) {
+                return (
+                  <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
+                    <p className="text-xs md:text-sm text-red-700 dark:text-red-400">
+                      ❌ O preço final deve ser maior que R$ 0 e menor que {formatPrice(calc.originalPrice)}
+                    </p>
+                  </div>
+                );
+              }
+              
+              return (
+                <div className="p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg space-y-1">
+                  <p className="text-xs md:text-sm font-medium text-green-800 dark:text-green-300">
+                    ✅ {calc.planName}
+                  </p>
+                  <p className="text-sm md:text-base text-green-700 dark:text-green-400">
+                    <span className="line-through text-muted-foreground">{formatPrice(calc.originalPrice)}</span>
+                    {' → '}
+                    <strong className="text-green-600">{formatPrice(calc.finalPrice)}</strong>
+                  </p>
+                  <p className="text-xs text-green-600 dark:text-green-500">
+                    Desconto: {formatPrice(calc.discount)} ({calc.percentage}%)
+                  </p>
+                </div>
+              );
+            })()}
 
             {/* Aplica a */}
             <div className="space-y-1.5 md:space-y-2">
@@ -575,32 +704,49 @@ const AdminCouponsPage = () => {
                 onValueChange={(value: 'all_plans' | 'specific_plans') => 
                   setFormData({ ...formData, applies_to: value })
                 }
+                disabled={formData.discount_type === 'final_price'}
               >
                 <SelectTrigger className="h-9 md:h-10 text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all_plans">Todos os Planos</SelectItem>
+                  <SelectItem value="all_plans" disabled={formData.discount_type === 'final_price'}>
+                    Todos os Planos
+                  </SelectItem>
                   <SelectItem value="specific_plans">Planos Específicos</SelectItem>
                 </SelectContent>
               </Select>
+              {formData.discount_type === 'final_price' && (
+                <p className="text-[10px] md:text-xs text-muted-foreground">
+                  💡 Preço Final requer 1 plano específico
+                </p>
+              )}
             </div>
 
             {/* Planos Específicos */}
             {formData.applies_to === 'specific_plans' && (
               <div className="space-y-1.5 md:space-y-2">
-                <Label className="text-xs md:text-sm">Selecione os Planos</Label>
+                <Label className="text-xs md:text-sm">
+                  Selecione {formData.discount_type === 'final_price' ? 'o Plano' : 'os Planos'}
+                </Label>
                 <div className="space-y-2">
                   {plans.map(plan => (
                     <label key={plan.id} className="flex items-center space-x-2 text-xs md:text-sm">
                       <input
-                        type="checkbox"
+                        type={formData.discount_type === 'final_price' ? 'radio' : 'checkbox'}
+                        name="plan_selection"
                         checked={formData.plan_ids.includes(plan.id)}
                         onChange={(e) => {
-                          if (e.target.checked) {
-                            setFormData({ ...formData, plan_ids: [...formData.plan_ids, plan.id] });
+                          if (formData.discount_type === 'final_price') {
+                            // Radio: só permite 1 seleção
+                            setFormData({ ...formData, plan_ids: [plan.id] });
                           } else {
-                            setFormData({ ...formData, plan_ids: formData.plan_ids.filter(id => id !== plan.id) });
+                            // Checkbox: múltipla seleção
+                            if (e.target.checked) {
+                              setFormData({ ...formData, plan_ids: [...formData.plan_ids, plan.id] });
+                            } else {
+                              setFormData({ ...formData, plan_ids: formData.plan_ids.filter(id => id !== plan.id) });
+                            }
                           }
                         }}
                         className="h-4 w-4"
@@ -762,7 +908,14 @@ const AdminCouponsPage = () => {
             </Button>
             <Button
               onClick={handleSave}
-              disabled={saving || !formData.code || !formData.name || formData.discount_value <= 0}
+              disabled={
+                saving || 
+                !formData.code || 
+                !formData.name || 
+                (formData.discount_type === 'final_price' 
+                  ? !getCalculatedDiscount()?.isValid 
+                  : formData.discount_value <= 0)
+              }
               className="w-full sm:w-auto h-9 md:h-10 order-1 sm:order-2"
             >
               {saving ? (

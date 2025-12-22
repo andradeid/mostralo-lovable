@@ -88,25 +88,25 @@ export function PasswordCallKeypad({ storeId, config }: PasswordCallKeypadProps)
   }
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
+    <Card className="max-w-sm">
+      <CardHeader className="pb-2 pt-3 px-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Megaphone className="h-5 w-5 text-primary" />
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Megaphone className="h-4 w-4 text-primary" />
             Chamar {callTypeLabels[callType]}
           </CardTitle>
-          <Badge variant="secondary">{calls.length} no histórico</Badge>
+          <Badge variant="secondary" className="text-xs">{calls.length}</Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Toggle de tipo */}
-        <div className="flex gap-2">
+      <CardContent className="space-y-2 px-3 pb-3">
+        {/* Toggle de tipo - mais compacto */}
+        <div className="flex gap-1">
           {(['password', 'order', 'table'] as CallType[]).map((type) => (
             <Button
               key={type}
               variant={callType === type ? 'default' : 'outline'}
               size="sm"
-              className="flex-1"
+              className="flex-1 h-8 text-xs"
               onClick={() => setCallType(type)}
             >
               {callTypeLabels[type]}
@@ -114,26 +114,23 @@ export function PasswordCallKeypad({ storeId, config }: PasswordCallKeypadProps)
           ))}
         </div>
 
-        {/* Display do número */}
+        {/* Display do número - compacto */}
         <div 
-          className="text-center py-6 rounded-lg border-2 border-dashed"
+          className="text-center py-2 rounded-lg border-2 border-dashed"
           style={{ borderColor: number ? config?.primary_color : undefined }}
         >
-          <p className="text-4xl font-bold tracking-widest" style={{ color: number ? config?.primary_color : undefined }}>
+          <p className="text-2xl font-bold tracking-widest" style={{ color: number ? config?.primary_color : undefined }}>
             {number || '---'}
-          </p>
-          <p className="text-sm text-muted-foreground mt-1">
-            {callTypeLabels[callType]}
           </p>
         </div>
 
-        {/* Teclado numérico */}
-        <div className="grid grid-cols-3 gap-2">
+        {/* Teclado numérico - compacto */}
+        <div className="grid grid-cols-3 gap-1.5">
           {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((digit) => (
             <Button
               key={digit}
               variant="outline"
-              className="h-14 text-xl font-semibold"
+              className="h-10 text-lg font-semibold"
               onClick={() => handleDigit(digit)}
             >
               {digit}
@@ -141,48 +138,48 @@ export function PasswordCallKeypad({ storeId, config }: PasswordCallKeypadProps)
           ))}
           <Button
             variant="outline"
-            className="h-14"
+            className="h-10 text-sm"
             onClick={handleClear}
           >
             C
           </Button>
           <Button
             variant="outline"
-            className="h-14 text-xl font-semibold"
+            className="h-10 text-lg font-semibold"
             onClick={() => handleDigit('0')}
           >
             0
           </Button>
           <Button
             variant="outline"
-            className="h-14"
+            className="h-10"
             onClick={handleBackspace}
           >
-            <Delete className="h-5 w-5" />
+            <Delete className="h-4 w-4" />
           </Button>
         </div>
 
-        {/* Botão Chamar */}
+        {/* Botão Chamar - compacto */}
         <Button 
-          className="w-full h-14 text-lg"
+          className="w-full h-11 text-base"
           style={{ backgroundColor: config?.primary_color }}
           onClick={handleCall}
           disabled={!number.trim() || calling}
         >
           {calling ? (
-            <Loader2 className="h-5 w-5 animate-spin mr-2" />
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
           ) : (
-            <Megaphone className="h-5 w-5 mr-2" />
+            <Megaphone className="h-4 w-4 mr-2" />
           )}
-          Chamar {callTypeLabels[callType]} {number || ''}
+          Chamar {number || ''}
         </Button>
 
-        {/* Limpar histórico */}
+        {/* Limpar histórico - compacto */}
         {calls.length > 0 && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="sm" className="w-full text-destructive hover:text-destructive">
-                <Trash2 className="h-4 w-4 mr-2" />
+              <Button variant="ghost" size="sm" className="w-full h-8 text-xs text-destructive hover:text-destructive">
+                <Trash2 className="h-3 w-3 mr-1" />
                 Limpar Histórico
               </Button>
             </AlertDialogTrigger>
@@ -190,7 +187,7 @@ export function PasswordCallKeypad({ storeId, config }: PasswordCallKeypadProps)
               <AlertDialogHeader>
                 <AlertDialogTitle>Limpar histórico?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Isso removerá todas as {calls.length} chamadas do histórico. Esta ação não pode ser desfeita.
+                  Isso removerá todas as {calls.length} chamadas do histórico.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

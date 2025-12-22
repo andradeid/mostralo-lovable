@@ -39,14 +39,25 @@ export function usePublicSignage(slug: string | undefined) {
 
   useEffect(() => {
     const fetchSignage = async () => {
+      console.log('[SignageDebug] 0. Iniciando fetchSignage, slug:', slug);
+      
       if (!slug) {
+        console.log('[SignageDebug] ERRO: Slug não fornecido');
         setError('Slug não fornecido');
         setLoading(false);
         return;
       }
 
+      // Timeout de segurança - 10 segundos
+      const timeoutId = setTimeout(() => {
+        console.log('[SignageDebug] TIMEOUT: Query demorou mais de 10 segundos');
+        setError('Tempo limite excedido. Tente novamente.');
+        setLoading(false);
+      }, 10000);
+
       try {
         console.log('[SignageDebug] 1. Buscando loja pelo slug:', slug);
+        const startTime = performance.now();
         
         // Buscar loja pelo slug
         const { data: storeData, error: storeError } = await supabase
@@ -56,9 +67,11 @@ export function usePublicSignage(slug: string | undefined) {
           .eq('status', 'active')
           .single();
 
-        console.log('[SignageDebug] 2. Resultado da busca:', { storeData, storeError });
+        console.log('[SignageDebug] 2. Query stores completou em', (performance.now() - startTime).toFixed(0), 'ms');
+        console.log('[SignageDebug] 2. Resultado:', { storeData, storeError });
 
         if (storeError || !storeData) {
+          clearTimeout(timeoutId);
           console.error('[SignageDebug] Erro ao buscar loja:', storeError);
           setError('Loja não encontrada');
           setLoading(false);
@@ -66,18 +79,24 @@ export function usePublicSignage(slug: string | undefined) {
         }
 
         console.log('[SignageDebug] 3. Loja encontrada:', storeData.name);
-
         setStore(storeData);
 
         // Buscar configuração do painel
-        const { data: configData } = await supabase
+        console.log('[SignageDebug] 4. Buscando configuração do painel...');
+        const configStart = performance.now();
+        
+        const { data: configData, error: configError } = await supabase
           .from('store_signage_config')
           .select('*')
           .eq('store_id', storeData.id)
           .eq('is_enabled', true)
           .single();
 
+        console.log('[SignageDebug] 5. Query config completou em', (performance.now() - configStart).toFixed(0), 'ms');
+        console.log('[SignageDebug] 5. Resultado config:', { configData, configError });
+
         if (!configData) {
+          clearTimeout(timeoutId);
           setError('Painel não está ativo');
           setLoading(false);
           return;
@@ -95,17 +114,23 @@ export function usePublicSignage(slug: string | undefined) {
         });
 
         // Buscar configuração de chamada de senha
+        console.log('[SignageDebug] 6. Buscando config de senha...');
         const { data: passwordConfig } = await supabase
           .from('password_call_config')
           .select('*')
           .eq('store_id', storeData.id)
           .maybeSingle();
 
+        console.log('[SignageDebug] 7. Password config:', passwordConfig ? 'encontrado' : 'não encontrado');
+
         if (passwordConfig) {
           setPasswordCallConfig(passwordConfig as PasswordCallConfig);
         }
 
         // Buscar itens ativos
+        console.log('[SignageDebug] 8. Buscando itens do signage...');
+        const itemsStart = performance.now();
+        
         const { data: itemsData, error: itemsError } = await supabase
           .from('store_signage_items')
           .select('id, title, file_url, file_type, duration_seconds, sort_order')
@@ -113,9 +138,17 @@ export function usePublicSignage(slug: string | undefined) {
           .eq('is_active', true)
           .order('sort_order', { ascending: true });
 
-        if (itemsError) throw itemsError;
+        console.log('[SignageDebug] 9. Query items completou em', (performance.now() - itemsStart).toFixed(0), 'ms');
+        console.log('[SignageDebug] 9. Items encontrados:', itemsData?.length || 0);
+
+        if (itemsError) {
+          clearTimeout(timeoutId);
+          console.error('[SignageDebug] Erro ao buscar items:', itemsError);
+          throw itemsError;
+        }
 
         if (!itemsData || itemsData.length === 0) {
+          clearTimeout(timeoutId);
           setError('Nenhum conteúdo disponível');
           setLoading(false);
           return;
@@ -125,9 +158,13 @@ export function usePublicSignage(slug: string | undefined) {
           ...item,
           file_type: item.file_type as SignageItem['file_type']
         })));
+        
+        clearTimeout(timeoutId);
+        console.log('[SignageDebug] 10. SUCESSO! Carregamento completo.');
         setLoading(false);
       } catch (err) {
-        console.error('Erro ao buscar signage:', err);
+        clearTimeout(timeoutId);
+        console.error('[SignageDebug] ERRO GERAL:', err);
         setError('Erro ao carregar o painel');
         setLoading(false);
       }

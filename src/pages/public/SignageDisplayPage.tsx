@@ -471,12 +471,12 @@ export default function SignageDisplayPage() {
                   crossOrigin="anonymous"
                   className="w-full h-full object-cover"
                   autoPlay
-                  muted
+                  muted={!audioEnabled || !currentItem.has_audio}
                   playsInline
                   preload="auto"
                   onLoadedMetadata={handleVideoLoadedMetadata}
                   onCanPlay={handleVideoCanPlay}
-                  onPlay={() => console.log('[Signage] ▶️ Vídeo iniciou:', currentItem.title)}
+                  onPlay={() => console.log('[Signage] ▶️ Vídeo iniciou:', currentItem.title, '| Áudio:', audioEnabled && currentItem.has_audio ? 'ON' : 'OFF')}
                   onEnded={() => {
                     console.log('[Signage] ✅ Vídeo terminou:', currentItem.title);
                     goToNext();

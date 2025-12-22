@@ -83,7 +83,8 @@ export default function SignageManagementPage() {
           file_type: f.type,
           duration_seconds: f.duration,
           sort_order: items.length + i,
-          is_active: true
+          is_active: true,
+          has_audio: false
         });
       }
     }

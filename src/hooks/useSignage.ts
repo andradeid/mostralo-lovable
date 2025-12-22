@@ -11,6 +11,7 @@ export interface SignageItem {
   duration_seconds: number;
   sort_order: number;
   is_active: boolean;
+  has_audio: boolean;
   created_at: string;
   updated_at: string;
 }

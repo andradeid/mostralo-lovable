@@ -5139,6 +5139,7 @@ export type Database = {
           duration_seconds: number
           file_type: string
           file_url: string
+          has_audio: boolean | null
           id: string
           is_active: boolean
           sort_order: number
@@ -5151,6 +5152,7 @@ export type Database = {
           duration_seconds?: number
           file_type?: string
           file_url: string
+          has_audio?: boolean | null
           id?: string
           is_active?: boolean
           sort_order?: number
@@ -5163,6 +5165,7 @@ export type Database = {
           duration_seconds?: number
           file_type?: string
           file_url?: string
+          has_audio?: boolean | null
           id?: string
           is_active?: boolean
           sort_order?: number

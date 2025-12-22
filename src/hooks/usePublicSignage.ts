@@ -9,6 +9,7 @@ export interface SignageItem {
   file_type: 'image' | 'video';
   duration_seconds: number;
   sort_order: number;
+  has_audio: boolean;
 }
 
 export interface SignageConfig {
@@ -134,7 +135,7 @@ export function usePublicSignage(slug: string | undefined) {
         
         const { data: itemsData, error: itemsError } = await supabase
           .from('store_signage_items')
-          .select('id, title, file_url, file_type, duration_seconds, sort_order')
+          .select('id, title, file_url, file_type, duration_seconds, sort_order, has_audio')
           .eq('store_id', storeData.id)
           .eq('is_active', true)
           .order('sort_order', { ascending: true });
@@ -157,7 +158,8 @@ export function usePublicSignage(slug: string | undefined) {
 
         setItems(itemsData.map(item => ({
           ...item,
-          file_type: item.file_type as SignageItem['file_type']
+          file_type: item.file_type as SignageItem['file_type'],
+          has_audio: item.has_audio ?? false
         })));
         
         clearTimeout(timeoutId);

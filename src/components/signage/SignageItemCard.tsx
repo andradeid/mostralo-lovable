@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { GripVertical, Trash2, Play, Image as ImageIcon, Clock, Pencil, Check, X } from 'lucide-react';
+import { GripVertical, Trash2, Play, Image as ImageIcon, Clock, Pencil, Check, X, Volume2, VolumeX } from 'lucide-react';
 import { SignageItem } from '@/hooks/useSignage';
 
 interface SignageItemCardProps {
@@ -134,6 +134,22 @@ export function SignageItemCard({ item, onUpdate, onDelete, dragHandleProps }: S
               </>
             ) : (
               <>
+                {/* Toggle de áudio para vídeos */}
+                {item.file_type === 'video' && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => onUpdate(item.id, { has_audio: !item.has_audio })}
+                    className={item.has_audio ? 'text-primary' : 'text-muted-foreground'}
+                    title={item.has_audio ? 'Som ativado - clique para desativar' : 'Som desativado - clique para ativar'}
+                  >
+                    {item.has_audio ? (
+                      <Volume2 className="h-4 w-4" />
+                    ) : (
+                      <VolumeX className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
                 <div className="flex items-center gap-2">
                   <Switch
                     checked={item.is_active}

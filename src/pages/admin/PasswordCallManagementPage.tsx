@@ -109,7 +109,7 @@ export default function PasswordCallManagementPage() {
             {/* Grid de 2 colunas internas */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Coluna interna 1: Configurações */}
-              <PasswordCallConfigPanel config={config} onSave={saveConfig} />
+              <PasswordCallConfigPanel config={config} onSave={saveConfig} storeId={storeId} />
 
               {/* Coluna interna 2: Como usar + Painel TV */}
               <div className="border rounded-lg p-4 space-y-4">

@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 interface PasswordCallConfigPanelProps {
   config: PasswordCallConfig | null;
   onSave: (updates: Partial<PasswordCallConfig>) => Promise<boolean>;
+  storeId?: string | null;
 }
 
 const templates = [
@@ -42,7 +43,7 @@ const voiceTextTemplates = [
   { value: 'pickup', label: 'Retirada', example: 'Pedido 42 pronto para retirada' },
 ];
 
-export function PasswordCallConfigPanel({ config, onSave }: PasswordCallConfigPanelProps) {
+export function PasswordCallConfigPanel({ config, onSave, storeId }: PasswordCallConfigPanelProps) {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
@@ -146,7 +147,7 @@ export function PasswordCallConfigPanel({ config, onSave }: PasswordCallConfigPa
       } else if (audioType === 'web_speech') {
         await speakWithWebSpeech(testText);
       } else if (audioType === 'elevenlabs') {
-        await speakWithElevenLabs(testText, elevenLabsVoiceId || 'JBFqnCBsd6RMkjVDRZzb');
+        await speakWithElevenLabs(testText, elevenLabsVoiceId || 'JBFqnCBsd6RMkjVDRZzb', storeId);
       }
       toast({ title: 'Áudio reproduzido!' });
     } catch (error) {

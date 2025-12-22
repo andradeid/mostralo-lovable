@@ -199,20 +199,27 @@ export const speakWithElevenLabs = async (
     body: { text, voiceId: voiceId || 'onwK4e9ZLuTAKqWW03F9', storeId }
   });
 
-  if (error) {
-    console.error('[ElevenLabs] Erro na chamada:', error);
-    throw new Error(`Erro ao chamar serviço de voz: ${error.message}`);
+  // Verificar se é erro de rate limit - usar fallback Web Speech
+  if (error || data?.error === 'rate_limit' || data?.fallback === 'web_speech') {
+    console.warn('[ElevenLabs] Rate limit ou erro, usando Web Speech como fallback');
+    await speakWithWebSpeech(text);
+    return;
   }
 
-  const { audioContent, error: apiError } = data;
-  
-  if (apiError) {
-    console.error('[ElevenLabs] Erro da API:', apiError);
-    throw new Error(`Erro da API ElevenLabs: ${apiError}`);
+  if (data?.error) {
+    console.error('[ElevenLabs] Erro da API:', data.error);
+    // Fallback para Web Speech em caso de erro
+    console.warn('[ElevenLabs] Usando Web Speech como fallback');
+    await speakWithWebSpeech(text);
+    return;
   }
+
+  const { audioContent } = data;
 
   if (!audioContent) {
-    throw new Error('Nenhum áudio retornado pelo serviço');
+    console.warn('[ElevenLabs] Sem áudio retornado, usando Web Speech');
+    await speakWithWebSpeech(text);
+    return;
   }
 
   // Validar tamanho do áudio
@@ -220,7 +227,9 @@ export const speakWithElevenLabs = async (
   console.log('[ElevenLabs] Áudio recebido. Tamanho base64:', audioSize, 'caracteres');
   
   if (audioSize < 100) {
-    throw new Error('Áudio recebido é muito pequeno, pode estar corrompido');
+    console.warn('[ElevenLabs] Áudio muito pequeno, usando Web Speech');
+    await speakWithWebSpeech(text);
+    return;
   }
 
   // Converter base64 para ArrayBuffer usando AudioContext (mais compatível)
@@ -234,7 +243,9 @@ export const speakWithElevenLabs = async (
   // Usar AudioContext para reprodução (evita restrições de URL)
   const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
   if (!AudioContextClass) {
-    throw new Error('AudioContext não suportado neste navegador');
+    console.warn('[ElevenLabs] AudioContext não suportado, usando Web Speech');
+    await speakWithWebSpeech(text);
+    return;
   }
   
   const audioContext = new AudioContextClass();
@@ -265,9 +276,9 @@ export const speakWithElevenLabs = async (
       }
     });
   } catch (decodeError: any) {
-    console.error('[ElevenLabs] Erro ao decodificar áudio:', decodeError);
+    console.error('[ElevenLabs] Erro ao decodificar áudio, usando Web Speech:', decodeError);
     audioContext.close();
-    throw new Error(`Erro ao decodificar áudio: ${decodeError.message || 'Formato inválido'}`);
+    await speakWithWebSpeech(text);
   }
 };
 

@@ -39,9 +39,11 @@ export default function SignageDisplayPage() {
   const [zoomDirection, setZoomDirection] = useState<'in' | 'out'>('in');
   const [videoError, setVideoError] = useState<VideoError | null>(null);
   const [isVideoLoading, setIsVideoLoading] = useState(false);
+  const [videoRetryCount, setVideoRetryCount] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const loadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Ativar áudio (desbloqueia autoplay do navegador)
   const enableAudio = useCallback(() => {
@@ -124,11 +126,15 @@ export default function SignageDisplayPage() {
     return () => clearInterval(interval);
   }, [config?.show_clock]);
 
-  // Limpar timeout de erro quando mudar de item
+  // Limpar timeout de erro e retry quando mudar de item
   useEffect(() => {
+    setVideoRetryCount(0);
     return () => {
       if (errorTimeoutRef.current) {
         clearTimeout(errorTimeoutRef.current);
+      }
+      if (loadTimeoutRef.current) {
+        clearTimeout(loadTimeoutRef.current);
       }
     };
   }, [currentIndex]);
@@ -147,13 +153,25 @@ export default function SignageDisplayPage() {
       console.log('[Signage] 📂 URL:', currentItem.file_url);
       setIsVideoLoading(true);
       
+      // Timeout de carregamento - se não carregar em 10s, pula para próximo
+      loadTimeoutRef.current = setTimeout(() => {
+        console.warn('[Signage] ⏰ Vídeo não carregou em 10s, pulando:', currentItem.title);
+        setIsVideoLoading(false);
+        goToNext();
+      }, 10000);
+      
       // Timeout de segurança máximo (5 minutos) caso o vídeo trave
       const maxTimeout = setTimeout(() => {
         console.warn('[Signage] ⚠️ Timeout de segurança - vídeo não terminou em 5 min:', currentItem.title);
         goToNext();
       }, 5 * 60 * 1000);
 
-      return () => clearTimeout(maxTimeout);
+      return () => {
+        clearTimeout(maxTimeout);
+        if (loadTimeoutRef.current) {
+          clearTimeout(loadTimeoutRef.current);
+        }
+      };
     }
 
     // Para imagens, usar a duração definida
@@ -215,6 +233,11 @@ export default function SignageDisplayPage() {
   const handleVideoCanPlay = useCallback(() => {
     console.log('[Signage] ✅ Vídeo pronto para reprodução');
     setIsVideoLoading(false);
+    // Limpar timeout de carregamento
+    if (loadTimeoutRef.current) {
+      clearTimeout(loadTimeoutRef.current);
+      loadTimeoutRef.current = null;
+    }
   }, []);
 
   const handleVideoError = useCallback((e: React.SyntheticEvent<HTMLVideoElement>) => {
@@ -228,8 +251,18 @@ export default function SignageDisplayPage() {
       message: errorMessage,
       src: video.currentSrc,
       readyState: video.readyState,
-      networkState: video.networkState
+      networkState: video.networkState,
+      retryCount: videoRetryCount
     });
+
+    // Se for erro de rede e ainda não tentou recarregar, tenta uma vez
+    if (errorCode === 2 && videoRetryCount < 1) {
+      console.log('[Signage] 🔄 Erro de rede, tentando recarregar...');
+      setVideoRetryCount(prev => prev + 1);
+      video.load();
+      video.play().catch(() => {});
+      return;
+    }
 
     setIsVideoLoading(false);
     
@@ -245,7 +278,7 @@ export default function SignageDisplayPage() {
       setVideoError(null);
       goToNext();
     }, 4000);
-  }, [goToNext]);
+  }, [goToNext, videoRetryCount]);
 
   // Estados de loading e erro
   if (loading) {
@@ -431,10 +464,11 @@ export default function SignageDisplayPage() {
         {currentItem && (
             currentItem.file_type === 'video' ? (
               <>
-                <video
+              <video
                   ref={videoRef}
                   key={currentItem.id}
                   src={currentItem.file_url}
+                  crossOrigin="anonymous"
                   className="w-full h-full object-cover"
                   autoPlay
                   muted

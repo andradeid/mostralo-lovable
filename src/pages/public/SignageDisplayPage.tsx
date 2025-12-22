@@ -106,31 +106,27 @@ export default function SignageDisplayPage() {
     return () => clearInterval(interval);
   }, [config?.show_clock]);
 
-  // Controlar transições
+  // Controlar transições - apenas para imagens
+  // Vídeos usam o evento onEnded diretamente no elemento <video>
   useEffect(() => {
     if (items.length === 0 || !currentItem) return;
 
-    const duration = currentItem.duration_seconds * 1000;
-
-    // Para vídeos, aguardar o vídeo terminar (ou usar a duração definida se for maior)
-    if (currentItem.file_type === 'video' && videoRef.current) {
-      const handleVideoEnd = () => {
-        goToNext();
-      };
-
-      videoRef.current.addEventListener('ended', handleVideoEnd);
+    // Para vídeos, o controle é feito via onEnded no próprio elemento
+    if (currentItem.file_type === 'video') {
+      console.log('[Signage] Exibindo vídeo:', currentItem.title, 'URL:', currentItem.file_url);
       
-      // Timeout de segurança caso o vídeo não termine
-      const timeout = setTimeout(goToNext, duration);
+      // Timeout de segurança máximo (5 minutos) caso o vídeo trave
+      const maxTimeout = setTimeout(() => {
+        console.warn('[Signage] Timeout de segurança - vídeo não terminou em 5 min:', currentItem.title);
+        goToNext();
+      }, 5 * 60 * 1000);
 
-      return () => {
-        videoRef.current?.removeEventListener('ended', handleVideoEnd);
-        clearTimeout(timeout);
-      };
+      return () => clearTimeout(maxTimeout);
     }
 
     // Para imagens, usar a duração definida
-    const timer = setTimeout(goToNext, duration);
+    console.log('[Signage] Exibindo imagem:', currentItem.title, 'por', currentItem.duration_seconds, 'segundos');
+    const timer = setTimeout(goToNext, currentItem.duration_seconds * 1000);
     return () => clearTimeout(timer);
   }, [currentIndex, items, currentItem]);
 
@@ -339,6 +335,18 @@ export default function SignageDisplayPage() {
                 autoPlay
                 muted
                 playsInline
+                preload="auto"
+                onLoadedData={() => console.log('[Signage] Vídeo carregado:', currentItem.title, currentItem.file_url)}
+                onPlay={() => console.log('[Signage] Vídeo iniciou:', currentItem.title)}
+                onEnded={() => {
+                  console.log('[Signage] Vídeo terminou:', currentItem.title);
+                  goToNext();
+                }}
+                onError={(e) => {
+                  console.error('[Signage] Erro no vídeo:', currentItem.title, e);
+                  // Se houver erro, avança para o próximo item
+                  goToNext();
+                }}
               />
             ) : (
               <img

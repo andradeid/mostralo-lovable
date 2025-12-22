@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { Bell, Loader2, Palette, Layout, Clock, History, Volume2, Mic, ExternalLink, Play, MessageSquare, Sparkles, Key, Eye, EyeOff } from 'lucide-react';
+import { Bell, Loader2, Palette, Layout, Clock, History, Volume2, Mic, ExternalLink, Play, MessageSquare, Sparkles, Key, Eye, EyeOff, Megaphone } from 'lucide-react';
 import { PasswordCallConfig } from '@/hooks/usePasswordCallConfig';
 import { elevenLabsVoices, speakWithWebSpeech, speakWithElevenLabs, getCallText, playBeepSound } from '@/utils/passwordCallTTS';
 import { useToast } from '@/hooks/use-toast';
@@ -72,6 +72,9 @@ export function PasswordCallConfigPanel({ config, onSave, storeId }: PasswordCal
   const [customSuffix, setCustomSuffix] = useState(config?.custom_suffix ?? '');
   const [useGreeting, setUseGreeting] = useState(config?.use_greeting ?? false);
 
+  // Estado para exibição no painel de pedidos
+  const [showInOrdersPage, setShowInOrdersPage] = useState(config?.show_in_orders_page ?? false);
+
   // Sync com config externo
   useEffect(() => {
     if (config) {
@@ -92,8 +95,10 @@ export function PasswordCallConfigPanel({ config, onSave, storeId }: PasswordCal
       setCustomPrefix(config.custom_prefix ?? '');
       setCustomSuffix(config.custom_suffix ?? '');
       setUseGreeting(config.use_greeting ?? false);
+      setShowInOrdersPage(config.show_in_orders_page ?? false);
     }
   }, [config]);
+
 
   // Preview em tempo real
   const previewText = useMemo(() => {
@@ -127,6 +132,7 @@ export function PasswordCallConfigPanel({ config, onSave, storeId }: PasswordCal
       custom_prefix: customPrefix || null,
       custom_suffix: customSuffix || null,
       use_greeting: useGreeting,
+      show_in_orders_page: showInOrdersPage,
     });
     setSaving(false);
   };
@@ -174,6 +180,28 @@ export function PasswordCallConfigPanel({ config, onSave, storeId }: PasswordCal
           Configure como as senhas aparecem no painel público
         </p>
       </div>
+
+      {/* Toggle para exibir no painel de pedidos */}
+      {isEnabled && (
+        <div className="px-4 pb-2">
+          <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border">
+            <div className="space-y-0.5">
+              <Label className="flex items-center gap-2 text-sm font-medium">
+                <Megaphone className="h-4 w-4" />
+                Teclado flutuante no painel de pedidos
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Exibe botão de acesso rápido no canto da tela de pedidos
+              </p>
+            </div>
+            <Switch
+              checked={showInOrdersPage}
+              onCheckedChange={setShowInOrdersPage}
+            />
+          </div>
+        </div>
+      )}
+
       <div className="p-4 space-y-6">
         {/* Tipo de Chamada */}
         <div className="space-y-2">

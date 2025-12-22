@@ -28,6 +28,8 @@ import { MarketplaceSavingsCard } from "@/components/admin/MarketplaceSavingsCar
 import { SystemBanner } from "@/components/admin/SystemBanner";
 import { useStoreAccess } from "@/hooks/useStoreAccess";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { usePasswordCallConfig } from "@/hooks/usePasswordCallConfig";
+import { FloatingPasswordKeypad } from "@/components/signage/FloatingPasswordKeypad";
 
 type Order = Database['public']['Tables']['orders']['Row'];
 type OrderStatus = Database['public']['Enums']['order_status'];
@@ -37,6 +39,7 @@ type DeliveryType = Database['public']['Enums']['delivery_type'];
 const OrdersPage = () => {
   // Hook de segurança - valida acesso à loja
   const { storeId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
+  const { config: passwordCallConfig } = usePasswordCallConfig(storeId);
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [orders, setOrders] = useState<Order[]>([]);
@@ -1417,6 +1420,11 @@ const OrdersPage = () => {
         }}
         onStepChange={setTutorialStep}
       />
+
+      {/* Teclado flutuante de chamada de senhas */}
+      {storeId && passwordCallConfig?.is_enabled && passwordCallConfig?.show_in_orders_page && (
+        <FloatingPasswordKeypad storeId={storeId} config={passwordCallConfig} />
+      )}
     </div>
   );
 };

@@ -2658,6 +2658,7 @@ export type Database = {
           is_enabled: boolean
           primary_color: string | null
           show_history: boolean
+          show_in_orders_page: boolean | null
           sound_enabled: boolean
           store_id: string
           store_name_in_call: string | null
@@ -2682,6 +2683,7 @@ export type Database = {
           is_enabled?: boolean
           primary_color?: string | null
           show_history?: boolean
+          show_in_orders_page?: boolean | null
           sound_enabled?: boolean
           store_id: string
           store_name_in_call?: string | null
@@ -2706,6 +2708,7 @@ export type Database = {
           is_enabled?: boolean
           primary_color?: string | null
           show_history?: boolean
+          show_in_orders_page?: boolean | null
           sound_enabled?: boolean
           store_id?: string
           store_name_in_call?: string | null

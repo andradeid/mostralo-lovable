@@ -26,6 +26,8 @@ export interface PasswordCallConfig {
   custom_suffix: string | null;
   use_greeting: boolean;
   store_name_in_call: string | null;
+  // Exibição no painel de pedidos
+  show_in_orders_page: boolean;
   created_at: string;
   updated_at: string;
 }

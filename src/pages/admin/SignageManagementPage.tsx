@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Monitor, 
   Plus, 
@@ -20,7 +21,8 @@ import {
   ChevronDown,
   Settings,
   Maximize,
-  Wifi
+  Wifi,
+  Megaphone
 } from 'lucide-react';
 import {
   Collapsible,
@@ -30,16 +32,20 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useSignage } from '@/hooks/useSignage';
+import { usePasswordCallConfig } from '@/hooks/usePasswordCallConfig';
 import { SignageItemCard } from '@/components/signage/SignageItemCard';
 import { SignageUploadDialog } from '@/components/signage/SignageUploadDialog';
 import { SignageConfigPanel } from '@/components/signage/SignageConfigPanel';
 import { SignagePreview } from '@/components/signage/SignagePreview';
+import { PasswordCallKeypad } from '@/components/signage/PasswordCallKeypad';
+import { PasswordCallConfigPanel } from '@/components/signage/PasswordCallConfigPanel';
 import { supabase } from '@/integrations/supabase/client';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 
 export default function SignageManagementPage() {
   const { storeId } = useStoreAccess();
   const { items, config, loading, addItem, updateItem, deleteItem, reorderItems, updateConfig, uploadFile } = useSignage(storeId);
+  const { config: passwordConfig, loading: passwordConfigLoading, saveConfig: savePasswordConfig } = usePasswordCallConfig(storeId);
   const { toast } = useToast();
 
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
@@ -352,11 +358,31 @@ export default function SignageManagementPage() {
               </Droppable>
             </DragDropContext>
           )}
+
+          {/* Teclado de Chamada de Senha */}
+          <PasswordCallKeypad storeId={storeId} config={passwordConfig} />
         </div>
 
         {/* Configurações */}
-        <div>
-          <SignageConfigPanel config={config} onSave={updateConfig} />
+        <div className="space-y-4">
+          <Tabs defaultValue="panel" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="panel">
+                <Monitor className="h-4 w-4 mr-2" />
+                Painel
+              </TabsTrigger>
+              <TabsTrigger value="password">
+                <Megaphone className="h-4 w-4 mr-2" />
+                Senhas
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="panel" className="mt-4">
+              <SignageConfigPanel config={config} onSave={updateConfig} />
+            </TabsContent>
+            <TabsContent value="password" className="mt-4">
+              <PasswordCallConfigPanel config={passwordConfig} onSave={savePasswordConfig} />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
 

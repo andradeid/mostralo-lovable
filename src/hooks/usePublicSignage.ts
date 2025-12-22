@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { PasswordCallConfig } from './usePasswordCallConfig';
 
 export interface SignageItem {
   id: string;
@@ -29,6 +30,7 @@ export function usePublicSignage(slug: string | undefined) {
   const [store, setStore] = useState<StoreInfo | null>(null);
   const [items, setItems] = useState<SignageItem[]>([]);
   const [config, setConfig] = useState<SignageConfig | null>(null);
+  const [passwordCallConfig, setPasswordCallConfig] = useState<PasswordCallConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -80,6 +82,17 @@ export function usePublicSignage(slug: string | undefined) {
           orientation: (configData.orientation as SignageConfig['orientation']) || 'horizontal'
         });
 
+        // Buscar configuração de chamada de senha
+        const { data: passwordConfig } = await supabase
+          .from('password_call_config')
+          .select('*')
+          .eq('store_id', storeData.id)
+          .maybeSingle();
+
+        if (passwordConfig) {
+          setPasswordCallConfig(passwordConfig as PasswordCallConfig);
+        }
+
         // Buscar itens ativos
         const { data: itemsData, error: itemsError } = await supabase
           .from('store_signage_items')
@@ -111,5 +124,5 @@ export function usePublicSignage(slug: string | undefined) {
     fetchSignage();
   }, [slug]);
 
-  return { store, items, config, loading, error };
+  return { store, items, config, passwordCallConfig, loading, error };
 }

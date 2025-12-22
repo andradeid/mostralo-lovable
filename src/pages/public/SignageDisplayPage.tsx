@@ -2,11 +2,18 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { Loader2, AlertCircle, Monitor, Maximize, ImageOff, Info, Store } from 'lucide-react';
 import { usePublicSignage } from '@/hooks/usePublicSignage';
+import { usePublicPasswordCalls } from '@/hooks/usePublicPasswordCalls';
+import { PasswordCallDisplay } from '@/components/signage/PasswordCallDisplay';
+import { PasswordCallHistory } from '@/components/signage/PasswordCallHistory';
 import { Button } from '@/components/ui/button';
 
 export default function SignageDisplayPage() {
   const { slug } = useParams<{ slug: string }>();
-  const { store, items, config, loading, error } = usePublicSignage(slug);
+  const { store, items, config, passwordCallConfig, loading, error } = usePublicSignage(slug);
+  const { calls, latestCall, showPopup, closePopup } = usePublicPasswordCalls({ 
+    storeId: store?.id || null, 
+    config: passwordCallConfig 
+  });
   
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -324,6 +331,20 @@ export default function SignageDisplayPage() {
           </div>
         )}
       </div>
+
+      {/* Histórico de Senhas */}
+      <PasswordCallHistory 
+        calls={calls} 
+        config={passwordCallConfig} 
+        latestCallId={latestCall?.id}
+      />
+
+      {/* Pop-up de Chamada de Senha */}
+      <PasswordCallDisplay 
+        call={latestCall} 
+        config={passwordCallConfig} 
+        show={showPopup} 
+      />
 
       {/* Botão de Fullscreen */}
       {showFullscreenButton && !isFullscreen && (

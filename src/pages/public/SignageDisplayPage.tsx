@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { Loader2, AlertCircle, Monitor, Maximize, ImageOff, Info, Store, Volume2, AlertTriangle } from 'lucide-react';
+import { Loader2, AlertCircle, Monitor, Maximize, ImageOff, Info, Store, Volume2, AlertTriangle, Download } from 'lucide-react';
 import { usePublicSignage } from '@/hooks/usePublicSignage';
 import { usePublicPasswordCalls } from '@/hooks/usePublicPasswordCalls';
+import { useMediaCache } from '@/hooks/useMediaCache';
 import { PasswordCallDisplay } from '@/components/signage/PasswordCallDisplay';
 import { PasswordCallHistory } from '@/components/signage/PasswordCallHistory';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,7 @@ export default function SignageDisplayPage() {
     storeId: store?.id || null, 
     config: passwordCallConfig 
   });
+  const { preloadMedia, getCachedUrl, cleanupBlobUrls, isCaching, progress } = useMediaCache();
   
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -40,6 +42,7 @@ export default function SignageDisplayPage() {
   const [videoError, setVideoError] = useState<VideoError | null>(null);
   const [isVideoLoading, setIsVideoLoading] = useState(false);
   const [videoRetryCount, setVideoRetryCount] = useState(0);
+  const [cachedMediaUrl, setCachedMediaUrl] = useState<string>('');
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -125,6 +128,29 @@ export default function SignageDisplayPage() {
 
     return () => clearInterval(interval);
   }, [config?.show_clock]);
+
+  // Pré-carregar mídias quando items carregarem
+  useEffect(() => {
+    if (items.length > 0) {
+      const urls = items.map(item => item.file_url);
+      console.log('[Signage] 📦 Iniciando pré-cache de', urls.length, 'mídias...');
+      preloadMedia(urls);
+    }
+    
+    // Cleanup blob URLs ao desmontar
+    return () => {
+      cleanupBlobUrls();
+    };
+  }, [items, preloadMedia, cleanupBlobUrls]);
+
+  // Carregar URL do cache quando mudar de item
+  useEffect(() => {
+    if (currentItem) {
+      getCachedUrl(currentItem.file_url).then(url => {
+        setCachedMediaUrl(url);
+      });
+    }
+  }, [currentItem, getCachedUrl]);
 
   // Limpar timeout de erro e retry quando mudar de item
   useEffect(() => {
@@ -467,7 +493,7 @@ export default function SignageDisplayPage() {
               <video
                   ref={videoRef}
                   key={currentItem.id}
-                  src={currentItem.file_url}
+                  src={cachedMediaUrl || currentItem.file_url}
                   crossOrigin="anonymous"
                   className="w-full h-full object-cover"
                   autoPlay
@@ -476,7 +502,7 @@ export default function SignageDisplayPage() {
                   preload="auto"
                   onLoadedMetadata={handleVideoLoadedMetadata}
                   onCanPlay={handleVideoCanPlay}
-                  onPlay={() => console.log('[Signage] ▶️ Vídeo iniciou:', currentItem.title, '| Áudio:', audioEnabled && currentItem.has_audio ? 'ON' : 'OFF')}
+                  onPlay={() => console.log('[Signage] ▶️ Vídeo iniciou:', currentItem.title, '| Áudio:', audioEnabled && currentItem.has_audio ? 'ON' : 'OFF', '| Cache:', cachedMediaUrl.startsWith('blob:') ? 'LOCAL' : 'REDE')}
                   onEnded={() => {
                     console.log('[Signage] ✅ Vídeo terminou:', currentItem.title);
                     goToNext();
@@ -523,7 +549,7 @@ export default function SignageDisplayPage() {
             ) : (
               <img
                 key={`${currentItem.id}-${zoomDirection}`}
-                src={currentItem.file_url}
+                src={cachedMediaUrl || currentItem.file_url}
                 alt={currentItem.title}
                 className={`w-full h-full object-cover ${
                   zoomDirection === 'in' ? 'animate-ken-burns-in' : 'animate-ken-burns-out'
@@ -621,6 +647,14 @@ export default function SignageDisplayPage() {
             <Maximize className="h-5 w-5 mr-2" />
             Tela Cheia
           </Button>
+        </div>
+      )}
+
+      {/* Indicador de cache em progresso */}
+      {isCaching && (
+        <div className="fixed bottom-4 left-4 z-50 bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg flex items-center gap-2 animate-fade-in">
+          <Download className="h-4 w-4 animate-pulse" />
+          <span className="text-sm">Preparando mídias offline... {progress.percentage}%</span>
         </div>
       )}
     </div>

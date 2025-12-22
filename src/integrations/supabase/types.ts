@@ -6726,6 +6726,96 @@ export type Database = {
       }
     }
     Views: {
+      password_call_config_public: {
+        Row: {
+          audio_type: string | null
+          call_type: string | null
+          created_at: string | null
+          custom_prefix: string | null
+          custom_suffix: string | null
+          custom_text_enabled: boolean | null
+          custom_text_template: string | null
+          elevenlabs_voice_id: string | null
+          has_own_api_key: boolean | null
+          highlight_duration_ms: number | null
+          history_count: number | null
+          id: string | null
+          is_enabled: boolean | null
+          primary_color: string | null
+          show_history: boolean | null
+          sound_enabled: boolean | null
+          store_id: string | null
+          store_name_in_call: string | null
+          template: string | null
+          updated_at: string | null
+          use_greeting: boolean | null
+          voice_text_template: string | null
+        }
+        Insert: {
+          audio_type?: string | null
+          call_type?: string | null
+          created_at?: string | null
+          custom_prefix?: string | null
+          custom_suffix?: string | null
+          custom_text_enabled?: boolean | null
+          custom_text_template?: string | null
+          elevenlabs_voice_id?: string | null
+          has_own_api_key?: never
+          highlight_duration_ms?: number | null
+          history_count?: number | null
+          id?: string | null
+          is_enabled?: boolean | null
+          primary_color?: string | null
+          show_history?: boolean | null
+          sound_enabled?: boolean | null
+          store_id?: string | null
+          store_name_in_call?: string | null
+          template?: string | null
+          updated_at?: string | null
+          use_greeting?: boolean | null
+          voice_text_template?: string | null
+        }
+        Update: {
+          audio_type?: string | null
+          call_type?: string | null
+          created_at?: string | null
+          custom_prefix?: string | null
+          custom_suffix?: string | null
+          custom_text_enabled?: boolean | null
+          custom_text_template?: string | null
+          elevenlabs_voice_id?: string | null
+          has_own_api_key?: never
+          highlight_duration_ms?: number | null
+          history_count?: number | null
+          id?: string | null
+          is_enabled?: boolean | null
+          primary_color?: string | null
+          show_history?: boolean | null
+          sound_enabled?: boolean | null
+          store_id?: string | null
+          store_name_in_call?: string | null
+          template?: string | null
+          updated_at?: string | null
+          use_greeting?: boolean | null
+          voice_text_template?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "password_call_config_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "password_call_config_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       public_store_config: {
         Row: {
           accept_outside_delivery_zone: boolean | null

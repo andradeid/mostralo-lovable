@@ -408,7 +408,8 @@ export default function SignageDisplayPage() {
       <PasswordCallDisplay 
         call={latestCall} 
         config={passwordCallConfig} 
-        show={showPopup} 
+        show={showPopup}
+        storeId={store?.id}
       />
 
       {/* Botões de controle */}

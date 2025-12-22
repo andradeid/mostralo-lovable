@@ -17,7 +17,8 @@ export interface PasswordCallConfig {
   audio_type: 'beep' | 'web_speech' | 'elevenlabs';
   voice_text_template: 'simple' | 'counter' | 'pickup';
   elevenlabs_voice_id: string | null;
-  elevenlabs_api_key: string | null;
+  elevenlabs_api_key?: string | null; // Opcional - só presente quando lojista configura sua própria key
+  has_own_api_key?: boolean; // Presente na view pública para indicar se lojista tem key própria
   // Campos de texto personalizado
   custom_text_enabled: boolean;
   custom_text_template: string | null;

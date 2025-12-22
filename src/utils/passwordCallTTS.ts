@@ -184,15 +184,17 @@ export const speakWithWebSpeech = (text: string): Promise<void> => {
 /**
  * Reproduz áudio usando ElevenLabs via Edge Function
  * A API key é gerenciada de forma segura no servidor (Supabase Secrets)
+ * Se o lojista tiver API key própria, ela será usada pelo servidor
  */
 export const speakWithElevenLabs = async (
   text: string,
-  voiceId?: string | null
+  voiceId?: string | null,
+  storeId?: string | null
 ): Promise<void> => {
-  console.log('[ElevenLabs] Iniciando síntese:', text, 'Voice:', voiceId || 'padrão');
+  console.log('[ElevenLabs] Iniciando síntese:', text, 'Voice:', voiceId || 'padrão', 'StoreId:', storeId || 'N/A');
   
   const { data, error } = await supabase.functions.invoke('text-to-speech', {
-    body: { text, voiceId: voiceId || 'onwK4e9ZLuTAKqWW03F9' }
+    body: { text, voiceId: voiceId || 'onwK4e9ZLuTAKqWW03F9', storeId }
   });
 
   if (error) {
@@ -283,13 +285,15 @@ const getMediaErrorMessage = (code: number): string => {
 /**
  * Função principal para reproduzir áudio de chamada
  * Nota: ElevenLabs agora usa API key segura no servidor
+ * Se storeId fornecido, usa API key do lojista se existir
  */
 export const playPasswordCallAudio = async (
   audioType: AudioType,
   text: string,
-  elevenLabsVoiceId?: string | null
+  elevenLabsVoiceId?: string | null,
+  storeId?: string | null
 ): Promise<void> => {
-  console.log('[Audio] Reproduzindo tipo:', audioType);
+  console.log('[Audio] Reproduzindo tipo:', audioType, 'StoreId:', storeId || 'N/A');
   
   switch (audioType) {
     case 'beep':
@@ -299,7 +303,7 @@ export const playPasswordCallAudio = async (
       await speakWithWebSpeech(text);
       break;
     case 'elevenlabs':
-      await speakWithElevenLabs(text, elevenLabsVoiceId);
+      await speakWithElevenLabs(text, elevenLabsVoiceId, storeId);
       break;
   }
 };

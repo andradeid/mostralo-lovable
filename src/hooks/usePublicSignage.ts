@@ -113,10 +113,10 @@ export function usePublicSignage(slug: string | undefined) {
           orientation: (configData.orientation as SignageConfig['orientation']) || 'horizontal'
         });
 
-        // Buscar configuração de chamada de senha
+        // Buscar configuração de chamada de senha (usando view segura que não expõe API key)
         console.log('[SignageDebug] 6. Buscando config de senha...');
         const { data: passwordConfig } = await supabase
-          .from('password_call_config')
+          .from('password_call_config_public')
           .select('*')
           .eq('store_id', storeData.id)
           .maybeSingle();
@@ -124,6 +124,7 @@ export function usePublicSignage(slug: string | undefined) {
         console.log('[SignageDebug] 7. Password config:', passwordConfig ? 'encontrado' : 'não encontrado');
 
         if (passwordConfig) {
+          // A view pública não tem elevenlabs_api_key, apenas has_own_api_key (boolean)
           setPasswordCallConfig(passwordConfig as PasswordCallConfig);
         }
 

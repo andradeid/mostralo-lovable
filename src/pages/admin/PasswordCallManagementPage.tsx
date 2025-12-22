@@ -103,28 +103,47 @@ export default function PasswordCallManagementPage() {
         {/* 1. Teclado de Chamada */}
         <PasswordCallKeypad storeId={storeId} config={config} />
 
-        {/* 2. Chamadas Hoje */}
-        <Card className="flex flex-col justify-center">
-          <CardContent className="p-4 text-center">
-            <p className="text-xs text-muted-foreground mb-1">Chamadas Hoje</p>
-            <p className="text-3xl font-bold">{todayCalls}</p>
+        {/* 2. Configurações */}
+        <Card className="flex flex-col">
+          <CardHeader className="pb-2 py-3">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Settings className="h-4 w-4 text-primary" />
+              Configurações
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex-1 pt-0 overflow-auto max-h-[300px]">
+            <PasswordCallConfigPanel config={config} onSave={saveConfig} />
           </CardContent>
         </Card>
 
-        {/* 3. Tipo e Template */}
-        <Card className="flex flex-col justify-center">
-          <CardContent className="p-4 space-y-2">
-            <div>
-              <p className="text-xs text-muted-foreground">Tipo</p>
-              <p className="text-sm font-bold capitalize">
-                {config?.call_type === 'password' ? 'Senha' : 
-                 config?.call_type === 'order' ? 'Pedido' : 
-                 config?.call_type === 'table' ? 'Mesa' : 'Senha'}
-              </p>
+        {/* 3. Como usar */}
+        <Card className="flex flex-col">
+          <CardHeader className="pb-2 py-3">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Lightbulb className="h-4 w-4 text-amber-500" />
+              Como usar
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex-1 pt-0 space-y-2 text-xs">
+            <div className="flex items-start gap-2">
+              <div className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs font-medium shrink-0">1</div>
+              <p className="text-muted-foreground">Ative nas configurações ao lado</p>
             </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Template</p>
-              <p className="text-sm font-bold capitalize">{config?.template || 'Moderno'}</p>
+            <div className="flex items-start gap-2">
+              <div className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs font-medium shrink-0">2</div>
+              <p className="text-muted-foreground">Copie o link e abra na TV</p>
+            </div>
+            <div className="flex items-start gap-2">
+              <div className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs font-medium shrink-0">3</div>
+              <p className="text-muted-foreground">Use o teclado para chamar</p>
+            </div>
+            <div className="border-t pt-2 mt-2 space-y-1">
+              <p className="flex items-center gap-1 text-muted-foreground">
+                <Maximize className="h-3 w-3" /> F11 = tela cheia
+              </p>
+              <p className="flex items-center gap-1 text-muted-foreground">
+                <Wifi className="h-3 w-3" /> Mantenha conectado
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -156,92 +175,6 @@ export default function PasswordCallManagementPage() {
           </Card>
         )}
       </div>
-
-      {/* Configurações */}
-      <Collapsible defaultOpen={false}>
-        <Card>
-          <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors py-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Settings className="h-5 w-5 text-primary" />
-                  <CardTitle className="text-base">Configurações</CardTitle>
-                </div>
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              </div>
-            </CardHeader>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <CardContent className="pt-0">
-              <PasswordCallConfigPanel config={config} onSave={saveConfig} />
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
-
-      {/* Instruções de Uso */}
-      <Collapsible defaultOpen={false}>
-        <Card>
-          <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors py-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Lightbulb className="h-5 w-5 text-amber-500" />
-                  <CardTitle className="text-base">Como usar o Sistema</CardTitle>
-                </div>
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              </div>
-            </CardHeader>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <CardContent className="pt-0 space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                  <div className="flex items-center justify-center h-6 w-6 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
-                    1
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">Ative o módulo nas configurações</p>
-                    <p className="text-sm text-muted-foreground">Use o painel de configurações para ativar e personalizar.</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                  <div className="flex items-center justify-center h-6 w-6 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
-                    2
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">Copie o link e abra na TV</p>
-                    <p className="text-sm text-muted-foreground">Use Chrome ou Edge no dispositivo de exibição.</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                  <div className="flex items-center justify-center h-6 w-6 rounded-full bg-primary text-primary-foreground text-sm font-medium shrink-0">
-                    3
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">Use o teclado para chamar</p>
-                    <p className="text-sm text-muted-foreground">Digite o número - aparecerá na TV em tempo real.</p>
-                  </div>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs border-t pt-3">
-                <div className="flex items-center gap-2 p-2 rounded-lg border bg-background">
-                  <Maximize className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-muted-foreground">F11 para tela cheia</span>
-                </div>
-                <div className="flex items-center gap-2 p-2 rounded-lg border bg-background">
-                  <Tv className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-muted-foreground">Configure o som</span>
-                </div>
-                <div className="flex items-center gap-2 p-2 rounded-lg border bg-background">
-                  <Wifi className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-muted-foreground">Mantenha conectado</span>
-                </div>
-              </div>
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
     </div>
   );
 }

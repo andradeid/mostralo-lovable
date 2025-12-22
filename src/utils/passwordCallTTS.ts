@@ -174,8 +174,18 @@ export const speakWithElevenLabs = async (
     throw new Error('Áudio recebido é muito pequeno, pode estar corrompido');
   }
 
-  // Criar URL do áudio
-  const audioUrl = `data:audio/mpeg;base64,${audioContent}`;
+  // Converter base64 para Blob (evita bloqueio de segurança do navegador)
+  console.log('[ElevenLabs] Convertendo base64 para Blob...');
+  const binaryString = atob(audioContent);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  
+  const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
+  const audioUrl = URL.createObjectURL(audioBlob);
+  console.log('[ElevenLabs] Blob URL criada:', audioUrl);
+  
   const audio = new Audio();
   
   return new Promise((resolve, reject) => {
@@ -186,12 +196,14 @@ export const speakWithElevenLabs = async (
         .then(() => console.log('[ElevenLabs] Reprodução iniciada'))
         .catch((playError) => {
           console.error('[ElevenLabs] Erro ao iniciar reprodução:', playError);
+          URL.revokeObjectURL(audioUrl); // Limpar memória em caso de erro
           reject(new Error(`Falha ao reproduzir: ${playError.message || 'Verifique o volume do dispositivo'}`));
         });
     };
     
     audio.onended = () => {
       console.log('[ElevenLabs] Reprodução finalizada com sucesso');
+      URL.revokeObjectURL(audioUrl); // Limpar memória após reprodução
       resolve();
     };
     
@@ -201,6 +213,7 @@ export const speakWithElevenLabs = async (
         ? `Código ${mediaError.code}: ${mediaError.message || getMediaErrorMessage(mediaError.code)}`
         : 'Erro desconhecido na reprodução';
       console.error('[ElevenLabs] Erro de mídia:', errorMessage);
+      URL.revokeObjectURL(audioUrl); // Limpar memória em caso de erro
       reject(new Error(`Erro ao reproduzir áudio: ${errorMessage}`));
     };
 

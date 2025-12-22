@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { Bell, Loader2, Palette, Layout, Clock, History, Volume2 } from 'lucide-react';
+import { Bell, Loader2, Palette, Layout, Clock, History, Volume2, Mic, ExternalLink, Play } from 'lucide-react';
 import { PasswordCallConfig } from '@/hooks/usePasswordCallConfig';
+import { elevenLabsVoices, speakWithWebSpeech, speakWithElevenLabs, getCallText, playBeepSound } from '@/utils/passwordCallTTS';
+import { useToast } from '@/hooks/use-toast';
 
 interface PasswordCallConfigPanelProps {
   config: PasswordCallConfig | null;
@@ -28,8 +29,24 @@ const callTypes = [
   { value: 'table', label: 'Mesa' },
 ];
 
+const audioTypes = [
+  { value: 'beep', label: 'Beep simples', description: 'Som de notificação padrão' },
+  { value: 'web_speech', label: 'Voz sintetizada (gratuito)', description: 'Usa Web Speech API do navegador' },
+  { value: 'elevenlabs', label: 'Voz premium (ElevenLabs)', description: 'Voz natural, requer API key' },
+];
+
+const voiceTextTemplates = [
+  { value: 'simple', label: 'Simples', example: 'Senha 42' },
+  { value: 'counter', label: 'Balcão', example: 'Senha 42, compareça ao balcão' },
+  { value: 'pickup', label: 'Retirada', example: 'Pedido 42 pronto para retirada' },
+];
+
 export function PasswordCallConfigPanel({ config, onSave }: PasswordCallConfigPanelProps) {
+  const { toast } = useToast();
   const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
+  
+  // Estados existentes
   const [isEnabled, setIsEnabled] = useState(config?.is_enabled ?? false);
   const [callType, setCallType] = useState(config?.call_type ?? 'password');
   const [template, setTemplate] = useState(config?.template ?? 'classic');
@@ -38,6 +55,12 @@ export function PasswordCallConfigPanel({ config, onSave }: PasswordCallConfigPa
   const [highlightDuration, setHighlightDuration] = useState((config?.highlight_duration_ms ?? 5000) / 1000);
   const [soundEnabled, setSoundEnabled] = useState(config?.sound_enabled ?? true);
   const [primaryColor, setPrimaryColor] = useState(config?.primary_color ?? '#f97316');
+  
+  // Novos estados de áudio
+  const [audioType, setAudioType] = useState<'beep' | 'web_speech' | 'elevenlabs'>(config?.audio_type ?? 'beep');
+  const [voiceTextTemplate, setVoiceTextTemplate] = useState<'simple' | 'counter' | 'pickup'>(config?.voice_text_template ?? 'simple');
+  const [elevenLabsVoiceId, setElevenLabsVoiceId] = useState(config?.elevenlabs_voice_id ?? '');
+  const [elevenLabsApiKey, setElevenLabsApiKey] = useState(config?.elevenlabs_api_key ?? '');
 
   // Sync com config externo
   useEffect(() => {
@@ -50,6 +73,10 @@ export function PasswordCallConfigPanel({ config, onSave }: PasswordCallConfigPa
       setHighlightDuration(config.highlight_duration_ms / 1000);
       setSoundEnabled(config.sound_enabled);
       setPrimaryColor(config.primary_color);
+      setAudioType(config.audio_type ?? 'beep');
+      setVoiceTextTemplate(config.voice_text_template ?? 'simple');
+      setElevenLabsVoiceId(config.elevenlabs_voice_id ?? '');
+      setElevenLabsApiKey(config.elevenlabs_api_key ?? '');
     }
   }, [config]);
 
@@ -64,8 +91,37 @@ export function PasswordCallConfigPanel({ config, onSave }: PasswordCallConfigPa
       highlight_duration_ms: highlightDuration * 1000,
       sound_enabled: soundEnabled,
       primary_color: primaryColor,
+      audio_type: audioType,
+      voice_text_template: voiceTextTemplate,
+      elevenlabs_voice_id: elevenLabsVoiceId || null,
+      elevenlabs_api_key: elevenLabsApiKey || null,
     });
     setSaving(false);
+  };
+
+  const handleTestAudio = async () => {
+    setTesting(true);
+    const testText = getCallText(voiceTextTemplate, callType, 42);
+    
+    try {
+      if (audioType === 'beep') {
+        playBeepSound();
+      } else if (audioType === 'web_speech') {
+        await speakWithWebSpeech(testText);
+      } else if (audioType === 'elevenlabs') {
+        if (!elevenLabsApiKey) {
+          toast({ title: 'Configure a API key do ElevenLabs', variant: 'destructive' });
+          setTesting(false);
+          return;
+        }
+        await speakWithElevenLabs(testText, elevenLabsVoiceId || 'JBFqnCBsd6RMkjVDRZzb', elevenLabsApiKey);
+      }
+      toast({ title: 'Áudio reproduzido!' });
+    } catch (error) {
+      console.error('Erro ao testar áudio:', error);
+      toast({ title: 'Erro ao reproduzir áudio', variant: 'destructive' });
+    }
+    setTesting(false);
   };
 
   return (
@@ -188,6 +244,114 @@ export function PasswordCallConfigPanel({ config, onSave }: PasswordCallConfigPa
             onCheckedChange={setSoundEnabled}
           />
         </div>
+
+        {/* Configurações de Áudio (expandido quando som ativado) */}
+        {soundEnabled && (
+          <div className="space-y-4 p-4 bg-muted/50 rounded-lg border">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <Mic className="h-4 w-4" />
+              Configurações de Áudio
+            </div>
+
+            {/* Tipo de Áudio */}
+            <div className="space-y-2">
+              <Label>Tipo de Áudio</Label>
+              <Select value={audioType} onValueChange={(val) => setAudioType(val as 'beep' | 'web_speech' | 'elevenlabs')}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {audioTypes.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      <div>
+                        <p className="font-medium">{type.label}</p>
+                        <p className="text-xs text-muted-foreground">{type.description}</p>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Template de Texto (para voz) */}
+            {(audioType === 'web_speech' || audioType === 'elevenlabs') && (
+              <div className="space-y-2">
+                <Label>Texto da Chamada</Label>
+                <Select value={voiceTextTemplate} onValueChange={(val) => setVoiceTextTemplate(val as 'simple' | 'counter' | 'pickup')}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {voiceTextTemplates.map((t) => (
+                      <SelectItem key={t.value} value={t.value}>
+                        <div>
+                          <p className="font-medium">{t.label}</p>
+                          <p className="text-xs text-muted-foreground">"{t.example}"</p>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Configurações ElevenLabs */}
+            {audioType === 'elevenlabs' && (
+              <div className="space-y-4 pt-2 border-t">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label>API Key ElevenLabs</Label>
+                    <a 
+                      href="https://elevenlabs.io/app/settings/api-keys" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary hover:underline flex items-center gap-1"
+                    >
+                      Obter key <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                  <Input
+                    type="password"
+                    value={elevenLabsApiKey}
+                    onChange={(e) => setElevenLabsApiKey(e.target.value)}
+                    placeholder="sk_..."
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Voz</Label>
+                  <Select value={elevenLabsVoiceId || 'JBFqnCBsd6RMkjVDRZzb'} onValueChange={setElevenLabsVoiceId}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {elevenLabsVoices.map((voice) => (
+                        <SelectItem key={voice.id} value={voice.id}>
+                          <div>
+                            <p className="font-medium">{voice.name}</p>
+                            <p className="text-xs text-muted-foreground">{voice.description}</p>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+
+            {/* Botão Testar */}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleTestAudio}
+              disabled={testing}
+              className="w-full"
+            >
+              {testing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Play className="h-4 w-4 mr-2" />}
+              Testar Áudio
+            </Button>
+          </div>
+        )}
 
         {/* Cor Principal */}
         <div className="space-y-2">

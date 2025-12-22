@@ -2643,8 +2643,11 @@ export type Database = {
       }
       password_call_config: {
         Row: {
+          audio_type: string | null
           call_type: string
           created_at: string
+          elevenlabs_api_key: string | null
+          elevenlabs_voice_id: string | null
           highlight_duration_ms: number
           history_count: number
           id: string
@@ -2655,10 +2658,14 @@ export type Database = {
           store_id: string
           template: string
           updated_at: string
+          voice_text_template: string | null
         }
         Insert: {
+          audio_type?: string | null
           call_type?: string
           created_at?: string
+          elevenlabs_api_key?: string | null
+          elevenlabs_voice_id?: string | null
           highlight_duration_ms?: number
           history_count?: number
           id?: string
@@ -2669,10 +2676,14 @@ export type Database = {
           store_id: string
           template?: string
           updated_at?: string
+          voice_text_template?: string | null
         }
         Update: {
+          audio_type?: string | null
           call_type?: string
           created_at?: string
+          elevenlabs_api_key?: string | null
+          elevenlabs_voice_id?: string | null
           highlight_duration_ms?: number
           history_count?: number
           id?: string
@@ -2683,6 +2694,7 @@ export type Database = {
           store_id?: string
           template?: string
           updated_at?: string
+          voice_text_template?: string | null
         }
         Relationships: [
           {

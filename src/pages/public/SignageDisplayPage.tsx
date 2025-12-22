@@ -21,6 +21,7 @@ export default function SignageDisplayPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showFullscreenButton, setShowFullscreenButton] = useState(true);
   const [audioEnabled, setAudioEnabled] = useState(false);
+  const [zoomDirection, setZoomDirection] = useState<'in' | 'out'>('in');
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -138,10 +139,12 @@ export default function SignageDisplayPage() {
       setIsTransitioning(true);
       setTimeout(() => {
         setCurrentIndex(prev => (prev + 1) % items.length);
+        setZoomDirection(prev => prev === 'in' ? 'out' : 'in');
         setIsTransitioning(false);
       }, config?.transition_duration_ms || 500);
     } else {
       setCurrentIndex(prev => (prev + 1) % items.length);
+      setZoomDirection(prev => prev === 'in' ? 'out' : 'in');
     }
   };
 
@@ -323,7 +326,7 @@ export default function SignageDisplayPage() {
       >
         {/* Conteúdo principal */}
         <div 
-          className="absolute inset-0 flex items-center justify-center"
+          className="absolute inset-0 flex items-center justify-center overflow-hidden"
           style={getTransitionStyle()}
         >
           {currentItem && (
@@ -339,10 +342,13 @@ export default function SignageDisplayPage() {
               />
             ) : (
               <img
-                key={currentItem.id}
+                key={`${currentItem.id}-${zoomDirection}`}
                 src={currentItem.file_url}
                 alt={currentItem.title}
-                className="w-full h-full object-cover"
+                className={`w-full h-full object-cover ${
+                  zoomDirection === 'in' ? 'animate-ken-burns-in' : 'animate-ken-burns-out'
+                }`}
+                style={{ animationDuration: `${currentItem.duration_seconds}s` }}
               />
             )
           )}

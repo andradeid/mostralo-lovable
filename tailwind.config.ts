@@ -77,6 +77,14 @@ export default {
           "0%, 100%": { height: "8px" },
           "50%": { height: "24px" },
         },
+        'ken-burns-zoom-in': {
+          '0%': { transform: 'scale(1)' },
+          '100%': { transform: 'scale(1.15)' }
+        },
+        'ken-burns-zoom-out': {
+          '0%': { transform: 'scale(1.15)' },
+          '100%': { transform: 'scale(1)' }
+        },
 				'accordion-down': {
 					from: {
 						height: '0'
@@ -141,7 +149,9 @@ export default {
 				'fade-in-left': 'fade-in-left 0.6s ease-out forwards',
 				'fade-in-right': 'fade-in-right 0.6s ease-out forwards',
 				'scale-in': 'scale-in 0.5s ease-out forwards',
-				'waveform': 'waveform 0.5s ease-in-out infinite'
+				'waveform': 'waveform 0.5s ease-in-out infinite',
+				'ken-burns-in': 'ken-burns-zoom-in 10s ease-out forwards',
+				'ken-burns-out': 'ken-burns-zoom-out 10s ease-out forwards'
 			}
 		}
 	},

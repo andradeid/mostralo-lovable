@@ -22,19 +22,27 @@ export function usePublicPasswordCalls({ storeId, config }: UsePublicPasswordCal
   const isFirstLoad = useRef(true);
   const limit = config?.history_count || 7;
 
-  // Buscar chamadas recentes
+  // Buscar chamadas recentes (usa função RPC que limpa registros > 24h automaticamente)
   const fetchCalls = useCallback(async () => {
     if (!storeId) return;
 
+    // Usa função que faz limpeza automática de registros > 24h
     const { data, error } = await supabase
-      .from('password_calls')
-      .select('*')
-      .eq('store_id', storeId)
-      .order('created_at', { ascending: false })
-      .limit(limit);
+      .rpc('get_password_calls_with_cleanup', {
+        p_store_id: storeId,
+        p_limit: limit
+      });
 
     if (error) {
       console.error('Erro ao buscar chamadas:', error);
+      // Fallback para query direta se a função não existir
+      const { data: fallbackData } = await supabase
+        .from('password_calls')
+        .select('*')
+        .eq('store_id', storeId)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+      setCalls((fallbackData as PasswordCall[]) || []);
     } else {
       setCalls((data as PasswordCall[]) || []);
     }

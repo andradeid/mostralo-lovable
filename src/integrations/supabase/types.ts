@@ -6829,6 +6829,7 @@ export type Database = {
         Args: { admin_user_id: string; approval_id: string }
         Returns: boolean
       }
+      cleanup_old_password_calls: { Args: never; Returns: undefined }
       generate_product_slug: {
         Args: { input_store_id: string; product_name: string }
         Returns: string
@@ -6838,6 +6839,22 @@ export type Database = {
         Returns: Database["public"]["Enums"]["user_type"]
       }
       get_next_order_number: { Args: { store_uuid: string }; Returns: string }
+      get_password_calls_with_cleanup: {
+        Args: { p_limit?: number; p_store_id: string }
+        Returns: {
+          call_number: string
+          call_type: string
+          created_at: string
+          id: string
+          store_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "password_calls"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_user_store_ids_direct: {
         Args: { check_user_id: string }
         Returns: {

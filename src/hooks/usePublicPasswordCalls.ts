@@ -8,6 +8,8 @@ export interface PasswordCall {
   call_number: string;
   call_type: 'password' | 'order' | 'table';
   created_at: string;
+  order_id?: string | null;
+  customer_name?: string | null;
 }
 
 interface UsePublicPasswordCallsOptions {

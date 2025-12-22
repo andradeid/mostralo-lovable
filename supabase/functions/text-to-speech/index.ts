@@ -97,6 +97,22 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error("ElevenLabs API error:", response.status, errorText);
+      
+      // Retornar código específico para rate limit (429)
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ 
+            error: "rate_limit", 
+            message: "ElevenLabs está ocupado. Use Web Speech como alternativa.",
+            fallback: "web_speech"
+          }),
+          {
+            status: 429,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+      
       throw new Error(`ElevenLabs API error: ${response.status} - ${errorText}`);
     }
 

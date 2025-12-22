@@ -98,82 +98,79 @@ export default function PasswordCallManagementPage() {
         </Badge>
       </div>
 
-      {/* Grid 4 colunas (desktop) / 2 colunas (tablet/mobile) */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-        {/* 1. Teclado de Chamada */}
+      {/* Grid 2 colunas: Teclado + Card de Informações */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Coluna 1: Teclado */}
         <PasswordCallKeypad storeId={storeId} config={config} />
 
-        {/* 2. Configurações */}
+        {/* Coluna 2: Card único com todas as informações */}
         <Card className="flex flex-col">
-          <CardHeader className="pb-2 py-3">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Settings className="h-4 w-4 text-primary" />
-              Configurações
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 pt-0 overflow-auto max-h-[300px]">
-            <PasswordCallConfigPanel config={config} onSave={saveConfig} />
-          </CardContent>
-        </Card>
+          <CardContent className="p-4 space-y-4">
+            {/* Seção: Configurações */}
+            <div>
+              <h3 className="flex items-center gap-2 font-medium text-sm mb-3">
+                <Settings className="h-4 w-4 text-primary" />
+                Configurações
+              </h3>
+              <PasswordCallConfigPanel config={config} onSave={saveConfig} />
+            </div>
 
-        {/* 3. Como usar */}
-        <Card className="flex flex-col">
-          <CardHeader className="pb-2 py-3">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Lightbulb className="h-4 w-4 text-amber-500" />
-              Como usar
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 pt-0 space-y-2 text-xs">
-            <div className="flex items-start gap-2">
-              <div className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs font-medium shrink-0">1</div>
-              <p className="text-muted-foreground">Ative nas configurações ao lado</p>
-            </div>
-            <div className="flex items-start gap-2">
-              <div className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs font-medium shrink-0">2</div>
-              <p className="text-muted-foreground">Copie o link e abra na TV</p>
-            </div>
-            <div className="flex items-start gap-2">
-              <div className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs font-medium shrink-0">3</div>
-              <p className="text-muted-foreground">Use o teclado para chamar</p>
-            </div>
-            <div className="border-t pt-2 mt-2 space-y-1">
-              <p className="flex items-center gap-1 text-muted-foreground">
-                <Maximize className="h-3 w-3" /> F11 = tela cheia
-              </p>
-              <p className="flex items-center gap-1 text-muted-foreground">
-                <Wifi className="h-3 w-3" /> Mantenha conectado
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+            <div className="border-t" />
 
-        {/* 4. Painel de Exibição */}
-        {storeSlug && (
-          <Card className="flex flex-col">
-            <CardHeader className="pb-2 py-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Tv className="h-4 w-4 text-primary" />
-                Painel TV
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col justify-center space-y-2 pt-0">
-              <div className="flex items-center gap-1">
-                <Input value={publicUrl} readOnly className="bg-muted text-xs h-8" />
-                <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" onClick={handleCopyLink}>
-                  <Copy className="h-3 w-3" />
-                </Button>
-                <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" onClick={() => window.open(publicUrl, '_blank')}>
-                  <ExternalLink className="h-3 w-3" />
-                </Button>
+            {/* Seção: Como usar */}
+            <div>
+              <h3 className="flex items-center gap-2 font-medium text-sm mb-3">
+                <Lightbulb className="h-4 w-4 text-amber-500" />
+                Como usar
+              </h3>
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <div className="flex flex-col items-center text-center p-2 rounded-lg bg-muted/50">
+                  <div className="flex items-center justify-center h-6 w-6 rounded-full bg-primary text-primary-foreground text-xs font-medium mb-1">1</div>
+                  <span className="text-muted-foreground">Ative o sistema</span>
+                </div>
+                <div className="flex flex-col items-center text-center p-2 rounded-lg bg-muted/50">
+                  <div className="flex items-center justify-center h-6 w-6 rounded-full bg-primary text-primary-foreground text-xs font-medium mb-1">2</div>
+                  <span className="text-muted-foreground">Abra na TV</span>
+                </div>
+                <div className="flex flex-col items-center text-center p-2 rounded-lg bg-muted/50">
+                  <div className="flex items-center justify-center h-6 w-6 rounded-full bg-primary text-primary-foreground text-xs font-medium mb-1">3</div>
+                  <span className="text-muted-foreground">Use o teclado</span>
+                </div>
               </div>
-              <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                <Info className="h-2.5 w-2.5" />
-                F11 para tela cheia
-              </p>
-            </CardContent>
-          </Card>
-        )}
+              <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1"><Maximize className="h-3 w-3" /> F11 = tela cheia</span>
+                <span className="flex items-center gap-1"><Wifi className="h-3 w-3" /> Mantenha conectado</span>
+              </div>
+            </div>
+
+            {storeSlug && (
+              <>
+                <div className="border-t" />
+
+                {/* Seção: Painel TV */}
+                <div>
+                  <h3 className="flex items-center gap-2 font-medium text-sm mb-3">
+                    <Tv className="h-4 w-4 text-primary" />
+                    Painel TV
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <Input value={publicUrl} readOnly className="bg-muted text-xs h-9 flex-1" />
+                    <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={handleCopyLink}>
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => window.open(publicUrl, '_blank')}>
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+                    <Info className="h-3 w-3" />
+                    Copie o link e abra no navegador da TV
+                  </p>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

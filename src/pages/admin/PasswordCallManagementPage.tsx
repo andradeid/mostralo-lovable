@@ -98,13 +98,15 @@ export default function PasswordCallManagementPage() {
         </Badge>
       </div>
 
-      {/* Grid 2 colunas: Teclado + Card de Informações */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Layout 2 colunas: Teclado + Card de Informações */}
+      <div className="flex flex-col md:flex-row gap-4">
         {/* Coluna 1: Teclado */}
-        <PasswordCallKeypad storeId={storeId} config={config} />
+        <div className="shrink-0">
+          <PasswordCallKeypad storeId={storeId} config={config} />
+        </div>
 
         {/* Coluna 2: Card único com todas as informações */}
-        <Card className="flex flex-col">
+        <Card className="flex flex-col flex-1">
           <CardContent className="p-4 space-y-4">
             {/* Seção: Configurações */}
             <div>

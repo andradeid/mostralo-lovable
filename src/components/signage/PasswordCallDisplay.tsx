@@ -20,8 +20,11 @@ export function PasswordCallDisplay({ call, config, show, storeId }: PasswordCal
   const hasPlayedSound = useRef(false);
 
   // Tocar som/voz quando aparecer
+  // Se a chamada veio de um pedido real (order_id não é null), o áudio já foi tocado no modal
   useEffect(() => {
-    if (show && config?.sound_enabled && call && !hasPlayedSound.current) {
+    const shouldPlayAudio = !call?.order_id; // Não tocar se veio de pedido (já tocou no modal)
+    
+    if (show && config?.sound_enabled && call && !hasPlayedSound.current && shouldPlayAudio) {
       hasPlayedSound.current = true;
       
       const audioType = config.audio_type || 'beep';
@@ -30,23 +33,23 @@ export function PasswordCallDisplay({ call, config, show, storeId }: PasswordCal
       if (audioType === 'beep') {
         playBeepSound();
       } else {
-        // Passar opções de texto personalizado
+        // Passar opções de texto personalizado incluindo nome do cliente
         const text = getCallText(voiceTemplate, call.call_type, call.call_number, {
           customTextEnabled: config.custom_text_enabled,
           customTemplate: config.custom_text_template,
           prefix: config.custom_prefix,
           suffix: config.custom_suffix,
           useGreeting: config.use_greeting,
+          customerName: call.customer_name,
         });
         
         playPasswordCallAudio(
           audioType,
           text,
           config.elevenlabs_voice_id,
-          storeId // Passa storeId para Edge Function buscar API key do lojista
+          storeId
         ).catch((error) => {
           console.error('Erro ao reproduzir áudio:', error);
-          // Fallback para beep em caso de erro
           playBeepSound();
         });
       }

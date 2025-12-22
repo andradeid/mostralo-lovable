@@ -206,14 +206,23 @@ export const playPasswordCallAudio = async (
   }
 };
 
-// Vozes populares do ElevenLabs
+// Vozes ElevenLabs organizadas por tipo
+// Modelo multilingual_v2 detecta português automaticamente
 export const elevenLabsVoices = [
-  { id: 'JBFqnCBsd6RMkjVDRZzb', name: 'George', description: 'Masculina (inglês)' },
-  { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah', description: 'Feminina (inglês)' },
-  { id: 'FGY2WhTYpPnrIDTdsKH5', name: 'Laura', description: 'Feminina (inglês)' },
-  { id: 'IKne3meq5aSn9XLyUdCD', name: 'Charlie', description: 'Masculina (inglês)' },
-  { id: 'CwhRBWXzGAHq8TQ4Fs17', name: 'Roger', description: 'Masculina (inglês)' },
-  { id: 'onwK4e9ZLuTAKqWW03F9', name: 'Daniel', description: 'Masculina (inglês)' },
-  { id: 'pFZP5JQG7iQjIQuC4Bku', name: 'Lily', description: 'Feminina (inglês)' },
-  { id: 'nPczCjzI2devNBz1zQrb', name: 'Brian', description: 'Masculina (inglês)' },
+  // === VOZES RECOMENDADAS PARA PT-BR ===
+  // Estas vozes funcionam bem com português brasileiro usando o modelo multilingual_v2
+  { id: 'onwK4e9ZLuTAKqWW03F9', name: 'Daniel', description: '🇧🇷 Masculina clara (recomendada)', category: 'recomendada' },
+  { id: 'pFZP5JQG7iQjIQuC4Bku', name: 'Lily', description: '🇧🇷 Feminina suave (recomendada)', category: 'recomendada' },
+  { id: 'CwhRBWXzGAHq8TQ4Fs17', name: 'Roger', description: '🇧🇷 Masculina profunda (recomendada)', category: 'recomendada' },
+  { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah', description: '🇧🇷 Feminina profissional (recomendada)', category: 'recomendada' },
+  
+  // === OUTRAS VOZES MULTILÍNGUES ===
+  { id: 'JBFqnCBsd6RMkjVDRZzb', name: 'George', description: 'Masculina madura', category: 'multilingual' },
+  { id: 'FGY2WhTYpPnrIDTdsKH5', name: 'Laura', description: 'Feminina jovem', category: 'multilingual' },
+  { id: 'IKne3meq5aSn9XLyUdCD', name: 'Charlie', description: 'Masculina casual', category: 'multilingual' },
+  { id: 'nPczCjzI2devNBz1zQrb', name: 'Brian', description: 'Masculina narradora', category: 'multilingual' },
+  { id: 'XrExE9yKIg1WjnnlVkGX', name: 'Matilda', description: 'Feminina calorosa', category: 'multilingual' },
+  { id: 'cgSgspJ2msm6clMCkdW9', name: 'Jessica', description: 'Feminina expressiva', category: 'multilingual' },
+  { id: 'cjVigY5qzO86Huf0OWal', name: 'Eric', description: 'Masculina amigável', category: 'multilingual' },
+  { id: 'iP95p4xoKVk53GoZ742B', name: 'Chris', description: 'Masculina casual', category: 'multilingual' },
 ];

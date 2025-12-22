@@ -301,12 +301,26 @@ export function PasswordCallConfigPanel({ config, onSave }: PasswordCallConfigPa
 
                 <div className="space-y-2">
                   <Label>Voz</Label>
-                  <Select value={elevenLabsVoiceId || 'JBFqnCBsd6RMkjVDRZzb'} onValueChange={setElevenLabsVoiceId}>
+                  <Select value={elevenLabsVoiceId || 'onwK4e9ZLuTAKqWW03F9'} onValueChange={setElevenLabsVoiceId}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {elevenLabsVoices.map((voice) => (
+                      <div className="px-2 py-1 text-xs font-semibold text-muted-foreground bg-muted/50">
+                        Recomendadas para Português
+                      </div>
+                      {elevenLabsVoices.filter(v => v.category === 'recomendada').map((voice) => (
+                        <SelectItem key={voice.id} value={voice.id}>
+                          <div>
+                            <p className="font-medium">{voice.name}</p>
+                            <p className="text-xs text-muted-foreground">{voice.description}</p>
+                          </div>
+                        </SelectItem>
+                      ))}
+                      <div className="px-2 py-1 text-xs font-semibold text-muted-foreground bg-muted/50 mt-1">
+                        Outras Vozes Multilíngues
+                      </div>
+                      {elevenLabsVoices.filter(v => v.category === 'multilingual').map((voice) => (
                         <SelectItem key={voice.id} value={voice.id}>
                           <div>
                             <p className="font-medium">{voice.name}</p>
@@ -316,6 +330,17 @@ export function PasswordCallConfigPanel({ config, onSave }: PasswordCallConfigPa
                       ))}
                     </SelectContent>
                   </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Modelo multilingual_v2 fala português automaticamente.{' '}
+                    <a 
+                      href="https://elevenlabs.io/app/voice-library" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline inline-flex items-center gap-1"
+                    >
+                      Ver mais vozes <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </p>
                 </div>
               </div>
             )}

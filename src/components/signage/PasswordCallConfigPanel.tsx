@@ -60,7 +60,6 @@ export function PasswordCallConfigPanel({ config, onSave }: PasswordCallConfigPa
   const [audioType, setAudioType] = useState<'beep' | 'web_speech' | 'elevenlabs'>(config?.audio_type ?? 'beep');
   const [voiceTextTemplate, setVoiceTextTemplate] = useState<'simple' | 'counter' | 'pickup'>(config?.voice_text_template ?? 'simple');
   const [elevenLabsVoiceId, setElevenLabsVoiceId] = useState(config?.elevenlabs_voice_id ?? '');
-  const [elevenLabsApiKey, setElevenLabsApiKey] = useState(config?.elevenlabs_api_key ?? '');
 
   // Sync com config externo
   useEffect(() => {
@@ -76,7 +75,6 @@ export function PasswordCallConfigPanel({ config, onSave }: PasswordCallConfigPa
       setAudioType(config.audio_type ?? 'beep');
       setVoiceTextTemplate(config.voice_text_template ?? 'simple');
       setElevenLabsVoiceId(config.elevenlabs_voice_id ?? '');
-      setElevenLabsApiKey(config.elevenlabs_api_key ?? '');
     }
   }, [config]);
 
@@ -94,7 +92,6 @@ export function PasswordCallConfigPanel({ config, onSave }: PasswordCallConfigPa
       audio_type: audioType,
       voice_text_template: voiceTextTemplate,
       elevenlabs_voice_id: elevenLabsVoiceId || null,
-      elevenlabs_api_key: elevenLabsApiKey || null,
     });
     setSaving(false);
   };
@@ -109,12 +106,7 @@ export function PasswordCallConfigPanel({ config, onSave }: PasswordCallConfigPa
       } else if (audioType === 'web_speech') {
         await speakWithWebSpeech(testText);
       } else if (audioType === 'elevenlabs') {
-        if (!elevenLabsApiKey) {
-          toast({ title: 'Configure a API key do ElevenLabs', variant: 'destructive' });
-          setTesting(false);
-          return;
-        }
-        await speakWithElevenLabs(testText, elevenLabsVoiceId || 'JBFqnCBsd6RMkjVDRZzb', elevenLabsApiKey);
+        await speakWithElevenLabs(testText, elevenLabsVoiceId || 'JBFqnCBsd6RMkjVDRZzb');
       }
       toast({ title: 'Áudio reproduzido!' });
     } catch (error) {
@@ -298,24 +290,13 @@ export function PasswordCallConfigPanel({ config, onSave }: PasswordCallConfigPa
             {/* Configurações ElevenLabs */}
             {audioType === 'elevenlabs' && (
               <div className="space-y-4 pt-2 border-t">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label>API Key ElevenLabs</Label>
-                    <a 
-                      href="https://elevenlabs.io/app/settings/api-keys" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-xs text-primary hover:underline flex items-center gap-1"
-                    >
-                      Obter key <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </div>
-                  <Input
-                    type="password"
-                    value={elevenLabsApiKey}
-                    onChange={(e) => setElevenLabsApiKey(e.target.value)}
-                    placeholder="sk_..."
-                  />
+                <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                  <p className="text-sm text-green-700 dark:text-green-400">
+                    ✓ API Key configurada de forma segura no servidor
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    A chave está protegida nas Secrets do Supabase e nunca é exposta ao navegador.
+                  </p>
                 </div>
 
                 <div className="space-y-2">

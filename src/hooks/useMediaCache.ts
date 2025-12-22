@@ -113,8 +113,60 @@ export const useMediaCache = () => {
     blobUrlsRef.current.clear();
   }, []);
 
+  // Sincronizar cache - remove mídias antigas e adiciona novas
+  const syncCache = useCallback(async (currentUrls: string[]) => {
+    if (currentUrls.length === 0) return;
+    
+    try {
+      const cache = await caches.open(MEDIA_CACHE_NAME);
+      const cachedRequests = await cache.keys();
+      
+      // Encontrar URLs que estão no cache mas não estão mais no banco
+      const urlsToRemove: string[] = [];
+      for (const request of cachedRequests) {
+        if (!currentUrls.includes(request.url)) {
+          urlsToRemove.push(request.url);
+          // Revogar blob URL se existir
+          if (blobUrlsRef.current.has(request.url)) {
+            URL.revokeObjectURL(blobUrlsRef.current.get(request.url)!);
+            blobUrlsRef.current.delete(request.url);
+          }
+        }
+      }
+      
+      // Remover mídias antigas do cache
+      for (const url of urlsToRemove) {
+        await cache.delete(url);
+        console.log('[MediaCache] 🗑️ Removido do cache:', url.split('/').pop());
+      }
+      
+      // Encontrar URLs que NÃO estão no cache (novas)
+      const cachedUrls = cachedRequests.map(r => r.url);
+      const urlsToCache = currentUrls.filter(url => !cachedUrls.includes(url));
+      
+      // Baixar novas mídias
+      if (urlsToCache.length > 0) {
+        console.log('[MediaCache] 📥 Novas mídias para cachear:', urlsToCache.length);
+        await preloadMedia(urlsToCache);
+      } else if (urlsToRemove.length === 0) {
+        console.log('[MediaCache] ✅ Cache já sincronizado, nada a fazer');
+      }
+      
+      console.log('[MediaCache] 🔄 Sync completo:', {
+        removidos: urlsToRemove.length,
+        novos: urlsToCache.length,
+        total: currentUrls.length
+      });
+    } catch (e) {
+      console.error('[MediaCache] Erro no sync:', e);
+      // Fallback: fazer preload normal
+      await preloadMedia(currentUrls);
+    }
+  }, [preloadMedia]);
+
   return { 
-    preloadMedia, 
+    preloadMedia,
+    syncCache,
     getCachedUrl, 
     clearCache, 
     cleanupBlobUrls,

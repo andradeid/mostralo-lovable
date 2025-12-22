@@ -30,7 +30,7 @@ export default function SignageDisplayPage() {
     storeId: store?.id || null, 
     config: passwordCallConfig 
   });
-  const { preloadMedia, getCachedUrl, cleanupBlobUrls, isCaching, progress } = useMediaCache();
+  const { syncCache, getCachedUrl, cleanupBlobUrls, isCaching, progress } = useMediaCache();
   
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -129,19 +129,19 @@ export default function SignageDisplayPage() {
     return () => clearInterval(interval);
   }, [config?.show_clock]);
 
-  // Pré-carregar mídias quando items carregarem
+  // Sincronizar cache quando items carregarem (remove antigas + adiciona novas)
   useEffect(() => {
     if (items.length > 0) {
       const urls = items.map(item => item.file_url);
-      console.log('[Signage] 📦 Iniciando pré-cache de', urls.length, 'mídias...');
-      preloadMedia(urls);
+      console.log('[Signage] 🔄 Sincronizando cache de', urls.length, 'mídias...');
+      syncCache(urls);
     }
     
     // Cleanup blob URLs ao desmontar
     return () => {
       cleanupBlobUrls();
     };
-  }, [items, preloadMedia, cleanupBlobUrls]);
+  }, [items, syncCache, cleanupBlobUrls]);
 
   // Carregar URL do cache quando mudar de item
   useEffect(() => {

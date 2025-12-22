@@ -1,10 +1,23 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Função para converter ArrayBuffer para base64 de forma segura
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  const chunkSize = 32768; // Processa em chunks para evitar stack overflow
+  
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
+    binary += String.fromCharCode.apply(null, Array.from(chunk));
+  }
+  
+  return btoa(binary);
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -27,7 +40,7 @@ serve(async (req) => {
       throw new Error("ELEVENLABS_API_KEY não configurada. Configure nas secrets do Supabase.");
     }
 
-    const selectedVoiceId = voiceId || "JBFqnCBsd6RMkjVDRZzb"; // George como padrão
+    const selectedVoiceId = voiceId || "onwK4e9ZLuTAKqWW03F9"; // Daniel como padrão (recomendado para pt-BR)
     
     console.log(`[TTS] Gerando áudio para: "${text.substring(0, 50)}..." com voz: ${selectedVoiceId}`);
 
@@ -42,6 +55,7 @@ serve(async (req) => {
         body: JSON.stringify({
           text,
           model_id: "eleven_multilingual_v2",
+          output_format: "mp3_44100_128",
           voice_settings: {
             stability: 0.5,
             similarity_boost: 0.75,
@@ -58,11 +72,11 @@ serve(async (req) => {
       throw new Error(`ElevenLabs API error: ${response.status} - ${errorText}`);
     }
 
-    // Converter buffer para base64
+    // Converter buffer para base64 de forma segura
     const audioBuffer = await response.arrayBuffer();
-    const base64Audio = base64Encode(audioBuffer);
+    const base64Audio = arrayBufferToBase64(audioBuffer);
 
-    console.log("TTS generated successfully");
+    console.log(`[TTS] Áudio gerado com sucesso. Tamanho: ${audioBuffer.byteLength} bytes`);
 
     return new Response(
       JSON.stringify({ audioContent: base64Audio }),

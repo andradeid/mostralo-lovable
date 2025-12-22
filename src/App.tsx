@@ -158,6 +158,8 @@ import SignageManagementPage from "./pages/admin/SignageManagementPage";
 import PasswordCallManagementPage from "./pages/admin/PasswordCallManagementPage";
 import SignageDisplayPage from "./pages/public/SignageDisplayPage";
 import { UpdatesRedirect } from "./components/system-updates/UpdatesRedirect";
+import { useLocation } from "react-router-dom";
+
 const queryClient = new QueryClient();
 
 // Componente interno para controlar o tema baseado na rota
@@ -166,37 +168,47 @@ function ThemeController() {
   return null;
 }
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-      <AuthProvider>
-        <CartProvider>
-          <TooltipProvider>
-            <BrowserRouter
-              future={{
-                v7_startTransition: true,
-                v7_relativeSplatPath: true,
-              }}
-            >
-              <Toaster />
-              <Sonner />
-              <ThemeController />
-              <TermsGuard>
-              <CustomDomainRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/funcionalidades" element={<FeaturesPage />} />
-<Route path="/para-feirantes" element={<FeirantesPage />} />
-            <Route path="/para-lojistas" element={<LojistasLocaisPage />} />
-            <Route path="/para-farmacias" element={<FarmaciasPage />} />
-            <Route path="/para-suplementos" element={<SuplementosPage />} />
-            <Route path="/suplementos" element={<SuplementosLandingPage />} />
-            <Route path="/proposta-biomundo" element={<BioMundoPropostaPage />} />
-            <Route path="/para-supermercados" element={<SupermercadosPage />} />
-            <Route path="/para-acougues" element={<AcouguesPage />} />
-            <Route path="/guia-vendedor" element={<SalespersonSalesGuidePage />} />
-            <Route path="/painel/:slug" element={<SignageDisplayPage />} />
-            <Route path="/sitemap.xml" element={<Sitemap />} />
+// Rotas 100% públicas que NÃO passam pelo AuthProvider
+function PublicRoutesHandler() {
+  const location = useLocation();
+  
+  // Padrões de rotas completamente públicas (sem auth)
+  if (location.pathname.startsWith('/painel/')) {
+    return (
+      <Routes>
+        <Route path="/painel/:slug" element={<SignageDisplayPage />} />
+      </Routes>
+    );
+  }
+  
+  // Todas as outras rotas passam pelos providers normais
+  return <MainAppWithProviders />;
+}
+
+// App principal com todos os providers de autenticação
+function MainAppWithProviders() {
+  return (
+    <AuthProvider>
+      <CartProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <ThemeController />
+          <TermsGuard>
+            <CustomDomainRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/funcionalidades" element={<FeaturesPage />} />
+                <Route path="/para-feirantes" element={<FeirantesPage />} />
+                <Route path="/para-lojistas" element={<LojistasLocaisPage />} />
+                <Route path="/para-farmacias" element={<FarmaciasPage />} />
+                <Route path="/para-suplementos" element={<SuplementosPage />} />
+                <Route path="/suplementos" element={<SuplementosLandingPage />} />
+                <Route path="/proposta-biomundo" element={<BioMundoPropostaPage />} />
+                <Route path="/para-supermercados" element={<SupermercadosPage />} />
+                <Route path="/para-acougues" element={<AcouguesPage />} />
+                <Route path="/guia-vendedor" element={<SalespersonSalesGuidePage />} />
+                <Route path="/sitemap.xml" element={<Sitemap />} />
             <Route path="/navegar" element={<NavigatePage />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/signup" element={<SignUp />} />
@@ -933,13 +945,27 @@ const App = () => (
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
-          </Routes>
-          </CustomDomainRouter>
-              </TermsGuard>
-        </BrowserRouter>
-      </TooltipProvider>
-    </CartProvider>
+              </Routes>
+            </CustomDomainRouter>
+          </TermsGuard>
+        </TooltipProvider>
+      </CartProvider>
     </AuthProvider>
+  );
+}
+
+// Componente App principal
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+      <BrowserRouter
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true,
+        }}
+      >
+        <PublicRoutesHandler />
+      </BrowserRouter>
     </ThemeProvider>
   </QueryClientProvider>
 );

@@ -174,53 +174,52 @@ export const speakWithElevenLabs = async (
     throw new Error('Áudio recebido é muito pequeno, pode estar corrompido');
   }
 
-  // Converter base64 para Blob (evita bloqueio de segurança do navegador)
-  console.log('[ElevenLabs] Convertendo base64 para Blob...');
+  // Converter base64 para ArrayBuffer usando AudioContext (mais compatível)
+  console.log('[ElevenLabs] Decodificando base64 para ArrayBuffer...');
   const binaryString = atob(audioContent);
   const bytes = new Uint8Array(binaryString.length);
   for (let i = 0; i < binaryString.length; i++) {
     bytes[i] = binaryString.charCodeAt(i);
   }
   
-  const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
-  const audioUrl = URL.createObjectURL(audioBlob);
-  console.log('[ElevenLabs] Blob URL criada:', audioUrl);
+  // Usar AudioContext para reprodução (evita restrições de URL)
+  const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+  if (!AudioContextClass) {
+    throw new Error('AudioContext não suportado neste navegador');
+  }
   
-  const audio = new Audio();
+  const audioContext = new AudioContextClass();
+  console.log('[ElevenLabs] AudioContext criado, decodificando áudio...');
   
-  return new Promise((resolve, reject) => {
-    // Usar canplaythrough para garantir que o áudio está pronto
-    audio.oncanplaythrough = () => {
-      console.log('[ElevenLabs] Áudio pronto para reprodução');
-      audio.play()
-        .then(() => console.log('[ElevenLabs] Reprodução iniciada'))
-        .catch((playError) => {
-          console.error('[ElevenLabs] Erro ao iniciar reprodução:', playError);
-          URL.revokeObjectURL(audioUrl); // Limpar memória em caso de erro
-          reject(new Error(`Falha ao reproduzir: ${playError.message || 'Verifique o volume do dispositivo'}`));
-        });
-    };
+  try {
+    const audioBuffer = await audioContext.decodeAudioData(bytes.buffer);
+    console.log('[ElevenLabs] Áudio decodificado. Duração:', audioBuffer.duration.toFixed(2), 'segundos');
     
-    audio.onended = () => {
-      console.log('[ElevenLabs] Reprodução finalizada com sucesso');
-      URL.revokeObjectURL(audioUrl); // Limpar memória após reprodução
-      resolve();
-    };
+    const source = audioContext.createBufferSource();
+    source.buffer = audioBuffer;
+    source.connect(audioContext.destination);
     
-    audio.onerror = () => {
-      const mediaError = audio.error;
-      const errorMessage = mediaError 
-        ? `Código ${mediaError.code}: ${mediaError.message || getMediaErrorMessage(mediaError.code)}`
-        : 'Erro desconhecido na reprodução';
-      console.error('[ElevenLabs] Erro de mídia:', errorMessage);
-      URL.revokeObjectURL(audioUrl); // Limpar memória em caso de erro
-      reject(new Error(`Erro ao reproduzir áudio: ${errorMessage}`));
-    };
-
-    // Definir src após configurar os handlers
-    audio.src = audioUrl;
-    audio.load();
-  });
+    return new Promise<void>((resolve, reject) => {
+      source.onended = () => {
+        console.log('[ElevenLabs] Reprodução finalizada com sucesso');
+        audioContext.close();
+        resolve();
+      };
+      
+      try {
+        source.start(0);
+        console.log('[ElevenLabs] Reprodução iniciada via AudioContext');
+      } catch (playError: any) {
+        console.error('[ElevenLabs] Erro ao iniciar reprodução:', playError);
+        audioContext.close();
+        reject(new Error(`Falha ao reproduzir: ${playError.message || 'Erro desconhecido'}`));
+      }
+    });
+  } catch (decodeError: any) {
+    console.error('[ElevenLabs] Erro ao decodificar áudio:', decodeError);
+    audioContext.close();
+    throw new Error(`Erro ao decodificar áudio: ${decodeError.message || 'Formato inválido'}`);
+  }
 };
 
 /**

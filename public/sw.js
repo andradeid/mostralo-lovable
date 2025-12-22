@@ -2,6 +2,7 @@ const CACHE_NAME = 'mostralo-v2';
 const RUNTIME_CACHE = 'mostralo-runtime-v2';
 const IMAGE_CACHE = 'mostralo-images-v2';
 const FONT_CACHE = 'mostralo-fonts-v2';
+const MEDIA_CACHE = 'mostralo-media-v1';
 
 // Workbox manifest injection point (necessário para vite-plugin-pwa)
 // ✅ Proteção contra erro no Safari/iPhones onde __WB_MANIFEST pode não existir
@@ -67,10 +68,11 @@ self.addEventListener('activate', (event) => {
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME && 
+        if (cacheName !== CACHE_NAME && 
               cacheName !== RUNTIME_CACHE && 
               cacheName !== IMAGE_CACHE &&
-              cacheName !== FONT_CACHE) {
+              cacheName !== FONT_CACHE &&
+              cacheName !== MEDIA_CACHE) {
             console.log('[SW] Removendo cache antigo:', cacheName);
             return caches.delete(cacheName);
           }
@@ -101,6 +103,12 @@ self.addEventListener('fetch', (event) => {
     // Imagens - Cache First com fallback
     if (request.destination === 'image' || url.pathname.match(/\.(png|jpg|jpeg|svg|gif|webp|ico)$/)) {
       event.respondWith(cacheFirst(request, IMAGE_CACHE));
+      return;
+    }
+
+    // Mídias do Supabase Storage (vídeos) - Cache First
+    if (url.hostname.includes('supabase.co') && url.pathname.match(/\.(mp4|webm|mov|avi|mkv)$/i)) {
+      event.respondWith(cacheFirst(request, MEDIA_CACHE));
       return;
     }
 

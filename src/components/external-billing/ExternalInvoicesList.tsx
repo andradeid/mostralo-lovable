@@ -50,7 +50,9 @@ import {
   DollarSign,
   RefreshCw,
   Receipt,
-  MessageCircle
+  MessageCircle,
+  Link2,
+  Eye
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -85,6 +87,14 @@ export function ExternalInvoicesList() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [deletingInvoice, setDeletingInvoice] = useState<ExternalInvoice | null>(null);
   const [sendingReceiptInvoice, setSendingReceiptInvoice] = useState<ExternalInvoice | null>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<ExternalInvoice | null>(null);
+
+  // Extract EndToEndId from notes
+  const extractTransactionId = (notes: string | null): string | null => {
+    if (!notes) return null;
+    const match = notes.match(/EndToEndId:\s*([A-Za-z0-9]+)/);
+    return match ? match[1] : null;
+  };
 
   // Filter invoices
   const filteredInvoices = useMemo(() => {
@@ -364,6 +374,7 @@ export function ExternalInvoicesList() {
                   onDelete={setDeletingInvoice}
                   onCopyLink={handleCopyLink}
                   onSendWhatsApp={setSendingReceiptInvoice}
+                  onViewDetails={setSelectedInvoice}
                   formatCurrency={formatCurrency}
                 />
               ))}
@@ -413,6 +424,154 @@ export function ExternalInvoicesList() {
         onOpenChange={(open) => !open && setSendingReceiptInvoice(null)}
         invoice={sendingReceiptInvoice}
       />
+
+      {/* Invoice Details Modal */}
+      <Dialog open={!!selectedInvoice} onOpenChange={() => setSelectedInvoice(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Detalhes da Fatura</DialogTitle>
+            <DialogDescription>
+              Informações completas da fatura {selectedInvoice?.invoice_number}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedInvoice && (
+            <div className="space-y-4">
+              {/* Grid de informações básicas */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Cliente</p>
+                  <p className="font-medium">{selectedInvoice.client?.name || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Contato</p>
+                  <p className="font-medium">{selectedInvoice.client?.phone || selectedInvoice.client?.email || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Serviço</p>
+                  <p className="font-medium">{selectedInvoice.service?.name || selectedInvoice.description}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Valor</p>
+                  <p className="font-medium text-lg">{formatCurrency(selectedInvoice.amount)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Vencimento</p>
+                  <p className="font-medium">
+                    {format(new Date(selectedInvoice.due_date), "dd/MM/yyyy", { locale: ptBR })}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Status</p>
+                  <Badge variant={STATUS_CONFIG[selectedInvoice.payment_status]?.variant}>
+                    {STATUS_CONFIG[selectedInvoice.payment_status]?.label}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Seção de Recorrência */}
+              {selectedInvoice.is_recurring && (
+                <div className="p-4 rounded-lg border border-blue-500/30 bg-blue-500/5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <RefreshCw className="w-5 h-5 text-blue-500" />
+                    <p className="font-semibold text-blue-600 dark:text-blue-400">Fatura Recorrente</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Tipo</p>
+                      <p className="font-medium">{RECURRENCE_LABELS[selectedInvoice.recurrence_type || 'once']}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Parcela</p>
+                      <p className="font-medium">
+                        {selectedInvoice.recurrence_count 
+                          ? `${selectedInvoice.recurrence_current}/${selectedInvoice.recurrence_count}`
+                          : `${selectedInvoice.recurrence_current}/∞`
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ID de Transação (EndToEndId) */}
+              {extractTransactionId(selectedInvoice.notes) && (
+                <div className="p-3 bg-muted/50 rounded-lg">
+                  <p className="text-sm text-muted-foreground mb-1">ID de Transação (EndToEndId)</p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <code className="text-xs font-mono bg-background px-2 py-1 rounded break-all">
+                      {extractTransactionId(selectedInvoice.notes)}
+                    </code>
+                    <Button variant="outline" size="sm" onClick={() => {
+                      navigator.clipboard.writeText(extractTransactionId(selectedInvoice.notes)!);
+                      toast.success('ID copiado!');
+                    }}>
+                      <Copy className="h-3 w-3 mr-1" />
+                      Copiar
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Data do Pagamento */}
+              {selectedInvoice.paid_at && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Pago em</p>
+                  <p className="text-sm font-medium">
+                    {format(new Date(selectedInvoice.paid_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                  </p>
+                </div>
+              )}
+
+              {/* Observações */}
+              {selectedInvoice.notes && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Observações</p>
+                  <p className="text-sm whitespace-pre-wrap">{selectedInvoice.notes}</p>
+                </div>
+              )}
+
+              {/* Links Úteis */}
+              <div className="p-3 bg-blue-50 dark:bg-blue-500/10 rounded-lg border border-blue-200 dark:border-blue-500/30">
+                <p className="text-sm font-medium text-blue-700 dark:text-blue-400 mb-3 flex items-center gap-2">
+                  <Link2 className="w-4 h-4" />
+                  Links Úteis
+                </p>
+                <div className="space-y-2">
+                  {/* Link da Fatura */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm text-muted-foreground min-w-[60px]">Fatura:</span>
+                    <Button variant="outline" size="sm" onClick={() => handleCopyLink(selectedInvoice.id)}>
+                      <Receipt className="h-3 w-3 mr-1" />
+                      Copiar Link
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => window.open(getPublicInvoiceUrl(selectedInvoice.id), '_blank')}>
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  
+                  {/* Link do Recibo - apenas se pago */}
+                  {selectedInvoice.payment_status === 'paid' && (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm text-muted-foreground min-w-[60px]">Recibo:</span>
+                      <Button variant="outline" size="sm" onClick={() => {
+                        navigator.clipboard.writeText(`${window.location.origin}/external-receipt/${selectedInvoice.id}`);
+                        toast.success('Link do recibo copiado!');
+                      }}>
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Copiar Link
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => window.open(`/external-receipt/${selectedInvoice.id}`, '_blank')}>
+                        <ExternalLink className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -425,10 +584,11 @@ interface InvoiceCardProps {
   onDelete: (invoice: ExternalInvoice) => void;
   onCopyLink: (invoiceId: string) => void;
   onSendWhatsApp: (invoice: ExternalInvoice) => void;
+  onViewDetails: (invoice: ExternalInvoice) => void;
   formatCurrency: (value: number) => string;
 }
 
-function InvoiceCard({ invoice, onMarkAsPaid, onCancel, onDelete, onCopyLink, onSendWhatsApp, formatCurrency }: InvoiceCardProps) {
+function InvoiceCard({ invoice, onMarkAsPaid, onCancel, onDelete, onCopyLink, onSendWhatsApp, onViewDetails, formatCurrency }: InvoiceCardProps) {
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
@@ -537,6 +697,10 @@ function InvoiceCard({ invoice, onMarkAsPaid, onCancel, onDelete, onCopyLink, on
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onViewDetails(invoice)}>
+                <Eye className="h-4 w-4 mr-2" />
+                Ver Detalhes
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onCopyLink(invoice.id)}>
                 <Copy className="h-4 w-4 mr-2" />
                 Copiar Link

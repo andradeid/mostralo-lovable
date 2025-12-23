@@ -251,3 +251,6 @@ verify_jwt = false
 
 [functions.update-external-invoice-status]
 verify_jwt = false
+
+[functions.send-external-invoice-whatsapp]
+verify_jwt = true

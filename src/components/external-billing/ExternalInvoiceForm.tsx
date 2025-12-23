@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, CalendarIcon, Plus } from "lucide-react";
+import { Loader2, CalendarIcon, Plus, MessageCircle, Phone } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -40,6 +40,10 @@ import {
 } from "@/components/ui/dialog";
 import { ExternalClientForm } from "./ExternalClientForm";
 import { ExternalServiceForm } from "./ExternalServiceForm";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const invoiceFormSchema = z.object({
   client_id: z.string().min(1, "Selecione um cliente"),
@@ -65,6 +69,12 @@ export function ExternalInvoiceForm({ onClose }: ExternalInvoiceFormProps) {
   const { createInvoice } = useExternalInvoices();
   const [isClientFormOpen, setIsClientFormOpen] = useState(false);
   const [isServiceFormOpen, setIsServiceFormOpen] = useState(false);
+  
+  // WhatsApp states
+  const [sendWhatsApp, setSendWhatsApp] = useState(false);
+  const [whatsappPhone, setWhatsappPhone] = useState("");
+  const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
+  const [masterWhatsAppStatus, setMasterWhatsAppStatus] = useState<string | null>(null);
 
   const form = useForm<InvoiceFormData>({
     resolver: zodResolver(invoiceFormSchema),
@@ -83,6 +93,43 @@ export function ExternalInvoiceForm({ onClose }: ExternalInvoiceFormProps) {
 
   const isRecurring = form.watch("is_recurring");
   const selectedServiceId = form.watch("service_id");
+  const selectedClientId = form.watch("client_id");
+  const watchedDescription = form.watch("description");
+  const watchedAmount = form.watch("amount");
+  const watchedDueDate = form.watch("due_date");
+
+  // Fetch WhatsApp Master status
+  useEffect(() => {
+    const fetchMasterStatus = async () => {
+      const { data } = await supabase
+        .from('master_whatsapp_config')
+        .select('instance_status')
+        .limit(1)
+        .single();
+      setMasterWhatsAppStatus(data?.instance_status || null);
+    };
+    fetchMasterStatus();
+  }, []);
+
+  // Auto-fill phone when client is selected
+  useEffect(() => {
+    if (selectedClientId) {
+      const client = clients.find((c) => c.id === selectedClientId);
+      if (client?.phone) {
+        // Format phone for display
+        const phone = client.phone.replace(/\D/g, '');
+        if (phone.length === 11) {
+          setWhatsappPhone(`(${phone.slice(0,2)}) ${phone.slice(2,7)}-${phone.slice(7)}`);
+        } else if (phone.length === 10) {
+          setWhatsappPhone(`(${phone.slice(0,2)}) ${phone.slice(2,6)}-${phone.slice(6)}`);
+        } else {
+          setWhatsappPhone(client.phone);
+        }
+      } else {
+        setWhatsappPhone("");
+      }
+    }
+  }, [selectedClientId, clients]);
 
   // Auto-fill description and amount when service is selected
   useEffect(() => {
@@ -95,21 +142,52 @@ export function ExternalInvoiceForm({ onClose }: ExternalInvoiceFormProps) {
     }
   }, [selectedServiceId, services, form]);
 
-  const isSubmitting = createInvoice.isPending;
+  const isSubmitting = createInvoice.isPending || sendingWhatsApp;
 
   const onSubmit = async (data: InvoiceFormData) => {
-    await createInvoice.mutateAsync({
-      client_id: data.client_id,
-      service_id: data.service_id || undefined,
-      description: data.description,
-      amount: data.amount,
-      due_date: format(data.due_date, "yyyy-MM-dd"),
-      is_recurring: data.is_recurring,
-      recurrence_type: data.is_recurring ? data.recurrence_type : undefined,
-      recurrence_count: data.is_recurring && data.recurrence_count ? data.recurrence_count : null,
-      notes: data.notes,
-    });
-    onClose();
+    try {
+      const invoice = await createInvoice.mutateAsync({
+        client_id: data.client_id,
+        service_id: data.service_id || undefined,
+        description: data.description,
+        amount: data.amount,
+        due_date: format(data.due_date, "yyyy-MM-dd"),
+        is_recurring: data.is_recurring,
+        recurrence_type: data.is_recurring ? data.recurrence_type : undefined,
+        recurrence_count: data.is_recurring && data.recurrence_count ? data.recurrence_count : null,
+        notes: data.notes,
+      });
+
+      // Send WhatsApp if enabled
+      if (sendWhatsApp && whatsappPhone && invoice?.id) {
+        setSendingWhatsApp(true);
+        try {
+          const normalizedPhone = whatsappPhone.replace(/\D/g, '');
+          const { error } = await supabase.functions.invoke('send-external-invoice-whatsapp', {
+            body: {
+              invoice_id: invoice.id,
+              phone_number: normalizedPhone
+            }
+          });
+          
+          if (error) {
+            console.error('WhatsApp error:', error);
+            toast.error('Fatura criada, mas erro ao enviar WhatsApp');
+          } else {
+            toast.success('📱 Link de pagamento enviado por WhatsApp!');
+          }
+        } catch (err) {
+          console.error('WhatsApp send error:', err);
+          toast.error('Fatura criada, mas erro ao enviar WhatsApp');
+        } finally {
+          setSendingWhatsApp(false);
+        }
+      }
+
+      onClose();
+    } catch (error) {
+      console.error('Error creating invoice:', error);
+    }
   };
 
   const activeClients = clients.filter((c) => c.is_active);
@@ -366,6 +444,91 @@ export function ExternalInvoiceForm({ onClose }: ExternalInvoiceFormProps) {
               </FormItem>
             )}
           />
+
+          {/* WhatsApp Section */}
+          <Card className={cn(
+            "border-2 transition-all",
+            sendWhatsApp 
+              ? "border-green-500 bg-green-500/5" 
+              : "border-dashed border-muted-foreground/30"
+          )}>
+            <CardHeader className="pb-3">
+              <div className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  checked={sendWhatsApp}
+                  onChange={(e) => setSendWhatsApp(e.target.checked)}
+                  className="h-5 w-5 accent-green-500 rounded"
+                  disabled={masterWhatsAppStatus !== 'connected'}
+                />
+                <div className="flex-1">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <MessageCircle className="w-5 h-5 text-green-500" />
+                    Enviar Link por WhatsApp
+                  </CardTitle>
+                  <CardDescription className="text-xs mt-0.5">
+                    Enviar link de pagamento automaticamente via WhatsApp Master
+                  </CardDescription>
+                </div>
+                <Badge 
+                  variant={masterWhatsAppStatus === 'connected' ? 'default' : 'secondary'}
+                  className={cn(
+                    masterWhatsAppStatus === 'connected' 
+                      ? "bg-green-500 hover:bg-green-600" 
+                      : "bg-muted"
+                  )}
+                >
+                  {masterWhatsAppStatus === 'connected' ? '✅ Conectado' : '❌ Desconectado'}
+                </Badge>
+              </div>
+            </CardHeader>
+
+            {sendWhatsApp && masterWhatsAppStatus === 'connected' && (
+              <CardContent className="space-y-4">
+                {/* Phone input */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Phone className="w-4 h-4" />
+                    Número do WhatsApp *
+                  </label>
+                  <Input
+                    value={whatsappPhone}
+                    onChange={(e) => setWhatsappPhone(e.target.value)}
+                    placeholder="(11) 99999-9999"
+                    className="font-mono"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Preenchido automaticamente com o telefone do cliente
+                  </p>
+                </div>
+
+                {/* Message preview */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">📝 Preview da mensagem:</label>
+                  <div className="p-3 rounded-lg bg-muted/50 border text-sm whitespace-pre-line">
+                    {`Olá${selectedClientId ? ` ${clients.find(c => c.id === selectedClientId)?.name?.split(' ')[0] || ''}` : ''}! 👋
+
+Sua fatura está disponível:
+
+👤 Cliente: ${clients.find(c => c.id === selectedClientId)?.name || '[Nome do Cliente]'}
+📋 Serviço: ${watchedDescription || '[Descrição]'}
+💰 Valor: ${watchedAmount ? watchedAmount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00'}
+📅 Vencimento: ${watchedDueDate ? format(watchedDueDate, 'dd/MM/yyyy', { locale: ptBR }) : '[Data]'}
+
+💳 Pague agora pelo link:
+[Link será gerado automaticamente]
+
+O QR Code PIX será gerado automaticamente! 🚀`}
+                  </div>
+                </div>
+
+                {/* Info */}
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  📱 Após criar a fatura, o link será enviado automaticamente
+                </p>
+              </CardContent>
+            )}
+          </Card>
 
           <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={onClose}>

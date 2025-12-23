@@ -41,6 +41,7 @@ const RECURRENCE_OPTIONS = [
 
 export default function Sentinela() {
   const { storeId } = useStoreAccess();
+  const { hasModule, loading: modulesLoading } = useStoreModules(storeId || null);
   const { 
     storeConfig, 
     rules, 
@@ -155,10 +156,30 @@ export default function Sentinela() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || modulesLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <RefreshCw className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  // Verificar se a loja tem acesso ao módulo SENTINELA
+  if (!hasModule('sentinela')) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Card className="max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto p-3 rounded-full bg-destructive/10 w-fit mb-2">
+              <AlertCircle className="w-8 h-8 text-destructive" />
+            </div>
+            <CardTitle>Módulo Bloqueado</CardTitle>
+            <CardDescription>
+              O módulo SENTINELA não está disponível para esta loja. 
+              Entre em contato com o suporte para mais informações.
+            </CardDescription>
+          </CardHeader>
+        </Card>
       </div>
     );
   }

@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { CreditCard, Calendar, DollarSign, Upload, FileText, Copy, Check, Clock, AlertCircle, CheckCircle2, QrCode, Gift, Tag, X, Loader2, RefreshCw } from "lucide-react";
+import { CreditCard, Calendar, DollarSign, Upload, FileText, Copy, Check, Clock, AlertCircle, CheckCircle2, QrCode, Gift, Tag, X, Loader2, RefreshCw, Receipt, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
@@ -42,6 +42,7 @@ interface Invoice {
   pix_qr_code: string | null;
   payment_link: string | null;
   notes: string | null;
+  pix_txid: string | null;
 }
 
 interface PaymentConfig {
@@ -1188,6 +1189,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                   <TableHead>Valor</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>ID Transação</TableHead>
+                  <TableHead>Links</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -1209,19 +1211,20 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                     <TableCell>
                       {(() => {
                         const endToEndId = extractEndToEndId(invoice.notes);
-                        if (!endToEndId) return <span className="text-muted-foreground text-xs">-</span>;
+                        const transactionId = endToEndId || invoice.pix_txid;
+                        if (!transactionId) return <span className="text-muted-foreground text-xs">-</span>;
                         return (
                           <div className="flex items-center gap-1">
-                            <span className="font-mono text-xs" title={endToEndId}>
-                              ...{endToEndId.slice(-12)}
+                            <span className="font-mono text-xs" title={transactionId}>
+                              ...{transactionId.slice(-12)}
                             </span>
                             <Button
                               size="icon"
                               variant="ghost"
                               className="h-6 w-6"
-                              onClick={() => handleCopyId(endToEndId)}
+                              onClick={() => handleCopyId(transactionId)}
                             >
-                              {copiedId === endToEndId ? (
+                              {copiedId === transactionId ? (
                                 <Check className="h-3 w-3 text-green-500" />
                               ) : (
                                 <Copy className="h-3 w-3" />
@@ -1230,6 +1233,34 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                           </div>
                         );
                       })()}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7"
+                          asChild
+                          title="Ver fatura"
+                        >
+                          <a href={`/invoice-payment/${invoice.id}`} target="_blank" rel="noopener noreferrer">
+                            <FileText className="h-4 w-4" />
+                          </a>
+                        </Button>
+                        {invoice.payment_status === 'paid' && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7"
+                            asChild
+                            title="Ver recibo"
+                          >
+                            <a href={`/receipt/${invoice.id}`} target="_blank" rel="noopener noreferrer">
+                              <Receipt className="h-4 w-4" />
+                            </a>
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                       {invoice.payment_status !== 'paid' && (
@@ -1250,7 +1281,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                 {/* Empty state */}
                 {invoices.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                       Nenhum registro encontrado
                     </TableCell>
                   </TableRow>

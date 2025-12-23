@@ -237,6 +237,9 @@ verify_jwt = false
 [functions.get-invoice-receipt]
 verify_jwt = false
 
+[functions.get-external-invoice-receipt]
+verify_jwt = false
+
 [functions.efi-create-external-invoice-pix]
 verify_jwt = false
 

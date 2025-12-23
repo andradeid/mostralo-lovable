@@ -37,13 +37,14 @@ serve(async (req) => {
 
     console.log(`📱 Enviando notificação de ${type} para loja ${store_id}`);
 
-    // Buscar dados da loja e do dono
+    // Buscar dados da loja e do dono (incluindo custom_domain)
     const { data: store, error: storeError } = await supabase
       .from('stores')
       .select(`
         id,
         name,
         owner_id,
+        custom_domain,
         profiles:owner_id (
           full_name,
           phone
@@ -116,8 +117,17 @@ serve(async (req) => {
     const formattedAmount = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
     const formattedDate = new Date(expiration_date).toLocaleDateString('pt-BR');
 
-    // Gerar link do recibo se tiver invoice_id
-    const appUrl = 'https://mostralo.lovable.app';
+    // Gerar link do recibo usando domínio customizado ou fallback para lovable
+    const getAppUrl = () => {
+      if (store.custom_domain) {
+        // Usar domínio customizado (ex: mostralo.com.br, mostralo.me)
+        return `https://${store.custom_domain}`;
+      }
+      // Fallback para domínio do Lovable
+      return 'https://mostralo.lovable.app';
+    };
+    
+    const appUrl = getAppUrl();
     const receiptLink = invoice_id ? `${appUrl}/receipt/${invoice_id}` : null;
 
     // Montar mensagem de confirmação

@@ -298,8 +298,8 @@ serve(async (req) => {
     // A linha digitável é o barcode formatado (com espaços)
     const linhaDigitavel = boletoData.barcode || '';
     
-    // Para PDF, usar o link direto de download ou o billet_link como fallback
-    const pdfUrl = boletoData.pdf?.charge || boletoData.link || boletoData.billet_link || '';
+    // Para visualização, usar billet_link (página da Efí) que é mais confiável
+    const pdfUrl = boletoData.billet_link || boletoData.link || boletoData.pdf?.charge || '';
     const chargeId = boletoData.charge_id;
 
     // Calcular data de expiração do boleto

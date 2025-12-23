@@ -96,49 +96,31 @@ export default function ExternalInvoicePage() {
     setError(null);
     
     try {
-      const { data, error: fetchError } = await supabase
-        .from("external_invoices")
-        .select(`
-          id,
-          invoice_number,
-          amount,
-          description,
-          due_date,
-          payment_status,
-          paid_at,
-          notes,
-          pix_txid,
-          pix_copia_cola,
-          pix_qrcode_base64,
-          pix_expires_at,
-          boleto_codigo_barras,
-          boleto_linha_digitavel,
-          boleto_pdf_url,
-          boleto_expires_at,
-          client:external_clients(name, email, phone, document, address_street, address_number, address_neighborhood, address_city, address_state, address_zipcode),
-          service:external_services(name)
-        `)
-        .eq("id", invoiceId)
-        .single();
+      // Usar edge function para buscar dados completos (inclui cliente via service_role)
+      const { data, error: fetchError } = await supabase.functions.invoke('get-external-invoice', {
+        body: { invoice_id: invoiceId }
+      });
 
-      if (fetchError || !data) {
+      if (fetchError || !data?.invoice) {
+        console.error("Erro ao buscar fatura:", fetchError);
         setError("Fatura não encontrada");
         return;
       }
 
-      setInvoice(data as unknown as ExternalInvoiceData);
+      const invoiceData = data.invoice as ExternalInvoiceData;
+      setInvoice(invoiceData);
       
       // Se já tem PIX ativo e não expirado, restaurar
-      if (data.pix_txid && data.pix_copia_cola && data.pix_expires_at) {
-        const expiresAt = new Date(data.pix_expires_at).getTime();
+      if (invoiceData.pix_txid && invoiceData.pix_copia_cola && invoiceData.pix_expires_at) {
+        const expiresAt = new Date(invoiceData.pix_expires_at).getTime();
         const now = Date.now();
         const remaining = Math.floor((expiresAt - now) / 1000);
         
         if (remaining > 0) {
           setChargeData({
-            txid: data.pix_txid,
-            pixCopiaECola: data.pix_copia_cola,
-            qrCodeBase64: data.pix_qrcode_base64,
+            txid: invoiceData.pix_txid,
+            pixCopiaECola: invoiceData.pix_copia_cola,
+            qrCodeBase64: invoiceData.pix_qrcode_base64,
             expiracao: remaining,
           });
           setTimeRemaining(remaining);
@@ -146,17 +128,17 @@ export default function ExternalInvoicePage() {
       }
 
       // Se já tem Boleto gerado, restaurar
-      if (data.boleto_linha_digitavel && data.boleto_pdf_url) {
+      if (invoiceData.boleto_linha_digitavel && invoiceData.boleto_pdf_url) {
         setBoletoData({
-          codigo_barras: data.boleto_codigo_barras || '',
-          linha_digitavel: data.boleto_linha_digitavel,
-          pdf_url: data.boleto_pdf_url,
-          expires_at: data.boleto_expires_at || data.due_date,
+          codigo_barras: invoiceData.boleto_codigo_barras || '',
+          linha_digitavel: invoiceData.boleto_linha_digitavel,
+          pdf_url: invoiceData.boleto_pdf_url,
+          expires_at: invoiceData.boleto_expires_at || invoiceData.due_date,
         });
       }
       
       // Se já está pago
-      if (data.payment_status === "paid") {
+      if (invoiceData.payment_status === "paid") {
         setPaymentStatus("paid");
       }
     } catch (err) {

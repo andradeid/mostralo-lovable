@@ -58,7 +58,9 @@ import {
   Image as ImageIcon,
   Utensils,
   Code,
-  QrCode
+  QrCode,
+  Monitor,
+  Megaphone
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -1212,13 +1214,55 @@ const Index = () => {
                   <Badge className="bg-emerald-600">✅ INCLUSO</Badge>
                 </div>
               </div>
+
+              {/* Painel Digital (TV) */}
+              <div className="grid grid-cols-5 border-t">
+                <div className="p-4 font-medium border-r flex items-center gap-2">
+                  <Monitor className="w-4 h-4 text-purple-600" />
+                  Painel Digital (TV)
+                </div>
+                <div className="p-4 text-center border-r text-destructive">❌</div>
+                <div className="p-4 text-center border-r text-destructive">❌</div>
+                <div className="p-4 text-center border-r text-destructive">❌</div>
+                <div className="p-4 text-center bg-green-50 dark:bg-green-950/20">
+                  <Badge className="bg-purple-600">✅ PREMIUM</Badge>
+                </div>
+              </div>
+
+              {/* Chamada de Senhas + IA */}
+              <div className="grid grid-cols-5 border-t bg-muted/20">
+                <div className="p-4 font-medium border-r flex items-center gap-2">
+                  <Megaphone className="w-4 h-4 text-amber-600" />
+                  Chamada de Senhas + IA
+                </div>
+                <div className="p-4 text-center border-r text-destructive">❌</div>
+                <div className="p-4 text-center border-r text-destructive">❌</div>
+                <div className="p-4 text-center border-r text-destructive">❌</div>
+                <div className="p-4 text-center bg-green-50 dark:bg-green-950/20">
+                  <Badge className="bg-amber-600">✅ ElevenLabs</Badge>
+                </div>
+              </div>
+
+              {/* SENTINELA - Recompra */}
+              <div className="grid grid-cols-5 border-t">
+                <div className="p-4 font-medium border-r flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-orange-500" />
+                  SENTINELA - Recompra
+                </div>
+                <div className="p-4 text-center border-r text-destructive">❌</div>
+                <div className="p-4 text-center border-r text-destructive">❌</div>
+                <div className="p-4 text-center border-r text-destructive">❌</div>
+                <div className="p-4 text-center bg-green-50 dark:bg-green-950/20">
+                  <Badge className="bg-orange-500">✅ PREMIUM</Badge>
+                </div>
+              </div>
             </div>
           </div>
 
           {/* CTA */}
           <div className="text-center mt-12">
             <p className="text-xl font-bold mb-6 text-primary">
-              🚀 Único no Brasil: Delivery + Marketing + Financeiro Automático
+              🚀 Único no Brasil: Delivery + Marketing + Financeiro + Painel Digital + SENTINELA
             </p>
             <Link to="/signup">
               <Button size="lg" className="text-lg h-14 px-8 shadow-lg hover:shadow-xl">

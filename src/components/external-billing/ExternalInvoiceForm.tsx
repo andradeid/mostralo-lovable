@@ -61,12 +61,16 @@ type InvoiceFormData = z.infer<typeof invoiceFormSchema>;
 
 interface ExternalInvoiceFormProps {
   onClose: () => void;
+  invoice?: ExternalInvoice; // Fatura para edição
 }
 
-export function ExternalInvoiceForm({ onClose }: ExternalInvoiceFormProps) {
+// Import ExternalInvoice type
+import { ExternalInvoice } from "@/hooks/useExternalInvoices";
+
+export function ExternalInvoiceForm({ onClose, invoice }: ExternalInvoiceFormProps) {
   const { clients } = useExternalClients();
   const { services } = useExternalServices();
-  const { createInvoice } = useExternalInvoices();
+  const { createInvoice, updateInvoice } = useExternalInvoices();
   const [isClientFormOpen, setIsClientFormOpen] = useState(false);
   const [isServiceFormOpen, setIsServiceFormOpen] = useState(false);
   
@@ -76,18 +80,20 @@ export function ExternalInvoiceForm({ onClose }: ExternalInvoiceFormProps) {
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
   const [masterWhatsAppStatus, setMasterWhatsAppStatus] = useState<string | null>(null);
 
+  const isEditing = !!invoice;
+
   const form = useForm<InvoiceFormData>({
     resolver: zodResolver(invoiceFormSchema),
     defaultValues: {
-      client_id: "",
-      service_id: "",
-      description: "",
-      amount: 0,
-      due_date: new Date(),
-      is_recurring: false,
-      recurrence_type: "monthly",
-      recurrence_count: null,
-      notes: "",
+      client_id: invoice?.client_id || "",
+      service_id: invoice?.service_id || "",
+      description: invoice?.description || "",
+      amount: invoice?.amount || 0,
+      due_date: invoice?.due_date ? new Date(invoice.due_date) : new Date(),
+      is_recurring: invoice?.is_recurring || false,
+      recurrence_type: (invoice?.recurrence_type as "once" | "monthly" | "quarterly" | "yearly") || "monthly",
+      recurrence_count: invoice?.recurrence_count || null,
+      notes: invoice?.notes || "",
     },
   });
 
@@ -142,11 +148,26 @@ export function ExternalInvoiceForm({ onClose }: ExternalInvoiceFormProps) {
     }
   }, [selectedServiceId, services, form]);
 
-  const isSubmitting = createInvoice.isPending || sendingWhatsApp;
+  const isSubmitting = createInvoice.isPending || updateInvoice.isPending || sendingWhatsApp;
 
   const onSubmit = async (data: InvoiceFormData) => {
     try {
-      const invoice = await createInvoice.mutateAsync({
+      if (isEditing && invoice) {
+        // Modo edição
+        await updateInvoice.mutateAsync({
+          id: invoice.id,
+          description: data.description,
+          amount: data.amount,
+          due_date: format(data.due_date, "yyyy-MM-dd"),
+          notes: data.notes,
+        });
+        toast.success('Fatura atualizada com sucesso!');
+        onClose();
+        return;
+      }
+
+      // Modo criação
+      const createdInvoice = await createInvoice.mutateAsync({
         client_id: data.client_id,
         service_id: data.service_id || undefined,
         description: data.description,
@@ -159,13 +180,13 @@ export function ExternalInvoiceForm({ onClose }: ExternalInvoiceFormProps) {
       });
 
       // Send WhatsApp if enabled
-      if (sendWhatsApp && whatsappPhone && invoice?.id) {
+      if (sendWhatsApp && whatsappPhone && createdInvoice?.id) {
         setSendingWhatsApp(true);
         try {
           const normalizedPhone = whatsappPhone.replace(/\D/g, '');
           const { error } = await supabase.functions.invoke('send-external-invoice-whatsapp', {
             body: {
-              invoice_id: invoice.id,
+              invoice_id: createdInvoice.id,
               phone_number: normalizedPhone
             }
           });
@@ -186,7 +207,7 @@ export function ExternalInvoiceForm({ onClose }: ExternalInvoiceFormProps) {
 
       onClose();
     } catch (error) {
-      console.error('Error creating invoice:', error);
+      console.error('Error saving invoice:', error);
     }
   };
 
@@ -205,7 +226,11 @@ export function ExternalInvoiceForm({ onClose }: ExternalInvoiceFormProps) {
               <FormItem>
                 <FormLabel>Cliente *</FormLabel>
                 <div className="flex gap-2">
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    value={field.value}
+                    disabled={isEditing}
+                  >
                     <FormControl>
                       <SelectTrigger className="flex-1">
                         <SelectValue placeholder="Selecione o cliente" />
@@ -219,15 +244,20 @@ export function ExternalInvoiceForm({ onClose }: ExternalInvoiceFormProps) {
                       ))}
                     </SelectContent>
                   </Select>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setIsClientFormOpen(true)}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
+                  {!isEditing && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setIsClientFormOpen(true)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
+                {isEditing && (
+                  <p className="text-xs text-muted-foreground">Cliente não pode ser alterado</p>
+                )}
                 <FormMessage />
               </FormItem>
             )}
@@ -241,7 +271,11 @@ export function ExternalInvoiceForm({ onClose }: ExternalInvoiceFormProps) {
               <FormItem>
                 <FormLabel>Serviço (opcional)</FormLabel>
                 <div className="flex gap-2">
-                  <Select onValueChange={(val) => field.onChange(val === "none" ? "" : val)} value={field.value || "none"}>
+                  <Select 
+                    onValueChange={(val) => field.onChange(val === "none" ? "" : val)} 
+                    value={field.value || "none"}
+                    disabled={isEditing}
+                  >
                     <FormControl>
                       <SelectTrigger className="flex-1">
                         <SelectValue placeholder="Selecione um serviço" />
@@ -256,15 +290,20 @@ export function ExternalInvoiceForm({ onClose }: ExternalInvoiceFormProps) {
                       ))}
                     </SelectContent>
                   </Select>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setIsServiceFormOpen(true)}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
+                  {!isEditing && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setIsServiceFormOpen(true)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
+                {isEditing && (
+                  <p className="text-xs text-muted-foreground">Serviço não pode ser alterado</p>
+                )}
                 <FormMessage />
               </FormItem>
             )}
@@ -353,27 +392,29 @@ export function ExternalInvoiceForm({ onClose }: ExternalInvoiceFormProps) {
             />
           </div>
 
-          {/* Recurring Toggle */}
-          <FormField
-            control={form.control}
-            name="is_recurring"
-            render={({ field }) => (
-              <FormItem className="flex items-center justify-between rounded-lg border p-3">
-                <div className="space-y-0.5">
-                  <FormLabel>Fatura Recorrente</FormLabel>
-                  <FormDescription className="text-xs">
-                    Gerar faturas automaticamente
-                  </FormDescription>
-                </div>
-                <FormControl>
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+          {/* Recurring Toggle - apenas para novas faturas */}
+          {!isEditing && (
+            <FormField
+              control={form.control}
+              name="is_recurring"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between rounded-lg border p-3">
+                  <div className="space-y-0.5">
+                    <FormLabel>Fatura Recorrente</FormLabel>
+                    <FormDescription className="text-xs">
+                      Gerar faturas automaticamente
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          )}
 
-          {/* Recurrence Options */}
-          {isRecurring && (
+          {/* Recurrence Options - apenas para novas faturas */}
+          {!isEditing && isRecurring && (
             <div className="grid grid-cols-2 gap-4 p-3 rounded-lg border bg-muted/50">
               <FormField
                 control={form.control}
@@ -445,68 +486,69 @@ export function ExternalInvoiceForm({ onClose }: ExternalInvoiceFormProps) {
             )}
           />
 
-          {/* WhatsApp Section */}
-          <Card className={cn(
-            "border-2 transition-all",
-            sendWhatsApp 
-              ? "border-green-500 bg-green-500/5" 
-              : "border-dashed border-muted-foreground/30"
-          )}>
-            <CardHeader className="pb-3">
-              <div className="flex items-center space-x-3">
-                <input
-                  type="checkbox"
-                  checked={sendWhatsApp}
-                  onChange={(e) => setSendWhatsApp(e.target.checked)}
-                  className="h-5 w-5 accent-green-500 rounded"
-                  disabled={masterWhatsAppStatus !== 'connected'}
-                />
-                <div className="flex-1">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <MessageCircle className="w-5 h-5 text-green-500" />
-                    Enviar Link por WhatsApp
-                  </CardTitle>
-                  <CardDescription className="text-xs mt-0.5">
-                    Enviar link de pagamento automaticamente via WhatsApp Master
-                  </CardDescription>
-                </div>
-                <Badge 
-                  variant={masterWhatsAppStatus === 'connected' ? 'default' : 'secondary'}
-                  className={cn(
-                    masterWhatsAppStatus === 'connected' 
-                      ? "bg-green-500 hover:bg-green-600" 
-                      : "bg-muted"
-                  )}
-                >
-                  {masterWhatsAppStatus === 'connected' ? '✅ Conectado' : '❌ Desconectado'}
-                </Badge>
-              </div>
-            </CardHeader>
-
-            {sendWhatsApp && masterWhatsAppStatus === 'connected' && (
-              <CardContent className="space-y-4">
-                {/* Phone input */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-2">
-                    <Phone className="w-4 h-4" />
-                    Número do WhatsApp *
-                  </label>
-                  <Input
-                    value={whatsappPhone}
-                    onChange={(e) => setWhatsappPhone(e.target.value)}
-                    placeholder="(11) 99999-9999"
-                    className="font-mono"
+          {/* WhatsApp Section - apenas para novas faturas */}
+          {!isEditing && (
+            <Card className={cn(
+              "border-2 transition-all",
+              sendWhatsApp 
+                ? "border-green-500 bg-green-500/5" 
+                : "border-dashed border-muted-foreground/30"
+            )}>
+              <CardHeader className="pb-3">
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    checked={sendWhatsApp}
+                    onChange={(e) => setSendWhatsApp(e.target.checked)}
+                    className="h-5 w-5 accent-green-500 rounded"
+                    disabled={masterWhatsAppStatus !== 'connected'}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Preenchido automaticamente com o telefone do cliente
-                  </p>
+                  <div className="flex-1">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <MessageCircle className="w-5 h-5 text-green-500" />
+                      Enviar Link por WhatsApp
+                    </CardTitle>
+                    <CardDescription className="text-xs mt-0.5">
+                      Enviar link de pagamento automaticamente via WhatsApp Master
+                    </CardDescription>
+                  </div>
+                  <Badge 
+                    variant={masterWhatsAppStatus === 'connected' ? 'default' : 'secondary'}
+                    className={cn(
+                      masterWhatsAppStatus === 'connected' 
+                        ? "bg-green-500 hover:bg-green-600" 
+                        : "bg-muted"
+                    )}
+                  >
+                    {masterWhatsAppStatus === 'connected' ? '✅ Conectado' : '❌ Desconectado'}
+                  </Badge>
                 </div>
+              </CardHeader>
 
-                {/* Message preview */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">📝 Preview da mensagem:</label>
-                  <div className="p-3 rounded-lg bg-muted/50 border text-sm whitespace-pre-line">
-                    {`Olá${selectedClientId ? ` ${clients.find(c => c.id === selectedClientId)?.name?.split(' ')[0] || ''}` : ''}! 👋
+              {sendWhatsApp && masterWhatsAppStatus === 'connected' && (
+                <CardContent className="space-y-4">
+                  {/* Phone input */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium flex items-center gap-2">
+                      <Phone className="w-4 h-4" />
+                      Número do WhatsApp *
+                    </label>
+                    <Input
+                      value={whatsappPhone}
+                      onChange={(e) => setWhatsappPhone(e.target.value)}
+                      placeholder="(11) 99999-9999"
+                      className="font-mono"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Preenchido automaticamente com o telefone do cliente
+                    </p>
+                  </div>
+
+                  {/* Message preview */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">📝 Preview da mensagem:</label>
+                    <div className="p-3 rounded-lg bg-muted/50 border text-sm whitespace-pre-line">
+                      {`Olá${selectedClientId ? ` ${clients.find(c => c.id === selectedClientId)?.name?.split(' ')[0] || ''}` : ''}! 👋
 
 Sua fatura está disponível:
 
@@ -519,16 +561,17 @@ Sua fatura está disponível:
 [Link será gerado automaticamente]
 
 O QR Code PIX será gerado automaticamente! 🚀`}
+                    </div>
                   </div>
-                </div>
 
-                {/* Info */}
-                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                  📱 Após criar a fatura, o link será enviado automaticamente
-                </p>
-              </CardContent>
-            )}
-          </Card>
+                  {/* Info */}
+                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    📱 Após criar a fatura, o link será enviado automaticamente
+                  </p>
+                </CardContent>
+              )}
+            </Card>
+          )}
 
           <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={onClose}>
@@ -536,7 +579,7 @@ O QR Code PIX será gerado automaticamente! 🚀`}
             </Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Criar Fatura
+              {isEditing ? 'Salvar Alterações' : 'Criar Fatura'}
             </Button>
           </div>
         </form>

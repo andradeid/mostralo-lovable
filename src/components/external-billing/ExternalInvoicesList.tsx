@@ -52,7 +52,8 @@ import {
   Receipt,
   MessageCircle,
   Link2,
-  Eye
+  Eye,
+  Pencil
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -86,6 +87,7 @@ export function ExternalInvoicesList() {
   const { clients } = useExternalClients();
   const [search, setSearch] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingInvoice, setEditingInvoice] = useState<ExternalInvoice | null>(null);
   const [deletingInvoice, setDeletingInvoice] = useState<ExternalInvoice | null>(null);
   const [sendingReceiptInvoice, setSendingReceiptInvoice] = useState<ExternalInvoice | null>(null);
   const [sendingInvoiceWhatsApp, setSendingInvoiceWhatsApp] = useState<ExternalInvoice | null>(null);
@@ -378,6 +380,7 @@ export function ExternalInvoicesList() {
                   onSendReceiptWhatsApp={setSendingReceiptInvoice}
                   onSendInvoiceWhatsApp={setSendingInvoiceWhatsApp}
                   onViewDetails={setSelectedInvoice}
+                  onEdit={setEditingInvoice}
                   formatCurrency={formatCurrency}
                 />
               ))}
@@ -387,15 +390,31 @@ export function ExternalInvoicesList() {
       </Card>
 
       {/* Form Dialog */}
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+      <Dialog 
+        open={isFormOpen || !!editingInvoice} 
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsFormOpen(false);
+            setEditingInvoice(null);
+          }
+        }}
+      >
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Nova Fatura</DialogTitle>
+            <DialogTitle>{editingInvoice ? 'Editar Fatura' : 'Nova Fatura'}</DialogTitle>
             <DialogDescription>
-              Crie uma nova fatura para um cliente externo
+              {editingInvoice 
+                ? 'Altere as informações da fatura selecionada' 
+                : 'Crie uma nova fatura para um cliente externo'}
             </DialogDescription>
           </DialogHeader>
-          <ExternalInvoiceForm onClose={() => setIsFormOpen(false)} />
+          <ExternalInvoiceForm 
+            invoice={editingInvoice || undefined}
+            onClose={() => {
+              setIsFormOpen(false);
+              setEditingInvoice(null);
+            }} 
+          />
         </DialogContent>
       </Dialog>
 
@@ -596,10 +615,11 @@ interface InvoiceCardProps {
   onSendReceiptWhatsApp: (invoice: ExternalInvoice) => void;
   onSendInvoiceWhatsApp: (invoice: ExternalInvoice) => void;
   onViewDetails: (invoice: ExternalInvoice) => void;
+  onEdit: (invoice: ExternalInvoice) => void;
   formatCurrency: (value: number) => string;
 }
 
-function InvoiceCard({ invoice, onMarkAsPaid, onCancel, onDelete, onCopyLink, onSendReceiptWhatsApp, onSendInvoiceWhatsApp, onViewDetails, formatCurrency }: InvoiceCardProps) {
+function InvoiceCard({ invoice, onMarkAsPaid, onCancel, onDelete, onCopyLink, onSendReceiptWhatsApp, onSendInvoiceWhatsApp, onViewDetails, onEdit, formatCurrency }: InvoiceCardProps) {
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
@@ -724,6 +744,12 @@ function InvoiceCard({ invoice, onMarkAsPaid, onCancel, onDelete, onCopyLink, on
                 <Eye className="h-4 w-4 mr-2" />
                 Ver Detalhes
               </DropdownMenuItem>
+              {(invoice.payment_status === "pending" || invoice.payment_status === "overdue") && (
+                <DropdownMenuItem onClick={() => onEdit(invoice)}>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Editar Fatura
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem onClick={() => onCopyLink(invoice.id)}>
                 <Copy className="h-4 w-4 mr-2" />
                 Copiar Link

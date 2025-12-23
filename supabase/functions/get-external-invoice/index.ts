@@ -47,6 +47,7 @@ serve(async (req) => {
         boleto_codigo_barras,
         boleto_linha_digitavel,
         boleto_pdf_url,
+        boleto_view_url,
         boleto_expires_at,
         external_clients(name, email, phone, document, address_street, address_number, address_neighborhood, address_city, address_state, address_zipcode),
         external_services(name)

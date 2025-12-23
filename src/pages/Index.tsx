@@ -14,6 +14,8 @@ import WhatsAppMockup from '@/components/WhatsAppMockup';
 import { PromotionBanner } from '@/components/coupons/PromotionBanner';
 import { WhatsAppMarketingSection } from '@/components/landing/WhatsAppMarketingSection';
 import { FinancialAutomationSection } from '@/components/landing/FinancialAutomationSection';
+import { DigitalSignageSection } from '@/components/landing/DigitalSignageSection';
+import { PasswordCallSection } from '@/components/landing/PasswordCallSection';
 import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
 import { 
   Store, 
@@ -683,6 +685,12 @@ const Index = () => {
 
       {/* WhatsApp Marketing Section - Segunda Seção */}
       <WhatsAppMarketingSection />
+
+      {/* Painel Digital - Nova Seção */}
+      <DigitalSignageSection />
+
+      {/* Chamada de Senhas - Nova Seção */}
+      <PasswordCallSection />
 
       {/* Nova Seção: Você Está Financiando Seu Próprio Concorrente */}
       <section className="py-12 md:py-16 bg-gradient-to-br from-red-100 to-orange-100 dark:from-red-950/30 dark:to-orange-950/30 border-y border-red-200 dark:border-red-800 w-full overflow-x-hidden">

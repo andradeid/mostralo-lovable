@@ -283,10 +283,23 @@ serve(async (req) => {
 
     httpClient.close();
 
+    // Log dos links retornados para debug
+    console.log('🔗 Links do boleto:', {
+      pdf: boletoData.pdf?.charge,
+      link: boletoData.link,
+      billet_link: boletoData.billet_link,
+      barcode: boletoData.barcode
+    });
+
     // Extrair dados do boleto
-    const codigoBarras = boletoData.barcode || '';
-    const linhaDigitavel = boletoData.pix?.qrcode || boletoData.billet_link?.split('/').pop() || '';
-    const pdfUrl = boletoData.pdf?.charge || boletoData.billet_link || '';
+    // O código de barras vem formatado com espaços, vamos limpar
+    const codigoBarras = (boletoData.barcode || '').replace(/\s/g, '');
+    
+    // A linha digitável é o barcode formatado (com espaços)
+    const linhaDigitavel = boletoData.barcode || '';
+    
+    // Para PDF, usar o link direto de download ou o billet_link como fallback
+    const pdfUrl = boletoData.pdf?.charge || boletoData.link || boletoData.billet_link || '';
     const chargeId = boletoData.charge_id;
 
     // Calcular data de expiração do boleto

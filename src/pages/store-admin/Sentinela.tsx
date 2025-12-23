@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useStoreAccess } from "@/hooks/useStoreAccess";
 import { useSentinela } from "@/hooks/useSentinela";
+import { useStoreModules } from "@/hooks/useStoreModules";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

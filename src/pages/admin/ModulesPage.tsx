@@ -11,14 +11,14 @@ import {
   Package, Menu, ShoppingCart, BarChart3, Palette, MessageCircle,
   Truck, Users, Printer, Tag, Megaphone, Calendar, ExternalLink, 
   Image, Search, Filter, CheckCircle, XCircle, Sparkles, Shield, Zap,
-  Utensils, Settings2, Monitor, Wallet, Code, QrCode, MessageSquare
+  Utensils, Settings2, Monitor, Wallet, Code, QrCode, MessageSquare, Target
 } from 'lucide-react';
 
 // Mapeamento de ícones string -> componente
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Menu, ShoppingCart, BarChart3, Palette, MessageCircle,
   Truck, Printer, Tag, Megaphone, Calendar, ExternalLink,
-  Users, Image, Package, Utensils, Monitor, Wallet, Code, QrCode, MessageSquare
+  Users, Image, Package, Utensils, Monitor, Wallet, Code, QrCode, MessageSquare, Target
 };
 
 // Descrições detalhadas e categorias de cada módulo
@@ -101,6 +101,10 @@ const moduleDetails: Record<string, { description: string; category: 'core' | 'a
   },
   'whatsapp_recovery': {
     description: 'Sistema automatizado de recuperação de carrinhos abandonados via WhatsApp, aumentando conversões.',
+    category: 'premium'
+  },
+  'sentinela': {
+    description: 'Sistema inteligente de recompra automática. Configure o ciclo de vida dos produtos (whey 30 dias, fralda 15 dias, ração 30 dias) e o sistema envia lembretes via WhatsApp quando estiver prestes a acabar, aumentando a recorrência de vendas.',
     category: 'premium'
   }
 };

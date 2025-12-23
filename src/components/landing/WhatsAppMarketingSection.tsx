@@ -22,6 +22,19 @@ import {
   Radar
 } from 'lucide-react';
 
+// Componente do ícone SENTINELA com animação de radar
+const SentinelaIcon = ({ className, size = "w-4 h-4" }: { className?: string; size?: string }) => (
+  <div className={cn("relative inline-flex items-center justify-center", className)}>
+    {/* Ondas de radar - múltiplas camadas com delay */}
+    <span className="absolute inset-0 rounded-full bg-orange-500/40 animate-radar-ping" />
+    <span className="absolute inset-0 rounded-full bg-orange-500/30 animate-radar-ping [animation-delay:0.5s]" />
+    <span className="absolute inset-0 rounded-full bg-orange-500/20 animate-radar-ping [animation-delay:1s]" />
+    
+    {/* Ícone do escudo com glow */}
+    <Shield className={cn(size, "relative z-10 animate-shield-glow")} />
+  </div>
+);
+
 const problemStats = [
   {
     value: '68%',
@@ -105,7 +118,7 @@ export const WhatsAppMarketingSection = () => {
           )}
         >
           <Badge className="mb-4 text-base px-4 py-2 bg-orange-500/20 text-orange-500 border-orange-500/30 hover:bg-orange-500/30">
-            <Shield className="w-4 h-4 mr-2" />
+            <SentinelaIcon size="w-4 h-4" className="mr-2" />
             SENTINELA
           </Badge>
           <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
@@ -191,10 +204,11 @@ export const WhatsAppMarketingSection = () => {
                     </Badge>
                   </div>
                 )}
-                <feature.icon className={cn(
-                  "h-10 w-10 mb-4",
-                  (feature as any).isFeatured ? "text-orange-500" : "text-[#25D366]"
-                )} />
+                {(feature as any).isFeatured ? (
+                  <SentinelaIcon size="h-10 w-10" className="mb-4 text-orange-500" />
+                ) : (
+                  <feature.icon className="h-10 w-10 mb-4 text-[#25D366]" />
+                )}
                 <h4 className="text-lg font-bold mb-2">{feature.title}</h4>
                 <p className="text-sm text-muted-foreground">{feature.description}</p>
               </Card>
@@ -266,11 +280,11 @@ export const WhatsAppMarketingSection = () => {
           <Link to="/signup">
             <Button 
               size="lg" 
-              className="text-lg h-14 px-8 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl hover:shadow-orange-500/25"
+              className="text-lg h-14 px-8 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl hover:shadow-orange-500/25 group"
             >
-              <Shield className="mr-2 h-5 w-5" />
+              <SentinelaIcon size="h-5 w-5" className="mr-2 text-white" />
               Ativar o SENTINELA Agora
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
         </div>

@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
@@ -13,11 +12,13 @@ import {
   AlertCircle,
   User,
   Calendar,
-  DollarSign,
   QrCode,
   Barcode,
   Download,
-  ExternalLink
+  ExternalLink,
+  Store,
+  Receipt,
+  Shield
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -393,7 +394,7 @@ export default function ExternalInvoicePage() {
   // Loading
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100 dark:from-gray-900 dark:to-gray-800">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
           <p className="text-muted-foreground">Carregando fatura...</p>
@@ -405,16 +406,25 @@ export default function ExternalInvoicePage() {
   // Erro
   if (error || !invoice) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Card className="w-full max-w-md mx-4">
-          <CardContent className="flex flex-col items-center gap-4 py-8">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100 dark:from-gray-900 dark:to-gray-800 p-4">
+        <div className="bg-card border rounded-xl shadow-lg overflow-hidden w-full max-w-md">
+          <div className="bg-primary text-primary-foreground p-6 text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <div className="w-10 h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center">
+                <Store className="w-5 h-5" />
+              </div>
+            </div>
+            <h1 className="text-xl font-bold">MOSTRALO</h1>
+            <p className="text-sm text-primary-foreground/80">Plataforma de Vendas Online</p>
+          </div>
+          <div className="flex flex-col items-center gap-4 py-12 px-6">
             <AlertCircle className="w-16 h-16 text-destructive" />
             <h2 className="text-xl font-semibold">Fatura não encontrada</h2>
             <p className="text-muted-foreground text-center">
               O link pode estar incorreto ou a fatura não existe mais.
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     );
   }
@@ -423,314 +433,351 @@ export default function ExternalInvoicePage() {
   const isCancelled = invoice.payment_status === "cancelled";
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4">
-      <div className="max-w-lg mx-auto space-y-6">
-        {/* Header */}
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-            <FileText className="w-8 h-8 text-primary" />
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
+      <div className="max-w-lg mx-auto">
+        {/* Card Principal com identidade visual do recibo */}
+        <div className="bg-card border rounded-xl shadow-lg overflow-hidden">
+          {/* Header Laranja MOSTRALO */}
+          <div className="bg-primary text-primary-foreground p-6 text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <div className="w-10 h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center">
+                <Store className="w-5 h-5" />
+              </div>
+            </div>
+            <h1 className="text-xl font-bold">MOSTRALO</h1>
+            <p className="text-sm text-primary-foreground/80">Plataforma de Vendas Online</p>
           </div>
-          <h1 className="text-2xl font-bold">Fatura</h1>
-          {invoice.invoice_number && (
-            <p className="text-muted-foreground">#{invoice.invoice_number}</p>
-          )}
-        </div>
 
-        {/* Detalhes da Fatura */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Detalhes</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Cliente */}
-            {invoice.client && (
-              <div className="flex items-start gap-3">
-                <User className="w-5 h-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="font-medium">{invoice.client.name}</p>
-                  {invoice.client.email && (
-                    <p className="text-sm text-muted-foreground">{invoice.client.email}</p>
-                  )}
-                </div>
-              </div>
+          {/* Título da Fatura */}
+          <div className="bg-orange-50 dark:bg-orange-900/20 border-b p-4 text-center">
+            <div className="inline-flex items-center gap-2 text-orange-600 dark:text-orange-400">
+              <FileText className="w-5 h-5" />
+              <span className="font-semibold text-lg">FATURA</span>
+            </div>
+            {invoice.invoice_number && (
+              <p className="text-sm text-muted-foreground mt-1">#{invoice.invoice_number}</p>
             )}
+          </div>
 
-            {/* Serviço/Descrição */}
-            <div className="flex items-start gap-3">
-              <FileText className="w-5 h-5 text-muted-foreground mt-0.5" />
-              <div>
-                {invoice.service && (
-                  <p className="font-medium">{invoice.service.name}</p>
-                )}
-                <p className="text-sm text-muted-foreground">{invoice.description}</p>
+          {/* Conteúdo - Detalhes */}
+          <div className="p-6 space-y-4">
+            {/* Número da Fatura */}
+            <div className="text-center pb-4 border-b border-dashed">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">Nº da Fatura</p>
+              <p className="font-mono text-lg font-bold text-foreground">
+                {invoice.invoice_number || invoice.id.slice(0, 8).toUpperCase()}
+              </p>
+            </div>
+
+            {/* Detalhes em duas colunas */}
+            <div className="space-y-3">
+              {/* Cliente */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <User className="w-4 h-4" />
+                  <span className="text-sm">Cliente</span>
+                </div>
+                <span className="font-medium text-foreground">{invoice.client?.name || 'N/A'}</span>
+              </div>
+
+              {/* Serviço */}
+              {invoice.service && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Receipt className="w-4 h-4" />
+                    <span className="text-sm">Serviço</span>
+                  </div>
+                  <span className="font-medium text-foreground">{invoice.service.name}</span>
+                </div>
+              )}
+
+              {/* Descrição */}
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <FileText className="w-4 h-4" />
+                  <span className="text-sm">Descrição</span>
+                </div>
+                <span className="font-medium text-foreground text-right max-w-[60%]">{invoice.description}</span>
+              </div>
+
+              {/* Vencimento */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Calendar className="w-4 h-4" />
+                  <span className="text-sm">Vencimento</span>
+                </div>
+                <span className="font-medium text-foreground">
+                  {format(new Date(invoice.due_date), "dd/MM/yyyy", { locale: ptBR })}
+                </span>
               </div>
             </div>
 
-            {/* Vencimento */}
-            <div className="flex items-center gap-3">
-              <Calendar className="w-5 h-5 text-muted-foreground" />
-              <div>
-                <p className="text-sm text-muted-foreground">Vencimento</p>
-                <p className="font-medium">
-                  {format(new Date(invoice.due_date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                </p>
-              </div>
-            </div>
-
-            {/* Valor */}
-            <div className="flex items-center gap-3 pt-2 border-t">
-              <DollarSign className="w-5 h-5 text-muted-foreground" />
-              <div>
-                <p className="text-sm text-muted-foreground">Valor</p>
-                <p className="text-2xl font-bold text-primary">
+            {/* Valor em destaque */}
+            <div className="pt-4 border-t">
+              <div className="bg-primary/10 rounded-lg p-4 text-center">
+                <p className="text-sm text-muted-foreground mb-1">Valor</p>
+                <p className="text-3xl font-bold text-primary">
                   {formatCurrency(invoice.amount)}
                 </p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Seção de Pagamento */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Pagamento</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center gap-4">
-            {/* Já pago */}
-            {isPaid && (
-              <div className="flex flex-col items-center gap-3 py-4">
-                <CheckCircle className="w-16 h-16 text-green-500" />
-                <p className="text-lg font-semibold text-green-600">Pagamento Confirmado!</p>
-                {invoice.paid_at && (
-                  <p className="text-sm text-muted-foreground">
-                    Pago em {format(new Date(invoice.paid_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                  </p>
-                )}
-              </div>
-            )}
+          {/* Seção de Pagamento */}
+          <div className="border-t p-6">
+            <div className="flex flex-col items-center gap-4">
+              {/* Já pago */}
+              {isPaid && (
+                <div className="flex flex-col items-center gap-3 py-4">
+                  <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                    <CheckCircle className="w-10 h-10 text-green-500" />
+                  </div>
+                  <p className="text-lg font-semibold text-green-600">Pagamento Confirmado!</p>
+                  {invoice.paid_at && (
+                    <p className="text-sm text-muted-foreground">
+                      Pago em {format(new Date(invoice.paid_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                    </p>
+                  )}
+                </div>
+              )}
 
-            {/* Cancelado */}
-            {isCancelled && (
-              <div className="flex flex-col items-center gap-3 py-4">
-                <AlertCircle className="w-12 h-12 text-destructive" />
-                <p className="text-lg font-semibold text-destructive">Fatura Cancelada</p>
-              </div>
-            )}
+              {/* Cancelado */}
+              {isCancelled && (
+                <div className="flex flex-col items-center gap-3 py-4">
+                  <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
+                    <AlertCircle className="w-10 h-10 text-destructive" />
+                  </div>
+                  <p className="text-lg font-semibold text-destructive">Fatura Cancelada</p>
+                </div>
+              )}
 
-            {/* Pendente - Tabs PIX/Boleto */}
-            {!isPaid && !isCancelled && (
-              <div className="w-full">
-                <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "pix" | "boleto")} className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="pix" className="flex items-center gap-2">
-                      <QrCode className="w-4 h-4" />
-                      PIX
-                    </TabsTrigger>
-                    <TabsTrigger value="boleto" className="flex items-center gap-2">
-                      <Barcode className="w-4 h-4" />
-                      Boleto
-                    </TabsTrigger>
-                  </TabsList>
+              {/* Pendente - Tabs PIX/Boleto */}
+              {!isPaid && !isCancelled && (
+                <div className="w-full">
+                  <p className="text-center font-medium mb-4">Escolha a forma de pagamento</p>
+                  <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "pix" | "boleto")} className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="pix" className="flex items-center gap-2">
+                        <QrCode className="w-4 h-4" />
+                        PIX
+                      </TabsTrigger>
+                      <TabsTrigger value="boleto" className="flex items-center gap-2">
+                        <Barcode className="w-4 h-4" />
+                        Boleto
+                      </TabsTrigger>
+                    </TabsList>
 
-                  {/* Aba PIX */}
-                  <TabsContent value="pix" className="flex flex-col items-center gap-4 mt-4">
-                    {/* PIX não gerado */}
-                    {!chargeData && (
-                      <Button
-                        onClick={createPixCharge}
-                        disabled={isGeneratingPix}
-                        className="w-full"
-                        size="lg"
-                      >
-                        {isGeneratingPix ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Gerando QR Code...
-                          </>
-                        ) : (
-                          <>
-                            <QrCode className="w-4 h-4 mr-2" />
-                            Gerar QR Code PIX
-                          </>
-                        )}
-                      </Button>
-                    )}
-
-                    {/* QR Code expirado */}
-                    {paymentStatus === "expired" && (
-                      <div className="flex flex-col items-center gap-3 py-4">
-                        <AlertCircle className="w-12 h-12 text-orange-500" />
-                        <p className="text-lg font-semibold text-orange-600">QR Code Expirado</p>
-                        <p className="text-sm text-muted-foreground text-center">
-                          O tempo para pagamento expirou. Gere um novo código.
-                        </p>
-                        <Button onClick={createPixCharge} disabled={isGeneratingPix}>
-                          <RefreshCw className="w-4 h-4 mr-2" />
-                          Gerar Novo QR Code
+                    {/* Aba PIX */}
+                    <TabsContent value="pix" className="flex flex-col items-center gap-4 mt-4">
+                      {/* PIX não gerado */}
+                      {!chargeData && (
+                        <Button
+                          onClick={createPixCharge}
+                          disabled={isGeneratingPix}
+                          className="w-full"
+                          size="lg"
+                        >
+                          {isGeneratingPix ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Gerando QR Code...
+                            </>
+                          ) : (
+                            <>
+                              <QrCode className="w-4 h-4 mr-2" />
+                              Gerar QR Code PIX
+                            </>
+                          )}
                         </Button>
-                      </div>
-                    )}
+                      )}
 
-                    {/* QR Code ativo */}
-                    {paymentStatus === "pending" && chargeData && (
-                      <>
-                        {/* Timer */}
-                        <div className="flex items-center gap-2 text-orange-600 bg-orange-50 dark:bg-orange-950/50 px-4 py-2 rounded-full">
-                          <Clock className="w-4 h-4" />
-                          <span className="font-mono font-semibold">{formatTime(timeRemaining)}</span>
-                        </div>
-
-                        {/* QR Code */}
-                        {chargeData.qrCodeBase64 && (
-                          <div className="p-4 bg-white rounded-lg border">
-                            <img
-                              src={chargeData.qrCodeBase64}
-                              alt="QR Code PIX"
-                              className="w-48 h-48 object-contain"
-                            />
-                          </div>
-                        )}
-
-                        {/* Instruções */}
-                        <div className="text-center text-sm text-muted-foreground">
-                          <p>Escaneie o QR Code ou copie o código abaixo</p>
-                        </div>
-
-                        {/* Código Copia-Cola */}
-                        <div className="w-full">
-                          <div className="flex gap-2">
-                            <input
-                              type="text"
-                              readOnly
-                              value={chargeData.pixCopiaECola}
-                              className="flex-1 px-3 py-2 text-xs bg-muted rounded-lg truncate border"
-                            />
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={handleCopyPix}
-                              className={copied ? "text-green-600 border-green-600" : ""}
-                            >
-                              {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                            </Button>
-                          </div>
-                        </div>
-
-                        {/* Status */}
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Aguardando pagamento...</span>
-                        </div>
-                      </>
-                    )}
-                  </TabsContent>
-
-                  {/* Aba Boleto */}
-                  <TabsContent value="boleto" className="flex flex-col items-center gap-4 mt-4">
-                    {/* Boleto não gerado */}
-                    {!boletoData && (
-                      <Button
-                        onClick={createBoletoCharge}
-                        disabled={isGeneratingBoleto}
-                        className="w-full"
-                        size="lg"
-                      >
-                        {isGeneratingBoleto ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Gerando Boleto...
-                          </>
-                        ) : (
-                          <>
-                            <Barcode className="w-4 h-4 mr-2" />
-                            Gerar Boleto
-                          </>
-                        )}
-                      </Button>
-                    )}
-
-                    {/* Boleto gerado */}
-                    {boletoData && (
-                      <>
-                        {/* Vencimento */}
-                        <div className="flex items-center gap-2 text-muted-foreground bg-muted px-4 py-2 rounded-full">
-                          <Calendar className="w-4 h-4" />
-                          <span className="text-sm">
-                            Vencimento: {format(new Date(boletoData.expires_at), "dd/MM/yyyy", { locale: ptBR })}
-                          </span>
-                        </div>
-
-                        {/* Ícone de sucesso */}
-                        <div className="p-6 bg-muted/50 rounded-lg border">
-                          <Barcode className="w-24 h-24 text-muted-foreground" />
-                        </div>
-
-                        {/* Linha Digitável */}
-                        <div className="w-full space-y-2">
-                          <p className="text-sm font-medium text-center">Linha Digitável</p>
-                          <div className="flex gap-2">
-                            <input
-                              type="text"
-                              readOnly
-                              value={boletoData.linha_digitavel}
-                              className="flex-1 px-3 py-2 text-xs bg-muted rounded-lg truncate border font-mono"
-                            />
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={handleCopyBoleto}
-                              className={copiedBoleto ? "text-green-600 border-green-600" : ""}
-                            >
-                              {copiedBoleto ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                            </Button>
-                          </div>
-                        </div>
-
-                        {/* Botões de ação */}
-                        <div className="flex flex-col sm:flex-row gap-2 w-full">
-                          <Button
-                            variant="outline"
-                            className="flex-1"
-                            onClick={() => window.open(boletoData.pdf_url, '_blank')}
-                          >
-                            <ExternalLink className="w-4 h-4 mr-2" />
-                            Visualizar Boleto
-                          </Button>
-                          <Button
-                            className="flex-1"
-                            onClick={() => {
-                              const link = document.createElement('a');
-                              link.href = boletoData.pdf_url;
-                              link.download = `boleto-${invoice.invoice_number || invoice.id}.pdf`;
-                              link.click();
-                            }}
-                          >
-                            <Download className="w-4 h-4 mr-2" />
-                            Baixar PDF
+                      {/* QR Code expirado */}
+                      {paymentStatus === "expired" && (
+                        <div className="flex flex-col items-center gap-3 py-4">
+                          <AlertCircle className="w-12 h-12 text-orange-500" />
+                          <p className="text-lg font-semibold text-orange-600">QR Code Expirado</p>
+                          <p className="text-sm text-muted-foreground text-center">
+                            O tempo para pagamento expirou. Gere um novo código.
+                          </p>
+                          <Button onClick={createPixCharge} disabled={isGeneratingPix}>
+                            <RefreshCw className="w-4 h-4 mr-2" />
+                            Gerar Novo QR Code
                           </Button>
                         </div>
+                      )}
 
-                        {/* Instrução */}
-                        <p className="text-xs text-muted-foreground text-center">
-                          Após o pagamento, a confirmação pode levar até 3 dias úteis.
-                        </p>
-                      </>
-                    )}
-                  </TabsContent>
-                </Tabs>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                      {/* QR Code ativo */}
+                      {paymentStatus === "pending" && chargeData && (
+                        <>
+                          {/* Timer */}
+                          <div className="flex items-center gap-2 text-orange-600 bg-orange-50 dark:bg-orange-950/50 px-4 py-2 rounded-full">
+                            <Clock className="w-4 h-4" />
+                            <span className="font-mono font-semibold">{formatTime(timeRemaining)}</span>
+                          </div>
 
-        {/* Notas */}
-        {invoice.notes && (
-          <Card>
-            <CardContent className="py-4">
+                          {/* QR Code */}
+                          {chargeData.qrCodeBase64 && (
+                            <div className="p-4 bg-white rounded-lg border">
+                              <img
+                                src={chargeData.qrCodeBase64}
+                                alt="QR Code PIX"
+                                className="w-48 h-48 object-contain"
+                              />
+                            </div>
+                          )}
+
+                          {/* Instruções */}
+                          <div className="text-center text-sm text-muted-foreground">
+                            <p>Escaneie o QR Code ou copie o código abaixo</p>
+                          </div>
+
+                          {/* Código Copia-Cola */}
+                          <div className="w-full">
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                readOnly
+                                value={chargeData.pixCopiaECola}
+                                className="flex-1 px-3 py-2 text-xs bg-muted rounded-lg truncate border"
+                              />
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={handleCopyPix}
+                                className={copied ? "text-green-600 border-green-600" : ""}
+                              >
+                                {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                              </Button>
+                            </div>
+                          </div>
+
+                          {/* Status */}
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>Aguardando pagamento...</span>
+                          </div>
+                        </>
+                      )}
+                    </TabsContent>
+
+                    {/* Aba Boleto */}
+                    <TabsContent value="boleto" className="flex flex-col items-center gap-4 mt-4">
+                      {/* Boleto não gerado */}
+                      {!boletoData && (
+                        <Button
+                          onClick={createBoletoCharge}
+                          disabled={isGeneratingBoleto}
+                          className="w-full"
+                          size="lg"
+                        >
+                          {isGeneratingBoleto ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Gerando Boleto...
+                            </>
+                          ) : (
+                            <>
+                              <Barcode className="w-4 h-4 mr-2" />
+                              Gerar Boleto
+                            </>
+                          )}
+                        </Button>
+                      )}
+
+                      {/* Boleto gerado */}
+                      {boletoData && (
+                        <>
+                          {/* Vencimento */}
+                          <div className="flex items-center gap-2 text-muted-foreground bg-muted px-4 py-2 rounded-full">
+                            <Calendar className="w-4 h-4" />
+                            <span className="text-sm">
+                              Vencimento: {format(new Date(boletoData.expires_at), "dd/MM/yyyy", { locale: ptBR })}
+                            </span>
+                          </div>
+
+                          {/* Ícone de sucesso */}
+                          <div className="p-6 bg-muted/50 rounded-lg border">
+                            <Barcode className="w-24 h-24 text-muted-foreground" />
+                          </div>
+
+                          {/* Linha Digitável */}
+                          <div className="w-full space-y-2">
+                            <p className="text-sm font-medium text-center">Linha Digitável</p>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                readOnly
+                                value={boletoData.linha_digitavel}
+                                className="flex-1 px-3 py-2 text-xs bg-muted rounded-lg truncate border font-mono"
+                              />
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={handleCopyBoleto}
+                                className={copiedBoleto ? "text-green-600 border-green-600" : ""}
+                              >
+                                {copiedBoleto ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                              </Button>
+                            </div>
+                          </div>
+
+                          {/* Botões de ação */}
+                          <div className="flex flex-col sm:flex-row gap-2 w-full">
+                            <Button
+                              variant="outline"
+                              className="flex-1"
+                              onClick={() => window.open(boletoData.pdf_url, '_blank')}
+                            >
+                              <ExternalLink className="w-4 h-4 mr-2" />
+                              Visualizar Boleto
+                            </Button>
+                            <Button
+                              className="flex-1"
+                              onClick={() => {
+                                const link = document.createElement('a');
+                                link.href = boletoData.pdf_url;
+                                link.download = `boleto-${invoice.invoice_number || invoice.id}.pdf`;
+                                link.click();
+                              }}
+                            >
+                              <Download className="w-4 h-4 mr-2" />
+                              Baixar PDF
+                            </Button>
+                          </div>
+
+                          {/* Instrução */}
+                          <p className="text-xs text-muted-foreground text-center">
+                            Após o pagamento, a confirmação pode levar até 3 dias úteis.
+                          </p>
+                        </>
+                      )}
+                    </TabsContent>
+                  </Tabs>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Notas */}
+          {invoice.notes && (
+            <div className="border-t p-4 bg-muted/30">
               <p className="text-sm text-muted-foreground">{invoice.notes}</p>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          )}
+
+          {/* Footer - Authenticity Seal */}
+          <div className="bg-muted/50 border-t p-4">
+            <div className="flex items-center justify-center gap-2 text-muted-foreground">
+              <Shield className="w-4 h-4" />
+              <span className="text-xs">
+                Documento gerado em {format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+              </span>
+            </div>
+            <p className="text-center text-xs text-muted-foreground mt-1">
+              Mostralo - Plataforma de Vendas Online
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

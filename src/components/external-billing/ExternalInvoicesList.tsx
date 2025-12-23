@@ -49,7 +49,8 @@ import {
   AlertCircle,
   DollarSign,
   RefreshCw,
-  Receipt
+  Receipt,
+  MessageCircle
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -58,6 +59,7 @@ import { useExternalClients } from "@/hooks/useExternalClients";
 import { ExternalInvoiceForm } from "./ExternalInvoiceForm";
 import { toast } from "sonner";
 import { getPublicInvoiceUrl } from "@/lib/publicUrl";
+import { SendExternalReceiptWhatsAppModal } from "./SendExternalReceiptWhatsAppModal";
 
 const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   pending: { label: "Pendente", variant: "outline" },
@@ -82,6 +84,7 @@ export function ExternalInvoicesList() {
   const [search, setSearch] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [deletingInvoice, setDeletingInvoice] = useState<ExternalInvoice | null>(null);
+  const [sendingReceiptInvoice, setSendingReceiptInvoice] = useState<ExternalInvoice | null>(null);
 
   // Filter invoices
   const filteredInvoices = useMemo(() => {
@@ -360,6 +363,7 @@ export function ExternalInvoicesList() {
                   onCancel={handleCancel}
                   onDelete={setDeletingInvoice}
                   onCopyLink={handleCopyLink}
+                  onSendWhatsApp={setSendingReceiptInvoice}
                   formatCurrency={formatCurrency}
                 />
               ))}
@@ -402,6 +406,13 @@ export function ExternalInvoicesList() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* WhatsApp Receipt Modal */}
+      <SendExternalReceiptWhatsAppModal
+        open={!!sendingReceiptInvoice}
+        onOpenChange={(open) => !open && setSendingReceiptInvoice(null)}
+        invoice={sendingReceiptInvoice}
+      />
     </div>
   );
 }
@@ -413,10 +424,11 @@ interface InvoiceCardProps {
   onCancel: (invoice: ExternalInvoice) => void;
   onDelete: (invoice: ExternalInvoice) => void;
   onCopyLink: (invoiceId: string) => void;
+  onSendWhatsApp: (invoice: ExternalInvoice) => void;
   formatCurrency: (value: number) => string;
 }
 
-function InvoiceCard({ invoice, onMarkAsPaid, onCancel, onDelete, onCopyLink, formatCurrency }: InvoiceCardProps) {
+function InvoiceCard({ invoice, onMarkAsPaid, onCancel, onDelete, onCopyLink, onSendWhatsApp, formatCurrency }: InvoiceCardProps) {
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
@@ -498,14 +510,24 @@ function InvoiceCard({ invoice, onMarkAsPaid, onCancel, onDelete, onCopyLink, fo
           </Button>
           
           {invoice.payment_status === "paid" && (
-            <Button
-              size="sm"
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-              onClick={() => window.open(`/external-receipt/${invoice.id}`, '_blank')}
-            >
-              <Receipt className="h-4 w-4 mr-2" />
-              Ver Recibo
-            </Button>
+            <>
+              <Button
+                size="sm"
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => window.open(`/external-receipt/${invoice.id}`, '_blank')}
+              >
+                <Receipt className="h-4 w-4 mr-2" />
+                Recibo
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-green-600 text-green-600 hover:bg-green-50"
+                onClick={() => onSendWhatsApp(invoice)}
+              >
+                <MessageCircle className="h-4 w-4" />
+              </Button>
+            </>
           )}
           
           <DropdownMenu>
@@ -530,10 +552,16 @@ function InvoiceCard({ invoice, onMarkAsPaid, onCancel, onDelete, onCopyLink, fo
                 </a>
               </DropdownMenuItem>
               {invoice.payment_status === "paid" && (
-                <DropdownMenuItem onClick={() => window.open(`/external-receipt/${invoice.id}`, '_blank')}>
-                  <Receipt className="h-4 w-4 mr-2" />
-                  Ver Recibo
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem onClick={() => window.open(`/external-receipt/${invoice.id}`, '_blank')}>
+                    <Receipt className="h-4 w-4 mr-2" />
+                    Ver Recibo
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onSendWhatsApp(invoice)}>
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    Enviar Recibo por WhatsApp
+                  </DropdownMenuItem>
+                </>
               )}
               <DropdownMenuSeparator />
               {invoice.payment_status === "pending" && (

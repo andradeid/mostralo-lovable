@@ -83,19 +83,19 @@ export default function InvoicePayment() {
         throw new Error(data?.error || error?.message || 'Erro ao gerar PIX');
       }
 
-      // Atualizar fatura com dados do PIX
+      // Atualizar fatura com dados do PIX via edge function (bypass RLS)
       const expiresAt = new Date();
       expiresAt.setSeconds(expiresAt.getSeconds() + (data.expiracao || 1800));
 
-      const { error: updateError } = await supabase
-        .from('subscription_invoices')
-        .update({
+      const { error: updateError } = await supabase.functions.invoke('update-invoice-pix', {
+        body: {
+          invoice_id: invoice.id,
           pix_txid: data.txid,
           pix_copia_cola: data.pixCopiaECola,
           pix_qrcode_base64: data.qrCodeBase64,
           pix_expires_at: expiresAt.toISOString(),
-        })
-        .eq('id', invoice.id);
+        },
+      });
 
       if (updateError) {
         console.error('Erro ao salvar dados PIX:', updateError);

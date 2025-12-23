@@ -1389,6 +1389,13 @@ export type Database = {
       external_clients: {
         Row: {
           address: string | null
+          address_city: string | null
+          address_complement: string | null
+          address_neighborhood: string | null
+          address_number: string | null
+          address_state: string | null
+          address_street: string | null
+          address_zipcode: string | null
           created_at: string | null
           created_by: string | null
           document: string | null
@@ -1397,11 +1404,19 @@ export type Database = {
           is_active: boolean | null
           name: string
           notes: string | null
+          person_type: string | null
           phone: string | null
           updated_at: string | null
         }
         Insert: {
           address?: string | null
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zipcode?: string | null
           created_at?: string | null
           created_by?: string | null
           document?: string | null
@@ -1410,11 +1425,19 @@ export type Database = {
           is_active?: boolean | null
           name: string
           notes?: string | null
+          person_type?: string | null
           phone?: string | null
           updated_at?: string | null
         }
         Update: {
           address?: string | null
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zipcode?: string | null
           created_at?: string | null
           created_by?: string | null
           document?: string | null
@@ -1423,6 +1446,7 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           notes?: string | null
+          person_type?: string | null
           phone?: string | null
           updated_at?: string | null
         }

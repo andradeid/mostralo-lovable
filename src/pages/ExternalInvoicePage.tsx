@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 interface ExternalInvoiceData {
@@ -240,12 +240,21 @@ export default function ExternalInvoicePage() {
         };
       }
 
+      // Verificar se é segunda via (boleto já existia mas venceu)
+      const isSegundaVia = !!invoice.boleto_codigo_barras || !!invoice.boleto_linha_digitavel;
+      
+      // Para segunda via, calcular nova data de vencimento (+7 dias)
+      // Para primeira via, usar a data de vencimento original da fatura
+      const novaDataVencimento = isSegundaVia 
+        ? format(addDays(new Date(), 7), 'yyyy-MM-dd')
+        : invoice.due_date;
+
       const { data, error } = await supabase.functions.invoke("efi-create-external-invoice-boleto", {
         body: {
           invoice_id: invoice.id,
           valor: invoice.amount.toFixed(2),
           descricao: `Fatura ${invoice.invoice_number || invoice.id.slice(0, 8)} - ${invoice.description}`,
-          vencimento: invoice.due_date,
+          vencimento: novaDataVencimento,
           cliente: clienteData,
         },
       });
@@ -656,9 +665,13 @@ export default function ExternalInvoicePage() {
 
                     {/* Aba Boleto */}
                     <TabsContent value="boleto" className="flex flex-col items-center gap-4 mt-4">
-                      {/* Verificar se boleto está vencido */}
+                      {/* Verificar se boleto está vencido - considera o dia completo até 23:59:59 */}
                       {(() => {
-                        const isBoletoExpired = boletoData && new Date(boletoData.expires_at) < new Date();
+                        const isBoletoExpired = boletoData && (() => {
+                          const expiresDate = new Date(boletoData.expires_at);
+                          expiresDate.setHours(23, 59, 59, 999); // Considera até o fim do dia
+                          return expiresDate < new Date();
+                        })();
                         const showGenerateButton = !boletoData || isBoletoExpired;
                         
                         return (

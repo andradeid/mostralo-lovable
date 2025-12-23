@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.55.0';
 import { corsHeaders } from "../_shared/cors.ts";
+import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '../_shared/rateLimiter.ts';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -43,6 +44,17 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // === RATE LIMITING ===
+    const clientIP = getClientIP(req);
+    
+    // Limite: 3 cadastros por IP por hora (3600000 ms)
+    const rateLimitResult = checkRateLimit(`salesperson-register:${clientIP}`, 3, 3600000);
+    
+    if (!rateLimitResult.allowed) {
+      console.log('Rate limit exceeded for salesperson registration, IP:', clientIP);
+      return rateLimitExceededResponse(rateLimitResult, corsHeaders);
+    }
+
     const body: RegisterRequest = await req.json();
 
     const {
@@ -65,7 +77,16 @@ Deno.serve(async (req) => {
       pix_key_type,
     } = body;
 
-    console.log(`Registrando vendedor tipo: ${salesperson_type}`);
+    console.log(`Registrando vendedor tipo: ${salesperson_type}, IP: ${clientIP}`);
+
+    // Rate limit adicional por email para prevenir spam
+    if (email) {
+      const emailRateLimit = checkRateLimit(`salesperson-register:email:${email}`, 3, 3600000);
+      if (!emailRateLimit.allowed) {
+        console.log('Rate limit exceeded for email:', email);
+        return rateLimitExceededResponse(emailRateLimit, corsHeaders);
+      }
+    }
 
     // Validações básicas (ambos tipos)
     if (!full_name || !email || !phone || !password) {

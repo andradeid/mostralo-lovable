@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { MessageCircle, Check, CheckCheck } from 'lucide-react';
+import { MessageCircle, Check, CheckCheck, Shield } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 interface Message {
@@ -187,15 +188,19 @@ export const WhatsAppMarketingMockups = ({ isVisible }: WhatsAppMarketingMockups
 
   return (
     <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
-      <div className="text-center">
+      <div className="text-center relative">
+        <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 z-20 bg-orange-500 text-white border-orange-400 shadow-lg shadow-orange-500/30 animate-pulse">
+          <Shield className="w-3 h-3 mr-1" />
+          SENTINELA
+        </Badge>
         <PhoneMockup
-          title="Recuperação Automática"
+          title="SENTINELA Automático"
           messages={recoveryMessages}
           isVisible={isVisible}
           delay={0}
         />
-        <p className="mt-4 text-sm font-medium text-muted-foreground">
-          🎯 Cliente inativo há 15 dias
+        <p className="mt-4 text-sm font-medium text-orange-500">
+          🛡️ Recuperação automática de clientes
         </p>
       </div>
 

@@ -9,7 +9,7 @@ import {
   MessageCircle,
   Users,
   Tag,
-  RefreshCcw,
+  Shield,
   FileText,
   Calendar,
   BarChart3,
@@ -18,7 +18,8 @@ import {
   CheckCircle,
   Zap,
   Gift,
-  ArrowRight
+  ArrowRight,
+  Radar
 } from 'lucide-react';
 
 const problemStats = [
@@ -41,6 +42,12 @@ const problemStats = [
 
 const features = [
   {
+    icon: Shield,
+    title: 'SENTINELA - Recuperação Automática',
+    description: 'O Sentinela monitora seus clientes 24h. Identifica inativos e envia mensagens personalizadas automaticamente.',
+    isFeatured: true
+  },
+  {
     icon: Users,
     title: 'Gestão de Contatos',
     description: 'Sincronize automaticamente todos os contatos do WhatsApp. Veja foto, nome e histórico de compras.'
@@ -49,11 +56,6 @@ const features = [
     icon: Tag,
     title: 'Etiquetas Coloridas',
     description: 'Organize clientes: VIP, Novo, Inativo, Frequente. Segmente campanhas com precisão.'
-  },
-  {
-    icon: RefreshCcw,
-    title: 'Recuperação Automática',
-    description: 'Sistema identifica clientes inativos há X dias e envia mensagem personalizada automaticamente.'
   },
   {
     icon: FileText,
@@ -102,17 +104,18 @@ export const WhatsAppMarketingSection = () => {
               : "opacity-0 translate-y-8"
           )}
         >
-          <Badge className="mb-4 text-base px-4 py-2 bg-[#25D366] hover:bg-[#128C7E] text-white">
-            <MessageCircle className="w-4 h-4 mr-2" />
-            WhatsApp Marketing Integrado
+          <Badge className="mb-4 text-base px-4 py-2 bg-orange-500/20 text-orange-500 border-orange-500/30 hover:bg-orange-500/30">
+            <Shield className="w-4 h-4 mr-2" />
+            SENTINELA
           </Badge>
           <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
-            Recupere Clientes e Aumente Vendas
-            <span className="text-[#25D366]"> no Piloto Automático</span>
+            Ative o <span className="text-orange-500">SENTINELA</span> e
+            <br className="hidden md:inline" />
+            <span className="text-[#25D366]"> Nunca Mais Perca um Cliente</span>
           </h2>
           <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
             68% dos clientes que compram uma vez nunca mais voltam. 
-            Com nosso sistema, você recupera até <strong className="text-[#25D366]">23% deles automaticamente</strong>.
+            Com o <strong className="text-orange-500">SENTINELA</strong>, você recupera até <strong className="text-[#25D366]">23% deles automaticamente</strong>.
           </p>
         </div>
 
@@ -170,14 +173,28 @@ export const WhatsAppMarketingSection = () => {
               <Card
                 key={index}
                 className={cn(
-                  "p-6 bg-white/80 dark:bg-emerald-950/30 border-[#25D366]/20 hover:border-[#25D366]/50 hover:shadow-lg hover:shadow-[#25D366]/10 transition-all duration-500",
+                  "p-6 transition-all duration-500 relative overflow-hidden",
+                  (feature as any).isFeatured 
+                    ? "bg-gradient-to-br from-orange-500/10 to-orange-600/5 dark:from-orange-500/20 dark:to-orange-600/10 border-orange-500/40 hover:border-orange-500/70 hover:shadow-lg hover:shadow-orange-500/20 ring-1 ring-orange-500/20" 
+                    : "bg-white/80 dark:bg-emerald-950/30 border-[#25D366]/20 hover:border-[#25D366]/50 hover:shadow-lg hover:shadow-[#25D366]/10",
                   featuresReveal.isVisible 
                     ? "opacity-100 translate-y-0" 
                     : "opacity-0 translate-y-8"
                 )}
                 style={{ transitionDelay: `${index * 100}ms` }}
               >
-                <feature.icon className="h-10 w-10 text-[#25D366] mb-4" />
+                {(feature as any).isFeatured && (
+                  <div className="absolute top-2 right-2">
+                    <Badge className="bg-orange-500 text-white text-xs px-2 py-0.5 animate-pulse">
+                      <Radar className="w-3 h-3 mr-1" />
+                      NOVO
+                    </Badge>
+                  </div>
+                )}
+                <feature.icon className={cn(
+                  "h-10 w-10 mb-4",
+                  (feature as any).isFeatured ? "text-orange-500" : "text-[#25D366]"
+                )} />
                 <h4 className="text-lg font-bold mb-2">{feature.title}</h4>
                 <p className="text-sm text-muted-foreground">{feature.description}</p>
               </Card>
@@ -249,10 +266,10 @@ export const WhatsAppMarketingSection = () => {
           <Link to="/signup">
             <Button 
               size="lg" 
-              className="text-lg h-14 px-8 bg-[#25D366] hover:bg-[#128C7E] shadow-lg hover:shadow-xl"
+              className="text-lg h-14 px-8 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl hover:shadow-orange-500/25"
             >
-              <MessageCircle className="mr-2 h-5 w-5" />
-              Começar a Recuperar Clientes
+              <Shield className="mr-2 h-5 w-5" />
+              Ativar o SENTINELA Agora
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </Link>

@@ -373,6 +373,7 @@ export function AdminSidebar() {
         { title: 'Evolution API', url: '/dashboard/evolution-config', icon: MessageCircle, group: 'Sistema' },
         { title: 'WhatsApp Master', url: '/dashboard/master-whatsapp', icon: Send, group: 'Sistema' },
         { title: 'Pagamentos Assinaturas', url: '/dashboard/subscription-payments', icon: Receipt, group: 'Financeiro' },
+        { title: 'Faturamento Externo', url: '/dashboard/external-billing', icon: FileText, group: 'Financeiro' },
         { title: 'Planos', url: '/dashboard/plans', icon: CreditCard, group: 'Financeiro' },
         { title: 'Config. Pagamentos', url: '/dashboard/subscription-config', icon: DollarSign, group: 'Financeiro' },
         { title: 'Gateway EFI', url: '/dashboard/gateway-config', icon: Zap, group: 'Financeiro' },

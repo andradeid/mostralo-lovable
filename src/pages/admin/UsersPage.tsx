@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { ImpersonationButton } from '@/components/admin/ImpersonationButton';
+
 import { UserEditDialog } from '@/components/admin/UserEditDialog';
 import { UserBlockDialog } from '@/components/admin/UserBlockDialog';
 import { UserDeleteDialog } from '@/components/admin/UserDeleteDialog';
@@ -587,21 +587,6 @@ const UsersPage = () => {
                       
                       {/* Ações */}
                       <div className="flex items-center gap-1 md:gap-1.5 shrink-0">
-                        {!user.is_blocked && !user.is_deleted && (
-                          <ImpersonationButton 
-                            user={{
-                              id: user.id,
-                              email: user.email,
-                              full_name: user.full_name || '',
-                              user_type: user.user_type,
-                              roles: user.roles,
-                              avatar_url: user.avatar_url || undefined
-                            }}
-                            size="sm"
-                            variant="outline"
-                          />
-                        )}
-                        
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">

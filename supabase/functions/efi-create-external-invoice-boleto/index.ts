@@ -292,27 +292,38 @@ serve(async (req) => {
     });
 
     // Extrair dados do boleto
-    // O código de barras vem formatado com espaços, vamos limpar
-    const codigoBarras = (boletoData.barcode || '').replace(/\s/g, '');
+    // O código de barras vem formatado com espaços, vamos limpar (só números)
+    const codigoBarras = (boletoData.barcode || '').replace(/\D/g, '');
     
-    // A linha digitável é o barcode formatado (com espaços)
+    // A linha digitável é o barcode formatado (com espaços para exibição)
     const linhaDigitavel = boletoData.barcode || '';
     
-    // Para visualização, usar billet_link (página da Efí) que é mais confiável
-    const pdfUrl = boletoData.billet_link || boletoData.link || boletoData.pdf?.charge || '';
+    // Links separados:
+    // - viewUrl: billet_link (página HTML da Efí para visualização) - EX: https://visualizacao.gerencianet.com.br/emissao/...
+    // - pdfUrl: pdf.charge (link direto para download do PDF) - EX: https://download.sejaefi.com.br/...pdf
+    const viewUrl = boletoData.billet_link || boletoData.link || '';
+    const pdfUrl = boletoData.pdf?.charge || boletoData.link || viewUrl;
     const chargeId = boletoData.charge_id;
+
+    console.log('📋 Dados extraídos do boleto:', {
+      codigoBarras: codigoBarras.substring(0, 20) + '...',
+      linhaDigitavel: linhaDigitavel.substring(0, 30) + '...',
+      viewUrl,
+      pdfUrl,
+    });
 
     // Calcular data de expiração do boleto
     const boletoExpiresAt = vencimento;
 
-    // Salvar dados do boleto na fatura
+    // Salvar dados do boleto na fatura (agora com campos separados)
     console.log(`\n💾 Salvando dados do boleto na fatura ${invoice_id}...`);
     const { error: updateError } = await supabase
       .from('external_invoices')
       .update({
         boleto_codigo_barras: codigoBarras,
-        boleto_linha_digitavel: linhaDigitavel || boletoData.link || pdfUrl,
+        boleto_linha_digitavel: linhaDigitavel,
         boleto_pdf_url: pdfUrl,
+        boleto_view_url: viewUrl,
         boleto_expires_at: boletoExpiresAt,
       })
       .eq('id', invoice_id);
@@ -327,15 +338,18 @@ serve(async (req) => {
     console.log('✅ BOLETO PARA FATURA EXTERNA CRIADO COM SUCESSO!');
     console.log('═══════════════════════════════════════════════════════════');
 
+    // Retornar com campos separados para o frontend
     return new Response(
       JSON.stringify({
         success: true,
         charge_id: chargeId,
         codigo_barras: codigoBarras,
-        linha_digitavel: linhaDigitavel || boletoData.link || pdfUrl,
+        linha_digitavel: linhaDigitavel,
+        view_url: viewUrl,
         pdf_url: pdfUrl,
         expires_at: boletoExpiresAt,
-        billet_link: boletoData.billet_link || pdfUrl,
+        // Mantém billet_link para compatibilidade
+        billet_link: viewUrl,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

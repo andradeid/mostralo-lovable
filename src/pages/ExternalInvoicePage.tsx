@@ -41,6 +41,7 @@ interface ExternalInvoiceData {
   boleto_codigo_barras: string | null;
   boleto_linha_digitavel: string | null;
   boleto_pdf_url: string | null;
+  boleto_view_url: string | null;
   boleto_expires_at: string | null;
   client: {
     name: string;
@@ -69,7 +70,8 @@ interface PixChargeData {
 interface BoletoData {
   codigo_barras: string;
   linha_digitavel: string;
-  pdf_url: string;
+  view_url: string; // billet_link - página de visualização (visualizacao.gerencianet.com.br)
+  pdf_url: string;  // link direto do PDF (download.sejaefi.com.br)
   expires_at: string;
 }
 
@@ -127,12 +129,19 @@ export default function ExternalInvoicePage() {
         }
       }
 
-      // Se já tem Boleto gerado, restaurar
-      if (invoiceData.boleto_linha_digitavel && invoiceData.boleto_pdf_url) {
+      // Se já tem Boleto gerado, restaurar (com validação para evitar dados incorretos)
+      // Verificar se a linha digitável não é um código PIX
+      const isValidBoleto = invoiceData.boleto_linha_digitavel && 
+        !invoiceData.boleto_linha_digitavel.includes('BR.GOV.BCB.PIX') &&
+        !invoiceData.boleto_linha_digitavel.startsWith('000201') &&
+        (invoiceData.boleto_view_url || invoiceData.boleto_pdf_url);
+      
+      if (isValidBoleto) {
         setBoletoData({
           codigo_barras: invoiceData.boleto_codigo_barras || '',
           linha_digitavel: invoiceData.boleto_linha_digitavel,
-          pdf_url: invoiceData.boleto_pdf_url,
+          view_url: invoiceData.boleto_view_url || invoiceData.boleto_pdf_url || '',
+          pdf_url: invoiceData.boleto_pdf_url || invoiceData.boleto_view_url || '',
           expires_at: invoiceData.boleto_expires_at || invoiceData.due_date,
         });
       }
@@ -246,8 +255,9 @@ export default function ExternalInvoicePage() {
 
       setBoletoData({
         codigo_barras: data.codigo_barras,
-        linha_digitavel: data.linha_digitavel || data.billet_link,
-        pdf_url: data.pdf_url || data.billet_link,
+        linha_digitavel: data.linha_digitavel,
+        view_url: data.view_url || data.billet_link || '',
+        pdf_url: data.pdf_url || '',
         expires_at: data.expires_at,
       });
       
@@ -255,8 +265,9 @@ export default function ExternalInvoicePage() {
       setInvoice(prev => prev ? {
         ...prev,
         boleto_codigo_barras: data.codigo_barras,
-        boleto_linha_digitavel: data.linha_digitavel || data.billet_link,
-        boleto_pdf_url: data.pdf_url || data.billet_link,
+        boleto_linha_digitavel: data.linha_digitavel,
+        boleto_pdf_url: data.pdf_url,
+        boleto_view_url: data.view_url || data.billet_link,
         boleto_expires_at: data.expires_at,
       } : null);
 
@@ -708,7 +719,8 @@ export default function ExternalInvoicePage() {
                             <Button
                               variant="outline"
                               className="flex-1"
-                              onClick={() => window.open(boletoData.pdf_url, '_blank')}
+                              onClick={() => window.open(boletoData.view_url, '_blank')}
+                              disabled={!boletoData.view_url}
                             >
                               <ExternalLink className="w-4 h-4 mr-2" />
                               Visualizar Boleto
@@ -716,11 +728,13 @@ export default function ExternalInvoicePage() {
                             <Button
                               className="flex-1"
                               onClick={() => {
-                                const link = document.createElement('a');
-                                link.href = boletoData.pdf_url;
-                                link.download = `boleto-${invoice.invoice_number || invoice.id}.pdf`;
-                                link.click();
+                                if (boletoData.pdf_url) {
+                                  window.open(boletoData.pdf_url, '_blank');
+                                } else if (boletoData.view_url) {
+                                  window.open(boletoData.view_url, '_blank');
+                                }
                               }}
+                              disabled={!boletoData.pdf_url && !boletoData.view_url}
                             >
                               <Download className="w-4 h-4 mr-2" />
                               Baixar PDF

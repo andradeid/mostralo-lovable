@@ -126,30 +126,57 @@ serve(async (req) => {
 
     // ETAPA 1: AUTENTICAÇÃO
     console.log('\n🔐 [ETAPA 1/3] Autenticando na API EFI...');
-    const authResponse = await fetch(`${baseUrl}/v1/authorize`, {
+
+    const authUrl = `${baseUrl}/v1/authorize`;
+    console.log(`🔗 URL autenticação: ${authUrl}`);
+
+    const authResponse = await fetch(authUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
       body: JSON.stringify({ grant_type: 'client_credentials' }),
       client: httpClient,
     });
 
-    const authData = await authResponse.json();
-    if (!authResponse.ok || !authData.access_token) {
+    const authText = await authResponse.text();
+    console.log(`📥 Resposta autenticação (HTTP ${authResponse.status}): ${authText?.slice(0, 500)}`);
+
+    let authData: Record<string, unknown> = {};
+    try {
+      authData = authText ? JSON.parse(authText) : {};
+    } catch {
+      authData = { raw: authText };
+    }
+
+    const accessToken = typeof authData.access_token === 'string' ? authData.access_token : null;
+
+    if (!authResponse.ok || !accessToken) {
       httpClient.close();
       console.error('❌ Falha na autenticação:', authData);
+
+      const hint = authResponse.status === 404 || (authText || '').includes('Not Found')
+        ? 'Dica: esse 404 no /v1/authorize geralmente indica credenciais de um app que NÃO está com o escopo da API Cobranças/Boletos habilitado (ou ambiente produção/homologação invertido). Verifique na Efí: API → Aplicações → habilitar "Cobranças" no ambiente correto.'
+        : null;
+
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: `Falha na autenticação: ${authData.error_description || authData.error || 'Erro desconhecido'}` 
+        JSON.stringify({
+          success: false,
+          error: `Falha na autenticação: ${(
+            (authData as any)?.error_description ||
+            (authData as any)?.error ||
+            authResponse.statusText ||
+            'Erro desconhecido'
+          )}`,
+          upstream_status: authResponse.status,
+          hint,
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 502 }
       );
     }
 
-    const accessToken = authData.access_token;
     console.log('✅ Autenticado com sucesso!');
 
     // ETAPA 2: CRIAR COBRANÇA (sem boleto ainda)

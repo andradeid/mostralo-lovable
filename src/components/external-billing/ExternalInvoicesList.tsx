@@ -41,7 +41,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Search, MoreHorizontal, Loader2, CheckCircle, XCircle, RefreshCw, Trash2, FileText, Copy } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Loader2, CheckCircle, XCircle, RefreshCw, Trash2, FileText, Copy, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useExternalInvoices, type ExternalInvoice } from "@/hooks/useExternalInvoices";
@@ -219,6 +219,10 @@ export function ExternalInvoicesList() {
                         <DropdownMenuItem onClick={() => handleCopyLink(invoice.id)}>
                           <Copy className="h-4 w-4 mr-2" />
                           Copiar Link
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => window.open(getPublicInvoiceUrl(invoice.id), '_blank')}>
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          Acessar Link
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <a href={getPublicInvoiceUrl(invoice.id)} target="_blank" rel="noopener noreferrer">

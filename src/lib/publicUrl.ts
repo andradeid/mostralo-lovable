@@ -20,7 +20,7 @@ export function getPublicBaseUrl(): string {
   
   // Se está em desenvolvimento, usar o domínio de produção
   if (isDevEnvironment) {
-    return 'https://mostralo.lovable.app';
+    return 'https://mostralo-lovable.lovable.app';
   }
   
   // Em produção, usar o origin atual

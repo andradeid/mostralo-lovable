@@ -23,15 +23,15 @@ import {
 import { Loader2 } from "lucide-react";
 import { useExternalServices, type ExternalService } from "@/hooks/useExternalServices";
 
-const formSchema = z.object({
+const serviceFormSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   description: z.string().optional(),
-  default_price: z.coerce.number().min(0, "Preço deve ser maior ou igual a zero"),
+  default_price: z.number().min(0, "Preço deve ser maior ou igual a zero"),
   billing_type: z.enum(["fixed", "hourly", "monthly"]),
   is_active: z.boolean(),
 });
 
-type FormData = z.infer<typeof formSchema>;
+type ServiceFormData = z.infer<typeof serviceFormSchema>;
 
 interface ExternalServiceFormProps {
   service: ExternalService | null;
@@ -41,8 +41,8 @@ interface ExternalServiceFormProps {
 export function ExternalServiceForm({ service, onClose }: ExternalServiceFormProps) {
   const { createService, updateService } = useExternalServices();
 
-  const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<ServiceFormData>({
+    resolver: zodResolver(serviceFormSchema),
     defaultValues: {
       name: service?.name || "",
       description: service?.description || "",
@@ -54,7 +54,7 @@ export function ExternalServiceForm({ service, onClose }: ExternalServiceFormPro
 
   const isSubmitting = createService.isPending || updateService.isPending;
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data: ServiceFormData) => {
     if (service) {
       await updateService.mutateAsync({
         id: service.id,
@@ -114,7 +114,8 @@ export function ExternalServiceForm({ service, onClose }: ExternalServiceFormPro
                     step="0.01"
                     min="0"
                     placeholder="0,00"
-                    {...field}
+                    value={field.value}
+                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                   />
                 </FormControl>
                 <FormMessage />

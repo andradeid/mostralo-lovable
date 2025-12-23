@@ -15,9 +15,12 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { AlertCircle, Bell, BellOff, Calendar, CheckCircle2, Clock, Eye, MessageSquare, Package, Plus, RefreshCw, Settings, Target, Trash2, TrendingUp, XCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { AlertCircle, Bell, BellOff, Calendar, CheckCircle2, Clock, Eye, HelpCircle, Loader2, MessageSquare, Package, Phone, Plus, RefreshCw, Send, Settings, Target, Trash2, TrendingUp, XCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
+import { SentinelaGuide } from "@/components/admin/sentinela/SentinelaGuide";
 
 const DEFAULT_TEMPLATE = `Olá {primeiro_nome}! 👋
 
@@ -58,6 +61,14 @@ export default function Sentinela() {
   const [isNewRuleOpen, setIsNewRuleOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState(false);
   const [template, setTemplate] = useState(storeConfig?.sentinela_default_template || DEFAULT_TEMPLATE);
+  const [showGuide, setShowGuide] = useState(false);
+  
+  // Estados para teste de WhatsApp
+  const [testPhone, setTestPhone] = useState('');
+  const [validatingPhone, setValidatingPhone] = useState(false);
+  const [phoneValid, setPhoneValid] = useState<boolean | null>(null);
+  const [phoneJid, setPhoneJid] = useState<string | null>(null);
+  const [sendingTest, setSendingTest] = useState(false);
 
   // Buscar produtos da loja
   const { data: products } = useQuery({
@@ -139,6 +150,74 @@ export default function Sentinela() {
     });
   };
 
+  // Função para validar número de WhatsApp
+  const handleValidatePhone = async () => {
+    if (!testPhone.trim()) {
+      toast.error('Digite um número de telefone');
+      return;
+    }
+
+    setValidatingPhone(true);
+    setPhoneValid(null);
+    setPhoneJid(null);
+
+    try {
+      const response = await supabase.functions.invoke('validate-whatsapp-number', {
+        body: { phone: testPhone, sendWelcome: false }
+      });
+
+      if (response.error) throw response.error;
+
+      if (response.data?.exists) {
+        setPhoneValid(true);
+        setPhoneJid(response.data.jid);
+        toast.success('Número válido no WhatsApp!');
+      } else {
+        setPhoneValid(false);
+        toast.error('Número não encontrado no WhatsApp');
+      }
+    } catch (error: any) {
+      console.error('Erro ao validar WhatsApp:', error);
+      toast.error(error.message || 'Erro ao validar número');
+      setPhoneValid(false);
+    } finally {
+      setValidatingPhone(false);
+    }
+  };
+
+  // Função para enviar mensagem de teste
+  const handleSendTest = async () => {
+    if (!phoneValid || !phoneJid) {
+      toast.error('Valide o número primeiro');
+      return;
+    }
+
+    setSendingTest(true);
+
+    try {
+      const response = await supabase.functions.invoke('validate-whatsapp-number', {
+        body: { 
+          phone: testPhone, 
+          leadName: 'Cliente Teste',
+          sendWelcome: true 
+        }
+      });
+
+      if (response.error) throw response.error;
+
+      if (response.data?.welcomeSent) {
+        toast.success('Mensagem de teste enviada com sucesso!');
+      } else {
+        toast.error('Não foi possível enviar a mensagem');
+      }
+    } catch (error: any) {
+      console.error('Erro ao enviar teste:', error);
+      toast.error(error.message || 'Erro ao enviar mensagem de teste');
+    } finally {
+      setSendingTest(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
@@ -185,6 +264,7 @@ export default function Sentinela() {
   }
 
   return (
+    <TooltipProvider>
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -192,6 +272,21 @@ export default function Sentinela() {
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Target className="w-7 h-7 text-primary" />
             SENTINELA
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-7 w-7"
+                  onClick={() => setShowGuide(true)}
+                >
+                  <HelpCircle className="w-5 h-5 text-muted-foreground hover:text-primary transition-colors" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Como usar o SENTINELA</p>
+              </TooltipContent>
+            </Tooltip>
           </h1>
           <p className="text-muted-foreground">
             Lembretes inteligentes de recompra
@@ -279,6 +374,10 @@ export default function Sentinela() {
           <TabsTrigger value="template" className="gap-2">
             <MessageSquare className="w-4 h-4" />
             Template
+          </TabsTrigger>
+          <TabsTrigger value="test" className="gap-2">
+            <Phone className="w-4 h-4" />
+            Testar
           </TabsTrigger>
         </TabsList>
 
@@ -599,7 +698,103 @@ export default function Sentinela() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Teste */}
+        <TabsContent value="test" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Phone className="w-5 h-5" />
+                Testar Envio de Mensagem
+              </CardTitle>
+              <CardDescription>
+                Valide um número de WhatsApp e envie uma mensagem de teste para verificar se o sistema está funcionando
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <Label htmlFor="test-phone" className="sr-only">Número de WhatsApp</Label>
+                  <div className="relative">
+                    <Input
+                      id="test-phone"
+                      placeholder="(11) 99999-9999"
+                      value={testPhone}
+                      onChange={(e) => {
+                        setTestPhone(e.target.value);
+                        setPhoneValid(null);
+                        setPhoneJid(null);
+                      }}
+                      className={phoneValid === true ? 'border-green-500 pr-10' : phoneValid === false ? 'border-red-500 pr-10' : ''}
+                    />
+                    {phoneValid === true && (
+                      <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" />
+                    )}
+                    {phoneValid === false && (
+                      <XCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-500" />
+                    )}
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleValidatePhone} 
+                  disabled={validatingPhone || !testPhone.trim()}
+                  variant="outline"
+                >
+                  {validatingPhone ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Validando...
+                    </>
+                  ) : (
+                    'Validar'
+                  )}
+                </Button>
+              </div>
+
+              {phoneValid === true && (
+                <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900">
+                  <p className="text-sm text-green-700 dark:text-green-400 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4" />
+                    Número válido no WhatsApp
+                  </p>
+                </div>
+              )}
+
+              {phoneValid === false && (
+                <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900">
+                  <p className="text-sm text-red-700 dark:text-red-400 flex items-center gap-2">
+                    <XCircle className="w-4 h-4" />
+                    Este número não está registrado no WhatsApp
+                  </p>
+                </div>
+              )}
+
+              <div className="flex justify-end">
+                <Button 
+                  onClick={handleSendTest} 
+                  disabled={!phoneValid || sendingTest}
+                >
+                  {sendingTest ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 mr-2" />
+                      Enviar Mensagem de Teste
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
+
+      {/* Guia do SENTINELA */}
+      <SentinelaGuide open={showGuide} onOpenChange={setShowGuide} />
     </div>
+    </TooltipProvider>
   );
 }

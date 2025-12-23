@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MapPin, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { MapPin, Eye, EyeOff, Loader2, Clock, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { CustomerLocationPicker } from './CustomerLocationPicker';
@@ -69,8 +69,47 @@ export function CustomerAuthDialog({
   
   const [showMapPicker, setShowMapPicker] = useState(false);
 
+  // Estados de Rate Limiting
+  const [loginRemainingSeconds, setLoginRemainingSeconds] = useState(0);
+  const [registerRemainingSeconds, setRegisterRemainingSeconds] = useState(0);
+  const [loginAttempts, setLoginAttempts] = useState(0);
+
+  // Countdown timer para login
+  useEffect(() => {
+    if (loginRemainingSeconds <= 0) return;
+    
+    const timer = setInterval(() => {
+      setLoginRemainingSeconds(prev => {
+        if (prev <= 1) {
+          setLoginAttempts(0); // Reset attempts when timer expires
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [loginRemainingSeconds]);
+
+  // Countdown timer para registro
+  useEffect(() => {
+    if (registerRemainingSeconds <= 0) return;
+    
+    const timer = setInterval(() => {
+      setRegisterRemainingSeconds(prev => prev <= 1 ? 0 : prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [registerRemainingSeconds]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Verificar rate limit local
+    if (loginRemainingSeconds > 0) {
+      toast.error(`Aguarde ${loginRemainingSeconds} segundos para tentar novamente`);
+      return;
+    }
 
     const normalizedPhone = normalizePhone(loginPhone);
     
@@ -88,7 +127,7 @@ export function CustomerAuthDialog({
     try {
       console.log('🔐 Tentando login:', { phone: normalizedPhone.substring(0, 4) + '***', phoneLength: normalizedPhone.length });
       
-      const { data, error } = await supabase.functions.invoke('customer-auth', {
+      const response = await supabase.functions.invoke('customer-auth', {
         body: { 
           action: 'login',
           phone: normalizedPhone, 
@@ -96,7 +135,29 @@ export function CustomerAuthDialog({
         }
       });
 
+      const { data, error } = response;
+
       console.log('🔐 Resposta da Edge Function:', { hasError: !!error, hasData: !!data, data });
+
+      // Detectar rate limiting (429)
+      if (error?.message?.includes('429') || data?.retryAfterSeconds || data?.error?.includes('Muitas tentativas')) {
+        const retryAfter = data?.retryAfterSeconds || 60;
+        setLoginRemainingSeconds(retryAfter);
+        setLoginAttempts(prev => prev + 1);
+        toast.error(`Muitas tentativas. Aguarde ${retryAfter} segundos.`);
+        return;
+      }
+
+      // Incrementar tentativas em caso de erro de credenciais
+      if (data?.error?.includes('Credenciais') || data?.error?.includes('incorret')) {
+        setLoginAttempts(prev => {
+          const newAttempts = prev + 1;
+          if (newAttempts >= 3) {
+            toast.warning('Você está com dificuldades? Verifique seu telefone e senha.');
+          }
+          return newAttempts;
+        });
+      }
 
       // IMPORTANTE: Mesmo com error, o data pode conter a mensagem de erro real
       if (data?.error) {
@@ -118,6 +179,9 @@ export function CustomerAuthDialog({
         toast.error('Resposta inválida do servidor');
         return;
       }
+
+      // Reset attempts on success
+      setLoginAttempts(0);
 
       // Salvar sessão
       if (data.session) {
@@ -158,6 +222,12 @@ export function CustomerAuthDialog({
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Verificar rate limit local
+    if (registerRemainingSeconds > 0) {
+      toast.error(`Aguarde ${registerRemainingSeconds} segundos para tentar novamente`);
+      return;
+    }
+
     const normalizedPhone = normalizePhone(registerPhone);
     
     const validation = registerSchema.safeParse({
@@ -183,7 +253,7 @@ export function CustomerAuthDialog({
 
     setIsRegistering(true);
     try {
-      const { data, error } = await supabase.functions.invoke('customer-auth', {
+      const response = await supabase.functions.invoke('customer-auth', {
         body: { 
           action: 'register',
           name: registerName.trim(),
@@ -197,6 +267,16 @@ export function CustomerAuthDialog({
           storeId
         }
       });
+
+      const { data, error } = response;
+
+      // Detectar rate limiting (429)
+      if (error?.message?.includes('429') || data?.retryAfterSeconds || data?.error?.includes('Muitas tentativas')) {
+        const retryAfter = data?.retryAfterSeconds || 3600;
+        setRegisterRemainingSeconds(retryAfter);
+        toast.error(`Muitas tentativas de cadastro. Aguarde ${Math.ceil(retryAfter / 60)} minuto(s).`);
+        return;
+      }
 
       if (error) throw error;
 
@@ -268,6 +348,34 @@ export function CustomerAuthDialog({
             {/* ABA DE LOGIN */}
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
+                {/* Alerta de Rate Limiting */}
+                {loginRemainingSeconds > 0 && (
+                  <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 flex items-center gap-3 animate-pulse">
+                    <div className="bg-destructive/20 rounded-full p-2 shrink-0">
+                      <Clock className="h-5 w-5 text-destructive" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-destructive text-sm">Muitas tentativas de login</p>
+                      <p className="text-xs text-muted-foreground">
+                        Por segurança, aguarde{' '}
+                        <span className="font-bold text-destructive">{loginRemainingSeconds}s</span>
+                        {' '}para tentar novamente
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Aviso de tentativas */}
+                {loginAttempts >= 2 && loginRemainingSeconds === 0 && (
+                  <div className="bg-warning/10 border border-warning/20 rounded-lg p-3 flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-warning shrink-0" />
+                    <p className="text-xs text-muted-foreground">
+                      {loginAttempts} tentativa{loginAttempts > 1 ? 's' : ''} incorreta{loginAttempts > 1 ? 's' : ''}. 
+                      Verifique seu telefone e senha.
+                    </p>
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <Label htmlFor="login-phone">Telefone *</Label>
                   <Input
@@ -277,6 +385,7 @@ export function CustomerAuthDialog({
                     onChange={(e) => setLoginPhone(formatPhone(e.target.value))}
                     maxLength={15}
                     required
+                    disabled={loginRemainingSeconds > 0}
                   />
                 </div>
 
@@ -290,6 +399,7 @@ export function CustomerAuthDialog({
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
                       required
+                      disabled={loginRemainingSeconds > 0}
                     />
                     <Button
                       type="button"
@@ -297,6 +407,7 @@ export function CustomerAuthDialog({
                       size="icon"
                       className="absolute right-0 top-0"
                       onClick={() => setShowLoginPassword(!showLoginPassword)}
+                      disabled={loginRemainingSeconds > 0}
                     >
                       {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
@@ -306,9 +417,14 @@ export function CustomerAuthDialog({
                 <Button 
                   type="submit" 
                   className="w-full"
-                  disabled={isLoggingIn}
+                  disabled={isLoggingIn || loginRemainingSeconds > 0}
                 >
-                  {isLoggingIn ? (
+                  {loginRemainingSeconds > 0 ? (
+                    <>
+                      <Clock className="mr-2 h-4 w-4" />
+                      Aguarde {loginRemainingSeconds}s
+                    </>
+                  ) : isLoggingIn ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Entrando...

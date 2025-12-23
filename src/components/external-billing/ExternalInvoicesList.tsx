@@ -62,6 +62,7 @@ import { ExternalInvoiceForm } from "./ExternalInvoiceForm";
 import { toast } from "sonner";
 import { getPublicInvoiceUrl } from "@/lib/publicUrl";
 import { SendExternalReceiptWhatsAppModal } from "./SendExternalReceiptWhatsAppModal";
+import { SendExternalInvoiceWhatsAppModal } from "./SendExternalInvoiceWhatsAppModal";
 
 const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   pending: { label: "Pendente", variant: "outline" },
@@ -87,6 +88,7 @@ export function ExternalInvoicesList() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [deletingInvoice, setDeletingInvoice] = useState<ExternalInvoice | null>(null);
   const [sendingReceiptInvoice, setSendingReceiptInvoice] = useState<ExternalInvoice | null>(null);
+  const [sendingInvoiceWhatsApp, setSendingInvoiceWhatsApp] = useState<ExternalInvoice | null>(null);
   const [selectedInvoice, setSelectedInvoice] = useState<ExternalInvoice | null>(null);
 
   // Extract EndToEndId from notes
@@ -373,7 +375,8 @@ export function ExternalInvoicesList() {
                   onCancel={handleCancel}
                   onDelete={setDeletingInvoice}
                   onCopyLink={handleCopyLink}
-                  onSendWhatsApp={setSendingReceiptInvoice}
+                  onSendReceiptWhatsApp={setSendingReceiptInvoice}
+                  onSendInvoiceWhatsApp={setSendingInvoiceWhatsApp}
                   onViewDetails={setSelectedInvoice}
                   formatCurrency={formatCurrency}
                 />
@@ -423,6 +426,13 @@ export function ExternalInvoicesList() {
         open={!!sendingReceiptInvoice}
         onOpenChange={(open) => !open && setSendingReceiptInvoice(null)}
         invoice={sendingReceiptInvoice}
+      />
+
+      {/* WhatsApp Invoice Modal */}
+      <SendExternalInvoiceWhatsAppModal
+        open={!!sendingInvoiceWhatsApp}
+        onOpenChange={(open) => !open && setSendingInvoiceWhatsApp(null)}
+        invoice={sendingInvoiceWhatsApp}
       />
 
       {/* Invoice Details Modal */}
@@ -583,12 +593,13 @@ interface InvoiceCardProps {
   onCancel: (invoice: ExternalInvoice) => void;
   onDelete: (invoice: ExternalInvoice) => void;
   onCopyLink: (invoiceId: string) => void;
-  onSendWhatsApp: (invoice: ExternalInvoice) => void;
+  onSendReceiptWhatsApp: (invoice: ExternalInvoice) => void;
+  onSendInvoiceWhatsApp: (invoice: ExternalInvoice) => void;
   onViewDetails: (invoice: ExternalInvoice) => void;
   formatCurrency: (value: number) => string;
 }
 
-function InvoiceCard({ invoice, onMarkAsPaid, onCancel, onDelete, onCopyLink, onSendWhatsApp, onViewDetails, formatCurrency }: InvoiceCardProps) {
+function InvoiceCard({ invoice, onMarkAsPaid, onCancel, onDelete, onCopyLink, onSendReceiptWhatsApp, onSendInvoiceWhatsApp, onViewDetails, formatCurrency }: InvoiceCardProps) {
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
@@ -669,6 +680,18 @@ function InvoiceCard({ invoice, onMarkAsPaid, onCancel, onDelete, onCopyLink, on
             Ver Fatura
           </Button>
           
+          {/* Botão WhatsApp para faturas pendentes/vencidas */}
+          {(invoice.payment_status === "pending" || invoice.payment_status === "overdue") && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-green-600 text-green-600 hover:bg-green-50"
+              onClick={() => onSendInvoiceWhatsApp(invoice)}
+            >
+              <MessageCircle className="h-4 w-4" />
+            </Button>
+          )}
+
           {invoice.payment_status === "paid" && (
             <>
               <Button
@@ -683,7 +706,7 @@ function InvoiceCard({ invoice, onMarkAsPaid, onCancel, onDelete, onCopyLink, on
                 size="sm"
                 variant="outline"
                 className="border-green-600 text-green-600 hover:bg-green-50"
-                onClick={() => onSendWhatsApp(invoice)}
+                onClick={() => onSendReceiptWhatsApp(invoice)}
               >
                 <MessageCircle className="h-4 w-4" />
               </Button>
@@ -715,20 +738,26 @@ function InvoiceCard({ invoice, onMarkAsPaid, onCancel, onDelete, onCopyLink, on
                   Ver Fatura
                 </a>
               </DropdownMenuItem>
+              {(invoice.payment_status === "pending" || invoice.payment_status === "overdue") && (
+                <DropdownMenuItem onClick={() => onSendInvoiceWhatsApp(invoice)}>
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Enviar Fatura por WhatsApp
+                </DropdownMenuItem>
+              )}
               {invoice.payment_status === "paid" && (
                 <>
                   <DropdownMenuItem onClick={() => window.open(`/external-receipt/${invoice.id}`, '_blank')}>
                     <Receipt className="h-4 w-4 mr-2" />
                     Ver Recibo
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onSendWhatsApp(invoice)}>
+                  <DropdownMenuItem onClick={() => onSendReceiptWhatsApp(invoice)}>
                     <MessageCircle className="h-4 w-4 mr-2" />
                     Enviar Recibo por WhatsApp
                   </DropdownMenuItem>
                 </>
               )}
               <DropdownMenuSeparator />
-              {invoice.payment_status === "pending" && (
+              {(invoice.payment_status === "pending" || invoice.payment_status === "overdue") && (
                 <>
                   <DropdownMenuItem onClick={() => onMarkAsPaid(invoice)}>
                     <CheckCircle className="h-4 w-4 mr-2" />

@@ -47,6 +47,7 @@ import { ptBR } from "date-fns/locale";
 import { useExternalInvoices, type ExternalInvoice } from "@/hooks/useExternalInvoices";
 import { ExternalInvoiceForm } from "./ExternalInvoiceForm";
 import { toast } from "sonner";
+import { getPublicInvoiceUrl } from "@/lib/publicUrl";
 
 const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   pending: { label: "Pendente", variant: "outline" },
@@ -101,7 +102,7 @@ export function ExternalInvoicesList() {
   };
 
   const handleCopyLink = (invoiceId: string) => {
-    const url = `${window.location.origin}/external-invoice/${invoiceId}`;
+    const url = getPublicInvoiceUrl(invoiceId);
     navigator.clipboard.writeText(url);
     toast.success("Link copiado!");
   };
@@ -220,7 +221,7 @@ export function ExternalInvoicesList() {
                           Copiar Link
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <a href={`/external-invoice/${invoice.id}`} target="_blank" rel="noopener noreferrer">
+                          <a href={getPublicInvoiceUrl(invoice.id)} target="_blank" rel="noopener noreferrer">
                             <FileText className="h-4 w-4 mr-2" />
                             Ver Fatura
                           </a>

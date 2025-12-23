@@ -41,7 +41,7 @@ import {
 import { ExternalClientForm } from "./ExternalClientForm";
 import { ExternalServiceForm } from "./ExternalServiceForm";
 
-const formSchema = z.object({
+const invoiceFormSchema = z.object({
   client_id: z.string().min(1, "Selecione um cliente"),
   service_id: z.string().optional(),
   description: z.string().min(3, "Descrição deve ter pelo menos 3 caracteres"),
@@ -52,6 +52,8 @@ const formSchema = z.object({
   recurrence_count: z.number().nullable().optional(),
   notes: z.string().optional(),
 });
+
+type InvoiceFormData = z.infer<typeof invoiceFormSchema>;
 
 interface ExternalInvoiceFormProps {
   onClose: () => void;
@@ -64,8 +66,8 @@ export function ExternalInvoiceForm({ onClose }: ExternalInvoiceFormProps) {
   const [isClientFormOpen, setIsClientFormOpen] = useState(false);
   const [isServiceFormOpen, setIsServiceFormOpen] = useState(false);
 
-  const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<InvoiceFormData>({
+    resolver: zodResolver(invoiceFormSchema),
     defaultValues: {
       client_id: "",
       service_id: "",
@@ -95,7 +97,7 @@ export function ExternalInvoiceForm({ onClose }: ExternalInvoiceFormProps) {
 
   const isSubmitting = createInvoice.isPending;
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data: InvoiceFormData) => {
     await createInvoice.mutateAsync({
       client_id: data.client_id,
       service_id: data.service_id || undefined,
@@ -223,7 +225,8 @@ export function ExternalInvoiceForm({ onClose }: ExternalInvoiceFormProps) {
                       step="0.01"
                       min="0.01"
                       placeholder="0,00"
-                      {...field}
+                      value={field.value}
+                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                     />
                   </FormControl>
                   <FormMessage />
@@ -328,7 +331,6 @@ export function ExternalInvoiceForm({ onClose }: ExternalInvoiceFormProps) {
                         type="number"
                         min="1"
                         placeholder="∞ Infinito"
-                        {...field}
                         value={field.value ?? ""}
                         onChange={(e) => {
                           const value = e.target.value;

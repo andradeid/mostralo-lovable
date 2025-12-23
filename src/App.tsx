@@ -159,6 +159,7 @@ import MasterWhatsAppPage from "./pages/admin/MasterWhatsAppPage";
 import SignageManagementPage from "./pages/admin/SignageManagementPage";
 import PasswordCallManagementPage from "./pages/admin/PasswordCallManagementPage";
 import SignageDisplayPage from "./pages/public/SignageDisplayPage";
+import ExternalBillingPage from "./pages/admin/ExternalBillingPage";
 import { UpdatesRedirect } from "./components/system-updates/UpdatesRedirect";
 import { useLocation } from "react-router-dom";
 
@@ -342,6 +343,13 @@ function MainAppWithProviders() {
               <ProtectedRoute allowedRoles={['master_admin']}>
                 <AdminLayout pageTitle="Notificações das Lojas">
                   <StoreNotificationsManagementPage />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/external-billing" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Faturamento Externo">
+                  <ExternalBillingPage />
                 </AdminLayout>
               </ProtectedRoute>
             } />

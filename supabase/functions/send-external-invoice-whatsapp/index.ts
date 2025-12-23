@@ -136,7 +136,7 @@ serve(async (req) => {
     }
 
     // Build payment link
-    const baseUrl = 'https://mostralo.lovable.app';
+    const baseUrl = 'https://mostralo-lovable.lovable.app';
     const paymentLink = `${baseUrl}/external-invoice/${invoice.id}`;
 
     // Format due date

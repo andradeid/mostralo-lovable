@@ -190,7 +190,16 @@ export function ExternalClientForm({ client, onClose }: ExternalClientFormProps)
   });
 
   const personType = form.watch("person_type");
+  const addressZipcode = form.watch("address_zipcode");
   const isSubmitting = createClient.isPending || updateClient.isPending;
+
+  // Busca automática de CEP quando completar 8 dígitos
+  useEffect(() => {
+    const cepNumbers = addressZipcode?.replace(/\D/g, "") || "";
+    if (cepNumbers.length === 8 && !isSearchingCep) {
+      searchCep();
+    }
+  }, [addressZipcode]);
 
   // Buscar endereço pelo CEP
   const searchCep = async () => {

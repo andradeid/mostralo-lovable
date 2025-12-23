@@ -146,7 +146,7 @@ export function ExternalClientsList() {
 
       {/* Form Dialog */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
               {editingClient ? "Editar Cliente" : "Novo Cliente"}

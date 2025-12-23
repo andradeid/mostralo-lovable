@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { ImpersonationButton } from '@/components/admin/ImpersonationButton';
+
 import { SubscriberEditDialog } from '@/components/admin/SubscriberEditDialog';
 import { CreateStoreOwnerDialog } from '@/components/admin/CreateStoreOwnerDialog';
 import { UserBlockDialog } from '@/components/admin/UserBlockDialog';
@@ -530,20 +530,6 @@ const SubscribersPage = () => {
                           <Edit className="h-3 w-3 mr-1" />
                           Editar
                         </Button>
-
-                        {!subscriber.is_blocked && (
-                          <ImpersonationButton 
-                            user={{
-                              id: subscriber.id,
-                              email: subscriber.email,
-                              full_name: subscriber.full_name,
-                              user_type: 'store_admin',
-                              avatar_url: subscriber.avatar_url || undefined
-                            }}
-                            size="sm"
-                            variant="outline"
-                          />
-                        )}
 
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>

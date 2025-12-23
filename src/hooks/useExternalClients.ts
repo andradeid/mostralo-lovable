@@ -14,6 +14,15 @@ export interface ExternalClient {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  // Campos estruturados para boleto EFI
+  person_type: 'PF' | 'PJ';
+  address_street: string | null;
+  address_number: string | null;
+  address_complement: string | null;
+  address_neighborhood: string | null;
+  address_city: string | null;
+  address_state: string | null;
+  address_zipcode: string | null;
 }
 
 export interface CreateExternalClientParams {
@@ -23,6 +32,15 @@ export interface CreateExternalClientParams {
   document?: string;
   address?: string;
   notes?: string;
+  // Campos estruturados para boleto EFI
+  person_type?: 'PF' | 'PJ';
+  address_street?: string;
+  address_number?: string;
+  address_complement?: string;
+  address_neighborhood?: string;
+  address_city?: string;
+  address_state?: string;
+  address_zipcode?: string;
 }
 
 export interface UpdateExternalClientParams extends Partial<CreateExternalClientParams> {

@@ -550,9 +550,17 @@ const UsersPage = () => {
                   >
                     {/* Header: Ícone + Nome + Badge + Ações */}
                     <div className="flex items-start gap-2 md:gap-3">
-                      <div className={`p-1.5 md:p-2 rounded-full bg-muted ${userTypeInfo.color} shrink-0`}>
-                        <TypeIcon className="w-4 h-4 md:w-5 md:h-5" />
-                      </div>
+                      {user.avatar_url ? (
+                        <img 
+                          src={user.avatar_url} 
+                          alt={user.full_name || 'Avatar'}
+                          className="w-8 h-8 md:w-10 md:h-10 rounded-full object-cover border-2 border-primary/20 shrink-0"
+                        />
+                      ) : (
+                        <div className={`p-1.5 md:p-2 rounded-full bg-muted ${userTypeInfo.color} shrink-0`}>
+                          <TypeIcon className="w-4 h-4 md:w-5 md:h-5" />
+                        </div>
+                      )}
                       
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 md:gap-2 flex-wrap">
@@ -654,7 +662,14 @@ const UsersPage = () => {
                     {user.roles && user.roles.length > 0 && (
                       <div className="overflow-x-auto scrollbar-hide -mx-1 px-1">
                         <div className="flex gap-1.5 pb-1">
-                          {user.roles.map((role: any, idx: number) => (
+                          {user.roles
+                            .filter((role: any) => {
+                              // Não mostrar role redundante com user_type
+                              if (role.role === 'master_admin' && user.user_type === 'master_admin') return false;
+                              if (role.role === 'store_admin' && user.user_type === 'store_admin' && !role.store_id) return false;
+                              return true;
+                            })
+                            .map((role: any, idx: number) => (
                             <div key={idx} className="flex items-center gap-1 shrink-0">
                               {(role.role === 'attendant' || role.role === 'store_admin' || role.role === 'delivery_driver') && role.store_logo && (
                                 <img 
@@ -667,7 +682,11 @@ const UsersPage = () => {
                                 {role.role === 'delivery_driver' ? 'Entregador' : 
                                  role.role === 'salesperson' ? 'Vendedor' : 
                                  role.role === 'attendant' ? 'Atendente' : 
-                                 role.role === 'store_admin' ? 'Lojista' : 'Cliente'}
+                                 role.role === 'store_admin' ? 'Lojista' : 
+                                 role.role === 'master_admin' ? '👑 Criador' : 
+                                 role.role === 'admin' ? '🛡️ Admin' : 
+                                 role.role === 'moderator' ? '🔧 Moderador' : 
+                                 role.role === 'customer' ? 'Cliente' : role.role}
                                 {role.store_name && (
                                   <span className="hidden sm:inline ml-1">({role.store_name})</span>
                                 )}

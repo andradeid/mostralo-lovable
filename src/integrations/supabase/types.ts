@@ -3448,6 +3448,7 @@ export type Database = {
           offer_price: number | null
           original_price: number | null
           price: number
+          recurrence_days: number | null
           slug: string | null
           store_id: string | null
           updated_at: string
@@ -3467,6 +3468,7 @@ export type Database = {
           offer_price?: number | null
           original_price?: number | null
           price: number
+          recurrence_days?: number | null
           slug?: string | null
           store_id?: string | null
           updated_at?: string
@@ -3486,6 +3488,7 @@ export type Database = {
           offer_price?: number | null
           original_price?: number | null
           price?: number
+          recurrence_days?: number | null
           slug?: string | null
           store_id?: string | null
           updated_at?: string
@@ -4913,6 +4916,178 @@ export type Database = {
         }
         Relationships: []
       }
+      sentinela_reminders: {
+        Row: {
+          conversion_order_id: string | null
+          converted_at: string | null
+          created_at: string | null
+          customer_id: string
+          error_message: string | null
+          id: string
+          message_sent: string | null
+          order_id: string | null
+          product_id: string | null
+          rule_id: string | null
+          scheduled_for: string
+          sent_at: string | null
+          status: string | null
+          store_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          conversion_order_id?: string | null
+          converted_at?: string | null
+          created_at?: string | null
+          customer_id: string
+          error_message?: string | null
+          id?: string
+          message_sent?: string | null
+          order_id?: string | null
+          product_id?: string | null
+          rule_id?: string | null
+          scheduled_for: string
+          sent_at?: string | null
+          status?: string | null
+          store_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          conversion_order_id?: string | null
+          converted_at?: string | null
+          created_at?: string | null
+          customer_id?: string
+          error_message?: string | null
+          id?: string
+          message_sent?: string | null
+          order_id?: string | null
+          product_id?: string | null
+          rule_id?: string | null
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: string | null
+          store_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sentinela_reminders_conversion_order_id_fkey"
+            columns: ["conversion_order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sentinela_reminders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sentinela_reminders_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sentinela_reminders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sentinela_reminders_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "sentinela_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sentinela_reminders_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sentinela_reminders_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sentinela_rules: {
+        Row: {
+          category_id: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          message_template: string | null
+          product_id: string | null
+          recurrence_days: number
+          reminder_days_before: number
+          store_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          message_template?: string | null
+          product_id?: string | null
+          recurrence_days?: number
+          reminder_days_before?: number
+          store_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          message_template?: string | null
+          product_id?: string | null
+          recurrence_days?: number
+          reminder_days_before?: number
+          store_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sentinela_rules_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sentinela_rules_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sentinela_rules_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sentinela_rules_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_bot_config: {
         Row: {
           auto_reactivate_minutes: number | null
@@ -5471,6 +5646,8 @@ export type Database = {
           responsible_name: string | null
           responsible_phone: string | null
           segment: string | null
+          sentinela_default_template: string | null
+          sentinela_enabled: boolean | null
           slug: string
           state: string | null
           status: Database["public"]["Enums"]["store_status"]
@@ -5540,6 +5717,8 @@ export type Database = {
           responsible_name?: string | null
           responsible_phone?: string | null
           segment?: string | null
+          sentinela_default_template?: string | null
+          sentinela_enabled?: boolean | null
           slug: string
           state?: string | null
           status?: Database["public"]["Enums"]["store_status"]
@@ -5609,6 +5788,8 @@ export type Database = {
           responsible_name?: string | null
           responsible_phone?: string | null
           segment?: string | null
+          sentinela_default_template?: string | null
+          sentinela_enabled?: boolean | null
           slug?: string
           state?: string | null
           status?: Database["public"]["Enums"]["store_status"]

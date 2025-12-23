@@ -2207,5 +2207,196 @@ Benefícios do rastreamento:
       '□ [FASE 3] Testar fluxo completo com entregador real',
       '□ [FASE 4] Criar mapa de entregadores para lojista (opcional)'
     ]
+  },
+  {
+    id: 20,
+    title: '🧾 Integração Focus NFe (NFC-e)',
+    status: 'analyzing',
+    priority: 'high',
+    createdAt: '2025-12-23',
+    description: 'Integrar com API Focus NFe para permitir que lojistas emitam NFC-e (Nota Fiscal de Consumidor Eletrônica) diretamente pelo sistema Mostralo.',
+    
+    context: `Cliente real de Brasília/DF solicitou emissão de NFC-e para venda de marmitas.
+
+Pesquisa realizada sobre APIs de NF-e disponíveis no Brasil:
+• Focus NFe - Plano Growth (R$ 548/mês) com CNPJs ilimitados + R$ 0.05-0.06/nota
+• Enotas - Programa de parceria para plataformas
+• NFE.io - White-label para Software Houses
+• Plug Notas - API simples e intuitiva
+
+Decisão: Focus NFe escolhido pelos seguintes motivos:
+• Precificação clara e previsível
+• CNPJs ilimitados no Plano Growth (ideal para multi-tenant)
+• Custo baixo por nota emitida (R$ 0.05-0.06)
+• Período de teste de 30 dias gratuito
+• Documentação completa e API REST moderna
+• Suporte a ambiente de homologação
+
+Modelo de negócio: Mostralo gerencia tudo via API (multi-tenant). Cada lojista é registrado como uma empresa no Focus NFe e recebe um token único. O lojista NUNCA acessa o painel Focus NFe diretamente. Certificado digital A1 é enviado pelo cliente no painel do Focus NFe.`,
+
+    problem: `Lojistas precisam emitir notas fiscais eletrônicas mas enfrentam dificuldades:
+• Não têm sistema integrado (precisam usar sistemas externos como Nota Fácil, ContaAzul, etc)
+• Processo manual é trabalhoso e sujeito a erros de digitação
+• Difícil rastrear quais pedidos têm nota fiscal emitida
+• Sem integração, dados do pedido precisam ser digitados novamente no outro sistema
+• Perdem vendas para concorrentes que oferecem nota fiscal automaticamente
+
+Benefícios da integração Focus NFe:
+• Emissão automática ou com 1 clique no pedido
+• Dados do pedido (itens, valores, cliente) preenchidos automaticamente
+• Histórico de notas fiscais vinculado aos pedidos
+• PDF/XML gerados automaticamente e armazenados
+• Novo diferencial competitivo para Mostralo vs iFood/99Food
+• Possibilidade de monetização (cobrar por nota ou incluir em planos premium)`,
+
+    technicalDetails: {
+      title: '🔧 Arquitetura Técnica Proposta',
+      items: [
+        '📦 BANCO DE DADOS (3 novas tabelas):',
+        '• store_fiscal_config: CNPJ, Razão Social, IE, endereço, regime tributário, tokens Focus NFe, CSC, série NFC-e',
+        '• fiscal_notes: tipo, série, número, chave acesso, status, XML/PDF URLs, dados do Focus NFe',
+        '• product_fiscal_data: NCM, CEST, CFOP, origem, CSOSN/CST, alíquotas',
+        '',
+        '🔐 SECRETS:',
+        '• FOCUSNFE_API_TOKEN: Token master da conta Mostralo no Focus NFe (Plano Growth)',
+        '',
+        '⚡ EDGE FUNCTIONS (4 funções):',
+        '• focusnfe-register-company: Registrar empresa e obter token único',
+        '• focusnfe-issue-nfce: Emitir NFC-e para um pedido',
+        '• focusnfe-get-nfce-status: Consultar status de uma nota',
+        '• focusnfe-cancel-nfce: Cancelar NFC-e autorizada',
+        '',
+        '🖥️ FRONTEND (4 telas):',
+        '• FiscalConfigPage: Configuração fiscal da loja (CNPJ, IE, CSC)',
+        '• ProductFiscalDataPage: Dados fiscais dos produtos (NCM, CFOP)',
+        '• FiscalNotesPage: Listagem de notas emitidas',
+        '• Botão "Emitir NFC-e" na tela de detalhes do pedido'
+      ]
+    },
+
+    phases: [
+      {
+        name: 'Fase 1 - Banco de Dados',
+        description: 'Criar estrutura de dados para configuração fiscal e notas',
+        items: [
+          'Criar tabela store_fiscal_config (CNPJ, IE, endereço, tokens)',
+          'Criar tabela fiscal_notes (notas emitidas)',
+          'Criar tabela product_fiscal_data (NCM, CFOP dos produtos)',
+          'Configurar RLS para cada tabela',
+          'Criar triggers para updated_at automático'
+        ]
+      },
+      {
+        name: 'Fase 2 - Edge Functions',
+        description: 'Implementar integração com API Focus NFe',
+        items: [
+          'Adicionar secret FOCUSNFE_API_TOKEN',
+          'Criar focusnfe-register-company (POST /v2/empresas)',
+          'Criar focusnfe-issue-nfce (POST /v2/nfce)',
+          'Criar focusnfe-get-nfce-status (GET /v2/nfce/:ref)',
+          'Criar focusnfe-cancel-nfce (DELETE /v2/nfce/:ref)',
+          'Implementar tratamento de erros SEFAZ'
+        ]
+      },
+      {
+        name: 'Fase 3 - Frontend Configuração',
+        description: 'Telas de configuração fiscal e dados de produtos',
+        items: [
+          'Criar FiscalConfigPage.tsx (dados empresa + CSC)',
+          'Criar ProductFiscalDataPage.tsx (NCM/CFOP produtos)',
+          'Adicionar rotas /admin/fiscal e /admin/fiscal/products',
+          'Adicionar menu "Fiscal" no sidebar admin',
+          'Criar validações de CNPJ e campos obrigatórios'
+        ]
+      },
+      {
+        name: 'Fase 4 - Emissão e Gestão de Notas',
+        description: 'Emitir notas e gerenciar histórico',
+        items: [
+          'Criar FiscalNotesPage.tsx (listagem de notas)',
+          'Adicionar botão "Emitir NFC-e" nos pedidos',
+          'Implementar download de PDF/XML',
+          'Implementar cancelamento de nota',
+          'Criar modal de detalhes da nota',
+          'Adicionar filtros (data, status, tipo)'
+        ]
+      }
+    ],
+
+    legalConsiderations: [
+      '📜 CERTIFICADO DIGITAL A1:',
+      '• Cliente precisa ter certificado digital A1 (arquivo .pfx)',
+      '• Upload é feito diretamente no painel Focus NFe (NÃO armazenamos)',
+      '• Mostralo apenas guarda flag indicando se certificado foi enviado',
+      '• Custo do certificado: R$ 100-200/ano (cliente paga à parte)',
+      '',
+      '🏛️ SEFAZ E HOMOLOGAÇÃO:',
+      '• Ambiente de homologação para testes (notas sem validade fiscal)',
+      '• Ambiente de produção requer certificado válido',
+      '• Cada estado tem suas regras específicas (SEFAZ-DF para Brasília)',
+      '',
+      '📋 DADOS OBRIGATÓRIOS:',
+      '• CNPJ e Inscrição Estadual da empresa',
+      '• NCM (código fiscal) de cada produto',
+      '• CFOP (código da operação) - geralmente 5102 para venda interna',
+      '• CSC (Código de Segurança do Contribuinte) para NFC-e',
+      '',
+      '💰 MONETIZAÇÃO SUGERIDA:',
+      '• Incluir emissão de NF-e em planos premium',
+      '• OU cobrar taxa por nota emitida (ex: R$ 0.15/nota)',
+      '• OU criar plano específico "Plano Fiscal" (R$ XX/mês)'
+    ],
+
+    recommendation: `**Recomendação: Implementação em 4 Fases**
+
+🎯 ESTRATÉGIA:
+
+**Fase 1 - Infraestrutura (1-2 dias)**
+• Criar tabelas SQL + RLS policies
+• Adicionar secret FOCUSNFE_API_TOKEN
+• Definir tipos TypeScript
+
+**Fase 2 - Backend (2-3 dias)**
+• Edge Functions para API Focus NFe
+• Testar em ambiente de homologação
+• Tratar erros comuns (certificado, dados inválidos)
+
+**Fase 3 - Configuração (2-3 dias)**
+• Tela de configuração fiscal
+• Tela de dados fiscais de produtos
+• Wizard de primeiro setup
+
+**Fase 4 - Emissão (2-3 dias)**
+• Botão de emitir no pedido
+• Tela de notas emitidas
+• Download/cancelamento
+
+📋 PRÓXIMOS PASSOS IMEDIATOS:
+1. Criar conta de teste no Focus NFe (30 dias grátis)
+2. Enviar mensagem para Focus NFe sobre modelo multi-tenant
+3. Aguardar resposta sobre registro de empresas via API
+4. Iniciar Fase 1 após confirmação do Focus NFe`,
+
+    nextSteps: [
+      '□ Criar conta de teste no Focus NFe',
+      '□ Enviar mensagem explicando modelo multi-tenant',
+      '□ Aguardar resposta do Focus NFe sobre API de empresas',
+      '□ [FASE 1] Criar migração SQL para store_fiscal_config',
+      '□ [FASE 1] Criar migração SQL para fiscal_notes',
+      '□ [FASE 1] Criar migração SQL para product_fiscal_data',
+      '□ [FASE 1] Configurar RLS policies',
+      '□ [FASE 2] Adicionar secret FOCUSNFE_API_TOKEN',
+      '□ [FASE 2] Criar Edge Function focusnfe-register-company',
+      '□ [FASE 2] Criar Edge Function focusnfe-issue-nfce',
+      '□ [FASE 2] Criar Edge Function focusnfe-get-nfce-status',
+      '□ [FASE 2] Criar Edge Function focusnfe-cancel-nfce',
+      '□ [FASE 3] Criar FiscalConfigPage.tsx',
+      '□ [FASE 3] Criar ProductFiscalDataPage.tsx',
+      '□ [FASE 3] Adicionar rotas e menu',
+      '□ [FASE 4] Criar FiscalNotesPage.tsx',
+      '□ [FASE 4] Adicionar botão emitir NFC-e nos pedidos',
+      '□ [FASE 4] Implementar download PDF/XML',
+      '□ [FASE 4] Testar fluxo completo em homologação'
+    ]
   }
 ];

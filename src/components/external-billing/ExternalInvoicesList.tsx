@@ -48,7 +48,8 @@ import {
   Clock,
   AlertCircle,
   DollarSign,
-  RefreshCw
+  RefreshCw,
+  Receipt
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -496,6 +497,17 @@ function InvoiceCard({ invoice, onMarkAsPaid, onCancel, onDelete, onCopyLink, fo
             Ver Fatura
           </Button>
           
+          {invoice.payment_status === "paid" && (
+            <Button
+              size="sm"
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+              onClick={() => window.open(`/external-receipt/${invoice.id}`, '_blank')}
+            >
+              <Receipt className="h-4 w-4 mr-2" />
+              Ver Recibo
+            </Button>
+          )}
+          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -517,6 +529,12 @@ function InvoiceCard({ invoice, onMarkAsPaid, onCancel, onDelete, onCopyLink, fo
                   Ver Fatura
                 </a>
               </DropdownMenuItem>
+              {invoice.payment_status === "paid" && (
+                <DropdownMenuItem onClick={() => window.open(`/external-receipt/${invoice.id}`, '_blank')}>
+                  <Receipt className="h-4 w-4 mr-2" />
+                  Ver Recibo
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               {invoice.payment_status === "pending" && (
                 <>

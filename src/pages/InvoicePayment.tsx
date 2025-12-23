@@ -258,7 +258,7 @@ export default function InvoicePayment() {
     );
   }
 
-  // Fatura já paga
+  // Fatura já paga - redirecionar para recibo
   if (invoice.payment_status === 'paid') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-green-100 dark:from-gray-900 dark:to-gray-800 p-4">
@@ -278,6 +278,12 @@ export default function InvoicePayment() {
                 Pago em {format(new Date(invoice.paid_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
               </p>
             )}
+            <Link to={`/receipt/${invoice.id}`}>
+              <Button className="bg-green-600 hover:bg-green-700">
+                <Receipt className="w-4 h-4 mr-2" />
+                Ver Recibo
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       </div>

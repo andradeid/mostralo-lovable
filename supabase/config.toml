@@ -224,3 +224,6 @@ verify_jwt = true
 
 [functions.text-to-speech]
 verify_jwt = false
+
+[functions.send-invoice-whatsapp]
+verify_jwt = true

@@ -242,3 +242,6 @@ verify_jwt = false
 
 [functions.efi-create-external-invoice-boleto]
 verify_jwt = false
+
+[functions.update-external-invoice-status]
+verify_jwt = false

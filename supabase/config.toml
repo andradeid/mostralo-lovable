@@ -239,3 +239,6 @@ verify_jwt = false
 
 [functions.efi-create-external-invoice-pix]
 verify_jwt = false
+
+[functions.efi-create-external-invoice-boleto]
+verify_jwt = false

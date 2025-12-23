@@ -126,7 +126,7 @@ serve(async (req) => {
 
     // ETAPA 1: AUTENTICAÇÃO
     console.log('\n🔐 [ETAPA 1/3] Autenticando na API EFI...');
-    const authResponse = await fetch(`${baseUrl}/oauth/token`, {
+    const authResponse = await fetch(`${baseUrl}/v1/authorize`, {
       method: 'POST',
       headers: {
         'Authorization': `Basic ${btoa(`${clientId}:${clientSecret}`)}`,

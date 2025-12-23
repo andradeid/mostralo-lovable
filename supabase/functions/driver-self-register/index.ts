@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.55.0';
+import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '../_shared/rateLimiter.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,9 +12,29 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // === RATE LIMITING ===
+    const clientIP = getClientIP(req);
+    
+    // Limite: 3 cadastros por IP por hora (3600000 ms)
+    const rateLimitResult = checkRateLimit(`driver-register:${clientIP}`, 3, 3600000);
+    
+    if (!rateLimitResult.allowed) {
+      console.log('Rate limit exceeded for driver registration, IP:', clientIP);
+      return rateLimitExceededResponse(rateLimitResult, corsHeaders);
+    }
+
     const { email, password, full_name, phone, pix_key_type, pix_key, invite_token } = await req.json();
     
-    console.log('Driver self-register request:', { email, full_name, phone: phone?.substring(0, 4) + '***' });
+    console.log('Driver self-register request:', { email, full_name, phone: phone?.substring(0, 4) + '***', ip: clientIP });
+
+    // Rate limit adicional por email para prevenir spam
+    if (email) {
+      const emailRateLimit = checkRateLimit(`driver-register:email:${email}`, 3, 3600000);
+      if (!emailRateLimit.allowed) {
+        console.log('Rate limit exceeded for email:', email);
+        return rateLimitExceededResponse(emailRateLimit, corsHeaders);
+      }
+    }
 
     // Validações
     if (!email || !password || !full_name || !phone) {

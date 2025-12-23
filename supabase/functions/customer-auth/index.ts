@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '../_shared/rateLimiter.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,8 +14,28 @@ serve(async (req) => {
   }
 
   try {
+    // === RATE LIMITING ===
+    const clientIP = getClientIP(req);
+    
+    // Limite: 5 tentativas por IP por minuto
+    const rateLimitResult = checkRateLimit(`customer-auth:${clientIP}`, 5, 60000);
+    
+    if (!rateLimitResult.allowed) {
+      console.log('Rate limit exceeded for IP:', clientIP);
+      return rateLimitExceededResponse(rateLimitResult, corsHeaders);
+    }
+
     const body = await req.json();
     const { action = 'login', phone, password, name, email, address, latitude, longitude, notes, storeId } = body;
+    
+    // Rate limit adicional por telefone para prevenir brute force
+    if (phone) {
+      const phoneRateLimit = checkRateLimit(`customer-auth:phone:${phone}`, 5, 60000);
+      if (!phoneRateLimit.allowed) {
+        console.log('Rate limit exceeded for phone:', phone?.substring(0, 4) + '***');
+        return rateLimitExceededResponse(phoneRateLimit, corsHeaders);
+      }
+    }
     
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -43,7 +64,7 @@ serve(async (req) => {
       );
     }
     
-    console.log('Customer auth request:', { action, phone: normalizedPhone?.substring(0, 4) + '***', phoneLength: normalizedPhone.length });
+    console.log('Customer auth request:', { action, phone: normalizedPhone?.substring(0, 4) + '***', phoneLength: normalizedPhone.length, ip: clientIP });
 
     // === MODO CADASTRO ===
     if (action === 'register') {

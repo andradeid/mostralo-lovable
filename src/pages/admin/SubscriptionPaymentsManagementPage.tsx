@@ -10,7 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Receipt, Check, X, Eye, Search, Filter, Plus, Pencil, Trash2, UserPlus, Clock, AlertCircle, CheckCircle2, Loader2, Copy, Building2, DollarSign, Ticket, Link2 } from "lucide-react";
+import { Receipt, Check, X, Eye, Search, Filter, Plus, Pencil, Trash2, UserPlus, Clock, AlertCircle, CheckCircle2, Loader2, Copy, Building2, DollarSign, Ticket, Link2, MessageCircle, Phone } from "lucide-react";
+import { formatPhone, normalizePhone } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useAuth } from "@/hooks/use-auth";
@@ -163,6 +166,12 @@ export default function SubscriptionPaymentsManagementPage() {
   const [monthsToExtend, setMonthsToExtend] = useState(1);
   const [creatingInvoice, setCreatingInvoice] = useState(false);
 
+  // Estados para envio por WhatsApp
+  const [sendWhatsApp, setSendWhatsApp] = useState(false);
+  const [whatsappPhone, setWhatsappPhone] = useState("");
+  const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
+  const [masterWhatsAppStatus, setMasterWhatsAppStatus] = useState<string | null>(null);
+
   // Estados para aprovações de novos assinantes
   const [pendingApprovals, setPendingApprovals] = useState<PaymentApproval[]>([]);
   const [loadingApprovals, setLoadingApprovals] = useState(true);
@@ -177,7 +186,22 @@ export default function SubscriptionPaymentsManagementPage() {
     fetchStores();
     fetchPlans();
     fetchPendingApprovals();
+    fetchMasterWhatsAppStatus();
   }, []);
+
+  const fetchMasterWhatsAppStatus = async () => {
+    try {
+      const { data } = await supabase
+        .from('master_whatsapp_config')
+        .select('instance_status')
+        .limit(1)
+        .single();
+      
+      setMasterWhatsAppStatus(data?.instance_status || null);
+    } catch (err) {
+      console.error('Erro ao buscar status WhatsApp Master:', err);
+    }
+  };
 
   useEffect(() => {
     filterInvoices();
@@ -600,15 +624,19 @@ export default function SubscriptionPaymentsManagementPage() {
         }
       }
 
-      const { error } = await supabase
+      const { data: createdInvoice, error } = await supabase
         .from('subscription_invoices')
-        .insert(invoiceData);
+        .insert(invoiceData)
+        .select()
+        .single();
 
-      if (error) {
+      if (error || !createdInvoice) {
         toast.error("Erro ao criar fatura");
         console.error(error);
         return;
       }
+
+      const invoiceId = createdInvoice.id;
 
       // Se marcado como pago E opção de estender assinatura ativa
       if (markAsPaid && extendSubscription && monthsToExtend > 0) {
@@ -657,6 +685,34 @@ export default function SubscriptionPaymentsManagementPage() {
         toast.success("Fatura criada como PAGA com sucesso!");
       } else {
         toast.success("Fatura criada com sucesso!");
+      }
+
+      // Enviar link por WhatsApp se solicitado (apenas para faturas pendentes)
+      if (sendWhatsApp && whatsappPhone && !markAsPaid) {
+        setSendingWhatsApp(true);
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.access_token) {
+            const response = await supabase.functions.invoke('send-invoice-whatsapp', {
+              body: {
+                invoice_id: invoiceId,
+                phone_number: normalizePhone(whatsappPhone)
+              }
+            });
+
+            if (response.error) {
+              console.error('Erro ao enviar WhatsApp:', response.error);
+              toast.error('Fatura criada, mas erro ao enviar WhatsApp');
+            } else {
+              toast.success('📱 Link de pagamento enviado por WhatsApp!');
+            }
+          }
+        } catch (whatsappError) {
+          console.error('Erro ao enviar WhatsApp:', whatsappError);
+          toast.error('Fatura criada, mas erro ao enviar WhatsApp');
+        } finally {
+          setSendingWhatsApp(false);
+        }
       }
       
       setShowCreateDialog(false);
@@ -734,6 +790,9 @@ export default function SubscriptionPaymentsManagementPage() {
     setPixTransactionId("");
     setExtendSubscription(true);
     setMonthsToExtend(1);
+    // Reset estados de WhatsApp
+    setSendWhatsApp(false);
+    setWhatsappPhone("");
   };
 
   const openCreateDialog = () => {
@@ -1620,9 +1679,25 @@ export default function SubscriptionPaymentsManagementPage() {
               <Label htmlFor="store">Loja *</Label>
               <Select 
                 value={formData.store_id} 
-                onValueChange={(value) => {
+                onValueChange={async (value) => {
                   const store = stores.find(s => s.id === value);
                   setSelectedStoreData(store || null);
+                  
+                  // Buscar telefone do dono da loja
+                  if (store) {
+                    const { data: storeData } = await supabase
+                      .from('stores')
+                      .select('owner_id, profiles:owner_id(phone)')
+                      .eq('id', value)
+                      .single();
+                    
+                    if (storeData?.profiles) {
+                      const ownerPhone = (storeData.profiles as any)?.phone;
+                      if (ownerPhone) {
+                        setWhatsappPhone(formatPhone(ownerPhone));
+                      }
+                    }
+                  }
                   
                   // Se a loja tem custom_monthly_price, carregar automaticamente
                   if (store?.custom_monthly_price) {
@@ -1925,6 +2000,103 @@ export default function SubscriptionPaymentsManagementPage() {
                 </CardContent>
               )}
             </Card>
+
+            {/* Seção de Envio por WhatsApp (apenas para faturas pendentes) */}
+            {!markAsPaid && (
+              <Card className={`border-2 transition-all ${sendWhatsApp ? 'border-green-500 bg-green-500/5' : 'border-dashed border-muted-foreground/30'}`}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      id="send-whatsapp"
+                      checked={sendWhatsApp}
+                      onChange={(e) => setSendWhatsApp(e.target.checked)}
+                      className="h-5 w-5 accent-green-500"
+                      disabled={masterWhatsAppStatus !== 'connected'}
+                    />
+                    <div className="flex-1">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <MessageCircle className={`w-5 h-5 ${sendWhatsApp ? 'text-green-500' : 'text-muted-foreground'}`} />
+                        Enviar Link por WhatsApp
+                      </CardTitle>
+                      <CardDescription className="text-xs mt-0.5">
+                        Enviar link de pagamento automaticamente via WhatsApp Master
+                      </CardDescription>
+                    </div>
+                    {masterWhatsAppStatus === 'connected' ? (
+                      <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/30">
+                        ✅ Conectado
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-500/30">
+                        ❌ Desconectado
+                      </Badge>
+                    )}
+                  </div>
+                </CardHeader>
+                
+                {sendWhatsApp && masterWhatsAppStatus === 'connected' && (
+                  <CardContent className="space-y-4 pt-0">
+                    <div>
+                      <Label htmlFor="whatsapp-phone" className="flex items-center gap-2">
+                        <Phone className="w-4 h-4" />
+                        Número do WhatsApp *
+                      </Label>
+                      <Input
+                        id="whatsapp-phone"
+                        type="tel"
+                        value={whatsappPhone}
+                        onChange={(e) => setWhatsappPhone(formatPhone(e.target.value))}
+                        placeholder="(11) 99999-9999"
+                        maxLength={15}
+                        className="mt-1"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Preenchido automaticamente com o telefone do dono da loja
+                      </p>
+                    </div>
+
+                    {/* Preview da mensagem */}
+                    <div className="p-3 rounded-lg bg-muted/50 border">
+                      <p className="text-xs font-medium text-muted-foreground mb-2">📝 Preview da mensagem:</p>
+                      <div className="text-xs bg-background rounded-lg p-3 whitespace-pre-wrap border-l-4 border-green-500">
+                        {`Olá ${selectedStoreData?.name ? 'Lojista' : ''}! 👋
+
+Sua fatura do Mostralo está disponível:
+
+🏪 Loja: ${selectedStoreData?.name || '[Nome da Loja]'}
+💰 Valor: ${formData.amount ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(formData.amount)) : 'R$ 0,00'}
+📅 Vencimento: ${formData.due_date ? new Date(formData.due_date).toLocaleDateString('pt-BR') : '[Data]'}
+
+💳 Pague agora pelo link:
+[Link será gerado automaticamente]
+
+O QR Code PIX será gerado quando você acessar! 🚀`}
+                      </div>
+                    </div>
+
+                    <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30 text-sm">
+                      <p className="font-medium text-green-700 dark:text-green-400">
+                        📱 Após criar a fatura, o link será enviado automaticamente
+                      </p>
+                    </div>
+                  </CardContent>
+                )}
+
+                {sendWhatsApp && masterWhatsAppStatus !== 'connected' && (
+                  <CardContent className="pt-0">
+                    <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-sm">
+                      <p className="font-medium text-red-700 dark:text-red-400">
+                        ⚠️ WhatsApp Master não está conectado
+                      </p>
+                      <p className="text-muted-foreground mt-1 text-xs">
+                        Conecte o WhatsApp Master nas configurações antes de enviar mensagens.
+                      </p>
+                    </div>
+                  </CardContent>
+                )}
+              </Card>
+            )}
           </div>
           <DialogFooter className="flex-shrink-0 pt-4 border-t">
             <Button variant="outline" onClick={() => setShowCreateDialog(false)} disabled={creatingInvoice}>

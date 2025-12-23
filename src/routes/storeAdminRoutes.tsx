@@ -1,299 +1,387 @@
 import { Route } from "react-router-dom";
+import { lazy } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { LazyRoute } from "@/components/LazyRoute";
 
-// Store Admin Pages
-import PaymentProof from "@/pages/PaymentProof";
-import DashboardHome from "@/pages/admin/DashboardHome";
-import SubscriptionPage from "@/pages/admin/SubscriptionPage";
-import MerchantContractHistoryPage from "@/pages/admin/MerchantContractHistoryPage";
-import StoreOnlinePaymentPage from "@/pages/admin/StoreOnlinePaymentPage";
-import StoreConfigurationPage from "@/pages/admin/StoreConfigurationPage";
-import CategoriesPage from "@/pages/admin/CategoriesPage";
-import ProductsPage from "@/pages/admin/ProductsPage";
-import ProductFormPage from "@/pages/admin/ProductFormPage";
-import AddonCategoriesPage from "@/pages/admin/AddonCategoriesPage";
-import AddonsPage from "@/pages/admin/AddonsPage";
-import PromotionsPage from "@/pages/admin/PromotionsPage";
-import PromotionFormPage from "@/pages/admin/PromotionFormPage";
-import BannersPage from "@/pages/admin/BannersPage";
-import BannerFormPage from "@/pages/admin/BannerFormPage";
-import OrdersPage from "@/pages/admin/OrdersPage";
-import ScheduledOrdersPage from "@/pages/admin/ScheduledOrdersPage";
-import AdminCustomersPage from "@/pages/admin/AdminCustomersPage";
-import ReportsPage from "@/pages/admin/ReportsPage";
-import DeliveryDriversPage from "@/pages/admin/DeliveryDriversPage";
-import AvailableDriversPage from "@/pages/admin/AvailableDriversPage";
-import DeliveryDriverFinancials from "@/pages/admin/DeliveryDriverFinancials";
-import ProfilePage from "@/pages/admin/ProfilePage";
-import AttendantsPage from "@/pages/admin/AttendantsPage";
-import FinancialManagementPage from "@/pages/admin/FinancialManagementPage";
-import IntegrationsPage from "@/pages/admin/IntegrationsPage";
-import IFoodIntegrationPage from "@/pages/admin/integrations/IFoodIntegrationPage";
-import IframePage from "@/pages/admin/IframePage";
-import StoreMarketingPage from "@/pages/admin/StoreMarketingPage";
-import SignageManagementPage from "@/pages/admin/SignageManagementPage";
-import PasswordCallManagementPage from "@/pages/admin/PasswordCallManagementPage";
-import MyStorePage from "@/pages/admin/MyStorePage";
-import PrintConfigPage from "@/pages/admin/PrintConfigPage";
-import WhatsAppInstancePage from "@/pages/admin/WhatsAppInstancePage";
-import WhatsAppConversationsPage from "@/pages/admin/WhatsAppConversationsPage";
-import WhatsAppTemplatesPage from "@/pages/admin/WhatsAppTemplatesPage";
-import WhatsAppCampaignsPage from "@/pages/admin/WhatsAppCampaignsPage";
-import WhatsAppCampaignNewPage from "@/pages/admin/WhatsAppCampaignNewPage";
-import WhatsAppCampaignMessagesPage from "@/pages/admin/WhatsAppCampaignMessagesPage";
-import WhatsAppAutomationsPage from "@/pages/admin/WhatsAppAutomationsPage";
-import WhatsAppContactsPage from "@/pages/admin/WhatsAppContactsPage";
-import SystemUpdatesPage from "@/pages/SystemUpdatesPage";
-import SentinelaPage from "@/pages/store-admin/Sentinela";
+// Store Admin Pages - Lazy loaded
+const PaymentProof = lazy(() => import("@/pages/PaymentProof"));
+const DashboardHome = lazy(() => import("@/pages/admin/DashboardHome"));
+const SubscriptionPage = lazy(() => import("@/pages/admin/SubscriptionPage"));
+const MerchantContractHistoryPage = lazy(() => import("@/pages/admin/MerchantContractHistoryPage"));
+const StoreOnlinePaymentPage = lazy(() => import("@/pages/admin/StoreOnlinePaymentPage"));
+const StoreConfigurationPage = lazy(() => import("@/pages/admin/StoreConfigurationPage"));
+const CategoriesPage = lazy(() => import("@/pages/admin/CategoriesPage"));
+const ProductsPage = lazy(() => import("@/pages/admin/ProductsPage"));
+const ProductFormPage = lazy(() => import("@/pages/admin/ProductFormPage"));
+const AddonCategoriesPage = lazy(() => import("@/pages/admin/AddonCategoriesPage"));
+const AddonsPage = lazy(() => import("@/pages/admin/AddonsPage"));
+const PromotionsPage = lazy(() => import("@/pages/admin/PromotionsPage"));
+const PromotionFormPage = lazy(() => import("@/pages/admin/PromotionFormPage"));
+const BannersPage = lazy(() => import("@/pages/admin/BannersPage"));
+const BannerFormPage = lazy(() => import("@/pages/admin/BannerFormPage"));
+const OrdersPage = lazy(() => import("@/pages/admin/OrdersPage"));
+const ScheduledOrdersPage = lazy(() => import("@/pages/admin/ScheduledOrdersPage"));
+const AdminCustomersPage = lazy(() => import("@/pages/admin/AdminCustomersPage"));
+const ReportsPage = lazy(() => import("@/pages/admin/ReportsPage"));
+const DeliveryDriversPage = lazy(() => import("@/pages/admin/DeliveryDriversPage"));
+const AvailableDriversPage = lazy(() => import("@/pages/admin/AvailableDriversPage"));
+const DeliveryDriverFinancials = lazy(() => import("@/pages/admin/DeliveryDriverFinancials"));
+const ProfilePage = lazy(() => import("@/pages/admin/ProfilePage"));
+const AttendantsPage = lazy(() => import("@/pages/admin/AttendantsPage"));
+const FinancialManagementPage = lazy(() => import("@/pages/admin/FinancialManagementPage"));
+const IntegrationsPage = lazy(() => import("@/pages/admin/IntegrationsPage"));
+const IFoodIntegrationPage = lazy(() => import("@/pages/admin/integrations/IFoodIntegrationPage"));
+const IframePage = lazy(() => import("@/pages/admin/IframePage"));
+const StoreMarketingPage = lazy(() => import("@/pages/admin/StoreMarketingPage"));
+const SignageManagementPage = lazy(() => import("@/pages/admin/SignageManagementPage"));
+const PasswordCallManagementPage = lazy(() => import("@/pages/admin/PasswordCallManagementPage"));
+const MyStorePage = lazy(() => import("@/pages/admin/MyStorePage"));
+const PrintConfigPage = lazy(() => import("@/pages/admin/PrintConfigPage"));
+const WhatsAppInstancePage = lazy(() => import("@/pages/admin/WhatsAppInstancePage"));
+const WhatsAppConversationsPage = lazy(() => import("@/pages/admin/WhatsAppConversationsPage"));
+const WhatsAppTemplatesPage = lazy(() => import("@/pages/admin/WhatsAppTemplatesPage"));
+const WhatsAppCampaignsPage = lazy(() => import("@/pages/admin/WhatsAppCampaignsPage"));
+const WhatsAppCampaignNewPage = lazy(() => import("@/pages/admin/WhatsAppCampaignNewPage"));
+const WhatsAppCampaignMessagesPage = lazy(() => import("@/pages/admin/WhatsAppCampaignMessagesPage"));
+const WhatsAppAutomationsPage = lazy(() => import("@/pages/admin/WhatsAppAutomationsPage"));
+const WhatsAppContactsPage = lazy(() => import("@/pages/admin/WhatsAppContactsPage"));
+const SystemUpdatesPage = lazy(() => import("@/pages/SystemUpdatesPage"));
+const SentinelaPage = lazy(() => import("@/pages/store-admin/Sentinela"));
 
 export const storeAdminRoutes = (
   <>
     {/* Dashboard Principal */}
     <Route path="/dashboard" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
-        <AdminLayout><DashboardHome /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><DashboardHome /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     
     {/* Comprovante de Pagamento */}
     <Route path="/payment-proof" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
-        <PaymentProof />
+        <LazyRoute><PaymentProof /></LazyRoute>
       </ProtectedRoute>
     } />
     
     {/* Assinatura e Contratos (Store Admin Only) */}
     <Route path="/dashboard/subscription" element={
       <ProtectedRoute allowedRoles={['store_admin']}>
-        <AdminLayout><SubscriptionPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><SubscriptionPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/contracts" element={
       <ProtectedRoute allowedRoles={['store_admin']}>
-        <AdminLayout pageTitle="Meus Contratos"><MerchantContractHistoryPage /></AdminLayout>
+        <AdminLayout pageTitle="Meus Contratos">
+          <LazyRoute><MerchantContractHistoryPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/online-payment" element={
       <ProtectedRoute allowedRoles={['store_admin']}>
-        <AdminLayout pageTitle="Pagamento Online"><StoreOnlinePaymentPage /></AdminLayout>
+        <AdminLayout pageTitle="Pagamento Online">
+          <LazyRoute><StoreOnlinePaymentPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/store-configuration" element={
       <ProtectedRoute allowedRoles={['store_admin']}>
-        <AdminLayout><StoreConfigurationPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><StoreConfigurationPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     
     {/* Catálogo */}
     <Route path="/dashboard/categories" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
-        <AdminLayout><CategoriesPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><CategoriesPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/products" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
-        <AdminLayout><ProductsPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><ProductsPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/products/new" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
-        <AdminLayout><ProductFormPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><ProductFormPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/products/edit/:id" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
-        <AdminLayout><ProductFormPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><ProductFormPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/addon-categories" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
-        <AdminLayout><AddonCategoriesPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><AddonCategoriesPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/addons" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
-        <AdminLayout><AddonsPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><AddonsPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     
     {/* Promoções e Banners */}
     <Route path="/dashboard/promotions" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
-        <AdminLayout><PromotionsPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><PromotionsPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/promotions/new" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
-        <AdminLayout><PromotionFormPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><PromotionFormPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/promotions/:id" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
-        <AdminLayout><PromotionFormPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><PromotionFormPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/banners" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
-        <AdminLayout><BannersPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><BannersPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/banners/new" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
-        <AdminLayout><BannerFormPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><BannerFormPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/banners/edit/:id" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
-        <AdminLayout><BannerFormPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><BannerFormPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     
     {/* Pedidos */}
     <Route path="/dashboard/orders" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
-        <AdminLayout><OrdersPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><OrdersPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/scheduled-orders" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
-        <AdminLayout><ScheduledOrdersPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><ScheduledOrdersPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     
     {/* Clientes e Relatórios */}
     <Route path="/dashboard/customers" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
-        <AdminLayout><AdminCustomersPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><AdminCustomersPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/reports" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
-        <AdminLayout><ReportsPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><ReportsPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     
     {/* Entregadores */}
     <Route path="/dashboard/delivery-drivers" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
-        <AdminLayout><DeliveryDriversPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><DeliveryDriversPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/entregadores-disponiveis" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
-        <AdminLayout pageTitle="Entregadores Disponíveis"><AvailableDriversPage /></AdminLayout>
+        <AdminLayout pageTitle="Entregadores Disponíveis">
+          <LazyRoute><AvailableDriversPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/entregadores/financeiro" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
-        <AdminLayout><DeliveryDriverFinancials /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><DeliveryDriverFinancials /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     
     {/* Perfil e Equipe */}
     <Route path="/dashboard/profile" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
-        <AdminLayout><ProfilePage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><ProfilePage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/attendants" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
-        <AdminLayout><AttendantsPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><AttendantsPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     
     {/* Financeiro */}
     <Route path="/dashboard/financeiro" element={
       <ProtectedRoute allowedRoles={['store_admin', 'attendant']}>
-        <AdminLayout pageTitle="Gestão Financeira"><FinancialManagementPage /></AdminLayout>
+        <AdminLayout pageTitle="Gestão Financeira">
+          <LazyRoute><FinancialManagementPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     
     {/* Integrações */}
     <Route path="/dashboard/integrations" element={
       <ProtectedRoute allowedRoles={['store_admin']}>
-        <AdminLayout><IntegrationsPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><IntegrationsPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/integrations/ifood" element={
       <ProtectedRoute allowedRoles={['store_admin']}>
-        <AdminLayout pageTitle="Integração iFood"><IFoodIntegrationPage /></AdminLayout>
+        <AdminLayout pageTitle="Integração iFood">
+          <LazyRoute><IFoodIntegrationPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/iframe/:id" element={
       <ProtectedRoute allowedRoles={['store_admin']}>
-        <AdminLayout><IframePage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><IframePage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     
     {/* Marketing e Sinalização */}
     <Route path="/dashboard/marketing-material" element={
       <ProtectedRoute allowedRoles={['store_admin']}>
-        <AdminLayout pageTitle="Material de Marketing"><StoreMarketingPage /></AdminLayout>
+        <AdminLayout pageTitle="Material de Marketing">
+          <LazyRoute><StoreMarketingPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/signage" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
-        <AdminLayout pageTitle="Painel Digital"><SignageManagementPage /></AdminLayout>
+        <AdminLayout pageTitle="Painel Digital">
+          <LazyRoute><SignageManagementPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/password-call" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
-        <AdminLayout pageTitle="Chamada de Senhas"><PasswordCallManagementPage /></AdminLayout>
+        <AdminLayout pageTitle="Chamada de Senhas">
+          <LazyRoute><PasswordCallManagementPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     
     {/* Minha Loja e Impressão */}
     <Route path="/dashboard/my-store" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
-        <AdminLayout><MyStorePage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><MyStorePage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/print-config" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
-        <AdminLayout><PrintConfigPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><PrintConfigPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     
     {/* WhatsApp - Store Admin */}
     <Route path="/dashboard/whatsapp" element={
       <ProtectedRoute allowedRoles={['store_admin']}>
-        <AdminLayout pageTitle="Conexão WhatsApp"><WhatsAppInstancePage /></AdminLayout>
+        <AdminLayout pageTitle="Conexão WhatsApp">
+          <LazyRoute><WhatsAppInstancePage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/whatsapp/conversations" element={
       <ProtectedRoute allowedRoles={['store_admin']}>
-        <AdminLayout pageTitle="Conversas"><WhatsAppConversationsPage /></AdminLayout>
+        <AdminLayout pageTitle="Conversas">
+          <LazyRoute><WhatsAppConversationsPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/whatsapp/templates" element={
       <ProtectedRoute allowedRoles={['store_admin']}>
-        <AdminLayout pageTitle="Modelos de Mensagem"><WhatsAppTemplatesPage /></AdminLayout>
+        <AdminLayout pageTitle="Modelos de Mensagem">
+          <LazyRoute><WhatsAppTemplatesPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/whatsapp/automations" element={
       <ProtectedRoute allowedRoles={['store_admin']}>
-        <AdminLayout pageTitle="Mensagens Automáticas"><WhatsAppAutomationsPage /></AdminLayout>
+        <AdminLayout pageTitle="Mensagens Automáticas">
+          <LazyRoute><WhatsAppAutomationsPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/whatsapp/campaigns" element={
       <ProtectedRoute allowedRoles={['store_admin']}>
-        <AdminLayout pageTitle="Campanhas WhatsApp"><WhatsAppCampaignsPage /></AdminLayout>
+        <AdminLayout pageTitle="Campanhas WhatsApp">
+          <LazyRoute><WhatsAppCampaignsPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/whatsapp/campaigns/new" element={
       <ProtectedRoute allowedRoles={['store_admin']}>
-        <AdminLayout pageTitle="Nova Campanha"><WhatsAppCampaignNewPage /></AdminLayout>
+        <AdminLayout pageTitle="Nova Campanha">
+          <LazyRoute><WhatsAppCampaignNewPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/whatsapp/campaigns/:id/messages" element={
       <ProtectedRoute allowedRoles={['store_admin']}>
-        <AdminLayout pageTitle="Histórico de Mensagens"><WhatsAppCampaignMessagesPage /></AdminLayout>
+        <AdminLayout pageTitle="Histórico de Mensagens">
+          <LazyRoute><WhatsAppCampaignMessagesPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/whatsapp/contacts" element={
       <ProtectedRoute allowedRoles={['store_admin']}>
-        <AdminLayout pageTitle="Contatos WhatsApp"><WhatsAppContactsPage /></AdminLayout>
+        <AdminLayout pageTitle="Contatos WhatsApp">
+          <LazyRoute><WhatsAppContactsPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     
@@ -301,7 +389,7 @@ export const storeAdminRoutes = (
     <Route path="/dashboard/novidades" element={
       <ProtectedRoute allowedRoles={['master_admin', 'store_admin', 'attendant']}>
         <AdminLayout pageTitle="Novidades do Sistema">
-          <SystemUpdatesPage />
+          <LazyRoute><SystemUpdatesPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />
@@ -309,7 +397,9 @@ export const storeAdminRoutes = (
     {/* Sentinela */}
     <Route path="/dashboard/sentinela" element={
       <ProtectedRoute allowedRoles={['store_admin']}>
-        <AdminLayout pageTitle="Sentinela"><SentinelaPage /></AdminLayout>
+        <AdminLayout pageTitle="Sentinela">
+          <LazyRoute><SentinelaPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
   </>

@@ -153,6 +153,15 @@ export default function SubscriptionPaymentsManagementPage() {
   const [useCustomPrice, setUseCustomPrice] = useState(false);
   const [originalPlanPrice, setOriginalPlanPrice] = useState<number>(0);
   const [selectedStoreData, setSelectedStoreData] = useState<Store | null>(null);
+  
+  // Estados para pagamento direto (Master Admin)
+  const [markAsPaid, setMarkAsPaid] = useState(false);
+  const [paymentDate, setPaymentDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [paymentMethod, setPaymentMethod] = useState("pix_manual");
+  const [pixTransactionId, setPixTransactionId] = useState("");
+  const [extendSubscription, setExtendSubscription] = useState(true);
+  const [monthsToExtend, setMonthsToExtend] = useState(1);
+  const [creatingInvoice, setCreatingInvoice] = useState(false);
 
   // Estados para aprovações de novos assinantes
   const [pendingApprovals, setPendingApprovals] = useState<PaymentApproval[]>([]);
@@ -565,25 +574,99 @@ export default function SubscriptionPaymentsManagementPage() {
       return;
     }
 
-    const { error } = await supabase
-      .from('subscription_invoices')
-      .insert({
+    setCreatingInvoice(true);
+    
+    try {
+      // Preparar dados base da fatura
+      const invoiceData: any = {
         store_id: formData.store_id,
         plan_id: formData.plan_id,
         amount: Number(formData.amount),
         due_date: formData.due_date,
         notes: formData.notes || null,
-        payment_status: 'pending'
-      });
+        payment_status: markAsPaid ? 'paid' : 'pending'
+      };
 
-    if (error) {
-      toast.error("Erro ao criar fatura");
-      console.error(error);
-    } else {
-      toast.success("Fatura criada com sucesso!");
+      // Se marcado como pago, adicionar informações de pagamento
+      if (markAsPaid) {
+        invoiceData.paid_at = new Date(paymentDate).toISOString();
+        invoiceData.approved_at = new Date().toISOString();
+        invoiceData.payment_method = paymentMethod;
+        
+        // Adicionar ID da transação PIX nas notas
+        if (pixTransactionId) {
+          const existingNotes = formData.notes || '';
+          invoiceData.notes = `${existingNotes}${existingNotes ? ' | ' : ''}PIX ID: ${pixTransactionId}`.trim();
+        }
+      }
+
+      const { error } = await supabase
+        .from('subscription_invoices')
+        .insert(invoiceData);
+
+      if (error) {
+        toast.error("Erro ao criar fatura");
+        console.error(error);
+        return;
+      }
+
+      // Se marcado como pago E opção de estender assinatura ativa
+      if (markAsPaid && extendSubscription && monthsToExtend > 0) {
+        // Buscar data atual de expiração da loja
+        const { data: store, error: storeError } = await supabase
+          .from('stores')
+          .select('subscription_expires_at')
+          .eq('id', formData.store_id)
+          .single();
+
+        if (!storeError && store) {
+          // Calcular nova data de expiração
+          let newExpirationDate: Date;
+          const currentExpiration = store.subscription_expires_at 
+            ? new Date(store.subscription_expires_at) 
+            : null;
+
+          // Se ainda não expirou, adicionar período à data existente
+          // Se já expirou ou não existe, começar de hoje
+          if (currentExpiration && currentExpiration > new Date()) {
+            newExpirationDate = new Date(currentExpiration);
+          } else {
+            newExpirationDate = new Date();
+          }
+
+          // Adicionar meses
+          newExpirationDate.setMonth(newExpirationDate.getMonth() + monthsToExtend);
+
+          // Atualizar loja com nova data de expiração
+          const { error: updateStoreError } = await supabase
+            .from('stores')
+            .update({
+              subscription_expires_at: newExpirationDate.toISOString(),
+              status: 'active'
+            })
+            .eq('id', formData.store_id);
+
+          if (updateStoreError) {
+            console.error("Erro ao estender assinatura:", updateStoreError);
+            toast.warning("Fatura criada, mas erro ao estender assinatura");
+          } else {
+            toast.success(`Fatura paga criada! Assinatura estendida até ${format(newExpirationDate, "dd/MM/yyyy", { locale: ptBR })}`);
+          }
+        }
+      } else if (markAsPaid) {
+        toast.success("Fatura criada como PAGA com sucesso!");
+      } else {
+        toast.success("Fatura criada com sucesso!");
+      }
+      
       setShowCreateDialog(false);
       resetForm();
       fetchInvoices();
+    } catch (error) {
+      toast.error("Erro ao criar fatura");
+      console.error(error);
+    } finally {
+      setCreatingInvoice(false);
     }
   };
 
@@ -644,6 +727,13 @@ export default function SubscriptionPaymentsManagementPage() {
     setUseCustomPrice(false);
     setOriginalPlanPrice(0);
     setSelectedStoreData(null);
+    // Reset estados de pagamento direto
+    setMarkAsPaid(false);
+    setPaymentDate(format(new Date(), "yyyy-MM-dd"));
+    setPaymentMethod("pix_manual");
+    setPixTransactionId("");
+    setExtendSubscription(true);
+    setMonthsToExtend(1);
   };
 
   const openCreateDialog = () => {
@@ -1673,13 +1763,145 @@ export default function SubscriptionPaymentsManagementPage() {
                 placeholder="Observações adicionais..."
               />
             </div>
+
+            {/* Seção de Pagamento Direto (Master Admin) */}
+            <Card className={`border-2 transition-all ${markAsPaid ? 'border-green-500 bg-green-500/5' : 'border-dashed border-muted-foreground/30'}`}>
+              <CardHeader className="pb-3">
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="mark-as-paid"
+                    checked={markAsPaid}
+                    onChange={(e) => setMarkAsPaid(e.target.checked)}
+                    className="h-5 w-5 accent-green-500"
+                  />
+                  <div>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <CheckCircle2 className={`w-5 h-5 ${markAsPaid ? 'text-green-500' : 'text-muted-foreground'}`} />
+                      Pagamento Direto (Master Admin)
+                    </CardTitle>
+                    <CardDescription className="text-xs mt-0.5">
+                      Marcar como já paga (sem comprovante do lojista)
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              
+              {markAsPaid && (
+                <CardContent className="space-y-4 pt-0">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="payment-date">Data do Pagamento</Label>
+                      <Input
+                        id="payment-date"
+                        type="date"
+                        value={paymentDate}
+                        onChange={(e) => setPaymentDate(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="payment-method">Método</Label>
+                      <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pix_manual">PIX Manual</SelectItem>
+                          <SelectItem value="transferencia">Transferência</SelectItem>
+                          <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                          <SelectItem value="boleto">Boleto</SelectItem>
+                          <SelectItem value="cartao">Cartão</SelectItem>
+                          <SelectItem value="outro">Outro</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="pix-id">ID da Transação PIX (opcional)</Label>
+                    <Input
+                      id="pix-id"
+                      value={pixTransactionId}
+                      onChange={(e) => setPixTransactionId(e.target.value)}
+                      placeholder="Ex: E12345678901234567890123456789012"
+                      className="font-mono text-sm"
+                    />
+                  </div>
+
+                  <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        id="extend-subscription"
+                        checked={extendSubscription}
+                        onChange={(e) => setExtendSubscription(e.target.checked)}
+                        className="h-4 w-4 accent-blue-500"
+                      />
+                      <div className="flex-1">
+                        <Label htmlFor="extend-subscription" className="text-sm font-medium cursor-pointer">
+                          Estender assinatura automaticamente
+                        </Label>
+                      </div>
+                      {extendSubscription && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">+</span>
+                          <Select 
+                            value={monthsToExtend.toString()} 
+                            onValueChange={(v) => setMonthsToExtend(Number(v))}
+                          >
+                            <SelectTrigger className="w-20">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="1">1</SelectItem>
+                              <SelectItem value="2">2</SelectItem>
+                              <SelectItem value="3">3</SelectItem>
+                              <SelectItem value="6">6</SelectItem>
+                              <SelectItem value="12">12</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <span className="text-sm text-muted-foreground">mês(es)</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30 text-sm">
+                    <p className="font-medium text-green-700 dark:text-green-400">
+                      ✓ A fatura será criada como PAGA automaticamente
+                    </p>
+                    {extendSubscription && (
+                      <p className="text-muted-foreground mt-1">
+                        A assinatura será estendida em {monthsToExtend} mês(es)
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              )}
+            </Card>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+            <Button variant="outline" onClick={() => setShowCreateDialog(false)} disabled={creatingInvoice}>
               Cancelar
             </Button>
-            <Button onClick={handleCreateInvoice}>
-              Criar Fatura
+            <Button 
+              onClick={handleCreateInvoice} 
+              disabled={creatingInvoice}
+              className={markAsPaid ? "bg-green-600 hover:bg-green-700" : ""}
+            >
+              {creatingInvoice ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Criando...
+                </>
+              ) : markAsPaid ? (
+                <>
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Criar Fatura Paga
+                </>
+              ) : (
+                "Criar Fatura"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

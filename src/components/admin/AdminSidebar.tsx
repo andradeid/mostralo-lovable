@@ -552,7 +552,8 @@ export function AdminSidebar() {
           { title: 'Mensagens Automáticas', url: '/dashboard/whatsapp/automations', icon: Zap, group: 'WhatsApp' },
           { title: 'Modelos de Mensagem', url: '/dashboard/whatsapp/templates', icon: FileText, group: 'WhatsApp' },
           { title: 'Campanhas', url: '/dashboard/whatsapp/campaigns', icon: Send, group: 'WhatsApp' },
-          { title: 'Contatos', url: '/dashboard/whatsapp/contacts', icon: Users, group: 'WhatsApp' }
+          { title: 'Contatos', url: '/dashboard/whatsapp/contacts', icon: Users, group: 'WhatsApp' },
+          { title: 'SENTINELA', url: '/dashboard/sentinela', icon: Target, group: 'WhatsApp' }
         );
       }
 

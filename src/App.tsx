@@ -163,6 +163,7 @@ import SignageManagementPage from "./pages/admin/SignageManagementPage";
 import PasswordCallManagementPage from "./pages/admin/PasswordCallManagementPage";
 import SignageDisplayPage from "./pages/public/SignageDisplayPage";
 import ExternalBillingPage from "./pages/admin/ExternalBillingPage";
+import SentinelaPage from "./pages/store-admin/Sentinela";
 import { UpdatesRedirect } from "./components/system-updates/UpdatesRedirect";
 import { useLocation } from "react-router-dom";
 
@@ -687,6 +688,11 @@ function MainAppWithProviders() {
             <Route path="/dashboard/whatsapp/contacts" element={
               <ProtectedRoute allowedRoles={['store_admin']}>
                 <AdminLayout pageTitle="Contatos WhatsApp"><WhatsAppContactsPage /></AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/sentinela" element={
+              <ProtectedRoute allowedRoles={['store_admin']}>
+                <AdminLayout pageTitle="SENTINELA"><SentinelaPage /></AdminLayout>
               </ProtectedRoute>
             } />
 

@@ -84,7 +84,95 @@ serve(async (req) => {
         continue;
       }
 
-      // 2. Se não for pedido, verificar se é aprovação de assinatura
+      // 2. Verificar se é uma fatura de assinatura (subscription_invoice)
+      const { data: invoice, error: invoiceError } = await supabase
+        .from('subscription_invoices')
+        .select('id, store_id, plan_id, amount, payment_status')
+        .eq('pix_txid', txid)
+        .maybeSingle();
+
+      if (invoice && !invoiceError) {
+        console.log(`📄 Fatura encontrada: ${invoice.id}`);
+
+        if (invoice.payment_status === 'paid') {
+          console.log(`ℹ️ Fatura já paga: ${invoice.id}`);
+          processedEvents.push({ txid, status: 'already_processed', type: 'invoice' });
+          continue;
+        }
+
+        // Atualizar status da fatura
+        const { error: updateInvoiceError } = await supabase
+          .from('subscription_invoices')
+          .update({
+            payment_status: 'paid',
+            paid_at: new Date().toISOString(),
+            approved_at: new Date().toISOString(),
+            payment_method: 'pix',
+            notes: `Pagamento PIX confirmado via webhook - EndToEndId: ${endToEndId}`,
+          })
+          .eq('id', invoice.id);
+
+        if (updateInvoiceError) {
+          console.error(`❌ Erro ao atualizar fatura ${invoice.id}:`, updateInvoiceError);
+          processedEvents.push({ txid, status: 'update_error', type: 'invoice', error: updateInvoiceError.message });
+          continue;
+        }
+
+        console.log(`✅ Fatura ${invoice.id} marcada como paga`);
+
+        // Estender assinatura da loja
+        if (invoice.store_id && invoice.plan_id) {
+          // Buscar billing_cycle do plano
+          const { data: plan } = await supabase
+            .from('plans')
+            .select('billing_cycle')
+            .eq('id', invoice.plan_id)
+            .single();
+
+          let expirationDays = 30; // Default monthly
+          if (plan?.billing_cycle === 'quarterly') expirationDays = 90;
+          else if (plan?.billing_cycle === 'biannual') expirationDays = 180;
+          else if (plan?.billing_cycle === 'annual') expirationDays = 365;
+
+          // Buscar data atual de expiração
+          const { data: store } = await supabase
+            .from('stores')
+            .select('subscription_expires_at')
+            .eq('id', invoice.store_id)
+            .single();
+
+          // Calcular nova data de expiração
+          let newExpirationDate: Date;
+          const currentExpiration = store?.subscription_expires_at 
+            ? new Date(store.subscription_expires_at) 
+            : null;
+
+          if (currentExpiration && currentExpiration > new Date()) {
+            // Se ainda não expirou, adicionar período à data existente
+            newExpirationDate = new Date(currentExpiration);
+          } else {
+            // Se já expirou ou não existe, começar de hoje
+            newExpirationDate = new Date();
+          }
+
+          newExpirationDate.setDate(newExpirationDate.getDate() + expirationDays);
+
+          await supabase
+            .from('stores')
+            .update({
+              status: 'active',
+              subscription_expires_at: newExpirationDate.toISOString(),
+            })
+            .eq('id', invoice.store_id);
+
+          console.log(`🏪 Loja ${invoice.store_id} - assinatura estendida até ${newExpirationDate.toISOString()}`);
+        }
+
+        processedEvents.push({ txid, status: 'success', type: 'invoice', invoiceId: invoice.id });
+        continue;
+      }
+
+      // 3. Se não for pedido nem fatura, verificar se é aprovação de assinatura
       const { data: approval, error: approvalError } = await supabase
         .from('payment_approvals')
         .select('*')

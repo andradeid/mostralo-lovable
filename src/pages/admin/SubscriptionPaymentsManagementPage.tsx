@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Receipt, Check, X, Eye, Search, Filter, Plus, Pencil, Trash2, UserPlus, Clock, AlertCircle, CheckCircle2, Loader2, Copy, Building2, DollarSign, Ticket } from "lucide-react";
+import { Receipt, Check, X, Eye, Search, Filter, Plus, Pencil, Trash2, UserPlus, Clock, AlertCircle, CheckCircle2, Loader2, Copy, Building2, DollarSign, Ticket, Link2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useAuth } from "@/hooks/use-auth";
@@ -1341,6 +1341,20 @@ export default function SubscriptionPaymentsManagementPage() {
                       </TableCell>
                        <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
+                          {invoice.payment_status === 'pending' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                const paymentLink = `${window.location.origin}/invoice-payment/${invoice.id}`;
+                                navigator.clipboard.writeText(paymentLink);
+                                toast.success('Link de pagamento copiado!');
+                              }}
+                              title="Copiar link de pagamento"
+                            >
+                              <Link2 className="h-4 w-4" />
+                            </Button>
+                          )}
                           <Button
                             size="sm"
                             variant="outline"
@@ -1515,6 +1529,39 @@ export default function SubscriptionPaymentsManagementPage() {
                 <div>
                   <p className="text-sm text-muted-foreground">Observações</p>
                   <p className="text-sm">{selectedInvoice.notes}</p>
+                </div>
+              )}
+
+              {/* Link de Pagamento */}
+              {selectedInvoice.payment_status === 'pending' && (
+                <div className="p-3 bg-orange-50 dark:bg-orange-500/10 rounded-lg border border-orange-200 dark:border-orange-500/30">
+                  <p className="text-sm font-medium text-orange-700 dark:text-orange-400 mb-2 flex items-center gap-2">
+                    <Link2 className="w-4 h-4" />
+                    Link de Pagamento
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      readOnly
+                      value={`${window.location.origin}/invoice-payment/${selectedInvoice.id}`}
+                      className="flex-1 px-3 py-2 text-xs bg-background rounded border truncate"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const paymentLink = `${window.location.origin}/invoice-payment/${selectedInvoice.id}`;
+                        navigator.clipboard.writeText(paymentLink);
+                        toast.success('Link de pagamento copiado!');
+                      }}
+                    >
+                      <Copy className="h-3 w-3 mr-1" />
+                      Copiar
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Envie este link para o lojista pagar via PIX com QR Code automático
+                  </p>
                 </div>
               )}
             </div>

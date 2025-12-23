@@ -118,7 +118,7 @@ serve(async (req) => {
 
     // Gerar link do recibo se tiver invoice_id
     const appUrl = 'https://mostralo.lovable.app';
-    const receiptLink = invoice_id ? `${appUrl}/invoice/${invoice_id}/receipt` : null;
+    const receiptLink = invoice_id ? `${appUrl}/receipt/${invoice_id}` : null;
 
     // Montar mensagem de confirmação
     let message = `✅ *Pagamento Confirmado!* 🎉

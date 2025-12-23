@@ -225,6 +225,13 @@ serve(async (req) => {
       };
     }
 
+    // Log leve (sem dados sensíveis) para confirmar schema enviado
+    console.log(`🧾 Customer keys: ${Object.keys(customer).join(', ')}`);
+    const address = (customer as Record<string, unknown>).address;
+    if (address && typeof address === 'object') {
+      console.log(`🏠 Customer.address keys: ${Object.keys(address as Record<string, unknown>).join(', ')}`);
+    }
+
     // Criar cobrança
     const cobrancaPayload = {
       items: [{

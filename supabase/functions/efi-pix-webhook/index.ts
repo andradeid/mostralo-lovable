@@ -121,6 +121,7 @@ serve(async (req) => {
         console.log(`✅ Fatura ${invoice.id} marcada como paga`);
 
         // Estender assinatura da loja
+        let newExpirationDate: Date | null = null;
         if (invoice.store_id && invoice.plan_id) {
           // Buscar billing_cycle do plano
           const { data: plan } = await supabase
@@ -142,7 +143,6 @@ serve(async (req) => {
             .single();
 
           // Calcular nova data de expiração
-          let newExpirationDate: Date;
           const currentExpiration = store?.subscription_expires_at 
             ? new Date(store.subscription_expires_at) 
             : null;
@@ -166,6 +166,37 @@ serve(async (req) => {
             .eq('id', invoice.store_id);
 
           console.log(`🏪 Loja ${invoice.store_id} - assinatura estendida até ${newExpirationDate.toISOString()}`);
+
+          // 🔔 Enviar notificação por WhatsApp
+          try {
+            console.log(`📱 Enviando notificação de pagamento para loja ${invoice.store_id}...`);
+            
+            const notificationResponse = await fetch(`${supabaseUrl}/functions/v1/send-payment-notification`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${supabaseServiceKey}`,
+              },
+              body: JSON.stringify({
+                store_id: invoice.store_id,
+                invoice_id: invoice.id,
+                amount: invoice.amount,
+                expiration_date: newExpirationDate.toISOString(),
+                type: 'payment_confirmed',
+              }),
+            });
+
+            const notificationResult = await notificationResponse.json();
+            
+            if (notificationResponse.ok) {
+              console.log(`✅ Notificação WhatsApp enviada com sucesso:`, notificationResult);
+            } else {
+              console.log(`⚠️ Falha ao enviar notificação WhatsApp:`, notificationResult);
+            }
+          } catch (notifError) {
+            console.error(`❌ Erro ao enviar notificação WhatsApp:`, notifError);
+            // Não falhar o webhook por erro de notificação
+          }
         }
 
         processedEvents.push({ txid, status: 'success', type: 'invoice', invoiceId: invoice.id });

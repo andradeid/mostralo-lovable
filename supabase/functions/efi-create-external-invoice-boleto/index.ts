@@ -182,40 +182,46 @@ serve(async (req) => {
     // ETAPA 2: CRIAR COBRANÇA (sem boleto ainda)
     console.log('\n📤 [ETAPA 2/3] Criando cobrança...');
     
-    // Montar dados do pagador
-    const pagador: any = {
-      nome: cliente.nome.substring(0, 100),
+    // Montar dados do customer (schema em inglês conforme documentação EFI)
+    const customer: Record<string, unknown> = {
+      name: cliente.nome.substring(0, 100),
     };
 
     // CPF ou CNPJ
     if (cliente.cnpj) {
-      pagador.cnpj = cliente.cnpj.replace(/\D/g, '');
+      customer.juridical_person = {
+        corporate_name: cliente.nome.substring(0, 100),
+        cnpj: cliente.cnpj.replace(/\D/g, ''),
+      };
+      delete customer.name; // Para PJ usa juridical_person
     } else if (cliente.cpf) {
-      pagador.cpf = cliente.cpf.replace(/\D/g, '');
+      customer.cpf = cliente.cpf.replace(/\D/g, '');
     } else {
       // CPF genérico para teste em sandbox
-      pagador.cpf = isProd ? null : '94271564656';
+      customer.cpf = isProd ? null : '94271564656';
     }
 
-    // Endereço (obrigatório para boleto)
+    // Endereço (obrigatório para boleto) - schema em inglês
     if (cliente.endereco) {
-      pagador.endereco = {
-        logradouro: cliente.endereco.logradouro || 'Não informado',
-        numero: cliente.endereco.numero || 'S/N',
-        bairro: cliente.endereco.bairro || 'Centro',
-        cidade: cliente.endereco.cidade || 'São Paulo',
-        estado: cliente.endereco.uf || 'SP',
-        cep: cliente.endereco.cep?.replace(/\D/g, '') || '01310100',
+      customer.address = {
+        street: (cliente.endereco.logradouro || 'Não informado').substring(0, 200),
+        number: (cliente.endereco.numero || 'S/N').substring(0, 10),
+        neighborhood: (cliente.endereco.bairro || 'Centro').substring(0, 60),
+        city: (cliente.endereco.cidade || 'São Paulo').substring(0, 60),
+        state: (cliente.endereco.uf || 'SP').substring(0, 2).toUpperCase(),
+        zipcode: (cliente.endereco.cep?.replace(/\D/g, '') || '01310100').substring(0, 8),
+        complement: '',
       };
     } else {
       // Endereço padrão para sandbox
-      pagador.endereco = {
-        logradouro: 'Av Paulista',
-        numero: '1000',
-        bairro: 'Bela Vista',
-        cidade: 'São Paulo',
-        estado: 'SP',
-        cep: '01310100',
+      customer.address = {
+        street: 'Av Paulista',
+        number: '1000',
+        neighborhood: 'Bela Vista',
+        city: 'São Paulo',
+        state: 'SP',
+        zipcode: '01310100',
+        complement: '',
       };
     }
 
@@ -240,7 +246,7 @@ serve(async (req) => {
         ...cobrancaPayload,
         payment: {
           banking_billet: {
-            customer: pagador,
+            customer: customer,
             expire_at: vencimento,
             message: descricao.substring(0, 80),
           },

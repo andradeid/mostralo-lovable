@@ -12,28 +12,74 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Initialize Supabase client
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+  // Capturar IP do request
+  const ipAddress = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+  
+  let webhookLogId: string | null = null;
+  let payload: any = null;
+
   try {
     console.log('📥 Webhook EFI PIX recebido');
 
     // Parse webhook payload
-    const payload = await req.json();
+    payload = await req.json();
     console.log('📋 Payload:', JSON.stringify(payload, null, 2));
+
+    // Inserir log inicial do webhook
+    const { data: logEntry, error: logError } = await supabase
+      .from('webhook_logs')
+      .insert({
+        webhook_type: 'pix',
+        source: 'efi-pix-webhook',
+        event_type: 'payment_notification',
+        payload,
+        status: 'received',
+        ip_address: ipAddress,
+      })
+      .select('id')
+      .single();
+
+    if (logEntry) {
+      webhookLogId = logEntry.id;
+      console.log(`📝 Log criado: ${webhookLogId}`);
+    }
+
+    // Atualizar para processing
+    if (webhookLogId) {
+      await supabase
+        .from('webhook_logs')
+        .update({ status: 'processing' })
+        .eq('id', webhookLogId);
+    }
 
     // EFI sends an array of pix events
     const pixEvents = payload.pix || [];
 
     if (!Array.isArray(pixEvents) || pixEvents.length === 0) {
       console.log('⚠️ Nenhum evento PIX no payload');
+      
+      // Atualizar log para success (vazio)
+      if (webhookLogId) {
+        await supabase
+          .from('webhook_logs')
+          .update({ 
+            status: 'success', 
+            processed_at: new Date().toISOString(),
+            error_message: 'No events to process'
+          })
+          .eq('id', webhookLogId);
+      }
+      
       return new Response(
         JSON.stringify({ success: true, message: 'No events to process' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       );
     }
-
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const processedEvents = [];
 
@@ -51,6 +97,17 @@ serve(async (req) => {
 
       if (order && !orderError) {
         console.log(`🛒 Pedido encontrado: ${order.id}`);
+
+        // Atualizar log com entidade relacionada
+        if (webhookLogId) {
+          await supabase
+            .from('webhook_logs')
+            .update({ 
+              related_entity_type: 'order',
+              related_entity_id: order.id
+            })
+            .eq('id', webhookLogId);
+        }
 
         if (order.payment_status === 'paid') {
           console.log(`ℹ️ Pedido já pago: ${order.id}`);
@@ -93,6 +150,17 @@ serve(async (req) => {
 
       if (invoice && !invoiceError) {
         console.log(`📄 Fatura encontrada: ${invoice.id}`);
+
+        // Atualizar log com entidade relacionada
+        if (webhookLogId) {
+          await supabase
+            .from('webhook_logs')
+            .update({ 
+              related_entity_type: 'invoice',
+              related_entity_id: invoice.id
+            })
+            .eq('id', webhookLogId);
+        }
 
         if (invoice.payment_status === 'paid') {
           console.log(`ℹ️ Fatura já paga: ${invoice.id}`);
@@ -213,6 +281,17 @@ serve(async (req) => {
       if (externalInvoice && !externalInvoiceError) {
         console.log(`📄 Fatura externa encontrada: ${externalInvoice.id}`);
 
+        // Atualizar log com entidade relacionada
+        if (webhookLogId) {
+          await supabase
+            .from('webhook_logs')
+            .update({ 
+              related_entity_type: 'external_invoice',
+              related_entity_id: externalInvoice.id
+            })
+            .eq('id', webhookLogId);
+        }
+
         if (externalInvoice.payment_status === 'paid') {
           console.log(`ℹ️ Fatura externa já paga: ${externalInvoice.id}`);
           processedEvents.push({ txid, status: 'already_processed', type: 'external_invoice' });
@@ -251,6 +330,17 @@ serve(async (req) => {
         console.log(`⚠️ Aprovação não encontrada para txid: ${txid}`);
         processedEvents.push({ txid, status: 'not_found' });
         continue;
+      }
+
+      // Atualizar log com entidade relacionada
+      if (webhookLogId) {
+        await supabase
+          .from('webhook_logs')
+          .update({ 
+            related_entity_type: 'subscription',
+            related_entity_id: approval.id
+          })
+          .eq('id', webhookLogId);
       }
 
       // Check if already approved
@@ -338,6 +428,17 @@ serve(async (req) => {
       processedEvents.push({ txid, status: 'success', type: 'subscription' });
     }
 
+    // Atualizar log para success
+    if (webhookLogId) {
+      await supabase
+        .from('webhook_logs')
+        .update({ 
+          status: 'success',
+          processed_at: new Date().toISOString()
+        })
+        .eq('id', webhookLogId);
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -351,6 +452,33 @@ serve(async (req) => {
     );
   } catch (error: any) {
     console.error('❌ Erro no webhook:', error);
+    
+    // Atualizar log para error
+    if (webhookLogId) {
+      await supabase
+        .from('webhook_logs')
+        .update({ 
+          status: 'error',
+          processed_at: new Date().toISOString(),
+          error_message: error.message || 'Erro desconhecido'
+        })
+        .eq('id', webhookLogId);
+    } else {
+      // Se não conseguiu criar o log inicial, criar agora com erro
+      await supabase
+        .from('webhook_logs')
+        .insert({
+          webhook_type: 'pix',
+          source: 'efi-pix-webhook',
+          event_type: 'payment_notification',
+          payload,
+          status: 'error',
+          ip_address: ipAddress,
+          processed_at: new Date().toISOString(),
+          error_message: error.message || 'Erro desconhecido'
+        });
+    }
+    
     return new Response(
       JSON.stringify({
         success: false,

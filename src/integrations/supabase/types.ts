@@ -6121,6 +6121,51 @@ export type Database = {
           },
         ]
       }
+      webhook_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          event_type: string | null
+          id: string
+          ip_address: string | null
+          payload: Json | null
+          processed_at: string | null
+          related_entity_id: string | null
+          related_entity_type: string | null
+          source: string
+          status: string
+          webhook_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          event_type?: string | null
+          id?: string
+          ip_address?: string | null
+          payload?: Json | null
+          processed_at?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          source: string
+          status?: string
+          webhook_type: string
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          event_type?: string | null
+          id?: string
+          ip_address?: string | null
+          payload?: Json | null
+          processed_at?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          source?: string
+          status?: string
+          webhook_type?: string
+        }
+        Relationships: []
+      }
       whatsapp_auto_messages: {
         Row: {
           created_at: string | null

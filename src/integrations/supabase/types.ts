@@ -5450,8 +5450,12 @@ export type Database = {
           payment_method: string | null
           payment_proof_url: string | null
           payment_status: string | null
+          pix_copia_cola: string | null
+          pix_expires_at: string | null
           pix_key: string | null
           pix_qr_code: string | null
+          pix_qrcode_base64: string | null
+          pix_txid: string | null
           plan_id: string | null
           store_id: string
           updated_at: string | null
@@ -5469,8 +5473,12 @@ export type Database = {
           payment_method?: string | null
           payment_proof_url?: string | null
           payment_status?: string | null
+          pix_copia_cola?: string | null
+          pix_expires_at?: string | null
           pix_key?: string | null
           pix_qr_code?: string | null
+          pix_qrcode_base64?: string | null
+          pix_txid?: string | null
           plan_id?: string | null
           store_id: string
           updated_at?: string | null
@@ -5488,8 +5496,12 @@ export type Database = {
           payment_method?: string | null
           payment_proof_url?: string | null
           payment_status?: string | null
+          pix_copia_cola?: string | null
+          pix_expires_at?: string | null
           pix_key?: string | null
           pix_qr_code?: string | null
+          pix_qrcode_base64?: string | null
+          pix_txid?: string | null
           plan_id?: string | null
           store_id?: string
           updated_at?: string | null

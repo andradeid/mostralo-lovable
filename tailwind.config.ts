@@ -85,6 +85,30 @@ export default {
           '0%': { transform: 'scale(1.15)' },
           '100%': { transform: 'scale(1)' }
         },
+        'radar-ping': {
+          '0%': {
+            transform: 'scale(0.8)',
+            opacity: '0.8'
+          },
+          '50%': {
+            transform: 'scale(1.8)',
+            opacity: '0.3'
+          },
+          '100%': {
+            transform: 'scale(2.5)',
+            opacity: '0'
+          }
+        },
+        'shield-glow': {
+          '0%, 100%': {
+            filter: 'drop-shadow(0 0 4px rgba(249, 115, 22, 0.5))',
+            transform: 'scale(1)'
+          },
+          '50%': {
+            filter: 'drop-shadow(0 0 12px rgba(249, 115, 22, 0.9))',
+            transform: 'scale(1.05)'
+          }
+        },
 				'accordion-down': {
 					from: {
 						height: '0'
@@ -151,7 +175,9 @@ export default {
 				'scale-in': 'scale-in 0.5s ease-out forwards',
 				'waveform': 'waveform 0.5s ease-in-out infinite',
 				'ken-burns-in': 'ken-burns-zoom-in 10s ease-out forwards',
-				'ken-burns-out': 'ken-burns-zoom-out 10s ease-out forwards'
+				'ken-burns-out': 'ken-burns-zoom-out 10s ease-out forwards',
+				'radar-ping': 'radar-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite',
+				'shield-glow': 'shield-glow 2s ease-in-out infinite'
 			}
 		}
 	},

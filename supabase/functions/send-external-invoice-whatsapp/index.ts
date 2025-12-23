@@ -50,12 +50,12 @@ serve(async (req) => {
     // Check if user is master_admin
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('role')
+      .select('user_type')
       .eq('id', user.id)
       .single();
 
-    if (profileError || profile?.role !== 'master_admin') {
-      console.error('User is not master_admin:', profile?.role);
+    if (profileError || profile?.user_type !== 'master_admin') {
+      console.error('User is not master_admin:', profile?.user_type);
       return new Response(
         JSON.stringify({ error: 'Permissão negada. Apenas administradores podem enviar mensagens.' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

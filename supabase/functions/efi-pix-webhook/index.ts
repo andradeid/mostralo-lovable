@@ -203,7 +203,44 @@ serve(async (req) => {
         continue;
       }
 
-      // 3. Se não for pedido nem fatura, verificar se é aprovação de assinatura
+      // 3. Verificar se é uma fatura externa (external_invoices)
+      const { data: externalInvoice, error: externalInvoiceError } = await supabase
+        .from('external_invoices')
+        .select('id, payment_status')
+        .eq('pix_txid', txid)
+        .maybeSingle();
+
+      if (externalInvoice && !externalInvoiceError) {
+        console.log(`📄 Fatura externa encontrada: ${externalInvoice.id}`);
+
+        if (externalInvoice.payment_status === 'paid') {
+          console.log(`ℹ️ Fatura externa já paga: ${externalInvoice.id}`);
+          processedEvents.push({ txid, status: 'already_processed', type: 'external_invoice' });
+          continue;
+        }
+
+        // Atualizar status da fatura externa
+        const { error: updateExternalInvoiceError } = await supabase
+          .from('external_invoices')
+          .update({
+            payment_status: 'paid',
+            paid_at: new Date().toISOString(),
+            payment_method: 'pix',
+          })
+          .eq('id', externalInvoice.id);
+
+        if (updateExternalInvoiceError) {
+          console.error(`❌ Erro ao atualizar fatura externa ${externalInvoice.id}:`, updateExternalInvoiceError);
+          processedEvents.push({ txid, status: 'update_error', type: 'external_invoice', error: updateExternalInvoiceError.message });
+          continue;
+        }
+
+        console.log(`✅ Fatura externa ${externalInvoice.id} marcada como paga`);
+        processedEvents.push({ txid, status: 'success', type: 'external_invoice', invoiceId: externalInvoice.id });
+        continue;
+      }
+
+      // 4. Se não for pedido, fatura de assinatura nem externa, verificar se é aprovação de assinatura
       const { data: approval, error: approvalError } = await supabase
         .from('payment_approvals')
         .select('*')

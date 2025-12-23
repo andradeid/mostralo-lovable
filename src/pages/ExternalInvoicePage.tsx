@@ -301,15 +301,18 @@ export default function ExternalInvoicePage() {
       }
 
       if (data?.systemStatus === "paid") {
-        // Atualizar fatura como paga
-        await supabase
-          .from("external_invoices")
-          .update({ 
-            payment_status: "paid", 
-            paid_at: new Date().toISOString(),
-            payment_method: "pix"
-          })
-          .eq("id", invoiceId);
+        // Atualizar fatura como paga via edge function (bypassa RLS)
+        const { error: updateError } = await supabase.functions.invoke("update-external-invoice-status", {
+          body: {
+            invoice_id: invoiceId,
+            payment_status: "paid",
+            payment_method: "pix",
+          },
+        });
+
+        if (updateError) {
+          console.error("Erro ao atualizar status:", updateError);
+        }
           
         setPaymentStatus("paid");
         toast.success("Pagamento confirmado!");

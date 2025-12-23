@@ -43,6 +43,7 @@ import StoreUnavailable from "./pages/StoreUnavailable";
 import Sitemap from "./pages/Sitemap";
 import InvoicePayment from "./pages/InvoicePayment";
 import InvoiceReceipt from "./pages/InvoiceReceipt";
+import ExternalInvoicePage from "./pages/ExternalInvoicePage";
 import UsersPage from "./pages/admin/UsersPage";
 import SubscribersPage from "./pages/admin/SubscribersPage";
 import SubscriptionPage from "./pages/admin/SubscriptionPage";
@@ -215,6 +216,7 @@ function MainAppWithProviders() {
             <Route path="/navegar" element={<NavigatePage />} />
             <Route path="/invoice-payment/:invoiceId" element={<InvoicePayment />} />
             <Route path="/receipt/:invoiceId" element={<InvoiceReceipt />} />
+            <Route path="/external-invoice/:invoiceId" element={<ExternalInvoicePage />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/payment-proof" element={

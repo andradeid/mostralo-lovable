@@ -656,7 +656,7 @@ const UsersPage = () => {
                         <div className="flex gap-1.5 pb-1">
                           {user.roles.map((role: any, idx: number) => (
                             <div key={idx} className="flex items-center gap-1 shrink-0">
-                              {(role.role === 'attendant' || role.role === 'store_admin') && role.store_logo && (
+                              {(role.role === 'attendant' || role.role === 'store_admin' || role.role === 'delivery_driver') && role.store_logo && (
                                 <img 
                                   src={role.store_logo} 
                                   alt={role.store_name || 'Loja'} 

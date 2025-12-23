@@ -177,7 +177,7 @@ export default function Sentinela() {
 
       if (response.error) throw response.error;
 
-      if (response.data?.exists) {
+      if (response.data?.valid) {
         setPhoneValid(true);
         setPhoneJid(response.data.jid);
         toast.success('Número válido no WhatsApp!');

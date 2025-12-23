@@ -295,9 +295,6 @@ const StoresPage = () => {
                             <Check className="w-3 h-3 ml-1 text-emerald-500" />
                           )}
                         </Button>
-                        <Button variant="outline" size="sm" className="flex-1">
-                          Editar
-                        </Button>
                         <Link to={`/loja/${store.slug}`} target="_blank">
                           <Button variant="outline" size="sm">
                             <ExternalLink className="w-3 h-3" />

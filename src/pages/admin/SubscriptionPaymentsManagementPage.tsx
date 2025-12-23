@@ -157,7 +157,7 @@ export default function SubscriptionPaymentsManagementPage() {
   // Estados para pagamento direto (Master Admin)
   const [markAsPaid, setMarkAsPaid] = useState(false);
   const [paymentDate, setPaymentDate] = useState(format(new Date(), "yyyy-MM-dd"));
-  const [paymentMethod, setPaymentMethod] = useState("pix_manual");
+  const [paymentMethod, setPaymentMethod] = useState("pix");
   const [pixTransactionId, setPixTransactionId] = useState("");
   const [extendSubscription, setExtendSubscription] = useState(true);
   const [monthsToExtend, setMonthsToExtend] = useState(1);
@@ -730,7 +730,7 @@ export default function SubscriptionPaymentsManagementPage() {
     // Reset estados de pagamento direto
     setMarkAsPaid(false);
     setPaymentDate(format(new Date(), "yyyy-MM-dd"));
-    setPaymentMethod("pix_manual");
+    setPaymentMethod("pix");
     setPixTransactionId("");
     setExtendSubscription(true);
     setMonthsToExtend(1);
@@ -1806,12 +1806,11 @@ export default function SubscriptionPaymentsManagementPage() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="pix_manual">PIX Manual</SelectItem>
-                          <SelectItem value="transferencia">Transferência</SelectItem>
-                          <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                          <SelectItem value="pix">PIX</SelectItem>
+                          <SelectItem value="bank_transfer">Transferência Bancária</SelectItem>
+                          <SelectItem value="card">Cartão</SelectItem>
                           <SelectItem value="boleto">Boleto</SelectItem>
-                          <SelectItem value="cartao">Cartão</SelectItem>
-                          <SelectItem value="outro">Outro</SelectItem>
+                          <SelectItem value="other">Outro (Dinheiro, etc.)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

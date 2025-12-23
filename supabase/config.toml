@@ -233,3 +233,6 @@ verify_jwt = false
 
 [functions.update-invoice-pix]
 verify_jwt = false
+
+[functions.get-invoice-receipt]
+verify_jwt = false

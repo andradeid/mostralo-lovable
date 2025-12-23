@@ -35,7 +35,8 @@ import {
   Wrench,
   ChevronLeft,
   ChevronRight,
-  Briefcase
+  Briefcase,
+  Headphones
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -238,6 +239,7 @@ const UsersPage = () => {
     const hasDeliveryDriver = user.roles?.some(r => r.role === 'delivery_driver');
     const hasCustomer = user.roles?.some(r => r.role === 'customer');
     const hasSalesperson = user.roles?.some(r => r.role === 'salesperson');
+    const hasAttendant = user.roles?.some(r => r.role === 'attendant');
 
     // Vendedor (alta prioridade)
     if (hasSalesperson) {
@@ -246,6 +248,16 @@ const UsersPage = () => {
         variant: 'outline' as const,
         icon: Briefcase,
         color: 'text-yellow-600'
+      };
+    }
+
+    // Atendente
+    if (hasAttendant) {
+      return {
+        label: 'Atendente',
+        variant: 'outline' as const,
+        icon: Headphones,
+        color: 'text-teal-600'
       };
     }
 
@@ -291,11 +303,12 @@ const UsersPage = () => {
     const hasDeliveryDriver = user.roles?.some(r => r.role === 'delivery_driver');
     const hasCustomer = user.roles?.some(r => r.role === 'customer');
     const hasSalesperson = user.roles?.some(r => r.role === 'salesperson');
+    const hasAttendant = user.roles?.some(r => r.role === 'attendant');
     const isMasterAdmin = user.user_type === 'master_admin';
     const isStoreOwner = user.user_type === 'store_admin' && user.hasStore;
     
-    // Se é APENAS cliente (não é admin, não é dono de loja, não é entregador, não é vendedor)
-    const isOnlyCustomer = hasCustomer && !isMasterAdmin && !isStoreOwner && !hasDeliveryDriver && !hasSalesperson;
+    // Se é APENAS cliente (não é admin, não é dono de loja, não é entregador, não é vendedor, não é atendente)
+    const isOnlyCustomer = hasCustomer && !isMasterAdmin && !isStoreOwner && !hasDeliveryDriver && !hasSalesperson && !hasAttendant;
     
     // Só excluir clientes SE o filtro NÃO for "customer"
     if (isOnlyCustomer && typeFilter !== 'customer') {
@@ -317,6 +330,8 @@ const UsersPage = () => {
         matchesType = user.roles?.some(r => r.role === 'delivery_driver') || false;
       } else if (typeFilter === 'salesperson') {
         matchesType = hasSalesperson;
+      } else if (typeFilter === 'attendant') {
+        matchesType = hasAttendant;
       } else if (typeFilter === 'customer') {
         // Cliente: deve ter role 'customer' e ser "apenas cliente"
         matchesType = isOnlyCustomer;
@@ -370,6 +385,13 @@ const UsersPage = () => {
       description: 'Afiliados',
       icon: Briefcase,
       color: 'text-yellow-600'
+    },
+    {
+      title: 'Atendentes',
+      value: users.filter(u => u.roles?.some(r => r.role === 'attendant')).length,
+      description: 'Funcionários de loja',
+      icon: Headphones,
+      color: 'text-teal-600'
     }
   ];
 
@@ -464,6 +486,7 @@ const UsersPage = () => {
                     <SelectItem value="all">Todos</SelectItem>
                     <SelectItem value="master_admin">Master</SelectItem>
                     <SelectItem value="store_admin">Lojista</SelectItem>
+                    <SelectItem value="attendant">Atendente</SelectItem>
                     <SelectItem value="delivery_driver">Entregador</SelectItem>
                     <SelectItem value="salesperson">Vendedor</SelectItem>
                     <SelectItem value="customer">Cliente</SelectItem>

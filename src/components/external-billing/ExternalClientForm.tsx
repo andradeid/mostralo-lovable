@@ -140,20 +140,20 @@ const validateCNPJ = (cnpj: string): boolean => {
   return digit === parseInt(numbers[13]);
 };
 
-// Schema de validação
+// Schema de validação - campos obrigatórios para emissão de boleto
 const formSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100),
   email: z.string().email("Email inválido").max(255).optional().or(z.literal("")),
   phone: z.string().optional(),
   person_type: z.enum(["PF", "PJ"]),
-  document: z.string().optional(),
-  address_zipcode: z.string().optional(),
-  address_street: z.string().optional(),
-  address_number: z.string().optional(),
+  document: z.string().min(1, "Documento é obrigatório para emissão de boleto"),
+  address_zipcode: z.string().min(8, "CEP é obrigatório (8 dígitos)"),
+  address_street: z.string().min(1, "Logradouro é obrigatório"),
+  address_number: z.string().min(1, "Número é obrigatório"),
   address_complement: z.string().optional(),
-  address_neighborhood: z.string().optional(),
-  address_city: z.string().optional(),
-  address_state: z.string().optional(),
+  address_neighborhood: z.string().min(1, "Bairro é obrigatório"),
+  address_city: z.string().min(1, "Cidade é obrigatória"),
+  address_state: z.string().min(2, "Estado é obrigatório"),
   notes: z.string().optional(),
   is_active: z.boolean(),
 });
@@ -233,18 +233,16 @@ export function ExternalClientForm({ client, onClose }: ExternalClientFormProps)
 
   const onSubmit = async (data: ClientFormData) => {
     // Validar documento conforme tipo de pessoa
-    if (data.document) {
-      const docNumbers = data.document.replace(/\D/g, "");
-      if (data.person_type === "PF") {
-        if (docNumbers.length > 0 && !validateCPF(data.document)) {
-          toast.error("CPF inválido");
-          return;
-        }
-      } else {
-        if (docNumbers.length > 0 && !validateCNPJ(data.document)) {
-          toast.error("CNPJ inválido");
-          return;
-        }
+    const docNumbers = data.document.replace(/\D/g, "");
+    if (data.person_type === "PF") {
+      if (!validateCPF(data.document)) {
+        toast.error("CPF inválido. Verifique os dígitos.");
+        return;
+      }
+    } else {
+      if (!validateCNPJ(data.document)) {
+        toast.error("CNPJ inválido. Verifique os dígitos.");
+        return;
       }
     }
 
@@ -334,7 +332,7 @@ export function ExternalClientForm({ client, onClose }: ExternalClientFormProps)
             name="document"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{personType === "PF" ? "CPF" : "CNPJ"}</FormLabel>
+                <FormLabel>{personType === "PF" ? "CPF *" : "CNPJ *"}</FormLabel>
                 <FormControl>
                   <Input
                     placeholder={personType === "PF" ? "000.000.000-00" : "00.000.000/0000-00"}
@@ -391,7 +389,7 @@ export function ExternalClientForm({ client, onClose }: ExternalClientFormProps)
 
         {/* Seção de Endereço */}
         <div className="border rounded-lg p-4 space-y-4 bg-muted/30">
-          <h4 className="font-medium text-sm">Endereço (para boleto)</h4>
+          <h4 className="font-medium text-sm">Endereço (obrigatório para boleto)</h4>
 
           {/* CEP com busca */}
           <div className="flex gap-2">
@@ -400,7 +398,7 @@ export function ExternalClientForm({ client, onClose }: ExternalClientFormProps)
               name="address_zipcode"
               render={({ field }) => (
                 <FormItem className="flex-1">
-                  <FormLabel>CEP</FormLabel>
+                  <FormLabel>CEP *</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="00000-000"
@@ -434,7 +432,7 @@ export function ExternalClientForm({ client, onClose }: ExternalClientFormProps)
               name="address_street"
               render={({ field }) => (
                 <FormItem className="col-span-2">
-                  <FormLabel>Logradouro</FormLabel>
+                  <FormLabel>Logradouro *</FormLabel>
                   <FormControl>
                     <Input placeholder="Rua, Avenida, etc" {...field} />
                   </FormControl>
@@ -448,7 +446,7 @@ export function ExternalClientForm({ client, onClose }: ExternalClientFormProps)
               name="address_number"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Número</FormLabel>
+                  <FormLabel>Número *</FormLabel>
                   <FormControl>
                     <Input placeholder="123" {...field} />
                   </FormControl>
@@ -479,7 +477,7 @@ export function ExternalClientForm({ client, onClose }: ExternalClientFormProps)
               name="address_neighborhood"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Bairro</FormLabel>
+                  <FormLabel>Bairro *</FormLabel>
                   <FormControl>
                     <Input placeholder="Bairro" {...field} />
                   </FormControl>
@@ -496,7 +494,7 @@ export function ExternalClientForm({ client, onClose }: ExternalClientFormProps)
               name="address_city"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Cidade</FormLabel>
+                  <FormLabel>Cidade *</FormLabel>
                   <FormControl>
                     <Input placeholder="Cidade" {...field} />
                   </FormControl>
@@ -510,7 +508,7 @@ export function ExternalClientForm({ client, onClose }: ExternalClientFormProps)
               name="address_state"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Estado</FormLabel>
+                  <FormLabel>Estado *</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value || ""}>
                     <FormControl>
                       <SelectTrigger>

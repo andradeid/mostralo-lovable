@@ -437,6 +437,25 @@ export function CustomerAuthDialog({
             {/* ABA DE CADASTRO */}
             <TabsContent value="register">
               <form onSubmit={handleRegister} className="space-y-4">
+                {/* Alerta de Rate Limiting */}
+                {registerRemainingSeconds > 0 && (
+                  <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 flex items-center gap-3 animate-pulse">
+                    <div className="bg-destructive/20 rounded-full p-2 shrink-0">
+                      <Clock className="h-5 w-5 text-destructive" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-destructive text-sm">Muitas tentativas de cadastro</p>
+                      <p className="text-xs text-muted-foreground">
+                        Por segurança, aguarde{' '}
+                        <span className="font-bold text-destructive">
+                          {Math.floor(registerRemainingSeconds / 60)}:{(registerRemainingSeconds % 60).toString().padStart(2, '0')}
+                        </span>
+                        {' '}para tentar novamente
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <Label htmlFor="register-name">Nome Completo *</Label>
                   <Input
@@ -446,6 +465,7 @@ export function CustomerAuthDialog({
                     onChange={(e) => setRegisterName(e.target.value)}
                     maxLength={120}
                     required
+                    disabled={registerRemainingSeconds > 0}
                   />
                 </div>
 
@@ -458,6 +478,7 @@ export function CustomerAuthDialog({
                     onChange={(e) => setRegisterPhone(formatPhone(e.target.value))}
                     maxLength={15}
                     required
+                    disabled={registerRemainingSeconds > 0}
                   />
                 </div>
 
@@ -471,6 +492,7 @@ export function CustomerAuthDialog({
                       value={registerPassword}
                       onChange={(e) => setRegisterPassword(e.target.value)}
                       required
+                      disabled={registerRemainingSeconds > 0}
                     />
                     <Button
                       type="button"
@@ -478,6 +500,7 @@ export function CustomerAuthDialog({
                       size="icon"
                       className="absolute right-0 top-0"
                       onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                      disabled={registerRemainingSeconds > 0}
                     >
                       {showRegisterPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
@@ -494,6 +517,7 @@ export function CustomerAuthDialog({
                       value={registerConfirmPassword}
                       onChange={(e) => setRegisterConfirmPassword(e.target.value)}
                       required
+                      disabled={registerRemainingSeconds > 0}
                     />
                     <Button
                       type="button"
@@ -501,6 +525,7 @@ export function CustomerAuthDialog({
                       size="icon"
                       className="absolute right-0 top-0"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      disabled={registerRemainingSeconds > 0}
                     >
                       {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
@@ -517,6 +542,7 @@ export function CustomerAuthDialog({
                     onChange={(e) => setRegisterEmail(e.target.value)}
                     maxLength={255}
                     required
+                    disabled={registerRemainingSeconds > 0}
                   />
                 </div>
 
@@ -529,6 +555,7 @@ export function CustomerAuthDialog({
                     onChange={(e) => setRegisterAddress(e.target.value)}
                     rows={3}
                     required
+                    disabled={registerRemainingSeconds > 0}
                   />
                   <Button
                     type="button"
@@ -536,6 +563,7 @@ export function CustomerAuthDialog({
                     size="sm"
                     onClick={() => setShowMapPicker(true)}
                     className="w-full"
+                    disabled={registerRemainingSeconds > 0}
                   >
                     <MapPin className="h-4 w-4 mr-2" />
                     {latitude && longitude ? 'Localização Selecionada ✓' : 'Selecionar Localização no Mapa *'}
@@ -555,15 +583,21 @@ export function CustomerAuthDialog({
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     rows={2}
+                    disabled={registerRemainingSeconds > 0}
                   />
                 </div>
 
                 <Button 
                   type="submit" 
                   className="w-full"
-                  disabled={isRegistering}
+                  disabled={isRegistering || registerRemainingSeconds > 0}
                 >
-                  {isRegistering ? (
+                  {registerRemainingSeconds > 0 ? (
+                    <>
+                      <Clock className="mr-2 h-4 w-4" />
+                      Aguarde {Math.floor(registerRemainingSeconds / 60)}:{(registerRemainingSeconds % 60).toString().padStart(2, '0')}
+                    </>
+                  ) : isRegistering ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Cadastrando...

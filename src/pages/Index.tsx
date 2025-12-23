@@ -630,7 +630,7 @@ const Index = () => {
                 <span className="text-primary block mt-2 font-display">Invista no SEU negócio, não no deles.</span>
               </p>
               <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-                Sistema completo com <strong>0% de taxa por pedido</strong> + <span className="text-green-600 dark:text-green-400 font-bold">WhatsApp Marketing automático</span> que recupera clientes inativos. Todos os clientes são 100% seus.
+                Sistema completo com <strong>0% de taxa por pedido</strong> + <span className="text-orange-500 font-bold">SENTINELA:</span> <span className="text-green-600 dark:text-green-400 font-bold">WhatsApp Marketing automático</span> que recupera clientes inativos. Todos os clientes são 100% seus.
               </p>
 
               {/* Novo destaque Marketing + WhatsApp */}
@@ -646,14 +646,14 @@ const Index = () => {
                   Nós cuidamos de <span className="text-green-600 dark:text-green-400">TUDO</span> pra você.
                 </p>
                 <p className="text-sm md:text-base text-muted-foreground mt-2">
-                  Gestão de redes sociais + <strong className="text-green-600 dark:text-green-400">WhatsApp Marketing automático</strong> que recupera clientes inativos e aumenta suas vendas.
+                  Gestão de redes sociais + <strong className="text-orange-500">SENTINELA</strong> <span className="text-green-600 dark:text-green-400 font-semibold">(WhatsApp Marketing)</span> que recupera clientes inativos e aumenta suas vendas.
                 </p>
                 <div className="flex flex-wrap justify-center gap-2 mt-4">
                   <Badge className="bg-blue-600 hover:bg-blue-700 text-white">
                     🔥 Marketing Digital Incluso
                   </Badge>
-                  <Badge className="bg-green-600 hover:bg-green-700 text-white">
-                    💬 WhatsApp Marketing Incluso
+                  <Badge className="bg-gradient-to-r from-orange-500 to-green-600 hover:from-orange-600 hover:to-green-700 text-white">
+                    🛡️ SENTINELA WhatsApp Incluso
                   </Badge>
                 </div>
               </div>

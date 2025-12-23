@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AlertCircle, Copy, Edit2, Eye, FileText, Loader2, Plus, RefreshCw, Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { WhatsAppPhonePreview } from "@/components/admin/whatsapp/WhatsAppPhonePreview";
 
 interface SentinelaTemplate {
   id: string;
@@ -406,18 +407,21 @@ export function SentinelaTemplates({ storeId, storeName, storeSlug }: SentinelaT
         </div>
       </div>
 
-      {/* Dialog de Preview */}
+      {/* Dialog de Preview com Mockup WhatsApp */}
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-[420px] p-4">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Eye className="w-5 h-5" />
-              Preview da Mensagem
+            <DialogTitle className="text-center">
+              Preview WhatsApp
             </DialogTitle>
           </DialogHeader>
-          <div className="p-4 bg-muted/30 rounded-lg whitespace-pre-wrap">
-            {previewContent}
-          </div>
+          <WhatsAppPhonePreview
+            storeName={storeName || "Minha Loja"}
+            message={previewContent}
+            showTypingAnimation={false}
+            playNotificationSound={false}
+            allowThemeToggle={true}
+          />
         </DialogContent>
       </Dialog>
 

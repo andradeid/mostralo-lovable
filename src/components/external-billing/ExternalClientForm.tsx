@@ -27,6 +27,7 @@ import {
 import { Loader2, Search } from "lucide-react";
 import { useExternalClients, type ExternalClient } from "@/hooks/useExternalClients";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 // Lista de estados brasileiros
 const BRAZILIAN_STATES = [
@@ -201,7 +202,7 @@ export function ExternalClientForm({ client, onClose }: ExternalClientFormProps)
     }
   }, [addressZipcode]);
 
-  // Buscar endereço pelo CEP
+  // Buscar endereço pelo CEP via Edge Function
   const searchCep = async () => {
     const cep = form.getValues("address_zipcode")?.replace(/\D/g, "");
     if (!cep || cep.length !== 8) {
@@ -211,18 +212,24 @@ export function ExternalClientForm({ client, onClose }: ExternalClientFormProps)
 
     setIsSearchingCep(true);
     try {
-      const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-      const data = await response.json();
+      const { data, error } = await supabase.functions.invoke("search-cep", {
+        body: { cep },
+      });
 
-      if (data.erro) {
-        toast.error("CEP não encontrado");
+      if (error) {
+        toast.error("Erro ao buscar CEP");
+        return;
+      }
+
+      if (data.error) {
+        toast.error(data.error);
         return;
       }
 
       form.setValue("address_street", data.logradouro || "");
       form.setValue("address_neighborhood", data.bairro || "");
-      form.setValue("address_city", data.localidade || "");
-      form.setValue("address_state", data.uf || "");
+      form.setValue("address_city", data.cidade || "");
+      form.setValue("address_state", data.estado || "");
       toast.success("Endereço encontrado!");
     } catch (error) {
       toast.error("Erro ao buscar CEP");

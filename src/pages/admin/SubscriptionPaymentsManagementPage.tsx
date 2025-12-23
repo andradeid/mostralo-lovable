@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Receipt, Check, X, Eye, Search, Filter, Plus, Pencil, Trash2, UserPlus, Clock, AlertCircle, CheckCircle2, Loader2, Copy, Building2, DollarSign, Ticket, Link2, MessageCircle, Phone } from "lucide-react";
+import { Receipt, Check, X, Eye, Search, Filter, Plus, Pencil, Trash2, UserPlus, Clock, AlertCircle, CheckCircle2, Loader2, Copy, Building2, DollarSign, Ticket, Link2, MessageCircle, Phone, ExternalLink, FileCheck } from "lucide-react";
 import { formatPhone, normalizePhone } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
@@ -1591,38 +1591,64 @@ export default function SubscriptionPaymentsManagementPage() {
                 </div>
               )}
 
-              {/* Link de Pagamento */}
-              {selectedInvoice.payment_status === 'pending' && (
-                <div className="p-3 bg-orange-50 dark:bg-orange-500/10 rounded-lg border border-orange-200 dark:border-orange-500/30">
-                  <p className="text-sm font-medium text-orange-700 dark:text-orange-400 mb-2 flex items-center gap-2">
-                    <Link2 className="w-4 h-4" />
-                    Link de Pagamento
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      readOnly
-                      value={`${window.location.origin}/invoice-payment/${selectedInvoice.id}`}
-                      className="flex-1 px-3 py-2 text-xs bg-background rounded border truncate"
-                    />
+              {/* Links Úteis - Fatura e Recibo */}
+              <div className="p-3 bg-blue-50 dark:bg-blue-500/10 rounded-lg border border-blue-200 dark:border-blue-500/30">
+                <p className="text-sm font-medium text-blue-700 dark:text-blue-400 mb-3 flex items-center gap-2">
+                  <Link2 className="w-4 h-4" />
+                  Links Úteis
+                </p>
+                <div className="space-y-2">
+                  {/* Link da Fatura */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm text-muted-foreground min-w-[60px]">Fatura:</span>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        const paymentLink = `${window.location.origin}/invoice-payment/${selectedInvoice.id}`;
-                        navigator.clipboard.writeText(paymentLink);
-                        toast.success('Link de pagamento copiado!');
+                        const invoiceLink = `${window.location.origin}/invoice-payment/${selectedInvoice.id}`;
+                        navigator.clipboard.writeText(invoiceLink);
+                        toast.success('Link da fatura copiado!');
                       }}
                     >
-                      <Copy className="h-3 w-3 mr-1" />
-                      Copiar
+                      <Receipt className="h-3 w-3 mr-1" />
+                      Copiar Link
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => window.open(`/invoice-payment/${selectedInvoice.id}`, '_blank')}
+                    >
+                      <ExternalLink className="h-3 w-3" />
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Envie este link para o lojista pagar via PIX com QR Code automático
-                  </p>
+                  
+                  {/* Link do Recibo - apenas se pago */}
+                  {selectedInvoice.payment_status === 'paid' && (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm text-muted-foreground min-w-[60px]">Recibo:</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const receiptLink = `${window.location.origin}/invoice-receipt/${selectedInvoice.id}`;
+                          navigator.clipboard.writeText(receiptLink);
+                          toast.success('Link do recibo copiado!');
+                        }}
+                      >
+                        <FileCheck className="h-3 w-3 mr-1" />
+                        Copiar Link
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => window.open(`/invoice-receipt/${selectedInvoice.id}`, '_blank')}
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           )}
 

@@ -1,4 +1,5 @@
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { PreloadLink } from "@/components/PreloadLink";
 import { Package, BarChart3, DollarSign, User, Settings, LogOut, Megaphone } from "lucide-react";
 import { useUnreadUpdates } from "@/hooks/useUnreadUpdates";
 import { useAuth } from "@/hooks/use-auth";
@@ -108,7 +109,7 @@ export function DeliveryDriverSidebar({ onSignOut, pendingInvitations = 0 }: Del
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.path}>
               <SidebarMenuButton asChild isActive={isActive(item.path)}>
-                <Link to={item.path} className="flex items-center gap-3 py-3">
+                <PreloadLink to={item.path} className="flex items-center gap-3 py-3">
                   <item.icon className="h-5 w-5 flex-shrink-0" />
                   {!collapsed && (
                     <>
@@ -120,7 +121,7 @@ export function DeliveryDriverSidebar({ onSignOut, pendingInvitations = 0 }: Del
                       )}
                     </>
                   )}
-                </Link>
+                </PreloadLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}

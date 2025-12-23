@@ -1,5 +1,6 @@
 import { Home, Link2, FileText, User, LogOut, MessageSquare, Target, ClipboardList, Users, Printer, History, Wallet, BookOpen, Film, DollarSign, UserCheck, Megaphone } from "lucide-react";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { PreloadLink } from "@/components/PreloadLink";
 import {
   Sidebar,
   SidebarContent,
@@ -70,7 +71,7 @@ export function SalespersonSidebar({ onSignOut }: SalespersonSidebarProps) {
                   isActive={isActive}
                   className="w-full justify-start h-10 px-3"
                 >
-                  <Link to={item.path} className="flex items-center gap-2">
+                  <PreloadLink to={item.path} className="flex items-center gap-2">
                     <Icon className="h-4 w-4" />
                     <span className="flex-1">{item.title}</span>
                     {item.badge && item.badge > 0 && (
@@ -78,7 +79,7 @@ export function SalespersonSidebar({ onSignOut }: SalespersonSidebarProps) {
                         {item.badge}
                       </Badge>
                     )}
-                  </Link>
+                  </PreloadLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             );

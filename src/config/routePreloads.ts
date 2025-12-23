@@ -1,0 +1,123 @@
+/**
+ * Mapeamento de rotas para funções de import dinâmico.
+ * Usado pelo sistema de preload inteligente para carregar páginas antecipadamente.
+ */
+
+type RouteImportFn = () => Promise<{ default: React.ComponentType<unknown> }>;
+
+export const routePreloadMap: Record<string, RouteImportFn> = {
+  // ============================================
+  // SALESPERSON ROUTES
+  // ============================================
+  '/vendedor': () => import('@/pages/salesperson/SalespersonDashboard'),
+  '/vendedor/guia': () => import('@/pages/salesperson/SalespersonGuidePage'),
+  '/vendedor/link': () => import('@/pages/salesperson/SalespersonMyLink'),
+  '/vendedor/pagamentos': () => import('@/pages/salesperson/SalespersonPayouts'),
+  '/vendedor/clientes': () => import('@/pages/salesperson/SalespersonClientsPage'),
+  '/vendedor/comissoes': () => import('@/pages/salesperson/SalespersonMyCommissionsPage'),
+  '/vendedor/midias': () => import('@/pages/salesperson/SalespersonMediaPage'),
+  '/vendedor/prompts': () => import('@/pages/admin/SalesPromptsPage'),
+  '/vendedor/prospeccao': () => import('@/pages/admin/ProspectingGuidePage'),
+  '/vendedor/onboarding': () => import('@/pages/salesperson/OnboardingGuidePage'),
+  '/vendedor/contrato': () => import('@/pages/salesperson/SalespersonContract'),
+  '/vendedor/perfil': () => import('@/pages/salesperson/SalespersonProfile'),
+  '/vendedor/contratos': () => import('@/pages/salesperson/SalespersonContractHistory'),
+  '/vendedor/leads': () => import('@/pages/salesperson/SalespersonLeadsPage'),
+  '/vendedor/compartilhar': () => import('@/pages/salesperson/SalespersonSharePage'),
+  '/vendedor/novidades': () => import('@/pages/SystemUpdatesPage'),
+
+  // ============================================
+  // DELIVERY DRIVER ROUTES
+  // ============================================
+  '/delivery-panel': () => import('@/pages/DeliveryDriverPanel'),
+  '/entregador/novidades': () => import('@/pages/SystemUpdatesPage'),
+  '/delivery-reports': () => import('@/pages/DeliveryDriverReports'),
+  '/delivery-payments': () => import('@/pages/DeliveryDriverPayments'),
+  '/delivery-profile': () => import('@/pages/DeliveryDriverProfile'),
+  '/delivery-settings': () => import('@/pages/DeliverySettingsPage'),
+
+  // ============================================
+  // STORE ADMIN ROUTES
+  // ============================================
+  '/dashboard': () => import('@/pages/admin/DashboardHome'),
+  '/dashboard/subscription': () => import('@/pages/admin/SubscriptionPage'),
+  '/dashboard/contracts': () => import('@/pages/admin/MerchantContractHistoryPage'),
+  '/dashboard/online-payment': () => import('@/pages/admin/StoreOnlinePaymentPage'),
+  '/dashboard/store-configuration': () => import('@/pages/admin/StoreConfigurationPage'),
+  '/dashboard/categories': () => import('@/pages/admin/CategoriesPage'),
+  '/dashboard/products': () => import('@/pages/admin/ProductsPage'),
+  '/dashboard/addon-categories': () => import('@/pages/admin/AddonCategoriesPage'),
+  '/dashboard/addons': () => import('@/pages/admin/AddonsPage'),
+  '/dashboard/promotions': () => import('@/pages/admin/PromotionsPage'),
+  '/dashboard/banners': () => import('@/pages/admin/BannersPage'),
+  '/dashboard/orders': () => import('@/pages/admin/OrdersPage'),
+  '/dashboard/scheduled-orders': () => import('@/pages/admin/ScheduledOrdersPage'),
+  '/dashboard/customers': () => import('@/pages/admin/AdminCustomersPage'),
+  '/dashboard/reports': () => import('@/pages/admin/ReportsPage'),
+  '/dashboard/delivery-drivers': () => import('@/pages/admin/DeliveryDriversPage'),
+  '/dashboard/entregadores-disponiveis': () => import('@/pages/admin/AvailableDriversPage'),
+  '/dashboard/entregadores/financeiro': () => import('@/pages/admin/DeliveryDriverFinancials'),
+  '/dashboard/profile': () => import('@/pages/admin/ProfilePage'),
+  '/dashboard/attendants': () => import('@/pages/admin/AttendantsPage'),
+  '/dashboard/financeiro': () => import('@/pages/admin/FinancialManagementPage'),
+  '/dashboard/integrations': () => import('@/pages/admin/IntegrationsPage'),
+  '/dashboard/marketing-material': () => import('@/pages/admin/StoreMarketingPage'),
+  '/dashboard/signage': () => import('@/pages/admin/SignageManagementPage'),
+  '/dashboard/password-call': () => import('@/pages/admin/PasswordCallManagementPage'),
+  '/dashboard/my-store': () => import('@/pages/admin/MyStorePage'),
+  '/dashboard/print-config': () => import('@/pages/admin/PrintConfigPage'),
+  '/dashboard/whatsapp': () => import('@/pages/admin/WhatsAppInstancePage'),
+  '/dashboard/whatsapp/conversations': () => import('@/pages/admin/WhatsAppConversationsPage'),
+  '/dashboard/whatsapp/templates': () => import('@/pages/admin/WhatsAppTemplatesPage'),
+  '/dashboard/whatsapp/automations': () => import('@/pages/admin/WhatsAppAutomationsPage'),
+  '/dashboard/whatsapp/campaigns': () => import('@/pages/admin/WhatsAppCampaignsPage'),
+  '/dashboard/whatsapp/contacts': () => import('@/pages/admin/WhatsAppContactsPage'),
+  '/dashboard/novidades': () => import('@/pages/SystemUpdatesPage'),
+  '/dashboard/sentinela': () => import('@/pages/store-admin/Sentinela'),
+
+  // ============================================
+  // MASTER ADMIN ROUTES
+  // ============================================
+  '/master/goals': () => import('@/pages/admin/GoalsPage'),
+  '/master/navigation-guide': () => import('@/pages/admin/NavigationGuidePage'),
+  '/master/sales-prompts': () => import('@/pages/admin/SalesPromptsPage'),
+  '/master/qualification-benefits': () => import('@/pages/admin/QualificationBenefitsPage'),
+  '/master/recruitment': () => import('@/pages/admin/RecruitmentPage'),
+  '/master/prospecting-guide': () => import('@/pages/admin/ProspectingGuidePage'),
+  '/master/compile-apps-guide': () => import('@/pages/admin/CompileAppsGuidePage'),
+  '/master/onboarding-guide': () => import('@/pages/salesperson/OnboardingGuidePage'),
+  '/master/sales-media': () => import('@/pages/admin/SalesMediaManagementPage'),
+  '/master/business-intelligence': () => import('@/pages/admin/BusinessIntelligencePage'),
+  '/master/test-environment': () => import('@/pages/admin/TestEnvironmentPage'),
+  '/master/ideas': () => import('@/pages/admin/IdeasPage'),
+  '/master/diagnostics': () => import('@/pages/admin/DiagnosticsPage'),
+  '/master/webhooks-monitor': () => import('@/pages/admin/WebhooksMonitorPage'),
+  '/master/cloudflare-guide': () => import('@/pages/admin/CloudflareGuidePage'),
+  '/master/ifood-homologation': () => import('@/pages/admin/IFoodHomologationPage'),
+  '/master/whatsapp': () => import('@/pages/admin/MasterWhatsAppPage'),
+  '/master/store-notifications': () => import('@/pages/admin/StoreNotificationsManagementPage'),
+  '/master/external-billing': () => import('@/pages/admin/ExternalBillingPage'),
+  '/master/salespeople': () => import('@/pages/admin/SalespeopleListPage'),
+  '/master/salespeople/commissions': () => import('@/pages/admin/SalespersonCommissionsPage'),
+  '/master/salespeople/activity-rules': () => import('@/pages/admin/SalespersonActivityRulesPage'),
+  '/master/salespeople/payouts': () => import('@/pages/admin/SalespeoplePayoutsPage'),
+  '/master/salespeople/earnings-reports': () => import('@/pages/admin/AffiliateEarningsReportsPage'),
+  '/master/stores': () => import('@/pages/admin/StoresPage'),
+  '/master/contracts-acceptance': () => import('@/pages/admin/AllContractsAcceptancePage'),
+  '/master/subscription-payment-config': () => import('@/pages/admin/SubscriptionPaymentConfigPage'),
+  '/master/subscription-payments': () => import('@/pages/admin/SubscriptionPaymentsManagementPage'),
+  '/master/module-access': () => import('@/pages/admin/ModuleAccessManagementPage'),
+  '/master/gateway-config': () => import('@/pages/admin/GatewayConfigPage'),
+  '/master/efi-accounts': () => import('@/pages/admin/EfiAccountsPage'),
+  '/master/users': () => import('@/pages/admin/UsersPage'),
+  '/master/modules': () => import('@/pages/admin/ModulesPage'),
+  '/master/subscribers': () => import('@/pages/admin/SubscribersPage'),
+  '/master/plans': () => import('@/pages/admin/PlansPage'),
+  '/master/coupons': () => import('@/pages/admin/AdminCouponsPage'),
+  '/master/evolution-config': () => import('@/pages/admin/EvolutionConfigPage'),
+  '/master/leads': () => import('@/pages/admin/LeadsManagementPage'),
+  '/master/share': () => import('@/pages/admin/AdminSharePage'),
+  '/master/contract-template': () => import('@/pages/admin/ContractTemplateEditPage'),
+  '/master/system-updates': () => import('@/pages/admin/SystemUpdatesManagementPage'),
+  '/master/system-banners': () => import('@/pages/admin/SystemBannersPage'),
+};

@@ -110,10 +110,10 @@ serve(async (req) => {
       );
     }
 
-    // API base para boletos tradicionais (domínio Gerencianet)
+    // API base para cobranças/boletos (domínio EFI)
     const baseUrl = isProd 
-      ? 'https://api.gerencianet.com.br'
-      : 'https://sandbox.gerencianet.com.br';
+      ? 'https://cobrancas.api.efipay.com.br'
+      : 'https://cobrancas-h.api.efipay.com.br';
 
     console.log(`🌐 Ambiente: ${environment} (${baseUrl})`);
 

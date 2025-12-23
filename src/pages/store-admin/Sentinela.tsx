@@ -51,7 +51,7 @@ export default function Sentinela() {
     updateRule,
     deleteRule,
     cancelReminder
-  } = useSentinela(store?.id || null);
+  } = useSentinela(storeId || null);
 
   const [isNewRuleOpen, setIsNewRuleOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState(false);
@@ -59,36 +59,36 @@ export default function Sentinela() {
 
   // Buscar produtos da loja
   const { data: products } = useQuery({
-    queryKey: ['store-products', store?.id],
+    queryKey: ['store-products', storeId],
     queryFn: async () => {
-      if (!store?.id) return [];
+      if (!storeId) return [];
       const { data, error } = await supabase
         .from('products')
         .select('id, name, category_id')
-        .eq('store_id', store.id)
+        .eq('store_id', storeId)
         .eq('is_available', true)
         .order('name');
       if (error) throw error;
       return data;
     },
-    enabled: !!store?.id
+    enabled: !!storeId
   });
 
   // Buscar categorias da loja
   const { data: categories } = useQuery({
-    queryKey: ['store-categories', store?.id],
+    queryKey: ['store-categories', storeId],
     queryFn: async () => {
-      if (!store?.id) return [];
+      if (!storeId) return [];
       const { data, error } = await supabase
         .from('categories')
         .select('id, name')
-        .eq('store_id', store.id)
+        .eq('store_id', storeId)
         .eq('is_active', true)
         .order('name');
       if (error) throw error;
       return data;
     },
-    enabled: !!store?.id
+    enabled: !!storeId
   });
 
   // State para novo regra
@@ -113,10 +113,10 @@ export default function Sentinela() {
   };
 
   const handleCreateRule = () => {
-    if (!store?.id) return;
+    if (!storeId) return;
 
     createRule.mutate({
-      store_id: store.id,
+      store_id: storeId,
       product_id: newRule.type === 'product' ? newRule.product_id : null,
       category_id: newRule.type === 'category' ? newRule.category_id : null,
       recurrence_days: newRule.recurrence_days,

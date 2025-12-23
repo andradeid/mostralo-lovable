@@ -21,6 +21,8 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { SentinelaGuide } from "@/components/admin/sentinela/SentinelaGuide";
+import { CountryCodeSelect } from "@/components/ui/country-code-select";
+import { formatBrazilianPhone, normalizePhone } from "@/lib/utils";
 
 const DEFAULT_TEMPLATE = `Olá {primeiro_nome}! 👋
 
@@ -65,6 +67,7 @@ export default function Sentinela() {
   
   // Estados para teste de WhatsApp
   const [testPhone, setTestPhone] = useState('');
+  const [countryCode, setCountryCode] = useState('+55');
   const [validatingPhone, setValidatingPhone] = useState(false);
   const [phoneValid, setPhoneValid] = useState<boolean | null>(null);
   const [phoneJid, setPhoneJid] = useState<string | null>(null);
@@ -152,8 +155,10 @@ export default function Sentinela() {
 
   // Função para validar número de WhatsApp
   const handleValidatePhone = async () => {
-    if (!testPhone.trim()) {
-      toast.error('Digite um número de telefone');
+    const phoneNumbers = normalizePhone(testPhone);
+    
+    if (phoneNumbers.length < 10) {
+      toast.error('Digite um número de telefone válido (mínimo 10 dígitos)');
       return;
     }
 
@@ -162,8 +167,12 @@ export default function Sentinela() {
     setPhoneJid(null);
 
     try {
+      // Combinar código do país com número normalizado
+      const countryNumbers = countryCode.replace('+', '');
+      const fullPhone = countryNumbers + phoneNumbers;
+
       const response = await supabase.functions.invoke('validate-whatsapp-number', {
-        body: { phone: testPhone, sendWelcome: false }
+        body: { phone: fullPhone, sendWelcome: false }
       });
 
       if (response.error) throw response.error;
@@ -195,9 +204,14 @@ export default function Sentinela() {
     setSendingTest(true);
 
     try {
+      // Combinar código do país com número normalizado
+      const phoneNumbers = normalizePhone(testPhone);
+      const countryNumbers = countryCode.replace('+', '');
+      const fullPhone = countryNumbers + phoneNumbers;
+
       const response = await supabase.functions.invoke('validate-whatsapp-number', {
         body: { 
-          phone: testPhone, 
+          phone: fullPhone, 
           leadName: 'Cliente Teste',
           sendWelcome: true 
         }
@@ -712,19 +726,30 @@ export default function Sentinela() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <Label htmlFor="test-phone" className="sr-only">Número de WhatsApp</Label>
-                  <div className="relative">
+              <div className="space-y-2">
+                <Label htmlFor="test-phone">Número de WhatsApp</Label>
+                <div className="flex gap-2">
+                  <CountryCodeSelect 
+                    value={countryCode} 
+                    onChange={(value) => {
+                      setCountryCode(value);
+                      setPhoneValid(null);
+                      setPhoneJid(null);
+                    }} 
+                  />
+                  <div className="flex-1 relative">
                     <Input
                       id="test-phone"
-                      placeholder="(11) 99999-9999"
+                      type="tel"
+                      placeholder="(61) 99400-9368"
                       value={testPhone}
                       onChange={(e) => {
-                        setTestPhone(e.target.value);
+                        const formatted = formatBrazilianPhone(e.target.value);
+                        setTestPhone(formatted);
                         setPhoneValid(null);
                         setPhoneJid(null);
                       }}
+                      maxLength={16}
                       className={phoneValid === true ? 'border-green-500 pr-10' : phoneValid === false ? 'border-red-500 pr-10' : ''}
                     />
                     {phoneValid === true && (
@@ -734,21 +759,21 @@ export default function Sentinela() {
                       <XCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-500" />
                     )}
                   </div>
+                  <Button 
+                    onClick={handleValidatePhone} 
+                    disabled={validatingPhone || normalizePhone(testPhone).length < 10}
+                    variant="outline"
+                  >
+                    {validatingPhone ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Validando...
+                      </>
+                    ) : (
+                      'Validar'
+                    )}
+                  </Button>
                 </div>
-                <Button 
-                  onClick={handleValidatePhone} 
-                  disabled={validatingPhone || !testPhone.trim()}
-                  variant="outline"
-                >
-                  {validatingPhone ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Validando...
-                    </>
-                  ) : (
-                    'Validar'
-                  )}
-                </Button>
               </div>
 
               {phoneValid === true && (

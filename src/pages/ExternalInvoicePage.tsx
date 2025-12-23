@@ -714,26 +714,15 @@ export default function ExternalInvoicePage() {
                             </div>
                           </div>
 
-                          {/* Botões de ação */}
-                          <div className="flex flex-col sm:flex-row gap-2 w-full">
-                            <Button
-                              variant="outline"
-                              className="flex-1"
-                              onClick={() => window.open(boletoData.view_url, '_blank')}
-                              disabled={!boletoData.view_url}
-                            >
-                              <ExternalLink className="w-4 h-4 mr-2" />
-                              Visualizar Boleto
-                            </Button>
-              <Button
-                className="flex-1"
-                onClick={() => window.open(boletoData.view_url, '_blank')}
-                disabled={!boletoData.view_url}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Baixar PDF
-              </Button>
-                          </div>
+                          {/* Botão de ação */}
+                          <Button
+                            className="w-full"
+                            onClick={() => window.open(boletoData.view_url, '_blank')}
+                            disabled={!boletoData.view_url}
+                          >
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            Ver Boleto e Baixar PDF
+                          </Button>
 
                           {/* Instrução */}
                           <p className="text-xs text-muted-foreground text-center">

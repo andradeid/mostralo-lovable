@@ -1455,6 +1455,7 @@ export type Database = {
       external_invoices: {
         Row: {
           amount: number
+          boleto_charge_id: string | null
           boleto_codigo_barras: string | null
           boleto_expires_at: string | null
           boleto_linha_digitavel: string | null
@@ -1486,6 +1487,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          boleto_charge_id?: string | null
           boleto_codigo_barras?: string | null
           boleto_expires_at?: string | null
           boleto_linha_digitavel?: string | null
@@ -1517,6 +1519,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          boleto_charge_id?: string | null
           boleto_codigo_barras?: string | null
           boleto_expires_at?: string | null
           boleto_linha_digitavel?: string | null

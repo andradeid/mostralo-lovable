@@ -232,7 +232,10 @@ serve(async (req) => {
       console.log(`🏠 Customer.address keys: ${Object.keys(address as Record<string, unknown>).join(', ')}`);
     }
 
-    // Criar cobrança
+    // URL base do webhook para notificações de pagamento
+    const webhookBaseUrl = 'https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/efi-boleto-webhook';
+
+    // Criar cobrança com notification_url para receber callbacks
     const cobrancaPayload = {
       items: [{
         name: descricao.substring(0, 100),
@@ -242,6 +245,7 @@ serve(async (req) => {
     };
 
     console.log('📦 Payload cobrança:', JSON.stringify(cobrancaPayload, null, 2));
+    console.log('🔔 Webhook URL:', webhookBaseUrl);
 
     const cobrancaResponse = await fetch(`${baseUrl}/v1/charge/one-step`, {
       method: 'POST',
@@ -251,6 +255,10 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         ...cobrancaPayload,
+        metadata: {
+          notification_url: webhookBaseUrl,
+          custom_id: invoice_id,
+        },
         payment: {
           banking_billet: {
             customer: customer,
@@ -315,8 +323,9 @@ serve(async (req) => {
     // Calcular data de expiração do boleto
     const boletoExpiresAt = vencimento;
 
-    // Salvar dados do boleto na fatura (agora com campos separados)
+    // Salvar dados do boleto na fatura (agora com campos separados + charge_id para webhook)
     console.log(`\n💾 Salvando dados do boleto na fatura ${invoice_id}...`);
+    console.log(`📌 Charge ID: ${chargeId}`);
     const { error: updateError } = await supabase
       .from('external_invoices')
       .update({
@@ -325,6 +334,7 @@ serve(async (req) => {
         boleto_pdf_url: pdfUrl,
         boleto_view_url: viewUrl,
         boleto_expires_at: boletoExpiresAt,
+        boleto_charge_id: chargeId?.toString() || null, // Salvar charge_id para webhook
       })
       .eq('id', invoice_id);
 

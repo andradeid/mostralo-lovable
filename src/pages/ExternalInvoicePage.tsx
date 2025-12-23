@@ -206,12 +206,13 @@ export default function ExternalInvoicePage() {
     }
   };
 
-  // Criar cobrança Boleto
+  // Criar cobrança Boleto (ou segunda via)
   const createBoletoCharge = async () => {
     if (!invoice) return;
     
     setIsGeneratingBoleto(true);
-    
+    // Limpar boleto antigo antes de gerar novo (segunda via)
+    setBoletoData(null);
     try {
       const clienteData: any = {
         nome: invoice.client?.name || "Cliente",
@@ -655,81 +656,103 @@ export default function ExternalInvoicePage() {
 
                     {/* Aba Boleto */}
                     <TabsContent value="boleto" className="flex flex-col items-center gap-4 mt-4">
-                      {/* Boleto não gerado */}
-                      {!boletoData && (
-                        <Button
-                          onClick={createBoletoCharge}
-                          disabled={isGeneratingBoleto}
-                          className="w-full"
-                          size="lg"
-                        >
-                          {isGeneratingBoleto ? (
-                            <>
-                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              Gerando Boleto...
-                            </>
-                          ) : (
-                            <>
-                              <Barcode className="w-4 h-4 mr-2" />
-                              Gerar Boleto
-                            </>
-                          )}
-                        </Button>
-                      )}
+                      {/* Verificar se boleto está vencido */}
+                      {(() => {
+                        const isBoletoExpired = boletoData && new Date(boletoData.expires_at) < new Date();
+                        const showGenerateButton = !boletoData || isBoletoExpired;
+                        
+                        return (
+                          <>
+                            {/* Boleto vencido - Mostrar aviso */}
+                            {isBoletoExpired && (
+                              <div className="w-full p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                                <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                                  <span className="text-sm">
+                                    Este boleto venceu em {format(new Date(boletoData.expires_at), "dd/MM/yyyy", { locale: ptBR })}. Gere uma segunda via.
+                                  </span>
+                                </div>
+                              </div>
+                            )}
 
-                      {/* Boleto gerado */}
-                      {boletoData && (
-                        <>
-                          {/* Vencimento */}
-                          <div className="flex items-center gap-2 text-muted-foreground bg-muted px-4 py-2 rounded-full">
-                            <Calendar className="w-4 h-4" />
-                            <span className="text-sm">
-                              Vencimento: {format(new Date(boletoData.expires_at), "dd/MM/yyyy", { locale: ptBR })}
-                            </span>
-                          </div>
-
-                          {/* Ícone de sucesso */}
-                          <div className="p-6 bg-muted/50 rounded-lg border">
-                            <Barcode className="w-24 h-24 text-muted-foreground" />
-                          </div>
-
-                          {/* Linha Digitável */}
-                          <div className="w-full space-y-2">
-                            <p className="text-sm font-medium text-center">Linha Digitável</p>
-                            <div className="flex gap-2">
-                              <input
-                                type="text"
-                                readOnly
-                                value={boletoData.linha_digitavel}
-                                className="flex-1 px-3 py-2 text-xs bg-muted rounded-lg truncate border font-mono"
-                              />
+                            {/* Boleto não gerado ou vencido */}
+                            {showGenerateButton && (
                               <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={handleCopyBoleto}
-                                className={copiedBoleto ? "text-green-600 border-green-600" : ""}
+                                onClick={createBoletoCharge}
+                                disabled={isGeneratingBoleto}
+                                className="w-full"
+                                size="lg"
                               >
-                                {copiedBoleto ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                {isGeneratingBoleto ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    {isBoletoExpired ? "Gerando Segunda Via..." : "Gerando Boleto..."}
+                                  </>
+                                ) : (
+                                  <>
+                                    <Barcode className="w-4 h-4 mr-2" />
+                                    {isBoletoExpired ? "Gerar Segunda Via" : "Gerar Boleto"}
+                                  </>
+                                )}
                               </Button>
-                            </div>
-                          </div>
+                            )}
 
-                          {/* Botão de ação */}
-                          <Button
-                            className="w-full"
-                            onClick={() => window.open(boletoData.view_url, '_blank')}
-                            disabled={!boletoData.view_url}
-                          >
-                            <ExternalLink className="w-4 h-4 mr-2" />
-                            Ver Boleto e Baixar PDF
-                          </Button>
+                            {/* Boleto gerado e válido */}
+                            {boletoData && !isBoletoExpired && (
+                              <>
+                                {/* Vencimento */}
+                                <div className="flex items-center gap-2 text-muted-foreground bg-muted px-4 py-2 rounded-full">
+                                  <Calendar className="w-4 h-4" />
+                                  <span className="text-sm">
+                                    Vencimento: {format(new Date(boletoData.expires_at), "dd/MM/yyyy", { locale: ptBR })}
+                                  </span>
+                                </div>
 
-                          {/* Instrução */}
-                          <p className="text-xs text-muted-foreground text-center">
-                            Após o pagamento, a confirmação pode levar até 3 dias úteis.
-                          </p>
-                        </>
-                      )}
+                                {/* Ícone de sucesso */}
+                                <div className="p-6 bg-muted/50 rounded-lg border">
+                                  <Barcode className="w-24 h-24 text-muted-foreground" />
+                                </div>
+
+                                {/* Linha Digitável */}
+                                <div className="w-full space-y-2">
+                                  <p className="text-sm font-medium text-center">Linha Digitável</p>
+                                  <div className="flex gap-2">
+                                    <input
+                                      type="text"
+                                      readOnly
+                                      value={boletoData.linha_digitavel}
+                                      className="flex-1 px-3 py-2 text-xs bg-muted rounded-lg truncate border font-mono"
+                                    />
+                                    <Button
+                                      variant="outline"
+                                      size="icon"
+                                      onClick={handleCopyBoleto}
+                                      className={copiedBoleto ? "text-green-600 border-green-600" : ""}
+                                    >
+                                      {copiedBoleto ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                    </Button>
+                                  </div>
+                                </div>
+
+                                {/* Botão de ação */}
+                                <Button
+                                  className="w-full"
+                                  onClick={() => window.open(boletoData.view_url, '_blank')}
+                                  disabled={!boletoData.view_url}
+                                >
+                                  <ExternalLink className="w-4 h-4 mr-2" />
+                                  Ver Boleto e Baixar PDF
+                                </Button>
+
+                                {/* Instrução */}
+                                <p className="text-xs text-muted-foreground text-center">
+                                  Após o pagamento, a confirmação pode levar até 3 dias úteis.
+                                </p>
+                              </>
+                            )}
+                          </>
+                        );
+                      })()}
                     </TabsContent>
                   </Tabs>
                 </div>

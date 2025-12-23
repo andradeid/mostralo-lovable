@@ -257,3 +257,6 @@ verify_jwt = true
 
 [functions.get-external-invoice]
 verify_jwt = false
+
+[functions.efi-boleto-webhook]
+verify_jwt = false

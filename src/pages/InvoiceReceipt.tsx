@@ -36,28 +36,29 @@ export default function InvoiceReceipt() {
       if (!invoiceId) return;
 
       try {
-        const { data, error } = await supabase
-          .from('subscription_invoices')
-          .select(`
-            *,
-            stores:store_id(name),
-            plans:plan_id(name)
-          `)
-          .eq('id', invoiceId)
-          .single();
+        const { data, error } = await supabase.functions.invoke('get-invoice-receipt', {
+          body: { invoice_id: invoiceId },
+        });
 
         if (error) throw error;
-        
-        // Verify payment status
-        if (data.payment_status !== 'paid') {
+
+        const receiptInvoice = (data as { invoice?: InvoiceData })?.invoice;
+
+        if (!receiptInvoice) {
+          setError('Fatura não encontrada');
+          return;
+        }
+
+        // Se por algum motivo não vier paga, redireciona para pagamento
+        if (receiptInvoice.payment_status !== 'paid') {
           navigate(`/invoice-payment/${invoiceId}`);
           return;
         }
 
-        setInvoice(data as InvoiceData);
+        setInvoice(receiptInvoice);
       } catch (err) {
-        console.error('Erro ao buscar fatura:', err);
-        setError('Fatura não encontrada');
+        console.error('Erro ao buscar recibo:', err);
+        setError('Recibo não encontrado');
       } finally {
         setLoading(false);
       }

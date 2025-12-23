@@ -260,3 +260,9 @@ verify_jwt = false
 
 [functions.efi-boleto-webhook]
 verify_jwt = false
+
+[functions.sentinela-check]
+verify_jwt = false
+
+[functions.sentinela-send]
+verify_jwt = false

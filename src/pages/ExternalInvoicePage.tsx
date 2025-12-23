@@ -725,20 +725,14 @@ export default function ExternalInvoicePage() {
                               <ExternalLink className="w-4 h-4 mr-2" />
                               Visualizar Boleto
                             </Button>
-                            <Button
-                              className="flex-1"
-                              onClick={() => {
-                                if (boletoData.pdf_url) {
-                                  window.open(boletoData.pdf_url, '_blank');
-                                } else if (boletoData.view_url) {
-                                  window.open(boletoData.view_url, '_blank');
-                                }
-                              }}
-                              disabled={!boletoData.pdf_url && !boletoData.view_url}
-                            >
-                              <Download className="w-4 h-4 mr-2" />
-                              Baixar PDF
-                            </Button>
+              <Button
+                className="flex-1"
+                onClick={() => window.open(boletoData.view_url, '_blank')}
+                disabled={!boletoData.view_url}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Baixar PDF
+              </Button>
                           </div>
 
                           {/* Instrução */}

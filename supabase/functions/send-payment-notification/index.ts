@@ -116,14 +116,28 @@ serve(async (req) => {
     const formattedAmount = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
     const formattedDate = new Date(expiration_date).toLocaleDateString('pt-BR');
 
+    // Gerar link do recibo se tiver invoice_id
+    const appUrl = 'https://mostralo.lovable.app';
+    const receiptLink = invoice_id ? `${appUrl}/invoice/${invoice_id}/receipt` : null;
+
     // Montar mensagem de confirmação
-    const message = `✅ *Pagamento Confirmado!* 🎉
+    let message = `✅ *Pagamento Confirmado!* 🎉
 
 Olá ${firstName}!
 
 Seu pagamento de *${formattedAmount}* para a loja "*${storeName}*" foi recebido com sucesso!
 
-📅 *Sua assinatura está ativa até:* ${formattedDate}
+📅 *Sua assinatura está ativa até:* ${formattedDate}`;
+
+    // Adicionar link do recibo se disponível
+    if (receiptLink) {
+      message += `
+
+🧾 *Acesse seu recibo:*
+${receiptLink}`;
+    }
+
+    message += `
 
 Obrigado por usar o Mostralo! 🚀
 

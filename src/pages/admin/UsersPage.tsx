@@ -654,8 +654,9 @@ const UsersPage = () => {
                         <div className="flex gap-1.5 pb-1">
                           {user.roles.map((role: any, idx: number) => (
                             <Badge key={idx} variant="outline" className="text-[10px] md:text-xs shrink-0">
-                              {role.role === 'delivery_driver' ? 'Entregador' : 
-                               role.role === 'salesperson' ? 'Vendedor' : 'Cliente'}
+{role.role === 'delivery_driver' ? 'Entregador' : 
+                                       role.role === 'salesperson' ? 'Vendedor' : 
+                                       role.role === 'attendant' ? 'Atendente' : 'Cliente'}
                               {role.store_name && (
                                 <span className="hidden sm:inline ml-1">({role.store_name})</span>
                               )}

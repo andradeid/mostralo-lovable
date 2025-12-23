@@ -28,16 +28,22 @@ serve(async (req) => {
   console.log(`📅 Timestamp: ${new Date().toISOString()}`);
   console.log(`📍 Method: ${req.method}`);
 
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+  // Initialize Supabase client
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const supabase = createClient(supabaseUrl, supabaseKey);
 
+  // Capturar IP do request
+  const ipAddress = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+  
+  let webhookLogId: string | null = null;
+  let payload: Record<string, unknown> = {};
+
+  try {
     // A Efí envia POST com token de notificação
     const body = await req.text();
     console.log('📥 Body recebido:', body);
 
-    let payload: Record<string, unknown>;
     try {
       payload = JSON.parse(body);
     } catch {
@@ -48,11 +54,50 @@ serve(async (req) => {
 
     console.log('📦 Payload parseado:', JSON.stringify(payload, null, 2));
 
+    // Inserir log inicial do webhook
+    const { data: logEntry } = await supabase
+      .from('webhook_logs')
+      .insert({
+        webhook_type: 'boleto',
+        source: 'efi-boleto-webhook',
+        event_type: 'payment_notification',
+        payload,
+        status: 'received',
+        ip_address: ipAddress,
+      })
+      .select('id')
+      .single();
+
+    if (logEntry) {
+      webhookLogId = logEntry.id;
+      console.log(`📝 Log criado: ${webhookLogId}`);
+    }
+
+    // Atualizar para processing
+    if (webhookLogId) {
+      await supabase
+        .from('webhook_logs')
+        .update({ status: 'processing' })
+        .eq('id', webhookLogId);
+    }
+
     // Extrair token de notificação
     const notificationToken = payload.notification as string;
     
     if (!notificationToken) {
       console.log('⚠️ Nenhum token de notificação recebido');
+      
+      if (webhookLogId) {
+        await supabase
+          .from('webhook_logs')
+          .update({ 
+            status: 'success', 
+            processed_at: new Date().toISOString(),
+            error_message: 'No notification token in payload'
+          })
+          .eq('id', webhookLogId);
+      }
+      
       return new Response(
         JSON.stringify({ success: true, message: 'Webhook recebido sem token' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -70,6 +115,18 @@ serve(async (req) => {
 
     if (configError || !config) {
       console.error('❌ Configuração EFI não encontrada:', configError);
+      
+      if (webhookLogId) {
+        await supabase
+          .from('webhook_logs')
+          .update({ 
+            status: 'error', 
+            processed_at: new Date().toISOString(),
+            error_message: 'EFI config not found'
+          })
+          .eq('id', webhookLogId);
+      }
+      
       return new Response(
         JSON.stringify({ success: false, error: 'Configuração não encontrada' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
@@ -85,6 +142,18 @@ serve(async (req) => {
 
     if (!clientId || !clientSecret || !certificatePem) {
       console.error('❌ Credenciais incompletas');
+      
+      if (webhookLogId) {
+        await supabase
+          .from('webhook_logs')
+          .update({ 
+            status: 'error', 
+            processed_at: new Date().toISOString(),
+            error_message: 'Incomplete EFI credentials'
+          })
+          .eq('id', webhookLogId);
+      }
+      
       return new Response(
         JSON.stringify({ success: false, error: 'Credenciais incompletas' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
@@ -93,6 +162,17 @@ serve(async (req) => {
 
     const { cert, key } = parsePemContent(certificatePem);
     if (!cert || !key) {
+      if (webhookLogId) {
+        await supabase
+          .from('webhook_logs')
+          .update({ 
+            status: 'error', 
+            processed_at: new Date().toISOString(),
+            error_message: 'Invalid certificate'
+          })
+          .eq('id', webhookLogId);
+      }
+      
       return new Response(
         JSON.stringify({ success: false, error: 'Certificado inválido' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
@@ -130,6 +210,18 @@ serve(async (req) => {
     if (!authResponse.ok || !accessToken) {
       httpClient.close();
       console.error('❌ Falha na autenticação:', authData);
+      
+      if (webhookLogId) {
+        await supabase
+          .from('webhook_logs')
+          .update({ 
+            status: 'error', 
+            processed_at: new Date().toISOString(),
+            error_message: `Auth failed: ${JSON.stringify(authData)}`
+          })
+          .eq('id', webhookLogId);
+      }
+      
       return new Response(
         JSON.stringify({ success: false, error: 'Falha na autenticação' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 502 }
@@ -156,6 +248,18 @@ serve(async (req) => {
 
     if (!notificationResponse.ok || !notificationData.data) {
       console.error('❌ Erro ao consultar notificação:', notificationData);
+      
+      if (webhookLogId) {
+        await supabase
+          .from('webhook_logs')
+          .update({ 
+            status: 'error', 
+            processed_at: new Date().toISOString(),
+            error_message: `Notification query failed: ${JSON.stringify(notificationData)}`
+          })
+          .eq('id', webhookLogId);
+      }
+      
       return new Response(
         JSON.stringify({ success: false, error: 'Erro ao consultar notificação' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
@@ -166,6 +270,9 @@ serve(async (req) => {
     const notifications = Array.isArray(notificationData.data) 
       ? notificationData.data 
       : [notificationData.data];
+
+    let processedCount = 0;
+    let foundInvoice = false;
 
     for (const notification of notifications) {
       const chargeId = notification.identifiers?.charge_id || notification.charge_id;
@@ -203,7 +310,19 @@ serve(async (req) => {
         }
 
         for (const invoice of invoices) {
+          foundInvoice = true;
           console.log(`💾 Atualizando fatura ${invoice.id} para pago...`);
+          
+          // Atualizar log com entidade relacionada
+          if (webhookLogId) {
+            await supabase
+              .from('webhook_logs')
+              .update({ 
+                related_entity_type: 'external_invoice',
+                related_entity_id: invoice.id
+              })
+              .eq('id', webhookLogId);
+          }
           
           const { error: updateError } = await supabase
             .from('external_invoices')
@@ -218,6 +337,7 @@ serve(async (req) => {
             console.error(`❌ Erro ao atualizar fatura ${invoice.id}:`, updateError);
           } else {
             console.log(`✅ Fatura ${invoice.id} atualizada para PAGO!`);
+            processedCount++;
           }
         }
       } else {
@@ -225,17 +345,56 @@ serve(async (req) => {
       }
     }
 
+    // Atualizar log para success
+    if (webhookLogId) {
+      await supabase
+        .from('webhook_logs')
+        .update({ 
+          status: 'success',
+          processed_at: new Date().toISOString(),
+          error_message: foundInvoice ? null : 'No matching invoice found'
+        })
+        .eq('id', webhookLogId);
+    }
+
     console.log('═══════════════════════════════════════════════════════════');
     console.log('✅ WEBHOOK PROCESSADO COM SUCESSO!');
     console.log('═══════════════════════════════════════════════════════════');
 
     return new Response(
-      JSON.stringify({ success: true, message: 'Webhook processado' }),
+      JSON.stringify({ success: true, message: 'Webhook processado', processed: processedCount }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     console.error('❌ Erro inesperado:', error);
+    
+    // Atualizar log para error
+    if (webhookLogId) {
+      await supabase
+        .from('webhook_logs')
+        .update({ 
+          status: 'error',
+          processed_at: new Date().toISOString(),
+          error_message: error instanceof Error ? error.message : 'Erro desconhecido'
+        })
+        .eq('id', webhookLogId);
+    } else {
+      // Se não conseguiu criar o log inicial, criar agora com erro
+      await supabase
+        .from('webhook_logs')
+        .insert({
+          webhook_type: 'boleto',
+          source: 'efi-boleto-webhook',
+          event_type: 'payment_notification',
+          payload,
+          status: 'error',
+          ip_address: ipAddress,
+          processed_at: new Date().toISOString(),
+          error_message: error instanceof Error ? error.message : 'Erro desconhecido'
+        });
+    }
+    
     return new Response(
       JSON.stringify({ success: false, error: error instanceof Error ? error.message : 'Erro interno' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }

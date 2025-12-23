@@ -154,6 +154,7 @@ import SystemUpdatesPage from "./pages/SystemUpdatesPage";
 import SystemUpdatesManagementPage from "./pages/admin/SystemUpdatesManagementPage";
 import SystemBannersPage from "./pages/admin/SystemBannersPage";
 import DiagnosticsPage from "./pages/admin/DiagnosticsPage";
+import WebhooksMonitorPage from "./pages/admin/WebhooksMonitorPage";
 import CloudflareGuidePage from "./pages/admin/CloudflareGuidePage";
 import IFoodHomologationPage from "./pages/admin/IFoodHomologationPage";
 import FinancialManagementPage from "./pages/admin/FinancialManagementPage";
@@ -319,6 +320,13 @@ function MainAppWithProviders() {
               <ProtectedRoute allowedRoles={['master_admin']}>
                 <AdminLayout pageTitle="Diagnóstico de Performance">
                   <DiagnosticsPage />
+                </AdminLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/webhooks-monitor" element={
+              <ProtectedRoute allowedRoles={['master_admin']}>
+                <AdminLayout pageTitle="Monitor de Webhooks">
+                  <WebhooksMonitorPage />
                 </AdminLayout>
               </ProtectedRoute>
             } />

@@ -163,14 +163,14 @@ export function ExternalInvoiceForm({ onClose }: ExternalInvoiceFormProps) {
               <FormItem>
                 <FormLabel>Serviço (opcional)</FormLabel>
                 <div className="flex gap-2">
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={(val) => field.onChange(val === "none" ? "" : val)} value={field.value || "none"}>
                     <FormControl>
                       <SelectTrigger className="flex-1">
                         <SelectValue placeholder="Selecione um serviço" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Nenhum</SelectItem>
+                      <SelectItem value="none">Nenhum</SelectItem>
                       {activeServices.map((service) => (
                         <SelectItem key={service.id} value={service.id}>
                           {service.name} - R$ {service.default_price.toFixed(2)}

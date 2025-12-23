@@ -1459,6 +1459,7 @@ export type Database = {
           boleto_expires_at: string | null
           boleto_linha_digitavel: string | null
           boleto_pdf_url: string | null
+          boleto_view_url: string | null
           client_id: string
           created_at: string | null
           created_by: string | null
@@ -1489,6 +1490,7 @@ export type Database = {
           boleto_expires_at?: string | null
           boleto_linha_digitavel?: string | null
           boleto_pdf_url?: string | null
+          boleto_view_url?: string | null
           client_id: string
           created_at?: string | null
           created_by?: string | null
@@ -1519,6 +1521,7 @@ export type Database = {
           boleto_expires_at?: string | null
           boleto_linha_digitavel?: string | null
           boleto_pdf_url?: string | null
+          boleto_view_url?: string | null
           client_id?: string
           created_at?: string | null
           created_by?: string | null

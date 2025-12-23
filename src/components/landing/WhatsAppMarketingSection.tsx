@@ -17,7 +17,7 @@ import {
   Clock,
   CheckCircle,
   Zap,
-  Gift,
+  Crown,
   ArrowRight,
   Radar
 } from 'lucide-react';
@@ -257,8 +257,8 @@ export const WhatsAppMarketingSection = () => {
               </div>
               <div className="hidden sm:block w-1 h-1 rounded-full bg-muted-foreground" />
               <div className="flex items-center gap-2 text-sm">
-                <Gift className="h-5 w-5 text-[#25D366]" />
-                <span className="font-semibold">Incluso em todos os planos</span>
+                <Crown className="h-5 w-5 text-orange-500" />
+                <span className="font-semibold text-orange-500">Módulo Premium</span>
               </div>
             </div>
           </Card>

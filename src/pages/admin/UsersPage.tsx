@@ -135,7 +135,8 @@ const UsersPage = () => {
             store_id,
             user_id,
             stores (
-              name
+              name,
+              logo_url
             )
           `)
           .in('user_id', userIds);
@@ -155,6 +156,7 @@ const UsersPage = () => {
               role: role.role,
               store_id: role.store_id,
               store_name: role.stores?.name,
+              store_logo: role.stores?.logo_url,
             });
           });
         } else {
@@ -653,14 +655,24 @@ const UsersPage = () => {
                       <div className="overflow-x-auto scrollbar-hide -mx-1 px-1">
                         <div className="flex gap-1.5 pb-1">
                           {user.roles.map((role: any, idx: number) => (
-                            <Badge key={idx} variant="outline" className="text-[10px] md:text-xs shrink-0">
-{role.role === 'delivery_driver' ? 'Entregador' : 
-                                       role.role === 'salesperson' ? 'Vendedor' : 
-                                       role.role === 'attendant' ? 'Atendente' : 'Cliente'}
-                              {role.store_name && (
-                                <span className="hidden sm:inline ml-1">({role.store_name})</span>
+                            <div key={idx} className="flex items-center gap-1 shrink-0">
+                              {(role.role === 'attendant' || role.role === 'store_admin') && role.store_logo && (
+                                <img 
+                                  src={role.store_logo} 
+                                  alt={role.store_name || 'Loja'} 
+                                  className="w-5 h-5 rounded-full object-cover border border-muted"
+                                />
                               )}
-                            </Badge>
+                              <Badge variant="outline" className="text-[10px] md:text-xs">
+                                {role.role === 'delivery_driver' ? 'Entregador' : 
+                                 role.role === 'salesperson' ? 'Vendedor' : 
+                                 role.role === 'attendant' ? 'Atendente' : 
+                                 role.role === 'store_admin' ? 'Lojista' : 'Cliente'}
+                                {role.store_name && (
+                                  <span className="hidden sm:inline ml-1">({role.store_name})</span>
+                                )}
+                              </Badge>
+                            </div>
                           ))}
                         </div>
                       </div>

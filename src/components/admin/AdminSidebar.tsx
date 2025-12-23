@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { NavLink, useLocation, Link } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { PreloadNavLink } from "@/components/PreloadLink";
 import {
   Users,
   CreditCard,
@@ -654,7 +655,7 @@ export function AdminSidebar() {
                 {items.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild className="h-10">
-                      <NavLink 
+                      <PreloadNavLink 
                         to={item.url} 
                         end={item.url === "/dashboard"}
                         className={getNavClassName(item.url)}
@@ -683,7 +684,7 @@ export function AdminSidebar() {
                             )}
                           </span>
                         )}
-                      </NavLink>
+                      </PreloadNavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}

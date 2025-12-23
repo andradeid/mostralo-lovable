@@ -1,183 +1,187 @@
 import { Route } from "react-router-dom";
+import { lazy } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { LazyRoute } from "@/components/LazyRoute";
 
-// Master Admin Pages
-import GoalsPage from "@/pages/admin/GoalsPage";
-import NavigationGuidePage from "@/pages/admin/NavigationGuidePage";
-import SalesPromptsPage from "@/pages/admin/SalesPromptsPage";
-import QualificationBenefitsPage from "@/pages/admin/QualificationBenefitsPage";
-import RecruitmentPage from "@/pages/admin/RecruitmentPage";
-import ProspectingGuidePage from "@/pages/admin/ProspectingGuidePage";
-import CompileAppsGuidePage from "@/pages/admin/CompileAppsGuidePage";
-import OnboardingGuidePage from "@/pages/salesperson/OnboardingGuidePage";
-import SalesMediaManagementPage from "@/pages/admin/SalesMediaManagementPage";
-import BusinessIntelligencePage from "@/pages/admin/BusinessIntelligencePage";
-import TestEnvironmentPage from "@/pages/admin/TestEnvironmentPage";
-import IdeasPage from "@/pages/admin/IdeasPage";
-import DiagnosticsPage from "@/pages/admin/DiagnosticsPage";
-import WebhooksMonitorPage from "@/pages/admin/WebhooksMonitorPage";
-import CloudflareGuidePage from "@/pages/admin/CloudflareGuidePage";
-import IFoodHomologationPage from "@/pages/admin/IFoodHomologationPage";
-import MasterWhatsAppPage from "@/pages/admin/MasterWhatsAppPage";
-import StoreNotificationsManagementPage from "@/pages/admin/StoreNotificationsManagementPage";
-import ExternalBillingPage from "@/pages/admin/ExternalBillingPage";
-import SalespeopleListPage from "@/pages/admin/SalespeopleListPage";
-import SalespersonDetailPage from "@/pages/admin/SalespersonDetailPage";
-import SalespersonCommissionsPage from "@/pages/admin/SalespersonCommissionsPage";
-import SalespersonActivityRulesPage from "@/pages/admin/SalespersonActivityRulesPage";
-import SalespeoplePayoutsPage from "@/pages/admin/SalespeoplePayoutsPage";
-import AffiliateEarningsReportsPage from "@/pages/admin/AffiliateEarningsReportsPage";
-import StoresPage from "@/pages/admin/StoresPage";
-import AllContractsAcceptancePage from "@/pages/admin/AllContractsAcceptancePage";
-import SubscriptionPaymentConfigPage from "@/pages/admin/SubscriptionPaymentConfigPage";
-import SubscriptionPaymentsManagementPage from "@/pages/admin/SubscriptionPaymentsManagementPage";
-import ModuleAccessManagementPage from "@/pages/admin/ModuleAccessManagementPage";
-import GatewayConfigPage from "@/pages/admin/GatewayConfigPage";
-import EfiAccountsPage from "@/pages/admin/EfiAccountsPage";
-import UsersPage from "@/pages/admin/UsersPage";
-import ModulesPage from "@/pages/admin/ModulesPage";
-import SubscribersPage from "@/pages/admin/SubscribersPage";
-import PlansPage from "@/pages/admin/PlansPage";
-import AdminCouponsPage from "@/pages/admin/AdminCouponsPage";
-import EvolutionConfigPage from "@/pages/admin/EvolutionConfigPage";
-import LeadsManagementPage from "@/pages/admin/LeadsManagementPage";
-import AdminSharePage from "@/pages/admin/AdminSharePage";
-import ContractTemplateEditPage from "@/pages/admin/ContractTemplateEditPage";
-import SystemUpdatesManagementPage from "@/pages/admin/SystemUpdatesManagementPage";
-import SystemBannersPage from "@/pages/admin/SystemBannersPage";
+// Master Admin Pages - Lazy loaded
+const GoalsPage = lazy(() => import("@/pages/admin/GoalsPage"));
+const NavigationGuidePage = lazy(() => import("@/pages/admin/NavigationGuidePage"));
+const SalesPromptsPage = lazy(() => import("@/pages/admin/SalesPromptsPage"));
+const QualificationBenefitsPage = lazy(() => import("@/pages/admin/QualificationBenefitsPage"));
+const RecruitmentPage = lazy(() => import("@/pages/admin/RecruitmentPage"));
+const ProspectingGuidePage = lazy(() => import("@/pages/admin/ProspectingGuidePage"));
+const CompileAppsGuidePage = lazy(() => import("@/pages/admin/CompileAppsGuidePage"));
+const OnboardingGuidePage = lazy(() => import("@/pages/salesperson/OnboardingGuidePage"));
+const SalesMediaManagementPage = lazy(() => import("@/pages/admin/SalesMediaManagementPage"));
+const BusinessIntelligencePage = lazy(() => import("@/pages/admin/BusinessIntelligencePage"));
+const TestEnvironmentPage = lazy(() => import("@/pages/admin/TestEnvironmentPage"));
+const IdeasPage = lazy(() => import("@/pages/admin/IdeasPage"));
+const DiagnosticsPage = lazy(() => import("@/pages/admin/DiagnosticsPage"));
+const WebhooksMonitorPage = lazy(() => import("@/pages/admin/WebhooksMonitorPage"));
+const CloudflareGuidePage = lazy(() => import("@/pages/admin/CloudflareGuidePage"));
+const IFoodHomologationPage = lazy(() => import("@/pages/admin/IFoodHomologationPage"));
+const MasterWhatsAppPage = lazy(() => import("@/pages/admin/MasterWhatsAppPage"));
+const StoreNotificationsManagementPage = lazy(() => import("@/pages/admin/StoreNotificationsManagementPage"));
+const ExternalBillingPage = lazy(() => import("@/pages/admin/ExternalBillingPage"));
+const SalespeopleListPage = lazy(() => import("@/pages/admin/SalespeopleListPage"));
+const SalespersonDetailPage = lazy(() => import("@/pages/admin/SalespersonDetailPage"));
+const SalespersonCommissionsPage = lazy(() => import("@/pages/admin/SalespersonCommissionsPage"));
+const SalespersonActivityRulesPage = lazy(() => import("@/pages/admin/SalespersonActivityRulesPage"));
+const SalespeoplePayoutsPage = lazy(() => import("@/pages/admin/SalespeoplePayoutsPage"));
+const AffiliateEarningsReportsPage = lazy(() => import("@/pages/admin/AffiliateEarningsReportsPage"));
+const StoresPage = lazy(() => import("@/pages/admin/StoresPage"));
+const AllContractsAcceptancePage = lazy(() => import("@/pages/admin/AllContractsAcceptancePage"));
+const SubscriptionPaymentConfigPage = lazy(() => import("@/pages/admin/SubscriptionPaymentConfigPage"));
+const SubscriptionPaymentsManagementPage = lazy(() => import("@/pages/admin/SubscriptionPaymentsManagementPage"));
+const ModuleAccessManagementPage = lazy(() => import("@/pages/admin/ModuleAccessManagementPage"));
+const GatewayConfigPage = lazy(() => import("@/pages/admin/GatewayConfigPage"));
+const EfiAccountsPage = lazy(() => import("@/pages/admin/EfiAccountsPage"));
+const UsersPage = lazy(() => import("@/pages/admin/UsersPage"));
+const ModulesPage = lazy(() => import("@/pages/admin/ModulesPage"));
+const SubscribersPage = lazy(() => import("@/pages/admin/SubscribersPage"));
+const PlansPage = lazy(() => import("@/pages/admin/PlansPage"));
+const AdminCouponsPage = lazy(() => import("@/pages/admin/AdminCouponsPage"));
+const EvolutionConfigPage = lazy(() => import("@/pages/admin/EvolutionConfigPage"));
+const LeadsManagementPage = lazy(() => import("@/pages/admin/LeadsManagementPage"));
+const AdminSharePage = lazy(() => import("@/pages/admin/AdminSharePage"));
+const ContractTemplateEditPage = lazy(() => import("@/pages/admin/ContractTemplateEditPage"));
+const SystemUpdatesManagementPage = lazy(() => import("@/pages/admin/SystemUpdatesManagementPage"));
+const SystemBannersPage = lazy(() => import("@/pages/admin/SystemBannersPage"));
 
 export const masterRoutes = (
   <>
     {/* Metas e Guias */}
     <Route path="/dashboard/metas" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
-        <AdminLayout><GoalsPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><GoalsPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/navegacao" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Guia de Navegação">
-          <NavigationGuidePage />
+          <LazyRoute><NavigationGuidePage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/sales-prompts" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Prompts de Vendas">
-          <SalesPromptsPage />
+          <LazyRoute><SalesPromptsPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/qualification-benefits" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Faixas de Qualificação">
-          <QualificationBenefitsPage />
+          <LazyRoute><QualificationBenefitsPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/recrutamento" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Recrutamento de Vendedores">
-          <RecruitmentPage />
+          <LazyRoute><RecruitmentPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/prospecting" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Guia de Prospecção">
-          <ProspectingGuidePage />
+          <LazyRoute><ProspectingGuidePage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/compile-apps" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Compilar Apps">
-          <CompileAppsGuidePage />
+          <LazyRoute><CompileAppsGuidePage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/onboarding-guide" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Guia de Cadastro">
-          <OnboardingGuidePage />
+          <LazyRoute><OnboardingGuidePage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/sales-media" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Biblioteca de Mídias">
-          <SalesMediaManagementPage />
+          <LazyRoute><SalesMediaManagementPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/business-intelligence" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Inteligência de Negócios">
-          <BusinessIntelligencePage />
+          <LazyRoute><BusinessIntelligencePage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/test-environment" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Ambiente de Testes">
-          <TestEnvironmentPage />
+          <LazyRoute><TestEnvironmentPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/ideias" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Ideias e Funcionalidades">
-          <IdeasPage />
+          <LazyRoute><IdeasPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/diagnostics" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Diagnóstico de Performance">
-          <DiagnosticsPage />
+          <LazyRoute><DiagnosticsPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/webhooks-monitor" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Monitor de Webhooks">
-          <WebhooksMonitorPage />
+          <LazyRoute><WebhooksMonitorPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/cloudflare-guide" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Guia Cloudflare">
-          <CloudflareGuidePage />
+          <LazyRoute><CloudflareGuidePage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/ifood-homologation" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Homologação iFood">
-          <IFoodHomologationPage />
+          <LazyRoute><IFoodHomologationPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/master-whatsapp" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="WhatsApp Master">
-          <MasterWhatsAppPage />
+          <LazyRoute><MasterWhatsAppPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/store-notifications" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Notificações das Lojas">
-          <StoreNotificationsManagementPage />
+          <LazyRoute><StoreNotificationsManagementPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/external-billing" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Faturamento Externo">
-          <ExternalBillingPage />
+          <LazyRoute><ExternalBillingPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />
@@ -185,127 +189,171 @@ export const masterRoutes = (
     {/* Vendedores */}
     <Route path="/dashboard/salespeople" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
-        <AdminLayout><SalespeopleListPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><SalespeopleListPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/salespeople/:id" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
-        <AdminLayout><SalespersonDetailPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><SalespersonDetailPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/salespeople/commissions" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
-        <AdminLayout><SalespersonCommissionsPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><SalespersonCommissionsPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/salespeople/activity-rules" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
-        <AdminLayout><SalespersonActivityRulesPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><SalespersonActivityRulesPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/salespeople/payouts" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
-        <AdminLayout pageTitle="Pagamentos de Vendedores"><SalespeoplePayoutsPage /></AdminLayout>
+        <AdminLayout pageTitle="Pagamentos de Vendedores">
+          <LazyRoute><SalespeoplePayoutsPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/salespeople/affiliate-reports" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
-        <AdminLayout pageTitle="Relatórios de Afiliados"><AffiliateEarningsReportsPage /></AdminLayout>
+        <AdminLayout pageTitle="Relatórios de Afiliados">
+          <LazyRoute><AffiliateEarningsReportsPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/salespeople/contract" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
-        <AdminLayout pageTitle="Editar Contrato"><ContractTemplateEditPage /></AdminLayout>
+        <AdminLayout pageTitle="Editar Contrato">
+          <LazyRoute><ContractTemplateEditPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     
     {/* Lojas e Configurações */}
     <Route path="/dashboard/stores" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
-        <AdminLayout><StoresPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><StoresPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/contract-acceptances" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
-        <AdminLayout pageTitle="Aceites de Contratos"><AllContractsAcceptancePage /></AdminLayout>
+        <AdminLayout pageTitle="Aceites de Contratos">
+          <LazyRoute><AllContractsAcceptancePage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/subscription-config" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
-        <AdminLayout><SubscriptionPaymentConfigPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><SubscriptionPaymentConfigPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/subscription-payments" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
-        <AdminLayout><SubscriptionPaymentsManagementPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><SubscriptionPaymentsManagementPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/modulos/gerenciar-acesso" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
-        <AdminLayout pageTitle="Gerenciar Acesso a Módulos"><ModuleAccessManagementPage /></AdminLayout>
+        <AdminLayout pageTitle="Gerenciar Acesso a Módulos">
+          <LazyRoute><ModuleAccessManagementPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/gateway-config" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
-        <AdminLayout pageTitle="Gateway de Pagamento"><GatewayConfigPage /></AdminLayout>
+        <AdminLayout pageTitle="Gateway de Pagamento">
+          <LazyRoute><GatewayConfigPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/efi-accounts" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
-        <AdminLayout pageTitle="Contas EFI Lojistas"><EfiAccountsPage /></AdminLayout>
+        <AdminLayout pageTitle="Contas EFI Lojistas">
+          <LazyRoute><EfiAccountsPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/users" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
-        <AdminLayout><UsersPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><UsersPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/modules" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
-        <AdminLayout pageTitle="Módulos"><ModulesPage /></AdminLayout>
+        <AdminLayout pageTitle="Módulos">
+          <LazyRoute><ModulesPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/subscribers" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
-        <AdminLayout><SubscribersPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><SubscribersPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/plans" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
-        <AdminLayout><PlansPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><PlansPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/coupons" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
-        <AdminLayout><AdminCouponsPage /></AdminLayout>
+        <AdminLayout>
+          <LazyRoute><AdminCouponsPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/evolution-config" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
-        <AdminLayout pageTitle="Configuração Evolution API"><EvolutionConfigPage /></AdminLayout>
+        <AdminLayout pageTitle="Configuração Evolution API">
+          <LazyRoute><EvolutionConfigPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/leads" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
-        <AdminLayout pageTitle="Gestão de Leads"><LeadsManagementPage /></AdminLayout>
+        <AdminLayout pageTitle="Gestão de Leads">
+          <LazyRoute><LeadsManagementPage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/material-divulgacao" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
-        <AdminLayout pageTitle="Material de Divulgação"><AdminSharePage /></AdminLayout>
+        <AdminLayout pageTitle="Material de Divulgação">
+          <LazyRoute><AdminSharePage /></LazyRoute>
+        </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/system-updates" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Gerenciar Novidades">
-          <SystemUpdatesManagementPage />
+          <LazyRoute><SystemUpdatesManagementPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/system-banners" element={
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Banners do Sistema">
-          <SystemBannersPage />
+          <LazyRoute><SystemBannersPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

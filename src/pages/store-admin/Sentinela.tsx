@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useStoreAccess } from "@/hooks/useStoreAccess";
 import { useSentinela } from "@/hooks/useSentinela";
 import { useStoreModules } from "@/hooks/useStoreModules";
@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { SentinelaGuide } from "@/components/admin/sentinela/SentinelaGuide";
 import { SentinelaTemplates } from "@/components/admin/sentinela/SentinelaTemplates";
 import { CountryCodeSelect } from "@/components/ui/country-code-select";
+import { WhatsAppPhonePreview } from "@/components/admin/whatsapp/WhatsAppPhonePreview";
 import { formatBrazilianPhone, normalizePhone } from "@/lib/utils";
 
 const DEFAULT_TEMPLATE = `Olá {primeiro_nome}! 👋
@@ -801,6 +802,31 @@ export default function Sentinela() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Preview do Template Selecionado */}
+              {selectedTestTemplate && templates && (() => {
+                const selectedTemplate = templates.find(t => t.id === selectedTestTemplate);
+                if (!selectedTemplate) return null;
+                
+                const previewMessage = selectedTemplate.content
+                  .replace(/{nome}/gi, 'Cliente Teste')
+                  .replace(/{primeiro_nome}/gi, 'Cliente')
+                  .replace(/{produto}/gi, 'Produto Exemplo')
+                  .replace(/{loja}/gi, storeInfo?.name || 'Minha Loja')
+                  .replace(/{link_loja}/gi, storeInfo?.slug ? `https://${storeInfo.slug}.mostralo.com` : 'https://mostralo.com');
+                
+                return (
+                  <div className="flex justify-center py-4">
+                    <WhatsAppPhonePreview
+                      storeName={storeInfo?.name || "Minha Loja"}
+                      message={previewMessage}
+                      showTypingAnimation={false}
+                      playNotificationSound={false}
+                      allowThemeToggle={true}
+                    />
+                  </div>
+                );
+              })()}
 
               <div className="space-y-2">
                 <Label htmlFor="test-phone">Número de WhatsApp</Label>

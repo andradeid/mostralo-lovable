@@ -1386,6 +1386,187 @@ export type Database = {
         }
         Relationships: []
       }
+      external_clients: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          created_by: string | null
+          document: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          notes: string | null
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          document?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          document?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      external_invoices: {
+        Row: {
+          amount: number
+          client_id: string
+          created_at: string | null
+          created_by: string | null
+          description: string
+          due_date: string
+          id: string
+          invoice_number: string | null
+          is_recurring: boolean | null
+          next_due_date: string | null
+          notes: string | null
+          paid_at: string | null
+          parent_invoice_id: string | null
+          payment_method: string | null
+          payment_status: string | null
+          pix_copia_cola: string | null
+          pix_expires_at: string | null
+          pix_qrcode_base64: string | null
+          pix_txid: string | null
+          recurrence_count: number | null
+          recurrence_current: number | null
+          recurrence_type: string | null
+          service_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          client_id: string
+          created_at?: string | null
+          created_by?: string | null
+          description: string
+          due_date: string
+          id?: string
+          invoice_number?: string | null
+          is_recurring?: boolean | null
+          next_due_date?: string | null
+          notes?: string | null
+          paid_at?: string | null
+          parent_invoice_id?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          pix_copia_cola?: string | null
+          pix_expires_at?: string | null
+          pix_qrcode_base64?: string | null
+          pix_txid?: string | null
+          recurrence_count?: number | null
+          recurrence_current?: number | null
+          recurrence_type?: string | null
+          service_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          client_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string
+          due_date?: string
+          id?: string
+          invoice_number?: string | null
+          is_recurring?: boolean | null
+          next_due_date?: string | null
+          notes?: string | null
+          paid_at?: string | null
+          parent_invoice_id?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          pix_copia_cola?: string | null
+          pix_expires_at?: string | null
+          pix_qrcode_base64?: string | null
+          pix_txid?: string | null
+          recurrence_count?: number | null
+          recurrence_current?: number | null
+          recurrence_type?: string | null
+          service_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "external_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "external_invoices_parent_invoice_id_fkey"
+            columns: ["parent_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "external_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "external_invoices_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "external_services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      external_services: {
+        Row: {
+          billing_type: string | null
+          created_at: string | null
+          created_by: string | null
+          default_price: number
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          billing_type?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          default_price?: number
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          billing_type?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          default_price?: number
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       financial_categories: {
         Row: {
           color: string | null

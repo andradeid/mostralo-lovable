@@ -117,8 +117,8 @@ serve(async (req) => {
     const formattedDate = new Date(expiration_date).toLocaleDateString('pt-BR');
 
     // Link do recibo sempre usa domínio do Mostralo (não da loja)
-    // Porque a fatura é do Mostralo para a loja, não da loja para o cliente
-    const appUrl = 'https://mostralo.com.br';
+    // Usa SITE_URL para flexibilidade entre ambientes (teste/produção)
+    const appUrl = Deno.env.get('SITE_URL') || 'https://mostralo.com.br';
     const receiptLink = invoice_id ? `${appUrl}/receipt/${invoice_id}` : null;
 
     // Montar mensagem de confirmação

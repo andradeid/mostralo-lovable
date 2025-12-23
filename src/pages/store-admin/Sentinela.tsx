@@ -16,11 +16,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { AlertCircle, Bell, BellOff, Calendar, CheckCircle2, Clock, Eye, HelpCircle, Loader2, MessageSquare, Package, Phone, Plus, RefreshCw, Send, Settings, Target, Trash2, TrendingUp, XCircle } from "lucide-react";
+import { AlertCircle, Bell, BellOff, Calendar, CheckCircle2, Clock, Eye, FileText, HelpCircle, Loader2, MessageSquare, Package, Phone, Plus, RefreshCw, Send, Settings, Target, Trash2, TrendingUp, XCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { SentinelaGuide } from "@/components/admin/sentinela/SentinelaGuide";
+import { SentinelaTemplates } from "@/components/admin/sentinela/SentinelaTemplates";
 import { CountryCodeSelect } from "@/components/ui/country-code-select";
 import { formatBrazilianPhone, normalizePhone } from "@/lib/utils";
 
@@ -52,6 +53,7 @@ export default function Sentinela() {
     rules, 
     reminders, 
     stats, 
+    templates,
     isLoading,
     updateConfig,
     createRule,
@@ -72,6 +74,23 @@ export default function Sentinela() {
   const [phoneValid, setPhoneValid] = useState<boolean | null>(null);
   const [phoneJid, setPhoneJid] = useState<string | null>(null);
   const [sendingTest, setSendingTest] = useState(false);
+  const [selectedTestTemplate, setSelectedTestTemplate] = useState<string>('');
+
+  // Buscar informações da loja
+  const { data: storeInfo } = useQuery({
+    queryKey: ['store-info', storeId],
+    queryFn: async () => {
+      if (!storeId) return null;
+      const { data, error } = await supabase
+        .from('stores')
+        .select('name, slug')
+        .eq('id', storeId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!storeId
+  });
 
   // Buscar produtos da loja
   const { data: products } = useQuery({
@@ -194,35 +213,57 @@ export default function Sentinela() {
     }
   };
 
-  // Função para enviar mensagem de teste
+  // Função para enviar mensagem de teste usando template SENTINELA
   const handleSendTest = async () => {
     if (!phoneValid || !phoneJid) {
       toast.error('Valide o número primeiro');
       return;
     }
 
+    if (!selectedTestTemplate) {
+      toast.error('Selecione um template para enviar');
+      return;
+    }
+
     setSendingTest(true);
 
     try {
+      // Buscar template selecionado
+      const selectedTemplate = templates?.find(t => t.id === selectedTestTemplate);
+      if (!selectedTemplate) {
+        toast.error('Template não encontrado');
+        return;
+      }
+
+      // Substituir variáveis com dados de teste
+      const message = selectedTemplate.content
+        .replace(/{nome}/gi, 'Cliente Teste')
+        .replace(/{primeiro_nome}/gi, 'Cliente')
+        .replace(/{produto}/gi, 'Produto Exemplo')
+        .replace(/{loja}/gi, storeInfo?.name || 'Minha Loja')
+        .replace(/{link_loja}/gi, storeInfo?.slug ? `https://${storeInfo.slug}.mostralo.com` : 'https://mostralo.com');
+
       // Combinar código do país com número normalizado
       const phoneNumbers = normalizePhone(testPhone);
       const countryNumbers = countryCode.replace('+', '');
       const fullPhone = countryNumbers + phoneNumbers;
 
-      const response = await supabase.functions.invoke('validate-whatsapp-number', {
+      // Enviar usando whatsapp-send
+      const response = await supabase.functions.invoke('whatsapp-send', {
         body: { 
-          phone: fullPhone, 
-          leadName: 'Cliente Teste',
-          sendWelcome: true 
+          storeId: storeId,
+          phoneNumber: fullPhone,
+          messageType: 'text',
+          content: message
         }
       });
 
       if (response.error) throw response.error;
 
-      if (response.data?.welcomeSent) {
+      if (response.data?.success) {
         toast.success('Mensagem de teste enviada com sucesso!');
       } else {
-        toast.error('Não foi possível enviar a mensagem');
+        toast.error(response.data?.error || 'Não foi possível enviar a mensagem');
       }
     } catch (error: any) {
       console.error('Erro ao enviar teste:', error);
@@ -376,7 +417,7 @@ export default function Sentinela() {
 
       {/* Tabs */}
       <Tabs defaultValue="rules">
-        <TabsList>
+        <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="rules" className="gap-2">
             <Settings className="w-4 h-4" />
             Regras
@@ -385,9 +426,13 @@ export default function Sentinela() {
             <Bell className="w-4 h-4" />
             Lembretes
           </TabsTrigger>
+          <TabsTrigger value="templates" className="gap-2">
+            <FileText className="w-4 h-4" />
+            Templates
+          </TabsTrigger>
           <TabsTrigger value="template" className="gap-2">
             <MessageSquare className="w-4 h-4" />
-            Template
+            Template Padrão
           </TabsTrigger>
           <TabsTrigger value="test" className="gap-2">
             <Phone className="w-4 h-4" />
@@ -658,7 +703,18 @@ export default function Sentinela() {
           )}
         </TabsContent>
 
-        {/* Template */}
+        {/* Templates SENTINELA */}
+        <TabsContent value="templates" className="space-y-4">
+          {storeId && (
+            <SentinelaTemplates 
+              storeId={storeId} 
+              storeName={storeInfo?.name}
+              storeSlug={storeInfo?.slug}
+            />
+          )}
+        </TabsContent>
+
+        {/* Template Padrão */}
         <TabsContent value="template" className="space-y-4">
           <Card>
             <CardHeader>
@@ -726,6 +782,26 @@ export default function Sentinela() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Seletor de Template */}
+              <div className="space-y-2">
+                <Label>Template de Mensagem</Label>
+                <Select
+                  value={selectedTestTemplate}
+                  onValueChange={setSelectedTestTemplate}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um template para enviar" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {templates?.map(t => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.is_default ? '⭐ ' : ''}{t.name} ({t.category})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="test-phone">Número de WhatsApp</Label>
                 <div className="flex gap-2">
@@ -797,7 +873,7 @@ export default function Sentinela() {
               <div className="flex justify-end">
                 <Button 
                   onClick={handleSendTest} 
-                  disabled={!phoneValid || sendingTest}
+                  disabled={!phoneValid || !selectedTestTemplate || sendingTest}
                 >
                   {sendingTest ? (
                     <>

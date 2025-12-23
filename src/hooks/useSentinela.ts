@@ -36,6 +36,18 @@ export interface SentinelaReminder {
   product?: { id: string; name: string } | null;
 }
 
+export interface SentinelaTemplate {
+  id: string;
+  store_id: string | null;
+  category: string;
+  name: string;
+  content: string;
+  is_active: boolean;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface CreateRuleParams {
   store_id: string;
   product_id?: string | null;
@@ -242,11 +254,32 @@ export function useSentinela(storeId: string | null) {
       : 0
   };
 
+  // Buscar templates
+  const { data: sentinelaTemplates, isLoading: isLoadingTemplates } = useQuery({
+    queryKey: ['sentinela-templates', storeId],
+    queryFn: async (): Promise<SentinelaTemplate[]> => {
+      if (!storeId) return [];
+      
+      const { data, error } = await supabase
+        .from('sentinela_templates')
+        .select('*')
+        .or(`is_default.eq.true,store_id.eq.${storeId}`)
+        .eq('is_active', true)
+        .order('category')
+        .order('name');
+
+      if (error) throw error;
+      return data as SentinelaTemplate[];
+    },
+    enabled: !!storeId
+  });
+
   return {
     storeConfig,
     rules,
     reminders,
     stats,
+    templates: sentinelaTemplates,
     isLoading: isLoadingConfig || isLoadingRules || isLoadingReminders,
     updateConfig,
     createRule,

@@ -3,13 +3,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Comanda } from '@/hooks/useComandas';
 import { formatCurrency } from '@/lib/utils';
-import { Clock, User, MapPin, ShoppingBag, MoreVertical } from 'lucide-react';
+import { Clock, User, MapPin, ShoppingBag, MoreVertical, Printer } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
@@ -18,9 +19,10 @@ interface ComandaCardProps {
   onClick?: () => void;
   onClose?: () => void;
   onCancel?: () => void;
+  onPrint?: () => void;
 }
 
-export function ComandaCard({ comanda, onClick, onClose, onCancel }: ComandaCardProps) {
+export function ComandaCard({ comanda, onClick, onClose, onCancel, onPrint }: ComandaCardProps) {
   const getStatusBadge = () => {
     switch (comanda.status) {
       case 'open':
@@ -52,34 +54,46 @@ export function ComandaCard({ comanda, onClick, onClose, onCancel }: ComandaCard
             <CardTitle className="text-xl font-bold">#{comanda.number}</CardTitle>
             {getStatusBadge()}
           </div>
-          {comanda.status === 'open' && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem 
-                  onClick={(e) => { 
-                    e.stopPropagation(); 
-                    onClose?.(); 
-                  }}
-                >
-                  Fechar Comanda
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  className="text-destructive"
-                  onClick={(e) => { 
-                    e.stopPropagation(); 
-                    onCancel?.(); 
-                  }}
-                >
-                  Cancelar Comanda
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem 
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  onPrint?.(); 
+                }}
+              >
+                <Printer className="h-4 w-4 mr-2" />
+                Imprimir
+              </DropdownMenuItem>
+              {comanda.status === 'open' && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      onClose?.(); 
+                    }}
+                  >
+                    Fechar Comanda
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    className="text-destructive"
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      onCancel?.(); 
+                    }}
+                  >
+                    Cancelar Comanda
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">

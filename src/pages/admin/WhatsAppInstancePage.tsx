@@ -645,14 +645,14 @@ export default function WhatsAppInstancePage() {
       </div>
 
       <Tabs defaultValue="connection" className="space-y-3 sm:space-y-6">
-        <TabsList className="grid w-full grid-cols-2 h-9 sm:h-11">
-          <TabsTrigger value="connection" className="gap-1 text-xs sm:text-sm h-full">
-            <Smartphone className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            <span>Conexão</span>
+        <TabsList className="grid w-full grid-cols-2 h-8 sm:h-10">
+          <TabsTrigger value="connection" className="gap-1 text-[11px] sm:text-sm h-full px-2 overflow-hidden">
+            <Smartphone className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
+            <span className="truncate">Conexão</span>
           </TabsTrigger>
-          <TabsTrigger value="bot" className="gap-1 text-xs sm:text-sm h-full">
-            <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            <span>Assistente</span>
+          <TabsTrigger value="bot" className="gap-1 text-[11px] sm:text-sm h-full px-2 overflow-hidden">
+            <Bot className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
+            <span className="truncate">IA</span>
           </TabsTrigger>
         </TabsList>
 
@@ -1285,9 +1285,9 @@ export default function WhatsAppInstancePage() {
             </div>
           ) : botConfig && (
               <>
-                <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+                <div className="grid gap-3 sm:gap-6 lg:grid-cols-2">
                   {/* Coluna Esquerda - 4 cards */}
-                  <div className="space-y-4 sm:space-y-6 min-w-0">
+                  <div className="space-y-3 sm:space-y-6 min-w-0">
                     <BotActivationCard
                       config={botConfig}
                       syncing={botSyncing}
@@ -1315,7 +1315,7 @@ export default function WhatsAppInstancePage() {
                     />
                   </div>
                   {/* Coluna Direita - 3 cards */}
-                  <div className="space-y-4 sm:space-y-6 min-w-0">
+                  <div className="space-y-3 sm:space-y-6 min-w-0">
                     <BotBehaviorCard
                       config={botConfig}
                       onUpdate={updateBotConfig}

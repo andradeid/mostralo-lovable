@@ -76,8 +76,8 @@ export function BotPersonalityCard({ settings, onSettingsChange, disabled }: Bot
 
   return (
     <Card className={disabled ? "opacity-60" : ""}>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+      <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-3">
+        <CardTitle className="text-sm sm:text-lg flex items-center gap-2">
           <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
           Personalidade do Bot
         </CardTitle>
@@ -85,7 +85,7 @@ export function BotPersonalityCard({ settings, onSettingsChange, disabled }: Bot
           Define como o bot se comunica com seus clientes
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0 space-y-4 sm:space-y-6">
         {/* Personalidade */}
         <div className="space-y-3">
           <Label className="text-xs sm:text-sm font-medium">Como o bot deve se comunicar?</Label>

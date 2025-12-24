@@ -11,11 +11,13 @@ import { printComanda } from '@/utils/printComanda';
 import { supabase } from '@/integrations/supabase/client';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useQuery } from '@tanstack/react-query';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function ComandasPage() {
   const navigate = useNavigate();
   const { storeId } = useStoreAccess();
-  const { comandas, openComandas, loadingComandas, createComanda, closeComanda, cancelComanda, isCreating, isClosing, isCancelling } = useComandas();
+  const { comandas, openComandas, loadingComandas, createComanda, closeComanda, cancelComanda, isCreating, isClosing } = useComandas();
+  const isMobile = useIsMobile();
   
   const [newDialogOpen, setNewDialogOpen] = useState(false);
   const [closeModalOpen, setCloseModalOpen] = useState(false);
@@ -76,7 +78,6 @@ export default function ComandasPage() {
   };
 
   const handlePrintComanda = async (comanda: Comanda) => {
-    // Buscar itens da comanda
     const { data: items } = await supabase
       .from('comanda_items')
       .select('*')
@@ -94,33 +95,47 @@ export default function ComandasPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className={`space-y-4 ${isMobile ? 'pb-24' : 'space-y-6'}`}>
+      {/* Header */}
+      <div className={`flex items-center justify-between ${isMobile ? 'px-1' : ''}`}>
         <div>
-          <h1 className="text-2xl font-bold">Comandas</h1>
-          <p className="text-muted-foreground">Gerencie comandas de mesa e balcão</p>
+          <h1 className={`font-bold ${isMobile ? 'text-xl' : 'text-2xl'}`}>Comandas</h1>
+          {!isMobile && <p className="text-muted-foreground">Gerencie comandas de mesa e balcão</p>}
         </div>
-        <Button onClick={() => setNewDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nova Comanda
-        </Button>
+        {!isMobile && (
+          <Button onClick={() => setNewDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Comanda
+          </Button>
+        )}
       </div>
 
+      {/* Tabs */}
       <Tabs defaultValue="open" className="w-full">
-        <TabsList>
-          <TabsTrigger value="open">Abertas ({openComandas.length})</TabsTrigger>
-          <TabsTrigger value="today">Hoje ({todayComandas.length})</TabsTrigger>
-          <TabsTrigger value="all">Todas ({comandas.length})</TabsTrigger>
+        <TabsList className={`${isMobile ? 'w-full h-12' : ''}`}>
+          <TabsTrigger value="open" className={isMobile ? 'flex-1 h-10 text-base' : ''}>
+            Abertas ({openComandas.length})
+          </TabsTrigger>
+          <TabsTrigger value="today" className={isMobile ? 'flex-1 h-10 text-base' : ''}>
+            Hoje ({todayComandas.length})
+          </TabsTrigger>
+          <TabsTrigger value="all" className={isMobile ? 'flex-1 h-10 text-base' : ''}>
+            Todas ({comandas.length})
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="open" className="mt-4">
           {openComandas.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Receipt className="h-12 w-12 mx-auto mb-4 opacity-20" />
-              <p>Nenhuma comanda aberta</p>
+            <div className={`text-center text-muted-foreground ${isMobile ? 'py-16' : 'py-12'}`}>
+              <Receipt className={`mx-auto mb-4 opacity-20 ${isMobile ? 'h-16 w-16' : 'h-12 w-12'}`} />
+              <p className={isMobile ? 'text-lg' : ''}>Nenhuma comanda aberta</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className={`grid gap-4 ${
+              isMobile 
+                ? 'grid-cols-1' 
+                : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+            }`}>
               {openComandas.map((comanda) => (
                 <ComandaCard
                   key={comanda.id}
@@ -136,7 +151,11 @@ export default function ComandasPage() {
         </TabsContent>
 
         <TabsContent value="today" className="mt-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className={`grid gap-4 ${
+            isMobile 
+              ? 'grid-cols-1' 
+              : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+          }`}>
             {todayComandas.map((comanda) => (
               <ComandaCard
                 key={comanda.id}
@@ -151,7 +170,11 @@ export default function ComandasPage() {
         </TabsContent>
 
         <TabsContent value="all" className="mt-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className={`grid gap-4 ${
+            isMobile 
+              ? 'grid-cols-1' 
+              : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+          }`}>
             {comandas.map((comanda) => (
               <ComandaCard
                 key={comanda.id}
@@ -166,7 +189,23 @@ export default function ComandasPage() {
         </TabsContent>
       </Tabs>
 
-      <NewComandaDialog open={newDialogOpen} onOpenChange={setNewDialogOpen} onConfirm={handleNewComanda} isLoading={isCreating} />
+      {/* FAB para nova comanda no mobile */}
+      {isMobile && (
+        <Button
+          size="lg"
+          className="fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-lg z-50"
+          onClick={() => setNewDialogOpen(true)}
+        >
+          <Plus className="h-7 w-7" />
+        </Button>
+      )}
+
+      <NewComandaDialog 
+        open={newDialogOpen} 
+        onOpenChange={setNewDialogOpen} 
+        onConfirm={handleNewComanda} 
+        isLoading={isCreating} 
+      />
       
       {selectedComanda && (
         <CloseComandaModal

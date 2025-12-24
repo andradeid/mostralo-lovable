@@ -5,6 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import { Trash2, Plus, Minus, ShoppingCart } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { CartItem } from '@/hooks/usePDV';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface PDVCartProps {
   items: CartItem[];
@@ -28,16 +29,17 @@ export function PDVCart({
   isProcessing = false,
 }: PDVCartProps) {
   const total = subtotal - discount;
+  const isMobile = useIsMobile();
 
   return (
     <Card className="flex flex-col h-full">
-      <CardHeader className="pb-3">
+      <CardHeader className={`pb-3 ${isMobile ? 'px-4' : ''}`}>
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <ShoppingCart className="h-5 w-5" />
+          <CardTitle className={`flex items-center gap-2 ${isMobile ? 'text-xl' : 'text-lg'}`}>
+            <ShoppingCart className={isMobile ? "h-6 w-6" : "h-5 w-5"} />
             Carrinho
             {items.length > 0 && (
-              <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
+              <span className={`bg-primary text-primary-foreground rounded-full ${isMobile ? 'text-sm px-3 py-1' : 'text-xs px-2 py-0.5'}`}>
                 {items.length}
               </span>
             )}
@@ -45,7 +47,7 @@ export function PDVCart({
           {items.length > 0 && (
             <Button 
               variant="ghost" 
-              size="sm" 
+              size={isMobile ? "default" : "sm"}
               onClick={onClearCart}
               className="text-destructive hover:text-destructive hover:bg-destructive/10"
             >
@@ -55,65 +57,65 @@ export function PDVCart({
         </div>
       </CardHeader>
       
-      <CardContent className="flex-1 px-3 overflow-hidden">
+      <CardContent className={`flex-1 overflow-hidden ${isMobile ? 'px-4' : 'px-3'}`}>
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-8">
-            <ShoppingCart className="h-12 w-12 mb-2 opacity-20" />
-            <p className="text-sm">Carrinho vazio</p>
-            <p className="text-xs">Adicione produtos para começar</p>
+            <ShoppingCart className={`mb-2 opacity-20 ${isMobile ? 'h-16 w-16' : 'h-12 w-12'}`} />
+            <p className={isMobile ? 'text-base' : 'text-sm'}>Carrinho vazio</p>
+            <p className={isMobile ? 'text-sm' : 'text-xs'}>Adicione produtos para começar</p>
           </div>
         ) : (
           <ScrollArea className="h-full pr-2">
-            <div className="space-y-3">
+            <div className={`space-y-3 ${isMobile ? 'pb-4' : ''}`}>
               {items.map((item) => (
-                <div key={item.id} className="bg-muted/50 rounded-lg p-3">
+                <div key={item.id} className={`bg-muted/50 rounded-lg ${isMobile ? 'p-4' : 'p-3'}`}>
                   <div className="flex justify-between items-start gap-2">
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{item.product_name}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className={`font-medium truncate ${isMobile ? 'text-base' : 'text-sm'}`}>{item.product_name}</p>
+                      <p className={`text-muted-foreground ${isMobile ? 'text-sm' : 'text-xs'}`}>
                         {formatCurrency(item.unit_price)} cada
                       </p>
                     </div>
-                    <p className="font-bold text-sm text-primary whitespace-nowrap">
+                    <p className={`font-bold text-primary whitespace-nowrap ${isMobile ? 'text-base' : 'text-sm'}`}>
                       {formatCurrency(item.total_price)}
                     </p>
                   </div>
                   
-                  <div className="flex items-center justify-between mt-2">
-                    <div className="flex items-center gap-1">
+                  <div className="flex items-center justify-between mt-3">
+                    <div className="flex items-center gap-2">
                       <Button
                         variant="outline"
                         size="icon"
-                        className="h-7 w-7"
+                        className={isMobile ? "h-12 w-12" : "h-7 w-7"}
                         onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
                       >
-                        <Minus className="h-3 w-3" />
+                        <Minus className={isMobile ? "h-5 w-5" : "h-3 w-3"} />
                       </Button>
-                      <span className="w-8 text-center font-medium text-sm">
+                      <span className={`text-center font-bold ${isMobile ? 'w-12 text-xl' : 'w-8 text-sm'}`}>
                         {item.quantity}
                       </span>
                       <Button
                         variant="outline"
                         size="icon"
-                        className="h-7 w-7"
+                        className={isMobile ? "h-12 w-12" : "h-7 w-7"}
                         onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
                       >
-                        <Plus className="h-3 w-3" />
+                        <Plus className={isMobile ? "h-5 w-5" : "h-3 w-3"} />
                       </Button>
                     </div>
                     
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      className={`text-destructive hover:text-destructive hover:bg-destructive/10 ${isMobile ? 'h-12 w-12' : 'h-7 w-7'}`}
                       onClick={() => onRemoveItem(item.id)}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className={isMobile ? "h-5 w-5" : "h-4 w-4"} />
                     </Button>
                   </div>
 
                   {item.notes && (
-                    <p className="text-xs text-muted-foreground mt-2 italic">
+                    <p className={`text-muted-foreground mt-2 italic ${isMobile ? 'text-sm' : 'text-xs'}`}>
                       Obs: {item.notes}
                     </p>
                   )}
@@ -125,27 +127,27 @@ export function PDVCart({
       </CardContent>
 
       {items.length > 0 && (
-        <CardFooter className="flex-col gap-3 pt-3 border-t">
+        <CardFooter className={`flex-col gap-3 pt-3 border-t ${isMobile ? 'px-4 pb-4' : ''}`}>
           <div className="w-full space-y-1">
-            <div className="flex justify-between text-sm">
+            <div className={`flex justify-between ${isMobile ? 'text-base' : 'text-sm'}`}>
               <span className="text-muted-foreground">Subtotal</span>
               <span>{formatCurrency(subtotal)}</span>
             </div>
             {discount > 0 && (
-              <div className="flex justify-between text-sm text-green-600">
+              <div className={`flex justify-between text-green-600 ${isMobile ? 'text-base' : 'text-sm'}`}>
                 <span>Desconto</span>
                 <span>-{formatCurrency(discount)}</span>
               </div>
             )}
             <Separator />
-            <div className="flex justify-between text-lg font-bold">
+            <div className={`flex justify-between font-bold ${isMobile ? 'text-xl' : 'text-lg'}`}>
               <span>Total</span>
               <span className="text-primary">{formatCurrency(total)}</span>
             </div>
           </div>
 
           <Button 
-            className="w-full" 
+            className={`w-full ${isMobile ? 'h-14 text-lg' : ''}`}
             size="lg"
             onClick={onFinalize}
             disabled={isProcessing}

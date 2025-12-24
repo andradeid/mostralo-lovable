@@ -1,16 +1,16 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Comanda } from '@/hooks/useComandas';
 import { formatCurrency } from '@/lib/utils';
-import { Clock, User, MapPin, ShoppingBag, MoreVertical, Printer } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { Clock, User, MoreVertical, Printer, DollarSign, X, Receipt } from 'lucide-react';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
@@ -22,112 +22,122 @@ interface ComandaCardProps {
   onPrint?: () => void;
 }
 
-export function ComandaCard({ comanda, onClick, onClose, onCancel, onPrint }: ComandaCardProps) {
-  const getStatusBadge = () => {
-    switch (comanda.status) {
-      case 'open':
-        return <Badge className="bg-green-500">Aberta</Badge>;
-      case 'closed':
-        return <Badge variant="secondary">Fechada</Badge>;
-      case 'cancelled':
-        return <Badge variant="destructive">Cancelada</Badge>;
-      default:
-        return null;
-    }
-  };
+const statusColors: Record<string, string> = {
+  open: 'bg-green-500/10 text-green-600 border-green-500/20',
+  closed: 'bg-muted text-muted-foreground',
+  cancelled: 'bg-red-500/10 text-red-600 border-red-500/20',
+};
 
-  const timeOpen = formatDistanceToNow(new Date(comanda.opened_at), {
-    locale: ptBR,
-    addSuffix: false,
-  });
+const statusLabels: Record<string, string> = {
+  open: 'Aberta',
+  closed: 'Fechada',
+  cancelled: 'Cancelada',
+};
+
+export function ComandaCard({ comanda, onClick, onClose, onCancel, onPrint }: ComandaCardProps) {
+  const isOpen = comanda.status === 'open';
+  const isMobile = useIsMobile();
 
   return (
     <Card 
-      className={`cursor-pointer transition-all hover:shadow-md ${
-        comanda.status === 'open' ? 'border-green-500/50' : ''
-      }`}
+      className={`cursor-pointer hover:border-primary transition-all active:scale-[0.99] ${isMobile ? 'touch-manipulation' : ''}`}
       onClick={onClick}
     >
-      <CardHeader className="pb-2">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-2">
-            <CardTitle className="text-xl font-bold">#{comanda.number}</CardTitle>
-            {getStatusBadge()}
+      <CardHeader className={`pb-2 ${isMobile ? 'p-4' : ''}`}>
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <span className={isMobile ? 'text-3xl' : 'text-2xl'}>
+              {comanda.type === 'mesa' ? '🍽️' : '🛒'}
+            </span>
+            <div className="flex-1 min-w-0">
+              <h3 className={`font-bold truncate ${isMobile ? 'text-lg' : 'text-base'}`}>
+                {comanda.type === 'mesa' ? `Mesa ${comanda.table_number}` : `Balcão #${comanda.number}`}
+              </h3>
+              <Badge variant="outline" className={`mt-1 ${statusColors[comanda.status]}`}>
+                {statusLabels[comanda.status]}
+              </Badge>
+            </div>
           </div>
+          
           <DropdownMenu>
             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreVertical className="h-4 w-4" />
+              <Button variant="ghost" size="icon" className={isMobile ? 'h-10 w-10' : 'h-8 w-8'}>
+                <MoreVertical className={isMobile ? 'h-5 w-5' : 'h-4 w-4'} />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem 
-                onClick={(e) => { 
-                  e.stopPropagation(); 
-                  onPrint?.(); 
-                }}
-              >
-                <Printer className="h-4 w-4 mr-2" />
-                Imprimir
-              </DropdownMenuItem>
-              {comanda.status === 'open' && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    onClick={(e) => { 
-                      e.stopPropagation(); 
-                      onClose?.(); 
-                    }}
-                  >
-                    Fechar Comanda
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    className="text-destructive"
-                    onClick={(e) => { 
-                      e.stopPropagation(); 
-                      onCancel?.(); 
-                    }}
-                  >
-                    Cancelar Comanda
-                  </DropdownMenuItem>
-                </>
+              {onPrint && (
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onPrint(); }}>
+                  <Printer className="h-4 w-4 mr-2" />
+                  Imprimir
+                </DropdownMenuItem>
+              )}
+              {isOpen && onClose && (
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onClose(); }}>
+                  <Receipt className="h-4 w-4 mr-2" />
+                  Fechar Comanda
+                </DropdownMenuItem>
+              )}
+              {isOpen && onCancel && (
+                <DropdownMenuItem 
+                  onClick={(e) => { e.stopPropagation(); onCancel(); }}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Cancelar
+                </DropdownMenuItem>
               )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <ShoppingBag className="h-4 w-4" />
-            <span className="capitalize">{comanda.type === 'mesa' ? 'Mesa' : 'Balcão'}</span>
-          </div>
-          {comanda.table_number && (
-            <div className="flex items-center gap-1">
-              <MapPin className="h-4 w-4" />
-              <span>Mesa {comanda.table_number}</span>
-            </div>
-          )}
-        </div>
 
+      <CardContent className={`space-y-3 ${isMobile ? 'p-4 pt-0' : ''}`}>
         {comanda.customer_name && (
-          <div className="flex items-center gap-2 text-sm">
-            <User className="h-4 w-4 text-muted-foreground" />
-            <span>{comanda.customer_name}</span>
+          <div className={`flex items-center gap-2 text-muted-foreground ${isMobile ? 'text-base' : 'text-sm'}`}>
+            <User className={isMobile ? 'h-5 w-5' : 'h-4 w-4'} />
+            <span className="truncate">{comanda.customer_name}</span>
           </div>
         )}
 
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Clock className="h-4 w-4" />
-          <span>Aberta há {timeOpen}</span>
+        <div className={`flex items-center gap-2 text-muted-foreground ${isMobile ? 'text-base' : 'text-sm'}`}>
+          <Clock className={isMobile ? 'h-5 w-5' : 'h-4 w-4'} />
+          <span>{format(new Date(comanda.opened_at), "HH:mm", { locale: ptBR })}</span>
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t">
-          <span className="text-sm text-muted-foreground">Total</span>
-          <span className="text-lg font-bold text-primary">
+        <div className={`flex items-center justify-between pt-2 border-t ${isMobile ? 'pt-3' : ''}`}>
+          <span className={`text-muted-foreground ${isMobile ? 'text-base' : 'text-sm'}`}>Total</span>
+          <span className={`font-bold text-primary ${isMobile ? 'text-xl' : 'text-lg'}`}>
             {formatCurrency(comanda.total)}
           </span>
         </div>
+
+        {/* Botões de ação rápida no mobile */}
+        {isMobile && isOpen && (
+          <div className="flex gap-2 pt-2">
+            {onClose && (
+              <Button
+                variant="default"
+                size="lg"
+                className="flex-1 h-12"
+                onClick={(e) => { e.stopPropagation(); onClose(); }}
+              >
+                <DollarSign className="h-5 w-5 mr-2" />
+                Fechar
+              </Button>
+            )}
+            {onPrint && (
+              <Button
+                variant="outline"
+                size="lg"
+                className="h-12"
+                onClick={(e) => { e.stopPropagation(); onPrint(); }}
+              >
+                <Printer className="h-5 w-5" />
+              </Button>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

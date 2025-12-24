@@ -3969,6 +3969,36 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limit_attempts: {
+        Row: {
+          attempt_count: number
+          blocked_until: string | null
+          created_at: string
+          first_attempt_at: string
+          id: string
+          identifier: string
+          last_attempt_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          blocked_until?: string | null
+          created_at?: string
+          first_attempt_at?: string
+          id?: string
+          identifier: string
+          last_attempt_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          blocked_until?: string | null
+          created_at?: string
+          first_attempt_at?: string
+          id?: string
+          identifier?: string
+          last_attempt_at?: string
+        }
+        Relationships: []
+      }
       sales_media: {
         Row: {
           category: string
@@ -7490,6 +7520,7 @@ export type Database = {
         Returns: boolean
       }
       cleanup_old_password_calls: { Args: never; Returns: undefined }
+      cleanup_old_rate_limits: { Args: never; Returns: undefined }
       generate_product_slug: {
         Args: { input_store_id: string; product_name: string }
         Returns: string

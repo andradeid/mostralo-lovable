@@ -2398,5 +2398,107 @@ Benefícios da integração Focus NFe:
       '□ [FASE 4] Implementar download PDF/XML',
       '□ [FASE 4] Testar fluxo completo em homologação'
     ]
+  },
+  {
+    id: 21,
+    title: '🛠️ Módulo de Serviços para Sentinela',
+    status: 'idea',
+    priority: 'medium',
+    createdAt: '2025-12-24',
+    description: 'Criar módulo de registro de serviços para alimentar o Sentinela com dados de atendimentos, permitindo lembretes inteligentes baseados no último serviço realizado.',
+    
+    context: `Discussão iniciada sobre como o Sentinela poderia funcionar para negócios de serviços (ex: barbearias, salões) onde não há "compra de produto", mas sim "realização de serviço".
+
+O Sentinela atual funciona bem para produtos (baseado em pedidos), mas para serviços precisaria de uma forma de registrar atendimentos.
+
+O desafio é criar algo simples que não "bagunce" o sistema existente de pedidos/produtos.`,
+
+    problem: `O modelo atual de "lembrete a cada X dias" é "burro" porque:
+• Se o cliente não retorna, o sistema continua mandando lembretes sem sentido
+• Não há registro de quando o serviço foi feito
+• Não tem como saber se o cliente realmente voltou
+
+O ideal seria:
+• Registrar quando o serviço foi realizado
+• Sentinela calcular próximo lembrete baseado nessa data
+• Se cliente não voltar, não enviar novos lembretes (ou enviar apenas X tentativas)
+
+Porém, um sistema completo de agendamento (calendário, horários, profissionais) seria MUITO complexo e arriscado de implementar.`,
+
+    options: [
+      {
+        name: 'Versão Simples (Recomendada)',
+        description: 'Registro básico de atendimentos para alimentar Sentinela - sem agendamento',
+        pros: [
+          'Implementação rápida (1-2 dias)',
+          'Não afeta sistema de pedidos existente',
+          'Fácil de entender para lojistas',
+          'Integra naturalmente com Sentinela',
+          'Sem calendário/agenda (evita complexidade)',
+          'Registro manual simples pelo lojista'
+        ],
+        cons: [
+          'Não tem agendamento/calendário',
+          'Lojista precisa registrar manualmente após cada atendimento',
+          'Não gerencia profissionais individualmente'
+        ]
+      },
+      {
+        name: 'Versão Completa (Futuro Distante)',
+        description: 'Módulo completo com tipos de serviço, profissionais e agenda',
+        pros: [
+          'Sistema robusto e profissional',
+          'Gestão de equipe (profissionais)',
+          'Relatórios por profissional',
+          'Histórico detalhado do cliente',
+          'Agendamento online pelo cliente'
+        ],
+        cons: [
+          'Implementação muito complexa (semanas/meses)',
+          'Alto risco de bagunçar sistema existente',
+          'Agendamento é extremamente trabalhoso (calendário, horários, conflitos, disponibilidade)',
+          'Configuração de agenda por profissional é complexa',
+          'Quase um "sistema novo" dentro do sistema'
+        ]
+      }
+    ],
+
+    technicalDetails: {
+      title: '🔧 Implementação Versão Simples',
+      items: [
+        'Criar tabela service_attendances (customer_id, store_id, service_name, price, attended_at, notes)',
+        'Criar tela "Registrar Atendimento" no painel do lojista (formulário simples)',
+        'Adaptar Sentinela para verificar última data de atendimento ao invés de último pedido',
+        'Opcional: campo service_type para categorizar serviços básicos',
+        'Fluxo: Cliente fez serviço → Lojista registra → Sentinela agenda lembrete'
+      ]
+    },
+
+    recommendation: `**Recomendação: NÃO fazer a versão completa**
+
+A versão completa com agendamento, calendário e gestão de profissionais seria praticamente um sistema novo. O risco de:
+• Criar bugs no sistema existente
+• Confundir lojistas com dois fluxos diferentes
+• Gastar muito tempo de desenvolvimento
+
+É muito alto comparado ao benefício.
+
+**Se for fazer, fazer APENAS a versão simples:**
+1. Validar se há demanda real de lojistas de serviços
+2. Implementar registro básico de atendimentos (1-2 dias)
+3. Integrar com Sentinela existente
+4. Avaliar feedback antes de qualquer expansão
+
+**Alternativa:** Talvez seja melhor focar em melhorar o Sentinela atual (pausar regras, melhorar mensagens, etc.) antes de criar novos módulos.`,
+
+    nextSteps: [
+      '□ Validar demanda: quantos lojistas são de serviços vs produtos?',
+      '□ Avaliar se vale a pena investir nesse módulo',
+      '□ Se sim: criar tabela service_attendances',
+      '□ Se sim: criar tela de registro de atendimento',
+      '□ Se sim: adaptar processamento do Sentinela',
+      '□ Se sim: testar fluxo completo',
+      '□ Coletar feedback antes de expandir funcionalidades'
+    ]
   }
 ];

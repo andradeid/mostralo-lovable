@@ -117,31 +117,41 @@ const Auth = () => {
     
     setIsLoading(true);
 
-    const result = await signIn(formData.email, formData.password);
-    
-    if (result.error) {
-      // Verificar se é rate limit
-      if (result.rateLimitSeconds && result.rateLimitSeconds > 0) {
-        setRateLimitSeconds(result.rateLimitSeconds);
-        toast({
-          title: 'Muitas tentativas',
-          description: `Aguarde ${result.rateLimitSeconds} segundos para tentar novamente.`,
-          variant: 'destructive'
-        });
+    try {
+      const result = await signIn(formData.email, formData.password);
+      
+      if (result.error) {
+        // Verificar se é rate limit
+        if (result.rateLimitSeconds && result.rateLimitSeconds > 0) {
+          setRateLimitSeconds(result.rateLimitSeconds);
+          toast({
+            title: 'Muitas tentativas',
+            description: `Aguarde ${result.rateLimitSeconds} segundos para tentar novamente.`,
+            variant: 'destructive'
+          });
+        } else {
+          toast({
+            title: 'Erro no login',
+            description: result.error.message,
+            variant: 'destructive'
+          });
+        }
       } else {
         toast({
-          title: 'Erro no login',
-          description: result.error.message,
-          variant: 'destructive'
+          title: 'Login realizado com sucesso!',
+          description: 'Redirecionando...'
         });
+        // O redirecionamento acontecerá automaticamente pelo useEffect
       }
-      setIsLoading(false);
-    } else {
+    } catch (error) {
+      console.error('Erro inesperado no login:', error);
       toast({
-        title: 'Login realizado com sucesso!',
-        description: 'Redirecionando...'
+        title: 'Erro inesperado',
+        description: 'Ocorreu um erro ao tentar fazer login. Tente novamente.',
+        variant: 'destructive'
       });
-      // O redirecionamento acontecerá automaticamente pelo useEffect
+    } finally {
+      setIsLoading(false);
     }
   };
 

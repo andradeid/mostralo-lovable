@@ -5,7 +5,7 @@ import {
   BarChart3, Tag, Calendar, Printer, Palette, Map, Users, Megaphone, 
   Link2, Image, AlertTriangle, Check, ArrowRight, Star, Shield, Database,
   Heart, Clock, Target, Zap, TrendingUp, Bell, MapPin, CreditCard, Copy, FileText,
-  Wallet, PieChart, ArrowUpDown, Filter
+  Wallet, PieChart, ArrowUpDown, Filter, RefreshCw, Monitor, QrCode, Code, Volume2
 } from 'lucide-react';
 import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
 import { toast } from 'sonner';
@@ -20,17 +20,22 @@ const sections = [
   { id: 'pedidos', title: 'Central de Pedidos', icon: Package },
   { id: 'entregadores', title: 'Sistema de Entregadores', icon: Truck },
   { id: 'whatsapp', title: 'WhatsApp Marketing', icon: MessageCircle },
+  { id: 'sentinela', title: '🎯 SENTINELA - Recompra', icon: RefreshCw },
   { id: 'relatorios', title: 'Relatórios', icon: BarChart3 },
   { id: 'financeiro', title: 'Gestão Financeira', icon: Wallet },
   { id: 'promocoes', title: 'Promoções e Cupons', icon: Tag },
   { id: 'agendados', title: 'Pedidos Agendados', icon: Calendar },
   { id: 'impressao', title: 'Impressão Automática', icon: Printer },
+  { id: 'painel-digital', title: 'Painel Digital (TV)', icon: Monitor },
+  { id: 'chamada-senhas', title: 'Chamada de Senhas', icon: Volume2 },
   { id: 'personalizacao', title: 'Personalização', icon: Palette },
   { id: 'delivery', title: 'Delivery Inteligente', icon: Map },
   { id: 'atendentes', title: 'Gestão de Atendentes', icon: Users },
   { id: 'marketing', title: 'Marketing Digital', icon: Megaphone },
   { id: 'integracoes', title: 'Integrações', icon: Link2 },
   { id: 'banners', title: 'Banners Promocionais', icon: Image },
+  { id: 'material-marketing', title: 'Material de Marketing', icon: QrCode },
+  { id: 'scripts', title: 'Scripts Personalizados', icon: Code },
 ];
 
 const whatsappTexts: Record<string, string> = {
@@ -235,6 +240,76 @@ const whatsappTexts: Record<string, string> = {
 📊 *Benefícios:*
 • Chame atenção para suas promoções
 • Aumente a conversão de visitantes`,
+
+  'sentinela': `🎯 *SENTINELA - RECOMPRA INTELIGENTE* 🔥 EXCLUSIVO!
+
+⚠️ *Problema:* Produto acabou? Cliente esquece de pedir de novo
+
+✅ Sistema inteligente de lembretes automáticos
+✅ Ciclo de recompra por produto (30, 60, 90 dias)
+✅ WhatsApp automático quando o produto "acaba"
+✅ Mensagens personalizadas com nome do cliente
+✅ Disparo por lotes para não bloquear WhatsApp
+✅ Dashboard de conversões
+
+📊 *Resultados:*
+• 23% de aumento em vendas recorrentes
+• Cliente lembra de você no momento certo
+• Funciona 100% automático`,
+
+  'painel-digital': `📺 *PAINEL DIGITAL (DIGITAL SIGNAGE)* ⭐ PROFISSIONAL
+
+✅ TVs e totens com cardápio digital animado
+✅ Slides rotativos com promoções
+✅ Suporte a vídeos promocionais
+✅ Orientação vertical ou horizontal
+✅ Tempo de exibição configurável
+✅ Atualização em tempo real
+
+📊 *Benefícios:*
+• Visual profissional de grandes redes
+• Promoções chamam atenção automaticamente
+• Sem custo de impressão de banners`,
+
+  'chamada-senhas': `🔔 *CHAMADA DE SENHAS* 📢 NOVO!
+
+✅ Sistema de totem para chamar clientes
+✅ Painel visual para a cozinha
+✅ Chamada por voz (text-to-speech)
+✅ Notificação por WhatsApp ao cliente
+✅ Histórico de senhas chamadas
+✅ Modo fila inteligente
+
+📊 *Ideal para:*
+• Fast-food e lanchonetes
+• Padarias e confeitarias
+• Restaurantes com retirada no balcão`,
+
+  'material-marketing': `📱 *MATERIAL DE MARKETING - QR CODES*
+
+✅ QR Codes personalizados para cardápio
+✅ Cartões de mesa com link direto
+✅ Adesivos para delivery
+✅ Arte pronta para impressão
+✅ Materiais para redes sociais
+
+📊 *Benefícios:*
+• Profissionalismo sem contratar designer
+• QR Code leva direto pro cardápio
+• Materiais padronizados da sua marca`,
+
+  'scripts': `⚙️ *SCRIPTS PERSONALIZADOS* 🔧 AVANÇADO
+
+✅ Integração com chatbots externos
+✅ Pixels de rastreamento (Facebook, Google)
+✅ Scripts de conversão
+✅ Códigos de remarketing
+✅ Botões flutuantes personalizados
+
+📊 *Para quem precisa:*
+• Agências de marketing configurando clientes
+• Lojas com estratégias avançadas de ads
+• Integrações personalizadas`,
 };
 
 export default function FeaturesPage() {
@@ -946,6 +1021,118 @@ Site: mostralo.com.br`;
           </div>
         </section>
 
+        {/* Section: SENTINELA - Recompra Inteligente */}
+        <section id="sentinela" className="py-16 bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 dark:from-red-950/20 dark:via-orange-950/20 dark:to-yellow-950/20 relative overflow-hidden">
+          {/* Background decorations */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-10 right-10 w-64 h-64 bg-red-500 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-10 left-10 w-64 h-64 bg-orange-500 rounded-full blur-3xl"></div>
+          </div>
+          
+          <div className="container mx-auto px-4 relative">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-14 h-14 bg-gradient-to-br from-red-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
+                <Target className="h-7 w-7 text-white" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">SENTINELA</h2>
+                  <span className="bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse">🔥 EXCLUSIVO!</span>
+                  <button
+                    onClick={() => copyWhatsAppText('sentinela')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
+                <p className="text-lg font-medium text-primary">Recompra Inteligente - Nunca mais perca uma venda de reposição!</p>
+              </div>
+            </div>
+
+            {/* O Problema */}
+            <Card className="bg-destructive/5 border-destructive/20 mb-8">
+              <CardContent className="p-6">
+                <h3 className="text-lg font-bold text-destructive mb-4">⚠️ O Problema que o SENTINELA Resolve</h3>
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="text-center p-4 bg-background/50 rounded-lg">
+                    <p className="text-3xl font-bold text-destructive">30 dias</p>
+                    <p className="text-sm text-muted-foreground">e o suplemento do cliente acaba</p>
+                  </div>
+                  <div className="text-center p-4 bg-background/50 rounded-lg">
+                    <p className="text-3xl font-bold text-destructive">72%</p>
+                    <p className="text-sm text-muted-foreground">esquecem de pedir de novo</p>
+                  </div>
+                  <div className="text-center p-4 bg-background/50 rounded-lg">
+                    <p className="text-3xl font-bold text-destructive">Perdeu</p>
+                    <p className="text-sm text-muted-foreground">a venda para o concorrente</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Como Funciona */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {[
+                { title: 'Ciclo de Recompra', desc: 'Configure: Whey dura 30 dias, Creatina dura 60 dias, etc', icon: RefreshCw },
+                { title: 'Disparo Automático', desc: 'Quando o produto "acaba", WhatsApp automático!', icon: MessageCircle },
+                { title: 'Mensagem Personalizada', desc: '"Oi João, seu Whey deve estar acabando, que tal pedir mais?"', icon: Heart },
+                { title: 'Lotes Anti-Bloqueio', desc: 'Envios espaçados para não bloquear seu WhatsApp', icon: Shield },
+                { title: 'Dashboard de Conversão', desc: 'Veja quantos clientes recompraram pelo lembrete', icon: BarChart3 },
+                { title: '100% Automático', desc: 'Configure uma vez e esqueça - funciona sozinho!', icon: Zap },
+              ].map((item, i) => (
+                <Card key={i} className="bg-card hover:shadow-md transition-shadow border-2 hover:border-primary/20">
+                  <CardContent className="p-5">
+                    <item.icon className="h-8 w-8 text-orange-500 mb-3" />
+                    <h4 className="font-semibold text-foreground mb-1">{item.title}</h4>
+                    <p className="text-sm text-muted-foreground">{item.desc}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Resultados */}
+            <Card className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-500/20 mb-8">
+              <CardContent className="p-6">
+                <h3 className="text-lg font-bold text-green-600 dark:text-green-400 mb-4">📊 Resultados do SENTINELA</h3>
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="text-center p-4 bg-background/50 rounded-lg">
+                    <p className="text-4xl font-bold text-green-600">+23%</p>
+                    <p className="text-sm text-muted-foreground">aumento em vendas recorrentes</p>
+                  </div>
+                  <div className="text-center p-4 bg-background/50 rounded-lg">
+                    <p className="text-4xl font-bold text-green-600">R$ 3.500</p>
+                    <p className="text-sm text-muted-foreground">recuperados por mês em média</p>
+                  </div>
+                  <div className="text-center p-4 bg-background/50 rounded-lg">
+                    <p className="text-4xl font-bold text-green-600">0h</p>
+                    <p className="text-sm text-muted-foreground">de trabalho manual - 100% automático</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* CTA Especial */}
+            <Card className="bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 text-white">
+              <CardContent className="p-8 text-center">
+                <Target className="h-12 w-12 mx-auto mb-4" />
+                <h3 className="text-2xl font-bold mb-2">SENTINELA - Só no Mostralo!</h3>
+                <p className="text-white/90 max-w-2xl mx-auto mb-4">
+                  Nenhum outro sistema de delivery tem essa funcionalidade. O cliente compra um produto de ciclo, 
+                  e o sistema automaticamente lembra quando está na hora de comprar de novo. 
+                  Ideal para farmácias, lojas de suplementos, pet shops e qualquer negócio com produtos de reposição.
+                </p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  <span className="bg-white/20 text-white text-sm px-3 py-1 rounded-full">💊 Farmácias</span>
+                  <span className="bg-white/20 text-white text-sm px-3 py-1 rounded-full">💪 Suplementos</span>
+                  <span className="bg-white/20 text-white text-sm px-3 py-1 rounded-full">🐕 Pet Shops</span>
+                  <span className="bg-white/20 text-white text-sm px-3 py-1 rounded-full">🧹 Produtos de Limpeza</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
         {/* Section: Relatórios */}
         <section id="relatorios" className="py-16 bg-background">
           <div className="container mx-auto px-4">
@@ -1201,6 +1388,115 @@ Site: mostralo.com.br`;
           </div>
         </section>
 
+        {/* Section: Painel Digital (Digital Signage) */}
+        <section id="painel-digital" className="py-16 bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/20 dark:to-violet-950/20">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center">
+                <Monitor className="h-6 w-6 text-purple-500" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">Painel Digital (Digital Signage)</h2>
+                  <span className="bg-purple-500 text-white text-xs font-bold px-2 py-1 rounded">📺 PROFISSIONAL</span>
+                  <button
+                    onClick={() => copyWhatsAppText('painel-digital')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
+                <p className="text-muted-foreground">TVs e totens com cardápio digital animado</p>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {[
+                { title: 'Cardápio em TV', desc: 'Exiba seu cardápio em TVs ou monitores na loja', icon: Monitor },
+                { title: 'Slides Rotativos', desc: 'Promoções e produtos em rotação automática', icon: RefreshCw },
+                { title: 'Suporte a Vídeos', desc: 'Vídeos promocionais entre os slides', icon: Image },
+                { title: 'Orientação Flexível', desc: 'Vertical (totem) ou horizontal (TV)', icon: Palette },
+                { title: 'Tempo Configurável', desc: 'Defina duração de cada slide/promoção', icon: Clock },
+                { title: 'Atualização em Tempo Real', desc: 'Mude preços/produtos e atualiza na TV', icon: Zap },
+              ].map((item, i) => (
+                <Card key={i} className="bg-card hover:shadow-md transition-shadow">
+                  <CardContent className="p-5">
+                    <item.icon className="h-8 w-8 text-purple-500 mb-3" />
+                    <h4 className="font-semibold text-foreground mb-1">{item.title}</h4>
+                    <p className="text-sm text-muted-foreground">{item.desc}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-6">
+              <h4 className="font-semibold text-foreground mb-2">Visual de Grandes Redes!</h4>
+              <p className="text-sm text-muted-foreground">
+                O mesmo visual profissional do McDonald's e Burger King na sua loja. 
+                Promoções chamam atenção automaticamente e você economiza com impressão de banners.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Section: Chamada de Senhas */}
+        <section id="chamada-senhas" className="py-16 bg-background">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center">
+                <Volume2 className="h-6 w-6 text-blue-500" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">Chamada de Senhas</h2>
+                  <span className="bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded-full">🔔 NOVO!</span>
+                  <button
+                    onClick={() => copyWhatsAppText('chamada-senhas')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
+                <p className="text-muted-foreground">Sistema de totem para chamar clientes</p>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {[
+                { title: 'Painel de Senhas', desc: 'Exiba na TV as senhas sendo chamadas', icon: Monitor },
+                { title: 'Chamada por Voz', desc: 'Text-to-speech anuncia "Senha 42, retirar!"', icon: Volume2 },
+                { title: 'WhatsApp ao Cliente', desc: 'Notifica no WhatsApp quando o pedido está pronto', icon: MessageCircle },
+                { title: 'Fila Inteligente', desc: 'Gerenciamento automático da fila de preparo', icon: Users },
+                { title: 'Histórico de Chamadas', desc: 'Veja todas as senhas chamadas no dia', icon: Database },
+                { title: 'Modo Cozinha', desc: 'Painel separado para a equipe de preparo', icon: Printer },
+              ].map((item, i) => (
+                <Card key={i} className="bg-card hover:shadow-md transition-shadow">
+                  <CardContent className="p-5">
+                    <item.icon className="h-8 w-8 text-blue-500 mb-3" />
+                    <h4 className="font-semibold text-foreground mb-1">{item.title}</h4>
+                    <p className="text-sm text-muted-foreground">{item.desc}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-6">
+              <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                <Volume2 className="h-5 w-5 text-blue-500" /> Ideal Para:
+              </h4>
+              <div className="flex flex-wrap gap-2 mt-2">
+                <span className="bg-blue-500/20 text-blue-700 dark:text-blue-300 text-sm px-3 py-1 rounded-full">🍔 Fast-food</span>
+                <span className="bg-blue-500/20 text-blue-700 dark:text-blue-300 text-sm px-3 py-1 rounded-full">🥐 Padarias</span>
+                <span className="bg-blue-500/20 text-blue-700 dark:text-blue-300 text-sm px-3 py-1 rounded-full">🍕 Pizzarias</span>
+                <span className="bg-blue-500/20 text-blue-700 dark:text-blue-300 text-sm px-3 py-1 rounded-full">☕ Cafeterias</span>
+                <span className="bg-blue-500/20 text-blue-700 dark:text-blue-300 text-sm px-3 py-1 rounded-full">🍜 Restaurantes com Retirada</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Section: Personalização */}
         <section id="personalizacao" className="py-16 bg-background">
           <div className="container mx-auto px-4">
@@ -1422,6 +1718,109 @@ Site: mostralo.com.br`;
                   </CardContent>
                 </Card>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Section: Material de Marketing */}
+        <section id="material-marketing" className="py-16 bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-teal-950/20 dark:to-cyan-950/20">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-12 h-12 bg-teal-500/10 rounded-xl flex items-center justify-center">
+                <QrCode className="h-6 w-6 text-teal-500" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">Material de Marketing</h2>
+                  <button
+                    onClick={() => copyWhatsAppText('material-marketing')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
+                <p className="text-muted-foreground">QR Codes e materiais prontos para impressão</p>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {[
+                { title: 'QR Codes Personalizados', desc: 'QR Code direto para seu cardápio digital', icon: QrCode },
+                { title: 'Cartões de Mesa', desc: 'Arte pronta com QR Code para mesas', icon: FileText },
+                { title: 'Adesivos para Delivery', desc: 'Adesivos com QR Code para caixas e sacolas', icon: Package },
+                { title: 'Artes para Redes Sociais', desc: 'Templates prontos para Instagram e Facebook', icon: Image },
+                { title: 'Banner de Inauguração', desc: 'Material de divulgação profissional', icon: Megaphone },
+                { title: 'Sua Marca Destacada', desc: 'Todas as artes com logo e cores da sua loja', icon: Palette },
+              ].map((item, i) => (
+                <Card key={i} className="bg-card hover:shadow-md transition-shadow">
+                  <CardContent className="p-5">
+                    <item.icon className="h-8 w-8 text-teal-500 mb-3" />
+                    <h4 className="font-semibold text-foreground mb-1">{item.title}</h4>
+                    <p className="text-sm text-muted-foreground">{item.desc}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <div className="bg-teal-500/10 border border-teal-500/20 rounded-xl p-6">
+              <h4 className="font-semibold text-foreground mb-2">Profissionalismo sem Designer!</h4>
+              <p className="text-sm text-muted-foreground">
+                Materiais prontos para você imprimir ou usar nas redes sociais. 
+                QR Code leva direto pro cardápio - o cliente só escaneia e já pode pedir!
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Section: Scripts Personalizados */}
+        <section id="scripts" className="py-16 bg-background">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-12 h-12 bg-gray-500/10 rounded-xl flex items-center justify-center">
+                <Code className="h-6 w-6 text-gray-500" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">Scripts Personalizados</h2>
+                  <span className="bg-gray-500 text-white text-xs font-bold px-2 py-1 rounded">AVANÇADO</span>
+                  <button
+                    onClick={() => copyWhatsAppText('scripts')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
+                <p className="text-muted-foreground">Integrações avançadas para marketing digital</p>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {[
+                { title: 'Pixel do Facebook', desc: 'Rastreie conversões para anúncios no Facebook/Instagram', icon: Target },
+                { title: 'Google Analytics', desc: 'Acompanhe o comportamento dos visitantes', icon: BarChart3 },
+                { title: 'Google Tag Manager', desc: 'Gerencie todas as tags em um só lugar', icon: Code },
+                { title: 'Chatbots Externos', desc: 'Integre seu chatbot de atendimento preferido', icon: MessageCircle },
+                { title: 'Remarketing', desc: 'Mostre anúncios para quem visitou sua loja', icon: RefreshCw },
+                { title: 'Scripts Customizados', desc: 'Adicione qualquer código JavaScript', icon: Link2 },
+              ].map((item, i) => (
+                <Card key={i} className="bg-card hover:shadow-md transition-shadow">
+                  <CardContent className="p-5">
+                    <item.icon className="h-8 w-8 text-gray-500 mb-3" />
+                    <h4 className="font-semibold text-foreground mb-1">{item.title}</h4>
+                    <p className="text-sm text-muted-foreground">{item.desc}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <div className="bg-gray-500/10 border border-gray-500/20 rounded-xl p-6">
+              <h4 className="font-semibold text-foreground mb-2">Para Estratégias Avançadas de Ads</h4>
+              <p className="text-sm text-muted-foreground">
+                Ideal para agências de marketing configurando lojas de clientes ou negócios que investem em anúncios online.
+                Adicione pixels de conversão, scripts de remarketing e chatbots externos.
+              </p>
             </div>
           </div>
         </section>

@@ -5,8 +5,10 @@ import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Search, Plus, Minus, Loader2 } from 'lucide-react';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { Search, Plus, Loader2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Product {
   id: string;
@@ -29,6 +31,7 @@ export function PDVProductGrid({ onAddProduct }: PDVProductGridProps) {
   const { storeId } = useStoreAccess();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   // Buscar produtos da loja
   const { data: products = [], isLoading: loadingProducts } = useQuery({
@@ -102,74 +105,108 @@ export function PDVProductGrid({ onAddProduct }: PDVProductGridProps) {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Busca */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+    <div className="space-y-3">
+      {/* Busca - sticky no mobile */}
+      <div className={`relative ${isMobile ? 'sticky top-0 z-10 bg-background pb-2' : ''}`}>
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
         <Input
           placeholder="Buscar produto..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
+          className={`pl-11 ${isMobile ? 'h-12 text-base' : ''}`}
         />
       </div>
 
-      {/* Filtros de categoria */}
-      <div className="flex gap-2 flex-wrap">
-        <Button
-          variant={selectedCategory === null ? "default" : "outline"}
-          size="sm"
-          onClick={() => setSelectedCategory(null)}
-        >
-          Todos
-        </Button>
-        {categories.map((category) => (
+      {/* Filtros de categoria - scroll horizontal no mobile */}
+      {isMobile ? (
+        <ScrollArea className="w-full whitespace-nowrap">
+          <div className="flex gap-2 pb-2">
+            <Button
+              variant={selectedCategory === null ? "default" : "outline"}
+              size="lg"
+              onClick={() => setSelectedCategory(null)}
+              className="h-11 px-4 text-base shrink-0"
+            >
+              Todos
+            </Button>
+            {categories.map((category) => (
+              <Button
+                key={category.id}
+                variant={selectedCategory === category.id ? "default" : "outline"}
+                size="lg"
+                onClick={() => setSelectedCategory(category.id)}
+                className="h-11 px-4 text-base shrink-0"
+              >
+                {category.name}
+              </Button>
+            ))}
+          </div>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
+      ) : (
+        <div className="flex gap-2 flex-wrap">
           <Button
-            key={category.id}
-            variant={selectedCategory === category.id ? "default" : "outline"}
+            variant={selectedCategory === null ? "default" : "outline"}
             size="sm"
-            onClick={() => setSelectedCategory(category.id)}
+            onClick={() => setSelectedCategory(null)}
           >
-            {category.name}
+            Todos
           </Button>
-        ))}
-      </div>
+          {categories.map((category) => (
+            <Button
+              key={category.id}
+              variant={selectedCategory === category.id ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedCategory(category.id)}
+            >
+              {category.name}
+            </Button>
+          ))}
+        </div>
+      )}
 
-      {/* Grid de produtos */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+      {/* Grid de produtos - 2 colunas no mobile, mais no desktop */}
+      <div className={`grid gap-3 ${
+        isMobile 
+          ? 'grid-cols-2' 
+          : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'
+      }`}>
         {filteredProducts.map((product) => (
           <Card 
             key={product.id}
-            className="cursor-pointer hover:border-primary transition-colors overflow-hidden"
+            className="cursor-pointer hover:border-primary transition-colors overflow-hidden active:scale-[0.98]"
             onClick={() => handleAddProduct(product)}
           >
-            <CardContent className="p-3">
+            <CardContent className={`p-0 ${isMobile ? '' : 'p-3'}`}>
               {product.image_url && (
-                <div className="aspect-square mb-2 rounded-md overflow-hidden bg-muted">
+                <div className={`aspect-square overflow-hidden bg-muted ${isMobile ? '' : 'mb-2 rounded-md'}`}>
                   <img 
                     src={product.image_url} 
                     alt={product.name}
                     className="w-full h-full object-cover"
+                    loading="lazy"
                   />
                 </div>
               )}
-              <h4 className="font-medium text-sm line-clamp-2 min-h-[2.5rem]">
-                {product.name}
-              </h4>
-              <p className="text-primary font-bold text-sm mt-1">
-                {formatCurrency(product.price)}
-              </p>
-              <Button 
-                size="sm" 
-                className="w-full mt-2"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleAddProduct(product);
-                }}
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                Adicionar
-              </Button>
+              <div className={isMobile ? 'p-3' : ''}>
+                <h4 className={`font-medium line-clamp-2 ${isMobile ? 'text-base min-h-[3rem]' : 'text-sm min-h-[2.5rem]'}`}>
+                  {product.name}
+                </h4>
+                <p className={`text-primary font-bold mt-1 ${isMobile ? 'text-lg' : 'text-sm'}`}>
+                  {formatCurrency(product.price)}
+                </p>
+                <Button 
+                  size={isMobile ? "lg" : "sm"}
+                  className={`w-full mt-2 ${isMobile ? 'h-12 text-base' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAddProduct(product);
+                  }}
+                >
+                  <Plus className={isMobile ? "h-5 w-5 mr-2" : "h-4 w-4 mr-1"} />
+                  Adicionar
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ))}

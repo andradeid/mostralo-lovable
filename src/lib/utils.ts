@@ -41,3 +41,11 @@ export function formatInternationalPhone(phone: string): string {
   // Agrupa a cada 4 dígitos para facilitar leitura
   return numbers.replace(/(\d{4})(?=\d)/g, '$1 ').trim();
 }
+
+// Formatação de moeda brasileira (BRL)
+export function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(value);
+}

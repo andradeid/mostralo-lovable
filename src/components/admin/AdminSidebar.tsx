@@ -331,6 +331,8 @@ export function AdminSidebar() {
     if (userRole === 'attendant') {
       return [
         { title: 'Pedidos', url: '/dashboard/orders', icon: ShoppingCart, group: 'Vendas' },
+        { title: 'PDV', url: '/dashboard/pdv', icon: Monitor, group: 'Vendas Presenciais' },
+        { title: 'Comandas', url: '/dashboard/comandas', icon: Receipt, group: 'Vendas Presenciais' },
         { title: 'Clientes', url: '/dashboard/customers', icon: UserCircle, group: 'Vendas' },
         { title: 'Relatórios', url: '/dashboard/reports', icon: BarChart3, group: 'Vendas' },
         { title: 'Promoções', url: '/dashboard/promotions', icon: Tag, group: 'Vendas' },
@@ -550,6 +552,21 @@ export function AdminSidebar() {
         menuItems.push(
           { title: 'Conversas', url: '/dashboard/whatsapp/conversations', icon: MessageSquare, group: 'WhatsApp' },
           { title: 'Conexão WhatsApp', url: '/dashboard/whatsapp', icon: MessageCircle, group: 'WhatsApp' },
+          { title: 'Mensagens Automáticas', url: '/dashboard/whatsapp/automations', icon: Zap, group: 'WhatsApp' },
+          { title: 'Modelos de Mensagem', url: '/dashboard/whatsapp/templates', icon: FileText, group: 'WhatsApp' },
+          { title: 'Campanhas', url: '/dashboard/whatsapp/campaigns', icon: Send, group: 'WhatsApp' },
+          { title: 'Contatos', url: '/dashboard/whatsapp/contacts', icon: Users, group: 'WhatsApp' },
+          { title: 'SENTINELA', url: '/dashboard/sentinela', icon: Target, group: 'WhatsApp' }
+        );
+      }
+
+      // PDV e Comandas - verifica módulo
+      if (hasModule('pdv_comandas')) {
+        menuItems.push(
+          { title: 'PDV', url: '/dashboard/pdv', icon: Monitor, group: 'Vendas Presenciais' },
+          { title: 'Comandas', url: '/dashboard/comandas', icon: Receipt, group: 'Vendas Presenciais' }
+        );
+      }
           { title: 'Mensagens Automáticas', url: '/dashboard/whatsapp/automations', icon: Zap, group: 'WhatsApp' },
           { title: 'Modelos de Mensagem', url: '/dashboard/whatsapp/templates', icon: FileText, group: 'WhatsApp' },
           { title: 'Campanhas', url: '/dashboard/whatsapp/campaigns', icon: Send, group: 'WhatsApp' },

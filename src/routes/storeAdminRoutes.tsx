@@ -48,6 +48,9 @@ const WhatsAppAutomationsPage = lazy(() => import("@/pages/admin/WhatsAppAutomat
 const WhatsAppContactsPage = lazy(() => import("@/pages/admin/WhatsAppContactsPage"));
 const SystemUpdatesPage = lazy(() => import("@/pages/SystemUpdatesPage"));
 const SentinelaPage = lazy(() => import("@/pages/store-admin/Sentinela"));
+const PDVPage = lazy(() => import("@/pages/admin/PDVPage"));
+const ComandasPage = lazy(() => import("@/pages/admin/ComandasPage"));
+const ComandaDetailPage = lazy(() => import("@/pages/admin/ComandaDetailPage"));
 
 export const storeAdminRoutes = (
   <>
@@ -399,6 +402,29 @@ export const storeAdminRoutes = (
       <ProtectedRoute allowedRoles={['store_admin']}>
         <AdminLayout pageTitle="Sentinela">
           <LazyRoute><SentinelaPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+
+    {/* PDV e Comandas */}
+    <Route path="/dashboard/pdv" element={
+      <ProtectedRoute allowedRoles={['store_admin', 'attendant']}>
+        <AdminLayout pageTitle="PDV - Ponto de Venda">
+          <LazyRoute><PDVPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/comandas" element={
+      <ProtectedRoute allowedRoles={['store_admin', 'attendant']}>
+        <AdminLayout pageTitle="Comandas">
+          <LazyRoute><ComandasPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/comandas/:id" element={
+      <ProtectedRoute allowedRoles={['store_admin', 'attendant']}>
+        <AdminLayout pageTitle="Detalhes da Comanda">
+          <LazyRoute><ComandaDetailPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

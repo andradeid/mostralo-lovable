@@ -1294,6 +1294,7 @@ export default function WhatsAppInstancePage() {
                       isConnected={isConnected}
                       hasUnsyncedChanges={hasUnsyncedChanges}
                       hasOpenAIKey={hasOpenAIKey}
+                      storeId={storeId}
                       onUpdate={updateBotConfig}
                       onSync={syncWithEvolution}
                     />

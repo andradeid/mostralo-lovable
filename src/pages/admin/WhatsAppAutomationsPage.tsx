@@ -15,7 +15,8 @@ import {
   ArrowLeft,
   Send,
   TestTube,
-  Phone
+  Phone,
+  Bot
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -100,13 +101,29 @@ export default function WhatsAppAutomationsPage() {
   const [sendingTest, setSendingTest] = useState<string | null>(null);
   const [config, setConfig] = useState<AutoMessageConfig | null>(null);
   const [hasInstance, setHasInstance] = useState(false);
+  const [botEnabled, setBotEnabled] = useState(false);
 
   useEffect(() => {
     if (storeId) {
       fetchConfig();
       checkWhatsAppInstance();
+      fetchBotConfig();
     }
   }, [storeId]);
+
+  const fetchBotConfig = async () => {
+    try {
+      const { data } = await supabase
+        .from('store_bot_config')
+        .select('enabled')
+        .eq('store_id', storeId)
+        .maybeSingle();
+      
+      setBotEnabled(data?.enabled || false);
+    } catch (error) {
+      console.error('Erro ao buscar config do bot:', error);
+    }
+  };
 
   const checkWhatsAppInstance = async () => {
     const { data } = await supabase
@@ -473,6 +490,17 @@ export default function WhatsAppAutomationsPage() {
           Saudação (Novo Contato)
         </h2>
 
+        {/* Alerta se IA está ativa */}
+        {botEnabled && (
+          <Alert className="bg-blue-500/10 border-blue-500/20">
+            <Bot className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            <AlertDescription className="text-blue-600 dark:text-blue-400">
+              A saudação automática está desabilitada porque o <strong>Assistente IA</strong> está ativo. 
+              O assistente faz saudações inteligentes e personalizadas.
+            </AlertDescription>
+          </Alert>
+        )}
+
         <MessageConfigCard
           title="Mensagem de Boas-vindas"
           description="Enviada quando alguém envia mensagem pela primeira vez"
@@ -482,7 +510,7 @@ export default function WhatsAppAutomationsPage() {
           message={config?.greeting_message || ''}
           onMessageChange={(value) => updateConfig('greeting_message', value)}
           onInsertVariable={(variable) => insertVariable('greeting_message', variable)}
-          disabled={!config?.is_enabled}
+          disabled={!config?.is_enabled || botEnabled}
           messageType="greeting"
           testPhoneNumber={config?.test_phone_number}
           onSaveMessage={handleSaveMessage}

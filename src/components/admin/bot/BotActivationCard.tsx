@@ -4,8 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bot, Loader2, RefreshCw, Power, PowerOff, AlertTriangle } from "lucide-react";
+import { Bot, Loader2, RefreshCw, Power, PowerOff, AlertTriangle, Sparkles } from "lucide-react";
 import { BotConfig } from "@/hooks/useBotConfig";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface BotActivationCardProps {
   config: BotConfig;
@@ -13,6 +15,7 @@ interface BotActivationCardProps {
   isConnected: boolean;
   hasUnsyncedChanges?: boolean;
   hasOpenAIKey?: boolean | null;
+  storeId?: string;
   onUpdate: (updates: Partial<BotConfig>) => void;
   onSync: (action: 'create' | 'update' | 'delete') => Promise<{ success: boolean } | undefined>;
 }
@@ -23,9 +26,11 @@ export function BotActivationCard({
   isConnected,
   hasUnsyncedChanges = false,
   hasOpenAIKey,
+  storeId,
   onUpdate, 
   onSync 
 }: BotActivationCardProps) {
+  const { toast } = useToast();
   const isActive = config.enabled && config.evolution_bot_status === 'active';
   const canActivate = isConnected && hasOpenAIKey !== false;
 
@@ -36,6 +41,31 @@ export function BotActivationCard({
       const result = await onSync('create');
       if (result?.success) {
         onUpdate({ enabled: true });
+        
+        // Desabilitar saudação automática se estiver ativa
+        if (storeId) {
+          try {
+            const { data: autoMessages } = await supabase
+              .from('whatsapp_auto_messages')
+              .select('id, greeting_enabled')
+              .eq('store_id', storeId)
+              .maybeSingle();
+            
+            if (autoMessages?.greeting_enabled) {
+              await supabase
+                .from('whatsapp_auto_messages')
+                .update({ greeting_enabled: false })
+                .eq('id', autoMessages.id);
+              
+              toast({
+                title: "Saudação automática desativada",
+                description: "O Assistente IA fará a saudação de forma inteligente"
+              });
+            }
+          } catch (error) {
+            console.error('Erro ao desabilitar saudação:', error);
+          }
+        }
       }
     } else {
       const result = await onSync('delete');
@@ -115,6 +145,21 @@ export function BotActivationCard({
                 </p>
                 <p className="text-[10px] sm:text-xs text-amber-600/80 dark:text-amber-400/80 mt-0.5">
                   Clique em "Atualizar Bot" para aplicar as alterações
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Info: IA ativa cuida das saudações */}
+        {config.enabled && (
+          <div className="p-2.5 sm:p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg overflow-hidden">
+            <div className="flex items-start gap-2">
+              <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs sm:text-sm text-blue-600 dark:text-blue-400">
+                  O Assistente IA cuida da saudação de forma inteligente e personalizada.
+                  A mensagem de saudação automática fica desativada enquanto a IA estiver ativa.
                 </p>
               </div>
             </div>

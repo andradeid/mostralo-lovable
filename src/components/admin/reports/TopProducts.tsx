@@ -28,7 +28,7 @@ export function TopProducts({ dateRange, storeId }: TopProductsProps) {
     if (!storeId) return;
     setLoading(true);
     try {
-      // FILTRADO POR STORE_ID
+      // Buscar order_items
       const { data: orderItems } = await supabase
         .from('order_items')
         .select(`
@@ -43,25 +43,48 @@ export function TopProducts({ dateRange, storeId }: TopProductsProps) {
         .gte('order.created_at', dateRange.from.toISOString())
         .lte('order.created_at', dateRange.to.toISOString());
       
-      if (!orderItems) {
-        setLoading(false);
-        return;
-      }
+      // Buscar comanda_items
+      const { data: comandaItems } = await supabase
+        .from('comanda_items')
+        .select(`
+          product_name,
+          product_id,
+          quantity,
+          total_price,
+          comanda:comandas!inner(store_id, status, closed_at)
+        `)
+        .eq('comanda.store_id', storeId)
+        .eq('comanda.status', 'closed')
+        .gte('comanda.closed_at', dateRange.from.toISOString())
+        .lte('comanda.closed_at', dateRange.to.toISOString());
       
-      // Agrupar por produto
-      const grouped = orderItems.reduce((acc, item: any) => {
+      const orderItemsData = orderItems || [];
+      const comandaItemsData = comandaItems || [];
+      
+      // Agrupar por produto (combinando ambas fontes)
+      const grouped: Record<string, any> = {};
+      
+      // Processar order_items
+      orderItemsData.forEach((item: any) => {
         const name = item.product_name;
-        if (!acc[name]) {
-          acc[name] = {
-            name,
-            quantity: 0,
-            revenue: 0
-          };
+        if (!grouped[name]) {
+          grouped[name] = { name, quantity: 0, revenue: 0, source: { orders: 0, comandas: 0 } };
         }
-        acc[name].quantity += item.quantity;
-        acc[name].revenue += Number(item.subtotal);
-        return acc;
-      }, {} as Record<string, any>);
+        grouped[name].quantity += item.quantity;
+        grouped[name].revenue += Number(item.subtotal);
+        grouped[name].source.orders += item.quantity;
+      });
+      
+      // Processar comanda_items
+      comandaItemsData.forEach((item: any) => {
+        const name = item.product_name;
+        if (!grouped[name]) {
+          grouped[name] = { name, quantity: 0, revenue: 0, source: { orders: 0, comandas: 0 } };
+        }
+        grouped[name].quantity += item.quantity;
+        grouped[name].revenue += Number(item.total_price);
+        grouped[name].source.comandas += item.quantity;
+      });
       
       // Ordenar por quantidade vendida
       const sorted = Object.values(grouped)
@@ -103,7 +126,7 @@ export function TopProducts({ dateRange, storeId }: TopProductsProps) {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Top 10 Produtos por Quantidade</CardTitle>
+          <CardTitle>Top 10 Produtos por Quantidade (Pedidos + Comandas)</CardTitle>
         </CardHeader>
         <CardContent>
           <ChartContainer 
@@ -137,6 +160,8 @@ export function TopProducts({ dateRange, storeId }: TopProductsProps) {
                   <TableHead>Posição</TableHead>
                   <TableHead>Produto</TableHead>
                   <TableHead>Qtd Vendida</TableHead>
+                  <TableHead>Online</TableHead>
+                  <TableHead>PDV</TableHead>
                   <TableHead>Receita Total</TableHead>
                   <TableHead>% do Total</TableHead>
                 </TableRow>
@@ -153,6 +178,12 @@ export function TopProducts({ dateRange, storeId }: TopProductsProps) {
                     <TableCell className="font-medium">{product.name}</TableCell>
                     <TableCell>
                       <Badge variant="secondary">{product.quantity} un</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-blue-600">{product.source.orders}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-purple-600">{product.source.comandas}</Badge>
                     </TableCell>
                     <TableCell className="font-semibold text-green-600">
                       R$ {product.revenue.toFixed(2)}

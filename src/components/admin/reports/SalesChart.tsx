@@ -27,7 +27,7 @@ export function SalesChart({ dateRange, storeId }: SalesChartProps) {
     if (!storeId) return;
     setLoading(true);
     try {
-      // FILTRADO POR STORE_ID
+      // Buscar orders
       const { data: orders } = await supabase
         .from('orders')
         .select('created_at, total, status')
@@ -36,36 +36,61 @@ export function SalesChart({ dateRange, storeId }: SalesChartProps) {
         .lte('created_at', dateRange.to.toISOString())
         .order('created_at', { ascending: true });
       
-      if (!orders) {
-        setLoading(false);
-        return;
-      }
+      // Buscar comandas fechadas
+      const { data: comandas } = await supabase
+        .from('comandas')
+        .select('closed_at, total, status')
+        .eq('store_id', storeId)
+        .eq('status', 'closed')
+        .gte('closed_at', dateRange.from.toISOString())
+        .lte('closed_at', dateRange.to.toISOString())
+        .order('closed_at', { ascending: true });
       
-      // Agrupar por dia
-      const grouped = orders.reduce((acc, order) => {
+      const ordersData = orders || [];
+      const comandasData = comandas || [];
+      
+      // Agrupar por dia - combinando orders e comandas
+      const grouped: Record<string, any> = {};
+      
+      // Processar orders
+      ordersData.forEach(order => {
         const date = format(new Date(order.created_at), 'dd/MM', { locale: ptBR });
-        if (!acc[date]) {
-          acc[date] = { date, vendas: 0, pedidos: 0, ticketMedio: 0, _count: 0 };
+        if (!grouped[date]) {
+          grouped[date] = { date, vendas: 0, pedidos: 0, comandas: 0, _countOrders: 0, _countComandas: 0 };
         }
         
         if (order.status === 'concluido') {
-          acc[date].vendas += Number(order.total);
-          acc[date]._count += 1;
+          grouped[date].vendas += Number(order.total);
+          grouped[date]._countOrders += 1;
         }
         
         if (order.status !== 'cancelado') {
-          acc[date].pedidos += 1;
+          grouped[date].pedidos += 1;
+        }
+      });
+      
+      // Processar comandas
+      comandasData.forEach(comanda => {
+        if (!comanda.closed_at) return;
+        const date = format(new Date(comanda.closed_at), 'dd/MM', { locale: ptBR });
+        if (!grouped[date]) {
+          grouped[date] = { date, vendas: 0, pedidos: 0, comandas: 0, _countOrders: 0, _countComandas: 0 };
         }
         
-        return acc;
-      }, {} as Record<string, any>);
+        grouped[date].vendas += Number(comanda.total);
+        grouped[date].comandas += 1;
+        grouped[date]._countComandas += 1;
+      });
       
       // Calcular ticket médio
       const result = Object.values(grouped).map((item: any) => ({
         date: item.date,
         vendas: Number(item.vendas.toFixed(2)),
         pedidos: item.pedidos,
-        ticketMedio: item._count > 0 ? Number((item.vendas / item._count).toFixed(2)) : 0
+        comandas: item.comandas,
+        ticketMedio: (item._countOrders + item._countComandas) > 0 
+          ? Number((item.vendas / (item._countOrders + item._countComandas)).toFixed(2)) 
+          : 0
       }));
       
       setChartData(result);
@@ -92,13 +117,14 @@ export function SalesChart({ dateRange, storeId }: SalesChartProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Evolução de Vendas</CardTitle>
+        <CardTitle>Evolução de Vendas (Pedidos + Comandas)</CardTitle>
       </CardHeader>
       <CardContent>
         <ChartContainer 
           config={{
             vendas: { label: 'Vendas (R$)', color: 'hsl(var(--chart-1))' },
-            pedidos: { label: 'Pedidos', color: 'hsl(var(--chart-2))' },
+            pedidos: { label: 'Pedidos Online', color: 'hsl(var(--chart-2))' },
+            comandas: { label: 'Comandas PDV', color: 'hsl(var(--chart-4))' },
             ticketMedio: { label: 'Ticket Médio (R$)', color: 'hsl(var(--chart-3))' }
           }} 
           className="h-[400px]"
@@ -125,7 +151,15 @@ export function SalesChart({ dateRange, storeId }: SalesChartProps) {
                 dataKey="pedidos" 
                 stroke="hsl(var(--chart-2))" 
                 strokeWidth={2} 
-                name="Pedidos"
+                name="Pedidos Online"
+              />
+              <Line 
+                yAxisId="right"
+                type="monotone" 
+                dataKey="comandas" 
+                stroke="hsl(var(--chart-4))" 
+                strokeWidth={2} 
+                name="Comandas PDV"
               />
               <Line 
                 yAxisId="left"

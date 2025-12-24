@@ -634,40 +634,40 @@ export default function WhatsAppInstancePage() {
   const isConnected = instance?.status === 'connected';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 px-1 sm:px-0">
       <div>
-        <h1 className="text-2xl font-bold">Conexão WhatsApp</h1>
-        <p className="text-muted-foreground">
-          Conecte seu WhatsApp para enviar campanhas de recuperação de clientes
+        <h1 className="text-xl sm:text-2xl font-bold">Conexão WhatsApp</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
+          Conecte seu WhatsApp para enviar campanhas
         </p>
       </div>
 
-      <Tabs defaultValue="connection" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="connection" className="gap-2">
+      <Tabs defaultValue="connection" className="space-y-4 sm:space-y-6">
+        <TabsList className="grid w-full grid-cols-2 h-10 sm:h-11">
+          <TabsTrigger value="connection" className="gap-1.5 text-xs sm:text-sm">
             <Smartphone className="h-4 w-4" />
-            <span className="hidden sm:inline">Conexão</span>
+            <span>Conexão</span>
           </TabsTrigger>
-          <TabsTrigger value="bot" className="gap-2">
+          <TabsTrigger value="bot" className="gap-1.5 text-xs sm:text-sm">
             <Bot className="h-4 w-4" />
-            <span className="hidden sm:inline">Assistente IA</span>
+            <span>Assistente</span>
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="connection" className="space-y-6">
+        <TabsContent value="connection" className="space-y-4 sm:space-y-6">
           {!instance ? (
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <Smartphone className="h-5 w-5" />
-                  Nenhuma Instância Configurada
+                  Nenhuma Instância
                 </CardTitle>
-                <CardDescription>
-                  Crie uma instância para conectar seu WhatsApp e começar a enviar mensagens
+                <CardDescription className="text-xs sm:text-sm">
+                  Crie uma instância para conectar seu WhatsApp
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <Button onClick={createInstance} disabled={actionLoading === 'create'}>
+              <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
+                <Button onClick={createInstance} disabled={actionLoading === 'create'} className="w-full sm:w-auto">
                   {actionLoading === 'create' ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -684,35 +684,35 @@ export default function WhatsAppInstancePage() {
             </Card>
           ) : (
             <>
-            <div className="grid gap-6 md:grid-cols-2">
-            {/* Card de Status */}
+            {/* Card de Status - Sempre primeiro no mobile */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <Smartphone className="h-5 w-5" />
+              <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                    <Smartphone className="h-4 w-4 sm:h-5 sm:w-5" />
                     Status da Conexão
-                  </span>
+                  </CardTitle>
                   {getStatusBadge(instance.status)}
-                </CardTitle>
+                </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Informações detalhadas da instância */}
-                <div className="p-4 bg-muted rounded-lg space-y-3">
-                  {instance.status === 'connected' && instance.profile_picture_url && (
-                    <div className="flex justify-center">
-                      <img 
-                        src={instance.profile_picture_url} 
-                        alt="Perfil" 
-                        className="h-20 w-20 rounded-full"
-                      />
-                    </div>
-                  )}
-                  
-                  <div className="space-y-2 text-sm">
+              <CardContent className="p-4 sm:p-6 pt-2 sm:pt-0 space-y-4">
+                {/* Foto de perfil centralizada no mobile quando conectado */}
+                {instance.status === 'connected' && instance.profile_picture_url && (
+                  <div className="flex justify-center">
+                    <img 
+                      src={instance.profile_picture_url} 
+                      alt="Perfil" 
+                      className="h-16 w-16 sm:h-20 sm:w-20 rounded-full border-2 border-primary/20"
+                    />
+                  </div>
+                )}
+
+                {/* Informações compactas - só mostrar se tiver valor */}
+                <div className="p-3 sm:p-4 bg-muted rounded-lg">
+                  <div className="space-y-2 text-xs sm:text-sm">
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Instância:</span>
-                      <span className="font-medium">{instance.instance_name}</span>
+                      <span className="font-medium truncate max-w-[140px] sm:max-w-none">{instance.instance_name}</span>
                     </div>
                     
                     {instance.phone_number && (
@@ -726,12 +726,13 @@ export default function WhatsAppInstancePage() {
                     
                     {instance.profile_name && (
                       <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Nome do Perfil:</span>
-                        <span className="font-medium">{instance.profile_name}</span>
+                        <span className="text-muted-foreground">Perfil:</span>
+                        <span className="font-medium truncate max-w-[120px] sm:max-w-none">{instance.profile_name}</span>
                       </div>
                     )}
                     
-                    <div className="flex items-center justify-between">
+                    {/* Mostrar criado_em apenas no desktop ou se não tiver outras infos */}
+                    <div className="hidden sm:flex items-center justify-between">
                       <span className="text-muted-foreground flex items-center gap-1">
                         <Calendar className="h-3 w-3" /> Criado em:
                       </span>
@@ -743,40 +744,42 @@ export default function WhatsAppInstancePage() {
                     {instance.last_connected_at && (
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Última conexão:</span>
-                        <span className="font-medium">
-                          {format(new Date(instance.last_connected_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                        <span className="font-medium text-xs">
+                          {format(new Date(instance.last_connected_at), "dd/MM HH:mm", { locale: ptBR })}
                         </span>
                       </div>
                     )}
                   </div>
                 </div>
 
-                {/* Estatísticas da Instância - quando conectado */}
+                {/* Estatísticas - Grid 2 colunas no mobile, 3 no desktop */}
                 {instance.status === 'connected' && (
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="text-center p-3 bg-background rounded-lg border">
-                      <Users className="h-5 w-5 mx-auto mb-1 text-blue-500" />
-                      <div className="text-2xl font-bold">{contactsCount}</div>
-                      <div className="text-xs text-muted-foreground">Contatos</div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+                    <div className="text-center p-2 sm:p-3 bg-background rounded-lg border">
+                      <Users className="h-4 w-4 sm:h-5 sm:w-5 mx-auto mb-1 text-blue-500" />
+                      <div className="text-lg sm:text-2xl font-bold">{contactsCount}</div>
+                      <div className="text-[10px] sm:text-xs text-muted-foreground">Contatos</div>
                     </div>
-                    <div className="text-center p-3 bg-background rounded-lg border">
-                      <MessageSquare className="h-5 w-5 mx-auto mb-1 text-green-500" />
-                      <div className="text-2xl font-bold">{messagesCount}</div>
-                      <div className="text-xs text-muted-foreground">Mensagens</div>
+                    <div className="text-center p-2 sm:p-3 bg-background rounded-lg border">
+                      <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 mx-auto mb-1 text-green-500" />
+                      <div className="text-lg sm:text-2xl font-bold">{messagesCount}</div>
+                      <div className="text-[10px] sm:text-xs text-muted-foreground">Msgs</div>
                     </div>
-                    <div className="text-center p-3 bg-background rounded-lg border">
-                      <Pause className="h-5 w-5 mx-auto mb-1 text-orange-500" />
-                      <div className="text-2xl font-bold">{pausedSessionsCount}</div>
-                      <div className="text-xs text-muted-foreground">Pausadas</div>
+                    <div className="text-center p-2 sm:p-3 bg-background rounded-lg border col-span-2 sm:col-span-1">
+                      <Pause className="h-4 w-4 sm:h-5 sm:w-5 mx-auto mb-1 text-orange-500" />
+                      <div className="text-lg sm:text-2xl font-bold">{pausedSessionsCount}</div>
+                      <div className="text-[10px] sm:text-xs text-muted-foreground">Pausadas</div>
                     </div>
                   </div>
                 )}
 
-                <div className="flex flex-wrap gap-2">
+                {/* Botões de ação - Stack vertical no mobile */}
+                <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2">
                   {instance.status !== 'connected' && (
                     <Button 
                       onClick={connectInstance} 
                       disabled={actionLoading === 'connect'}
+                      className="w-full sm:w-auto"
                     >
                       {actionLoading === 'connect' ? (
                         <>
@@ -796,54 +799,56 @@ export default function WhatsAppInstancePage() {
                     variant="outline" 
                     onClick={checkStatus}
                     disabled={!!actionLoading}
+                    className="w-full sm:w-auto"
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
-                    Atualizar Status
+                    Atualizar
                   </Button>
 
                   {instance.status === 'connected' && (
-                    <>
+                    <div className="grid grid-cols-2 sm:flex gap-2 w-full sm:w-auto">
                       <Button 
                         variant="outline" 
                         onClick={restartInstance}
                         disabled={actionLoading === 'restart'}
                         className="text-yellow-600 border-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950"
+                        size="sm"
                       >
                         {actionLoading === 'restart' ? (
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                          <RotateCcw className="h-4 w-4 mr-2" />
+                          <RotateCcw className="h-4 w-4" />
                         )}
-                        Reiniciar
+                        <span className="ml-1.5">Reiniciar</span>
                       </Button>
                       <Button 
                         variant="outline" 
                         onClick={disconnectInstance}
                         disabled={actionLoading === 'disconnect'}
+                        size="sm"
                       >
                         {actionLoading === 'disconnect' ? (
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                          <PowerOff className="h-4 w-4 mr-2" />
+                          <PowerOff className="h-4 w-4" />
                         )}
-                        Desconectar
+                        <span className="ml-1.5">Desconectar</span>
                       </Button>
-                    </>
+                    </div>
                   )}
 
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="destructive" disabled={!!actionLoading}>
-                        <Trash2 className="h-4 w-4 mr-2" />
+                      <Button variant="destructive" disabled={!!actionLoading} className="w-full sm:w-auto" size="sm">
+                        <Trash2 className="h-4 w-4 mr-1.5" />
                         Remover
                       </Button>
                     </AlertDialogTrigger>
-                    <AlertDialogContent>
+                    <AlertDialogContent className="mx-4 sm:mx-auto max-w-sm sm:max-w-lg">
                       <AlertDialogHeader>
                         <AlertDialogTitle>Remover Instância?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Isso irá remover a conexão do WhatsApp. Você precisará escanear o QR Code 
-                          novamente para reconectar.
+                          Isso irá remover a conexão. Você precisará escanear o QR Code novamente.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
@@ -858,67 +863,56 @@ export default function WhatsAppInstancePage() {
               </CardContent>
             </Card>
 
-            {/* Card de Instruções de Gerenciamento */}
-            <Card className="bg-muted/30 border-dashed">
+            {/* Card de Instruções - Collapsible no mobile */}
+            <Card className="bg-muted/30 border-dashed hidden sm:block">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <HelpCircle className="h-5 w-5 text-primary" />
                   Instruções de Gerenciamento
                 </CardTitle>
                 <CardDescription>
-                  Saiba como trocar de número e a diferença entre as ações disponíveis
+                  Saiba como trocar de número e a diferença entre as ações
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Accordion type="single" collapsible className="w-full">
                   <AccordionItem value="trocar-numero">
                     <AccordionTrigger className="text-sm font-medium">
-                      📱 Como trocar de número WhatsApp?
+                      📱 Como trocar de número?
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="space-y-3 text-sm">
-                        <p className="text-muted-foreground">
-                          Siga estes passos simples para conectar um novo número:
-                        </p>
                         <ol className="space-y-2 ml-4">
                           <li className="flex items-start gap-2">
                             <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shrink-0">1</span>
-                            <span>Clique em <strong>"Desconectar"</strong> para desvincular o número atual</span>
+                            <span>Clique em <strong>"Desconectar"</strong></span>
                           </li>
                           <li className="flex items-start gap-2">
                             <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shrink-0">2</span>
-                            <span>Clique em <strong>"Gerar QR Code"</strong> para obter um novo código</span>
+                            <span>Clique em <strong>"Gerar QR Code"</strong></span>
                           </li>
                           <li className="flex items-start gap-2">
                             <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shrink-0">3</span>
-                            <span>Abra o WhatsApp no celular com o <strong>novo número</strong> e escaneie o QR Code</span>
+                            <span>Escaneie com o <strong>novo número</strong></span>
                           </li>
                         </ol>
-                        <div className="flex items-center gap-2 text-muted-foreground bg-muted/50 p-2 rounded">
-                          <AlertCircle className="h-4 w-4 shrink-0" />
-                          <span>⏱️ Tempo estimado: ~1 minuto</span>
-                        </div>
                       </div>
                     </AccordionContent>
                   </AccordionItem>
 
                   <AccordionItem value="diferenca-acoes">
                     <AccordionTrigger className="text-sm font-medium">
-                      ⚡ Diferença: Desconectar vs Remover
+                      ⚡ Desconectar vs Remover
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="space-y-4 text-sm">
                         <div className="grid gap-3">
-                          {/* Desconectar */}
                           <div className="border rounded-lg p-3 space-y-2">
                             <div className="flex items-center gap-2">
                               <PowerOff className="h-4 w-4 text-orange-500" />
                               <span className="font-semibold">Desconectar</span>
                               <Badge variant="secondary" className="text-xs">Recomendado</Badge>
                             </div>
-                            <p className="text-muted-foreground text-xs">
-                              Apenas desvincula o número atual
-                            </p>
                             <ul className="space-y-1 text-xs">
                               <li className="flex items-center gap-1">
                                 <CheckCircle className="h-3 w-3 text-green-500" />
@@ -926,37 +920,21 @@ export default function WhatsAppInstancePage() {
                               </li>
                               <li className="flex items-center gap-1">
                                 <CheckCircle className="h-3 w-3 text-green-500" />
-                                Contatos mantidos
-                              </li>
-                              <li className="flex items-center gap-1">
-                                <CheckCircle className="h-3 w-3 text-green-500" />
-                                Reconexão rápida (~1 min)
+                                Reconexão rápida
                               </li>
                             </ul>
                           </div>
 
-                          {/* Remover */}
                           <div className="border border-destructive/30 rounded-lg p-3 space-y-2">
                             <div className="flex items-center gap-2">
                               <Trash2 className="h-4 w-4 text-destructive" />
                               <span className="font-semibold">Remover</span>
                               <Badge variant="destructive" className="text-xs">Permanente</Badge>
                             </div>
-                            <p className="text-muted-foreground text-xs">
-                              Remove a instância completamente
-                            </p>
                             <ul className="space-y-1 text-xs">
                               <li className="flex items-center gap-1">
                                 <XCircle className="h-3 w-3 text-destructive" />
                                 Configurações perdidas
-                              </li>
-                              <li className="flex items-center gap-1">
-                                <AlertCircle className="h-3 w-3 text-orange-500" />
-                                Contatos ficam órfãos
-                              </li>
-                              <li className="flex items-center gap-1">
-                                <XCircle className="h-3 w-3 text-destructive" />
-                                Nova config (~2 min)
                               </li>
                             </ul>
                           </div>
@@ -965,128 +943,87 @@ export default function WhatsAppInstancePage() {
                     </AccordionContent>
                   </AccordionItem>
 
-                  <AccordionItem value="quando-usar" className="border-border/50">
+                  <AccordionItem value="reiniciar" className="border-b-0">
                     <AccordionTrigger className="text-sm font-medium">
-                      🔄 Quando usar cada opção?
+                      🔄 Quando reiniciar?
                     </AccordionTrigger>
                     <AccordionContent>
-                      <div className="space-y-3 text-xs">
-                        <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
-                          <p className="font-medium text-green-600 dark:text-green-400 mb-2 flex items-center gap-2">
-                            <RefreshCw className="h-3 w-3" />
-                            Use "Desconectar" quando:
-                          </p>
-                          <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-1">
-                            <li>Precisa trocar para outro número WhatsApp</li>
-                            <li>A conexão está com problemas e quer reconectar</li>
-                            <li>Quer pausar temporariamente o envio de mensagens</li>
-                          </ul>
-                        </div>
-                        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
-                          <p className="font-medium text-destructive mb-2 flex items-center gap-2">
-                            <Trash2 className="h-3 w-3" />
-                            Use "Remover" quando:
-                          </p>
-                          <ul className="list-disc list-inside text-muted-foreground space-y-1 ml-1">
-                            <li>Quer começar do zero com configurações limpas</li>
-                            <li>Há problemas persistentes que desconectar não resolve</li>
-                            <li>Precisa reconfigurar completamente a integração</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-
-                  <AccordionItem value="avisos" className="border-b-0">
-                    <AccordionTrigger className="text-sm font-medium">
-                      ⚠️ Avisos importantes
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex items-start gap-2 p-2 bg-orange-500/10 text-orange-700 dark:text-orange-400 rounded text-xs">
-                          <AlertCircle className="h-3 w-3 shrink-0 mt-0.5" />
-                          <span>Verifique <strong>campanhas ativas</strong></span>
-                        </div>
-                        <div className="flex items-start gap-2 p-2 bg-blue-500/10 text-blue-700 dark:text-blue-400 rounded text-xs">
-                          <MessageSquare className="h-3 w-3 shrink-0 mt-0.5" />
-                          <span><strong>Contatos</strong> permanecem salvos</span>
-                        </div>
-                        <div className="flex items-start gap-2 p-2 bg-green-500/10 text-green-700 dark:text-green-400 rounded text-xs">
-                          <RefreshCw className="h-3 w-3 shrink-0 mt-0.5" />
-                          <span><strong>Automações</strong> continuam funcionando</span>
-                        </div>
-                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Use quando mensagens não estão sendo enviadas ou recebidas corretamente.
+                      </p>
                     </AccordionContent>
                   </AccordionItem>
                 </Accordion>
               </CardContent>
             </Card>
-          </div>
 
-          {/* QR Code - Largura total abaixo do grid */}
+          {/* QR Code - Responsivo */}
           {(qrCode || instance.qr_code) && instance.status !== 'connected' && (
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <QrCode className="h-5 w-5" />
                   Escaneie o QR Code
                 </CardTitle>
-                <CardDescription>
-                  Abra o WhatsApp no seu celular e escaneie o código abaixo
+                <CardDescription className="text-xs sm:text-sm">
+                  Abra o WhatsApp e escaneie o código
                 </CardDescription>
               </CardHeader>
-              <CardContent className="flex flex-col items-center">
-                <div className="bg-white p-4 rounded-lg">
+              <CardContent className="flex flex-col items-center p-4 sm:p-6 pt-0">
+                <div className="bg-white p-3 sm:p-4 rounded-lg">
                   <img 
                     src={qrCode || instance.qr_code} 
                     alt="QR Code" 
-                    className="h-64 w-64"
+                    className="h-48 w-48 sm:h-64 sm:w-64"
                   />
                 </div>
-                <p className="text-sm text-muted-foreground mt-4 text-center">
-                  O QR Code expira em alguns segundos. Clique em "Gerar QR Code" para obter um novo.
+                <p className="text-xs sm:text-sm text-muted-foreground mt-3 text-center">
+                  O QR Code expira em segundos. Clique em "Gerar QR Code" para novo.
                 </p>
               </CardContent>
             </Card>
           )}
 
-          {/* Seção de Teste de Conexão - Só aparece se conectado */}
+          {/* Teste Rápido de Conexão - Compacto no mobile */}
           {instance.status === 'connected' && (
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+              <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-4">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <TestTube className="h-5 w-5" />
-                  Teste Rápido de Conexão
+                  Teste Rápido
                 </CardTitle>
-                <CardDescription>
-                  Envie uma mensagem de teste para verificar se a conexão está funcionando
+                <CardDescription className="text-xs sm:text-sm">
+                  Envie uma mensagem para testar a conexão
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex flex-col sm:flex-row gap-3">
+              <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 space-y-3">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                   <div className="flex-1">
-                    <Label htmlFor="testPhone">Número para teste (com DDD)</Label>
+                    <Label htmlFor="testPhone" className="text-xs sm:text-sm">Número (com DDD)</Label>
                     <Input
                       id="testPhone"
                       placeholder="11999999999"
                       value={testPhone}
                       onChange={(e) => setTestPhone(e.target.value.replace(/\D/g, ''))}
+                      className="h-9 sm:h-10"
                     />
                   </div>
                   <div className="flex items-end">
                     <Button 
                       onClick={testConnection} 
                       disabled={testLoading || !testPhone}
+                      className="w-full sm:w-auto h-9 sm:h-10"
+                      size="sm"
                     >
                       {testLoading ? (
                         <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Testando...
+                          <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                          <span className="sm:inline">Testando...</span>
                         </>
                       ) : (
                         <>
-                          <Send className="h-4 w-4 mr-2" />
-                          Testar Conexão
+                          <Send className="h-4 w-4 mr-1.5" />
+                          <span>Testar</span>
                         </>
                       )}
                     </Button>
@@ -1094,36 +1031,36 @@ export default function WhatsAppInstancePage() {
                 </div>
 
                 {testResult && (
-                  <div className={`p-3 rounded-lg flex items-center gap-2 ${
+                  <div className={`p-2 sm:p-3 rounded-lg flex items-center gap-2 text-xs sm:text-sm ${
                     testResult.success 
                       ? 'bg-green-500/10 text-green-600' 
                       : 'bg-destructive/10 text-destructive'
                   }`}>
                     {testResult.success ? (
-                      <CheckCircle className="h-5 w-5" />
+                      <CheckCircle className="h-4 w-4 shrink-0" />
                     ) : (
-                      <XCircle className="h-5 w-5" />
+                      <XCircle className="h-4 w-4 shrink-0" />
                     )}
-                    <span>{testResult.message}</span>
+                    <span className="line-clamp-2">{testResult.message}</span>
                   </div>
                 )}
               </CardContent>
             </Card>
           )}
 
-          {/* Seção de Envio de Mensagem com Template - Só aparece se conectado */}
+          {/* Envio de Mensagem com Template - Compacto */}
           {instance.status === 'connected' && (
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+              <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-4">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <MessageSquare className="h-5 w-5" />
-                  Enviar Mensagem de Teste
+                  Enviar Mensagem
                 </CardTitle>
-                <CardDescription>
-                  Selecione um cliente e um template para enviar uma mensagem de teste
+                <CardDescription className="text-xs sm:text-sm">
+                  Selecione um cliente e um template
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 space-y-3">
                 {/* Busca de Cliente */}
                 <div className="space-y-2">
                   <Label>Buscar Cliente</Label>
@@ -1250,25 +1187,24 @@ export default function WhatsAppInstancePage() {
             </Card>
           )}
 
-          {/* Histórico de Mensagens de Teste */}
+          {/* Histórico - Compacto no mobile */}
           {instance?.status === 'connected' && (
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <History className="h-5 w-5" />
-                    Histórico de Testes
+              <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-4 flex flex-row items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                    <History className="h-4 w-4 sm:h-5 sm:w-5" />
+                    Histórico
                   </CardTitle>
-                  <CardDescription>
-                    Últimas mensagens enviadas fora de campanhas
+                  <CardDescription className="text-xs sm:text-sm truncate">
+                    Últimas mensagens enviadas
                   </CardDescription>
                 </div>
-                <Button variant="outline" size="sm" onClick={fetchMessageLogs} disabled={logsLoading}>
-                  <RefreshCw className={`h-4 w-4 mr-1 ${logsLoading ? 'animate-spin' : ''}`} />
-                  Atualizar
+                <Button variant="outline" size="sm" onClick={fetchMessageLogs} disabled={logsLoading} className="shrink-0">
+                  <RefreshCw className={`h-4 w-4 ${logsLoading ? 'animate-spin' : ''}`} />
                 </Button>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
                 {logsLoading && messageLogs.length === 0 ? (
                   <div className="flex justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin" />
@@ -1448,18 +1384,18 @@ export default function WhatsAppInstancePage() {
         </TabsContent>
       </Tabs>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Como Conectar</CardTitle>
+      {/* Card de Como Conectar - Oculto no mobile quando tem instância */}
+      <Card className={instance ? 'hidden sm:block' : ''}>
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="text-base sm:text-lg">Como Conectar</CardTitle>
         </CardHeader>
-        <CardContent>
-          <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
+        <CardContent className="p-4 sm:p-6 pt-0">
+          <ol className="list-decimal list-inside space-y-1.5 text-xs sm:text-sm text-muted-foreground">
             <li>Clique em "Criar Instância" se ainda não tiver uma</li>
             <li>Clique em "Gerar QR Code" para obter o código</li>
-            <li>Abra o WhatsApp no seu celular</li>
-            <li>Vá em Configurações {'>'} Aparelhos Conectados {'>'} Conectar um Aparelho</li>
+            <li>Abra o WhatsApp no celular</li>
+            <li>Vá em Configurações {'>'} Aparelhos Conectados</li>
             <li>Escaneie o QR Code exibido na tela</li>
-            <li>Aguarde a conexão ser estabelecida</li>
           </ol>
         </CardContent>
       </Card>

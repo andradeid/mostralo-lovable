@@ -273,17 +273,21 @@ const whatsappTexts: Record<string, string> = {
 
   'chamada-senhas': `🔔 *CHAMADA DE SENHAS* 📢 NOVO!
 
-✅ Sistema de totem para chamar clientes
-✅ Painel visual para a cozinha
-✅ Chamada por voz (text-to-speech)
-✅ Notificação por WhatsApp ao cliente
-✅ Histórico de senhas chamadas
+🎙️ *3 OPÇÕES DE ÁUDIO:*
+• Bipe simples - Toque sonoro discreto
+• Voz do Navegador - Text-to-speech gratuito
+• 🔥 *VOZ IA ELEVENLABS* - Ultra-realista como locutor!
+
+✅ Texto Personalizado: "Senha 42, retire no balcão 2!"
+✅ Painel de senhas para exibir na TV
+✅ WhatsApp automático quando pedido fica pronto
+✅ Histórico de todas as chamadas
 ✅ Modo fila inteligente
 
-📊 *Ideal para:*
+🎯 *Ideal para:*
 • Fast-food e lanchonetes
 • Padarias e confeitarias
-• Restaurantes com retirada no balcão`,
+• Pizzarias e restaurantes com retirada`,
 
   'material-marketing': `📱 *MATERIAL DE MARKETING - QR CODES*
 
@@ -1463,11 +1467,46 @@ Site: mostralo.com.br`;
               </div>
             </div>
 
+            {/* Destaque ElevenLabs IA */}
+            <div className="bg-gradient-to-r from-purple-500/10 via-blue-500/10 to-cyan-500/10 border border-purple-500/30 rounded-xl p-6 mb-8">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
+                  <span className="text-2xl">🎙️</span>
+                </div>
+                <div>
+                  <h4 className="font-bold text-foreground text-lg flex items-center gap-2">
+                    Powered by ElevenLabs AI
+                    <span className="bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">PREMIUM</span>
+                  </h4>
+                  <p className="text-muted-foreground text-sm">Vozes ultra-realistas como um locutor profissional</p>
+                </div>
+              </div>
+              <div className="grid md:grid-cols-3 gap-4 mt-4">
+                <div className="bg-background/50 rounded-lg p-3 border border-border/50">
+                  <span className="text-2xl mb-1 block">🔔</span>
+                  <h5 className="font-medium text-foreground text-sm">Bipe Simples</h5>
+                  <p className="text-xs text-muted-foreground">Toque sonoro discreto e rápido</p>
+                </div>
+                <div className="bg-background/50 rounded-lg p-3 border border-border/50">
+                  <span className="text-2xl mb-1 block">🗣️</span>
+                  <h5 className="font-medium text-foreground text-sm">Voz do Navegador</h5>
+                  <p className="text-xs text-muted-foreground">Web Speech API gratuita</p>
+                </div>
+                <div className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-lg p-3 border border-purple-500/30">
+                  <span className="text-2xl mb-1 block">🎙️</span>
+                  <h5 className="font-medium text-foreground text-sm flex items-center gap-1">
+                    ElevenLabs IA <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                  </h5>
+                  <p className="text-xs text-muted-foreground">Voz premium de qualidade broadcast</p>
+                </div>
+              </div>
+            </div>
+
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               {[
-                { title: 'Painel de Senhas', desc: 'Exiba na TV as senhas sendo chamadas', icon: Monitor },
-                { title: 'Chamada por Voz', desc: 'Text-to-speech anuncia "Senha 42, retirar!"', icon: Volume2 },
-                { title: 'WhatsApp ao Cliente', desc: 'Notifica no WhatsApp quando o pedido está pronto', icon: MessageCircle },
+                { title: 'Painel de Senhas', desc: 'Exiba na TV as senhas sendo chamadas em tempo real', icon: Monitor },
+                { title: 'Texto Personalizado', desc: '"Senha 42, retire no balcão 2!" - Configure a mensagem', icon: FileText },
+                { title: 'WhatsApp ao Cliente', desc: 'Notifica automaticamente quando pedido fica pronto', icon: MessageCircle },
                 { title: 'Fila Inteligente', desc: 'Gerenciamento automático da fila de preparo', icon: Users },
                 { title: 'Histórico de Chamadas', desc: 'Veja todas as senhas chamadas no dia', icon: Database },
                 { title: 'Modo Cozinha', desc: 'Painel separado para a equipe de preparo', icon: Printer },

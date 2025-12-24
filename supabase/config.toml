@@ -1,5 +1,8 @@
 project_id = "noshwvwpjtnvndokbfjx"
 
+[functions.admin-auth]
+verify_jwt = false
+
 [functions.store-og-preview]
 verify_jwt = false
 

@@ -20,7 +20,7 @@ interface AuthContextType {
   profile: Profile | null;
   loading: boolean;
   userRole: 'delivery_driver' | 'store_admin' | 'master_admin' | 'customer' | 'attendant' | 'salesperson' | null;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: any; rateLimitSeconds?: number }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
   signOut: (redirectTo?: string) => Promise<void>;
   impersonateUser: (userId: string) => Promise<{ error: any }>;
@@ -190,7 +190,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(timeout);
   }, [loading, isLoadingProfile]);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<{ error: any; rateLimitSeconds?: number }> => {
     // Validações básicas
     if (!email || !email.includes('@')) {
       return { 
@@ -212,7 +212,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
     }
 
-    // Normalizar email
     const normalizedEmail = email.trim().toLowerCase();
     
     try {
@@ -244,31 +243,62 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // 3. Aguardar um pouco para garantir limpeza
       await new Promise(resolve => setTimeout(resolve, 200));
       
-      console.log('✅ Limpeza concluída, tentando login...');
+      console.log('✅ Limpeza concluída, tentando login via Edge Function...');
 
-      // 4. Tentar login
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: normalizedEmail,
-        password
-      });
-      
-      if (error) {
-        console.error('❌ Erro no login:', error.message);
-        
-        // Mensagem amigável
-        let friendlyMessage = 'Email ou senha incorretos.';
-        if (error.message === 'Invalid login credentials') {
-          friendlyMessage = 'Email ou senha incorretos. Verifique suas credenciais.';
-        } else if (error.message.includes('Email not confirmed')) {
-          friendlyMessage = 'Email não confirmado. Verifique sua caixa de entrada.';
+      // 4. Tentar login via Edge Function com rate limiting
+      const response = await fetch(
+        'https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/admin-auth',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: normalizedEmail, password })
         }
+      );
 
+      const result = await response.json();
+
+      // Rate limit atingido
+      if (response.status === 429) {
+        console.warn('🚫 Rate limit atingido:', result.retryAfterSeconds);
+        return {
+          error: { 
+            message: result.error || 'Muitas tentativas. Aguarde.',
+            status: 429,
+            name: 'RateLimitError'
+          },
+          rateLimitSeconds: result.retryAfterSeconds
+        };
+      }
+
+      // Erro de autenticação
+      if (!response.ok) {
+        console.error('❌ Erro no login:', result.error);
         return { 
           error: {
-            ...error,
-            message: friendlyMessage
+            message: result.error || 'Email ou senha incorretos.',
+            status: response.status,
+            name: 'AuthError'
           }
         };
+      }
+
+      // Sucesso - Definir sessão manualmente
+      if (result.session) {
+        const { error: setSessionError } = await supabase.auth.setSession({
+          access_token: result.session.access_token,
+          refresh_token: result.session.refresh_token
+        });
+
+        if (setSessionError) {
+          console.error('❌ Erro ao definir sessão:', setSessionError);
+          return { 
+            error: {
+              message: 'Erro ao iniciar sessão. Tente novamente.',
+              status: 500,
+              name: 'SessionError'
+            }
+          };
+        }
       }
       
       console.log('✅ Login bem-sucedido');

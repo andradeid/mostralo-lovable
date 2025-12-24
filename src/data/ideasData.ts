@@ -2873,5 +2873,233 @@ O que falta:
       '□ Testar clonagem de voz end-to-end',
       '□ Documentar dicas para gravação de áudio de qualidade'
     ]
+  },
+  {
+    id: 24,
+    title: '🧾 Sistema de Comandas + PDV',
+    status: 'development',
+    priority: 'high',
+    createdAt: '2025-12-24',
+    description: 'Sistema completo de vendas presenciais com PDV (Ponto de Venda) para balcão e sistema de Comandas para mesas, integrado ao painel do lojista com app mobile para garçons.',
+    
+    context: `O sistema Mostralo atualmente foca em pedidos digitais (WhatsApp, cardápio online). Muitos lojistas também têm operação presencial e precisam de um sistema unificado.
+
+Recursos existentes que serão aproveitados:
+• Role 'attendant' já existe e funciona
+• Sistema de produtos e categorias
+• Configurações de impressão
+• Edge functions de autenticação
+
+Novo módulo: pdv_comandas
+Controla acesso às funcionalidades de vendas presenciais.`,
+
+    problem: `Lojistas com operação presencial enfrentam:
+• Necessidade de sistemas separados para vendas digitais e presenciais
+• Dificuldade de controle de comandas abertas
+• Falta de integração entre pedidos presenciais e relatórios
+• Garçons sem ferramenta mobile eficiente
+
+Oportunidade:
+• Unificar vendas digitais e presenciais em um só lugar
+• Aumentar ticket médio com sistema de comandas
+• Melhorar experiência de atendimento
+• Relatórios consolidados de todas as vendas`,
+
+    marketAnalysis: {
+      title: '📊 Potencial de Mercado',
+      items: [
+        'Restaurantes, bares e lanchonetes representam 70%+ dos clientes',
+        'Maioria tem operação híbrida (presencial + delivery)',
+        'Sistemas de PDV concorrentes custam R$ 100-300/mês',
+        'Feature diferencial vs concorrência pura de delivery',
+        'Pode ser módulo premium (valor agregado no plano)'
+      ]
+    },
+
+    technicalDetails: {
+      title: '🔧 Estrutura Técnica',
+      items: [
+        'Tabela comandas: id, store_id, number, type (balcao|mesa), table_number, status, opened_by, total, payment_method',
+        'Tabela comanda_items: id, comanda_id, product_id, product_name, quantity, unit_price, addons, notes',
+        'RLS: store_admin e attendant podem CRUD em suas lojas',
+        'Edge functions: comanda-create, comanda-add-item, comanda-close, pdv-quick-sale',
+        'Módulo: pdv_comandas (controla acesso às funcionalidades)',
+        'Páginas: /dashboard/pdv, /dashboard/comandas, /garcom (PWA)',
+        'Componentes: PDVProductGrid, PDVCart, ComandaCard, ComandaItemList'
+      ]
+    },
+
+    phases: [
+      {
+        name: 'Fase 1 - Banco de Dados',
+        description: 'Criar estrutura de dados para comandas',
+        items: [
+          'Criar tabela comandas com todos os campos necessários',
+          'Criar tabela comanda_items para itens',
+          'Configurar RLS policies para store_admin e attendant',
+          'Criar índices para performance',
+          'Criar triggers para atualização de totais'
+        ]
+      },
+      {
+        name: 'Fase 2 - Módulo e Menu',
+        description: 'Integrar no sistema de módulos e navegação',
+        items: [
+          'Adicionar módulo pdv_comandas na tabela modules',
+          'Atualizar AdminSidebar com grupo "Vendas Presenciais"',
+          'Criar rotas protegidas para PDV e Comandas',
+          'Configurar permissões para attendant'
+        ]
+      },
+      {
+        name: 'Fase 3 - PDV (Ponto de Venda)',
+        description: 'Tela de venda rápida para balcão',
+        items: [
+          'Criar página /dashboard/pdv',
+          'Grid de produtos touch-friendly',
+          'Carrinho lateral com totais',
+          'Modal de pagamento (PIX, dinheiro, cartão)',
+          'Finalização rápida (cria comanda + fecha automaticamente)',
+          'Opção de impressão de cupom'
+        ]
+      },
+      {
+        name: 'Fase 4 - Comandas',
+        description: 'Gestão de comandas abertas',
+        items: [
+          'Criar página /dashboard/comandas (lista)',
+          'Criar página /dashboard/comandas/:id (detalhes)',
+          'Abrir nova comanda (balcão ou mesa)',
+          'Adicionar/remover itens',
+          'Fechar comanda com pagamento',
+          'Histórico de comandas fechadas'
+        ]
+      },
+      {
+        name: 'Fase 5 - App Garçom (PWA)',
+        description: 'Interface mobile otimizada para garçons',
+        items: [
+          'Criar rota /garcom (PWA separado)',
+          'Layout mobile-first',
+          'Lista de comandas abertas',
+          'Abrir nova comanda por mesa',
+          'Adicionar itens rapidamente',
+          'Solicitar fechamento (notifica caixa)'
+        ]
+      },
+      {
+        name: 'Fase 6 - Relatórios',
+        description: 'Integrar vendas presenciais nos relatórios',
+        items: [
+          'Adicionar vendas PDV/Comandas nos relatórios',
+          'Filtro por tipo de venda (digital vs presencial)',
+          'Ranking de produtos por canal',
+          'Performance por atendente/garçom'
+        ]
+      }
+    ],
+
+    safetyChecklist: {
+      title: '🛡️ Checklist de Segurança - O que NÃO alterar',
+      keep: [
+        'Tabela orders - sistema de pedidos digitais continua igual',
+        'Tabela order_items - itens de pedidos digitais intactos',
+        'Fluxo WhatsApp - kanban e processamento não mudam',
+        'Edge functions existentes - nenhuma modificação',
+        'Sistema de atendentes - apenas adiciona acesso às novas páginas',
+        'Roles do banco - attendant já existe, apenas usar'
+      ],
+      remove: [],
+      attendantPages: [
+        '/dashboard/pdv - Acesso para venda rápida',
+        '/dashboard/comandas - Gestão de comandas',
+        '/garcom - PWA mobile para garçons'
+      ]
+    },
+
+    riskAnalysis: {
+      title: '⚠️ Análise de Riscos',
+      sections: [
+        {
+          level: 'low',
+          title: 'Riscos Baixos',
+          items: [
+            'Tabelas novas isoladas do sistema existente',
+            'Role attendant já existe e funciona',
+            'Rotas novas não conflitam com existentes'
+          ]
+        },
+        {
+          level: 'medium',
+          title: 'Riscos Médios',
+          items: [
+            'Menu lateral precisa de refatoração cuidadosa',
+            'PWA garçom precisa de testes em diferentes dispositivos',
+            'Impressão de cupom pode variar por configuração'
+          ]
+        },
+        {
+          level: 'high',
+          title: 'Riscos Altos',
+          items: [
+            'Nenhum risco alto identificado - sistema isolado'
+          ]
+        }
+      ]
+    },
+
+    recommendation: `**Recomendação: Implementação Modular em 6 Fases**
+
+1. **FASE 1 - Banco de Dados** (Atual)
+   → Criar tabelas comandas e comanda_items
+   → Configurar RLS policies adequadas
+   → Base sólida antes de qualquer código
+
+2. **FASE 2 - Módulo e Menu** (Próxima)
+   → Adicionar módulo pdv_comandas
+   → Atualizar navegação lateral
+   → Rotas protegidas funcionando
+
+3. **FASE 3 - PDV** (Funcionalidade Core)
+   → Tela de venda rápida operacional
+   → Pagamento funcionando
+   → MVP utilizável
+
+4. **FASE 4 - Comandas** (Funcionalidade Completa)
+   → Sistema de comandas de mesa
+   → Gestão completa de ciclo de vida
+   → Histórico e relatórios básicos
+
+5. **FASE 5 - App Garçom** (Mobile)
+   → PWA otimizado para celular
+   → Experiência touch-first
+   → Offline-first se possível
+
+6. **FASE 6 - Relatórios** (Análise)
+   → Integrar vendas presenciais
+   → Dashboards consolidados
+   → Métricas por canal
+
+**Tempo estimado total: 8-10 sessões de desenvolvimento**
+**MVP funcional (PDV + Comandas básico): 4-5 sessões**`,
+
+    nextSteps: [
+      '✅ Criar Ideia 24 com documentação completa',
+      '✅ Criar tabela comandas no banco de dados',
+      '✅ Criar tabela comanda_items no banco de dados',
+      '✅ Configurar RLS policies para ambas tabelas',
+      '□ Criar módulo pdv_comandas na tabela modules',
+      '□ Atualizar AdminSidebar com grupo "Vendas Presenciais"',
+      '□ Criar página /dashboard/pdv (estrutura)',
+      '□ Criar página /dashboard/comandas (estrutura)',
+      '□ Criar componentes PDV (ProductGrid, Cart, PaymentModal)',
+      '□ Criar componentes Comandas (Card, ItemList, CloseModal)',
+      '□ Criar edge function comanda-create',
+      '□ Criar edge function comanda-add-item',
+      '□ Criar edge function comanda-close',
+      '□ Criar edge function pdv-quick-sale',
+      '□ Criar rota /garcom (PWA garçom)',
+      '□ Integrar vendas presenciais nos relatórios'
+    ]
   }
 ];

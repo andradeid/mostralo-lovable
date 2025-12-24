@@ -8,16 +8,37 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatCurrency } from '@/lib/utils';
-import { ArrowLeft, Plus, Trash2, Loader2, X } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Loader2, X, Printer } from 'lucide-react';
+import { printComanda } from '@/utils/printComanda';
+import { useStoreAccess } from '@/hooks/useStoreAccess';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function ComandaDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { storeId } = useStoreAccess();
   const { useComandaDetail, addItem, removeItem, closeComanda, isAddingItem, isRemovingItem, isClosing } = useComandas();
   const { data, isLoading } = useComandaDetail(id);
   
   const [showProducts, setShowProducts] = useState(false);
   const [closeModalOpen, setCloseModalOpen] = useState(false);
+
+  // Buscar nome da loja para impressão
+  const { data: storeData } = useQuery({
+    queryKey: ['store-name', storeId],
+    queryFn: async () => {
+      if (!storeId) return null;
+      const { data, error } = await supabase
+        .from('stores')
+        .select('name')
+        .eq('id', storeId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!storeId,
+  });
 
   if (isLoading) {
     return (
@@ -48,16 +69,26 @@ export default function ComandaDetailPage() {
     await removeItem({ itemId, comandaId: comanda.id });
   };
 
-  const handleCloseComanda = async (paymentMethod: string, discount: number, paymentDetails?: Record<string, any>) => {
-    await closeComanda({ comanda_id: comanda.id, payment_method: paymentMethod, discount, payment_details: paymentDetails });
+  const handleCloseComanda = async (paymentMethod: string, discount: number, serviceFee: number, paymentDetails?: Record<string, any>) => {
+    await closeComanda({ 
+      comanda_id: comanda.id, 
+      payment_method: paymentMethod, 
+      discount, 
+      service_fee: serviceFee,
+      payment_details: paymentDetails 
+    });
     setCloseModalOpen(false);
     navigate('/dashboard/comandas');
+  };
+
+  const handlePrint = () => {
+    printComanda(comanda, items, storeData?.name || 'Estabelecimento');
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard/comandas')}>
             <ArrowLeft className="h-5 w-5" />
@@ -75,17 +106,23 @@ export default function ComandaDetailPage() {
             </p>
           </div>
         </div>
-        {comanda.status === 'open' && (
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setShowProducts(!showProducts)}>
-              {showProducts ? <X className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
-              {showProducts ? 'Fechar' : 'Adicionar Item'}
-            </Button>
-            <Button onClick={() => setCloseModalOpen(true)}>
-              Fechar Comanda
-            </Button>
-          </div>
-        )}
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" onClick={handlePrint}>
+            <Printer className="h-4 w-4 mr-2" />
+            Imprimir
+          </Button>
+          {comanda.status === 'open' && (
+            <>
+              <Button variant="outline" onClick={() => setShowProducts(!showProducts)}>
+                {showProducts ? <X className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+                {showProducts ? 'Fechar' : 'Adicionar Item'}
+              </Button>
+              <Button onClick={() => setCloseModalOpen(true)}>
+                Fechar Comanda
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -135,6 +172,12 @@ export default function ComandaDetailPage() {
                 <span className="text-muted-foreground">Subtotal</span>
                 <span>{formatCurrency(comanda.subtotal)}</span>
               </div>
+              {comanda.service_fee > 0 && (
+                <div className="flex justify-between text-blue-600">
+                  <span>Taxa de Serviço ({comanda.subtotal > 0 ? ((comanda.service_fee / comanda.subtotal) * 100).toFixed(0) : '10'}%)</span>
+                  <span>+{formatCurrency(comanda.service_fee)}</span>
+                </div>
+              )}
               {comanda.discount > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Desconto</span>
@@ -165,9 +208,10 @@ export default function ComandaDetailPage() {
       <CloseComandaModal
         open={closeModalOpen}
         onOpenChange={setCloseModalOpen}
-        subtotal={comanda.total}
+        subtotal={comanda.subtotal}
         onConfirm={handleCloseComanda}
         isProcessing={isClosing}
+        onPrint={handlePrint}
       />
     </div>
   );

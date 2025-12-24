@@ -10,15 +10,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Switch } from '@/components/ui/switch';
 import { formatCurrency } from '@/lib/utils';
-import { CreditCard, Banknote, QrCode, Wallet, Loader2 } from 'lucide-react';
+import { CreditCard, Banknote, QrCode, Wallet, Loader2, Printer } from 'lucide-react';
 
 interface CloseComandaModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   subtotal: number;
-  onConfirm: (paymentMethod: string, discount: number, paymentDetails?: Record<string, any>) => void;
+  onConfirm: (paymentMethod: string, discount: number, serviceFee: number, paymentDetails?: Record<string, any>) => void;
   isProcessing?: boolean;
+  onPrint?: () => void;
 }
 
 const paymentMethods = [
@@ -35,12 +37,16 @@ export function CloseComandaModal({
   subtotal,
   onConfirm,
   isProcessing = false,
+  onPrint,
 }: CloseComandaModalProps) {
   const [selectedMethod, setSelectedMethod] = useState('dinheiro');
   const [discount, setDiscount] = useState(0);
   const [receivedAmount, setReceivedAmount] = useState(0);
+  const [includeServiceFee, setIncludeServiceFee] = useState(true);
+  const [serviceFeePercentage, setServiceFeePercentage] = useState(10);
 
-  const total = subtotal - discount;
+  const serviceFee = includeServiceFee ? (subtotal * serviceFeePercentage) / 100 : 0;
+  const total = subtotal + serviceFee - discount;
   const change = selectedMethod === 'dinheiro' ? Math.max(0, receivedAmount - total) : 0;
 
   const handleConfirm = () => {
@@ -51,7 +57,7 @@ export function CloseComandaModal({
       paymentDetails.change = change;
     }
 
-    onConfirm(selectedMethod, discount, paymentDetails);
+    onConfirm(selectedMethod, discount, serviceFee, paymentDetails);
   };
 
   const handleClose = () => {
@@ -59,6 +65,8 @@ export function CloseComandaModal({
       setSelectedMethod('dinheiro');
       setDiscount(0);
       setReceivedAmount(0);
+      setIncludeServiceFee(true);
+      setServiceFeePercentage(10);
       onOpenChange(false);
     }
   };
@@ -77,15 +85,48 @@ export function CloseComandaModal({
               <span className="text-muted-foreground">Subtotal</span>
               <span>{formatCurrency(subtotal)}</span>
             </div>
+            
+            {/* Taxa de Serviço */}
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="service-fee"
+                  checked={includeServiceFee}
+                  onCheckedChange={setIncludeServiceFee}
+                />
+                <Label htmlFor="service-fee" className="text-muted-foreground cursor-pointer">
+                  Taxa de Serviço
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min={1}
+                  max={100}
+                  step={1}
+                  value={serviceFeePercentage}
+                  onChange={(e) => setServiceFeePercentage(Number(e.target.value))}
+                  className="w-16 h-8 text-right"
+                  disabled={!includeServiceFee}
+                />
+                <span className="text-sm text-muted-foreground">%</span>
+                {includeServiceFee && (
+                  <span className="text-sm font-medium ml-2">
+                    ({formatCurrency(serviceFee)})
+                  </span>
+                )}
+              </div>
+            </div>
+
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">Desconto</span>
               <Input
                 type="number"
                 min={0}
-                max={subtotal}
+                max={subtotal + serviceFee}
                 step={0.01}
                 value={discount}
-                onChange={(e) => setDiscount(Math.min(subtotal, Number(e.target.value)))}
+                onChange={(e) => setDiscount(Math.min(subtotal + serviceFee, Number(e.target.value)))}
                 className="w-24 h-8 text-right"
               />
             </div>
@@ -149,7 +190,13 @@ export function CloseComandaModal({
           )}
         </div>
 
-        <DialogFooter className="gap-2">
+        <DialogFooter className="gap-2 sm:gap-2">
+          {onPrint && (
+            <Button variant="outline" onClick={onPrint} disabled={isProcessing}>
+              <Printer className="h-4 w-4 mr-2" />
+              Imprimir
+            </Button>
+          )}
           <Button variant="outline" onClick={handleClose} disabled={isProcessing}>
             Cancelar
           </Button>

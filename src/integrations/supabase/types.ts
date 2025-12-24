@@ -513,6 +513,7 @@ export type Database = {
           opened_by: string | null
           payment_details: Json | null
           payment_method: string | null
+          service_fee: number
           status: string
           store_id: string
           subtotal: number
@@ -534,6 +535,7 @@ export type Database = {
           opened_by?: string | null
           payment_details?: Json | null
           payment_method?: string | null
+          service_fee?: number
           status?: string
           store_id: string
           subtotal?: number
@@ -555,6 +557,7 @@ export type Database = {
           opened_by?: string | null
           payment_details?: Json | null
           payment_method?: string | null
+          service_fee?: number
           status?: string
           store_id?: string
           subtotal?: number

@@ -13,6 +13,7 @@ export interface Comanda {
   customer_name: string | null;
   subtotal: number;
   discount: number;
+  service_fee: number;
   total: number;
   notes: string | null;
   payment_method: string | null;
@@ -62,6 +63,7 @@ export interface CloseComandaInput {
   payment_method: string;
   payment_details?: Record<string, any>;
   discount?: number;
+  service_fee?: number;
 }
 
 export function useComandas() {
@@ -246,13 +248,29 @@ export function useComandas() {
     mutationFn: async (input: CloseComandaInput) => {
       const { data: user } = await supabase.auth.getUser();
 
+      // Calcular total com taxa de serviço e desconto
+      const serviceFee = input.service_fee || 0;
+      const discount = input.discount || 0;
+
+      // Buscar subtotal atual da comanda
+      const { data: comandaData } = await supabase
+        .from('comandas')
+        .select('subtotal')
+        .eq('id', input.comanda_id)
+        .single();
+
+      const subtotal = comandaData?.subtotal || 0;
+      const total = subtotal + serviceFee - discount;
+
       const { data, error } = await supabase
         .from('comandas')
         .update({
           status: 'closed',
           payment_method: input.payment_method,
           payment_details: input.payment_details || null,
-          discount: input.discount || 0,
+          discount: discount,
+          service_fee: serviceFee,
+          total: total,
           closed_at: new Date().toISOString(),
           closed_by: user?.user?.id || null,
         })

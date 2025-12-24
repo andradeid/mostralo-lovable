@@ -442,6 +442,144 @@ export type Database = {
           },
         ]
       }
+      comanda_items: {
+        Row: {
+          added_at: string
+          added_by: string | null
+          addons: Json | null
+          comanda_id: string
+          id: string
+          notes: string | null
+          product_id: string | null
+          product_name: string
+          quantity: number
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          added_at?: string
+          added_by?: string | null
+          addons?: Json | null
+          comanda_id: string
+          id?: string
+          notes?: string | null
+          product_id?: string | null
+          product_name: string
+          quantity?: number
+          total_price: number
+          unit_price: number
+        }
+        Update: {
+          added_at?: string
+          added_by?: string | null
+          addons?: Json | null
+          comanda_id?: string
+          id?: string
+          notes?: string | null
+          product_id?: string | null
+          product_name?: string
+          quantity?: number
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comanda_items_comanda_id_fkey"
+            columns: ["comanda_id"]
+            isOneToOne: false
+            referencedRelation: "comandas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comanda_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comandas: {
+        Row: {
+          closed_at: string | null
+          closed_by: string | null
+          created_at: string
+          customer_name: string | null
+          discount: number
+          id: string
+          notes: string | null
+          number: string
+          opened_at: string
+          opened_by: string | null
+          payment_details: Json | null
+          payment_method: string | null
+          status: string
+          store_id: string
+          subtotal: number
+          table_number: string | null
+          total: number
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          customer_name?: string | null
+          discount?: number
+          id?: string
+          notes?: string | null
+          number: string
+          opened_at?: string
+          opened_by?: string | null
+          payment_details?: Json | null
+          payment_method?: string | null
+          status?: string
+          store_id: string
+          subtotal?: number
+          table_number?: string | null
+          total?: number
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          customer_name?: string | null
+          discount?: number
+          id?: string
+          notes?: string | null
+          number?: string
+          opened_at?: string
+          opened_by?: string | null
+          payment_details?: Json | null
+          payment_method?: string | null
+          status?: string
+          store_id?: string
+          subtotal?: number
+          table_number?: string | null
+          total?: number
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comandas_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comandas_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coupon_usage: {
         Row: {
           coupon_id: string
@@ -7519,6 +7657,10 @@ export type Database = {
         Args: { admin_user_id: string; approval_id: string }
         Returns: boolean
       }
+      can_access_store_comandas: {
+        Args: { check_store_id: string }
+        Returns: boolean
+      }
       cleanup_old_password_calls: { Args: never; Returns: undefined }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
       generate_product_slug: {
@@ -7528,6 +7670,10 @@ export type Database = {
       get_current_user_type: {
         Args: never
         Returns: Database["public"]["Enums"]["user_type"]
+      }
+      get_next_comanda_number: {
+        Args: { p_store_id: string; p_type?: string }
+        Returns: string
       }
       get_next_order_number: { Args: { store_uuid: string }; Returns: string }
       get_password_calls_with_cleanup: {

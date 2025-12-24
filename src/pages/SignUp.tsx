@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from '@/hooks/use-toast';
 import { usePageSEO } from '@/hooks/useSEO';
-import { Loader2, Store, ArrowLeft, Check, Info, Gift, Search, Building2, MapPin, Phone, Tag, X } from 'lucide-react';
+import { Loader2, Store, ArrowLeft, Check, Info, Gift, Search, Building2, MapPin, Phone, Tag, X, AlertTriangle, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -75,6 +75,8 @@ const SignUp = () => {
   const [salespersonName, setSalespersonName] = useState<string | null>(null);
   const [cnpjLoading, setCnpjLoading] = useState(false);
   const [cnpjValidated, setCnpjValidated] = useState(false);
+  const [rateLimitSeconds, setRateLimitSeconds] = useState(0);
+  const [honeypot, setHoneypot] = useState(''); // 🍯 Campo honeypot (invisível)
   const [cnpjData, setCnpjData] = useState<{
     razao_social: string;
     nome_fantasia: string;
@@ -139,6 +141,33 @@ const SignUp = () => {
     birthDate: '',
     motherName: '',
   });
+
+  const countdownRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Countdown do rate limit
+  useEffect(() => {
+    if (rateLimitSeconds > 0) {
+      countdownRef.current = setInterval(() => {
+        setRateLimitSeconds(prev => {
+          if (prev <= 1) {
+            if (countdownRef.current) clearInterval(countdownRef.current);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    };
+  }, [rateLimitSeconds > 0]);
+
+  // Cleanup
+  useEffect(() => {
+    return () => {
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    };
+  }, []);
 
   // 🎯 Validar código de referência
   useEffect(() => {
@@ -493,6 +522,27 @@ const SignUp = () => {
     return true;
   };
 
+  // Validação de senha forte
+  const validatePasswordStrength = (password: string): { valid: boolean; message: string; checks: { length: boolean; upper: boolean; lower: boolean; number: boolean; special: boolean } } => {
+    const checks = {
+      length: password.length >= 8,
+      upper: /[A-Z]/.test(password),
+      lower: /[a-z]/.test(password),
+      number: /[0-9]/.test(password),
+      special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+    };
+    
+    if (!checks.length) return { valid: false, message: 'Mínimo 8 caracteres', checks };
+    if (!checks.upper) return { valid: false, message: 'Adicione letra maiúscula', checks };
+    if (!checks.lower) return { valid: false, message: 'Adicione letra minúscula', checks };
+    if (!checks.number) return { valid: false, message: 'Adicione um número', checks };
+    if (!checks.special) return { valid: false, message: 'Adicione caractere especial (!@#$...)', checks };
+    
+    return { valid: true, message: 'Senha forte!', checks };
+  };
+
+  const passwordStrength = validatePasswordStrength(formData.password);
+
   const validateStep1 = () => {
     if (!formData.email || !formData.password || !formData.confirmPassword) {
       toast({
@@ -503,10 +553,11 @@ const SignUp = () => {
       return false;
     }
 
-    if (formData.password.length < 6) {
+    // Validação de senha forte
+    if (!passwordStrength.valid) {
       toast({
-        title: 'Senha muito curta',
-        description: 'A senha deve ter no mínimo 6 caracteres.',
+        title: 'Senha fraca',
+        description: passwordStrength.message,
         variant: 'destructive',
       });
       return false;
@@ -690,27 +741,64 @@ const SignUp = () => {
   };
 
   const handleSubmit = async () => {
+    // Bloquear se estiver em rate limit
+    if (rateLimitSeconds > 0) return;
+    
     setIsLoading(true);
 
     try {
-      // 1. Criar usuário no Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.fullName,
-            phone: formData.phone,
-          }
+      // 🔒 Usar Edge Function com rate limiting e validação de senha forte
+      const response = await fetch(
+        'https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/signup-auth',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+            honeypot, // 🍯 Campo honeypot
+            metadata: {
+              redirectUrl: `${window.location.origin}/`,
+              user_metadata: {
+                full_name: formData.fullName,
+                phone: formData.phone,
+              }
+            }
+          })
         }
-      });
+      );
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error('Erro ao criar usuário');
+      const result = await response.json();
 
-      const userId = authData.user.id;
+      // Rate limit atingido
+      if (response.status === 429) {
+        setRateLimitSeconds(result.retryAfterSeconds || 300);
+        toast({
+          title: 'Muitas tentativas',
+          description: result.error || 'Aguarde alguns minutos para tentar novamente.',
+          variant: 'destructive'
+        });
+        setIsLoading(false);
+        return;
+      }
 
-      // 2. Fazer login imediato para ter auth.uid() nas próximas operações
+      // Erro de validação ou criação
+      if (!response.ok) {
+        toast({
+          title: 'Erro no cadastro',
+          description: result.error || 'Não foi possível criar sua conta.',
+          variant: 'destructive'
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Sucesso - continuar com login e criação da loja
+      if (!result.user) throw new Error('Erro ao criar usuário');
+      
+      const userId = result.user.id;
+
+      // Fazer login imediato para ter auth.uid() nas próximas operações
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
@@ -939,7 +1027,20 @@ const SignUp = () => {
     switch (currentStep) {
       case 1:
         return (
-          <div className="space-y-4">
+          <div className="space-y-4 relative">
+            {/* Alerta de Rate Limit */}
+            {rateLimitSeconds > 0 && (
+              <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <p className="font-medium">Muitas tentativas de cadastro</p>
+                  <p className="text-sm">
+                    Aguarde <strong>{Math.ceil(rateLimitSeconds / 60)}</strong> minuto(s) para tentar novamente.
+                  </p>
+                </AlertDescription>
+              </Alert>
+            )}
+            
             <Alert className="bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-900">
               <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               <AlertDescription className="text-blue-800 dark:text-blue-300">
@@ -948,6 +1049,14 @@ const SignUp = () => {
                   faça login aqui
                 </Link>
                 {' '}ao invés de criar uma nova conta.
+              </AlertDescription>
+            </Alert>
+
+            {/* Indicador de segurança */}
+            <Alert className="bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-900">
+              <Shield className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <AlertDescription className="text-green-800 dark:text-green-300 text-sm">
+                <span className="font-medium">Cadastro protegido:</span> senha forte exigida, proteção contra bots e limite de tentativas.
               </AlertDescription>
             </Alert>
             
@@ -960,6 +1069,7 @@ const SignUp = () => {
                 onChange={(e) => updateFormData('email', e.target.value)}
                 placeholder="seu@email.com"
                 required
+                disabled={rateLimitSeconds > 0}
               />
             </div>
             <div className="space-y-2">
@@ -969,9 +1079,37 @@ const SignUp = () => {
                 type="password"
                 value={formData.password}
                 onChange={(e) => updateFormData('password', e.target.value)}
-                placeholder="Mínimo 6 caracteres"
+                placeholder="Mínimo 8 caracteres, maiúsc., núm., especial"
                 required
+                disabled={rateLimitSeconds > 0}
               />
+              {/* Indicador de força da senha */}
+              {formData.password && (
+                <div className="space-y-2">
+                  <div className="flex gap-1">
+                    {[passwordStrength.checks.length, passwordStrength.checks.upper, passwordStrength.checks.number, passwordStrength.checks.special].map((check, i) => (
+                      <div 
+                        key={i}
+                        className={`h-1 flex-1 rounded ${check ? 'bg-green-500' : 'bg-muted'}`}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap gap-1 text-xs">
+                    <span className={passwordStrength.checks.length ? 'text-green-600' : 'text-muted-foreground'}>
+                      {passwordStrength.checks.length ? '✓' : '○'} 8+ chars
+                    </span>
+                    <span className={passwordStrength.checks.upper ? 'text-green-600' : 'text-muted-foreground'}>
+                      {passwordStrength.checks.upper ? '✓' : '○'} Maiúsc.
+                    </span>
+                    <span className={passwordStrength.checks.number ? 'text-green-600' : 'text-muted-foreground'}>
+                      {passwordStrength.checks.number ? '✓' : '○'} Número
+                    </span>
+                    <span className={passwordStrength.checks.special ? 'text-green-600' : 'text-muted-foreground'}>
+                      {passwordStrength.checks.special ? '✓' : '○'} Especial
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirmar Senha *</Label>
@@ -982,6 +1120,21 @@ const SignUp = () => {
                 onChange={(e) => updateFormData('confirmPassword', e.target.value)}
                 placeholder="Digite a senha novamente"
                 required
+                disabled={rateLimitSeconds > 0}
+              />
+            </div>
+            
+            {/* 🍯 Honeypot - Campo invisível para bots */}
+            <div className="absolute -left-[9999px] top-0" aria-hidden="true">
+              <Label htmlFor="website">Website</Label>
+              <Input
+                id="website"
+                name="website"
+                type="text"
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
               />
             </div>
           </div>
@@ -1437,10 +1590,16 @@ const SignUp = () => {
               )}
               <Button
                 onClick={handleNext}
-                disabled={isLoading || (currentStep === 4 && loadingPlans)}
+                disabled={isLoading || (currentStep === 4 && loadingPlans) || (currentStep === 1 && rateLimitSeconds > 0)}
                 className="flex-1"
+                variant={(currentStep === 1 && rateLimitSeconds > 0) ? 'outline' : 'default'}
               >
-                {isLoading ? (
+                {currentStep === 1 && rateLimitSeconds > 0 ? (
+                  <>
+                    <AlertTriangle className="mr-2 h-4 w-4" />
+                    Aguarde {Math.ceil(rateLimitSeconds / 60)}min
+                  </>
+                ) : isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Criando conta...

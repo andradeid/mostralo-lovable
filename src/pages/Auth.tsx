@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { usePageSEO } from '@/hooks/useSEO';
-import { Loader2, Store, Info, KeyRound } from 'lucide-react';
+import { Loader2, Store, Info, KeyRound, AlertTriangle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -35,10 +35,39 @@ const Auth = () => {
     email: '',
     password: ''
   });
+  const [rateLimitSeconds, setRateLimitSeconds] = useState(0);
+  const countdownRef = useRef<NodeJS.Timeout | null>(null);
   
   const { signIn, user, session, userRole, profile, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Cleanup do countdown ao desmontar
+  useEffect(() => {
+    return () => {
+      if (countdownRef.current) {
+        clearInterval(countdownRef.current);
+      }
+    };
+  }, []);
+
+  // Countdown do rate limit
+  useEffect(() => {
+    if (rateLimitSeconds > 0) {
+      countdownRef.current = setInterval(() => {
+        setRateLimitSeconds(prev => {
+          if (prev <= 1) {
+            if (countdownRef.current) clearInterval(countdownRef.current);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    };
+  }, [rateLimitSeconds > 0]);
 
   useEffect(() => {
     // Esperar final do carregamento de auth
@@ -82,16 +111,30 @@ const Auth = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Bloquear se estiver em rate limit
+    if (rateLimitSeconds > 0) return;
+    
     setIsLoading(true);
 
-    const { error } = await signIn(formData.email, formData.password);
+    const result = await signIn(formData.email, formData.password);
     
-    if (error) {
-      toast({
-        title: 'Erro no login',
-        description: error.message,
-        variant: 'destructive'
-      });
+    if (result.error) {
+      // Verificar se é rate limit
+      if (result.rateLimitSeconds && result.rateLimitSeconds > 0) {
+        setRateLimitSeconds(result.rateLimitSeconds);
+        toast({
+          title: 'Muitas tentativas',
+          description: `Aguarde ${result.rateLimitSeconds} segundos para tentar novamente.`,
+          variant: 'destructive'
+        });
+      } else {
+        toast({
+          title: 'Erro no login',
+          description: result.error.message,
+          variant: 'destructive'
+        });
+      }
       setIsLoading(false);
     } else {
       toast({
@@ -154,6 +197,19 @@ const Auth = () => {
           </AlertDescription>
         </Alert>
 
+        {/* Alerta de Rate Limit */}
+        {rateLimitSeconds > 0 && (
+          <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              <p className="font-medium">Muitas tentativas de login</p>
+              <p className="text-sm">
+                Aguarde <strong>{rateLimitSeconds}</strong> segundos para tentar novamente.
+              </p>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle className="text-center">Acesso ao Sistema</CardTitle>
@@ -172,6 +228,8 @@ const Auth = () => {
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
                   placeholder="seu@email.com"
                   required
+                  disabled={rateLimitSeconds > 0}
+                  className={rateLimitSeconds > 0 ? 'opacity-50' : ''}
                 />
               </div>
               <div className="space-y-2">
@@ -240,14 +298,22 @@ const Auth = () => {
                   onChange={(e) => setFormData({...formData, password: e.target.value})}
                   placeholder="Sua senha"
                   required
+                  disabled={rateLimitSeconds > 0}
+                  className={rateLimitSeconds > 0 ? 'opacity-50' : ''}
                 />
               </div>
               <Button 
                 type="submit" 
                 className="w-full" 
-                disabled={isLoading}
+                disabled={isLoading || rateLimitSeconds > 0}
+                variant={rateLimitSeconds > 0 ? 'outline' : 'default'}
               >
-                {isLoading ? (
+                {rateLimitSeconds > 0 ? (
+                  <>
+                    <AlertTriangle className="mr-2 h-4 w-4" />
+                    Aguarde {rateLimitSeconds}s
+                  </>
+                ) : isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Entrando...

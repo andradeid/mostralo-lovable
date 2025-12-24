@@ -2677,5 +2677,201 @@ A versão completa com agendamento, calendário e gestão de profissionais seria
       '□ [ORGANIZACIONAL] Documentar schema do banco de dados',
       '□ [ORGANIZACIONAL] Agrupar Edge Functions por domínio'
     ]
+  },
+  {
+    id: 23,
+    title: '🎙️ Central de Configurações ElevenLabs / Voz IA',
+    status: 'idea',
+    priority: 'high',
+    createdAt: '2025-12-24',
+    description: 'Criar página dedicada para configuração de Voz IA com ElevenLabs, incluindo seleção de voz padrão, clonagem de voz personalizada, e integração com módulos do sistema (Sentinela, Campanhas WhatsApp).',
+    
+    context: `Já temos ElevenLabs configurado no sistema:
+• Edge Function text-to-speech funcional (gera MP3)
+• Integração na Chamada de Senhas (3 opções: Bipe, Web Speech, ElevenLabs)
+• API Key configurada no ambiente
+
+O que falta:
+• Interface centralizada para configurar voz da loja
+• Sistema de clonagem de voz personalizada
+• Integração com WhatsApp para enviar áudios personalizados (Sentinela e Campanhas)
+• Sistema de limpeza automática de arquivos de áudio gerados (48h)`,
+
+    problem: `Atualmente a configuração de voz está espalhada e limitada:
+• Só funciona na Chamada de Senhas
+• Não há como clonar voz personalizada da marca
+• Módulos como Sentinela e Campanhas WhatsApp só enviam texto
+• Lojistas não têm controle sobre qual voz representa sua marca
+• Não há preview para testar vozes antes de usar
+• Áudios gerados ficam acumulando no servidor sem limpeza`,
+
+    marketAnalysis: {
+      title: '📊 Potencial de Valor',
+      items: [
+        'Diferencial competitivo: áudios personalizados via WhatsApp',
+        'Humanização da marca: voz consistente em todos os canais',
+        'Aumento de engajamento: áudios têm taxa de resposta 3x maior que texto',
+        'Upsell: pode ser módulo premium para planos avançados',
+        'Clonagem de voz: lojista pode usar a própria voz como identidade da marca',
+        'ElevenLabs Instant Clone: captura entonação, sotaque e expressividade'
+      ]
+    },
+
+    technicalDetails: {
+      title: '🔧 Implementação Técnica',
+      items: [
+        '📍 Nova rota: /dashboard/voice-ai',
+        '📍 Nova entrada no menu lateral: "🎙️ Voz IA" (grupo Configurações)',
+        '💾 Nova tabela: store_voice_config (default_voice_id, cloned_voices JSONB, etc)',
+        '📦 Novo bucket: generated-audios (público, para WhatsApp baixar)',
+        '📦 Novo bucket: voice-samples (privado, amostras para clonagem)',
+        '⚡ Edge Function: elevenlabs-clone-voice (POST /v1/voices/add)',
+        '⚡ Edge Function: elevenlabs-list-voices (listar vozes disponíveis)',
+        '⚡ Edge Function: whatsapp-send-audio-tts (TTS + upload + envio)',
+        '⏰ CRON: cleanup-old-audios (limpar arquivos > 48h a cada 6h)'
+      ]
+    },
+
+    phases: [
+      {
+        name: 'Fase 1 - Infraestrutura',
+        description: 'Criar base de dados e edge functions',
+        items: [
+          'Criar tabela store_voice_config com campos:',
+          '  - default_voice_id TEXT (voz selecionada)',
+          '  - custom_api_key TEXT (API Key própria opcional)',
+          '  - cloned_voices JSONB (lista de vozes clonadas)',
+          '  - enable_sentinela_audio BOOLEAN',
+          '  - enable_campaign_audio BOOLEAN',
+          'Criar buckets generated-audios e voice-samples',
+          'Criar edge function elevenlabs-clone-voice',
+          'Criar edge function elevenlabs-list-voices',
+          'Criar edge function cleanup-old-audios (CRON 48h)'
+        ]
+      },
+      {
+        name: 'Fase 2 - Interface de Configuração',
+        description: 'Criar página /dashboard/voice-ai',
+        items: [
+          'Adicionar entrada "🎙️ Voz IA" no AdminSidebar (grupo Configurações)',
+          'Criar página VoiceAIPage.tsx com seções:',
+          '  📍 Voz Padrão: dropdown + preview de teste',
+          '  📍 Clonagem: upload de áudio (30s-3min) + dicas de gravação',
+          '  📍 Minhas Vozes: listar vozes clonadas (testar/usar/excluir)',
+          '  📍 Config Avançada: campo para API Key própria (opcional)',
+          '  📍 Módulos: toggles de onde usar a voz',
+          'Criar hooks useVoiceConfig e useVoiceCloning'
+        ]
+      },
+      {
+        name: 'Fase 3 - Integração WhatsApp',
+        description: 'Habilitar áudio nos módulos existentes',
+        items: [
+          'Criar edge function whatsapp-send-audio-tts',
+          'Fluxo: Texto → TTS ElevenLabs → Upload Storage → Envio WhatsApp',
+          'Adicionar toggle "Enviar como áudio" no SENTINELA',
+          'Adicionar tipo "Áudio IA" nas Campanhas WhatsApp',
+          'Testar fluxo completo end-to-end',
+          'Verificar limpeza automática de arquivos após 48h'
+        ]
+      }
+    ],
+
+    options: [
+      {
+        name: '🔊 Vozes ElevenLabs Pré-Definidas',
+        description: 'Usar vozes profissionais já disponíveis na ElevenLabs',
+        pros: [
+          'Configuração imediata (zero setup)',
+          'Vozes de qualidade broadcast',
+          'Várias opções em português (Daniel, Laura, etc)',
+          'Sem custo adicional de clonagem',
+          'Funciona instantaneamente após selecionar'
+        ],
+        cons: [
+          'Não é personalizado para a marca',
+          'Mesma voz que outras lojas podem usar',
+          'Sem identidade vocal única'
+        ]
+      },
+      {
+        name: '🎤 Clonagem Instantânea (Instant Voice Clone)',
+        description: 'Clonar voz personalizada com 30s-3min de áudio',
+        pros: [
+          'Voz única da marca (identidade)',
+          'Captura entonação, sotaque, expressividade',
+          'Pode clonar voz do dono, atendente ou mascote',
+          'Processamento instantâneo (segundos)',
+          'Diferencial competitivo vs concorrência'
+        ],
+        cons: [
+          'Requer áudio de qualidade para bom resultado',
+          'Lojista precisa gravar/fornecer áudio',
+          'Qualidade depende da amostra fornecida',
+          'Ambiente de gravação precisa ser silencioso'
+        ]
+      },
+      {
+        name: '🎙️ Clonagem Profissional (Professional Voice Clone)',
+        description: 'Clone de máxima fidelidade com 30+ minutos de áudio',
+        pros: [
+          'Qualidade máxima de clonagem',
+          'Captura nuances detalhadas da voz',
+          'Ideal para uso intensivo (muitos áudios)',
+          'Resultado mais natural e consistente'
+        ],
+        cons: [
+          'Requer 30+ minutos de áudio de alta qualidade',
+          'Processamento demora horas',
+          'Setup mais complexo para o lojista',
+          'Pode ser overkill para uso básico'
+        ]
+      }
+    ],
+
+    recommendation: `**Recomendação: Implementação em 3 Fases**
+
+1. **FASE 1 - Infraestrutura** (1ª semana)
+   → Criar tabela store_voice_config no banco
+   → Criar buckets generated-audios e voice-samples
+   → Criar edge functions de clonagem e listagem
+   → Configurar CRON de limpeza automática (48h)
+
+2. **FASE 2 - Interface** (2ª semana)
+   → Adicionar entrada "Voz IA" no menu lateral
+   → Criar página /dashboard/voice-ai completa
+   → Implementar seleção de voz e preview
+   → Implementar upload e clonagem de voz
+   → Criar hooks de gerenciamento
+
+3. **FASE 3 - Integração** (3ª semana)
+   → Criar edge function whatsapp-send-audio-tts
+   → Conectar com SENTINELA (toggle áudio)
+   → Conectar com Campanhas WhatsApp (tipo Áudio IA)
+   → Testes end-to-end completos
+
+**Por que limpeza automática de 48h?**
+• Áudios de WhatsApp são baixados pela Evolution API no momento do envio
+• Após o envio, o arquivo não é mais necessário
+• 48h dá margem de segurança para reenvios ou falhas
+• Evita acúmulo de arquivos no servidor`,
+
+    nextSteps: [
+      '□ Criar migração SQL para tabela store_voice_config',
+      '□ Criar bucket generated-audios (público) no Storage',
+      '□ Criar bucket voice-samples (privado) no Storage',
+      '□ Criar edge function elevenlabs-clone-voice',
+      '□ Criar edge function elevenlabs-list-voices',
+      '□ Criar edge function cleanup-old-audios (CRON 6h)',
+      '□ Adicionar entrada "🎙️ Voz IA" no AdminSidebar.tsx',
+      '□ Criar página /dashboard/voice-ai',
+      '□ Criar componentes VoiceSelector e VoiceCloning',
+      '□ Criar hooks useVoiceConfig e useVoiceCloning',
+      '□ Criar edge function whatsapp-send-audio-tts',
+      '□ Adicionar toggle "Enviar como áudio" no SENTINELA',
+      '□ Adicionar tipo "Áudio IA" nas Campanhas WhatsApp',
+      '□ Testar clonagem de voz end-to-end',
+      '□ Documentar dicas para gravação de áudio de qualidade'
+    ]
   }
 ];

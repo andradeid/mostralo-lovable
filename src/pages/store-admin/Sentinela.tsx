@@ -37,14 +37,7 @@ Seu *{produto}* deve estar acabando, né? 🏃‍♂️
 
 Qualquer dúvida, é só chamar! 💬`;
 
-const RECURRENCE_OPTIONS = [
-  { value: 7, label: '7 dias (semanal)' },
-  { value: 15, label: '15 dias (quinzenal)' },
-  { value: 30, label: '30 dias (mensal)' },
-  { value: 45, label: '45 dias' },
-  { value: 60, label: '60 dias (bimestral)' },
-  { value: 90, label: '90 dias (trimestral)' },
-];
+const RECURRENCE_SHORTCUTS = [7, 15, 30, 45, 60, 90];
 
 export default function Sentinela() {
   const { storeId } = useStoreAccess();
@@ -519,22 +512,35 @@ export default function Sentinela() {
                   )}
 
                   <div className="space-y-2">
-                    <Label>Ciclo de recompra</Label>
-                    <Select
-                      value={newRule.recurrence_days.toString()}
-                      onValueChange={(v) => setNewRule(prev => ({ ...prev, recurrence_days: parseInt(v) }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {RECURRENCE_OPTIONS.map(option => (
-                          <SelectItem key={option.value} value={option.value.toString()}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Label>Ciclo de recompra (dias)</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={365}
+                      value={newRule.recurrence_days}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value) || 1;
+                        const clamped = Math.min(365, Math.max(1, value));
+                        setNewRule(prev => ({ ...prev, recurrence_days: clamped }));
+                      }}
+                      placeholder="Ex: 30"
+                    />
+                    <div className="flex gap-2 flex-wrap">
+                      {RECURRENCE_SHORTCUTS.map(days => (
+                        <Button
+                          key={days}
+                          type="button"
+                          variant={newRule.recurrence_days === days ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setNewRule(prev => ({ ...prev, recurrence_days: days }))}
+                        >
+                          {days}d
+                        </Button>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Digite qualquer valor entre 1 e 365 dias
+                    </p>
                   </div>
 
                   <div className="space-y-2">

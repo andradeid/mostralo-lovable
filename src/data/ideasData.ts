@@ -2500,5 +2500,182 @@ A versão completa com agendamento, calendário e gestão de profissionais seria
       '□ Se sim: testar fluxo completo',
       '□ Coletar feedback antes de expandir funcionalidades'
     ]
+  },
+  {
+    id: 22,
+    title: '🔒 Diagnóstico de Segurança e Melhorias do Sistema',
+    status: 'idea',
+    priority: 'high',
+    createdAt: '2025-12-24',
+    description: 'Diagnóstico completo do sistema identificando vulnerabilidades de segurança, problemas de RLS, performance e melhorias organizacionais.',
+    
+    context: `Diagnóstico realizado em 24/12/2024 avaliando:
+• Segurança do banco de dados (RLS, funções, views)
+• Vulnerabilidades no código frontend
+• Performance de queries e hooks
+• Estrutura organizacional do projeto
+• Logs e configurações do Supabase
+
+**Pontos Positivos Identificados:**
+• Rate limiting em customer-auth e signup-auth
+• Safe storage para Safari
+• ProtectedRoute robusto
+• CSP headers configurados
+• Build otimizado
+• AuthProvider com logout, refresh token e validação funcionando bem`,
+
+    problem: `**🔴 PROBLEMAS CRÍTICOS IDENTIFICADOS:**
+
+1. **RLS Ausente em Tabelas Sensíveis:**
+   • discount_coupons - SEM RLS (cupons expostos publicamente)
+   • coupon_usage - SEM RLS (uso de cupons exposto)
+   • rate_limit_attempts - SEM RLS
+   
+2. **Views com SECURITY DEFINER:**
+   • public_stores, public_store_config, unified_users_view
+   • Executam com permissões do criador, ignorando RLS
+   
+3. **Funções sem Search Path:**
+   • 16 funções vulneráveis a manipulação de path
+   
+4. **Configurações do Supabase:**
+   • Leaked Password Protection desabilitada
+   • OTP expiration muito longo
+   • PostgreSQL desatualizado (patches de segurança disponíveis)
+
+**🟡 VULNERABILIDADES MÉDIAS:**
+
+5. **XSS via Custom Scripts:**
+   • useCustomScripts.tsx usa innerHTML diretamente
+   • Lojistas podem injetar JavaScript malicioso
+   
+6. **Dados Sensíveis sem Proteção Adequada:**
+   • customers, profiles, driver_payment_info, whatsapp_messages
+   • RLS existe mas precisa revisão detalhada
+
+**🔵 MELHORIAS DE PERFORMANCE:**
+
+7. **Logs Excessivos:**
+   • AdminSidebar gerando muitos logs no console
+   
+8. **Queries Lentas:**
+   • useStoreAccess com query ~8 segundos
+   
+9. **Índices Faltando:**
+   • Tabelas orders, stores, whatsapp_contacts precisam de índices
+   
+10. **Estrutura do Banco:**
+    • Tabela stores com 69 colunas (considerar normalização)
+    • 115 tabelas no total (precisam documentação)`,
+
+    options: [
+      {
+        name: '🔴 Correções Urgentes (Prioridade 1)',
+        description: 'Resolver problemas críticos de segurança imediatamente',
+        pros: [
+          'Protege dados sensíveis de cupons',
+          'Fecha brechas de segurança conhecidas',
+          'Implementação rápida (horas)',
+          'Previne vazamento de dados'
+        ],
+        cons: [
+          'Pode quebrar funcionalidades que dependiam do acesso aberto',
+          'Precisa testar após cada mudança'
+        ]
+      },
+      {
+        name: '🟡 Correções Importantes (Prioridade 2)',
+        description: 'Resolver vulnerabilidades médias e melhorar segurança geral',
+        pros: [
+          'Melhora segurança geral do sistema',
+          'Reduz superfície de ataque',
+          'Atualiza componentes desatualizados'
+        ],
+        cons: [
+          'Algumas correções podem exigir refatoração',
+          'PostgreSQL update precisa de janela de manutenção'
+        ]
+      },
+      {
+        name: '🔵 Melhorias de Performance (Prioridade 3)',
+        description: 'Otimizações para melhorar velocidade do sistema',
+        pros: [
+          'Painel admin mais rápido',
+          'Melhor experiência do usuário',
+          'Console mais limpo para debug'
+        ],
+        cons: [
+          'Pode exigir refatoração de hooks',
+          'Índices ocupam espaço no banco'
+        ]
+      },
+      {
+        name: '📁 Melhorias Organizacionais (Prioridade 4)',
+        description: 'Melhorar estrutura e manutenibilidade do código',
+        pros: [
+          'Facilita manutenção futura',
+          'Reduz riscos de bugs',
+          'Melhora onboarding de novos devs'
+        ],
+        cons: [
+          'Não impacta usuário diretamente',
+          'Demanda tempo significativo'
+        ]
+      }
+    ],
+
+    technicalDetails: {
+      title: '🔧 Detalhes Técnicos do Diagnóstico',
+      items: [
+        '📊 Tabelas analisadas: 115 tabelas no banco de dados',
+        '⚡ Edge Functions: 30+ funções serverless',
+        '🧩 Componentes React: estrutura modular bem organizada',
+        '🪝 Hooks customizados: useStoreAccess, useAdminIdeas, etc.',
+        '✅ Rate limiting implementado em endpoints críticos',
+        '✅ ProtectedRoute com validação de roles',
+        '✅ CSP headers configurados',
+        '✅ Build otimizado com code splitting',
+        '✅ AuthProvider com logout, refresh token funcionando'
+      ]
+    },
+
+    recommendation: `**Plano de Ação Recomendado:**
+
+🔴 **URGENTE (Esta Semana):**
+1. Habilitar RLS em discount_coupons e coupon_usage
+2. Habilitar Leaked Password Protection no Supabase
+3. Revisar policies das views com SECURITY DEFINER
+
+🟡 **IMPORTANTE (Próximas 2 Semanas):**
+4. Revisar RLS de tabelas com dados sensíveis (customers, profiles)
+5. Atualizar PostgreSQL para versão com patches de segurança
+6. Adicionar search_path às funções SQL vulneráveis
+7. Sanitizar custom scripts para evitar XSS
+
+🔵 **MELHORIAS (Próximo Mês):**
+8. Otimizar queries lentas (useStoreAccess)
+9. Adicionar índices em tabelas grandes
+10. Reduzir logs excessivos do AdminSidebar
+
+📁 **ORGANIZACIONAL (Contínuo):**
+11. Documentar schema das 115 tabelas
+12. Agrupar Edge Functions por domínio
+13. Adicionar testes automatizados`,
+
+    nextSteps: [
+      '□ [URGENTE] Criar policies RLS para discount_coupons',
+      '□ [URGENTE] Criar policies RLS para coupon_usage',
+      '□ [URGENTE] Habilitar Leaked Password Protection no Supabase',
+      '□ [IMPORTANTE] Revisar views SECURITY DEFINER',
+      '□ [IMPORTANTE] Auditar RLS de customers e profiles',
+      '□ [IMPORTANTE] Atualizar PostgreSQL',
+      '□ [IMPORTANTE] Adicionar search_path às funções SQL',
+      '□ [MELHORIA] Sanitizar innerHTML em useCustomScripts',
+      '□ [MELHORIA] Otimizar useStoreAccess (query ~8s)',
+      '□ [MELHORIA] Adicionar índices em orders, stores, whatsapp_contacts',
+      '□ [MELHORIA] Reduzir logs do AdminSidebar',
+      '□ [ORGANIZACIONAL] Documentar schema do banco de dados',
+      '□ [ORGANIZACIONAL] Agrupar Edge Functions por domínio'
+    ]
   }
 ];

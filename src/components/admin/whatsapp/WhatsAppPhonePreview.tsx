@@ -14,13 +14,18 @@ interface WhatsAppPhonePreviewProps {
   allowThemeToggle?: boolean;
   defaultTheme?: 'light' | 'dark' | 'system';
   // Para tipo de interação
-  interactionType?: 'text' | 'poll' | 'buttons';
+  interactionType?: 'text' | 'poll' | 'list';
   // Para enquetes
   pollQuestion?: string;
   pollOptions?: string[];
   pollSelectableCount?: number;
-  // Para botões
-  buttons?: Array<{ text: string; url?: string }>;
+  // Para lista interativa
+  listTitle?: string;
+  listButtonText?: string;
+  listSections?: Array<{
+    title: string;
+    rows: Array<{ title: string; description: string; rowId: string }>;
+  }>;
 }
 
 // Hook para animação de digitação
@@ -112,7 +117,9 @@ export function WhatsAppPhonePreview({
   pollQuestion,
   pollOptions = [],
   pollSelectableCount = 1,
-  buttons = []
+  listTitle,
+  listButtonText,
+  listSections = []
 }: WhatsAppPhonePreviewProps) {
   const { resolvedTheme } = useTheme();
   const [localTheme, setLocalTheme] = useState<'light' | 'dark' | null>(
@@ -357,8 +364,8 @@ export function WhatsAppPhonePreview({
               </div>
             )}
 
-            {/* Mensagem com Botões */}
-            {interactionType === 'buttons' && buttons.length > 0 && (
+            {/* Mensagem com Lista Interativa */}
+            {interactionType === 'list' && listButtonText && (
               <div className="flex flex-col items-end gap-1">
                 {/* Balão da mensagem */}
                 <div 
@@ -371,6 +378,11 @@ export function WhatsAppPhonePreview({
                   )}
                   
                   <div className="px-3 py-2">
+                    {listTitle && (
+                      <p className="text-sm font-medium mb-1" style={{ color: colors.bubbleText }}>
+                        {listTitle}
+                      </p>
+                    )}
                     <p className="text-sm whitespace-pre-wrap leading-relaxed pr-14" style={{ color: colors.bubbleText }}>
                       {displayText || message}
                     </p>
@@ -386,27 +398,64 @@ export function WhatsAppPhonePreview({
                   </div>
                 </div>
                 
-                {/* Botões */}
-                <div className="w-[90%] space-y-1">
-                  {buttons.filter(b => b.text).map((btn, idx) => (
-                    <button
-                      key={idx}
-                      className="w-full py-2.5 px-4 rounded-lg text-sm font-medium flex items-center justify-center gap-2 border"
-                      style={{ 
-                        backgroundColor: isDark ? '#1F2C34' : '#ffffff',
-                        borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-                        color: isDark ? '#53BDEB' : '#007AFF'
-                      }}
-                    >
-                      {btn.url && (
-                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M19 19H5V5h7V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
-                        </svg>
-                      )}
-                      {btn.text}
-                    </button>
-                  ))}
-                </div>
+                {/* Botão que abre a lista */}
+                <button
+                  className="w-[90%] py-2.5 px-4 rounded-lg text-sm font-medium flex items-center justify-center gap-2 border"
+                  style={{ 
+                    backgroundColor: isDark ? '#1F2C34' : '#ffffff',
+                    borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                    color: isDark ? '#53BDEB' : '#007AFF'
+                  }}
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z"/>
+                  </svg>
+                  {listButtonText}
+                </button>
+                
+                {/* Preview das seções (expandido para mostrar ao usuário) */}
+                {listSections.some(s => s.rows.some(r => r.title)) && (
+                  <div 
+                    className="w-[90%] rounded-lg border overflow-hidden text-xs"
+                    style={{ 
+                      backgroundColor: isDark ? '#1F2C34' : '#ffffff',
+                      borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
+                    }}
+                  >
+                    <div className="px-3 py-1.5 text-[10px] uppercase tracking-wide" style={{ color: colors.timeText }}>
+                      Preview da lista
+                    </div>
+                    {listSections.map((section, sIdx) => (
+                      section.rows.some(r => r.title) && (
+                        <div key={sIdx}>
+                          {section.title && (
+                            <div 
+                              className="px-3 py-1.5 font-medium text-xs"
+                              style={{ 
+                                backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+                                color: isDark ? '#00A884' : '#25D366'
+                              }}
+                            >
+                              {section.title}
+                            </div>
+                          )}
+                          {section.rows.filter(r => r.title).map((row, rIdx) => (
+                            <div 
+                              key={rIdx}
+                              className="px-3 py-2 border-t"
+                              style={{ borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}
+                            >
+                              <p className="font-medium" style={{ color: colors.bubbleText }}>{row.title}</p>
+                              {row.description && (
+                                <p className="text-[10px] mt-0.5" style={{ color: colors.timeText }}>{row.description}</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 

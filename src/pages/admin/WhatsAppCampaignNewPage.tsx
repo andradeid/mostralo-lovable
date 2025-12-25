@@ -46,7 +46,6 @@ import {
   Phone,
   HelpCircle,
   Vote,
-  SquareMousePointer,
   Plus,
   Trash2
 } from "lucide-react";
@@ -136,18 +135,11 @@ export default function WhatsAppCampaignNewPage() {
     scheduled_date: '',
     scheduled_time: '09:00',
     // Tipo de interação (enquete/lista)
-    interaction_type: 'text' as 'text' | 'poll' | 'list',
+    interaction_type: 'text' as 'text' | 'poll',
     // Campos para enquete
     poll_question: '',
     poll_options: ['', ''] as string[],
     poll_selectable_count: 1,
-    // Campos para lista interativa
-    list_title: '',
-    list_button_text: '',
-    list_sections: [{ title: '', rows: [{ title: '', description: '', rowId: '1' }] }] as Array<{
-      title: string;
-      rows: Array<{ title: string; description: string; rowId: string }>;
-    }>,
   });
 
   // Funções auxiliares para formatação de tempo
@@ -415,20 +407,6 @@ export default function WhatsAppCampaignNewPage() {
         toast({ title: "Erro", description: "Adicione pelo menos 2 opções", variant: "destructive" });
         return;
       }
-    } else if (form.interaction_type === 'list') {
-      if (!form.list_button_text.trim()) {
-        toast({ title: "Erro", description: "O texto do botão é obrigatório", variant: "destructive" });
-        return;
-      }
-      const hasValidSection = form.list_sections.some(s => s.rows.some(r => r.title.trim()));
-      if (!hasValidSection) {
-        toast({ title: "Erro", description: "Adicione pelo menos 1 item na lista", variant: "destructive" });
-        return;
-      }
-      if (!form.custom_message.trim()) {
-        toast({ title: "Erro", description: "Digite o texto da mensagem", variant: "destructive" });
-        return;
-      }
     } else {
       if (!form.custom_message.trim()) {
         toast({ title: "Mensagem obrigatória", description: "Escreva uma mensagem para enviar", variant: "destructive" });
@@ -452,19 +430,6 @@ export default function WhatsAppCampaignNewPage() {
         payload.pollOptions = form.poll_options.filter(o => o.trim());
         payload.pollSelectableCount = form.poll_selectable_count;
         payload.content = form.poll_question; // Fallback
-      } else if (form.interaction_type === 'list') {
-        payload.messageType = 'list';
-        payload.content = testContent;
-        payload.listTitle = form.list_title || 'Escolha uma opção';
-        payload.listButtonText = form.list_button_text || 'Ver opções';
-        payload.listSections = form.list_sections.map(section => ({
-          title: section.title || 'Opções',
-          rows: section.rows.filter(r => r.title.trim()).map((row, idx) => ({
-            title: row.title,
-            description: row.description || '',
-            rowId: row.rowId || `${idx + 1}`
-          }))
-        })).filter(s => s.rows.length > 0);
       } else if (form.media_url && form.media_type) {
         payload.messageType = form.media_type;
         payload.mediaUrl = form.media_url;
@@ -601,20 +566,6 @@ export default function WhatsAppCampaignNewPage() {
         toast({ title: "Erro", description: "Adicione pelo menos 2 opções na enquete", variant: "destructive" });
         return;
       }
-    } else if (form.interaction_type === 'list') {
-      if (!form.list_button_text.trim()) {
-        toast({ title: "Erro", description: "O texto do botão é obrigatório", variant: "destructive" });
-        return;
-      }
-      const hasValidItem = form.list_sections.some(s => s.rows.some(r => r.title.trim()));
-      if (!hasValidItem) {
-        toast({ title: "Erro", description: "Adicione pelo menos 1 item na lista", variant: "destructive" });
-        return;
-      }
-      if (!form.custom_message.trim()) {
-        toast({ title: "Erro", description: "Digite o texto da mensagem", variant: "destructive" });
-        return;
-      }
     } else {
       if (!form.custom_message.trim()) {
         toast({ title: "Erro", description: "Escreva uma mensagem primeiro", variant: "destructive" });
@@ -653,14 +604,11 @@ export default function WhatsAppCampaignNewPage() {
           pause_after_messages: form.pause_enabled ? form.pause_after_messages : 0,
           pause_duration_seconds: form.pause_duration_seconds,
           status: 'draft',
-          // Campos de enquete e lista
+          // Campos de enquete
           interaction_type: form.interaction_type,
           poll_question: form.poll_question || null,
           poll_options: form.poll_options.filter(o => o.trim()).length > 0 ? form.poll_options.filter(o => o.trim()) : null,
           poll_selectable_count: form.poll_selectable_count,
-          list_title: form.list_title || null,
-          list_button_text: form.list_button_text || null,
-          list_sections: form.list_sections.some(s => s.rows.some(r => r.title.trim())) ? form.list_sections : null,
         })
         .select()
         .single();
@@ -1013,14 +961,11 @@ export default function WhatsAppCampaignNewPage() {
             end_hour: form.end_hour,
             pause_after_messages: form.pause_enabled ? form.pause_after_messages : 0,
             pause_duration_seconds: form.pause_duration_seconds,
-            // Campos de enquete e lista
+            // Campos de enquete
             interaction_type: form.interaction_type,
             poll_question: form.poll_question || null,
             poll_options: form.poll_options.filter(o => o.trim()).length > 0 ? form.poll_options.filter(o => o.trim()) : null,
             poll_selectable_count: form.poll_selectable_count,
-            list_title: form.list_title || null,
-            list_button_text: form.list_button_text || null,
-            list_sections: form.list_sections.some(s => s.rows.some(r => r.title.trim())) ? form.list_sections : null,
           })
           .eq('id', previewData.campaignId);
       } else {
@@ -1047,14 +992,11 @@ export default function WhatsAppCampaignNewPage() {
             pause_after_messages: form.pause_enabled ? form.pause_after_messages : 0,
             pause_duration_seconds: form.pause_duration_seconds,
             status: 'draft',
-            // Campos de enquete e lista
+            // Campos de enquete
             interaction_type: form.interaction_type,
             poll_question: form.poll_question || null,
             poll_options: form.poll_options.filter(o => o.trim()).length > 0 ? form.poll_options.filter(o => o.trim()) : null,
             poll_selectable_count: form.poll_selectable_count,
-            list_title: form.list_title || null,
-            list_button_text: form.list_button_text || null,
-            list_sections: form.list_sections.some(s => s.rows.some(r => r.title.trim())) ? form.list_sections : null,
           });
       }
 
@@ -1956,15 +1898,6 @@ Ana Costa, 31977665544"
                     <Vote className="h-5 w-5" />
                     <span className="text-xs">Enquete</span>
                   </Button>
-                  <Button
-                    type="button"
-                    variant={form.interaction_type === 'list' ? 'default' : 'outline'}
-                    className="flex flex-col items-center gap-1 h-auto py-3"
-                    onClick={() => setForm(prev => ({ ...prev, interaction_type: 'list' }))}
-                  >
-                    <SquareMousePointer className="h-5 w-5" />
-                    <span className="text-xs">Lista</span>
-                  </Button>
                 </div>
               </div>
 
@@ -2052,156 +1985,6 @@ Ana Costa, 31977665544"
                 </div>
               )}
 
-              {/* Campos de Lista Interativa */}
-              {form.interaction_type === 'list' && (
-                <div className="space-y-4 p-4 bg-primary/5 rounded-lg border border-primary/20">
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <SquareMousePointer className="h-4 w-4" />
-                      Configurar Lista Interativa
-                    </Label>
-                    <p className="text-xs text-muted-foreground">
-                      Crie um menu com opções que o cliente pode escolher.
-                    </p>
-                  </div>
-
-                  {/* Título da Lista */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Título da Lista (opcional)</Label>
-                    <Input
-                      value={form.list_title}
-                      onChange={(e) => setForm(prev => ({ ...prev, list_title: e.target.value }))}
-                      placeholder="Ex: Confira nossas opções"
-                      maxLength={60}
-                    />
-                  </div>
-
-                  {/* Texto do Botão */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Texto do Botão *</Label>
-                    <Input
-                      value={form.list_button_text}
-                      onChange={(e) => setForm(prev => ({ ...prev, list_button_text: e.target.value }))}
-                      placeholder="Ex: 📋 Ver Opções"
-                      maxLength={20}
-                    />
-                    <p className="text-xs text-muted-foreground">Este é o texto que aparece no botão para abrir a lista</p>
-                  </div>
-
-                  {/* Seções */}
-                  <div className="space-y-3">
-                    <Label className="text-sm font-medium">Seções e Itens</Label>
-                    {form.list_sections.map((section, sectionIdx) => (
-                      <div key={sectionIdx} className="space-y-2 p-3 bg-background rounded border">
-                        <div className="flex items-center gap-2">
-                          <Input
-                            value={section.title}
-                            onChange={(e) => {
-                              const newSections = [...form.list_sections];
-                              newSections[sectionIdx].title = e.target.value;
-                              setForm(prev => ({ ...prev, list_sections: newSections }));
-                            }}
-                            placeholder={`Nome da Seção ${sectionIdx + 1}`}
-                            className="font-medium"
-                          />
-                          {form.list_sections.length > 1 && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => {
-                                const newSections = form.list_sections.filter((_, i) => i !== sectionIdx);
-                                setForm(prev => ({ ...prev, list_sections: newSections }));
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          )}
-                        </div>
-                        
-                        {/* Itens da seção */}
-                        <div className="space-y-2 pl-4 border-l-2 border-primary/20">
-                          {section.rows.map((row, rowIdx) => (
-                            <div key={rowIdx} className="flex gap-2">
-                              <div className="flex-1 space-y-1">
-                                <Input
-                                  value={row.title}
-                                  onChange={(e) => {
-                                    const newSections = [...form.list_sections];
-                                    newSections[sectionIdx].rows[rowIdx].title = e.target.value;
-                                    setForm(prev => ({ ...prev, list_sections: newSections }));
-                                  }}
-                                  placeholder="Título do item"
-                                  className="text-sm"
-                                />
-                                <Input
-                                  value={row.description}
-                                  onChange={(e) => {
-                                    const newSections = [...form.list_sections];
-                                    newSections[sectionIdx].rows[rowIdx].description = e.target.value;
-                                    setForm(prev => ({ ...prev, list_sections: newSections }));
-                                  }}
-                                  placeholder="Descrição (opcional)"
-                                  className="text-xs"
-                                />
-                              </div>
-                              {section.rows.length > 1 && (
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => {
-                                    const newSections = [...form.list_sections];
-                                    newSections[sectionIdx].rows = section.rows.filter((_, i) => i !== rowIdx);
-                                    setForm(prev => ({ ...prev, list_sections: newSections }));
-                                  }}
-                                >
-                                  <X className="h-4 w-4 text-muted-foreground" />
-                                </Button>
-                              )}
-                            </div>
-                          ))}
-                          {section.rows.length < 10 && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                const newSections = [...form.list_sections];
-                                const newRowId = `${sectionIdx + 1}_${section.rows.length + 1}`;
-                                newSections[sectionIdx].rows.push({ title: '', description: '', rowId: newRowId });
-                                setForm(prev => ({ ...prev, list_sections: newSections }));
-                              }}
-                            >
-                              <Plus className="h-4 w-4 mr-1" />
-                              Adicionar item
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                    {form.list_sections.length < 10 && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          const newSectionIdx = form.list_sections.length + 1;
-                          setForm(prev => ({
-                            ...prev,
-                            list_sections: [...prev.list_sections, { 
-                              title: '', 
-                              rows: [{ title: '', description: '', rowId: `${newSectionIdx}_1` }] 
-                            }]
-                          }));
-                        }}
-                      >
-                        <Plus className="h-4 w-4 mr-1" />
-                        Adicionar seção
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              )}
 
               {/* Seletor de template como base - só para texto */}
               {form.interaction_type === 'text' && (
@@ -2346,9 +2129,6 @@ Ana Costa, 31977665544"
                     pollQuestion={form.poll_question}
                     pollOptions={form.poll_options.filter(o => o.trim())}
                     pollSelectableCount={form.poll_selectable_count}
-                    listTitle={form.list_title}
-                    listButtonText={form.list_button_text}
-                    listSections={form.list_sections}
                   />
 
                   {/* Legenda de variáveis usadas */}

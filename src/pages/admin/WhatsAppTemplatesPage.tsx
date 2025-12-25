@@ -47,8 +47,7 @@ import {
   Gift,
   RotateCcw,
   Sparkles,
-  BarChart3,
-  List
+  BarChart3
 } from "lucide-react";
 
 const CATEGORIES = [
@@ -66,7 +65,6 @@ const MESSAGE_TYPES = [
   { value: 'audio', label: 'Áudio', icon: FileAudio },
   { value: 'video', label: 'Vídeo', icon: Video },
   { value: 'poll', label: 'Enquete', icon: BarChart3 },
-  { value: 'list', label: 'Lista Interativa', icon: List },
 ];
 
 const VARIABLES = [

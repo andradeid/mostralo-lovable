@@ -1,9 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Receipt, ShoppingCart, BarChart3, History } from 'lucide-react';
+import { Eye, Receipt, ShoppingCart, BarChart3, History, TrendingUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { DateRange } from '@/components/admin/reports/types';
@@ -156,6 +157,17 @@ export function OrdersAnalysis({ dateRange, storeId }: OrdersAnalysisProps) {
 
     return (
       <div className="space-y-6">
+        {/* Instrução do Painel Analítico */}
+        <Alert className="bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800">
+          <TrendingUp className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          <AlertDescription className="text-amber-800 dark:text-amber-200 text-sm">
+            <strong>Painel Analítico:</strong> Visualize gráficos de status, origem 
+            das vendas (Online vs PDV) e uma amostra dos últimos pedidos. Para consultar 
+            <strong> todos os pedidos</strong> com filtros e detalhes completos, use a aba 
+            <strong> "Histórico Completo"</strong>.
+          </AlertDescription>
+        </Alert>
+        
         {/* Cards de Origem */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {sourceData.map((source, i) => (

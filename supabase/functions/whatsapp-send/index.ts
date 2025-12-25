@@ -164,13 +164,27 @@ serve(async (req) => {
         break;
       
       case 'buttons':
-        // Botões interativos (button reply)
+        // Botões interativos - Evolution API 2.x format
         endpoint = `${api_url}/message/sendButtons/${instance.instance_name}`;
         payload.title = content || 'Escolha uma opção';
         payload.description = mediaCaption || '';
         payload.footer = '';
-        payload.buttons = buttons || [];
-        console.log(`[whatsapp-send] Enviando botões: "${payload.title}" com ${payload.buttons?.length} botões`);
+        // Formatar botões para Evolution API
+        payload.buttons = (buttons || []).map((btn: any, idx: number) => {
+          if (btn.url) {
+            return {
+              type: 'url',
+              displayText: btn.text || btn.displayText || `Botão ${idx + 1}`,
+              url: btn.url
+            };
+          }
+          return {
+            type: 'reply',
+            displayText: btn.text || btn.displayText || `Botão ${idx + 1}`,
+            id: `btn_${idx + 1}`
+          };
+        });
+        console.log(`[whatsapp-send] Enviando botões: "${payload.title}" com ${payload.buttons?.length} botões`, JSON.stringify(payload.buttons));
         break;
       
       default:

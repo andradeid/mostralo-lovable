@@ -166,24 +166,46 @@ serve(async (req) => {
         console.log(`[whatsapp-send] Enviando enquete: "${payload.name}" com ${payload.values?.length} opções`);
         break;
       
-      case 'list':
-        // Lista interativa - Evolution API sendList usa "values" (não sections)
+      case 'list': {
+        // Lista interativa - algumas versões da Evolution API exigem "sections".
+        // Para compatibilidade, enviamos "sections" e também espelhamos em "values".
         endpoint = `${api_url}/message/sendList/${instance.instance_name}`;
         payload.title = listTitle || 'Escolha uma opção';
         payload.description = content || '';
         payload.buttonText = listButtonText || 'Ver opções';
         payload.footerText = '';
-        // Formatar seções para Evolution API - usa "values" e rowId deve ser string alfanumérica
-        payload.values = (listSections || []).map((section: any, sIdx: number) => ({
+
+        const safeRowId = (input: unknown, sIdx: number, rIdx: number) => {
+          const raw = (typeof input === 'string' || typeof input === 'number')
+            ? String(input).trim()
+            : '';
+
+          // Evita IDs puramente numéricos/underscore (podem quebrar internamente no Baileys/Long)
+          if (!raw || /^[0-9_]+$/.test(raw)) {
+            return `row_${sIdx}_${rIdx}_${Date.now()}`;
+          }
+
+          return raw.replace(/\s+/g, '_').slice(0, 64);
+        };
+
+        const sections = (listSections || []).map((section: any, sIdx: number) => ({
           title: section.title || 'Opções',
-          rows: (section.rows || []).filter((r: any) => r.title).map((row: any, rIdx: number) => ({
-            title: row.title,
-            description: row.description || '',
-            rowId: row.rowId || `row_${sIdx}_${rIdx}_${Date.now()}`
-          }))
+          rows: (section.rows || [])
+            .filter((r: any) => r.title)
+            .map((row: any, rIdx: number) => ({
+              title: row.title,
+              description: row.description || '',
+              rowId: safeRowId(row.rowId, sIdx, rIdx),
+            })),
         })).filter((s: any) => s.rows.length > 0);
+
+        payload.sections = sections;
+        payload.values = sections;
+
         console.log(`[whatsapp-send] Enviando lista payload:`, JSON.stringify(payload));
         break;
+      }
+
       
       case 'buttons':
         // Fallback para botões antigos - converte para texto

@@ -6760,6 +6760,12 @@ export type Database = {
       }
       whatsapp_campaigns: {
         Row: {
+          button_1_text: string | null
+          button_1_url: string | null
+          button_2_text: string | null
+          button_2_url: string | null
+          button_3_text: string | null
+          button_3_url: string | null
           completed_at: string | null
           created_at: string | null
           custom_message: string | null
@@ -6774,6 +6780,7 @@ export type Database = {
           filter_min_orders: number | null
           filter_min_spent: number | null
           id: string
+          interaction_type: string | null
           media_type: string | null
           media_url: string | null
           message_interval_seconds: number | null
@@ -6784,6 +6791,9 @@ export type Database = {
           name: string
           pause_after_messages: number | null
           pause_duration_seconds: number | null
+          poll_options: string[] | null
+          poll_question: string | null
+          poll_selectable_count: number | null
           scheduled_start_at: string | null
           start_hour: number | null
           started_at: string | null
@@ -6794,6 +6804,12 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          button_1_text?: string | null
+          button_1_url?: string | null
+          button_2_text?: string | null
+          button_2_url?: string | null
+          button_3_text?: string | null
+          button_3_url?: string | null
           completed_at?: string | null
           created_at?: string | null
           custom_message?: string | null
@@ -6808,6 +6824,7 @@ export type Database = {
           filter_min_orders?: number | null
           filter_min_spent?: number | null
           id?: string
+          interaction_type?: string | null
           media_type?: string | null
           media_url?: string | null
           message_interval_seconds?: number | null
@@ -6818,6 +6835,9 @@ export type Database = {
           name: string
           pause_after_messages?: number | null
           pause_duration_seconds?: number | null
+          poll_options?: string[] | null
+          poll_question?: string | null
+          poll_selectable_count?: number | null
           scheduled_start_at?: string | null
           start_hour?: number | null
           started_at?: string | null
@@ -6830,6 +6850,12 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          button_1_text?: string | null
+          button_1_url?: string | null
+          button_2_text?: string | null
+          button_2_url?: string | null
+          button_3_text?: string | null
+          button_3_url?: string | null
           completed_at?: string | null
           created_at?: string | null
           custom_message?: string | null
@@ -6844,6 +6870,7 @@ export type Database = {
           filter_min_orders?: number | null
           filter_min_spent?: number | null
           id?: string
+          interaction_type?: string | null
           media_type?: string | null
           media_url?: string | null
           message_interval_seconds?: number | null
@@ -6854,6 +6881,9 @@ export type Database = {
           name?: string
           pause_after_messages?: number | null
           pause_duration_seconds?: number | null
+          poll_options?: string[] | null
+          poll_question?: string | null
+          poll_selectable_count?: number | null
           scheduled_start_at?: string | null
           start_hour?: number | null
           started_at?: string | null
@@ -7245,6 +7275,7 @@ export type Database = {
       }
       whatsapp_messages: {
         Row: {
+          buttons: Json | null
           campaign_id: string | null
           content: string
           created_at: string | null
@@ -7255,11 +7286,15 @@ export type Database = {
           evolution_message_id: string | null
           failed_at: string | null
           id: string
+          interaction_type: string | null
           media_url: string | null
           message_type:
             | Database["public"]["Enums"]["whatsapp_message_type"]
             | null
           phone_number: string
+          poll_options: string[] | null
+          poll_question: string | null
+          poll_selectable_count: number | null
           read_at: string | null
           scheduled_for: string | null
           sent_at: string | null
@@ -7269,6 +7304,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          buttons?: Json | null
           campaign_id?: string | null
           content: string
           created_at?: string | null
@@ -7279,11 +7315,15 @@ export type Database = {
           evolution_message_id?: string | null
           failed_at?: string | null
           id?: string
+          interaction_type?: string | null
           media_url?: string | null
           message_type?:
             | Database["public"]["Enums"]["whatsapp_message_type"]
             | null
           phone_number: string
+          poll_options?: string[] | null
+          poll_question?: string | null
+          poll_selectable_count?: number | null
           read_at?: string | null
           scheduled_for?: string | null
           sent_at?: string | null
@@ -7293,6 +7333,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          buttons?: Json | null
           campaign_id?: string | null
           content?: string
           created_at?: string | null
@@ -7303,11 +7344,15 @@ export type Database = {
           evolution_message_id?: string | null
           failed_at?: string | null
           id?: string
+          interaction_type?: string | null
           media_url?: string | null
           message_type?:
             | Database["public"]["Enums"]["whatsapp_message_type"]
             | null
           phone_number?: string
+          poll_options?: string[] | null
+          poll_question?: string | null
+          poll_selectable_count?: number | null
           read_at?: string | null
           scheduled_for?: string | null
           sent_at?: string | null

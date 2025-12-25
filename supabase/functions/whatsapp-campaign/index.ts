@@ -271,13 +271,53 @@ serve(async (req) => {
         // Determinar fonte da mensagem: custom_message tem prioridade sobre template
         const baseMessageContent = campaign.custom_message || campaign.template?.content || '';
         
+        // Determinar tipo de interação (text, poll, buttons)
+        const interactionType = campaign.interaction_type || 'text';
+        
         // Determinar tipo de mensagem e mídia
         // Se campanha tem media_url própria, usa ela. Senão, usa do template.
         const campaignMediaUrl = campaign.media_url || campaign.template?.media_url || null;
         const campaignMediaType = campaign.media_type || campaign.template?.message_type || 'text';
         
-        // Se tem mídia, o tipo de mensagem é o tipo da mídia. Senão, é 'text'
-        const messageType = campaignMediaUrl ? campaignMediaType : 'text';
+        // Se é poll ou buttons, usa esse tipo. Se tem mídia, usa o tipo da mídia. Senão, é 'text'
+        let messageType = 'text';
+        if (interactionType === 'poll' || interactionType === 'buttons') {
+          messageType = interactionType;
+        } else if (campaignMediaUrl) {
+          messageType = campaignMediaType;
+        }
+        
+        // Dados de enquete
+        const pollQuestion = campaign.poll_question || null;
+        const pollOptions = campaign.poll_options || [];
+        const pollSelectableCount = campaign.poll_selectable_count || 1;
+        
+        // Dados de botões
+        const campaignButtons: any[] = [];
+        if (campaign.button_1_text) {
+          campaignButtons.push({ 
+            buttonId: '1', 
+            buttonText: { displayText: campaign.button_1_text },
+            type: campaign.button_1_url ? 2 : 1, // 2 = URL, 1 = reply
+            url: campaign.button_1_url || undefined
+          });
+        }
+        if (campaign.button_2_text) {
+          campaignButtons.push({ 
+            buttonId: '2', 
+            buttonText: { displayText: campaign.button_2_text },
+            type: campaign.button_2_url ? 2 : 1,
+            url: campaign.button_2_url || undefined
+          });
+        }
+        if (campaign.button_3_text) {
+          campaignButtons.push({ 
+            buttonId: '3', 
+            buttonText: { displayText: campaign.button_3_text },
+            type: campaign.button_3_url ? 2 : 1,
+            url: campaign.button_3_url || undefined
+          });
+        }
 
         let accumulatedTimeMs = 0;
         
@@ -314,6 +354,12 @@ serve(async (req) => {
             media_url: campaignMediaUrl,
             status: 'pending',
             scheduled_for: scheduledTime.toISOString(),
+            // Campos de enquete e botões
+            interaction_type: interactionType,
+            poll_question: pollQuestion,
+            poll_options: pollOptions,
+            poll_selectable_count: pollSelectableCount,
+            buttons: campaignButtons.length > 0 ? campaignButtons : null,
           });
         });
 
@@ -369,6 +415,12 @@ serve(async (req) => {
               media_url: campaignMediaUrl,
               status: 'pending',
               scheduled_for: scheduledTime.toISOString(),
+              // Campos de enquete e botões
+              interaction_type: interactionType,
+              poll_question: pollQuestion,
+              poll_options: pollOptions,
+              poll_selectable_count: pollSelectableCount,
+              buttons: campaignButtons.length > 0 ? campaignButtons : null,
             });
             
             console.log(`[whatsapp-campaign] Contato manual adicionado: ${manual.name} - ${phoneNormalized}`);
@@ -480,18 +532,43 @@ serve(async (req) => {
               continue;
             }
 
-            // Enviar mensagem
-            const endpoint = message.message_type === 'text'
-              ? `${evolutionConfig.api_url}/message/sendText/${instance.instance_name}`
-              : `${evolutionConfig.api_url}/message/sendMedia/${instance.instance_name}`;
-
+            // Enviar mensagem baseado no tipo
+            let endpoint = '';
             const payload: any = { number: message.phone_number };
-            if (message.message_type === 'text') {
-              payload.text = message.content;
-            } else {
-              payload.mediatype = message.message_type;
-              payload.media = message.media_url;
-              payload.caption = message.content;
+            
+            const msgType = message.message_type || 'text';
+            
+            switch (msgType) {
+              case 'poll':
+                // Enquete
+                endpoint = `${evolutionConfig.api_url}/message/sendPoll/${instance.instance_name}`;
+                payload.name = message.poll_question || message.content;
+                payload.selectableCount = message.poll_selectable_count || 1;
+                payload.values = message.poll_options || [];
+                console.log(`[whatsapp-campaign] Enviando enquete para ${message.phone_number}`);
+                break;
+              
+              case 'buttons':
+                // Botões
+                endpoint = `${evolutionConfig.api_url}/message/sendButtons/${instance.instance_name}`;
+                payload.title = message.content || 'Escolha uma opção';
+                payload.description = '';
+                payload.footer = '';
+                payload.buttons = message.buttons || [];
+                console.log(`[whatsapp-campaign] Enviando botões para ${message.phone_number}`);
+                break;
+              
+              case 'text':
+                endpoint = `${evolutionConfig.api_url}/message/sendText/${instance.instance_name}`;
+                payload.text = message.content;
+                break;
+              
+              default:
+                // image, video, document, audio
+                endpoint = `${evolutionConfig.api_url}/message/sendMedia/${instance.instance_name}`;
+                payload.mediatype = msgType;
+                payload.media = message.media_url;
+                payload.caption = message.content;
             }
 
             const response = await fetch(endpoint, {

@@ -64,6 +64,11 @@ serve(async (req) => {
       customerId,
       campaignId,
       templateId,
+      // Novos campos para enquete e botões
+      pollQuestion,
+      pollOptions,
+      pollSelectableCount = 1,
+      buttons,
     } = await req.json();
 
     console.log(`[whatsapp-send] Enviando mensagem para ${phoneNumber}, Store: ${storeId}`);
@@ -116,6 +121,7 @@ serve(async (req) => {
       number: formattedPhone,
     };
 
+
     switch (messageType) {
       case 'text':
         endpoint = `${api_url}/message/sendText/${instance.instance_name}`;
@@ -146,6 +152,25 @@ serve(async (req) => {
         payload.mediatype = 'video';
         payload.media = mediaUrl;
         payload.caption = mediaCaption || content;
+        break;
+      
+      case 'poll':
+        // Enquete interativa
+        endpoint = `${api_url}/message/sendPoll/${instance.instance_name}`;
+        payload.name = pollQuestion || content; // Pergunta da enquete
+        payload.selectableCount = pollSelectableCount;
+        payload.values = pollOptions || [];
+        console.log(`[whatsapp-send] Enviando enquete: "${payload.name}" com ${payload.values?.length} opções`);
+        break;
+      
+      case 'buttons':
+        // Botões interativos (button reply)
+        endpoint = `${api_url}/message/sendButtons/${instance.instance_name}`;
+        payload.title = content || 'Escolha uma opção';
+        payload.description = mediaCaption || '';
+        payload.footer = '';
+        payload.buttons = buttons || [];
+        console.log(`[whatsapp-send] Enviando botões: "${payload.title}" com ${payload.buttons?.length} botões`);
         break;
       
       default:

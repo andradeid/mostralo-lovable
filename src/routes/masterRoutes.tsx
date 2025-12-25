@@ -48,6 +48,7 @@ const AdminSharePage = lazy(() => import("@/pages/admin/AdminSharePage"));
 const ContractTemplateEditPage = lazy(() => import("@/pages/admin/ContractTemplateEditPage"));
 const SystemUpdatesManagementPage = lazy(() => import("@/pages/admin/SystemUpdatesManagementPage"));
 const SystemBannersPage = lazy(() => import("@/pages/admin/SystemBannersPage"));
+const TechnicalDocsPage = lazy(() => import("@/pages/admin/TechnicalDocsPage"));
 
 export const masterRoutes = (
   <>
@@ -354,6 +355,13 @@ export const masterRoutes = (
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Banners do Sistema">
           <LazyRoute><SystemBannersPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/documentacao-tecnica" element={
+      <ProtectedRoute allowedRoles={['master_admin']}>
+        <AdminLayout pageTitle="Documentação Técnica">
+          <LazyRoute><TechnicalDocsPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

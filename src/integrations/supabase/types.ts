@@ -307,6 +307,93 @@ export type Database = {
         }
         Relationships: []
       }
+      attendant_notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_enabled: boolean
+          notification_key: string
+          store_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          notification_key: string
+          store_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          notification_key?: string
+          store_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendant_notifications_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendant_notifications_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attendant_permissions: {
+        Row: {
+          created_at: string
+          id: string
+          is_enabled: boolean
+          permission_key: string
+          store_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          permission_key: string
+          store_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          permission_key?: string
+          store_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendant_permissions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendant_permissions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       banners: {
         Row: {
           created_at: string
@@ -7669,6 +7756,10 @@ export type Database = {
         Args: { admin_user_id: string; approval_id: string }
         Returns: boolean
       }
+      attendant_has_permission: {
+        Args: { _permission_key: string; _store_id: string; _user_id: string }
+        Returns: boolean
+      }
       can_access_store_comandas: {
         Args: { check_store_id: string }
         Returns: boolean
@@ -7772,6 +7863,7 @@ export type Database = {
         Args: { variant_product_id: string }
         Returns: boolean
       }
+      is_store_admin_of: { Args: { _store_id: string }; Returns: boolean }
       is_store_admin_of_attendant: {
         Args: { attendant_user_id: string }
         Returns: boolean

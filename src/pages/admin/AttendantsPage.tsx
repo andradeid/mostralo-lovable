@@ -16,17 +16,18 @@ import {
   Edit,
   Trash2,
   Store,
-  X
+  Settings
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/use-auth';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { usePageSEO } from '@/hooks/useSEO';
 import { ModuleGate } from '@/components/admin/ModuleGate';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
+import { AttendantPermissionsDialog } from '@/components/admin/AttendantPermissionsDialog';
 
 interface Attendant {
   id: string;
@@ -52,6 +53,7 @@ const AttendantsPage = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isPermissionsDialogOpen, setIsPermissionsDialogOpen] = useState(false);
   const [selectedAttendant, setSelectedAttendant] = useState<Attendant | null>(null);
   const [formData, setFormData] = useState({
     email: '',
@@ -458,6 +460,16 @@ const AttendantsPage = () => {
                       <DropdownMenuItem
                         onClick={() => {
                           setSelectedAttendant(attendant);
+                          setIsPermissionsDialogOpen(true);
+                        }}
+                      >
+                        <Settings className="w-4 h-4 mr-2" />
+                        Configurar
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setSelectedAttendant(attendant);
                           setFormData({
                             email: attendant.email,
                             full_name: attendant.full_name || '',
@@ -646,6 +658,15 @@ const AttendantsPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog Configurar Permissões */}
+      {selectedAttendant && (
+        <AttendantPermissionsDialog
+          open={isPermissionsDialogOpen}
+          onOpenChange={setIsPermissionsDialogOpen}
+          attendant={selectedAttendant}
+        />
+      )}
     </div>
     </ModuleGate>
   );

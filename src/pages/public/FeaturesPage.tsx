@@ -5,7 +5,8 @@ import {
   BarChart3, Tag, Calendar, Printer, Palette, Map, Users, Megaphone, 
   Link2, Image, AlertTriangle, Check, ArrowRight, Star, Shield, Database,
   Heart, Clock, Target, Zap, TrendingUp, Bell, MapPin, CreditCard, Copy, FileText,
-  Wallet, PieChart, ArrowUpDown, Filter, RefreshCw, Monitor, QrCode, Code, Volume2
+  Wallet, PieChart, ArrowUpDown, Filter, RefreshCw, Monitor, QrCode, Code, Volume2,
+  ShoppingCart, ClipboardList, UtensilsCrossed
 } from 'lucide-react';
 import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
 import { toast } from 'sonner';
@@ -26,6 +27,10 @@ const sections = [
   { id: 'promocoes', title: 'Promoções e Cupons', icon: Tag },
   { id: 'agendados', title: 'Pedidos Agendados', icon: Calendar },
   { id: 'impressao', title: 'Impressão Automática', icon: Printer },
+  { id: 'pdv', title: 'PDV (Ponto de Venda)', icon: ShoppingCart },
+  { id: 'comandas', title: 'Comandas Digitais', icon: ClipboardList },
+  { id: 'garcom', title: 'App do Garçom', icon: Smartphone },
+  { id: 'kds', title: 'KDS (Cozinha)', icon: UtensilsCrossed },
   { id: 'painel-digital', title: 'Painel Digital (TV)', icon: Monitor },
   { id: 'chamada-senhas', title: 'Chamada de Senhas', icon: Volume2 },
   { id: 'personalizacao', title: 'Personalização', icon: Palette },
@@ -314,6 +319,68 @@ const whatsappTexts: Record<string, string> = {
 • Agências de marketing configurando clientes
 • Lojas com estratégias avançadas de ads
 • Integrações personalizadas`,
+
+  'pdv': `🛒 *PDV - PONTO DE VENDA* ⭐ PRESENCIAL
+
+✅ Vendas rápidas no balcão
+✅ Tela touch otimizada
+✅ Busca rápida de produtos
+✅ Múltiplas formas de pagamento
+✅ PIX, Cartão, Dinheiro, Fiado
+✅ Integrado com comandas e cozinha
+
+📊 *Benefícios:*
+• Atendimento em segundos
+• Sem filas no caixa
+• Relatórios unificados (delivery + balcão)`,
+
+  'comandas': `📋 *COMANDAS DIGITAIS* 📱 MESAS
+
+✅ Abertura de mesa em 2 toques
+✅ Status em tempo real por mesa
+✅ Divisão de conta automática
+✅ Histórico completo da mesa
+✅ Transferência entre mesas
+✅ Fechamento parcial ou total
+
+📊 *Benefícios:*
+• Controle visual de todas as mesas
+• Sem papel, sem perda de pedidos
+• Cliente acompanha consumo pelo celular`,
+
+  'garcom': `👨‍🍳 *APP DO GARÇOM* 📲 EXCLUSIVO
+
+✅ Celular vira terminal de pedidos
+✅ Fotos dos produtos para não errar
+✅ Modal de confirmação antes de enviar
+✅ Funciona offline (PWA)
+✅ Envia direto para cozinha
+✅ Sem investir em equipamento caro
+
+📊 *Benefícios:*
+• Zero erros de anotação
+• Atendimento mais rápido
+• Garçom não precisa ir até a cozinha`,
+
+  'kds': `🍳 *KDS - KITCHEN DISPLAY SYSTEM* 🔥 NOVO!
+
+⚠️ *Problema:* Cozinha depende de gritos, papéis e confusão
+
+✅ Tela com pedidos em tempo real
+✅ Cores por tempo de espera:
+   🟢 Verde: menos de 5 minutos
+   🟡 Amarelo: 5-10 minutos
+   🔴 Vermelho: mais de 10 minutos
+✅ Alertas sonoros para novos pedidos
+✅ Marcar itens como "preparando" ou "pronto"
+✅ Estatísticas de pendentes/em preparo/prontos
+✅ Sincronizado com garçom e PDV
+
+📊 *Benefícios:*
+• Fim da bagunça de papéis
+• Cozinheiro sabe a prioridade
+• Garçom vê quando pedido fica pronto
+• Funciona em TV, tablet ou monitor`,
 };
 
 export default function FeaturesPage() {
@@ -410,6 +477,39 @@ Funcionalidades:
 - Impressão automática ao aceitar pedido
 - Personalização do layout do pedido
 - Múltiplas cópias (cozinha, entrega, cliente)
+
+## PDV - PONTO DE VENDA (PRESENCIAL)
+- Vendas rápidas no balcão sem comandas
+- Tela touch otimizada para velocidade
+- Busca rápida de produtos por nome
+- Aceita PIX, Cartão, Dinheiro, Fiado
+- Integrado com cozinha automaticamente
+- Relatórios unificados (delivery + balcão + mesas)
+
+## COMANDAS DIGITAIS POR MESA
+- Abertura de mesa em 2 toques
+- Status em tempo real (ocupada, aguardando, fechando)
+- Divisão de conta automática entre clientes
+- Transferência de itens entre mesas
+- Histórico completo de consumo
+- Fechamento parcial ou total
+
+## APP DO GARÇOM
+- Celular do garçom vira terminal de pedidos
+- Fotos dos produtos para não errar nunca
+- Modal de confirmação antes de enviar
+- Funciona offline (tecnologia PWA)
+- Pedido vai direto para cozinha
+- Sem investir em equipamento caro
+
+## KDS - KITCHEN DISPLAY SYSTEM (NOVO!)
+- Tela da cozinha com pedidos em tempo real
+- Cores por tempo de espera (verde → amarelo → vermelho)
+- Alertas sonoros para novos pedidos
+- Marcar itens como "preparando" ou "pronto"
+- Estatísticas ao vivo (pendentes, preparando, prontos)
+- Sincronizado com garçom, PDV e comandas
+- Funciona em TV, tablet ou monitor
 
 ## PERSONALIZAÇÃO DA LOJA
 - Logo e cores da sua marca
@@ -1387,6 +1487,244 @@ Site: mostralo.com.br`;
               <h4 className="font-semibold text-foreground mb-2">Sem redigitar nada!</h4>
               <p className="text-sm text-muted-foreground">
                 Pedido entra, comanda sai automaticamente na cozinha. Reduz erros de anotação e agiliza a produção.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Section: PDV (Ponto de Venda) */}
+        <section id="pdv" className="py-16 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-12 h-12 bg-orange-500/10 rounded-xl flex items-center justify-center">
+                <ShoppingCart className="h-6 w-6 text-orange-500" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">PDV - Ponto de Venda</h2>
+                  <span className="bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded">PRESENCIAL</span>
+                  <button
+                    onClick={() => copyWhatsAppText('pdv')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
+                <p className="text-muted-foreground">Vendas rápidas no balcão sem complicação</p>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {[
+                { title: 'Vendas Rápidas', desc: 'Atenda clientes no balcão em segundos', icon: Zap },
+                { title: 'Tela Touch Otimizada', desc: 'Interface pensada para velocidade e praticidade', icon: Smartphone },
+                { title: 'Busca Inteligente', desc: 'Encontre produtos rapidamente por nome ou código', icon: Target },
+                { title: 'Múltiplos Pagamentos', desc: 'PIX, cartão, dinheiro, fiado - tudo aceito', icon: CreditCard },
+                { title: 'Integração Total', desc: 'Sincronizado com comandas, cozinha e estoque', icon: Link2 },
+                { title: 'Relatórios Unificados', desc: 'Veja vendas de delivery + balcão + mesas juntos', icon: BarChart3 },
+              ].map((item, i) => (
+                <Card key={i} className="bg-card hover:shadow-md transition-shadow">
+                  <CardContent className="p-5">
+                    <item.icon className="h-8 w-8 text-orange-500 mb-3" />
+                    <h4 className="font-semibold text-foreground mb-1">{item.title}</h4>
+                    <p className="text-sm text-muted-foreground">{item.desc}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-6">
+              <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                <Check className="h-5 w-5 text-green-600" /> Atendimento Ágil
+              </h4>
+              <p className="text-sm text-muted-foreground">
+                Cliente chegou? Em poucos segundos o pedido está registrado e enviado para a cozinha. 
+                Sem filas, sem demora, sem erros de anotação manual.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Section: Comandas Digitais */}
+        <section id="comandas" className="py-16 bg-background">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center">
+                <ClipboardList className="h-6 w-6 text-purple-500" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">Comandas Digitais</h2>
+                  <span className="bg-purple-500 text-white text-xs font-bold px-2 py-1 rounded">MESAS</span>
+                  <button
+                    onClick={() => copyWhatsAppText('comandas')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
+                <p className="text-muted-foreground">Controle total das mesas do seu estabelecimento</p>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {[
+                { title: 'Abertura Rápida', desc: 'Abra uma mesa em apenas 2 toques', icon: Zap },
+                { title: 'Status em Tempo Real', desc: 'Veja ocupação, pedidos pendentes e tempo de mesa', icon: Clock },
+                { title: 'Divisão de Conta', desc: 'Divida automaticamente entre os clientes', icon: Users },
+                { title: 'Histórico Completo', desc: 'Tudo que foi consumido na mesa, item por item', icon: FileText },
+                { title: 'Transferência', desc: 'Transfira itens ou toda a mesa para outra', icon: ArrowUpDown },
+                { title: 'Fechamento Flexível', desc: 'Feche parcial ou totalmente como preferir', icon: Check },
+              ].map((item, i) => (
+                <Card key={i} className="bg-card hover:shadow-md transition-shadow">
+                  <CardContent className="p-5">
+                    <item.icon className="h-8 w-8 text-purple-500 mb-3" />
+                    <h4 className="font-semibold text-foreground mb-1">{item.title}</h4>
+                    <p className="text-sm text-muted-foreground">{item.desc}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-6">
+              <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                <ClipboardList className="h-5 w-5 text-purple-500" /> Adeus Papel!
+              </h4>
+              <p className="text-sm text-muted-foreground">
+                Sem comandas de papel que se perdem, rasgam ou ficam ilegíveis. 
+                Tudo digital, organizado, com histórico completo e controle visual de todas as mesas.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Section: App do Garçom */}
+        <section id="garcom" className="py-16 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center">
+                <Smartphone className="h-6 w-6 text-blue-500" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">App do Garçom</h2>
+                  <span className="bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded">EXCLUSIVO</span>
+                  <button
+                    onClick={() => copyWhatsAppText('garcom')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
+                <p className="text-muted-foreground">O celular do garçom vira terminal de pedidos</p>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {[
+                { title: 'Celular = Terminal', desc: 'Sem investir em equipamentos caros - usa o próprio celular', icon: Smartphone },
+                { title: 'Fotos dos Produtos', desc: 'Garçom vê a foto do prato para não errar nunca', icon: Image },
+                { title: 'Confirmação Visual', desc: 'Modal de confirmação antes de enviar o pedido', icon: Check },
+                { title: 'Funciona Offline', desc: 'Tecnologia PWA - funciona mesmo sem internet', icon: Zap },
+                { title: 'Direto pra Cozinha', desc: 'Pedido vai automaticamente para o KDS/impressora', icon: UtensilsCrossed },
+                { title: 'Zero Investimento', desc: 'Não precisa comprar tablets ou terminais', icon: CreditCard },
+              ].map((item, i) => (
+                <Card key={i} className="bg-card hover:shadow-md transition-shadow">
+                  <CardContent className="p-5">
+                    <item.icon className="h-8 w-8 text-blue-500 mb-3" />
+                    <h4 className="font-semibold text-foreground mb-1">{item.title}</h4>
+                    <p className="text-sm text-muted-foreground">{item.desc}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-6">
+              <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                <Zap className="h-5 w-5 text-blue-500" /> Atendimento Mais Rápido
+              </h4>
+              <p className="text-sm text-muted-foreground">
+                Zero erros de anotação, atendimento muito mais rápido, e o garçom não precisa ir até a cozinha. 
+                O pedido aparece instantaneamente na tela da cozinha assim que é confirmado.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Section: KDS (Cozinha) */}
+        <section id="kds" className="py-16 bg-gradient-to-br from-rose-50 to-red-50 dark:from-rose-950/20 dark:to-red-950/20">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-12 h-12 bg-rose-500/10 rounded-xl flex items-center justify-center">
+                <UtensilsCrossed className="h-6 w-6 text-rose-500" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">KDS - Kitchen Display System</h2>
+                  <span className="bg-rose-500 text-white text-xs font-bold px-2 py-1 rounded-full">🔥 NOVO!</span>
+                  <button
+                    onClick={() => copyWhatsAppText('kds')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
+                <p className="text-muted-foreground">Tela da cozinha com pedidos em tempo real</p>
+              </div>
+            </div>
+
+            {/* Destaque de cores */}
+            <div className="bg-gradient-to-r from-green-500/10 via-yellow-500/10 to-red-500/10 border border-rose-500/30 rounded-xl p-6 mb-8">
+              <h4 className="font-bold text-foreground text-lg mb-4 text-center">Sistema de Cores por Tempo de Espera</h4>
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="bg-green-500/20 rounded-lg p-4 border border-green-500/30 text-center">
+                  <span className="text-3xl mb-2 block">🟢</span>
+                  <h5 className="font-semibold text-green-700 dark:text-green-400">Verde</h5>
+                  <p className="text-sm text-muted-foreground">Menos de 5 minutos</p>
+                </div>
+                <div className="bg-yellow-500/20 rounded-lg p-4 border border-yellow-500/30 text-center">
+                  <span className="text-3xl mb-2 block">🟡</span>
+                  <h5 className="font-semibold text-yellow-700 dark:text-yellow-400">Amarelo</h5>
+                  <p className="text-sm text-muted-foreground">5-10 minutos</p>
+                </div>
+                <div className="bg-red-500/20 rounded-lg p-4 border border-red-500/30 text-center">
+                  <span className="text-3xl mb-2 block">🔴</span>
+                  <h5 className="font-semibold text-red-700 dark:text-red-400">Vermelho</h5>
+                  <p className="text-sm text-muted-foreground">Mais de 10 minutos</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {[
+                { title: 'Pedidos em Tempo Real', desc: 'Veja todos os pedidos assim que entram', icon: Zap },
+                { title: 'Alertas Sonoros', desc: 'Bipe quando entra novo pedido na fila', icon: Bell },
+                { title: 'Marcar Status', desc: '"Preparando" ou "Pronto" com um toque', icon: Check },
+                { title: 'Estatísticas ao Vivo', desc: 'Pendentes, em preparo e prontos em tempo real', icon: BarChart3 },
+                { title: 'Multi-dispositivo', desc: 'Funciona em TV, tablet, monitor ou celular', icon: Monitor },
+                { title: 'Sincronizado', desc: 'Integrado com garçom, PDV e comandas', icon: RefreshCw },
+              ].map((item, i) => (
+                <Card key={i} className="bg-card hover:shadow-md transition-shadow">
+                  <CardContent className="p-5">
+                    <item.icon className="h-8 w-8 text-rose-500 mb-3" />
+                    <h4 className="font-semibold text-foreground mb-1">{item.title}</h4>
+                    <p className="text-sm text-muted-foreground">{item.desc}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-6">
+              <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                <UtensilsCrossed className="h-5 w-5 text-rose-500" /> Fim da Bagunça na Cozinha!
+              </h4>
+              <p className="text-sm text-muted-foreground">
+                Chega de papéis voando, gritos e confusão. O cozinheiro sabe exatamente a prioridade de cada pedido 
+                pelas cores, e o garçom vê automaticamente quando o pedido fica pronto. Tudo sincronizado!
               </p>
             </div>
           </div>

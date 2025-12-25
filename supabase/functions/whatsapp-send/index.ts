@@ -167,19 +167,19 @@ serve(async (req) => {
         break;
       
       case 'list':
-        // Lista interativa - Evolution API sendList
+        // Lista interativa - Evolution API sendList usa "values" (não sections)
         endpoint = `${api_url}/message/sendList/${instance.instance_name}`;
         payload.title = listTitle || 'Escolha uma opção';
         payload.description = content || '';
         payload.buttonText = listButtonText || 'Ver opções';
         payload.footerText = '';
-        // Formatar seções para Evolution API - usa "sections"
-        payload.sections = (listSections || []).map((section: any) => ({
+        // Formatar seções para Evolution API - usa "values" e rowId deve ser string alfanumérica
+        payload.values = (listSections || []).map((section: any, sIdx: number) => ({
           title: section.title || 'Opções',
-          rows: (section.rows || []).filter((r: any) => r.title).map((row: any) => ({
+          rows: (section.rows || []).filter((r: any) => r.title).map((row: any, rIdx: number) => ({
             title: row.title,
             description: row.description || '',
-            rowId: row.rowId || String(Math.random()).slice(2, 10)
+            rowId: row.rowId || `row_${sIdx}_${rIdx}_${Date.now()}`
           }))
         })).filter((s: any) => s.rows.length > 0);
         console.log(`[whatsapp-send] Enviando lista payload:`, JSON.stringify(payload));

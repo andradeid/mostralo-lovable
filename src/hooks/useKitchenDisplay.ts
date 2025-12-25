@@ -6,7 +6,8 @@ import { useToast } from '@/hooks/use-toast';
 
 export interface KitchenItem {
   id: string;
-  comanda_id: string;
+  source: 'comanda' | 'order'; // Origem do item
+  source_id: string; // comanda_id ou order_id
   product_id: string | null;
   product_name: string;
   unit_price: number;
@@ -19,9 +20,9 @@ export interface KitchenItem {
   preparation_status: 'pending' | 'preparing' | 'ready';
   preparation_started_at: string | null;
   prepared_at: string | null;
-  // Dados da comanda
-  comanda_number: string;
-  comanda_type: string;
+  // Dados do pedido/comanda
+  order_number: string;
+  order_type: 'mesa' | 'balcao' | 'delivery' | 'pickup';
   table_number: string | null;
   customer_name: string | null;
 }
@@ -34,13 +35,14 @@ export function useKitchenDisplay() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const previousItemsRef = useRef<string[]>([]);
 
-  // Buscar itens pendentes e em preparo
+  // Buscar itens pendentes e em preparo de AMBAS as tabelas
   const { data: kitchenItems = [], isLoading, refetch } = useQuery({
     queryKey: ['kitchen-items', storeId],
     queryFn: async () => {
       if (!storeId) return [];
 
-      const { data, error } = await supabase
+      // Buscar itens de comandas
+      const { data: comandaItems, error: comandaError } = await supabase
         .from('comanda_items')
         .select(`
           *,
@@ -58,11 +60,37 @@ export function useKitchenDisplay() {
         .in('preparation_status', ['pending', 'preparing'])
         .order('added_at', { ascending: true });
 
-      if (error) throw error;
+      if (comandaError) {
+        console.error('Erro ao buscar itens de comandas:', comandaError);
+      }
 
-      return (data || []).map((item: any) => ({
+      // Buscar itens de pedidos (orders) em preparo
+      const { data: orderItems, error: orderError } = await supabase
+        .from('order_items')
+        .select(`
+          *,
+          orders!inner (
+            order_number,
+            delivery_type,
+            customer_name,
+            store_id,
+            status
+          )
+        `)
+        .eq('orders.store_id', storeId)
+        .eq('orders.status', 'em_preparo')
+        .in('preparation_status', ['pending', 'preparing'])
+        .order('created_at', { ascending: true });
+
+      if (orderError) {
+        console.error('Erro ao buscar itens de pedidos:', orderError);
+      }
+
+      // Mapear itens de comandas
+      const mappedComandaItems: KitchenItem[] = (comandaItems || []).map((item: any) => ({
         id: item.id,
-        comanda_id: item.comanda_id,
+        source: 'comanda' as const,
+        source_id: item.comanda_id,
         product_id: item.product_id,
         product_name: item.product_name,
         unit_price: item.unit_price,
@@ -75,11 +103,41 @@ export function useKitchenDisplay() {
         preparation_status: item.preparation_status || 'pending',
         preparation_started_at: item.preparation_started_at,
         prepared_at: item.prepared_at,
-        comanda_number: item.comandas.number,
-        comanda_type: item.comandas.type,
+        order_number: item.comandas.number,
+        order_type: item.comandas.type === 'mesa' ? 'mesa' : 'balcao',
         table_number: item.comandas.table_number,
         customer_name: item.comandas.customer_name,
-      })) as KitchenItem[];
+      }));
+
+      // Mapear itens de pedidos
+      const mappedOrderItems: KitchenItem[] = (orderItems || []).map((item: any) => ({
+        id: item.id,
+        source: 'order' as const,
+        source_id: item.order_id,
+        product_id: item.product_id,
+        product_name: item.product_name,
+        unit_price: item.unit_price,
+        quantity: item.quantity,
+        total_price: item.total_price,
+        addons: item.addons,
+        notes: item.notes,
+        added_by: null,
+        added_at: item.created_at,
+        preparation_status: item.preparation_status || 'pending',
+        preparation_started_at: item.preparation_started_at,
+        prepared_at: item.prepared_at,
+        order_number: item.orders.order_number,
+        order_type: item.orders.delivery_type === 'delivery' ? 'delivery' : 'pickup',
+        table_number: null,
+        customer_name: item.orders.customer_name,
+      }));
+
+      // Combinar e ordenar por data de adição
+      const allItems = [...mappedComandaItems, ...mappedOrderItems].sort((a, b) => 
+        new Date(a.added_at).getTime() - new Date(b.added_at).getTime()
+      );
+
+      return allItems;
     },
     enabled: !!storeId,
     refetchInterval: 30000, // Fallback: refetch a cada 30s
@@ -101,14 +159,15 @@ export function useKitchenDisplay() {
     }
   }, [soundEnabled]);
 
-  // Realtime subscription
+  // Realtime subscription para AMBAS as tabelas
   useEffect(() => {
     if (!storeId) return;
 
     console.log('🔔 KDS: Configurando realtime para store:', storeId);
 
-    const channel = supabase
-      .channel('kitchen-items-realtime')
+    // Canal para comanda_items
+    const comandaChannel = supabase
+      .channel('kitchen-comanda-items-realtime')
       .on(
         'postgres_changes',
         {
@@ -117,37 +176,69 @@ export function useKitchenDisplay() {
           table: 'comanda_items',
         },
         (payload) => {
-          console.log('🔔 KDS: Mudança detectada:', payload.eventType);
+          console.log('🔔 KDS: Mudança em comanda_items:', payload.eventType);
           
-          // Se for INSERT, tocar som de alerta
           if (payload.eventType === 'INSERT') {
             const newItem = payload.new as any;
             if (newItem.preparation_status === 'pending') {
               playAlertSound();
               toast({
-                title: '🍳 Novo pedido!',
+                title: '🍽️ Novo item de comanda!',
                 description: `${newItem.product_name} (${newItem.quantity}x)`,
               });
             }
           }
           
-          // Refetch para atualizar lista
+          refetch();
+        }
+      )
+      .subscribe();
+
+    // Canal para order_items
+    const orderChannel = supabase
+      .channel('kitchen-order-items-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'order_items',
+        },
+        (payload) => {
+          console.log('🔔 KDS: Mudança em order_items:', payload.eventType);
+          
+          if (payload.eventType === 'UPDATE') {
+            const updatedItem = payload.new as any;
+            // Se mudou para pending (pedido aceito), tocar som
+            if (updatedItem.preparation_status === 'pending' && 
+                (!payload.old || (payload.old as any).preparation_status !== 'pending')) {
+              playAlertSound();
+              toast({
+                title: '📦 Novo pedido na cozinha!',
+                description: `${updatedItem.product_name} (${updatedItem.quantity}x)`,
+              });
+            }
+          }
+          
           refetch();
         }
       )
       .subscribe();
 
     return () => {
-      console.log('🔔 KDS: Removendo subscription realtime');
-      supabase.removeChannel(channel);
+      console.log('🔔 KDS: Removendo subscriptions realtime');
+      supabase.removeChannel(comandaChannel);
+      supabase.removeChannel(orderChannel);
     };
   }, [storeId, refetch, playAlertSound, toast]);
 
   // Marcar como "Preparando"
   const startPreparingMutation = useMutation({
-    mutationFn: async (itemId: string) => {
+    mutationFn: async ({ itemId, source }: { itemId: string; source: 'comanda' | 'order' }) => {
+      const table = source === 'comanda' ? 'comanda_items' : 'order_items';
+      
       const { error } = await supabase
-        .from('comanda_items')
+        .from(table)
         .update({
           preparation_status: 'preparing',
           preparation_started_at: new Date().toISOString(),
@@ -171,9 +262,11 @@ export function useKitchenDisplay() {
 
   // Marcar como "Pronto"
   const markReadyMutation = useMutation({
-    mutationFn: async (itemId: string) => {
+    mutationFn: async ({ itemId, source }: { itemId: string; source: 'comanda' | 'order' }) => {
+      const table = source === 'comanda' ? 'comanda_items' : 'order_items';
+      
       const { error } = await supabase
-        .from('comanda_items')
+        .from(table)
         .update({
           preparation_status: 'ready',
           prepared_at: new Date().toISOString(),
@@ -186,7 +279,7 @@ export function useKitchenDisplay() {
       queryClient.invalidateQueries({ queryKey: ['kitchen-items', storeId] });
       toast({
         title: 'Item pronto!',
-        description: 'O garçom foi notificado.',
+        description: 'O garçom/entregador foi notificado.',
       });
     },
     onError: (error) => {
@@ -214,36 +307,52 @@ export function useKitchenDisplay() {
     return 'bg-red-500/20 border-red-500';
   };
 
-  // Agrupar itens por comanda
-  const groupedByComanda = kitchenItems.reduce((acc, item) => {
-    const key = item.comanda_id;
+  // Agrupar itens por pedido/comanda
+  const groupedByOrder = kitchenItems.reduce((acc, item) => {
+    const key = `${item.source}-${item.source_id}`;
     if (!acc[key]) {
       acc[key] = {
-        comanda_number: item.comanda_number,
-        comanda_type: item.comanda_type,
+        order_number: item.order_number,
+        order_type: item.order_type,
         table_number: item.table_number,
         customer_name: item.customer_name,
+        source: item.source,
         items: [],
       };
     }
     acc[key].items.push(item);
     return acc;
-  }, {} as Record<string, { comanda_number: string; comanda_type: string; table_number: string | null; customer_name: string | null; items: KitchenItem[] }>);
+  }, {} as Record<string, { order_number: string; order_type: string; table_number: string | null; customer_name: string | null; source: string; items: KitchenItem[] }>);
 
   // Separar pendentes e em preparo
   const pendingItems = kitchenItems.filter(i => i.preparation_status === 'pending');
   const preparingItems = kitchenItems.filter(i => i.preparation_status === 'preparing');
 
+  // Wrappers para manter compatibilidade
+  const startPreparing = async (itemId: string) => {
+    const item = kitchenItems.find(i => i.id === itemId);
+    if (item) {
+      await startPreparingMutation.mutateAsync({ itemId, source: item.source });
+    }
+  };
+
+  const markReady = async (itemId: string) => {
+    const item = kitchenItems.find(i => i.id === itemId);
+    if (item) {
+      await markReadyMutation.mutateAsync({ itemId, source: item.source });
+    }
+  };
+
   return {
     kitchenItems,
     pendingItems,
     preparingItems,
-    groupedByComanda,
+    groupedByOrder,
     isLoading,
     refetch,
-    startPreparing: startPreparingMutation.mutateAsync,
+    startPreparing,
     isStartingPreparing: startPreparingMutation.isPending,
-    markReady: markReadyMutation.mutateAsync,
+    markReady,
     isMarkingReady: markReadyMutation.isPending,
     getWaitingTime,
     getWaitingColor,

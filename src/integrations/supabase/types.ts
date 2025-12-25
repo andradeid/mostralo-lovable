@@ -2902,6 +2902,9 @@ export type Database = {
           id: string
           notes: string | null
           order_id: string
+          preparation_started_at: string | null
+          preparation_status: string | null
+          prepared_at: string | null
           product_id: string | null
           product_name: string
           quantity: number
@@ -2913,6 +2916,9 @@ export type Database = {
           id?: string
           notes?: string | null
           order_id: string
+          preparation_started_at?: string | null
+          preparation_status?: string | null
+          prepared_at?: string | null
           product_id?: string | null
           product_name: string
           quantity?: number
@@ -2924,6 +2930,9 @@ export type Database = {
           id?: string
           notes?: string | null
           order_id?: string
+          preparation_started_at?: string | null
+          preparation_status?: string | null
+          prepared_at?: string | null
           product_id?: string | null
           product_name?: string
           quantity?: number

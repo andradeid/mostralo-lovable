@@ -450,6 +450,9 @@ export type Database = {
           comanda_id: string
           id: string
           notes: string | null
+          preparation_started_at: string | null
+          preparation_status: string | null
+          prepared_at: string | null
           product_id: string | null
           product_name: string
           quantity: number
@@ -463,6 +466,9 @@ export type Database = {
           comanda_id: string
           id?: string
           notes?: string | null
+          preparation_started_at?: string | null
+          preparation_status?: string | null
+          prepared_at?: string | null
           product_id?: string | null
           product_name: string
           quantity?: number
@@ -476,6 +482,9 @@ export type Database = {
           comanda_id?: string
           id?: string
           notes?: string | null
+          preparation_started_at?: string | null
+          preparation_status?: string | null
+          prepared_at?: string | null
           product_id?: string | null
           product_name?: string
           quantity?: number

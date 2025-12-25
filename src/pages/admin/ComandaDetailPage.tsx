@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatCurrency } from '@/lib/utils';
-import { ArrowLeft, Plus, Trash2, Loader2, X, Printer } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Loader2, X, Printer, Clock, ChefHat, CheckCircle2 } from 'lucide-react';
 import { printComanda } from '@/utils/printComanda';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useQuery } from '@tanstack/react-query';
@@ -165,7 +165,28 @@ export default function ComandaDetailPage() {
                   {items.map((item) => (
                     <div key={item.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                       <div className="flex-1">
-                        <p className="font-medium">{item.product_name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium">{item.product_name}</p>
+                          {/* Badge de status de preparo */}
+                          {item.preparation_status === 'pending' && (
+                            <Badge variant="outline" className="text-yellow-600 border-yellow-600 text-xs">
+                              <Clock className="w-3 h-3 mr-1" />
+                              Pendente
+                            </Badge>
+                          )}
+                          {item.preparation_status === 'preparing' && (
+                            <Badge variant="outline" className="text-orange-600 border-orange-600 text-xs animate-pulse">
+                              <ChefHat className="w-3 h-3 mr-1" />
+                              Preparando
+                            </Badge>
+                          )}
+                          {item.preparation_status === 'ready' && (
+                            <Badge variant="outline" className="text-green-600 border-green-600 text-xs">
+                              <CheckCircle2 className="w-3 h-3 mr-1" />
+                              Pronto
+                            </Badge>
+                          )}
+                        </div>
                         <p className="text-sm text-muted-foreground">
                           {item.quantity}x {formatCurrency(item.unit_price)}
                         </p>

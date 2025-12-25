@@ -341,6 +341,18 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
       return;
     }
 
+    // Se aceitando pedido (em_preparo), marcar itens para o KDS
+    if (newStatus === 'em_preparo') {
+      const { error: kdsError } = await supabase
+        .from('order_items')
+        .update({ preparation_status: 'pending' })
+        .eq('order_id', order.id);
+
+      if (kdsError) {
+        console.error('Erro ao marcar itens para KDS:', kdsError);
+      }
+    }
+
     // Se finalizando pedido com entregador atribuído, atualizar delivery_assignments
     // O trigger do banco criará automaticamente o registro em driver_earnings
     if (newStatus === 'concluido' && assignedDriverId) {

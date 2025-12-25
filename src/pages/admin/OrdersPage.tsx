@@ -620,6 +620,16 @@ const OrdersPage = () => {
       return;
     }
 
+    // Marcar todos os itens do pedido como 'pending' no KDS
+    const { error: itemsError } = await supabase
+      .from('order_items')
+      .update({ preparation_status: 'pending' })
+      .eq('order_id', orderId);
+
+    if (itemsError) {
+      console.error('Erro ao marcar itens para KDS:', itemsError);
+    }
+
     toast.success('Pedido aceito e movido para Em Preparo!');
     
     // Remover da fila

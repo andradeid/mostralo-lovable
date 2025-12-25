@@ -7,7 +7,9 @@ import {
   Loader2,
   UtensilsCrossed,
   Users,
-  CheckCircle2
+  CheckCircle2,
+  Package,
+  Store
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { KitchenItem } from '@/hooks/useKitchenDisplay';
@@ -34,6 +36,47 @@ export function KitchenItemCard({
   const isPending = item.preparation_status === 'pending';
   const isPreparing = item.preparation_status === 'preparing';
 
+  // Renderizar badge baseado no tipo de pedido
+  const renderOrderTypeBadge = () => {
+    switch (item.order_type) {
+      case 'mesa':
+        return (
+          <Badge variant="outline" className="bg-blue-500/20 text-blue-700 dark:text-blue-300">
+            <Users className="w-3 h-3 mr-1" />
+            Mesa {item.table_number}
+          </Badge>
+        );
+      case 'balcao':
+        return (
+          <Badge variant="outline" className="bg-orange-500/20 text-orange-700 dark:text-orange-300">
+            <UtensilsCrossed className="w-3 h-3 mr-1" />
+            Balcão
+          </Badge>
+        );
+      case 'delivery':
+        return (
+          <Badge variant="outline" className="bg-purple-500/20 text-purple-700 dark:text-purple-300">
+            <Package className="w-3 h-3 mr-1" />
+            Delivery
+          </Badge>
+        );
+      case 'pickup':
+        return (
+          <Badge variant="outline" className="bg-green-500/20 text-green-700 dark:text-green-300">
+            <Store className="w-3 h-3 mr-1" />
+            Retirada
+          </Badge>
+        );
+      default:
+        return (
+          <Badge variant="outline" className="bg-gray-500/20 text-gray-700 dark:text-gray-300">
+            <UtensilsCrossed className="w-3 h-3 mr-1" />
+            Pedido
+          </Badge>
+        );
+    }
+  };
+
   return (
     <Card className={cn(
       'border-2 transition-all duration-300',
@@ -43,19 +86,9 @@ export function KitchenItemCard({
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {item.comanda_type === 'mesa' ? (
-              <Badge variant="outline" className="bg-blue-500/20 text-blue-700 dark:text-blue-300">
-                <Users className="w-3 h-3 mr-1" />
-                Mesa {item.table_number}
-              </Badge>
-            ) : (
-              <Badge variant="outline" className="bg-orange-500/20 text-orange-700 dark:text-orange-300">
-                <UtensilsCrossed className="w-3 h-3 mr-1" />
-                Balcão
-              </Badge>
-            )}
+            {renderOrderTypeBadge()}
             <span className="font-mono text-sm text-muted-foreground">
-              #{item.comanda_number}
+              #{item.order_number}
             </span>
           </div>
           <div className="flex items-center gap-1 text-muted-foreground">
@@ -95,7 +128,10 @@ export function KitchenItemCard({
           {item.addons && Object.keys(item.addons).length > 0 && (
             <div className="text-sm text-muted-foreground">
               <span className="font-medium">Adicionais:</span>{' '}
-              {Object.values(item.addons).flat().join(', ')}
+              {Array.isArray(item.addons) 
+                ? item.addons.map((a: any) => a.name || a).join(', ')
+                : Object.values(item.addons).flat().join(', ')
+              }
             </div>
           )}
 

@@ -6781,6 +6781,9 @@ export type Database = {
           filter_min_spent: number | null
           id: string
           interaction_type: string | null
+          list_button_text: string | null
+          list_sections: Json | null
+          list_title: string | null
           media_type: string | null
           media_url: string | null
           message_interval_seconds: number | null
@@ -6825,6 +6828,9 @@ export type Database = {
           filter_min_spent?: number | null
           id?: string
           interaction_type?: string | null
+          list_button_text?: string | null
+          list_sections?: Json | null
+          list_title?: string | null
           media_type?: string | null
           media_url?: string | null
           message_interval_seconds?: number | null
@@ -6871,6 +6877,9 @@ export type Database = {
           filter_min_spent?: number | null
           id?: string
           interaction_type?: string | null
+          list_button_text?: string | null
+          list_sections?: Json | null
+          list_title?: string | null
           media_type?: string | null
           media_url?: string | null
           message_interval_seconds?: number | null
@@ -7287,6 +7296,9 @@ export type Database = {
           failed_at: string | null
           id: string
           interaction_type: string | null
+          list_button_text: string | null
+          list_sections: Json | null
+          list_title: string | null
           media_url: string | null
           message_type:
             | Database["public"]["Enums"]["whatsapp_message_type"]
@@ -7316,6 +7328,9 @@ export type Database = {
           failed_at?: string | null
           id?: string
           interaction_type?: string | null
+          list_button_text?: string | null
+          list_sections?: Json | null
+          list_title?: string | null
           media_url?: string | null
           message_type?:
             | Database["public"]["Enums"]["whatsapp_message_type"]
@@ -7345,6 +7360,9 @@ export type Database = {
           failed_at?: string | null
           id?: string
           interaction_type?: string | null
+          list_button_text?: string | null
+          list_sections?: Json | null
+          list_title?: string | null
           media_url?: string | null
           message_type?:
             | Database["public"]["Enums"]["whatsapp_message_type"]

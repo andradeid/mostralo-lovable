@@ -64,11 +64,14 @@ serve(async (req) => {
       customerId,
       campaignId,
       templateId,
-      // Novos campos para enquete e botões
+      // Campos para enquete
       pollQuestion,
       pollOptions,
       pollSelectableCount = 1,
-      buttons,
+      // Campos para lista interativa
+      listTitle,
+      listButtonText,
+      listSections,
     } = await req.json();
 
     console.log(`[whatsapp-send] Enviando mensagem para ${phoneNumber}, Store: ${storeId}`);
@@ -163,29 +166,30 @@ serve(async (req) => {
         console.log(`[whatsapp-send] Enviando enquete: "${payload.name}" com ${payload.values?.length} opções`);
         break;
       
+      case 'list':
+        // Lista interativa - Evolution API sendList
+        endpoint = `${api_url}/message/sendList/${instance.instance_name}`;
+        payload.title = listTitle || 'Escolha uma opção';
+        payload.description = content || '';
+        payload.buttonText = listButtonText || 'Ver opções';
+        payload.footerText = '';
+        // Formatar seções para Evolution API
+        payload.sections = (listSections || []).map((section: any) => ({
+          title: section.title || 'Opções',
+          rows: (section.rows || []).filter((r: any) => r.title).map((row: any) => ({
+            title: row.title,
+            description: row.description || '',
+            rowId: row.rowId || String(Math.random()).slice(2, 10)
+          }))
+        })).filter((s: any) => s.rows.length > 0);
+        console.log(`[whatsapp-send] Enviando lista: "${payload.title}" com ${payload.sections?.length} seções`);
+        break;
+      
       case 'buttons':
-        // Botões interativos NÃO funcionam com Evolution API/WhatsApp Web
-        // Convertendo para texto formatado com links
+        // Fallback para botões antigos - converte para texto
         endpoint = `${api_url}/message/sendText/${instance.instance_name}`;
-        
-        // Construir mensagem com botões como links
-        let buttonText = content || '';
-        const buttonsList = buttons || [];
-        
-        if (buttonsList.length > 0) {
-          buttonText += '\n\n━━━━━━━━━━━━━━━━━━';
-          buttonsList.forEach((btn: any, idx: number) => {
-            const btnLabel = btn.text || btn.displayText || `Opção ${idx + 1}`;
-            if (btn.url) {
-              buttonText += `\n\n🔗 *${btnLabel}*\n${btn.url}`;
-            } else {
-              buttonText += `\n\n▪️ *${btnLabel}*`;
-            }
-          });
-        }
-        
-        payload.text = buttonText;
-        console.log(`[whatsapp-send] Enviando botões como texto com ${buttonsList.length} links`);
+        payload.text = content || 'Mensagem com botões (não suportado)';
+        console.log(`[whatsapp-send] Botões convertidos para texto`);
         break;
       
       default:

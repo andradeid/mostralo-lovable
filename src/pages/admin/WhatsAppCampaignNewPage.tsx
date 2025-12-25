@@ -2263,6 +2263,15 @@ Ana Costa, 31977665544"
                     showTypingAnimation={true}
                     playNotificationSound={true}
                     allowThemeToggle={true}
+                    interactionType={form.interaction_type}
+                    pollQuestion={form.poll_question}
+                    pollOptions={form.poll_options.filter(o => o.trim())}
+                    pollSelectableCount={form.poll_selectable_count}
+                    buttons={[
+                      form.button_1_text ? { text: form.button_1_text, url: form.button_1_url || undefined } : null,
+                      form.button_2_text ? { text: form.button_2_text, url: form.button_2_url || undefined } : null,
+                      form.button_3_text ? { text: form.button_3_text, url: form.button_3_url || undefined } : null,
+                    ].filter(Boolean) as Array<{ text: string; url?: string }>}
                   />
 
                   {/* Legenda de variáveis usadas */}

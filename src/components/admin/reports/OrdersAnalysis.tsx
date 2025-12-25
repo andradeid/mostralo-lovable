@@ -3,8 +3,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Eye, Receipt, ShoppingCart } from 'lucide-react';
+import { Eye, Receipt, ShoppingCart, BarChart3, History } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { DateRange } from '@/components/admin/reports/types';
@@ -12,6 +11,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SalesHistoryTable } from './SalesHistoryTable';
 
 interface OrdersAnalysisProps {
   dateRange: DateRange;
@@ -130,215 +130,250 @@ export function OrdersAnalysis({ dateRange, storeId }: OrdersAnalysisProps) {
     }
   };
   
-  if (loading) {
+  const renderSummaryContent = () => {
+    if (loading) {
+      return (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Status dos Pedidos</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-[300px] w-full" />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Últimos Pedidos</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-[300px] w-full" />
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Status dos Pedidos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Skeleton className="h-[300px] w-full" />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Últimos Pedidos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Skeleton className="h-[300px] w-full" />
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-  
-  return (
-    <div className="space-y-6">
-      {/* Cards de Origem */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {sourceData.map((source, i) => (
-          <Card key={i}>
+      <div className="space-y-6">
+        {/* Cards de Origem */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {sourceData.map((source, i) => (
+            <Card key={i}>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">{source.name}</p>
+                    <p className="text-2xl font-bold">{source.value} vendas</p>
+                    <p className="text-sm text-green-600 font-medium">R$ {source.revenue.toFixed(2)}</p>
+                  </div>
+                  <div className="p-3 rounded-full" style={{ backgroundColor: `${source.color}20` }}>
+                    {source.name.includes('Online') ? (
+                      <ShoppingCart className="w-6 h-6" style={{ color: source.color }} />
+                    ) : (
+                      <Receipt className="w-6 h-6" style={{ color: source.color }} />
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+          <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">{source.name}</p>
-                  <p className="text-2xl font-bold">{source.value} vendas</p>
-                  <p className="text-sm text-green-600 font-medium">R$ {source.revenue.toFixed(2)}</p>
-                </div>
-                <div className="p-3 rounded-full" style={{ backgroundColor: `${source.color}20` }}>
-                  {source.name.includes('Online') ? (
-                    <ShoppingCart className="w-6 h-6" style={{ color: source.color }} />
-                  ) : (
-                    <Receipt className="w-6 h-6" style={{ color: source.color }} />
-                  )}
+                  <p className="text-sm text-muted-foreground">Total Geral</p>
+                  <p className="text-2xl font-bold">{sourceData.reduce((sum, s) => sum + s.value, 0)} vendas</p>
+                  <p className="text-sm text-green-600 font-medium">
+                    R$ {sourceData.reduce((sum, s) => sum + s.revenue, 0).toFixed(2)}
+                  </p>
                 </div>
               </div>
             </CardContent>
           </Card>
-        ))}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Geral</p>
-                <p className="text-2xl font-bold">{sourceData.reduce((sum, s) => sum + s.value, 0)} vendas</p>
-                <p className="text-sm text-green-600 font-medium">
-                  R$ {sourceData.reduce((sum, s) => sum + s.revenue, 0).toFixed(2)}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Status dos Pedidos Online</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={{}} className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={statusData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {statusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </CardContent>
-        </Card>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Status dos Pedidos Online</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ChartContainer config={{}} className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={statusData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {statusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Vendas por Origem</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ChartContainer 
+                config={{
+                  revenue: { label: 'Receita (R$)', color: 'hsl(var(--chart-1))' }
+                }} 
+                className="h-[300px]"
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={sourceData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Bar dataKey="revenue" fill="hsl(var(--chart-1))" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+        </div>
         
         <Card>
           <CardHeader>
-            <CardTitle>Vendas por Origem</CardTitle>
+            <CardTitle>Últimas Vendas</CardTitle>
           </CardHeader>
           <CardContent>
-            <ChartContainer 
-              config={{
-                revenue: { label: 'Receita (R$)', color: 'hsl(var(--chart-1))' }
-              }} 
-              className="h-[300px]"
-            >
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={sourceData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="revenue" fill="hsl(var(--chart-1))" />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
+            <Tabs defaultValue="orders">
+              <TabsList className="mb-4">
+                <TabsTrigger value="orders" className="flex items-center gap-2">
+                  <ShoppingCart className="w-4 h-4" />
+                  Pedidos Online
+                </TabsTrigger>
+                <TabsTrigger value="comandas" className="flex items-center gap-2">
+                  <Receipt className="w-4 h-4" />
+                  Comandas PDV
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="orders">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Número</TableHead>
+                        <TableHead>Cliente</TableHead>
+                        <TableHead>Valor</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Data/Hora</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {recentOrders.map((order) => (
+                        <TableRow key={order.id}>
+                          <TableCell className="font-medium">#{order.order_number}</TableCell>
+                          <TableCell>{order.customer_name}</TableCell>
+                          <TableCell>R$ {Number(order.total).toFixed(2)}</TableCell>
+                          <TableCell>
+                            <Badge style={{ backgroundColor: statusColors[order.status] }}>
+                              {statusLabels[order.status]}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {format(new Date(order.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="comandas">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Número</TableHead>
+                        <TableHead>Tipo</TableHead>
+                        <TableHead>Cliente</TableHead>
+                        <TableHead>Valor</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Data/Hora</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {recentComandas.map((comanda) => (
+                        <TableRow key={comanda.id}>
+                          <TableCell className="font-medium">#{comanda.number}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {comanda.type === 'table' ? `Mesa ${comanda.table_number}` : 'Balcão'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{comanda.customer_name || '-'}</TableCell>
+                          <TableCell>R$ {Number(comanda.total).toFixed(2)}</TableCell>
+                          <TableCell>
+                            <Badge style={{ backgroundColor: statusColors[comanda.status] }}>
+                              {statusLabels[comanda.status]}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {format(new Date(comanda.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
       </div>
+    );
+  };
+  
+  return (
+    <Tabs defaultValue="summary" className="space-y-4">
+      <TabsList>
+        <TabsTrigger value="summary" className="flex items-center gap-2">
+          <BarChart3 className="w-4 h-4" />
+          Resumo
+        </TabsTrigger>
+        <TabsTrigger value="history" className="flex items-center gap-2">
+          <History className="w-4 h-4" />
+          Histórico Completo
+        </TabsTrigger>
+      </TabsList>
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Últimas Vendas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="orders">
-            <TabsList className="mb-4">
-              <TabsTrigger value="orders" className="flex items-center gap-2">
-                <ShoppingCart className="w-4 h-4" />
-                Pedidos Online
-              </TabsTrigger>
-              <TabsTrigger value="comandas" className="flex items-center gap-2">
-                <Receipt className="w-4 h-4" />
-                Comandas PDV
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="orders">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Número</TableHead>
-                      <TableHead>Cliente</TableHead>
-                      <TableHead>Valor</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Data/Hora</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {recentOrders.map((order) => (
-                      <TableRow key={order.id}>
-                        <TableCell className="font-medium">#{order.order_number}</TableCell>
-                        <TableCell>{order.customer_name}</TableCell>
-                        <TableCell>R$ {Number(order.total).toFixed(2)}</TableCell>
-                        <TableCell>
-                          <Badge style={{ backgroundColor: statusColors[order.status] }}>
-                            {statusLabels[order.status]}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {format(new Date(order.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="comandas">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Número</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Cliente</TableHead>
-                      <TableHead>Valor</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Data/Hora</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {recentComandas.map((comanda) => (
-                      <TableRow key={comanda.id}>
-                        <TableCell className="font-medium">#{comanda.number}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {comanda.type === 'table' ? `Mesa ${comanda.table_number}` : 'Balcão'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{comanda.customer_name || '-'}</TableCell>
-                        <TableCell>R$ {Number(comanda.total).toFixed(2)}</TableCell>
-                        <TableCell>
-                          <Badge style={{ backgroundColor: statusColors[comanda.status] }}>
-                            {statusLabels[comanda.status]}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {format(new Date(comanda.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-    </div>
+      <TabsContent value="summary">
+        {renderSummaryContent()}
+      </TabsContent>
+      
+      <TabsContent value="history">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <History className="w-5 h-5" />
+              Histórico de Vendas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SalesHistoryTable dateRange={dateRange} storeId={storeId} />
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
   );
 }

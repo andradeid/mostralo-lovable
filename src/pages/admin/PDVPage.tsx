@@ -6,8 +6,11 @@ import { PDVPaymentModal } from '@/components/pdv/PDVPaymentModal';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ShoppingCart, Package } from 'lucide-react';
+import { ModuleGate } from '@/components/admin/ModuleGate';
+import { useStoreAccess } from '@/hooks/useStoreAccess';
 
 export default function PDVPage() {
+  const { storeId } = useStoreAccess();
   const { cart, subtotal, addToCart, updateCartItemQuantity, removeFromCart, clearCart, finalizeSale, isProcessing } = usePDV();
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const isMobile = useIsMobile();
@@ -22,7 +25,8 @@ export default function PDVPage() {
   // Layout Mobile com Tabs
   if (isMobile) {
     return (
-      <div className="h-[calc(100vh-7rem)] flex flex-col">
+      <ModuleGate moduleKey="pdv_comandas" storeId={storeId}>
+        <div className="h-[calc(100vh-7rem)] flex flex-col">
         <Tabs defaultValue="products" className="flex-1 flex flex-col">
           <TabsList className="grid grid-cols-2 h-14 mx-2 mb-2">
             <TabsTrigger value="products" className="h-12 text-base gap-2">
@@ -65,13 +69,15 @@ export default function PDVPage() {
           onConfirm={handleFinalize}
           isProcessing={isProcessing}
         />
-      </div>
+        </div>
+      </ModuleGate>
     );
   }
 
   // Layout Desktop (original)
   return (
-    <div className="h-[calc(100vh-8rem)] flex gap-4">
+    <ModuleGate moduleKey="pdv_comandas" storeId={storeId}>
+      <div className="h-[calc(100vh-8rem)] flex gap-4">
       {/* Grid de produtos */}
       <div className="flex-1 overflow-auto">
         <PDVProductGrid onAddProduct={addToCart} />
@@ -90,14 +96,15 @@ export default function PDVPage() {
         />
       </div>
 
-      {/* Modal de pagamento */}
-      <PDVPaymentModal
-        open={paymentModalOpen}
-        onOpenChange={setPaymentModalOpen}
-        subtotal={subtotal}
-        onConfirm={handleFinalize}
-        isProcessing={isProcessing}
-      />
-    </div>
+        {/* Modal de pagamento */}
+        <PDVPaymentModal
+          open={paymentModalOpen}
+          onOpenChange={setPaymentModalOpen}
+          subtotal={subtotal}
+          onConfirm={handleFinalize}
+          isProcessing={isProcessing}
+        />
+      </div>
+    </ModuleGate>
   );
 }

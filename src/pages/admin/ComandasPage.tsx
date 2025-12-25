@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useQuery } from '@tanstack/react-query';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { ModuleGate } from '@/components/admin/ModuleGate';
 
 export default function ComandasPage() {
   const navigate = useNavigate();
@@ -95,7 +96,8 @@ export default function ComandasPage() {
   }
 
   return (
-    <div className={`space-y-4 ${isMobile ? 'pb-24' : 'space-y-6'}`}>
+    <ModuleGate moduleKey="pdv_comandas" storeId={storeId}>
+      <div className={`space-y-4 ${isMobile ? 'pb-24' : 'space-y-6'}`}>
       {/* Header */}
       <div className={`flex items-center justify-between ${isMobile ? 'px-1' : ''}`}>
         <div>
@@ -207,15 +209,16 @@ export default function ComandasPage() {
         isLoading={isCreating} 
       />
       
-      {selectedComanda && (
-        <CloseComandaModal
-          open={closeModalOpen}
-          onOpenChange={setCloseModalOpen}
-          subtotal={selectedComanda.total}
-          onConfirm={handleConfirmClose}
-          isProcessing={isClosing}
-        />
-      )}
-    </div>
+        {selectedComanda && (
+          <CloseComandaModal
+            open={closeModalOpen}
+            onOpenChange={setCloseModalOpen}
+            subtotal={selectedComanda.total}
+            onConfirm={handleConfirmClose}
+            isProcessing={isClosing}
+          />
+        )}
+      </div>
+    </ModuleGate>
   );
 }

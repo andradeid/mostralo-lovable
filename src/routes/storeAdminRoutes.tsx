@@ -3,6 +3,7 @@ import { lazy } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { LazyRoute } from "@/components/LazyRoute";
+import { AttendantPermissionGate } from "@/components/admin/AttendantPermissionGate";
 
 // Store Admin Pages - Lazy loaded
 const PaymentProof = lazy(() => import("@/pages/PaymentProof"));
@@ -101,46 +102,58 @@ export const storeAdminRoutes = (
       </ProtectedRoute>
     } />
     
-    {/* Catálogo */}
+    {/* Catálogo - Permissão: produtos */}
     <Route path="/dashboard/categories" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
         <AdminLayout>
-          <LazyRoute><CategoriesPage /></LazyRoute>
+          <AttendantPermissionGate permissionKey="produtos">
+            <LazyRoute><CategoriesPage /></LazyRoute>
+          </AttendantPermissionGate>
         </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/products" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
         <AdminLayout>
-          <LazyRoute><ProductsPage /></LazyRoute>
+          <AttendantPermissionGate permissionKey="produtos">
+            <LazyRoute><ProductsPage /></LazyRoute>
+          </AttendantPermissionGate>
         </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/products/new" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
         <AdminLayout>
-          <LazyRoute><ProductFormPage /></LazyRoute>
+          <AttendantPermissionGate permissionKey="produtos">
+            <LazyRoute><ProductFormPage /></LazyRoute>
+          </AttendantPermissionGate>
         </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/products/edit/:id" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
         <AdminLayout>
-          <LazyRoute><ProductFormPage /></LazyRoute>
+          <AttendantPermissionGate permissionKey="produtos">
+            <LazyRoute><ProductFormPage /></LazyRoute>
+          </AttendantPermissionGate>
         </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/addon-categories" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
         <AdminLayout>
-          <LazyRoute><AddonCategoriesPage /></LazyRoute>
+          <AttendantPermissionGate permissionKey="produtos">
+            <LazyRoute><AddonCategoriesPage /></LazyRoute>
+          </AttendantPermissionGate>
         </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/addons" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
         <AdminLayout>
-          <LazyRoute><AddonsPage /></LazyRoute>
+          <AttendantPermissionGate permissionKey="produtos">
+            <LazyRoute><AddonsPage /></LazyRoute>
+          </AttendantPermissionGate>
         </AdminLayout>
       </ProtectedRoute>
     } />
@@ -189,11 +202,13 @@ export const storeAdminRoutes = (
       </ProtectedRoute>
     } />
     
-    {/* Pedidos */}
+    {/* Pedidos - Permissão: pedidos_delivery */}
     <Route path="/dashboard/orders" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
         <AdminLayout>
-          <LazyRoute><OrdersPage /></LazyRoute>
+          <AttendantPermissionGate permissionKey="pedidos_delivery">
+            <LazyRoute><OrdersPage /></LazyRoute>
+          </AttendantPermissionGate>
         </AdminLayout>
       </ProtectedRoute>
     } />
@@ -205,18 +220,24 @@ export const storeAdminRoutes = (
       </ProtectedRoute>
     } />
     
-    {/* Clientes e Relatórios */}
+    {/* Clientes - Permissão: clientes */}
     <Route path="/dashboard/customers" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
         <AdminLayout>
-          <LazyRoute><AdminCustomersPage /></LazyRoute>
+          <AttendantPermissionGate permissionKey="clientes">
+            <LazyRoute><AdminCustomersPage /></LazyRoute>
+          </AttendantPermissionGate>
         </AdminLayout>
       </ProtectedRoute>
     } />
+    
+    {/* Relatórios - Permissão: relatorios */}
     <Route path="/dashboard/reports" element={
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
         <AdminLayout>
-          <LazyRoute><ReportsPage /></LazyRoute>
+          <AttendantPermissionGate permissionKey="relatorios">
+            <LazyRoute><ReportsPage /></LazyRoute>
+          </AttendantPermissionGate>
         </AdminLayout>
       </ProtectedRoute>
     } />
@@ -407,32 +428,44 @@ export const storeAdminRoutes = (
       </ProtectedRoute>
     } />
 
-    {/* PDV e Comandas */}
+    {/* PDV - Permissão: pedidos_balcao */}
     <Route path="/dashboard/pdv" element={
       <ProtectedRoute allowedRoles={['store_admin', 'attendant']}>
         <AdminLayout pageTitle="PDV - Ponto de Venda">
-          <LazyRoute><PDVPage /></LazyRoute>
+          <AttendantPermissionGate permissionKey="pedidos_balcao">
+            <LazyRoute><PDVPage /></LazyRoute>
+          </AttendantPermissionGate>
         </AdminLayout>
       </ProtectedRoute>
     } />
+    
+    {/* Comandas - Permissão: comandas */}
     <Route path="/dashboard/comandas" element={
       <ProtectedRoute allowedRoles={['store_admin', 'attendant']}>
         <AdminLayout pageTitle="Comandas">
-          <LazyRoute><ComandasPage /></LazyRoute>
+          <AttendantPermissionGate permissionKey="comandas">
+            <LazyRoute><ComandasPage /></LazyRoute>
+          </AttendantPermissionGate>
         </AdminLayout>
       </ProtectedRoute>
     } />
     <Route path="/dashboard/comandas/:id" element={
       <ProtectedRoute allowedRoles={['store_admin', 'attendant']}>
         <AdminLayout pageTitle="Detalhes da Comanda">
-          <LazyRoute><ComandaDetailPage /></LazyRoute>
+          <AttendantPermissionGate permissionKey="comandas">
+            <LazyRoute><ComandaDetailPage /></LazyRoute>
+          </AttendantPermissionGate>
         </AdminLayout>
       </ProtectedRoute>
     } />
+    
+    {/* KDS/Cozinha - Permissão: kds */}
     <Route path="/dashboard/cozinha" element={
       <ProtectedRoute allowedRoles={['store_admin', 'attendant']}>
         <AdminLayout pageTitle="KDS - Cozinha">
-          <LazyRoute><KitchenDisplayPage /></LazyRoute>
+          <AttendantPermissionGate permissionKey="kds">
+            <LazyRoute><KitchenDisplayPage /></LazyRoute>
+          </AttendantPermissionGate>
         </AdminLayout>
       </ProtectedRoute>
     } />

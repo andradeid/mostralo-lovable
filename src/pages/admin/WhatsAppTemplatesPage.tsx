@@ -46,7 +46,9 @@ import {
   Heart,
   Gift,
   RotateCcw,
-  Sparkles
+  Sparkles,
+  BarChart3,
+  List
 } from "lucide-react";
 
 const CATEGORIES = [
@@ -63,6 +65,8 @@ const MESSAGE_TYPES = [
   { value: 'document', label: 'Documento', icon: File },
   { value: 'audio', label: 'Áudio', icon: FileAudio },
   { value: 'video', label: 'Vídeo', icon: Video },
+  { value: 'poll', label: 'Enquete', icon: BarChart3 },
+  { value: 'list', label: 'Lista Interativa', icon: List },
 ];
 
 const VARIABLES = [
@@ -181,6 +185,14 @@ export default function WhatsAppTemplatesPage() {
         media_caption: template.media_caption || null,
         is_active: true,
         is_default: false,
+        // Campos de enquete
+        poll_question: template.poll_question || null,
+        poll_options: template.poll_options || null,
+        poll_selectable_count: template.poll_selectable_count || 1,
+        // Campos de lista
+        list_title: template.list_title || null,
+        list_button_text: template.list_button_text || null,
+        list_sections: template.list_sections || null,
       };
 
       const { error } = await supabase
@@ -472,7 +484,7 @@ export default function WhatsAppTemplatesPage() {
               <CardTitle className="text-lg">📚 Modelos Prontos</CardTitle>
             </div>
             <CardDescription>
-              20 templates profissionais prontos para usar. Clique em "Usar" para copiar para sua loja e personalizar.
+              Templates profissionais prontos para usar, incluindo enquetes e listas interativas. Clique em "Usar" para copiar para sua loja e personalizar.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -513,6 +525,23 @@ export default function WhatsAppTemplatesPage() {
                             <p className="text-xs text-muted-foreground line-clamp-3 whitespace-pre-line">
                               {template.content}
                             </p>
+                            {template.message_type === 'poll' && template.poll_question && (
+                              <div className="mt-2 p-2 bg-primary/10 rounded text-xs">
+                                <p className="font-medium">📊 {template.poll_question}</p>
+                                <p className="text-muted-foreground mt-1">
+                                  {JSON.parse(template.poll_options || '[]').slice(0, 3).join(' • ')}
+                                  {JSON.parse(template.poll_options || '[]').length > 3 ? '...' : ''}
+                                </p>
+                              </div>
+                            )}
+                            {template.message_type === 'list' && template.list_button_text && (
+                              <div className="mt-2 p-2 bg-green-500/10 rounded text-xs">
+                                <p className="font-medium">📋 {template.list_title}</p>
+                                <div className="mt-1 inline-flex items-center gap-1 px-2 py-1 bg-green-500/20 text-green-700 dark:text-green-300 rounded text-xs">
+                                  {template.list_button_text}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>

@@ -13,6 +13,7 @@ import { HeroSection } from '@/components/landing/HeroSection';
 import { WhatsAppMarketingSection } from '@/components/landing/WhatsAppMarketingSection';
 import { DigitalSignageSection } from '@/components/landing/DigitalSignageSection';
 import { PasswordCallSection } from '@/components/landing/PasswordCallSection';
+import { PDVComandasSection } from '@/components/landing/PDVComandasSection';
 import { ProblemsSection } from '@/components/landing/ProblemsSection';
 import { SavingsCalculator } from '@/components/landing/SavingsCalculator';
 import { MarketingDigitalSection } from '@/components/landing/MarketingDigitalSection';
@@ -70,6 +71,7 @@ const Index = () => {
       <WhatsAppMarketingSection />
       <DigitalSignageSection />
       <PasswordCallSection />
+      <PDVComandasSection />
       <ProblemsSection />
       <SavingsCalculator />
       <MarketingDigitalSection />

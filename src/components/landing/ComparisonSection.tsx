@@ -8,7 +8,8 @@ import {
   Wallet,
   Monitor,
   Megaphone,
-  Shield
+  Shield,
+  ClipboardList
 } from 'lucide-react';
 
 export const ComparisonSection = () => {
@@ -180,13 +181,27 @@ export const ComparisonSection = () => {
                 <Badge className="bg-orange-500">✅ PREMIUM</Badge>
               </div>
             </div>
+
+            {/* PDV e Comandas */}
+            <div className="grid grid-cols-5 border-t bg-muted/20">
+              <div className="p-4 font-medium border-r flex items-center gap-2">
+                <ClipboardList className="w-4 h-4 text-orange-600" />
+                PDV e Comandas (Garçom)
+              </div>
+              <div className="p-4 text-center border-r text-destructive">❌</div>
+              <div className="p-4 text-center border-r text-destructive">❌</div>
+              <div className="p-4 text-center border-r text-destructive">❌</div>
+              <div className="p-4 text-center bg-green-50 dark:bg-green-950/20">
+                <Badge className="bg-orange-600">✅ INCLUSO</Badge>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* CTA */}
         <div className="text-center mt-12">
           <p className="text-xl font-bold mb-6 text-primary">
-            🚀 Único no Brasil: Delivery + Marketing + Financeiro + Painel Digital + SENTINELA
+            🚀 Único no Brasil: Delivery + PDV/Comandas + Marketing + Financeiro + Painel Digital + SENTINELA
           </p>
           <Link to="/signup">
             <Button size="lg" className="text-lg h-14 px-8 shadow-lg hover:shadow-xl">

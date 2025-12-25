@@ -10,6 +10,10 @@ const faqItems = [
     answer: 'Você paga apenas R$ 397,90/mês fixo. Se fizer 10 pedidos ou 1000, o custo é o mesmo. No iFood, com apenas 20 pedidos de R$ 50, você já paga R$ 250 de taxa. No Mostralo, R$ 397,90 fixo independente do volume.'
   },
   {
+    question: 'O sistema funciona para vendas presenciais (balcão e mesas)?',
+    answer: 'Sim! O módulo PDV e Comandas permite controlar mesas, balcão e garçons. Seu garçom usa o próprio celular como terminal de pedidos, com foto dos produtos e confirmação antes de enviar para a cozinha. Funciona offline (PWA) e integra automaticamente com seus relatórios financeiros.'
+  },
+  {
     question: 'O marketing digital realmente está incluso no preço?',
     answer: 'Sim! Todos os planos incluem gestão completa de redes sociais com 1 perfil, agendamento ilimitado de posts, IA para criar legendas profissionais, relatórios de performance e análise de concorrentes. Isso sozinho vale R$ 800-2.000/mês em agências.'
   },

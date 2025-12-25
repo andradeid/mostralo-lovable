@@ -120,4 +120,5 @@ export const routePreloadMap: Record<string, RouteImportFn> = {
   '/master/contract-template': () => import('@/pages/admin/ContractTemplateEditPage'),
   '/master/system-updates': () => import('@/pages/admin/SystemUpdatesManagementPage'),
   '/master/system-banners': () => import('@/pages/admin/SystemBannersPage'),
+  '/dashboard/documentacao-tecnica': () => import('@/pages/admin/TechnicalDocsPage'),
 };

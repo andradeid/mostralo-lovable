@@ -48,6 +48,7 @@ import {
   Megaphone,
   Building2,
   Cloud,
+  BookOpen,
   Activity,
   ClipboardCheck,
   Bell
@@ -352,6 +353,7 @@ export function AdminSidebar() {
         { title: 'Ambiente de Testes', url: '/dashboard/test-environment', icon: Bot, group: 'Principal' },
         { title: 'Ideias', url: '/dashboard/ideias', icon: Lightbulb, group: 'Principal' },
         { title: 'Navegação', url: '/dashboard/navegacao', icon: Map, group: 'Principal' },
+        { title: 'Documentação Técnica', url: '/dashboard/documentacao-tecnica', icon: BookOpen, group: 'Principal' },
         { title: 'Material de Divulgação', url: '/dashboard/material-divulgacao', icon: QrCode, group: 'Prospecção' },
         { title: 'Vendedores', url: '/dashboard/salespeople', icon: Users, group: 'Vendedores' },
         { title: 'Pagamentos Vendedores', url: '/dashboard/salespeople/payouts', icon: DollarSign, group: 'Vendedores' },

@@ -37,11 +37,12 @@ export default function ReportsPage() {
       <Alert className="bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800">
         <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
         <AlertDescription className="text-blue-800 dark:text-blue-200 text-sm">
-          <strong>Dica:</strong> Use as abas abaixo para navegar entre diferentes visões. 
-          <strong> Vendas</strong> mostra o gráfico de faturamento, <strong>Pedidos</strong> traz 
-          análise detalhada de todas as vendas (online + PDV), <strong>Tendências</strong> mostra 
-          padrões de venda por período, <strong>Produtos</strong> lista os mais vendidos e 
-          <strong> Clientes</strong> analisa o perfil de compradores.
+          <strong>📈 Central de Relatórios:</strong> Escolha uma aba para diferentes análises. 
+          <strong> Vendas</strong> = gráfico de faturamento • 
+          <strong> Pedidos</strong> = análise de vendas (gráficos + lista detalhada) • 
+          <strong> Tendências</strong> = padrões por período • 
+          <strong> Produtos</strong> = mais vendidos • 
+          <strong> Clientes</strong> = perfil de compradores.
         </AlertDescription>
       </Alert>
 

@@ -161,10 +161,10 @@ export function OrdersAnalysis({ dateRange, storeId }: OrdersAnalysisProps) {
         <Alert className="bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800">
           <TrendingUp className="h-4 w-4 text-amber-600 dark:text-amber-400" />
           <AlertDescription className="text-amber-800 dark:text-amber-200 text-sm">
-            <strong>Painel Analítico:</strong> Visualize gráficos de status, origem 
-            das vendas (Online vs PDV) e uma amostra dos últimos pedidos. Para consultar 
-            <strong> todos os pedidos</strong> com filtros e detalhes completos, use a aba 
-            <strong> "Histórico Completo"</strong>.
+            <strong>📊 Visão Analítica:</strong> Gráficos e métricas agregadas para 
+            análise estratégica — quantidade de vendas, faturamento por origem 
+            (Online vs PDV) e distribuição por status. Para ver a <strong>lista 
+            detalhada de cada venda</strong>, acesse a aba <strong>"Histórico Completo"</strong>.
           </AlertDescription>
         </Alert>
         
@@ -261,97 +261,6 @@ export function OrdersAnalysis({ dateRange, storeId }: OrdersAnalysisProps) {
           </Card>
         </div>
         
-        <Card>
-          <CardHeader>
-            <CardTitle>Últimas Vendas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="orders">
-              <TabsList className="mb-4">
-                <TabsTrigger value="orders" className="flex items-center gap-2">
-                  <ShoppingCart className="w-4 h-4" />
-                  Pedidos Online
-                </TabsTrigger>
-                <TabsTrigger value="comandas" className="flex items-center gap-2">
-                  <Receipt className="w-4 h-4" />
-                  Comandas PDV
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="orders">
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Número</TableHead>
-                        <TableHead>Cliente</TableHead>
-                        <TableHead>Valor</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Data/Hora</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {recentOrders.map((order) => (
-                        <TableRow key={order.id}>
-                          <TableCell className="font-medium">#{order.order_number}</TableCell>
-                          <TableCell>{order.customer_name}</TableCell>
-                          <TableCell>R$ {Number(order.total).toFixed(2)}</TableCell>
-                          <TableCell>
-                            <Badge style={{ backgroundColor: statusColors[order.status] }}>
-                              {statusLabels[order.status]}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {format(new Date(order.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="comandas">
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Número</TableHead>
-                        <TableHead>Tipo</TableHead>
-                        <TableHead>Cliente</TableHead>
-                        <TableHead>Valor</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Data/Hora</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {recentComandas.map((comanda) => (
-                        <TableRow key={comanda.id}>
-                          <TableCell className="font-medium">#{comanda.number}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline">
-                              {comanda.type === 'table' ? `Mesa ${comanda.table_number}` : 'Balcão'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{comanda.customer_name || '-'}</TableCell>
-                          <TableCell>R$ {Number(comanda.total).toFixed(2)}</TableCell>
-                          <TableCell>
-                            <Badge style={{ backgroundColor: statusColors[comanda.status] }}>
-                              {statusLabels[comanda.status]}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {format(new Date(comanda.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
       </div>
     );
   };

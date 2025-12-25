@@ -13,6 +13,14 @@ interface WhatsAppPhonePreviewProps {
   playNotificationSound?: boolean;
   allowThemeToggle?: boolean;
   defaultTheme?: 'light' | 'dark' | 'system';
+  // Para tipo de interação
+  interactionType?: 'text' | 'poll' | 'buttons';
+  // Para enquetes
+  pollQuestion?: string;
+  pollOptions?: string[];
+  pollSelectableCount?: number;
+  // Para botões
+  buttons?: Array<{ text: string; url?: string }>;
 }
 
 // Hook para animação de digitação
@@ -99,7 +107,12 @@ export function WhatsAppPhonePreview({
   showTypingAnimation = true,
   playNotificationSound = true,
   allowThemeToggle = false,
-  defaultTheme = 'system'
+  defaultTheme = 'system',
+  interactionType = 'text',
+  pollQuestion,
+  pollOptions = [],
+  pollSelectableCount = 1,
+  buttons = []
 }: WhatsAppPhonePreviewProps) {
   const { resolvedTheme } = useTheme();
   const [localTheme, setLocalTheme] = useState<'light' | 'dark' | null>(
@@ -280,72 +293,191 @@ export function WhatsAppPhonePreview({
               </span>
             </div>
 
-            {/* Mensagem */}
-            <div className="flex justify-end">
-              <div 
-                className="max-w-[90%] rounded-lg rounded-tr-sm shadow-sm relative"
-                style={{ backgroundColor: colors.bubble }}
-              >
-                {/* Mídia */}
-                {mediaUrl && mediaType === 'image' && (
-                  <img 
-                    src={mediaUrl} 
-                    alt="Media" 
-                    className="w-full max-h-44 object-cover rounded-t-lg"
-                  />
-                )}
-                {mediaUrl && mediaType === 'video' && (
-                  <div 
-                    className="w-full h-32 rounded-t-lg flex items-center justify-center"
-                    style={{ backgroundColor: isDark ? '#1a1a1a' : '#e0e0e0' }}
-                  >
-                    <Video className="w-12 h-12 opacity-50" style={{ color: colors.bubbleText }} />
+            {/* Mensagem de Enquete */}
+            {interactionType === 'poll' && pollQuestion && pollOptions.length > 0 && (
+              <div className="flex justify-end">
+                <div 
+                  className="max-w-[90%] rounded-lg rounded-tr-sm shadow-sm"
+                  style={{ backgroundColor: colors.bubble }}
+                >
+                  {/* Header da enquete */}
+                  <div className="px-3 pt-3 pb-2 border-b" style={{ borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" style={{ color: isDark ? '#00A884' : '#25D366' }}>
+                        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                      </svg>
+                      <span className="text-xs font-medium uppercase tracking-wide" style={{ color: isDark ? '#00A884' : '#25D366' }}>
+                        Enquete
+                      </span>
+                    </div>
+                    <p className="font-medium text-sm" style={{ color: colors.bubbleText }}>
+                      {pollQuestion}
+                    </p>
+                    <p className="text-xs mt-1" style={{ color: colors.timeText }}>
+                      Selecione {pollSelectableCount > 1 ? `até ${pollSelectableCount} opções` : '1 opção'}
+                    </p>
                   </div>
-                )}
-                {mediaUrl && mediaType === 'document' && (
-                  <div 
-                    className="w-full h-20 rounded-t-lg flex items-center justify-center gap-2"
-                    style={{ backgroundColor: isDark ? '#1a1a1a' : '#e0e0e0' }}
-                  >
-                    <FileText className="w-8 h-8 opacity-50" style={{ color: colors.bubbleText }} />
-                    <span className="text-sm opacity-60" style={{ color: colors.bubbleText }}>Documento</span>
-                  </div>
-                )}
-
-                {/* Texto */}
-                <div className="px-3 py-2">
-                  {isTyping && !displayText ? (
-                    <TypingIndicator />
-                  ) : (
-                    <>
-                      <p 
-                        className="text-sm whitespace-pre-wrap leading-relaxed pr-14"
-                        style={{ color: colors.bubbleText }}
+                  
+                  {/* Opções */}
+                  <div className="px-3 py-2 space-y-2">
+                    {pollOptions.filter(o => o.trim()).map((option, idx) => (
+                      <div 
+                        key={idx}
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg border"
+                        style={{ 
+                          borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)',
+                          backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)'
+                        }}
                       >
-                        {displayText || message}
-                        {isTyping && <span className="animate-pulse">|</span>}
-                      </p>
-                      
-                      {/* Horário e checks */}
-                      <div className="flex items-center justify-end gap-1 -mt-4">
-                        <span 
-                          className="text-xs"
-                          style={{ color: colors.timeText }}
-                        >
-                          {currentTime}
+                        <div 
+                          className={`w-4 h-4 border-2 ${pollSelectableCount > 1 ? 'rounded' : 'rounded-full'}`}
+                          style={{ borderColor: isDark ? '#00A884' : '#25D366' }}
+                        />
+                        <span className="text-sm flex-1" style={{ color: colors.bubbleText }}>
+                          {option}
                         </span>
-                        {isComplete && (
-                          <div className="flex -space-x-1">
-                            <Check className="w-3.5 h-3.5" style={{ color: colors.checkColor }} />
-                            <Check className="w-3.5 h-3.5 -ml-1.5" style={{ color: colors.checkColor }} />
-                          </div>
-                        )}
                       </div>
-                    </>
-                  )}
+                    ))}
+                  </div>
+                  
+                  {/* Footer */}
+                  <div className="px-3 py-2 flex items-center justify-between">
+                    <span className="text-xs" style={{ color: colors.timeText }}>0 votos</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs" style={{ color: colors.timeText }}>{currentTime}</span>
+                      {isComplete && (
+                        <div className="flex -space-x-1">
+                          <Check className="w-3.5 h-3.5" style={{ color: colors.checkColor }} />
+                          <Check className="w-3.5 h-3.5 -ml-1.5" style={{ color: colors.checkColor }} />
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* Mensagem com Botões */}
+            {interactionType === 'buttons' && buttons.length > 0 && (
+              <div className="flex flex-col items-end gap-1">
+                {/* Balão da mensagem */}
+                <div 
+                  className="max-w-[90%] rounded-lg rounded-tr-sm shadow-sm relative"
+                  style={{ backgroundColor: colors.bubble }}
+                >
+                  {/* Mídia */}
+                  {mediaUrl && mediaType === 'image' && (
+                    <img src={mediaUrl} alt="Media" className="w-full max-h-44 object-cover rounded-t-lg" />
+                  )}
+                  
+                  <div className="px-3 py-2">
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed pr-14" style={{ color: colors.bubbleText }}>
+                      {displayText || message}
+                    </p>
+                    <div className="flex items-center justify-end gap-1 -mt-4">
+                      <span className="text-xs" style={{ color: colors.timeText }}>{currentTime}</span>
+                      {isComplete && (
+                        <div className="flex -space-x-1">
+                          <Check className="w-3.5 h-3.5" style={{ color: colors.checkColor }} />
+                          <Check className="w-3.5 h-3.5 -ml-1.5" style={{ color: colors.checkColor }} />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Botões */}
+                <div className="w-[90%] space-y-1">
+                  {buttons.filter(b => b.text).map((btn, idx) => (
+                    <button
+                      key={idx}
+                      className="w-full py-2.5 px-4 rounded-lg text-sm font-medium flex items-center justify-center gap-2 border"
+                      style={{ 
+                        backgroundColor: isDark ? '#1F2C34' : '#ffffff',
+                        borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                        color: isDark ? '#53BDEB' : '#007AFF'
+                      }}
+                    >
+                      {btn.url && (
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M19 19H5V5h7V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
+                        </svg>
+                      )}
+                      {btn.text}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Mensagem Normal (texto/mídia) */}
+            {interactionType === 'text' && (
+              <div className="flex justify-end">
+                <div 
+                  className="max-w-[90%] rounded-lg rounded-tr-sm shadow-sm relative"
+                  style={{ backgroundColor: colors.bubble }}
+                >
+                  {/* Mídia */}
+                  {mediaUrl && mediaType === 'image' && (
+                    <img 
+                      src={mediaUrl} 
+                      alt="Media" 
+                      className="w-full max-h-44 object-cover rounded-t-lg"
+                    />
+                  )}
+                  {mediaUrl && mediaType === 'video' && (
+                    <div 
+                      className="w-full h-32 rounded-t-lg flex items-center justify-center"
+                      style={{ backgroundColor: isDark ? '#1a1a1a' : '#e0e0e0' }}
+                    >
+                      <Video className="w-12 h-12 opacity-50" style={{ color: colors.bubbleText }} />
+                    </div>
+                  )}
+                  {mediaUrl && mediaType === 'document' && (
+                    <div 
+                      className="w-full h-20 rounded-t-lg flex items-center justify-center gap-2"
+                      style={{ backgroundColor: isDark ? '#1a1a1a' : '#e0e0e0' }}
+                    >
+                      <FileText className="w-8 h-8 opacity-50" style={{ color: colors.bubbleText }} />
+                      <span className="text-sm opacity-60" style={{ color: colors.bubbleText }}>Documento</span>
+                    </div>
+                  )}
+
+                  {/* Texto */}
+                  <div className="px-3 py-2">
+                    {isTyping && !displayText ? (
+                      <TypingIndicator />
+                    ) : (
+                      <>
+                        <p 
+                          className="text-sm whitespace-pre-wrap leading-relaxed pr-14"
+                          style={{ color: colors.bubbleText }}
+                        >
+                          {displayText || message}
+                          {isTyping && <span className="animate-pulse">|</span>}
+                        </p>
+                        
+                        {/* Horário e checks */}
+                        <div className="flex items-center justify-end gap-1 -mt-4">
+                          <span 
+                            className="text-xs"
+                            style={{ color: colors.timeText }}
+                          >
+                            {currentTime}
+                          </span>
+                          {isComplete && (
+                            <div className="flex -space-x-1">
+                              <Check className="w-3.5 h-3.5" style={{ color: colors.checkColor }} />
+                              <Check className="w-3.5 h-3.5 -ml-1.5" style={{ color: colors.checkColor }} />
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Input Bar */}

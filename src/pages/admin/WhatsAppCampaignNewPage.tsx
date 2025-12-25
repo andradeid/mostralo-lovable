@@ -44,7 +44,11 @@ import {
   Calendar,
   CalendarClock,
   Phone,
-  HelpCircle
+  HelpCircle,
+  Vote,
+  SquareMousePointer,
+  Plus,
+  Trash2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -131,6 +135,19 @@ export default function WhatsAppCampaignNewPage() {
     schedule_type: 'now' as 'now' | 'scheduled',
     scheduled_date: '',
     scheduled_time: '09:00',
+    // Tipo de interação (enquete/botões)
+    interaction_type: 'text' as 'text' | 'poll' | 'buttons',
+    // Campos para enquete
+    poll_question: '',
+    poll_options: ['', ''] as string[],
+    poll_selectable_count: 1,
+    // Campos para botões
+    button_1_text: '',
+    button_1_url: '',
+    button_2_text: '',
+    button_2_url: '',
+    button_3_text: '',
+    button_3_url: '',
   });
 
   // Funções auxiliares para formatação de tempo
@@ -387,13 +404,31 @@ export default function WhatsAppCampaignNewPage() {
       return;
     }
 
-    if (!form.custom_message.trim()) {
-      toast({
-        title: "Mensagem obrigatória",
-        description: "Escreva uma mensagem para enviar",
-        variant: "destructive",
-      });
-      return;
+    // Validação baseada no tipo
+    if (form.interaction_type === 'poll') {
+      if (!form.poll_question.trim()) {
+        toast({ title: "Erro", description: "Digite a pergunta da enquete", variant: "destructive" });
+        return;
+      }
+      const validOptions = form.poll_options.filter(o => o.trim());
+      if (validOptions.length < 2) {
+        toast({ title: "Erro", description: "Adicione pelo menos 2 opções", variant: "destructive" });
+        return;
+      }
+    } else if (form.interaction_type === 'buttons') {
+      if (!form.button_1_text.trim()) {
+        toast({ title: "Erro", description: "O botão 1 é obrigatório", variant: "destructive" });
+        return;
+      }
+      if (!form.custom_message.trim()) {
+        toast({ title: "Erro", description: "Digite o texto da mensagem", variant: "destructive" });
+        return;
+      }
+    } else {
+      if (!form.custom_message.trim()) {
+        toast({ title: "Mensagem obrigatória", description: "Escreva uma mensagem para enviar", variant: "destructive" });
+        return;
+      }
     }
 
     setSendingTest(true);
@@ -405,7 +440,28 @@ export default function WhatsAppCampaignNewPage() {
         phoneNumber: testNumber.replace(/\D/g, ''),
       };
 
-      if (form.media_url && form.media_type) {
+      // Configurar payload baseado no tipo de interação
+      if (form.interaction_type === 'poll') {
+        payload.messageType = 'poll';
+        payload.pollQuestion = form.poll_question;
+        payload.pollOptions = form.poll_options.filter(o => o.trim());
+        payload.pollSelectableCount = form.poll_selectable_count;
+        payload.content = form.poll_question; // Fallback
+      } else if (form.interaction_type === 'buttons') {
+        payload.messageType = 'buttons';
+        payload.content = testContent;
+        const btns: any[] = [];
+        if (form.button_1_text) {
+          btns.push({ buttonId: '1', buttonText: { displayText: form.button_1_text }, type: form.button_1_url ? 2 : 1, url: form.button_1_url || undefined });
+        }
+        if (form.button_2_text) {
+          btns.push({ buttonId: '2', buttonText: { displayText: form.button_2_text }, type: form.button_2_url ? 2 : 1, url: form.button_2_url || undefined });
+        }
+        if (form.button_3_text) {
+          btns.push({ buttonId: '3', buttonText: { displayText: form.button_3_text }, type: form.button_3_url ? 2 : 1, url: form.button_3_url || undefined });
+        }
+        payload.buttons = btns;
+      } else if (form.media_url && form.media_type) {
         payload.messageType = form.media_type;
         payload.mediaUrl = form.media_url;
         payload.content = testContent;
@@ -530,13 +586,31 @@ export default function WhatsAppCampaignNewPage() {
   };
 
   const previewCampaign = async () => {
-    if (!form.custom_message.trim()) {
-      toast({
-        title: "Erro",
-        description: "Escreva uma mensagem primeiro",
-        variant: "destructive",
-      });
-      return;
+    // Validação baseada no tipo
+    if (form.interaction_type === 'poll') {
+      if (!form.poll_question.trim()) {
+        toast({ title: "Erro", description: "Digite a pergunta da enquete", variant: "destructive" });
+        return;
+      }
+      const validOptions = form.poll_options.filter(o => o.trim());
+      if (validOptions.length < 2) {
+        toast({ title: "Erro", description: "Adicione pelo menos 2 opções na enquete", variant: "destructive" });
+        return;
+      }
+    } else if (form.interaction_type === 'buttons') {
+      if (!form.button_1_text.trim()) {
+        toast({ title: "Erro", description: "O botão 1 é obrigatório", variant: "destructive" });
+        return;
+      }
+      if (!form.custom_message.trim()) {
+        toast({ title: "Erro", description: "Digite o texto da mensagem", variant: "destructive" });
+        return;
+      }
+    } else {
+      if (!form.custom_message.trim()) {
+        toast({ title: "Erro", description: "Escreva uma mensagem primeiro", variant: "destructive" });
+        return;
+      }
     }
 
     setPreviewing(true);
@@ -570,6 +644,17 @@ export default function WhatsAppCampaignNewPage() {
           pause_after_messages: form.pause_enabled ? form.pause_after_messages : 0,
           pause_duration_seconds: form.pause_duration_seconds,
           status: 'draft',
+          // Campos de enquete e botões
+          interaction_type: form.interaction_type,
+          poll_question: form.poll_question || null,
+          poll_options: form.poll_options.filter(o => o.trim()).length > 0 ? form.poll_options.filter(o => o.trim()) : null,
+          poll_selectable_count: form.poll_selectable_count,
+          button_1_text: form.button_1_text || null,
+          button_1_url: form.button_1_url || null,
+          button_2_text: form.button_2_text || null,
+          button_2_url: form.button_2_url || null,
+          button_3_text: form.button_3_text || null,
+          button_3_url: form.button_3_url || null,
         })
         .select()
         .single();
@@ -922,6 +1007,17 @@ export default function WhatsAppCampaignNewPage() {
             end_hour: form.end_hour,
             pause_after_messages: form.pause_enabled ? form.pause_after_messages : 0,
             pause_duration_seconds: form.pause_duration_seconds,
+            // Campos de enquete e botões
+            interaction_type: form.interaction_type,
+            poll_question: form.poll_question || null,
+            poll_options: form.poll_options.filter(o => o.trim()).length > 0 ? form.poll_options.filter(o => o.trim()) : null,
+            poll_selectable_count: form.poll_selectable_count,
+            button_1_text: form.button_1_text || null,
+            button_1_url: form.button_1_url || null,
+            button_2_text: form.button_2_text || null,
+            button_2_url: form.button_2_url || null,
+            button_3_text: form.button_3_text || null,
+            button_3_url: form.button_3_url || null,
           })
           .eq('id', previewData.campaignId);
       } else {
@@ -948,6 +1044,17 @@ export default function WhatsAppCampaignNewPage() {
             pause_after_messages: form.pause_enabled ? form.pause_after_messages : 0,
             pause_duration_seconds: form.pause_duration_seconds,
             status: 'draft',
+            // Campos de enquete e botões
+            interaction_type: form.interaction_type,
+            poll_question: form.poll_question || null,
+            poll_options: form.poll_options.filter(o => o.trim()).length > 0 ? form.poll_options.filter(o => o.trim()) : null,
+            poll_selectable_count: form.poll_selectable_count,
+            button_1_text: form.button_1_text || null,
+            button_1_url: form.button_1_url || null,
+            button_2_text: form.button_2_text || null,
+            button_2_url: form.button_2_url || null,
+            button_3_text: form.button_3_text || null,
+            button_3_url: form.button_3_url || null,
           });
       }
 
@@ -1827,29 +1934,221 @@ Ana Costa, 31977665544"
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Seletor de template como base */}
+              {/* Seletor de Tipo de Interação */}
               <div className="space-y-2">
-                <Label>Usar template como base (opcional)</Label>
-                <Select
-                  value={form.template_id}
-                  onValueChange={(v) => {
-                    setForm(prev => ({ ...prev, template_id: v }));
-                    const template = templates.find(t => t.id === v);
-                    if (template) {
-                      setForm(prev => ({ ...prev, custom_message: template.content }));
-                    }
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um template (opcional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {templates.map(t => (
-                      <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>Tipo de Mensagem</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    type="button"
+                    variant={form.interaction_type === 'text' ? 'default' : 'outline'}
+                    className="flex flex-col items-center gap-1 h-auto py-3"
+                    onClick={() => setForm(prev => ({ ...prev, interaction_type: 'text' }))}
+                  >
+                    <MessageCircle className="h-5 w-5" />
+                    <span className="text-xs">Texto</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={form.interaction_type === 'poll' ? 'default' : 'outline'}
+                    className="flex flex-col items-center gap-1 h-auto py-3"
+                    onClick={() => setForm(prev => ({ ...prev, interaction_type: 'poll' }))}
+                  >
+                    <Vote className="h-5 w-5" />
+                    <span className="text-xs">Enquete</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={form.interaction_type === 'buttons' ? 'default' : 'outline'}
+                    className="flex flex-col items-center gap-1 h-auto py-3"
+                    onClick={() => setForm(prev => ({ ...prev, interaction_type: 'buttons' }))}
+                  >
+                    <SquareMousePointer className="h-5 w-5" />
+                    <span className="text-xs">Botões</span>
+                  </Button>
+                </div>
               </div>
+
+              {/* Campos de Enquete */}
+              {form.interaction_type === 'poll' && (
+                <div className="space-y-4 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Vote className="h-4 w-4" />
+                      Pergunta da Enquete *
+                    </Label>
+                    <Input
+                      value={form.poll_question}
+                      onChange={(e) => setForm(prev => ({ ...prev, poll_question: e.target.value }))}
+                      placeholder="Ex: Qual horário você prefere para entregas?"
+                      maxLength={256}
+                    />
+                    <p className="text-xs text-muted-foreground">{form.poll_question.length}/256 caracteres</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Opções (2 a 12)</Label>
+                    <div className="space-y-2">
+                      {form.poll_options.map((option, index) => (
+                        <div key={index} className="flex gap-2">
+                          <Input
+                            value={option}
+                            onChange={(e) => {
+                              const newOptions = [...form.poll_options];
+                              newOptions[index] = e.target.value;
+                              setForm(prev => ({ ...prev, poll_options: newOptions }));
+                            }}
+                            placeholder={`Opção ${index + 1}`}
+                            maxLength={100}
+                          />
+                          {form.poll_options.length > 2 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                const newOptions = form.poll_options.filter((_, i) => i !== index);
+                                setForm(prev => ({ ...prev, poll_options: newOptions }));
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {form.poll_options.length < 12 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setForm(prev => ({ 
+                          ...prev, 
+                          poll_options: [...prev.poll_options, ''] 
+                        }))}
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Adicionar opção
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Quantidade de seleções permitidas</Label>
+                    <Select
+                      value={String(form.poll_selectable_count)}
+                      onValueChange={(v) => setForm(prev => ({ ...prev, poll_selectable_count: parseInt(v) }))}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 opção (única escolha)</SelectItem>
+                        <SelectItem value="2">Até 2 opções</SelectItem>
+                        <SelectItem value="3">Até 3 opções</SelectItem>
+                        <SelectItem value="0">Sem limite</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
+
+              {/* Campos de Botões */}
+              {form.interaction_type === 'buttons' && (
+                <div className="space-y-4 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <SquareMousePointer className="h-4 w-4" />
+                      Configurar Botões (até 3)
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Adicione botões interativos. URL é opcional - sem URL o botão será apenas texto.
+                    </p>
+                  </div>
+
+                  {/* Botão 1 */}
+                  <div className="space-y-2 p-3 bg-background rounded border">
+                    <Label className="text-sm font-medium">Botão 1 *</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input
+                        value={form.button_1_text}
+                        onChange={(e) => setForm(prev => ({ ...prev, button_1_text: e.target.value }))}
+                        placeholder="Texto do botão"
+                        maxLength={20}
+                      />
+                      <Input
+                        value={form.button_1_url}
+                        onChange={(e) => setForm(prev => ({ ...prev, button_1_url: e.target.value }))}
+                        placeholder="URL (opcional)"
+                        type="url"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Botão 2 */}
+                  <div className="space-y-2 p-3 bg-background rounded border">
+                    <Label className="text-sm font-medium">Botão 2 (opcional)</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input
+                        value={form.button_2_text}
+                        onChange={(e) => setForm(prev => ({ ...prev, button_2_text: e.target.value }))}
+                        placeholder="Texto do botão"
+                        maxLength={20}
+                      />
+                      <Input
+                        value={form.button_2_url}
+                        onChange={(e) => setForm(prev => ({ ...prev, button_2_url: e.target.value }))}
+                        placeholder="URL (opcional)"
+                        type="url"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Botão 3 */}
+                  <div className="space-y-2 p-3 bg-background rounded border">
+                    <Label className="text-sm font-medium">Botão 3 (opcional)</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input
+                        value={form.button_3_text}
+                        onChange={(e) => setForm(prev => ({ ...prev, button_3_text: e.target.value }))}
+                        placeholder="Texto do botão"
+                        maxLength={20}
+                      />
+                      <Input
+                        value={form.button_3_url}
+                        onChange={(e) => setForm(prev => ({ ...prev, button_3_url: e.target.value }))}
+                        placeholder="URL (opcional)"
+                        type="url"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Seletor de template como base - só para texto */}
+              {form.interaction_type === 'text' && (
+                <div className="space-y-2">
+                  <Label>Usar template como base (opcional)</Label>
+                  <Select
+                    value={form.template_id}
+                    onValueChange={(v) => {
+                      setForm(prev => ({ ...prev, template_id: v }));
+                      const template = templates.find(t => t.id === v);
+                      if (template) {
+                        setForm(prev => ({ ...prev, custom_message: template.content }));
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um template (opcional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {templates.map(t => (
+                        <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               {/* Textarea para mensagem customizada */}
               <div className="space-y-2">

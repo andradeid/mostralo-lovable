@@ -9,6 +9,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Search, Plus, Loader2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { AddItemConfirmModal } from '@/components/comandas/AddItemConfirmModal';
 
 interface Product {
   id: string;
@@ -24,13 +25,16 @@ interface Product {
 }
 
 interface PDVProductGridProps {
-  onAddProduct: (product: { product_id: string; product_name: string; unit_price: number; quantity: number }) => void;
+  onAddProduct: (product: { product_id: string; product_name: string; unit_price: number; quantity: number; notes?: string }) => void;
+  isAdding?: boolean;
 }
 
-export function PDVProductGrid({ onAddProduct }: PDVProductGridProps) {
+export function PDVProductGrid({ onAddProduct, isAdding = false }: PDVProductGridProps) {
   const { storeId } = useStoreAccess();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const isMobile = useIsMobile();
 
   // Buscar produtos da loja
@@ -87,13 +91,21 @@ export function PDVProductGrid({ onAddProduct }: PDVProductGridProps) {
     return matchesSearch && matchesCategory;
   });
 
-  const handleAddProduct = (product: Product) => {
+  const handleProductClick = (product: Product) => {
+    setSelectedProduct(product);
+    setConfirmModalOpen(true);
+  };
+
+  const handleConfirmAdd = (product: Product, quantity: number, notes: string) => {
     onAddProduct({
       product_id: product.id,
       product_name: product.name,
       unit_price: product.price,
-      quantity: 1,
+      quantity,
+      notes: notes || undefined,
     });
+    setConfirmModalOpen(false);
+    setSelectedProduct(null);
   };
 
   if (loadingProducts) {
@@ -175,7 +187,7 @@ export function PDVProductGrid({ onAddProduct }: PDVProductGridProps) {
           <Card 
             key={product.id}
             className="cursor-pointer hover:border-primary transition-colors overflow-hidden active:scale-[0.98]"
-            onClick={() => handleAddProduct(product)}
+            onClick={() => handleProductClick(product)}
           >
             <CardContent className={`p-0 ${isMobile ? '' : 'p-3'}`}>
               {product.image_url && (
@@ -200,7 +212,7 @@ export function PDVProductGrid({ onAddProduct }: PDVProductGridProps) {
                   className={`w-full mt-2 ${isMobile ? 'h-12 text-base' : ''}`}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleAddProduct(product);
+                    handleProductClick(product);
                   }}
                 >
                   <Plus className={isMobile ? "h-5 w-5 mr-2" : "h-4 w-4 mr-1"} />
@@ -219,6 +231,15 @@ export function PDVProductGrid({ onAddProduct }: PDVProductGridProps) {
             : 'Nenhum produto disponível.'}
         </div>
       )}
+
+      {/* Modal de confirmação */}
+      <AddItemConfirmModal
+        open={confirmModalOpen}
+        onOpenChange={setConfirmModalOpen}
+        product={selectedProduct}
+        onConfirm={handleConfirmAdd}
+        isAdding={isAdding}
+      />
     </div>
   );
 }

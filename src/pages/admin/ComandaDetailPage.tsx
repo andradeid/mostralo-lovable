@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useComandas } from '@/hooks/useComandas';
 import { PDVProductGrid } from '@/components/pdv/PDVProductGrid';
@@ -13,6 +13,7 @@ import { printComanda } from '@/utils/printComanda';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function ComandaDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -20,9 +21,20 @@ export default function ComandaDetailPage() {
   const { storeId } = useStoreAccess();
   const { useComandaDetail, addItem, removeItem, closeComanda, isAddingItem, isRemovingItem, isClosing } = useComandas();
   const { data, isLoading } = useComandaDetail(id);
+  const isMobile = useIsMobile();
+  const productsCardRef = useRef<HTMLDivElement>(null);
   
   const [showProducts, setShowProducts] = useState(false);
   const [closeModalOpen, setCloseModalOpen] = useState(false);
+
+  // Auto-scroll para produtos quando abrir no mobile
+  useEffect(() => {
+    if (showProducts && isMobile && productsCardRef.current) {
+      setTimeout(() => {
+        productsCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }, [showProducts, isMobile]);
 
   // Buscar nome da loja para impressão
   const { data: storeData } = useQuery({
@@ -61,7 +73,7 @@ export default function ComandaDetailPage() {
 
   const { comanda, items } = data;
 
-  const handleAddProduct = async (product: { product_id: string; product_name: string; unit_price: number; quantity: number }) => {
+  const handleAddProduct = async (product: { product_id: string; product_name: string; unit_price: number; quantity: number; notes?: string }) => {
     await addItem({ comanda_id: comanda.id, ...product });
   };
 
@@ -125,7 +137,20 @@ export default function ComandaDetailPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Layout responsivo: produtos primeiro no mobile */}
+      <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'}`}>
+        {/* Grid de produtos - aparece primeiro no mobile quando ativo */}
+        {showProducts && comanda.status === 'open' && isMobile && (
+          <Card ref={productsCardRef}>
+            <CardHeader>
+              <CardTitle>Adicionar Produtos</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <PDVProductGrid onAddProduct={handleAddProduct} isAdding={isAddingItem} />
+            </CardContent>
+          </Card>
+        )}
+
         {/* Itens da comanda */}
         <Card>
           <CardHeader>
@@ -192,14 +217,14 @@ export default function ComandaDetailPage() {
           </CardContent>
         </Card>
 
-        {/* Grid de produtos (quando ativo) */}
-        {showProducts && comanda.status === 'open' && (
-          <Card>
+        {/* Grid de produtos - desktop (lado a lado) */}
+        {showProducts && comanda.status === 'open' && !isMobile && (
+          <Card ref={productsCardRef}>
             <CardHeader>
               <CardTitle>Adicionar Produtos</CardTitle>
             </CardHeader>
             <CardContent>
-              <PDVProductGrid onAddProduct={handleAddProduct} />
+              <PDVProductGrid onAddProduct={handleAddProduct} isAdding={isAddingItem} />
             </CardContent>
           </Card>
         )}

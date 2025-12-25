@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -28,7 +29,8 @@ import {
   ChefHat,
   CheckCircle2,
   XCircle,
-  Package
+  Package,
+  History
 } from 'lucide-react';
 
 interface SalesHistoryTableProps {
@@ -253,6 +255,17 @@ export function SalesHistoryTable({ dateRange, storeId }: SalesHistoryTableProps
 
   return (
     <div className="space-y-4">
+      {/* Instrução da Central de Vendas */}
+      <Alert className="bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-800">
+        <History className="h-4 w-4 text-green-600 dark:text-green-400" />
+        <AlertDescription className="text-green-800 dark:text-green-200 text-sm">
+          <strong>Central de Vendas:</strong> Lista completa de <strong>TODAS</strong> as vendas 
+          da loja — Delivery, Retirada, Mesa e Balcão PDV — em um só lugar. Use os filtros 
+          para buscar por cliente, canal ou status. Clique em qualquer linha ou no botão 
+          <strong> "Ver"</strong> para abrir todos os detalhes do pedido.
+        </AlertDescription>
+      </Alert>
+
       {/* Filtros */}
       <SalesFilters
         searchQuery={searchQuery}

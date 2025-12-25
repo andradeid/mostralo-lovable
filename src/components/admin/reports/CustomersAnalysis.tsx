@@ -3,13 +3,14 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { DateRange } from '@/components/admin/reports/types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, UserCheck, UserPlus, UserX, Crown } from 'lucide-react';
+import { Users, UserCheck, UserPlus, UserX, Crown, TrendingUp } from 'lucide-react';
 
 interface CustomersAnalysisProps {
   dateRange: DateRange;
@@ -154,6 +155,13 @@ export function CustomersAnalysis({ dateRange, storeId }: CustomersAnalysisProps
   
   return (
     <div className="space-y-6">
+      <Alert className="bg-indigo-50 border-indigo-200 dark:bg-indigo-950/30 dark:border-indigo-800">
+        <TrendingUp className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+        <AlertDescription className="text-indigo-800 dark:text-indigo-200 text-sm">
+          <strong>👥 Análise de Clientes:</strong> Visão completa da sua base de clientes no período. <strong>KPIs</strong> mostram totais e atividade • <strong>Segmentação</strong> divide por frequência de compra (Novos, Recorrentes, VIPs, Inativos) • <strong>Top 10</strong> são os clientes que <strong>mais gastaram</strong> (R$), não os que fizeram mais pedidos.
+        </AlertDescription>
+      </Alert>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">

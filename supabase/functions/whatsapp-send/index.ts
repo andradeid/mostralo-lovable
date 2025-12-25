@@ -173,8 +173,8 @@ serve(async (req) => {
         payload.description = content || '';
         payload.buttonText = listButtonText || 'Ver opções';
         payload.footerText = '';
-        // Formatar seções para Evolution API
-        payload.sections = (listSections || []).map((section: any) => ({
+        // Formatar seções para Evolution API - USAR "values" ao invés de "sections"
+        payload.values = (listSections || []).map((section: any) => ({
           title: section.title || 'Opções',
           rows: (section.rows || []).filter((r: any) => r.title).map((row: any) => ({
             title: row.title,
@@ -182,7 +182,7 @@ serve(async (req) => {
             rowId: row.rowId || String(Math.random()).slice(2, 10)
           }))
         })).filter((s: any) => s.rows.length > 0);
-        console.log(`[whatsapp-send] Enviando lista: "${payload.title}" com ${payload.sections?.length} seções`);
+        console.log(`[whatsapp-send] Enviando lista: "${payload.title}" com ${payload.values?.length} seções`);
         break;
       
       case 'buttons':

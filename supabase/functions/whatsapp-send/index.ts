@@ -168,35 +168,43 @@ serve(async (req) => {
       
       case 'list': {
         // Lista interativa - algumas versões da Evolution API exigem "sections".
-        // Para compatibilidade, enviamos "sections" e também espelhamos em "values".
+        // Para máxima compatibilidade, mantemos "sections" e também espelhamos em "values".
         endpoint = `${api_url}/message/sendList/${instance.instance_name}`;
-        payload.title = listTitle || 'Escolha uma opção';
+        payload.title = (listTitle || 'Escolha uma opção').trim();
         payload.description = content || '';
-        payload.buttonText = listButtonText || 'Ver opções';
+        payload.buttonText = (listButtonText || 'Ver opções').trim();
         payload.footerText = '';
 
-        const safeRowId = (input: unknown, sIdx: number, rIdx: number) => {
+        const safeInteractiveId = (input: unknown, sIdx: number, rIdx: number) => {
           const raw = (typeof input === 'string' || typeof input === 'number')
             ? String(input).trim()
             : '';
 
-          // Evita IDs puramente numéricos/underscore (podem quebrar internamente no Baileys/Long)
+          // Alguns builds da Evolution/Baileys quebram com IDs "numéricos"; sempre garantimos prefixo alfa.
           if (!raw || /^[0-9_]+$/.test(raw)) {
-            return `row_${sIdx}_${rIdx}_${Date.now()}`;
+            return `rid_${sIdx}_${rIdx}_${crypto.randomUUID().replace(/-/g, '').slice(0, 12)}`;
           }
 
-          return raw.replace(/\s+/g, '_').slice(0, 64);
+          const cleaned = raw.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64);
+          return /^[0-9]/.test(cleaned)
+            ? `rid_${cleaned}`
+            : cleaned;
         };
 
         const sections = (listSections || []).map((section: any, sIdx: number) => ({
-          title: section.title || 'Opções',
+          title: (section.title || 'Opções').trim(),
           rows: (section.rows || [])
             .filter((r: any) => r.title)
-            .map((row: any, rIdx: number) => ({
-              title: row.title,
-              description: row.description || '',
-              rowId: safeRowId(row.rowId, sIdx, rIdx),
-            })),
+            .map((row: any, rIdx: number) => {
+              const id = safeInteractiveId(row.rowId ?? row.id, sIdx, rIdx);
+              return {
+                title: String(row.title).trim(),
+                description: (row.description || '').trim(),
+                // Compat: Evolution costuma aceitar rowId; alguns clientes usam "id".
+                rowId: id,
+                id,
+              };
+            }),
         })).filter((s: any) => s.rows.length > 0);
 
         payload.sections = sections;
@@ -205,6 +213,7 @@ serve(async (req) => {
         console.log(`[whatsapp-send] Enviando lista payload:`, JSON.stringify(payload));
         break;
       }
+
 
       
       case 'buttons':
@@ -262,12 +271,12 @@ serve(async (req) => {
     }
 
     if (!sendResponse.ok) {
-      return new Response(JSON.stringify({ 
-        success: false, 
+      return new Response(JSON.stringify({
+        success: false,
         error: 'Erro ao enviar mensagem',
-        details: sendData 
+        details: sendData,
       }), {
-        status: 500,
+        status: sendResponse.status || 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }

@@ -1,15 +1,43 @@
 import { useMemo, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { CheckCircle, XCircle, Package, Loader2 } from 'lucide-react';
+import { 
+  CheckCircle, XCircle, Package, Loader2, BarChart3, 
+  MessageSquare, Users, Truck, Store, Settings, CreditCard, 
+  ShoppingCart, Receipt, Megaphone, Clock, Calendar, FileText, 
+  Shield, LucideIcon 
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+
+// Mapa de ícones para módulos
+const moduleIconMap: Record<string, LucideIcon> = {
+  'BarChart3': BarChart3,
+  'MessageSquare': MessageSquare,
+  'Users': Users,
+  'Truck': Truck,
+  'Store': Store,
+  'Settings': Settings,
+  'CreditCard': CreditCard,
+  'ShoppingCart': ShoppingCart,
+  'Receipt': Receipt,
+  'Megaphone': Megaphone,
+  'Clock': Clock,
+  'Calendar': Calendar,
+  'FileText': FileText,
+  'Shield': Shield,
+  'Package': Package,
+};
+
+const getModuleIcon = (iconName: string | null): LucideIcon => {
+  if (!iconName) return Package;
+  return moduleIconMap[iconName] || Package;
+};
 
 interface StoreAccessStatus {
   storeId: string;
@@ -137,28 +165,38 @@ export function ModuleMatrixView({
                   <th className="text-left p-3 font-medium text-sm sticky left-0 bg-muted/50 z-10 min-w-[200px]">
                     Loja
                   </th>
-                  {filteredModules.map((module) => (
-                    <th key={module.id} className="p-3 text-center min-w-[100px]">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex flex-col items-center gap-1 cursor-help">
-                            <Package className="w-4 h-4 text-primary" />
-                            <span className="text-xs font-medium truncate max-w-[80px]">
-                              {module.name}
-                            </span>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p className="font-medium">{module.name}</p>
-                          {module.description && (
-                            <p className="text-xs text-muted-foreground max-w-[200px]">
-                              {module.description}
-                            </p>
-                          )}
-                        </TooltipContent>
-                      </Tooltip>
-                    </th>
-                  ))}
+                  {filteredModules.map((module) => {
+                    const IconComponent = getModuleIcon(module.icon);
+                    return (
+                      <th key={module.id} className="p-3 text-center min-w-[120px]">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex flex-col items-center gap-1.5 cursor-help">
+                              <div className="p-1.5 rounded-md bg-primary/10">
+                                <IconComponent className="w-4 h-4 text-primary" />
+                              </div>
+                              <span className="text-xs font-medium truncate max-w-[100px]">
+                                {module.name}
+                              </span>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom" className="max-w-[250px]">
+                            <p className="font-semibold">{module.name}</p>
+                            {module.key && (
+                              <code className="text-xs bg-muted px-1 py-0.5 rounded mt-1 block">
+                                {module.key}
+                              </code>
+                            )}
+                            {module.description && (
+                              <p className="text-xs text-muted-foreground mt-1.5">
+                                {module.description}
+                              </p>
+                            )}
+                          </TooltipContent>
+                        </Tooltip>
+                      </th>
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody>

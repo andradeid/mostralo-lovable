@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
 import {
   Collapsible,
   CollapsibleContent,
@@ -11,9 +10,36 @@ import {
 } from '@/components/ui/collapsible';
 import { 
   Package, ChevronDown, ChevronUp, Lock, Unlock, 
-  CheckCircle, XCircle, Search 
+  CheckCircle, XCircle, BarChart3, MessageSquare, 
+  Users, Truck, Store, Settings, CreditCard, ShoppingCart,
+  Receipt, Megaphone, Clock, Calendar, FileText, Shield,
+  LucideIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
+
+// Mapa de ícones para módulos
+const moduleIconMap: Record<string, LucideIcon> = {
+  'BarChart3': BarChart3,
+  'MessageSquare': MessageSquare,
+  'Users': Users,
+  'Truck': Truck,
+  'Store': Store,
+  'Settings': Settings,
+  'CreditCard': CreditCard,
+  'ShoppingCart': ShoppingCart,
+  'Receipt': Receipt,
+  'Megaphone': Megaphone,
+  'Clock': Clock,
+  'Calendar': Calendar,
+  'FileText': FileText,
+  'Shield': Shield,
+  'Package': Package,
+};
+
+const getModuleIcon = (iconName: string | null): LucideIcon => {
+  if (!iconName) return Package;
+  return moduleIconMap[iconName] || Package;
+};
 
 interface StoreAccessStatus {
   storeId: string;
@@ -179,19 +205,27 @@ export function ModuleCardsView({
                 <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-primary/10">
-                        <Package className="w-5 h-5 text-primary" />
+                      <div className="p-2.5 rounded-lg bg-primary/10">
+                        {(() => {
+                          const IconComponent = getModuleIcon(module.icon);
+                          return <IconComponent className="w-5 h-5 text-primary" />;
+                        })()}
                       </div>
-                      <div>
+                      <div className="flex-1 min-w-0">
                         <CardTitle className="text-base">{module.name}</CardTitle>
+                        {module.description && (
+                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                            {module.description}
+                          </p>
+                        )}
                         {module.key && (
-                          <code className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                          <code className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded mt-1 inline-block">
                             {module.key}
                           </code>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 shrink-0">
                       <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">
                         <CheckCircle className="w-3 h-3 mr-1" />
                         {module.enabledCount}

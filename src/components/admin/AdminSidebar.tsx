@@ -51,7 +51,8 @@ import {
   BookOpen,
   Activity,
   ClipboardCheck,
-  Bell
+  Bell,
+  UtensilsCrossed
 } from "lucide-react";
 
 import {
@@ -334,6 +335,7 @@ export function AdminSidebar() {
         { title: 'Pedidos', url: '/dashboard/orders', icon: ShoppingCart, group: 'Vendas' },
         { title: 'PDV', url: '/dashboard/pdv', icon: Monitor, group: 'Vendas Presenciais' },
         { title: 'Comandas', url: '/dashboard/comandas', icon: Receipt, group: 'Vendas Presenciais' },
+        { title: 'Cozinha (KDS)', url: '/dashboard/cozinha', icon: UtensilsCrossed, group: 'Vendas Presenciais' },
         { title: 'Clientes', url: '/dashboard/customers', icon: UserCircle, group: 'Vendas' },
         { title: 'Relatórios', url: '/dashboard/reports', icon: BarChart3, group: 'Vendas' },
         { title: 'Promoções', url: '/dashboard/promotions', icon: Tag, group: 'Vendas' },
@@ -566,7 +568,8 @@ export function AdminSidebar() {
       if (hasModule('pdv_comandas')) {
         menuItems.push(
           { title: 'PDV', url: '/dashboard/pdv', icon: Monitor, group: 'Vendas Presenciais' },
-          { title: 'Comandas', url: '/dashboard/comandas', icon: Receipt, group: 'Vendas Presenciais' }
+          { title: 'Comandas', url: '/dashboard/comandas', icon: Receipt, group: 'Vendas Presenciais' },
+          { title: 'Cozinha (KDS)', url: '/dashboard/cozinha', icon: UtensilsCrossed, group: 'Vendas Presenciais' }
         );
       }
 

@@ -77,6 +77,7 @@ export const routePreloadMap: Record<string, RouteImportFn> = {
   '/dashboard/pdv': () => import('@/pages/admin/PDVPage'),
   '/dashboard/comandas': () => import('@/pages/admin/ComandasPage'),
   '/dashboard/comandas/:id': () => import('@/pages/admin/ComandaDetailPage'),
+  '/dashboard/cozinha': () => import('@/pages/admin/KitchenDisplayPage'),
 
   // ============================================
   // MASTER ADMIN ROUTES

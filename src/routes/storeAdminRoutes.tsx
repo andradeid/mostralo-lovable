@@ -51,6 +51,7 @@ const SentinelaPage = lazy(() => import("@/pages/store-admin/Sentinela"));
 const PDVPage = lazy(() => import("@/pages/admin/PDVPage"));
 const ComandasPage = lazy(() => import("@/pages/admin/ComandasPage"));
 const ComandaDetailPage = lazy(() => import("@/pages/admin/ComandaDetailPage"));
+const KitchenDisplayPage = lazy(() => import("@/pages/admin/KitchenDisplayPage"));
 
 export const storeAdminRoutes = (
   <>
@@ -425,6 +426,13 @@ export const storeAdminRoutes = (
       <ProtectedRoute allowedRoles={['store_admin', 'attendant']}>
         <AdminLayout pageTitle="Detalhes da Comanda">
           <LazyRoute><ComandaDetailPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/cozinha" element={
+      <ProtectedRoute allowedRoles={['store_admin', 'attendant']}>
+        <AdminLayout pageTitle="KDS - Cozinha">
+          <LazyRoute><KitchenDisplayPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

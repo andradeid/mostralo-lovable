@@ -39,6 +39,9 @@ export interface ComandaItem {
   notes: string | null;
   added_by: string | null;
   added_at: string;
+  preparation_status: 'pending' | 'preparing' | 'ready';
+  preparation_started_at: string | null;
+  prepared_at: string | null;
 }
 
 export interface CreateComandaInput {

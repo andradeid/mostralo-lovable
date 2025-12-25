@@ -529,8 +529,17 @@ export default function WhatsAppTemplatesPage() {
                               <div className="mt-2 p-2 bg-primary/10 rounded text-xs">
                                 <p className="font-medium">📊 {template.poll_question}</p>
                                 <p className="text-muted-foreground mt-1">
-                                  {JSON.parse(template.poll_options || '[]').slice(0, 3).join(' • ')}
-                                  {JSON.parse(template.poll_options || '[]').length > 3 ? '...' : ''}
+                                  {(() => {
+                                    const options = Array.isArray(template.poll_options) 
+                                      ? template.poll_options 
+                                      : (typeof template.poll_options === 'string' ? JSON.parse(template.poll_options || '[]') : []);
+                                    return (
+                                      <>
+                                        {options.slice(0, 3).join(' • ')}
+                                        {options.length > 3 ? '...' : ''}
+                                      </>
+                                    );
+                                  })()}
                                 </p>
                               </div>
                             )}

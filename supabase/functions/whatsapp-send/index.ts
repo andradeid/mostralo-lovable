@@ -124,6 +124,8 @@ serve(async (req) => {
       number: formattedPhone,
     };
 
+    // Usado para retentativas (alguns builds da Evolution têm comportamentos diferentes no sendList)
+    let normalizedListSections: any[] | null = null;
 
     switch (messageType) {
       case 'text':
@@ -207,6 +209,7 @@ serve(async (req) => {
             }),
         })).filter((s: any) => s.rows.length > 0);
 
+        normalizedListSections = sections;
         payload.sections = sections;
         payload.values = sections;
 
@@ -231,7 +234,7 @@ serve(async (req) => {
     console.log(`[whatsapp-send] Enviando para Evolution API: ${endpoint}`);
 
     // Enviar mensagem via Evolution API
-    const sendResponse = await fetch(endpoint, {
+    let sendResponse = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -240,7 +243,122 @@ serve(async (req) => {
       body: JSON.stringify(payload),
     });
 
-    const sendData = await sendResponse.json();
+    let sendData: any = null;
+    try {
+      sendData = await sendResponse.json();
+    } catch {
+      sendData = { status: sendResponse.status, error: 'Resposta inválida (não-JSON) da Evolution API' };
+    }
+
+    // Se o sendList estiver bugado na versão da Evolution, tenta payload alternativo e, por fim, fallback para texto
+    if (!sendResponse.ok && messageType === 'list' && normalizedListSections?.length) {
+      const raw = JSON.stringify(sendData ?? {});
+      const isZeroBug = raw.includes('this.isZero is not a function');
+
+      if (isZeroBug) {
+        const base = {
+          number: formattedPhone,
+          title: payload.title,
+          description: payload.description,
+          buttonText: payload.buttonText,
+          footerText: payload.footerText ?? '',
+        };
+
+        const variants: Array<{ name: string; body: any }> = [
+          {
+            name: 'sections_id_only',
+            body: {
+              ...base,
+              sections: normalizedListSections.map((s: any) => ({
+                title: s.title,
+                rows: (s.rows || []).map((r: any) => ({
+                  title: r.title,
+                  description: r.description,
+                  id: r.id,
+                })),
+              })),
+            },
+          },
+          {
+            name: 'sections_rowId_only',
+            body: {
+              ...base,
+              sections: normalizedListSections.map((s: any) => ({
+                title: s.title,
+                rows: (s.rows || []).map((r: any) => ({
+                  title: r.title,
+                  description: r.description,
+                  rowId: r.rowId,
+                })),
+              })),
+            },
+          },
+        ];
+
+        for (const v of variants) {
+          console.log(`[whatsapp-send] sendList falhou (isZero). Tentando variante: ${v.name}`);
+          const r = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': api_key,
+            },
+            body: JSON.stringify(v.body),
+          });
+
+          let d: any = null;
+          try {
+            d = await r.json();
+          } catch {
+            d = { status: r.status, error: 'Resposta inválida (não-JSON) da Evolution API' };
+          }
+
+          if (r.ok) {
+            sendResponse = r;
+            sendData = d;
+            break;
+          }
+
+          // mantém o último erro para diagnóstico
+          sendResponse = r;
+          sendData = d;
+        }
+
+        if (!sendResponse.ok) {
+          // Fallback final: envia como texto (não-interativo) para não travar campanhas
+          const rows = normalizedListSections.flatMap((s: any) => (s.rows || []));
+          const optionsText = rows
+            .slice(0, 10)
+            .map((r: any) => `• ${r.title}${r.description ? ` — ${r.description}` : ''}`)
+            .join('\n');
+
+          const fallbackText = `${payload.description || ''}${optionsText ? `\n\nOpções:\n${optionsText}` : ''}`.trim();
+          const fallbackEndpoint = `${api_url}/message/sendText/${instance.instance_name}`;
+
+          console.log('[whatsapp-send] sendList continua falhando. Fazendo fallback para sendText.');
+
+          const r = await fetch(fallbackEndpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': api_key,
+            },
+            body: JSON.stringify({ number: formattedPhone, text: fallbackText }),
+          });
+
+          let d: any = null;
+          try {
+            d = await r.json();
+          } catch {
+            d = { status: r.status, error: 'Resposta inválida (não-JSON) da Evolution API' };
+          }
+
+          sendResponse = r;
+          sendData = d;
+        }
+      }
+    }
+
     console.log('[whatsapp-send] Evolution response:', sendData);
 
     // Registrar mensagem no log

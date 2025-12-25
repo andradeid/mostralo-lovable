@@ -7539,12 +7539,18 @@ export type Database = {
           id: string
           is_active: boolean | null
           is_default: boolean | null
+          list_button_text: string | null
+          list_sections: Json | null
+          list_title: string | null
           media_caption: string | null
           media_url: string | null
           message_type:
             | Database["public"]["Enums"]["whatsapp_message_type"]
             | null
           name: string
+          poll_options: Json | null
+          poll_question: string | null
+          poll_selectable_count: number | null
           store_id: string | null
           updated_at: string | null
         }
@@ -7555,12 +7561,18 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_default?: boolean | null
+          list_button_text?: string | null
+          list_sections?: Json | null
+          list_title?: string | null
           media_caption?: string | null
           media_url?: string | null
           message_type?:
             | Database["public"]["Enums"]["whatsapp_message_type"]
             | null
           name: string
+          poll_options?: Json | null
+          poll_question?: string | null
+          poll_selectable_count?: number | null
           store_id?: string | null
           updated_at?: string | null
         }
@@ -7571,12 +7583,18 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_default?: boolean | null
+          list_button_text?: string | null
+          list_sections?: Json | null
+          list_title?: string | null
           media_caption?: string | null
           media_url?: string | null
           message_type?:
             | Database["public"]["Enums"]["whatsapp_message_type"]
             | null
           name?: string
+          poll_options?: Json | null
+          poll_question?: string | null
+          poll_selectable_count?: number | null
           store_id?: string | null
           updated_at?: string | null
         }
@@ -8022,7 +8040,14 @@ export type Database = {
         | "delivered"
         | "read"
         | "failed"
-      whatsapp_message_type: "text" | "image" | "document" | "audio" | "video"
+      whatsapp_message_type:
+        | "text"
+        | "image"
+        | "document"
+        | "audio"
+        | "video"
+        | "poll"
+        | "list"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -8213,7 +8238,15 @@ export const Constants = {
         "read",
         "failed",
       ],
-      whatsapp_message_type: ["text", "image", "document", "audio", "video"],
+      whatsapp_message_type: [
+        "text",
+        "image",
+        "document",
+        "audio",
+        "video",
+        "poll",
+        "list",
+      ],
     },
   },
 } as const

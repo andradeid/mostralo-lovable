@@ -164,27 +164,28 @@ serve(async (req) => {
         break;
       
       case 'buttons':
-        // Botões interativos - Evolution API 2.x format
-        endpoint = `${api_url}/message/sendButtons/${instance.instance_name}`;
-        payload.title = content || 'Escolha uma opção';
-        payload.description = mediaCaption || '';
-        payload.footer = '';
-        // Formatar botões para Evolution API
-        payload.buttons = (buttons || []).map((btn: any, idx: number) => {
-          if (btn.url) {
-            return {
-              type: 'url',
-              displayText: btn.text || btn.displayText || `Botão ${idx + 1}`,
-              url: btn.url
-            };
-          }
-          return {
-            type: 'reply',
-            displayText: btn.text || btn.displayText || `Botão ${idx + 1}`,
-            id: `btn_${idx + 1}`
-          };
-        });
-        console.log(`[whatsapp-send] Enviando botões: "${payload.title}" com ${payload.buttons?.length} botões`, JSON.stringify(payload.buttons));
+        // Botões interativos NÃO funcionam com Evolution API/WhatsApp Web
+        // Convertendo para texto formatado com links
+        endpoint = `${api_url}/message/sendText/${instance.instance_name}`;
+        
+        // Construir mensagem com botões como links
+        let buttonText = content || '';
+        const buttonsList = buttons || [];
+        
+        if (buttonsList.length > 0) {
+          buttonText += '\n\n━━━━━━━━━━━━━━━━━━';
+          buttonsList.forEach((btn: any, idx: number) => {
+            const btnLabel = btn.text || btn.displayText || `Opção ${idx + 1}`;
+            if (btn.url) {
+              buttonText += `\n\n🔗 *${btnLabel}*\n${btn.url}`;
+            } else {
+              buttonText += `\n\n▪️ *${btnLabel}*`;
+            }
+          });
+        }
+        
+        payload.text = buttonText;
+        console.log(`[whatsapp-send] Enviando botões como texto com ${buttonsList.length} links`);
         break;
       
       default:

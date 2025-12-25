@@ -3,12 +3,12 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { DateRange } from '@/components/admin/reports/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Trophy, TrendingUp } from 'lucide-react';
-
+import { Trophy, TrendingUp, Package } from 'lucide-react';
 interface TopProductsProps {
   dateRange: DateRange;
   storeId: string | null;
@@ -124,6 +124,13 @@ export function TopProducts({ dateRange, storeId }: TopProductsProps) {
   
   return (
     <div className="space-y-6">
+      <Alert className="bg-purple-50 border-purple-200 dark:bg-purple-950/30 dark:border-purple-800">
+        <Package className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+        <AlertDescription className="text-purple-800 dark:text-purple-200 text-sm">
+          <strong>🏆 Ranking de Produtos:</strong> Os <strong>10 produtos mais vendidos</strong> no período selecionado, combinando <strong>Pedidos Online + Comandas PDV</strong>. O ranking é ordenado por <strong>quantidade vendida</strong>. Veja também a receita gerada e o percentual de contribuição de cada item para o faturamento total.
+        </AlertDescription>
+      </Alert>
+      
       <Card>
         <CardHeader>
           <CardTitle>Top 10 Produtos por Quantidade (Pedidos + Comandas)</CardTitle>

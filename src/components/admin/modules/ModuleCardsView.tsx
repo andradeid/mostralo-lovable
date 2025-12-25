@@ -13,6 +13,8 @@ import {
   CheckCircle, XCircle, BarChart3, MessageSquare, 
   Users, Truck, Store, Settings, CreditCard, ShoppingCart,
   Receipt, Megaphone, Clock, Calendar, FileText, Shield,
+  Image, Menu, Wallet, Printer, Utensils, ExternalLink,
+  QrCode, Monitor, Palette, Tag, Code, Target, BarChart,
   LucideIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -20,6 +22,7 @@ import { toast } from 'sonner';
 // Mapa de ícones para módulos
 const moduleIconMap: Record<string, LucideIcon> = {
   'BarChart3': BarChart3,
+  'BarChart': BarChart,
   'MessageSquare': MessageSquare,
   'Users': Users,
   'Truck': Truck,
@@ -34,6 +37,18 @@ const moduleIconMap: Record<string, LucideIcon> = {
   'FileText': FileText,
   'Shield': Shield,
   'Package': Package,
+  'Image': Image,
+  'Menu': Menu,
+  'Wallet': Wallet,
+  'Printer': Printer,
+  'Utensils': Utensils,
+  'ExternalLink': ExternalLink,
+  'QrCode': QrCode,
+  'Monitor': Monitor,
+  'Palette': Palette,
+  'Tag': Tag,
+  'Code': Code,
+  'Target': Target,
 };
 
 const getModuleIcon = (iconName: string | null): LucideIcon => {

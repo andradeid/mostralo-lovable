@@ -146,6 +146,37 @@ const TechnicalDocsPage = () => {
                 </div>
               </div>
 
+              <Separator />
+
+              <div>
+                <h4 className="font-medium text-foreground mb-2 flex items-center gap-2">
+                  KDS - Kitchen Display System
+                  <Badge className="bg-green-500/20 text-green-700 dark:text-green-300">Novo</Badge>
+                </h4>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Sistema de display da cozinha com atualização em tempo real via Supabase Realtime.
+                </p>
+                <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                  <p className="text-xs font-mono text-muted-foreground">src/components/kitchen/</p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {[
+                      'KitchenItemCard.tsx',
+                      'KitchenStats.tsx',
+                      'KitchenHeader.tsx',
+                      'index.ts'
+                    ].map((file) => (
+                      <code key={file} className="text-xs bg-background px-2 py-1 rounded">
+                        {file}
+                      </code>
+                    ))}
+                  </div>
+                  <p className="text-xs font-mono text-muted-foreground mt-2">Hook dedicado:</p>
+                  <code className="text-xs bg-background px-2 py-1 rounded">
+                    src/hooks/useKitchenDisplay.ts
+                  </code>
+                </div>
+              </div>
+
               <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
                 <div className="flex items-start gap-2">
                   <Lightbulb className="h-4 w-4 text-primary mt-0.5" />
@@ -216,6 +247,68 @@ const TechnicalDocsPage = () => {
   <LazyRoute><GoalsPage /></LazyRoute>
 } />`}
               </pre>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* Realtime */}
+        <AccordionItem value="realtime" className="border rounded-lg px-4">
+          <AccordionTrigger className="hover:no-underline">
+            <div className="flex items-center gap-3">
+              <Zap className="h-5 w-5 text-green-500" />
+              <span className="font-semibold">Funcionalidades em Tempo Real</span>
+              <Badge className="bg-green-500/20 text-green-700 dark:text-green-300">Realtime</Badge>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="space-y-4 pt-4">
+            <p className="text-sm text-muted-foreground">
+              O projeto utiliza Supabase Realtime para atualizações instantâneas. 
+              O KDS é o exemplo principal dessa implementação.
+            </p>
+
+            <div className="bg-muted/50 rounded-lg p-4">
+              <h4 className="font-medium text-foreground mb-2">Configuração na Tabela</h4>
+              <pre className="text-xs bg-background p-3 rounded overflow-x-auto">
+{`-- Habilitar realtime na tabela
+ALTER TABLE comanda_items REPLICA IDENTITY FULL;
+ALTER PUBLICATION supabase_realtime ADD TABLE comanda_items;`}
+              </pre>
+            </div>
+
+            <div className="bg-muted/50 rounded-lg p-4">
+              <h4 className="font-medium text-foreground mb-2">Hook com Subscription</h4>
+              <pre className="text-xs bg-background p-3 rounded overflow-x-auto">
+{`// useKitchenDisplay.ts
+useEffect(() => {
+  const channel = supabase
+    .channel('kitchen-items-changes')
+    .on('postgres_changes', 
+      { event: '*', schema: 'public', table: 'comanda_items' },
+      (payload) => {
+        if (payload.new?.preparation_status === 'pending') {
+          playAlertSound();
+        }
+        refetch();
+      }
+    )
+    .subscribe();
+
+  return () => { supabase.removeChannel(channel); };
+}, []);`}
+              </pre>
+            </div>
+
+            <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
+              <h4 className="font-medium text-green-600 dark:text-green-400 mb-2 flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4" />
+                Benefícios
+              </h4>
+              <ul className="text-xs text-muted-foreground space-y-1">
+                <li>• Atualização instantânea sem refresh manual</li>
+                <li>• Alertas sonoros para novos pedidos</li>
+                <li>• Sincronização entre múltiplos dispositivos</li>
+                <li>• Baixo consumo de recursos (WebSocket)</li>
+              </ul>
             </div>
           </AccordionContent>
         </AccordionItem>
@@ -353,8 +446,21 @@ const data: any = { ... };              // Uso de any`}
 │   ├── salesperson/     # Páginas do vendedor
 │   └── store-admin/     # Páginas do lojista
 │
+│   ├── kitchen/         # 🆕 Componentes do KDS
+│   │   ├── KitchenItemCard.tsx
+│   │   ├── KitchenStats.tsx
+│   │   └── KitchenHeader.tsx
+│   └── ui/              # Componentes base (shadcn)
+│
+├── pages/               # Páginas da aplicação
+│   ├── admin/           # Páginas do admin
+│   │   └── KitchenDisplayPage.tsx  # 🆕 KDS
+│   ├── salesperson/     # Páginas do vendedor
+│   └── store-admin/     # Páginas do lojista
+│
 ├── hooks/               # Hooks customizados
 │   ├── use-auth.ts
+│   ├── useKitchenDisplay.ts  # 🆕 Hook do KDS
 │   └── usePreloadRoute.ts
 │
 ├── routes/              # Configuração de rotas

@@ -19,6 +19,8 @@ const MetaCommerceFeed = lazy(() => import("@/pages/MetaCommerceFeed"));
 const CustomerAuth = lazy(() => import("@/pages/CustomerAuth"));
 const CustomerPanel = lazy(() => import("@/pages/CustomerPanel"));
 const OrderTracking = lazy(() => import("@/pages/OrderTracking"));
+const TableAccessPage = lazy(() => import("@/pages/TableAccessPage"));
+const TableMenuPage = lazy(() => import("@/pages/TableMenuPage"));
 const TermsOfUse = lazy(() => import("@/pages/TermsOfUse"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
 const Checkout = lazy(() => import("@/pages/Checkout"));
@@ -88,9 +90,14 @@ export const publicRoutes = (
     <Route path="/loja/:slug/feed.csv" element={<LazyRoute><MetaCommerceFeed /></LazyRoute>} />
     <Route path="/loja/:storeSlug/produto/:productSlug" element={<LazyRoute><ProductPage /></LazyRoute>} />
     
+    {/* Cardápio na Mesa (Self-Service) */}
+    <Route path="/mesa/:storeSlug/:tableNumber" element={<LazyRoute><TableAccessPage /></LazyRoute>} />
+    <Route path="/mesa/:storeSlug/:tableNumber/cardapio" element={<LazyRoute><TableMenuPage /></LazyRoute>} />
+    
     {/* Cliente - Autenticação e Painel */}
     <Route path="/cliente/:storeSlug" element={<LazyRoute><CustomerAuth /></LazyRoute>} />
     <Route path="/painel-cliente/:storeSlug" element={<LazyRoute><CustomerPanel /></LazyRoute>} />
+    <Route path="/painel-cliente/:storeSlug/:tab" element={<LazyRoute><CustomerPanel /></LazyRoute>} />
     <Route path="/checkout" element={<LazyRoute><Checkout /></LazyRoute>} />
     <Route path="/pedido/:orderId" element={<LazyRoute><OrderTracking /></LazyRoute>} />
     

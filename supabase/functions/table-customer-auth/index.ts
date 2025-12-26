@@ -30,20 +30,10 @@ function getPhoneVariants(phone: string): string[] {
   return [canonical, '55' + canonical];
 }
 
-// Hash simples para senha (4-6 dígitos)
-async function hashPassword(password: string, salt: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password + salt);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-// Gerar salt aleatório
-function generateSalt(): string {
-  const array = new Uint8Array(16);
-  crypto.getRandomValues(array);
-  return Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
+// Gerar email temporário baseado no telefone (mesmo padrão do customer-auth)
+function generateTempEmail(phone: string): string {
+  const normalized = normalizePhone(phone);
+  return `cliente_${normalized}@mostralo.me`;
 }
 
 Deno.serve(async (req) => {
@@ -67,6 +57,7 @@ Deno.serve(async (req) => {
     }
 
     const normalizedPhone = normalizePhone(phone);
+    const tempEmail = generateTempEmail(phone);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -147,15 +138,16 @@ Deno.serve(async (req) => {
       
       const { data: customer } = await supabase
         .from('customers')
-        .select('id, name, phone, table_password, auth_user_id')
+        .select('id, name, phone, auth_user_id')
         .in('phone', phoneVariants)
         .is('deleted_at', null)
         .limit(1)
         .single();
 
       if (customer) {
-        const hasPassword = !!customer.table_password;
-        console.log('✅ Cliente encontrado:', customer.name, '| Tem senha:', hasPassword);
+        // MUDANÇA: has_password agora verifica auth_user_id (senha unificada do sistema)
+        const hasPassword = !!customer.auth_user_id;
+        console.log('✅ Cliente encontrado:', customer.name, '| Tem auth_user_id:', hasPassword);
         return new Response(
           JSON.stringify({ 
             exists: true, 
@@ -174,7 +166,7 @@ Deno.serve(async (req) => {
     }
 
     // =====================
-    // ACTION: REGISTER
+    // ACTION: REGISTER (cliente novo - cria via Supabase Auth)
     // =====================
     if (action === 'register') {
       if (!name) {
@@ -184,18 +176,18 @@ Deno.serve(async (req) => {
         );
       }
 
-      if (requirePassword && (!password || password.length < 4 || password.length > 6)) {
+      if (requirePassword && (!password || password.length < 4)) {
         return new Response(
-          JSON.stringify({ error: 'Senha deve ter entre 4 e 6 dígitos' }),
+          JSON.stringify({ error: 'Senha deve ter pelo menos 4 caracteres' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
-      // Verificar se cliente já existe (busca tolerante)
+      // Verificar se cliente já existe
       const phoneVariants = getPhoneVariants(phone);
       const { data: existingCustomer } = await supabase
         .from('customers')
-        .select('id, name, table_password')
+        .select('id, name, auth_user_id')
         .in('phone', phoneVariants)
         .is('deleted_at', null)
         .limit(1)
@@ -204,33 +196,81 @@ Deno.serve(async (req) => {
       let customerId: string;
 
       if (existingCustomer) {
-        // Cliente existe - atualizar senha se necessário
-        if (requirePassword && !existingCustomer.table_password) {
-          const salt = generateSalt();
-          const hashedPassword = await hashPassword(password!, salt);
+        // Cliente existe mas precisa criar senha via Supabase Auth
+        if (requirePassword && !existingCustomer.auth_user_id) {
+          console.log('📝 Cliente existe sem auth, criando usuário auth...');
+          
+          // Criar usuário no Supabase Auth
+          const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+            email: tempEmail,
+            password: password,
+            email_confirm: true,
+            user_metadata: {
+              full_name: name,
+              phone: normalizedPhone,
+              role_type: 'customer'
+            }
+          });
 
+          if (authError) {
+            console.error('❌ Erro ao criar auth user:', authError);
+            return new Response(
+              JSON.stringify({ error: 'Erro ao criar conta. Tente novamente.' }),
+              { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+
+          // Atualizar customer com auth_user_id
           await supabase
             .from('customers')
             .update({ 
-              table_password: hashedPassword, 
-              password_salt: salt,
-              name: name // Atualizar nome também
+              auth_user_id: authUser.user.id,
+              name: name
             })
             .eq('id', existingCustomer.id);
+
+          // Criar role de customer
+          await supabase
+            .from('user_roles')
+            .upsert({
+              user_id: authUser.user.id,
+              role: 'customer'
+            }, { onConflict: 'user_id,role' });
+
+          console.log('✅ Auth user criado e vinculado ao cliente');
         }
         customerId = existingCustomer.id;
       } else {
-        // Criar novo cliente
-        const salt = generateSalt();
-        const hashedPassword = requirePassword ? await hashPassword(password!, salt) : null;
+        // Criar novo cliente COM Supabase Auth
+        console.log('📝 Criando novo cliente com Supabase Auth...');
 
+        // Primeiro criar usuário auth
+        const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+          email: tempEmail,
+          password: password || '102030', // Senha padrão se não requer senha
+          email_confirm: true,
+          user_metadata: {
+            full_name: name,
+            phone: normalizedPhone,
+            role_type: 'customer'
+          }
+        });
+
+        if (authError) {
+          console.error('❌ Erro ao criar auth user:', authError);
+          return new Response(
+            JSON.stringify({ error: 'Erro ao criar conta. Tente novamente.' }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Criar customer vinculado ao auth user
         const { data: newCustomer, error: createError } = await supabase
           .from('customers')
           .insert({
             name,
             phone: normalizedPhone,
-            table_password: hashedPassword,
-            password_salt: requirePassword ? salt : null,
+            auth_user_id: authUser.user.id
           })
           .select('id')
           .single();
@@ -245,6 +285,14 @@ Deno.serve(async (req) => {
 
         customerId = newCustomer.id;
 
+        // Criar role de customer
+        await supabase
+          .from('user_roles')
+          .upsert({
+            user_id: authUser.user.id,
+            role: 'customer'
+          }, { onConflict: 'user_id,role' });
+
         // Vincular à loja
         await supabase
           .from('customer_stores')
@@ -253,6 +301,8 @@ Deno.serve(async (req) => {
             store_id: store_id
           })
           .select();
+
+        console.log('✅ Cliente criado com auth_user_id');
       }
 
       return new Response(
@@ -266,13 +316,13 @@ Deno.serve(async (req) => {
     }
 
     // =====================
-    // ACTION: LOGIN
+    // ACTION: LOGIN (usa Supabase Auth - mesma senha do checkout)
     // =====================
     if (action === 'login') {
       const phoneVariants = getPhoneVariants(phone);
       const { data: customer } = await supabase
         .from('customers')
-        .select('id, name, table_password, password_salt')
+        .select('id, name, auth_user_id')
         .in('phone', phoneVariants)
         .is('deleted_at', null)
         .limit(1)
@@ -286,7 +336,7 @@ Deno.serve(async (req) => {
       }
 
       if (requirePassword) {
-        if (!customer.table_password) {
+        if (!customer.auth_user_id) {
           return new Response(
             JSON.stringify({ 
               error: 'Você precisa criar uma senha primeiro',
@@ -303,13 +353,23 @@ Deno.serve(async (req) => {
           );
         }
 
-        const hashedPassword = await hashPassword(password, customer.password_salt || '');
-        if (hashedPassword !== customer.table_password) {
+        // LOGIN VIA SUPABASE AUTH (mesma senha do checkout)
+        console.log('🔐 Tentando login via Supabase Auth:', tempEmail);
+        
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+          email: tempEmail,
+          password: password
+        });
+
+        if (authError) {
+          console.error('❌ Erro de autenticação:', authError.message);
           return new Response(
             JSON.stringify({ error: 'Senha incorreta' }),
             { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
+
+        console.log('✅ Login bem-sucedido via Supabase Auth');
       }
 
       return new Response(

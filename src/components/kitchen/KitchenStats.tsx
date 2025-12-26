@@ -10,9 +10,10 @@ import { cn } from '@/lib/utils';
 interface KitchenStatsProps {
   totalPending: number;
   totalPreparing: number;
+  totalReady?: number;
 }
 
-export function KitchenStats({ totalPending, totalPreparing }: KitchenStatsProps) {
+export function KitchenStats({ totalPending, totalPreparing, totalReady = 0 }: KitchenStatsProps) {
   const totalActive = totalPending + totalPreparing;
   const allClear = totalActive === 0;
 
@@ -54,17 +55,13 @@ export function KitchenStats({ totalPending, totalPreparing }: KitchenStatsProps
         </CardContent>
       </Card>
       
-      <Card className={cn(allClear && 'bg-green-500/20 border-green-500')}>
+      <Card>
         <CardContent className="pt-4">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className={cn(
-              'w-5 h-5',
-              allClear ? 'text-green-500' : 'text-muted-foreground'
-            )} />
+            <CheckCircle2 className="w-5 h-5 text-green-500" />
             <div>
-              <p className="text-sm font-medium">
-                {allClear ? '✅ Tudo em dia!' : 'Aguardando...'}
-              </p>
+              <p className="text-2xl font-bold">{totalReady}</p>
+              <p className="text-xs text-muted-foreground">Prontos hoje</p>
             </div>
           </div>
         </CardContent>

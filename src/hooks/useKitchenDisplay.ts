@@ -41,6 +41,10 @@ export function useKitchenDisplay() {
     queryFn: async () => {
       if (!storeId) return [];
 
+      // Data de início do dia atual
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
       // Buscar itens de comandas (abertas OU fechadas recentemente com itens pendentes)
       // Removido filtro de status para permitir itens de PDV/balcão que fecham a comanda imediatamente
       const { data: comandaItems, error: comandaError } = await supabase
@@ -329,6 +333,116 @@ export function useKitchenDisplay() {
   const pendingItems = kitchenItems.filter(i => i.preparation_status === 'pending');
   const preparingItems = kitchenItems.filter(i => i.preparation_status === 'preparing');
 
+  // Buscar itens prontos do dia (histórico)
+  const { data: readyItems = [] } = useQuery({
+    queryKey: ['kitchen-ready-items', storeId],
+    queryFn: async () => {
+      if (!storeId) return [];
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayISO = today.toISOString();
+
+      // Buscar itens prontos de comandas
+      const { data: comandaItems } = await supabase
+        .from('comanda_items')
+        .select(`
+          *,
+          comandas!inner (
+            number,
+            type,
+            table_number,
+            customer_name,
+            store_id
+          )
+        `)
+        .eq('comandas.store_id', storeId)
+        .eq('preparation_status', 'ready')
+        .gte('prepared_at', todayISO)
+        .order('prepared_at', { ascending: false })
+        .limit(100);
+
+      // Buscar itens prontos de orders
+      const { data: orderItems } = await supabase
+        .from('order_items')
+        .select(`
+          *,
+          orders!inner (
+            order_number,
+            delivery_type,
+            customer_name,
+            store_id
+          )
+        `)
+        .eq('orders.store_id', storeId)
+        .eq('preparation_status', 'ready')
+        .gte('prepared_at', todayISO)
+        .order('prepared_at', { ascending: false })
+        .limit(100);
+
+      // Mapear itens de comandas
+      const mappedComandaItems: KitchenItem[] = (comandaItems || []).map((item: any) => ({
+        id: item.id,
+        source: 'comanda' as const,
+        source_id: item.comanda_id,
+        product_id: item.product_id,
+        product_name: item.product_name,
+        unit_price: item.unit_price,
+        quantity: item.quantity,
+        total_price: item.total_price,
+        addons: item.addons,
+        notes: item.notes,
+        added_by: item.added_by,
+        added_at: item.added_at,
+        preparation_status: 'ready' as const,
+        preparation_started_at: item.preparation_started_at,
+        prepared_at: item.prepared_at,
+        order_number: item.comandas.number,
+        order_type: item.comandas.type === 'mesa' ? 'mesa' : 'balcao',
+        table_number: item.comandas.table_number,
+        customer_name: item.comandas.customer_name,
+      }));
+
+      // Mapear itens de orders
+      const mappedOrderItems: KitchenItem[] = (orderItems || []).map((item: any) => ({
+        id: item.id,
+        source: 'order' as const,
+        source_id: item.order_id,
+        product_id: item.product_id,
+        product_name: item.product_name,
+        unit_price: item.unit_price,
+        quantity: item.quantity,
+        total_price: item.total_price,
+        addons: item.addons,
+        notes: item.notes,
+        added_by: null,
+        added_at: item.created_at,
+        preparation_status: 'ready' as const,
+        preparation_started_at: item.preparation_started_at,
+        prepared_at: item.prepared_at,
+        order_number: item.orders.order_number,
+        order_type: item.orders.delivery_type === 'delivery' ? 'delivery' : 'pickup',
+        table_number: null,
+        customer_name: item.orders.customer_name,
+      }));
+
+      // Combinar e ordenar por prepared_at (mais recente primeiro)
+      return [...mappedComandaItems, ...mappedOrderItems].sort((a, b) => 
+        new Date(b.prepared_at!).getTime() - new Date(a.prepared_at!).getTime()
+      );
+    },
+    enabled: !!storeId,
+    refetchInterval: 60000, // Atualiza a cada minuto
+  });
+
+  // Calcular tempo de preparo (de added_at até prepared_at)
+  const getPreparationTime = (addedAt: string, preparedAt: string | null): number => {
+    if (!preparedAt) return 0;
+    const added = new Date(addedAt).getTime();
+    const prepared = new Date(preparedAt).getTime();
+    return Math.floor((prepared - added) / 60000); // minutos
+  };
+
   // Wrappers para manter compatibilidade
   const startPreparing = async (itemId: string) => {
     const item = kitchenItems.find(i => i.id === itemId);
@@ -348,6 +462,7 @@ export function useKitchenDisplay() {
     kitchenItems,
     pendingItems,
     preparingItems,
+    readyItems,
     groupedByOrder,
     isLoading,
     refetch,
@@ -357,6 +472,7 @@ export function useKitchenDisplay() {
     isMarkingReady: markReadyMutation.isPending,
     getWaitingTime,
     getWaitingColor,
+    getPreparationTime,
     soundEnabled,
     setSoundEnabled,
   };

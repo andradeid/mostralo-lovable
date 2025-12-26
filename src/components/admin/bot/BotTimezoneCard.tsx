@@ -125,65 +125,65 @@ export function BotTimezoneCard({ storeId, disabled }: BotTimezoneCardProps) {
   const selectedTz = BRAZIL_TIMEZONES.find(tz => tz.value === timezone);
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Globe className="h-4 w-4" />
+    <Card className="overflow-hidden">
+      <CardHeader className="!p-3 !pb-2 sm:!p-6 sm:!pb-3">
+        <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+          <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
           Fuso Horário da Loja
         </CardTitle>
-        <CardDescription className="text-xs">
+        <CardDescription className="text-xs sm:text-sm break-words">
           Define o horário usado pelo bot para saudações inteligentes
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label className="text-xs">Timezone</Label>
+      <CardContent className="!p-3 !pt-0 sm:!p-6 sm:!pt-0 space-y-3 sm:space-y-4">
+        <div className="space-y-1.5 sm:space-y-2">
+          <Label className="text-xs sm:text-sm">Timezone</Label>
           <Select 
             value={timezone} 
             onValueChange={handleTimezoneChange}
             disabled={disabled || loading || saving}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full text-sm">
               <SelectValue placeholder="Selecione o fuso horário" />
             </SelectTrigger>
             <SelectContent>
               {BRAZIL_TIMEZONES.map((tz) => (
                 <SelectItem key={tz.value} value={tz.value}>
                   <div className="flex flex-col">
-                    <span>{tz.label}</span>
-                    <span className="text-xs text-muted-foreground">{tz.description}</span>
+                    <span className="text-sm">{tz.label}</span>
+                    <span className="text-xs text-muted-foreground line-clamp-1">{tz.description}</span>
                   </div>
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
           {selectedTz && (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[10px] sm:text-xs text-muted-foreground break-words line-clamp-2">
               {selectedTz.description}
             </p>
           )}
         </div>
 
         {/* Current time display */}
-        <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium">Horário atual:</span>
+        <div className="bg-muted/50 rounded-lg p-2.5 sm:p-3 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+              <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary shrink-0" />
+              <span className="text-xs sm:text-sm font-medium">Horário atual:</span>
             </div>
-            <span className="text-lg font-mono font-bold">{currentTime}</span>
+            <span className="text-base sm:text-lg font-mono font-bold shrink-0">{currentTime}</span>
           </div>
           
-          <div className="flex items-center justify-between pt-1 border-t border-border/50">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between gap-2 pt-1 border-t border-border/50">
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
               {icon}
-              <span className="text-sm">Saudação ativa:</span>
+              <span className="text-xs sm:text-sm">Saudação ativa:</span>
             </div>
-            <span className="text-sm font-medium text-primary">"{greeting}"</span>
+            <span className="text-xs sm:text-sm font-medium text-primary shrink-0">"{greeting}"</span>
           </div>
         </div>
 
-        <p className="text-xs text-muted-foreground">
+        <p className="text-[10px] sm:text-xs text-muted-foreground break-words">
           💡 O bot usará automaticamente a saudação correta (Bom dia / Boa tarde / Boa noite) 
           baseada no horário da sua loja.
         </p>

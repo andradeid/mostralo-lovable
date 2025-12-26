@@ -242,31 +242,32 @@ const CategoriesPage = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6">
+      {/* Header responsivo */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Categorias</h1>
-          <p className="text-muted-foreground">Organize seus produtos em categorias</p>
+          <h1 className="text-2xl md:text-3xl font-bold">Categorias</h1>
+          <p className="text-sm text-muted-foreground">Organize seus produtos em categorias</p>
         </div>
-        <Button onClick={() => setCategoryFormOpen(true)}>
+        <Button onClick={() => setCategoryFormOpen(true)} size="sm" className="w-full sm:w-auto">
           <Plus className="w-4 h-4 mr-2" />
           Nova Categoria
         </Button>
       </div>
 
-      {/* Cards de Estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Cards de Estatísticas - grid 2x2 em mobile */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
         {statsCards.map((card, index) => (
-          <Card key={index}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+          <Card key={index} className="p-3 md:p-0">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 p-0 md:p-6">
+              <CardTitle className="text-xs md:text-sm font-medium">
                 {card.title}
               </CardTitle>
-              <card.icon className="h-4 w-4 text-muted-foreground" />
+              <card.icon className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{card.value}</div>
-              <p className="text-xs text-muted-foreground">
+            <CardContent className="p-0 md:p-6 md:pt-0">
+              <div className="text-xl md:text-2xl font-bold">{card.value}</div>
+              <p className="text-xs text-muted-foreground line-clamp-1">
                 {card.description}
               </p>
             </CardContent>
@@ -275,41 +276,39 @@ const CategoriesPage = () => {
       </div>
 
       {/* Busca */}
-      <div className="flex items-center space-x-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar categorias por nome ou descrição..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8"
-          />
-        </div>
+      <div className="relative">
+        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Buscar categorias..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-8"
+        />
       </div>
 
       {/* Lista de Categorias */}
       <Card>
-        <CardHeader>
-          <CardTitle>Lista de Categorias</CardTitle>
-          <CardDescription>
+        <CardHeader className="p-4 md:p-6">
+          <CardTitle className="text-base md:text-lg">Lista de Categorias</CardTitle>
+          <CardDescription className="text-xs md:text-sm">
             {filteredCategories.length} categoria{filteredCategories.length !== 1 ? 's' : ''} encontrada{filteredCategories.length !== 1 ? 's' : ''}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
           {filteredCategories.length === 0 ? (
-            <div className="text-center py-12">
-              <Grid className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">
+            <div className="text-center py-8 md:py-12">
+              <Grid className="w-12 h-12 md:w-16 md:h-16 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-base md:text-lg font-semibold mb-2">
                 {searchTerm ? 'Nenhuma categoria encontrada' : 'Nenhuma categoria cadastrada'}
               </h3>
-              <p className="text-muted-foreground mb-4">
+              <p className="text-sm text-muted-foreground mb-4">
                 {searchTerm 
                   ? 'Tente ajustar os termos de busca.'
                   : 'Comece criando categorias para organizar seus produtos.'
                 }
               </p>
               {!searchTerm && (
-                <Button onClick={() => setCategoryFormOpen(true)}>
+                <Button onClick={() => setCategoryFormOpen(true)} size="sm">
                   <Plus className="w-4 h-4 mr-2" />
                   Criar Primeira Categoria
                 </Button>
@@ -318,76 +317,79 @@ const CategoriesPage = () => {
           ) : (
             <div className="space-y-3">
               {filteredCategories.map((category, index) => (
-                <Card key={category.id} className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4 flex-1">
-                      <div className="flex flex-col items-center space-y-1">
-                        <span className="text-sm text-muted-foreground">#{category.display_order}</span>
-                        <div className="flex flex-col space-y-1">
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            className="h-6 w-6 p-0"
-                            disabled={index === 0}
-                            onClick={() => moveCategoryUp(index)}
-                          >
-                            <ArrowUp className="w-3 h-3" />
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            className="h-6 w-6 p-0"
-                            disabled={index === filteredCategories.length - 1}
-                            onClick={() => moveCategoryDown(index)}
-                          >
-                            <ArrowDown className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <h3 className="font-semibold">{category.name}</h3>
-                          <Badge variant={category.is_active ? 'default' : 'secondary'}>
-                            {category.is_active ? 'Ativa' : 'Inativa'}
-                          </Badge>
-                          <Badge variant="outline">
-                            <Package className="w-3 h-3 mr-1" />
-                            {category.products_count} produto{category.products_count !== 1 ? 's' : ''}
-                          </Badge>
-                        </div>
-                        {category.description && (
-                          <p className="text-sm text-muted-foreground">
-                            {category.description}
-                          </p>
-                        )}
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Criada em {new Date(category.created_at).toLocaleDateString('pt-BR')}
-                        </p>
+                <Card key={category.id} className="p-3 md:p-4 w-[90%] sm:w-full mx-auto">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    {/* Ordem e setas - layout horizontal em mobile */}
+                    <div className="flex items-center justify-between sm:justify-start sm:flex-col sm:items-center gap-2 sm:gap-1">
+                      <span className="text-xs text-muted-foreground">#{category.display_order}</span>
+                      <div className="flex sm:flex-col gap-1">
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="h-6 w-6 p-0"
+                          disabled={index === 0}
+                          onClick={() => moveCategoryUp(index)}
+                        >
+                          <ArrowUp className="w-3 h-3" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="h-6 w-6 p-0"
+                          disabled={index === filteredCategories.length - 1}
+                          onClick={() => moveCategoryDown(index)}
+                        >
+                          <ArrowDown className="w-3 h-3" />
+                        </Button>
                       </div>
                     </div>
                     
-                    <div className="flex items-center space-x-2">
+                    {/* Conteúdo da categoria */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <h3 className="font-semibold text-sm md:text-base">{category.name}</h3>
+                        <Badge variant={category.is_active ? 'default' : 'secondary'} className="text-[10px] md:text-xs">
+                          {category.is_active ? 'Ativa' : 'Inativa'}
+                        </Badge>
+                        <Badge variant="outline" className="text-[10px] md:text-xs">
+                          <Package className="w-3 h-3 mr-1" />
+                          {category.products_count} {category.products_count !== 1 ? 'itens' : 'item'}
+                        </Badge>
+                      </div>
+                      {category.description && (
+                        <p className="text-xs text-muted-foreground line-clamp-2">
+                          {category.description}
+                        </p>
+                      )}
+                      <p className="text-[10px] md:text-xs text-muted-foreground mt-1">
+                        Criada em {new Date(category.created_at).toLocaleDateString('pt-BR')}
+                      </p>
+                    </div>
+                    
+                    {/* Botões de ação */}
+                    <div className="flex gap-2 mt-2 sm:mt-0">
                       <Button 
                         size="sm" 
                         variant="outline"
+                        className="h-7 text-xs flex-1 sm:flex-none"
                         onClick={() => {
                           setEditingCategory(category);
                           setCategoryFormOpen(true);
                         }}
                       >
-                        <Edit className="w-4 h-4 mr-2" />
+                        <Edit className="w-3 h-3 mr-1" />
                         Editar
                       </Button>
                       <Button 
                         size="sm" 
                         variant="outline"
+                        className="h-7 text-xs flex-1 sm:flex-none"
                         onClick={() => {
                           setCategoryToDelete(category);
                           setDeleteDialogOpen(true);
                         }}
                       >
-                        <Trash2 className="w-4 h-4 mr-2" />
+                        <Trash2 className="w-3 h-3 mr-1" />
                         Excluir
                       </Button>
                     </div>

@@ -1259,7 +1259,7 @@ export default function WhatsAppInstancePage() {
           )}
         </TabsContent>
 
-        <TabsContent value="bot" className="space-y-4 sm:space-y-6 w-[85%] sm:w-full mx-auto">
+        <TabsContent value="bot" className="space-y-4 sm:space-y-6">
           {(!instance || !isConnected) && (
             <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
               <div className="flex items-start gap-2">

@@ -14,7 +14,7 @@ interface BotTriggerCardProps {
 
 export function BotTriggerCard({ config, onUpdate, disabled }: BotTriggerCardProps) {
   return (
-    <Card className="overflow-hidden border-amber-500/30">
+    <Card className="border-amber-500/30">
       <CardHeader className="!p-3 !pb-2 sm:!p-6 sm:!pb-3 bg-amber-500/5">
         <div className="flex items-center gap-2">
           <div className="p-1.5 rounded-md bg-amber-500/10">

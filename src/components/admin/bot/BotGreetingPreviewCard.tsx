@@ -67,7 +67,7 @@ export function BotGreetingPreviewCard({
   const nicheData = nicheInfo[niche];
 
   return (
-    <Card className="overflow-hidden">
+    <Card>
       <CardHeader className="!p-3 !pb-2 sm:!p-6 sm:!pb-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div className="min-w-0">

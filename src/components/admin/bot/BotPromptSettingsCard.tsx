@@ -60,7 +60,7 @@ export function BotPromptSettingsCard({
   ];
 
   return (
-    <Card className="overflow-hidden">
+    <Card>
       <CardHeader className="!p-3 !pb-2 sm:!p-6 sm:!pb-3">
         <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
           <Settings2 className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />

@@ -69,7 +69,7 @@ export function BotPromptPreviewCard({
   };
 
   return (
-    <Card className="overflow-hidden">
+    <Card>
       <CardHeader className="!p-3 !pb-2 sm:!p-6 sm:!pb-3">
         <div className="flex flex-col gap-2">
           <div className="flex items-start justify-between gap-2 flex-wrap">

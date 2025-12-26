@@ -23,7 +23,7 @@ export function BotBehaviorCard({ config, onUpdate, disabled }: BotBehaviorCardP
   };
 
   return (
-    <Card className="overflow-hidden">
+    <Card>
       <CardHeader className="!p-3 !pb-2 sm:!p-6 sm:!pb-3">
         <div className="flex items-center gap-2">
           <Settings2 className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />

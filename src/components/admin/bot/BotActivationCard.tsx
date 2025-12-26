@@ -82,7 +82,7 @@ export function BotActivationCard({
   };
 
   return (
-    <Card className="overflow-hidden">
+    <Card>
       <CardHeader className="!p-3 !pb-2 sm:!p-6 sm:!pb-3">
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -135,10 +135,10 @@ export function BotActivationCard({
 
         {/* Alerta de mudanças não sincronizadas */}
         {hasUnsyncedChanges && config.enabled && (
-          <div className="p-2.5 sm:p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg overflow-hidden">
+          <div className="p-2.5 sm:p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
             <div className="flex items-start gap-2">
               <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-              <div>
+              <div className="min-w-0 flex-1">
                 <p className="text-xs sm:text-sm text-amber-600 dark:text-amber-400 font-medium">
                   Mudanças pendentes
                 </p>

@@ -28,7 +28,7 @@ Confira nosso cardápio completo: ${cardapioLink}
 Estou aqui para ajudar! 😊`;
 
   return (
-    <Card className="overflow-hidden border-blue-500/30">
+    <Card className="border-blue-500/30">
       <CardHeader className="!p-3 !pb-2 sm:!p-6 sm:!pb-3 bg-blue-500/5">
         <div className="flex items-center gap-2">
           <div className="p-1.5 rounded-md bg-blue-500/10">

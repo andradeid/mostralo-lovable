@@ -9,9 +9,11 @@ import {
   useAttendantPermissions, 
   ATTENDANT_PERMISSIONS, 
   ATTENDANT_NOTIFICATIONS,
+  PERMISSION_MODULE_MAP,
   type PermissionKey,
   type NotificationKey
 } from '@/hooks/useAttendantPermissions';
+import { useStoreModules } from '@/hooks/useStoreModules';
 import { toast } from 'sonner';
 
 interface AttendantPermissionsDialogProps {
@@ -55,6 +57,18 @@ export function AttendantPermissionsDialog({
     storeId: attendant.store_id,
   });
 
+  // Buscar módulos da loja para filtrar permissões disponíveis
+  const { hasModule, loading: modulesLoading } = useStoreModules(attendant.store_id);
+
+  // Filtrar permissões para mostrar apenas as que a loja tem módulo liberado
+  const availablePermissions = ATTENDANT_PERMISSIONS.filter(perm => {
+    const requiredModule = PERMISSION_MODULE_MAP[perm.key];
+    // Se não depende de módulo, sempre mostrar
+    if (!requiredModule) return true;
+    // Se depende de módulo, verificar se a loja tem acesso
+    return hasModule(requiredModule);
+  });
+
   const handlePermissionChange = async (key: PermissionKey, enabled: boolean) => {
     const success = await updatePermission(key, enabled);
     if (success) {
@@ -86,7 +100,7 @@ export function AttendantPermissionsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {loading ? (
+        {(loading || modulesLoading) ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
           </div>
@@ -109,7 +123,7 @@ export function AttendantPermissionsDialog({
               </p>
               
               <div className="space-y-2">
-                {ATTENDANT_PERMISSIONS.map((perm) => {
+                {availablePermissions.map((perm) => {
                   const Icon = iconMap[perm.icon];
                   const isEnabled = hasPermission(perm.key);
                   

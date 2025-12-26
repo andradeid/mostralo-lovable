@@ -24,6 +24,19 @@ export const ATTENDANT_NOTIFICATIONS = [
 export type PermissionKey = typeof ATTENDANT_PERMISSIONS[number]['key'];
 export type NotificationKey = typeof ATTENDANT_NOTIFICATIONS[number]['key'];
 
+// Mapeamento: permissão do atendente → módulo necessário (key do módulo)
+// Se null, a permissão não depende de módulo específico
+export const PERMISSION_MODULE_MAP: Record<PermissionKey, string | null> = {
+  'pdv': 'pdv_comandas',           // Requer módulo PDV e Comandas
+  'comandas': 'pdv_comandas',      // Requer módulo PDV e Comandas
+  'kds': 'kds',                    // Requer módulo KDS
+  'pedidos_delivery': null,        // Não depende de módulo específico
+  'pedidos_balcao': null,          // Não depende de módulo específico
+  'produtos': 'digital_menu',      // Requer módulo Cardápio Digital
+  'clientes': null,                // Não depende de módulo específico
+  'relatorios': 'reports',         // Requer módulo Relatórios
+};
+
 interface AttendantPermission {
   id: string;
   permission_key: string;

@@ -128,28 +128,29 @@ export default function AddonCategoriesPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-5xl">
-      <div className="flex justify-between items-center mb-6">
+    <div className="space-y-4 md:space-y-6 px-0 md:px-4 py-4 md:py-8 max-w-5xl mx-auto">
+      {/* Header responsivo */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Categorias de Adicionais</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl md:text-3xl font-bold">Categorias de Adicionais</h1>
+          <p className="text-sm text-muted-foreground">
             Gerencie as categorias de adicionais da sua loja
           </p>
         </div>
-        <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
-          <Plus className="w-4 h-4" />
+        <Button onClick={() => setShowForm(true)} size="sm" className="w-full sm:w-auto">
+          <Plus className="w-4 h-4 mr-2" />
           Nova Categoria
         </Button>
       </div>
 
       {showForm && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>
+        <Card className="mb-4 md:mb-6">
+          <CardHeader className="p-4 md:p-6">
+            <CardTitle className="text-base md:text-lg">
               {editingCategory ? 'Editar Categoria' : 'Nova Categoria'}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
             <AddonCategoryForm
               category={editingCategory}
               onSuccess={handleFormSuccess}
@@ -162,7 +163,7 @@ export default function AddonCategoriesPage() {
         </Card>
       )}
 
-      <div className="grid gap-4">
+      <div className="grid gap-3 md:gap-4">
         {categories.length === 0 ? (
           <Card>
             <CardContent className="text-center py-8">
@@ -173,64 +174,68 @@ export default function AddonCategoriesPage() {
           </Card>
         ) : (
           categories.map((category) => (
-            <Card key={category.id}>
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold">{category.name}</h3>
-                      <Badge variant={category.is_active ? 'default' : 'secondary'}>
+            <Card key={category.id} className="w-[90%] sm:w-full mx-auto">
+              <CardContent className="p-3 md:p-6">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-2">
+                      <h3 className="text-sm md:text-lg font-semibold">{category.name}</h3>
+                      <Badge variant={category.is_active ? 'default' : 'secondary'} className="text-[10px] md:text-xs">
                         {category.is_active ? 'Ativa' : 'Inativa'}
                       </Badge>
                       {category.is_required && (
-                        <Badge variant="destructive">Obrigatória</Badge>
+                        <Badge variant="destructive" className="text-[10px] md:text-xs">Obrigatória</Badge>
                       )}
                     </div>
                     
                     {category.description && (
-                      <p className="text-sm text-muted-foreground mb-2">
+                      <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
                         {category.description}
                       </p>
                     )}
 
-                    <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                    <div className="text-[10px] md:text-xs text-muted-foreground">
                       <span>
-                        Min: {category.min_selections} | 
-                        Max: {category.max_selections ? category.max_selections : 'Ilimitado'}
+                        Min: {category.min_selections} | Max: {category.max_selections ? category.max_selections : 'Ilimitado'}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 ml-4">
+                  <div className="flex items-center gap-2">
                     <Button
                       variant="ghost"
                       size="sm"
+                      className="h-7 w-7 p-0"
                       onClick={() => handleToggleActive(category.id, !category.is_active)}
                     >
                       {category.is_active ? (
-                        <EyeOff className="w-4 h-4" />
+                        <EyeOff className="w-3 h-3 md:w-4 md:h-4" />
                       ) : (
-                        <Eye className="w-4 h-4" />
+                        <Eye className="w-3 h-3 md:w-4 md:h-4" />
                       )}
                     </Button>
                     
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
+                      className="h-7 text-xs flex-1 sm:flex-none"
                       onClick={() => {
                         setEditingCategory(category);
                         setShowForm(true);
                       }}
                     >
-                      <Edit className="w-4 h-4" />
+                      <Edit className="w-3 h-3 mr-1" />
+                      Editar
                     </Button>
                     
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
+                      className="h-7 text-xs flex-1 sm:flex-none"
                       onClick={() => handleDelete(category.id)}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3 h-3 mr-1" />
+                      Excluir
                     </Button>
                   </div>
                 </div>

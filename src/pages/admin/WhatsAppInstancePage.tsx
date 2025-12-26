@@ -645,7 +645,7 @@ export default function WhatsAppInstancePage() {
       </div>
 
       <Tabs defaultValue="connection" className="space-y-3 sm:space-y-6">
-        <TabsList className="grid w-full grid-cols-2 h-8 sm:h-10">
+        <TabsList className="grid grid-cols-2 h-8 sm:h-10 w-fit mx-auto sm:w-full">
           <TabsTrigger value="connection" className="gap-1 text-[11px] sm:text-sm h-full px-2">
             <Smartphone className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
             <span className="hidden sm:inline">Conexão</span>

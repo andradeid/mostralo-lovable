@@ -489,6 +489,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           name: string
+          show_in_menu: boolean | null
           store_id: string | null
           updated_at: string
         }
@@ -499,6 +500,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           name: string
+          show_in_menu?: boolean | null
           store_id?: string | null
           updated_at?: string
         }
@@ -509,6 +511,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           name?: string
+          show_in_menu?: boolean | null
           store_id?: string | null
           updated_at?: string
         }
@@ -3695,6 +3698,7 @@ export type Database = {
           original_price: number | null
           price: number
           recurrence_days: number | null
+          show_in_menu: boolean | null
           slug: string | null
           store_id: string | null
           updated_at: string
@@ -3715,6 +3719,7 @@ export type Database = {
           original_price?: number | null
           price: number
           recurrence_days?: number | null
+          show_in_menu?: boolean | null
           slug?: string | null
           store_id?: string | null
           updated_at?: string
@@ -3735,6 +3740,7 @@ export type Database = {
           original_price?: number | null
           price?: number
           recurrence_days?: number | null
+          show_in_menu?: boolean | null
           slug?: string | null
           store_id?: string | null
           updated_at?: string

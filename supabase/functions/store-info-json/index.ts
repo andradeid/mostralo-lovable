@@ -84,15 +84,16 @@ serve(async (req) => {
       .eq('store_id', store.id)
       .maybeSingle();
 
-    // 3. Buscar categorias
+    // 3. Buscar categorias (apenas as visíveis no cardápio digital)
     const { data: categories } = await supabase
       .from('categories')
       .select('*')
       .eq('store_id', store.id)
       .eq('is_active', true)
+      .eq('show_in_menu', true)
       .order('display_order');
 
-    // 4. Buscar produtos com variantes
+    // 4. Buscar produtos com variantes (apenas os visíveis no cardápio digital)
     const { data: products } = await supabase
       .from('products')
       .select(`
@@ -101,6 +102,7 @@ serve(async (req) => {
       `)
       .eq('store_id', store.id)
       .eq('is_available', true)
+      .eq('show_in_menu', true)
       .order('display_order');
 
     // 5. Buscar categorias de addons

@@ -226,6 +226,25 @@ serve(async (req) => {
       );
     }
 
+    // Buscar lojas onde o cliente já comprou para informar contexto
+    const { data: customerStores } = await supabase
+      .from('customer_stores')
+      .select('store_id, stores:store_id(name, slug)')
+      .eq('customer_id', customer.id);
+
+    // Verificar se já comprou nesta loja específica
+    const isNewToThisStore = !customerStores?.some(cs => cs.store_id === storeId);
+    
+    // Lojas anteriores (excluindo a atual)
+    const previousStores = customerStores
+      ?.filter(cs => cs.store_id !== storeId && cs.stores)
+      .map(cs => ({
+        name: (cs.stores as any).name,
+        slug: (cs.stores as any).slug
+      })) || [];
+
+    console.log('📊 Cliente comprou em', customerStores?.length || 0, 'lojas. Novo nesta loja:', isNewToThisStore);
+
     console.log('Customer found for login:', { customerId: customer.id, hasAuthUserId: !!customer.auth_user_id });
 
     // Verificar se tem auth_user_id
@@ -337,7 +356,9 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         session: authData.session,
-        customer: customer
+        customer: customer,
+        previous_stores: previousStores,
+        is_new_to_this_store: isNewToThisStore
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

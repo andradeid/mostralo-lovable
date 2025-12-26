@@ -148,11 +148,33 @@ Deno.serve(async (req) => {
         // MUDANÇA: has_password agora verifica auth_user_id (senha unificada do sistema)
         const hasPassword = !!customer.auth_user_id;
         console.log('✅ Cliente encontrado:', customer.name, '| Tem auth_user_id:', hasPassword);
+
+        // Buscar lojas onde o cliente já comprou
+        const { data: customerStores } = await supabase
+          .from('customer_stores')
+          .select('store_id, stores:store_id(name, slug)')
+          .eq('customer_id', customer.id);
+
+        // Verificar se já comprou nesta loja específica
+        const isNewToThisStore = !customerStores?.some(cs => cs.store_id === store_id);
+        
+        // Lojas anteriores (excluindo a atual)
+        const previousStores = customerStores
+          ?.filter(cs => cs.store_id !== store_id && cs.stores)
+          .map(cs => ({
+            name: (cs.stores as any).name,
+            slug: (cs.stores as any).slug
+          })) || [];
+
+        console.log('📊 Cliente comprou em', customerStores?.length || 0, 'lojas. Novo nesta loja:', isNewToThisStore);
+
         return new Response(
           JSON.stringify({ 
             exists: true, 
             has_password: hasPassword,
-            name: customer.name
+            name: customer.name,
+            previous_stores: previousStores,
+            is_new_to_this_store: isNewToThisStore
           }),
           { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
@@ -160,7 +182,7 @@ Deno.serve(async (req) => {
 
       console.log('ℹ️ Cliente não encontrado');
       return new Response(
-        JSON.stringify({ exists: false }),
+        JSON.stringify({ exists: false, previous_stores: [], is_new_to_this_store: true }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

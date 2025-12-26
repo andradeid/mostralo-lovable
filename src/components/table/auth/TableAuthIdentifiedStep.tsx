@@ -28,15 +28,12 @@ export function TableAuthIdentifiedStep({
   }
 
   // Cliente existe mas é a primeira vez nesta loja específica
-  if (isNewToThisStore && previousStores.length > 0) {
-    const storeNames = previousStores.slice(0, 2).map(s => s.name).join(', ');
-    const moreStores = previousStores.length > 2 ? ` e mais ${previousStores.length - 2}` : '';
-    
+  if (isNewToThisStore) {
     return (
       <TableAuthAnimatedStep
         icon={Store}
         title={`Olá, ${customerName || 'Cliente'}!`}
-        subtitle={`Você já tem cadastro no Mostralo! Compraste antes na ${storeNames}${moreStores}. Use a mesma senha.`}
+        subtitle="Você já tem cadastro no Mostralo. Use sua senha."
         status="success"
       />
     );

@@ -312,11 +312,13 @@ export function TableCustomerAuth({ storeId, tableNumber, onSuccess }: TableCust
 
         {step === 'login' && (
           <TableAuthLoginStep
+            phone={phone}
             password={password}
             onPasswordChange={setPassword}
             onSubmit={handleLogin}
             onBack={handleBack}
             isLoading={isLoading}
+            showForgotPassword={customerCheckResult?.isNewToThisStore}
           />
         )}
 

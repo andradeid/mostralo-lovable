@@ -3,7 +3,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useKitchenDisplay } from '@/hooks/useKitchenDisplay';
 import { KitchenHeader, KitchenStats, KitchenItemCard } from '@/components/kitchen';
 import { KitchenReadyCard } from '@/components/kitchen/KitchenReadyCard';
-import { ChefHat, Loader2, CheckCircle2, Timer, History } from 'lucide-react';
+import { KitchenPerformance } from '@/components/kitchen/KitchenPerformance';
+import { ChefHat, Loader2, CheckCircle2, Timer, History, BarChart3 } from 'lucide-react';
 
 export default function KitchenDisplayPage() {
   const {
@@ -16,6 +17,8 @@ export default function KitchenDisplayPage() {
     isStartingPreparing,
     markReady,
     isMarkingReady,
+    undoReady,
+    isUndoingReady,
     getWaitingTime,
     getWaitingColor,
     getPreparationTime,
@@ -74,13 +77,17 @@ export default function KitchenDisplayPage() {
       <KitchenStats totalPending={totalPending} totalPreparing={totalPreparing} totalReady={totalReady} />
 
       <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 max-w-lg">
+        <TabsList className="grid w-full grid-cols-5 max-w-2xl">
           <TabsTrigger value="all">Todos ({totalPending + totalPreparing})</TabsTrigger>
           <TabsTrigger value="pending">Pendentes ({totalPending})</TabsTrigger>
           <TabsTrigger value="preparing">Preparando ({totalPreparing})</TabsTrigger>
           <TabsTrigger value="ready" className="flex items-center gap-1">
             <History className="w-3.5 h-3.5" />
             Prontos ({totalReady})
+          </TabsTrigger>
+          <TabsTrigger value="performance" className="flex items-center gap-1">
+            <BarChart3 className="w-3.5 h-3.5" />
+            Desempenho
           </TabsTrigger>
         </TabsList>
 
@@ -132,10 +139,16 @@ export default function KitchenDisplayPage() {
                   key={item.id}
                   item={item}
                   getPreparationTime={getPreparationTime}
+                  onUndoReady={undoReady}
+                  isUndoing={isUndoingReady}
                 />
               ))}
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="performance" className="mt-4">
+          <KitchenPerformance />
         </TabsContent>
       </Tabs>
     </div>

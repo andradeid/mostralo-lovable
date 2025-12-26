@@ -443,6 +443,39 @@ export function useKitchenDisplay() {
     return Math.floor((prepared - added) / 60000); // minutos
   };
 
+  // Desfazer pronto - voltar para preparando
+  const undoReadyMutation = useMutation({
+    mutationFn: async ({ itemId, source }: { itemId: string; source: 'comanda' | 'order' }) => {
+      const table = source === 'comanda' ? 'comanda_items' : 'order_items';
+      
+      const { error } = await supabase
+        .from(table)
+        .update({
+          preparation_status: 'preparing',
+          prepared_at: null,
+        })
+        .eq('id', itemId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['kitchen-items', storeId] });
+      queryClient.invalidateQueries({ queryKey: ['kitchen-ready-items', storeId] });
+      toast({
+        title: '↩️ Item retornado',
+        description: 'O item voltou para preparo.',
+      });
+    },
+    onError: (error) => {
+      console.error('Erro ao desfazer pronto:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível desfazer.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   // Wrappers para manter compatibilidade
   const startPreparing = async (itemId: string) => {
     const item = kitchenItems.find(i => i.id === itemId);
@@ -458,6 +491,10 @@ export function useKitchenDisplay() {
     }
   };
 
+  const undoReady = async (itemId: string, source: 'comanda' | 'order') => {
+    await undoReadyMutation.mutateAsync({ itemId, source });
+  };
+
   return {
     kitchenItems,
     pendingItems,
@@ -470,6 +507,8 @@ export function useKitchenDisplay() {
     isStartingPreparing: startPreparingMutation.isPending,
     markReady,
     isMarkingReady: markReadyMutation.isPending,
+    undoReady,
+    isUndoingReady: undoReadyMutation.isPending,
     getWaitingTime,
     getWaitingColor,
     getPreparationTime,

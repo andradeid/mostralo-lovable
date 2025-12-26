@@ -157,34 +157,98 @@ export function TransactionsList({
             </div>
           </div>
 
-          {/* Tabela */}
-          <div className="rounded-md border overflow-x-auto">
+          {/* Lista Mobile */}
+          <div className="md:hidden space-y-2">
+            {transactions.length === 0 ? (
+              <div className="text-center py-6 text-sm text-muted-foreground border rounded-md">
+                Nenhuma transação encontrada
+              </div>
+            ) : (
+              transactions.map((tx) => (
+                <div key={tx.id} className="border rounded-lg p-3 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{tx.description}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(tx.transaction_date), 'dd/MM/yyyy', { locale: ptBR })}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <span className={cn(
+                        "font-semibold text-sm whitespace-nowrap",
+                        tx.type === 'income' ? 'text-green-500' : 'text-red-500'
+                      )}>
+                        {tx.type === 'income' ? '+' : '-'} {formatCurrency(tx.amount)}
+                      </span>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => onEdit(tx)}>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => setDeleteId(tx.id)}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge 
+                      variant="outline" 
+                      className="text-xs"
+                      style={{ borderColor: tx.category?.color, color: tx.category?.color }}
+                    >
+                      {tx.category?.name || 'Sem categoria'}
+                    </Badge>
+                    {tx.payment_method && (
+                      <span className="text-xs text-muted-foreground">
+                        {paymentMethodLabels[tx.payment_method]}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Tabela Desktop */}
+          <div className="hidden md:block rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-xs md:text-sm">Data</TableHead>
-                  <TableHead className="text-xs md:text-sm">Descrição</TableHead>
-                  <TableHead className="text-xs md:text-sm hidden sm:table-cell">Categoria</TableHead>
-                  <TableHead className="text-xs md:text-sm hidden md:table-cell">Pagamento</TableHead>
-                  <TableHead className="text-xs md:text-sm text-right">Valor</TableHead>
-                  <TableHead className="w-[40px] md:w-[50px]"></TableHead>
+                  <TableHead className="text-sm">Data</TableHead>
+                  <TableHead className="text-sm">Descrição</TableHead>
+                  <TableHead className="text-sm">Categoria</TableHead>
+                  <TableHead className="text-sm hidden lg:table-cell">Pagamento</TableHead>
+                  <TableHead className="text-sm text-right">Valor</TableHead>
+                  <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {transactions.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-6 md:py-8 text-xs md:text-sm text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center py-8 text-sm text-muted-foreground">
                       Nenhuma transação encontrada
                     </TableCell>
                   </TableRow>
                 ) : (
                   transactions.map((tx) => (
                     <TableRow key={tx.id}>
-                      <TableCell className="whitespace-nowrap">
+                      <TableCell className="whitespace-nowrap text-sm">
                         {format(new Date(tx.transaction_date), 'dd/MM/yyyy', { locale: ptBR })}
                       </TableCell>
                       <TableCell>
-                        <div className="max-w-[200px] truncate" title={tx.description}>
+                        <div className="max-w-[200px] truncate text-sm" title={tx.description}>
                           {tx.description}
                         </div>
                       </TableCell>
@@ -196,7 +260,7 @@ export function TransactionsList({
                           {tx.category?.name || 'Sem categoria'}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
+                      <TableCell className="text-muted-foreground hidden lg:table-cell">
                         {tx.payment_method ? paymentMethodLabels[tx.payment_method] : '-'}
                       </TableCell>
                       <TableCell className="text-right">

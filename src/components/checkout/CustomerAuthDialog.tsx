@@ -356,7 +356,9 @@ export function CustomerAuthDialog({
         address: data.customer.address,
         latitude: data.customer.latitude,
         longitude: data.customer.longitude,
-        auth_user_id: data.customer.auth_user_id
+        auth_user_id: data.customer.auth_user_id,
+        previousStores: data.previous_stores || [],
+        isNewToThisStore: data.is_new_to_this_store || false
       };
 
       setPendingCustomerData(customerData);
@@ -495,6 +497,8 @@ export function CustomerAuthDialog({
             isNewCustomer={false} 
             customerName={pendingCustomerData?.name}
             error={loginError || undefined}
+            previousStores={pendingCustomerData?.previousStores}
+            isNewToThisStore={pendingCustomerData?.isNewToThisStore}
           />
         );
       case 'validating_whatsapp':

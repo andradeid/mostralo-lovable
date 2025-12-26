@@ -32,6 +32,8 @@ interface CustomerCheckResult {
   exists: boolean;
   hasPassword: boolean;
   name?: string;
+  previousStores?: { name: string; slug: string }[];
+  isNewToThisStore?: boolean;
 }
 
 export function TableCustomerAuth({ storeId, tableNumber, onSuccess }: TableCustomerAuthProps) {
@@ -283,6 +285,8 @@ export function TableCustomerAuth({ storeId, tableNumber, onSuccess }: TableCust
           <TableAuthIdentifiedStep 
             isNewCustomer={!customerCheckResult.exists}
             customerName={customerCheckResult.name}
+            previousStores={customerCheckResult.previousStores}
+            isNewToThisStore={customerCheckResult.isNewToThisStore}
           />
         )}
 

@@ -13,7 +13,7 @@ interface UseTableComandaReturn {
   isLoading: boolean;
   error: string | null;
   customerData: TableCustomerData | null;
-  checkCustomer: (phone: string, storeId: string, tableNumber: string) => Promise<{ exists: boolean; hasPassword: boolean; name?: string }>;
+  checkCustomer: (phone: string, storeId: string, tableNumber: string) => Promise<{ exists: boolean; hasPassword: boolean; name?: string; previousStores?: { name: string; slug: string }[]; isNewToThisStore?: boolean }>;
   registerCustomer: (data: { phone: string; name: string; password: string; storeId: string; tableNumber: string }) => Promise<boolean>;
   loginCustomer: (data: { phone: string; password: string; storeId: string; tableNumber: string }) => Promise<boolean>;
   createComanda: (data: { phone: string; storeId: string; tableNumber: string }) => Promise<boolean>;
@@ -60,7 +60,9 @@ export function useTableComanda(): UseTableComandaReturn {
       return {
         exists: data.exists,
         hasPassword: data.has_password,
-        name: data.name
+        name: data.name,
+        previousStores: data.previous_stores,
+        isNewToThisStore: data.is_new_to_this_store
       };
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao verificar cliente';

@@ -317,7 +317,15 @@ export default function DeliveryDriverFinancials() {
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6">
+        {/* Header responsivo */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold">Financeiro Entregadores</h1>
+            <p className="text-sm text-muted-foreground">Gerencie os pagamentos dos entregadores</p>
+          </div>
+        </div>
+
         {/* Card de Solicitações Pendentes */}
         {!requestsLoading && paymentRequests.length > 0 && (
           <PaymentRequestsCard
@@ -328,52 +336,53 @@ export default function DeliveryDriverFinancials() {
           />
         )}
 
-        {/* Cards de Resumo */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Clock className="w-4 h-4" />
+        {/* Cards de Resumo - grid 2x2 em mobile */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+          <Card className="p-3 md:p-0">
+            <CardHeader className="pb-1 md:pb-3 p-0 md:p-6">
+              <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground flex items-center gap-1 md:gap-2">
+                <Clock className="w-3 h-3 md:w-4 md:h-4" />
                 A Pagar
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-amber-600">{formatCurrency(summary.pending)}</p>
+            <CardContent className="p-0 md:p-6 md:pt-0">
+              <p className="text-lg md:text-2xl font-bold text-amber-600">{formatCurrency(summary.pending)}</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4" />
-                Pago Este Mês
+          <Card className="p-3 md:p-0">
+            <CardHeader className="pb-1 md:pb-3 p-0 md:p-6">
+              <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground flex items-center gap-1 md:gap-2">
+                <CheckCircle2 className="w-3 h-3 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">Pago Este Mês</span>
+                <span className="sm:hidden">Pago/Mês</span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold text-green-600">{formatCurrency(summary.paidThisMonth)}</p>
+            <CardContent className="p-0 md:p-6 md:pt-0">
+              <p className="text-lg md:text-2xl font-bold text-green-600">{formatCurrency(summary.paidThisMonth)}</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <DollarSign className="w-4 h-4" />
+          <Card className="p-3 md:p-0 col-span-2 md:col-span-1">
+            <CardHeader className="pb-1 md:pb-3 p-0 md:p-6">
+              <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground flex items-center gap-1 md:gap-2">
+                <DollarSign className="w-3 h-3 md:w-4 md:h-4" />
                 Total Ano
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{formatCurrency(summary.totalYear)}</p>
+            <CardContent className="p-0 md:p-6 md:pt-0">
+              <p className="text-lg md:text-2xl font-bold">{formatCurrency(summary.totalYear)}</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Cards de Resumo por Entregador */}
         {pendingByDriver.length > 0 && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              💵 Pagamentos Pendentes por Entregador
+          <div className="space-y-3 md:space-y-4">
+            <h3 className="text-base md:text-lg font-semibold flex items-center gap-2">
+              💵 Pagamentos Pendentes
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
               {pendingByDriver.map(driver => (
                 <DriverPendingSummaryCard
                   key={driver.driverId}
@@ -392,12 +401,12 @@ export default function DeliveryDriverFinancials() {
 
         {/* Filtros */}
         <Card>
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Entregador</label>
+          <CardContent className="p-3 md:p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+              <div className="space-y-1 md:space-y-2">
+                <label className="text-xs md:text-sm font-medium">Entregador</label>
                 <Select value={selectedDriver} onValueChange={setSelectedDriver}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -411,10 +420,10 @@ export default function DeliveryDriverFinancials() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Período</label>
+              <div className="space-y-1 md:space-y-2">
+                <label className="text-xs md:text-sm font-medium">Período</label>
                 <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -425,10 +434,10 @@ export default function DeliveryDriverFinancials() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Status</label>
+              <div className="space-y-1 md:space-y-2">
+                <label className="text-xs md:text-sm font-medium">Status</label>
                 <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -447,17 +456,17 @@ export default function DeliveryDriverFinancials() {
         {/* Ações */}
         {selectedEarnings.size > 0 && (
           <Card className="bg-primary/5 border-primary/20">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
+            <CardContent className="p-3 md:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-xs md:text-sm text-muted-foreground">
                     {selectedEarnings.size} entrega(s) selecionada(s)
                   </p>
-                  <p className="text-lg font-bold text-primary">
+                  <p className="text-base md:text-lg font-bold text-primary">
                     Total: {formatCurrency(selectedTotal)}
                   </p>
                 </div>
-                <Button onClick={() => setShowPaymentDialog(true)}>
+                <Button onClick={() => setShowPaymentDialog(true)} size="sm" className="w-full sm:w-auto">
                   <CheckCircle2 className="w-4 h-4 mr-2" />
                   Marcar como Pago
                 </Button>
@@ -468,16 +477,16 @@ export default function DeliveryDriverFinancials() {
 
         {/* Tabela */}
         <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Histórico de Ganhos</CardTitle>
-              <Button variant="outline" size="sm">
+          <CardHeader className="p-3 md:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <CardTitle className="text-base md:text-lg">Histórico de Ganhos</CardTitle>
+              <Button variant="outline" size="sm" className="w-full sm:w-auto">
                 <Download className="w-4 h-4 mr-2" />
                 Exportar
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0 md:p-6 md:pt-0">
             {loading ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="w-6 h-6 animate-spin" />
@@ -487,7 +496,7 @@ export default function DeliveryDriverFinancials() {
                 Nenhum ganho encontrado
               </div>
             ) : (
-              <div className="rounded-md border">
+              <div className="rounded-md border overflow-x-auto">
                   <Table>
                   <TableHeader>
                     <TableRow>

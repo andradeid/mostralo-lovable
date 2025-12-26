@@ -284,3 +284,9 @@ verify_jwt = false
 
 [functions.send-user-recovery-link]
 verify_jwt = false
+
+[functions.fix-user-login]
+verify_jwt = true
+
+[functions.search-cep]
+verify_jwt = false

@@ -95,7 +95,7 @@ export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
           {isImpersonating && <ImpersonationBanner />}
           <AdminSidebar />
           
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 min-w-0 flex flex-col">
             {/* Header - oculto em modo tela cheia */}
             {!isKanbanFullscreen && (
               <header className={`h-16 border-b bg-background flex items-center px-6 ${isImpersonating ? 'mt-12' : ''}`}>
@@ -115,7 +115,7 @@ export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
               </header>
             )}
             
-            <main className="flex-1 p-6 bg-muted/30">
+            <main className="flex-1 min-w-0 p-6 bg-muted/30">
               {children}
             </main>
             

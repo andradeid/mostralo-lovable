@@ -60,40 +60,40 @@ export function BotPromptSettingsCard({
   ];
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Settings2 className="h-4 w-4" />
+    <Card className="overflow-hidden">
+      <CardHeader className="!p-3 !pb-2 sm:!p-6 sm:!pb-3">
+        <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+          <Settings2 className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
           Informações no Prompt
         </CardTitle>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs sm:text-sm text-muted-foreground break-words">
           Selecione quais informações o bot deve conhecer e informar aos clientes
         </p>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="!p-3 !pt-0 sm:!p-6 sm:!pt-0 space-y-2 sm:space-y-3">
         {options.map((option) => {
           const Icon = option.icon;
           return (
             <div 
               key={option.key}
-              className="flex items-start space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
+              className="flex items-start space-x-2 sm:space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
             >
               <Checkbox
                 id={option.key}
                 checked={settings[option.key]}
                 onCheckedChange={(checked) => handleChange(option.key, checked as boolean)}
                 disabled={disabled}
-                className="mt-0.5"
+                className="mt-0.5 shrink-0"
               />
-              <div className="flex-1 space-y-0.5">
+              <div className="flex-1 min-w-0 space-y-0.5">
                 <Label 
                   htmlFor={option.key} 
-                  className="flex items-center gap-2 cursor-pointer font-medium text-sm"
+                  className="flex items-center gap-1.5 sm:gap-2 cursor-pointer font-medium text-sm"
                 >
-                  <Icon className={`h-3.5 w-3.5 ${option.color}`} />
-                  {option.label}
+                  <Icon className={`h-3.5 w-3.5 shrink-0 ${option.color}`} />
+                  <span className="truncate">{option.label}</span>
                 </Label>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[10px] sm:text-xs text-muted-foreground break-words">
                   {option.description}
                 </p>
               </div>

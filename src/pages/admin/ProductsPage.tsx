@@ -774,132 +774,170 @@ const ProductsPage = () => {
                                     <Card 
                                       ref={provided.innerRef}
                                       {...provided.draggableProps}
-                                      className={`overflow-hidden ${
+                                      className={`overflow-hidden w-[85%] sm:w-full mx-auto ${
                                         snapshot.isDragging 
                                           ? 'shadow-lg rotate-2 transform scale-105' 
                                           : ''
                                       }`}
                                     >
                                        <CardContent className="p-3 md:p-4">
-                                        <div className="flex gap-3">
-                                          {/* Handle de drag - oculto em mobile */}
-                                          {sortMode === 'manual' && (
-                                            <div 
-                                              {...provided.dragHandleProps}
-                                              className="hidden sm:flex flex-col items-center space-y-1 cursor-grab active:cursor-grabbing"
-                                            >
-                                              <GripVertical className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground hover:text-primary transition-colors" />
-                                              <span className="text-xs text-muted-foreground">#{product.display_order}</span>
-                                            </div>
-                                          )}
-
-                                          {/* Imagem do produto */}
-                                          <div className="w-14 h-14 md:w-16 md:h-16 bg-muted rounded-lg overflow-hidden flex-shrink-0">
-                                            {product.image_url ? (
-                                              <img
-                                                src={product.image_url}
-                                                alt={product.name}
-                                                className="w-full h-full object-cover"
-                                              />
-                                            ) : (
-                                              <div className="w-full h-full flex items-center justify-center">
-                                                <Package className="w-5 h-5 md:w-6 md:h-6 text-muted-foreground" />
+                                        <div className="flex flex-col sm:flex-row gap-3">
+                                          {/* Imagem + Handle de drag */}
+                                          <div className="flex items-start gap-2">
+                                            {/* Handle de drag - oculto em mobile */}
+                                            {sortMode === 'manual' && (
+                                              <div 
+                                                {...provided.dragHandleProps}
+                                                className="hidden sm:flex flex-col items-center space-y-1 cursor-grab active:cursor-grabbing"
+                                              >
+                                                <GripVertical className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground hover:text-primary transition-colors" />
+                                                <span className="text-xs text-muted-foreground">#{product.display_order}</span>
                                               </div>
                                             )}
+
+                                            {/* Imagem do produto */}
+                                            <div className="w-16 h-16 md:w-20 md:h-20 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+                                              {product.image_url ? (
+                                                <img
+                                                  src={product.image_url}
+                                                  alt={product.name}
+                                                  className="w-full h-full object-cover"
+                                                />
+                                              ) : (
+                                                <div className="w-full h-full flex items-center justify-center">
+                                                  <Package className="w-6 h-6 md:w-8 md:h-8 text-muted-foreground" />
+                                                </div>
+                                              )}
+                                            </div>
+
+                                            {/* Info mobile - ao lado da imagem */}
+                                            <div className="flex-1 sm:hidden">
+                                              <h4 className="font-semibold text-sm leading-tight">{product.name}</h4>
+                                              <div className="flex items-center gap-1 mt-1">
+                                                {product.is_on_offer && product.offer_price && (
+                                                  <Badge variant="destructive" className="text-[10px]">
+                                                    {Math.round((1 - product.offer_price / product.price) * 100)}% OFF
+                                                  </Badge>
+                                                )}
+                                              </div>
+                                              <div className="mt-1">
+                                                {product.is_on_offer && product.offer_price ? (
+                                                  <div className="flex items-center gap-2">
+                                                    <span className="text-xs text-muted-foreground line-through">
+                                                      R$ {Number(product.price).toFixed(2)}
+                                                    </span>
+                                                    <span className="font-bold text-sm text-green-600">
+                                                      R$ {Number(product.offer_price).toFixed(2)}
+                                                    </span>
+                                                  </div>
+                                                ) : (
+                                                  <span className="font-bold text-sm text-primary">
+                                                    R$ {Number(product.price).toFixed(2)}
+                                                  </span>
+                                                )}
+                                              </div>
+                                            </div>
                                           </div>
                                           
-                                          {/* Conteúdo do produto */}
-                                          <div className="flex-1 min-w-0">
+                                          {/* Conteúdo do produto - desktop */}
+                                          <div className="flex-1 min-w-0 hidden sm:block">
                                             {/* Nome e Preço */}
-                                            <div className="flex items-start justify-between gap-1 mb-1">
+                                            <div className="flex items-start justify-between gap-2 mb-1">
                                               <div className="min-w-0 flex-1">
                                                 <div className="flex items-center gap-1">
-                                                  <h4 className="font-semibold text-sm md:text-base truncate max-w-[120px] sm:max-w-none">{product.name}</h4>
+                                                  <h4 className="font-semibold text-base">{product.name}</h4>
                                                   {product.is_on_offer && product.offer_price && (
-                                                    <Badge variant="destructive" className="text-[10px] flex-shrink-0">
+                                                    <Badge variant="destructive" className="text-xs">
                                                       {Math.round((1 - product.offer_price / product.price) * 100)}%
                                                     </Badge>
                                                   )}
                                                 </div>
                                               </div>
-                                              <div className="flex flex-col items-end flex-shrink-0 ml-1">
+                                              <div className="flex flex-col items-end flex-shrink-0">
                                                 {product.is_on_offer && product.offer_price ? (
                                                   <>
-                                                    <span className="text-[10px] text-muted-foreground line-through whitespace-nowrap">
+                                                    <span className="text-xs text-muted-foreground line-through">
                                                       R$ {Number(product.price).toFixed(2)}
                                                     </span>
-                                                    <span className="font-bold text-xs sm:text-sm md:text-lg text-green-600 whitespace-nowrap">
+                                                    <span className="font-bold text-lg text-green-600">
                                                       R$ {Number(product.offer_price).toFixed(2)}
                                                     </span>
                                                   </>
                                                 ) : (
-                                                  <span className="font-bold text-xs sm:text-sm md:text-lg text-primary whitespace-nowrap">
+                                                  <span className="font-bold text-lg text-primary">
                                                     R$ {Number(product.price).toFixed(2)}
                                                   </span>
                                                 )}
                                               </div>
                                             </div>
                                             
-                                            {/* Descrição - oculta em mobile pequeno */}
+                                            {/* Descrição */}
                                             {product.description && (
-                                              <p className="text-[11px] md:text-sm text-muted-foreground mb-2 line-clamp-1 truncate">
+                                              <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
                                                 {product.description}
                                               </p>
                                             )}
+                                          </div>
+
+                                          {/* Descrição mobile - texto quebra */}
+                                          {product.description && (
+                                            <p className="text-xs text-muted-foreground sm:hidden line-clamp-2">
+                                              {product.description}
+                                            </p>
+                                          )}
+                                        </div>
                                             
-                                            {/* Switches e Botões - Layout responsivo */}
-                                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                                              {/* Switches */}
-                                              <div className="flex items-center gap-3 flex-wrap">
-                                                <div className="flex items-center gap-1.5">
-                                                  <Switch
-                                                    checked={product.is_available}
-                                                    onCheckedChange={() => handleToggleAvailability(product.id, product.is_available)}
-                                                    className="scale-90"
-                                                  />
-                                                  <span className="text-xs text-muted-foreground">
-                                                    {product.is_available ? 'Ativo' : 'Inativo'}
-                                                  </span>
-                                                </div>
-                                                
-                                                <div className="flex items-center gap-1.5">
-                                                  <Switch
-                                                    checked={!(product.show_in_menu ?? true)}
-                                                    onCheckedChange={() => handleToggleShowInMenu(product.id, product.show_in_menu ?? true)}
-                                                    className="scale-90"
-                                                  />
-                                                  <span className="text-xs text-muted-foreground">
-                                                    {!(product.show_in_menu ?? true) ? 'Oculto' : 'Cardápio'}
-                                                  </span>
-                                                </div>
-                                              </div>
-                                              
-                                              {/* Botões de Ação */}
-                                              <div className="flex gap-2">
-                                                <Button 
-                                                  size="sm" 
-                                                  variant="outline"
-                                                  className="h-7 text-xs flex-1 sm:flex-none"
-                                                  onClick={() => handleEditProduct(product)}
-                                                >
-                                                  <Edit className="w-3 h-3 mr-1" />
-                                                  Editar
-                                                </Button>
-                                                <Button 
-                                                  size="sm" 
-                                                  variant="outline"
-                                                  className="h-7 text-xs flex-1 sm:flex-none"
-                                                  onClick={() => {
-                                                    if (confirm('Tem certeza que deseja excluir este produto?')) {
-                                                      handleDeleteProduct(product.id);
-                                                    }
-                                                  }}
-                                                >
-                                                  <Trash2 className="w-3 h-3 mr-1" />
-                                                  Excluir
-                                                </Button>
-                                              </div>
+                                        {/* Switches e Botões - Layout responsivo */}
+                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-3">
+                                          {/* Switches */}
+                                          <div className="flex items-center gap-3 flex-wrap">
+                                            <div className="flex items-center gap-1.5">
+                                              <Switch
+                                                checked={product.is_available}
+                                                onCheckedChange={() => handleToggleAvailability(product.id, product.is_available)}
+                                                className="scale-90"
+                                              />
+                                              <span className="text-xs text-muted-foreground">
+                                                {product.is_available ? 'Ativo' : 'Inativo'}
+                                              </span>
                                             </div>
+                                            
+                                            <div className="flex items-center gap-1.5">
+                                              <Switch
+                                                checked={!(product.show_in_menu ?? true)}
+                                                onCheckedChange={() => handleToggleShowInMenu(product.id, product.show_in_menu ?? true)}
+                                                className="scale-90"
+                                              />
+                                              <span className="text-xs text-muted-foreground">
+                                                {!(product.show_in_menu ?? true) ? 'Oculto' : 'Cardápio'}
+                                              </span>
+                                            </div>
+                                          </div>
+                                          
+                                          {/* Botões de Ação */}
+                                          <div className="flex gap-2">
+                                            <Button 
+                                              size="sm" 
+                                              variant="outline"
+                                              className="h-7 text-xs flex-1 sm:flex-none"
+                                              onClick={() => handleEditProduct(product)}
+                                            >
+                                              <Edit className="w-3 h-3 mr-1" />
+                                              Editar
+                                            </Button>
+                                            <Button 
+                                              size="sm" 
+                                              variant="outline"
+                                              className="h-7 text-xs flex-1 sm:flex-none"
+                                              onClick={() => {
+                                                if (confirm('Tem certeza que deseja excluir este produto?')) {
+                                                  handleDeleteProduct(product.id);
+                                                }
+                                              }}
+                                            >
+                                              <Trash2 className="w-3 h-3 mr-1" />
+                                              Excluir
+                                            </Button>
                                           </div>
                                         </div>
                                       </CardContent>

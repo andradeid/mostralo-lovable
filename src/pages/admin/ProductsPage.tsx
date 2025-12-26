@@ -683,7 +683,7 @@ const ProductsPage = () => {
                             </div>
                           )}
                           <Grid className="w-4 h-4 md:w-5 md:h-5 text-primary flex-shrink-0" />
-                          <div className="text-left min-w-0">
+                          <div className="text-left min-w-0 max-w-[140px] sm:max-w-none">
                             <h3 className="font-semibold text-sm md:text-lg truncate">{category.name}</h3>
                             {category.description && (
                               <p className="text-xs md:text-sm text-muted-foreground mt-0.5 md:mt-1 line-clamp-1 hidden sm:block">
@@ -811,36 +811,38 @@ const ProductsPage = () => {
                                           {/* Conteúdo do produto */}
                                           <div className="flex-1 min-w-0">
                                             {/* Nome e Preço */}
-                                            <div className="flex items-start justify-between gap-2 mb-1">
-                                              <div className="flex items-center gap-1 flex-wrap min-w-0">
-                                                <h4 className="font-semibold text-sm md:text-base truncate">{product.name}</h4>
-                                                {product.is_on_offer && product.offer_price && (
-                                                  <Badge variant="destructive" className="text-[10px] md:text-xs">
-                                                    {Math.round((1 - product.offer_price / product.price) * 100)}%
-                                                  </Badge>
-                                                )}
+                                            <div className="flex items-start justify-between gap-1 mb-1">
+                                              <div className="min-w-0 flex-1">
+                                                <div className="flex items-center gap-1">
+                                                  <h4 className="font-semibold text-sm md:text-base truncate max-w-[120px] sm:max-w-none">{product.name}</h4>
+                                                  {product.is_on_offer && product.offer_price && (
+                                                    <Badge variant="destructive" className="text-[10px] flex-shrink-0">
+                                                      {Math.round((1 - product.offer_price / product.price) * 100)}%
+                                                    </Badge>
+                                                  )}
+                                                </div>
                                               </div>
-                                              <div className="flex flex-col items-end flex-shrink-0">
+                                              <div className="flex flex-col items-end flex-shrink-0 ml-1">
                                                 {product.is_on_offer && product.offer_price ? (
                                                   <>
-                                                    <span className="text-xs text-muted-foreground line-through">
+                                                    <span className="text-[10px] text-muted-foreground line-through whitespace-nowrap">
                                                       R$ {Number(product.price).toFixed(2)}
                                                     </span>
-                                                    <span className="font-bold text-sm md:text-lg text-green-600">
+                                                    <span className="font-bold text-xs sm:text-sm md:text-lg text-green-600 whitespace-nowrap">
                                                       R$ {Number(product.offer_price).toFixed(2)}
                                                     </span>
                                                   </>
                                                 ) : (
-                                                  <span className="font-bold text-sm md:text-lg text-primary">
+                                                  <span className="font-bold text-xs sm:text-sm md:text-lg text-primary whitespace-nowrap">
                                                     R$ {Number(product.price).toFixed(2)}
                                                   </span>
                                                 )}
                                               </div>
                                             </div>
                                             
-                                            {/* Descrição - linha única em mobile */}
+                                            {/* Descrição - oculta em mobile pequeno */}
                                             {product.description && (
-                                              <p className="text-xs md:text-sm text-muted-foreground mb-2 line-clamp-1 md:line-clamp-2">
+                                              <p className="text-[11px] md:text-sm text-muted-foreground mb-2 line-clamp-1 truncate">
                                                 {product.description}
                                               </p>
                                             )}

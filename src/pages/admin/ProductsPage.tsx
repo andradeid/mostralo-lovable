@@ -541,7 +541,7 @@ const ProductsPage = () => {
           <h1 className="text-2xl md:text-3xl font-bold">Produtos</h1>
           <p className="text-sm text-muted-foreground">Gerencie os produtos da sua loja</p>
         </div>
-        <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
           <Button 
             variant="outline" 
             size="sm"

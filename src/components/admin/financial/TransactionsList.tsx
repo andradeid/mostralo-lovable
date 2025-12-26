@@ -93,13 +93,13 @@ export function TransactionsList({
   if (isLoading) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle>Transações</CardTitle>
+        <CardHeader className="p-3 md:p-6">
+          <CardTitle className="text-base md:text-lg">Transações</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+        <CardContent className="p-3 md:p-6 pt-0">
+          <div className="space-y-3 md:space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="h-12 bg-muted animate-pulse rounded" />
+              <div key={i} className="h-10 md:h-12 bg-muted animate-pulse rounded" />
             ))}
           </div>
         </CardContent>
@@ -110,49 +110,51 @@ export function TransactionsList({
   return (
     <>
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle>Transações</CardTitle>
-          <Button onClick={onAdd} size="sm">
-            <Plus className="h-4 w-4 mr-2" />
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0 p-3 md:p-6 pb-3 md:pb-4">
+          <CardTitle className="text-base md:text-lg">Transações</CardTitle>
+          <Button onClick={onAdd} size="sm" className="w-full sm:w-auto h-8 md:h-9 text-xs md:text-sm">
+            <Plus className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1.5 md:mr-2" />
             Nova Transação
           </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 md:p-6 pt-0">
           {/* Filtros */}
-          <div className="flex flex-col sm:flex-row gap-3 mb-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <div className="flex flex-col gap-2 md:gap-3 mb-3 md:mb-4">
+            <div className="relative">
+              <Search className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por descrição..."
+                placeholder="Buscar..."
                 value={searchTerm}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="pl-9"
+                className="pl-8 md:pl-9 h-8 md:h-9 text-sm"
               />
             </div>
-            <Select value={typeFilter} onValueChange={onTypeFilterChange}>
-              <SelectTrigger className="w-full sm:w-[150px]">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="income">Receitas</SelectItem>
-                <SelectItem value="expense">Despesas</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={categoryFilter} onValueChange={onCategoryFilterChange}>
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as categorias</SelectItem>
-                {categories.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2">
+              <Select value={typeFilter} onValueChange={onTypeFilterChange}>
+                <SelectTrigger className="flex-1 sm:w-[130px] sm:flex-none h-8 md:h-9 text-xs md:text-sm">
+                  <Filter className="h-3 w-3 md:h-4 md:w-4 mr-1.5 md:mr-2" />
+                  <SelectValue placeholder="Tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="income">Receitas</SelectItem>
+                  <SelectItem value="expense">Despesas</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={categoryFilter} onValueChange={onCategoryFilterChange}>
+                <SelectTrigger className="flex-1 sm:w-[150px] sm:flex-none h-8 md:h-9 text-xs md:text-sm">
+                  <SelectValue placeholder="Categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Tabela */}
@@ -160,18 +162,18 @@ export function TransactionsList({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead>Categoria</TableHead>
-                  <TableHead>Pagamento</TableHead>
-                  <TableHead className="text-right">Valor</TableHead>
-                  <TableHead className="w-[50px]"></TableHead>
+                  <TableHead className="text-xs md:text-sm">Data</TableHead>
+                  <TableHead className="text-xs md:text-sm">Descrição</TableHead>
+                  <TableHead className="text-xs md:text-sm hidden sm:table-cell">Categoria</TableHead>
+                  <TableHead className="text-xs md:text-sm hidden md:table-cell">Pagamento</TableHead>
+                  <TableHead className="text-xs md:text-sm text-right">Valor</TableHead>
+                  <TableHead className="w-[40px] md:w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {transactions.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center py-6 md:py-8 text-xs md:text-sm text-muted-foreground">
                       Nenhuma transação encontrada
                     </TableCell>
                   </TableRow>
@@ -238,16 +240,16 @@ export function TransactionsList({
 
       {/* Dialog de confirmação de exclusão */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-[95vw] sm:max-w-md">
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita.
+            <AlertDialogTitle className="text-lg">Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm">
+              Tem certeza que deseja excluir esta transação?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground">
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel className="w-full sm:w-auto h-9 text-sm">Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="w-full sm:w-auto h-9 text-sm bg-destructive text-destructive-foreground">
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>

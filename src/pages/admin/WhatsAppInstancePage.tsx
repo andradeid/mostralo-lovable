@@ -1261,17 +1261,17 @@ export default function WhatsAppInstancePage() {
 
         <TabsContent value="bot" className="space-y-4 sm:space-y-6 overflow-hidden">
           {(!instance || !isConnected) && (
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 overflow-hidden">
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
               <div className="flex items-start gap-2">
                 <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs sm:text-sm font-medium break-words hyphens-auto">
+                  <p className="text-xs sm:text-sm font-medium whitespace-normal">
                     {!instance 
                       ? "Crie uma instância na aba 'Conexão' para ativar o assistente."
                       : "Conecte seu WhatsApp para que o assistente funcione."
                     }
                   </p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 break-words">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 whitespace-normal">
                     Configure agora e ative depois.
                   </p>
                 </div>

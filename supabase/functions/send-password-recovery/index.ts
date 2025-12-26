@@ -31,7 +31,7 @@ serve(async (req) => {
     const normalizedPhone = phone.replace(/\D/g, '');
     const { data: customer, error: customerError } = await supabase
       .from('customers')
-      .select('id, name, phone, table_password')
+      .select('id, name, phone, table_password, auth_user_id')
       .eq('phone', normalizedPhone)
       .is('deleted_at', null)
       .single();
@@ -44,9 +44,15 @@ serve(async (req) => {
       });
     }
 
-    if (!customer.table_password) {
-      console.log('[send-password-recovery] Cliente sem senha cadastrada');
-      return new Response(JSON.stringify({ success: false, error: 'Cliente sem senha cadastrada' }), {
+    console.log(`[send-password-recovery] Cliente: ${customer.name} | auth_user_id: ${customer.auth_user_id ? 'SIM' : 'NÃO'} | table_password: ${customer.table_password ? 'SIM' : 'NÃO'}`);
+
+    // Cliente precisa ter pelo menos uma forma de autenticação
+    if (!customer.table_password && !customer.auth_user_id) {
+      console.log('[send-password-recovery] Cliente sem nenhuma forma de autenticação');
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: 'Você ainda não tem senha cadastrada. Use "Criar conta" para definir sua senha.' 
+      }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -92,9 +98,12 @@ serve(async (req) => {
       });
     }
 
-    // Montar mensagem de recuperação
     const customerFirstName = customer.name?.split(' ')[0] || 'Cliente';
-    const message = `Olá ${customerFirstName}! 👋
+    let message = '';
+
+    // Se tem table_password, envia a senha diretamente
+    if (customer.table_password) {
+      message = `Olá ${customerFirstName}! 👋
 
 Você solicitou recuperação de senha no *Mostralo*.
 
@@ -103,6 +112,46 @@ Você solicitou recuperação de senha no *Mostralo*.
 Use ela em qualquer loja do sistema!
 
 🔒 _Mostralo - Sistema de Lojas_`;
+    } 
+    // Se só tem auth_user_id, gera uma nova senha e atualiza
+    else if (customer.auth_user_id) {
+      // Gerar nova senha numérica de 6 dígitos
+      const newPassword = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // Atualizar senha no Supabase Auth
+      const { error: updateAuthError } = await supabase.auth.admin.updateUserById(
+        customer.auth_user_id,
+        { password: newPassword }
+      );
+
+      if (updateAuthError) {
+        console.error('[send-password-recovery] Erro ao atualizar senha auth:', updateAuthError);
+        return new Response(JSON.stringify({ success: false, error: 'Erro ao gerar nova senha' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // Também salva no table_password para próximas recuperações
+      await supabase
+        .from('customers')
+        .update({ table_password: newPassword })
+        .eq('id', customer.id);
+
+      console.log(`[send-password-recovery] Nova senha gerada para ${customerFirstName}`);
+
+      message = `Olá ${customerFirstName}! 👋
+
+Você solicitou recuperação de senha no *Mostralo*.
+
+🔐 *Sua nova senha é:* ${newPassword}
+
+Use ela em qualquer loja do sistema!
+
+⚠️ _Recomendamos que você altere sua senha após o login._
+
+🔒 _Mostralo - Sistema de Lojas_`;
+    }
 
     // Montar número completo do cliente
     const customerNumber = '55' + normalizedPhone;

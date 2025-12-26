@@ -14,16 +14,20 @@ interface RequestBody {
   password?: string;
 }
 
-// Normalizar telefone brasileiro
+// Normalizar telefone brasileiro para formato canônico (10-11 dígitos, SEM DDI 55)
 function normalizePhone(phone: string): string {
   const digits = phone.replace(/\D/g, '');
+  // Remover DDI 55 se presente
   if (digits.startsWith('55') && digits.length >= 12) {
-    return digits;
-  }
-  if (digits.length === 11 || digits.length === 10) {
-    return '55' + digits;
+    return digits.substring(2);
   }
   return digits;
+}
+
+// Gerar variantes de telefone para busca tolerante
+function getPhoneVariants(phone: string): string[] {
+  const canonical = normalizePhone(phone);
+  return [canonical, '55' + canonical];
 }
 
 // Hash simples para senha (4-6 dígitos)
@@ -138,15 +142,20 @@ Deno.serve(async (req) => {
     // ACTION: CHECK_CUSTOMER
     // =====================
     if (action === 'check_customer') {
+      const phoneVariants = getPhoneVariants(phone);
+      console.log('🔍 Buscando cliente com variantes:', phoneVariants);
+      
       const { data: customer } = await supabase
         .from('customers')
         .select('id, name, phone, table_password, auth_user_id')
-        .eq('phone', normalizedPhone)
+        .in('phone', phoneVariants)
         .is('deleted_at', null)
+        .limit(1)
         .single();
 
       if (customer) {
         const hasPassword = !!customer.table_password;
+        console.log('✅ Cliente encontrado:', customer.name, '| Tem senha:', hasPassword);
         return new Response(
           JSON.stringify({ 
             exists: true, 
@@ -157,6 +166,7 @@ Deno.serve(async (req) => {
         );
       }
 
+      console.log('ℹ️ Cliente não encontrado');
       return new Response(
         JSON.stringify({ exists: false }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -181,12 +191,14 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Verificar se cliente já existe
+      // Verificar se cliente já existe (busca tolerante)
+      const phoneVariants = getPhoneVariants(phone);
       const { data: existingCustomer } = await supabase
         .from('customers')
         .select('id, name, table_password')
-        .eq('phone', normalizedPhone)
+        .in('phone', phoneVariants)
         .is('deleted_at', null)
+        .limit(1)
         .single();
 
       let customerId: string;
@@ -257,11 +269,13 @@ Deno.serve(async (req) => {
     // ACTION: LOGIN
     // =====================
     if (action === 'login') {
+      const phoneVariants = getPhoneVariants(phone);
       const { data: customer } = await supabase
         .from('customers')
         .select('id, name, table_password, password_salt')
-        .eq('phone', normalizedPhone)
+        .in('phone', phoneVariants)
         .is('deleted_at', null)
+        .limit(1)
         .single();
 
       if (!customer) {
@@ -312,11 +326,13 @@ Deno.serve(async (req) => {
     // ACTION: CREATE_COMANDA
     // =====================
     if (action === 'create_comanda') {
+      const phoneVariants = getPhoneVariants(phone);
       const { data: customer } = await supabase
         .from('customers')
         .select('id, name')
-        .eq('phone', normalizedPhone)
+        .in('phone', phoneVariants)
         .is('deleted_at', null)
+        .limit(1)
         .single();
 
       if (!customer) {

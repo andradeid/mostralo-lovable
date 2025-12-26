@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { usePageSEO } from '@/hooks/useSEO';
-import { Loader2, Store, Info, KeyRound, AlertTriangle } from 'lucide-react';
+import { Loader2, Store, Info, KeyRound, AlertTriangle, Mail, MessageCircle, CheckCircle2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -31,6 +32,10 @@ const Auth = () => {
   const [isResetLoading, setIsResetLoading] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
+  const [recoveryMethod, setRecoveryMethod] = useState<'email' | 'whatsapp'>('email');
+  const [isCheckingPhone, setIsCheckingPhone] = useState(false);
+  const [hasPhone, setHasPhone] = useState<boolean | null>(null);
+  const [recoverySent, setRecoverySent] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -155,32 +160,106 @@ const Auth = () => {
     }
   };
 
+  // Verificar telefone quando email muda
+  const checkUserPhone = async (emailToCheck: string) => {
+    if (!emailToCheck || !emailToCheck.includes('@')) {
+      setHasPhone(null);
+      return;
+    }
+
+    setIsCheckingPhone(true);
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('phone')
+        .eq('email', emailToCheck.toLowerCase().trim())
+        .single();
+
+      setHasPhone(!!profile?.phone);
+    } catch {
+      setHasPhone(null);
+    } finally {
+      setIsCheckingPhone(false);
+    }
+  };
+
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsResetLoading(true);
 
-    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-      redirectTo: `${window.location.origin}/auth/reset-password`,
-    });
+    if (recoveryMethod === 'email') {
+      // Enviar por email (método existente)
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      });
 
-    if (error) {
-      toast({
-        title: 'Erro ao enviar email',
-        description: error.message,
-        variant: 'destructive'
-      });
+      if (error) {
+        toast({
+          title: 'Erro ao enviar email',
+          description: error.message,
+          variant: 'destructive'
+        });
+      } else {
+        setRecoverySent(true);
+        toast({
+          title: 'Email enviado!',
+          description: 'Verifique sua caixa de entrada para redefinir sua senha.',
+        });
+      }
     } else {
-      toast({
-        title: 'Email enviado!',
-        description: 'Verifique sua caixa de entrada para redefinir sua senha.',
-      });
-      setShowResetDialog(false);
-      setResetEmail('');
+      // Enviar por WhatsApp
+      try {
+        const { data, error } = await supabase.functions.invoke('send-user-recovery-link', {
+          body: { email: resetEmail }
+        });
+
+        if (error || !data?.success) {
+          const errorMessage = data?.error || 'Erro ao enviar link';
+          
+          if (data?.noPhone) {
+            toast({
+              title: 'Telefone não cadastrado',
+              description: 'Use a opção de recuperação por email.',
+              variant: 'destructive'
+            });
+            setRecoveryMethod('email');
+          } else {
+            toast({
+              title: 'Erro ao enviar',
+              description: errorMessage,
+              variant: 'destructive'
+            });
+          }
+        } else {
+          setRecoverySent(true);
+          toast({
+            title: 'Link enviado!',
+            description: 'Verifique seu WhatsApp para redefinir sua senha.',
+          });
+        }
+      } catch (err) {
+        console.error('Erro ao enviar link por WhatsApp:', err);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível enviar o link. Tente por email.',
+          variant: 'destructive'
+        });
+      }
     }
 
     setIsResetLoading(false);
   };
 
+  const handleResetDialogClose = (open: boolean) => {
+    setShowResetDialog(open);
+    if (!open) {
+      // Reset states when closing
+      setResetEmail('');
+      setRecoveryMethod('email');
+      setHasPhone(null);
+      setRecoverySent(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/20 via-background to-secondary/20 px-4">
@@ -245,7 +324,7 @@ const Auth = () => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Senha</Label>
-                  <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+                  <Dialog open={showResetDialog} onOpenChange={handleResetDialogClose}>
                     <DialogTrigger asChild>
                       <Button variant="link" className="p-0 h-auto text-xs text-muted-foreground hover:text-primary">
                         Esqueceu a senha?
@@ -258,46 +337,127 @@ const Auth = () => {
                           <span>Recuperar Senha</span>
                         </DialogTitle>
                         <DialogDescription>
-                          Digite seu email para receber instruções de recuperação de senha.
+                          {recoverySent 
+                            ? 'Link de recuperação enviado com sucesso!' 
+                            : 'Digite seu email e escolha como deseja receber o link.'}
                         </DialogDescription>
                       </DialogHeader>
-                      <form onSubmit={handlePasswordReset} className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="reset-email">Email</Label>
-                          <Input
-                            id="reset-email"
-                            type="email"
-                            value={resetEmail}
-                            onChange={(e) => setResetEmail(e.target.value)}
-                            placeholder="seu@email.com"
-                            required
-                          />
-                        </div>
-                        <div className="flex space-x-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className="flex-1"
-                            onClick={() => setShowResetDialog(false)}
+                      
+                      {recoverySent ? (
+                        <div className="text-center space-y-4 py-4">
+                          <div className="flex justify-center">
+                            <div className="rounded-full bg-emerald-100 dark:bg-emerald-900 p-3">
+                              <CheckCircle2 className="w-10 h-10 text-emerald-600 dark:text-emerald-400" />
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <p className="font-medium text-foreground">
+                              {recoveryMethod === 'email' 
+                                ? 'Verifique sua caixa de entrada!' 
+                                : 'Verifique seu WhatsApp!'}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              Clique no link que enviamos para criar uma nova senha.
+                            </p>
+                          </div>
+                          <Button 
+                            onClick={() => handleResetDialogClose(false)} 
+                            className="w-full"
                           >
-                            Cancelar
-                          </Button>
-                          <Button
-                            type="submit"
-                            className="flex-1"
-                            disabled={isResetLoading}
-                          >
-                            {isResetLoading ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Enviando...
-                              </>
-                            ) : (
-                              'Enviar Email'
-                            )}
+                            Fechar
                           </Button>
                         </div>
-                      </form>
+                      ) : (
+                        <form onSubmit={handlePasswordReset} className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="reset-email">Email</Label>
+                            <Input
+                              id="reset-email"
+                              type="email"
+                              value={resetEmail}
+                              onChange={(e) => {
+                                setResetEmail(e.target.value);
+                                checkUserPhone(e.target.value);
+                              }}
+                              placeholder="seu@email.com"
+                              required
+                            />
+                          </div>
+
+                          <div className="space-y-3">
+                            <Label>Como deseja receber o link?</Label>
+                            <RadioGroup 
+                              value={recoveryMethod} 
+                              onValueChange={(v) => setRecoveryMethod(v as 'email' | 'whatsapp')}
+                              className="space-y-2"
+                            >
+                              <div className="flex items-center space-x-3 p-3 rounded-lg border border-border hover:bg-accent/50 cursor-pointer">
+                                <RadioGroupItem value="email" id="method-email" />
+                                <Label htmlFor="method-email" className="flex items-center gap-2 cursor-pointer flex-1">
+                                  <Mail className="w-4 h-4 text-primary" />
+                                  <div>
+                                    <p className="font-medium">Por Email</p>
+                                    <p className="text-xs text-muted-foreground">Receba o link no seu email</p>
+                                  </div>
+                                </Label>
+                              </div>
+                              
+                              <div className={`flex items-center space-x-3 p-3 rounded-lg border border-border hover:bg-accent/50 cursor-pointer ${hasPhone === false ? 'opacity-50' : ''}`}>
+                                <RadioGroupItem 
+                                  value="whatsapp" 
+                                  id="method-whatsapp" 
+                                  disabled={hasPhone === false}
+                                />
+                                <Label htmlFor="method-whatsapp" className="flex items-center gap-2 cursor-pointer flex-1">
+                                  <MessageCircle className="w-4 h-4 text-emerald-600" />
+                                  <div>
+                                    <p className="font-medium">Por WhatsApp</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {isCheckingPhone 
+                                        ? 'Verificando...' 
+                                        : hasPhone === false 
+                                          ? 'Telefone não cadastrado' 
+                                          : 'Receba o link no seu WhatsApp'}
+                                    </p>
+                                  </div>
+                                </Label>
+                              </div>
+                            </RadioGroup>
+                          </div>
+
+                          <div className="flex space-x-2 pt-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="flex-1"
+                              onClick={() => handleResetDialogClose(false)}
+                            >
+                              Cancelar
+                            </Button>
+                            <Button
+                              type="submit"
+                              className="flex-1"
+                              disabled={isResetLoading || isCheckingPhone}
+                            >
+                              {isResetLoading ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Enviando...
+                                </>
+                              ) : (
+                                <>
+                                  {recoveryMethod === 'email' ? (
+                                    <Mail className="mr-2 h-4 w-4" />
+                                  ) : (
+                                    <MessageCircle className="mr-2 h-4 w-4" />
+                                  )}
+                                  Enviar Link
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </form>
+                      )}
                     </DialogContent>
                   </Dialog>
                 </div>

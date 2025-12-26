@@ -11,6 +11,7 @@ import NotFound from "@/pages/NotFound";
 
 // Public Pages - Lazy loaded
 const SignUp = lazy(() => import("@/pages/SignUp"));
+const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const StorePromotions = lazy(() => import("@/pages/StorePromotions"));
 const ProductPage = lazy(() => import("@/pages/ProductPage"));
 const StoreXML = lazy(() => import("@/pages/StoreXML"));
@@ -82,6 +83,7 @@ export const publicRoutes = (
     
     {/* Autenticação */}
     <Route path="/signup" element={<LazyRoute><SignUp /></LazyRoute>} />
+    <Route path="/auth/reset-password" element={<LazyRoute><ResetPassword /></LazyRoute>} />
     
     {/* Loja Pública */}
     <Route path="/loja/:slug/promocoes" element={<LazyRoute><StorePromotions /></LazyRoute>} />

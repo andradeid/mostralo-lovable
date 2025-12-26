@@ -3158,5 +3158,111 @@ Solução aplicada:
       '□ Restaurar funções quando houver espaço disponível',
       '□ Ver instruções em src/data/archivedEdgeFunctions.ts'
     ]
+  },
+
+  // ==================== IDEIA 26 - RECUPERAÇÃO DE SENHA COM CÓDIGO ====================
+  {
+    id: 26,
+    title: '🔐 Recuperação de Senha com Código de Verificação',
+    status: 'idea',
+    priority: 'medium',
+    createdAt: '2025-12-26',
+    description: 'Fluxo seguro de recuperação de senha onde usuário recebe código por WhatsApp, valida, e escolhe sua própria nova senha.',
+    
+    context: `Atualmente o sistema possui a Edge Function send-password-recovery que:
+• Envia a senha existente (table_password) diretamente por WhatsApp
+• Ou gera uma nova senha de 6 dígitos e envia automaticamente
+
+Problema: usuários preferem escolher sua própria senha ao invés de usar uma gerada automaticamente.
+
+Componentes existentes:
+• send-password-recovery (Edge Function atual)
+• ForgotPasswordButton.tsx
+• TableAuthLoginStep.tsx
+• Integração WhatsApp via Evolution API`,
+
+    problem: `Fluxo atual de recuperação de senha:
+• Usuário clica "Esqueci minha senha"
+• Sistema envia senha atual ou gera nova automaticamente
+• Usuário não pode escolher sua própria senha
+
+Problemas identificados:
+• Senhas automáticas são difíceis de memorizar
+• Usuários preferem definir suas próprias senhas
+• Fluxo menos seguro (senha trafega em texto)
+
+Solução proposta:
+• Enviar código de verificação de 6 dígitos
+• Validar código digitado pelo usuário
+• Permitir que usuário defina nova senha`,
+
+    marketAnalysis: {
+      title: '📊 Benefícios',
+      items: [
+        'Experiência de usuário melhorada - escolhe própria senha',
+        'Maior segurança - código expira em 10 minutos',
+        'Padrão de mercado - fluxo comum em apps',
+        'Reduz suporte - usuário lembra da senha que escolheu',
+        'Profissionalismo - fluxo mais completo'
+      ]
+    },
+
+    technicalDetails: {
+      title: '🔧 Implementação Técnica',
+      items: [
+        '1. Criar tabela password_recovery_codes (id, customer_id, phone, code, token, expires_at, used_at)',
+        '2. Edge Function send-recovery-code: gera código 6 dígitos, salva na tabela, envia WhatsApp',
+        '3. Edge Function verify-recovery-code: valida código, retorna token; ou recebe token + nova senha',
+        '4. Componente PasswordRecoveryFlow.tsx: gerencia passos do fluxo',
+        '5. Componente RecoveryCodeStep.tsx: input para código de 6 dígitos',
+        '6. Componente NewPasswordStep.tsx: inputs para nova senha + confirmação',
+        '7. Integrar no TableAuthLoginStep.tsx e ForgotPasswordButton.tsx'
+      ]
+    },
+
+    phases: [
+      {
+        name: 'Fase 1 - Infraestrutura',
+        description: 'Banco de dados e Edge Functions',
+        items: [
+          'Criar migração SQL para tabela password_recovery_codes',
+          'Criar Edge Function send-recovery-code',
+          'Criar Edge Function verify-recovery-code com ações: verify e reset',
+          'Adicionar rate limiting (máx 3 solicitações/hora por telefone)'
+        ]
+      },
+      {
+        name: 'Fase 2 - Frontend',
+        description: 'Componentes React e integração',
+        items: [
+          'Criar PasswordRecoveryFlow.tsx (componente principal multi-step)',
+          'Criar RecoveryCodeStep.tsx (input OTP de 6 dígitos)',
+          'Criar NewPasswordStep.tsx (nova senha + confirmação)',
+          'Integrar no TableAuthLoginStep.tsx',
+          'Atualizar ForgotPasswordButton.tsx'
+        ]
+      }
+    ],
+
+    legalConsiderations: [
+      '✅ Código expira em 10 minutos',
+      '✅ Máximo 3 tentativas por código',
+      '✅ Rate limiting: 3 solicitações/hora por telefone',
+      '✅ Token único na segunda etapa (impede reutilização)',
+      '✅ Senha não trafega em texto - apenas código temporário'
+    ],
+
+    nextSteps: [
+      '□ Criar migração SQL para tabela password_recovery_codes',
+      '□ Criar Edge Function send-recovery-code',
+      '□ Criar Edge Function verify-recovery-code',
+      '□ Criar componente PasswordRecoveryFlow.tsx',
+      '□ Criar componente RecoveryCodeStep.tsx',
+      '□ Criar componente NewPasswordStep.tsx',
+      '□ Integrar no TableAuthLoginStep.tsx',
+      '□ Atualizar ForgotPasswordButton.tsx',
+      '□ Testar fluxo completo',
+      '□ Remover/deprecar send-password-recovery antiga'
+    ]
   }
 ];

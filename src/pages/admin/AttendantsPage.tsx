@@ -366,84 +366,82 @@ const AttendantsPage = () => {
 
   return (
     <ModuleGate moduleKey="attendants" storeId={validatedStoreId}>
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6 px-2 md:px-0">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold">Atendentes</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl md:text-3xl font-bold">Atendentes</h1>
+          <p className="text-sm md:text-base text-muted-foreground">
             Gerencie os atendentes da sua loja
           </p>
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
+        <Button onClick={() => setIsCreateDialogOpen(true)} className="w-full sm:w-auto h-9 text-sm">
           <UserPlus className="w-4 h-4 mr-2" />
           Novo Atendente
         </Button>
       </div>
 
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+        <CardHeader className="p-3 md:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <CardTitle>Lista de Atendentes</CardTitle>
-              <CardDescription>
-                {filteredAttendants.length} atendente(s) encontrado(s)
+              <CardTitle className="text-base md:text-lg">Lista de Atendentes</CardTitle>
+              <CardDescription className="text-xs md:text-sm">
+                {filteredAttendants.length} atendente(s)
               </CardDescription>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar atendente..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8 w-64"
-                />
-              </div>
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8 h-9 text-sm"
+              />
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <div className="flex items-center justify-center py-8 md:py-12">
+              <Loader2 className="w-6 h-6 md:w-8 md:h-8 animate-spin text-primary" />
             </div>
           ) : filteredAttendants.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">
+            <div className="text-center py-8 md:py-12">
+              <Users className="w-10 h-10 md:w-12 md:h-12 mx-auto text-muted-foreground mb-3 md:mb-4" />
+              <p className="text-sm md:text-base text-muted-foreground">
                 {searchTerm ? 'Nenhum atendente encontrado' : 'Nenhum atendente cadastrado'}
               </p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {filteredAttendants.map((attendant) => (
                 <div
                   key={attendant.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex items-start sm:items-center justify-between p-3 md:p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                 >
-                  <div className="flex items-center gap-4 flex-1">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <UserIcon className="w-5 h-5 text-primary" />
+                  <div className="flex items-start sm:items-center gap-3 md:gap-4 flex-1 min-w-0">
+                    <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <UserIcon className="w-4 h-4 md:w-5 md:h-5 text-primary" />
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="font-semibold">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-1 md:gap-2">
+                        <p className="font-semibold text-sm md:text-base truncate max-w-[140px] sm:max-w-none">
                           {attendant.full_name || 'Sem nome'}
                         </p>
-                        <Badge variant="outline">Atendente</Badge>
+                        <Badge variant="outline" className="text-[10px] md:text-xs h-5">Atendente</Badge>
                       </div>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                        <div className="flex items-center gap-1">
-                          <Mail className="w-3 h-3" />
-                          {attendant.email}
+                      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-1 sm:gap-3 md:gap-4 text-xs md:text-sm text-muted-foreground mt-1">
+                        <div className="flex items-center gap-1 truncate">
+                          <Mail className="w-3 h-3 flex-shrink-0" />
+                          <span className="truncate">{attendant.email}</span>
                         </div>
                         {attendant.store_name && (
-                          <div className="flex items-center gap-1">
-                            <Store className="w-3 h-3" />
-                            {attendant.store_name}
+                          <div className="flex items-center gap-1 truncate">
+                            <Store className="w-3 h-3 flex-shrink-0" />
+                            <span className="truncate">{attendant.store_name}</span>
                           </div>
                         )}
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 hidden sm:flex">
                           <Calendar className="w-3 h-3" />
                           {new Date(attendant.created_at).toLocaleDateString('pt-BR')}
                         </div>
@@ -452,7 +450,7 @@ const AttendantsPage = () => {
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 md:h-9 md:w-9 flex-shrink-0">
                         <MoreVertical className="w-4 h-4" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -503,11 +501,11 @@ const AttendantsPage = () => {
 
       {/* Dialog Criar Atendente */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-[95vw] sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Criar Novo Atendente</DialogTitle>
-            <DialogDescription>
-              Crie uma conta para um novo atendente da loja
+            <DialogTitle className="text-lg">Criar Novo Atendente</DialogTitle>
+            <DialogDescription className="text-sm">
+              Crie uma conta para um novo atendente
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -559,11 +557,11 @@ const AttendantsPage = () => {
               </Select>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="w-full sm:w-auto h-9 text-sm">
               Cancelar
             </Button>
-            <Button onClick={handleCreate}>
+            <Button onClick={handleCreate} className="w-full sm:w-auto h-9 text-sm">
               Criar Atendente
             </Button>
           </DialogFooter>
@@ -572,10 +570,10 @@ const AttendantsPage = () => {
 
       {/* Dialog Editar Atendente */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-[95vw] sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Editar Atendente</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-lg">Editar Atendente</DialogTitle>
+            <DialogDescription className="text-sm">
               Atualize as informações do atendente
             </DialogDescription>
           </DialogHeader>
@@ -622,12 +620,12 @@ const AttendantsPage = () => {
               </Select>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="w-full sm:w-auto h-9 text-sm">
               Cancelar
             </Button>
-            <Button onClick={handleEdit}>
-              Salvar Alterações
+            <Button onClick={handleEdit} className="w-full sm:w-auto h-9 text-sm">
+              Salvar
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -635,24 +633,24 @@ const AttendantsPage = () => {
 
       {/* Dialog Remover Atendente */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-[95vw] sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Remover Atendente</DialogTitle>
-            <DialogDescription>
-              Tem certeza que deseja remover este atendente? Esta ação não pode ser desfeita.
+            <DialogTitle className="text-lg">Remover Atendente</DialogTitle>
+            <DialogDescription className="text-sm">
+              Tem certeza? Esta ação não pode ser desfeita.
             </DialogDescription>
           </DialogHeader>
           {selectedAttendant && (
-            <div className="py-4">
-              <p className="font-semibold">{selectedAttendant.full_name || 'Sem nome'}</p>
-              <p className="text-sm text-muted-foreground">{selectedAttendant.email}</p>
+            <div className="py-3 md:py-4">
+              <p className="font-semibold text-sm md:text-base">{selectedAttendant.full_name || 'Sem nome'}</p>
+              <p className="text-xs md:text-sm text-muted-foreground">{selectedAttendant.email}</p>
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} className="w-full sm:w-auto h-9 text-sm">
               Cancelar
             </Button>
-            <Button variant="destructive" onClick={handleDelete}>
+            <Button variant="destructive" onClick={handleDelete} className="w-full sm:w-auto h-9 text-sm">
               Remover
             </Button>
           </DialogFooter>

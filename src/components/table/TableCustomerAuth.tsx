@@ -1,11 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTableComanda } from '@/hooks/useTableComanda';
+import { useStoreModules } from '@/hooks/useStoreModules';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import { TableAuthPhoneStep } from './auth/TableAuthPhoneStep';
 import { TableAuthRegisterStep } from './auth/TableAuthRegisterStep';
 import { TableAuthLoginStep } from './auth/TableAuthLoginStep';
 import { TableAuthCreatePasswordStep } from './auth/TableAuthCreatePasswordStep';
+import { TableAuthIdentifyingStep } from './auth/TableAuthIdentifyingStep';
+import { TableAuthIdentifiedStep } from './auth/TableAuthIdentifiedStep';
+import { TableAuthWhatsAppStep } from './auth/TableAuthWhatsAppStep';
 
 interface TableCustomerAuthProps {
   storeId: string;
@@ -13,7 +18,21 @@ interface TableCustomerAuthProps {
   onSuccess: () => void;
 }
 
-type Step = 'phone' | 'register' | 'login' | 'create_password';
+type Step = 
+  | 'phone' 
+  | 'identifying' 
+  | 'identified' 
+  | 'validating_whatsapp' 
+  | 'whatsapp_result' 
+  | 'register' 
+  | 'login' 
+  | 'create_password';
+
+interface CustomerCheckResult {
+  exists: boolean;
+  hasPassword: boolean;
+  name?: string;
+}
 
 export function TableCustomerAuth({ storeId, tableNumber, onSuccess }: TableCustomerAuthProps) {
   const [step, setStep] = useState<Step>('phone');
@@ -21,8 +40,88 @@ export function TableCustomerAuth({ storeId, tableNumber, onSuccess }: TableCust
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [existingCustomerName, setExistingCustomerName] = useState('');
+  const [customerCheckResult, setCustomerCheckResult] = useState<CustomerCheckResult | null>(null);
+  const [whatsappStatus, setWhatsappStatus] = useState<'validating' | 'valid' | 'invalid'>('validating');
 
   const { isLoading, error, checkCustomer, registerCustomer, loginCustomer, createComanda } = useTableComanda();
+  const { hasModule, loading: modulesLoading } = useStoreModules(storeId);
+
+  // Auto-advance from identifying step
+  useEffect(() => {
+    if (step === 'identifying' && customerCheckResult) {
+      const timer = setTimeout(() => {
+        setStep('identified');
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [step, customerCheckResult]);
+
+  // Auto-advance from identified step
+  useEffect(() => {
+    if (step === 'identified' && customerCheckResult) {
+      const timer = setTimeout(() => {
+        const shouldValidateWhatsApp = hasModule('whatsapp');
+        
+        if (shouldValidateWhatsApp) {
+          setStep('validating_whatsapp');
+          validateWhatsApp();
+        } else {
+          goToFinalStep();
+        }
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [step, customerCheckResult]);
+
+  // Auto-advance from whatsapp result step
+  useEffect(() => {
+    if (step === 'whatsapp_result') {
+      const timer = setTimeout(() => {
+        goToFinalStep();
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [step]);
+
+  const goToFinalStep = () => {
+    if (!customerCheckResult) return;
+    
+    if (customerCheckResult.exists) {
+      if (customerCheckResult.hasPassword) {
+        setExistingCustomerName(customerCheckResult.name || '');
+        setStep('login');
+      } else {
+        setExistingCustomerName(customerCheckResult.name || '');
+        setName(customerCheckResult.name || '');
+        setStep('create_password');
+      }
+    } else {
+      setStep('register');
+    }
+  };
+
+  const validateWhatsApp = async () => {
+    const digits = phone.replace(/\D/g, '');
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('validate-whatsapp-number', {
+        body: { phone: digits, sendWelcome: false }
+      });
+
+      if (error) throw error;
+
+      if (data?.exists) {
+        setWhatsappStatus('valid');
+      } else {
+        setWhatsappStatus('invalid');
+      }
+    } catch (err) {
+      console.error('Erro ao validar WhatsApp:', err);
+      setWhatsappStatus('invalid');
+    } finally {
+      setStep('whatsapp_result');
+    }
+  };
 
   const handlePhoneSubmit = async () => {
     const digits = phone.replace(/\D/g, '');
@@ -31,20 +130,11 @@ export function TableCustomerAuth({ storeId, tableNumber, onSuccess }: TableCust
       return;
     }
 
-    const result = await checkCustomer(digits, storeId, tableNumber);
+    // Start animated flow
+    setStep('identifying');
     
-    if (result.exists) {
-      if (result.hasPassword) {
-        setExistingCustomerName(result.name || '');
-        setStep('login');
-      } else {
-        setExistingCustomerName(result.name || '');
-        setName(result.name || '');
-        setStep('create_password');
-      }
-    } else {
-      setStep('register');
-    }
+    const result = await checkCustomer(digits, storeId, tableNumber);
+    setCustomerCheckResult(result);
   };
 
   const handleRegister = async () => {
@@ -126,11 +216,18 @@ export function TableCustomerAuth({ storeId, tableNumber, onSuccess }: TableCust
   const handleBack = () => {
     setStep('phone');
     setPassword('');
+    setCustomerCheckResult(null);
+    setWhatsappStatus('validating');
   };
 
   const getStepTitle = () => {
     switch (step) {
       case 'phone': return 'Identificação';
+      case 'identifying':
+      case 'identified':
+      case 'validating_whatsapp':
+      case 'whatsapp_result':
+        return '';
       case 'register': return 'Cadastro Rápido';
       case 'login': return `Olá, ${existingCustomerName || 'Cliente'}!`;
       case 'create_password': return 'Criar Senha';
@@ -140,21 +237,30 @@ export function TableCustomerAuth({ storeId, tableNumber, onSuccess }: TableCust
   const getStepDescription = () => {
     switch (step) {
       case 'phone': return 'Digite seu telefone para continuar';
+      case 'identifying':
+      case 'identified':
+      case 'validating_whatsapp':
+      case 'whatsapp_result':
+        return '';
       case 'register': return 'Complete seu cadastro para fazer pedidos';
       case 'login': return 'Digite sua senha para acessar';
       case 'create_password': return 'Crie uma senha de 4 a 6 dígitos';
     }
   };
 
+  const isAnimatedStep = ['identifying', 'identified', 'validating_whatsapp', 'whatsapp_result'].includes(step);
+
   return (
     <Card className="border-0 shadow-lg">
-      <CardHeader className="text-center pb-4">
-        <CardTitle className="text-2xl">{getStepTitle()}</CardTitle>
-        <CardDescription>{getStepDescription()}</CardDescription>
-      </CardHeader>
+      {!isAnimatedStep && (
+        <CardHeader className="text-center pb-4">
+          <CardTitle className="text-2xl">{getStepTitle()}</CardTitle>
+          <CardDescription>{getStepDescription()}</CardDescription>
+        </CardHeader>
+      )}
 
-      <CardContent className="space-y-4">
-        {error && (
+      <CardContent className={isAnimatedStep ? 'py-4' : 'space-y-4'}>
+        {error && !isAnimatedStep && (
           <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm text-center">
             {error}
           </div>
@@ -167,6 +273,25 @@ export function TableCustomerAuth({ storeId, tableNumber, onSuccess }: TableCust
             onSubmit={handlePhoneSubmit}
             isLoading={isLoading}
           />
+        )}
+
+        {step === 'identifying' && (
+          <TableAuthIdentifyingStep phone={phone} />
+        )}
+
+        {step === 'identified' && customerCheckResult && (
+          <TableAuthIdentifiedStep 
+            isNewCustomer={!customerCheckResult.exists}
+            customerName={customerCheckResult.name}
+          />
+        )}
+
+        {step === 'validating_whatsapp' && (
+          <TableAuthWhatsAppStep status="validating" phone={phone} />
+        )}
+
+        {step === 'whatsapp_result' && (
+          <TableAuthWhatsAppStep status={whatsappStatus} phone={phone} />
         )}
 
         {step === 'register' && (

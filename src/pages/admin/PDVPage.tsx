@@ -27,7 +27,7 @@ export default function PDVPage() {
   if (isMobile) {
     return (
       <ModuleGate moduleKey="pdv_comandas" storeId={storeId}>
-        <div className="h-[calc(100vh-7rem)] flex flex-col">
+        <div className="flex flex-col flex-1 min-h-0">
         <Tabs defaultValue="products" className="flex-1 flex flex-col">
           <TabsList className="grid grid-cols-3 h-14 mx-2 mb-2">
             <TabsTrigger value="products" className="h-12 text-base gap-2">
@@ -86,7 +86,7 @@ export default function PDVPage() {
   // Layout Desktop com Tabs
   return (
     <ModuleGate moduleKey="pdv_comandas" storeId={storeId}>
-      <div className="h-[calc(100vh-8rem)] flex flex-col">
+      <div className="flex flex-col flex-1 min-h-0">
         <Tabs defaultValue="pdv" className="flex-1 flex flex-col">
           <TabsList className="w-fit mb-4">
             <TabsTrigger value="pdv" className="gap-2">

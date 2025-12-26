@@ -596,6 +596,13 @@ export function AdminSidebar() {
         );
       }
 
+      // Cardápio na Mesa (Self-Service) - verifica módulo
+      if (hasModule('self_service_table')) {
+        menuItems.push(
+          { title: 'Mesas QR Code', url: '/dashboard/mesas-qrcode', icon: QrCode, group: 'Vendas Presenciais' }
+        );
+      }
+
       return menuItems;
     }
   };

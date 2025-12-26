@@ -11,6 +11,8 @@ export interface Comanda {
   status: 'open' | 'closed' | 'cancelled';
   table_number: string | null;
   customer_name: string | null;
+  customer_id: string | null;
+  source: 'garcom' | 'pdv' | 'self_service' | null;
   subtotal: number;
   discount: number;
   service_fee: number;
@@ -42,6 +44,9 @@ export interface ComandaItem {
   preparation_status: 'pending' | 'preparing' | 'ready';
   preparation_started_at: string | null;
   prepared_at: string | null;
+  requires_approval: boolean | null;
+  approved_by: string | null;
+  approved_at: string | null;
 }
 
 export interface CreateComandaInput {

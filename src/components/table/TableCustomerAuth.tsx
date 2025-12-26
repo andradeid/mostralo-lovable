@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, User, Phone, Lock, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useTableComanda } from '@/hooks/useTableComanda';
 import { toast } from 'sonner';
+import { TableAuthPhoneStep } from './auth/TableAuthPhoneStep';
+import { TableAuthRegisterStep } from './auth/TableAuthRegisterStep';
+import { TableAuthLoginStep } from './auth/TableAuthLoginStep';
+import { TableAuthCreatePasswordStep } from './auth/TableAuthCreatePasswordStep';
 
 interface TableCustomerAuthProps {
   storeId: string;
@@ -23,13 +23,6 @@ export function TableCustomerAuth({ storeId, tableNumber, onSuccess }: TableCust
   const [existingCustomerName, setExistingCustomerName] = useState('');
 
   const { isLoading, error, checkCustomer, registerCustomer, loginCustomer, createComanda } = useTableComanda();
-
-  const formatPhone = (value: string) => {
-    const digits = value.replace(/\D/g, '').slice(0, 11);
-    if (digits.length <= 2) return digits;
-    if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
-  };
 
   const handlePhoneSubmit = async () => {
     const digits = phone.replace(/\D/g, '');
@@ -135,21 +128,29 @@ export function TableCustomerAuth({ storeId, tableNumber, onSuccess }: TableCust
     setPassword('');
   };
 
+  const getStepTitle = () => {
+    switch (step) {
+      case 'phone': return 'Identificação';
+      case 'register': return 'Cadastro Rápido';
+      case 'login': return `Olá, ${existingCustomerName || 'Cliente'}!`;
+      case 'create_password': return 'Criar Senha';
+    }
+  };
+
+  const getStepDescription = () => {
+    switch (step) {
+      case 'phone': return 'Digite seu telefone para continuar';
+      case 'register': return 'Complete seu cadastro para fazer pedidos';
+      case 'login': return 'Digite sua senha para acessar';
+      case 'create_password': return 'Crie uma senha de 4 a 6 dígitos';
+    }
+  };
+
   return (
     <Card className="border-0 shadow-lg">
       <CardHeader className="text-center pb-4">
-        <CardTitle className="text-2xl">
-          {step === 'phone' && 'Identificação'}
-          {step === 'register' && 'Cadastro Rápido'}
-          {step === 'login' && `Olá, ${existingCustomerName || 'Cliente'}!`}
-          {step === 'create_password' && 'Criar Senha'}
-        </CardTitle>
-        <CardDescription>
-          {step === 'phone' && 'Digite seu telefone para continuar'}
-          {step === 'register' && 'Complete seu cadastro para fazer pedidos'}
-          {step === 'login' && 'Digite sua senha para acessar'}
-          {step === 'create_password' && 'Crie uma senha de 4 a 6 dígitos'}
-        </CardDescription>
+        <CardTitle className="text-2xl">{getStepTitle()}</CardTitle>
+        <CardDescription>{getStepDescription()}</CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-4">
@@ -159,164 +160,46 @@ export function TableCustomerAuth({ storeId, tableNumber, onSuccess }: TableCust
           </div>
         )}
 
-        {/* Step: Phone */}
         {step === 'phone' && (
-          <>
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="flex items-center gap-2">
-                <Phone className="h-4 w-4" /> Telefone
-              </Label>
-              <Input
-                id="phone"
-                type="tel"
-                placeholder="(00) 00000-0000"
-                value={phone}
-                onChange={(e) => setPhone(formatPhone(e.target.value))}
-                className="text-lg h-12"
-                autoFocus
-              />
-            </div>
-            <Button 
-              onClick={handlePhoneSubmit} 
-              className="w-full h-12 text-lg"
-              disabled={isLoading || phone.replace(/\D/g, '').length < 10}
-            >
-              {isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                <>
-                  Continuar <ArrowRight className="h-5 w-5 ml-2" />
-                </>
-              )}
-            </Button>
-          </>
+          <TableAuthPhoneStep
+            phone={phone}
+            onPhoneChange={setPhone}
+            onSubmit={handlePhoneSubmit}
+            isLoading={isLoading}
+          />
         )}
 
-        {/* Step: Register */}
         {step === 'register' && (
-          <>
-            <div className="space-y-2">
-              <Label htmlFor="name" className="flex items-center gap-2">
-                <User className="h-4 w-4" /> Seu Nome
-              </Label>
-              <Input
-                id="name"
-                type="text"
-                placeholder="Como podemos te chamar?"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="text-lg h-12"
-                autoFocus
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password" className="flex items-center gap-2">
-                <Lock className="h-4 w-4" /> Senha (4-6 dígitos)
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••"
-                maxLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value.replace(/\D/g, ''))}
-                className="text-lg h-12 tracking-widest"
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={handleBack} className="h-12">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <Button 
-                onClick={handleRegister} 
-                className="flex-1 h-12 text-lg"
-                disabled={isLoading || !name.trim() || password.length < 4}
-              >
-                {isLoading ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  'Cadastrar e Pedir'
-                )}
-              </Button>
-            </div>
-          </>
+          <TableAuthRegisterStep
+            name={name}
+            password={password}
+            onNameChange={setName}
+            onPasswordChange={setPassword}
+            onSubmit={handleRegister}
+            onBack={handleBack}
+            isLoading={isLoading}
+          />
         )}
 
-        {/* Step: Login */}
         {step === 'login' && (
-          <>
-            <div className="space-y-2">
-              <Label htmlFor="password" className="flex items-center gap-2">
-                <Lock className="h-4 w-4" /> Sua Senha
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••"
-                maxLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value.replace(/\D/g, ''))}
-                className="text-lg h-12 tracking-widest"
-                autoFocus
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={handleBack} className="h-12">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <Button 
-                onClick={handleLogin} 
-                className="flex-1 h-12 text-lg"
-                disabled={isLoading || !password}
-              >
-                {isLoading ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  'Entrar'
-                )}
-              </Button>
-            </div>
-          </>
+          <TableAuthLoginStep
+            password={password}
+            onPasswordChange={setPassword}
+            onSubmit={handleLogin}
+            onBack={handleBack}
+            isLoading={isLoading}
+          />
         )}
 
-        {/* Step: Create Password (existing customer without password) */}
         {step === 'create_password' && (
-          <>
-            <div className="p-3 rounded-lg bg-primary/5 text-sm text-center mb-4">
-              Olá, <strong>{existingCustomerName}</strong>! Crie uma senha para facilitar seus próximos acessos.
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password" className="flex items-center gap-2">
-                <Lock className="h-4 w-4" /> Nova Senha (4-6 dígitos)
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••"
-                maxLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value.replace(/\D/g, ''))}
-                className="text-lg h-12 tracking-widest"
-                autoFocus
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={handleBack} className="h-12">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <Button 
-                onClick={handleCreatePassword} 
-                className="flex-1 h-12 text-lg"
-                disabled={isLoading || password.length < 4}
-              >
-                {isLoading ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  'Criar e Continuar'
-                )}
-              </Button>
-            </div>
-          </>
+          <TableAuthCreatePasswordStep
+            customerName={existingCustomerName}
+            password={password}
+            onPasswordChange={setPassword}
+            onSubmit={handleCreatePassword}
+            onBack={handleBack}
+            isLoading={isLoading}
+          />
         )}
       </CardContent>
     </Card>

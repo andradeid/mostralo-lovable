@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Verificar se loja existe e tem módulo self_service_table
+    // Verificar se loja existe
     const { data: store, error: storeError } = await supabase
       .from('stores')
       .select('id, name, slug')
@@ -83,21 +83,46 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Verificar módulo ativo
-    const { data: moduleAccess } = await supabase
+    // ==========================================
+    // VERIFICAÇÃO DE MÓDULO - MODELO DE INVERSÃO
+    // Ausência de registro = módulo liberado
+    // Registro com is_enabled = false = bloqueado
+    // ==========================================
+    
+    // Primeiro buscar o módulo pelo key
+    const { data: moduleData, error: moduleError } = await supabase
+      .from('modules')
+      .select('id')
+      .eq('key', 'self_service_table')
+      .single();
+
+    if (moduleError || !moduleData) {
+      console.error('❌ Módulo self_service_table não encontrado na tabela modules:', moduleError);
+      return new Response(
+        JSON.stringify({ error: 'Módulo não encontrado no sistema' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Verificar se está BLOQUEADO (registro com is_enabled = false)
+    const { data: blockedModule } = await supabase
       .from('store_modules')
       .select('id')
       .eq('store_id', store_id)
-      .eq('module_key', 'self_service_table')
-      .eq('is_enabled', true)
+      .eq('module_id', moduleData.id)
+      .eq('is_enabled', false)
       .single();
 
-    if (!moduleAccess) {
+    // Se encontrou bloqueio, não permite
+    if (blockedModule) {
+      console.log('⛔ Módulo Cardápio na Mesa BLOQUEADO para loja:', store_id);
       return new Response(
         JSON.stringify({ error: 'Módulo Cardápio na Mesa não está ativo para esta loja' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log('✅ Módulo Cardápio na Mesa liberado para loja:', store_id);
 
     // Buscar configuração do módulo
     const { data: config } = await supabase

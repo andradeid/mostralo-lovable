@@ -129,11 +129,9 @@ verify_jwt = true
 [functions.openai-bot-toggle]
 verify_jwt = true
 
-[functions.master-test-instance]
-verify_jwt = true
+# ARQUIVADA: master-test-instance - Ver src/data/archivedEdgeFunctions.ts
 
-[functions.master-test-bot-sync]
-verify_jwt = true
+# ARQUIVADA: master-test-bot-sync - Ver src/data/archivedEdgeFunctions.ts
 
 [functions.update-bots-greeting]
 verify_jwt = false
@@ -177,8 +175,7 @@ verify_jwt = true
 [functions.confirm-pix-payment]
 verify_jwt = false
 
-[functions.performance-diagnostics]
-verify_jwt = true
+# ARQUIVADA: performance-diagnostics - Ver src/data/archivedEdgeFunctions.ts
 
 [functions.ifood-auth]
 verify_jwt = true

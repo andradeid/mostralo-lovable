@@ -364,6 +364,9 @@ export default function TestEnvironmentPage() {
   const isConnected = config?.test_instance_status === 'connected';
   const hasInstance = !!config?.test_instance_name;
 
+  // Flag para indicar que as funções de teste foram arquivadas
+  const isTestEnvironmentAvailable = false;
+
   return (
     <div className="container mx-auto p-4 md:p-6 space-y-4 sm:space-y-6">
       <div className="flex items-center gap-3">
@@ -375,6 +378,32 @@ export default function TestEnvironmentPage() {
           </p>
         </div>
       </div>
+
+      {/* Aviso de indisponibilidade temporária */}
+      {!isTestEnvironmentAvailable && (
+        <Card className="border-amber-500/50 bg-amber-500/10">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <div className="rounded-full bg-amber-500/20 p-2">
+                <FlaskConical className="h-5 w-5 text-amber-600" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-semibold text-amber-700 dark:text-amber-400">
+                  Ambiente de Teste Temporariamente Indisponível
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  As funções de teste foram arquivadas para liberar espaço no limite de Edge Functions do Supabase.
+                  Nenhuma funcionalidade de produção foi afetada.
+                </p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Para restaurar: Fazer upgrade do Supabase Pro ou ver documentação em{' '}
+                  <code className="bg-muted px-1 rounded">src/data/archivedEdgeFunctions.ts</code>
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Tabs defaultValue="docs" className="space-y-4">
         <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 h-auto gap-1">

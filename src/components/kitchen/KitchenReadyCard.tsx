@@ -1,14 +1,15 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { 
   Clock, 
   CheckCircle2,
   UtensilsCrossed,
   Users,
   Package,
-  Store
+  Store,
+  Undo2
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { KitchenItem } from '@/hooks/useKitchenDisplay';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -16,9 +17,16 @@ import { ptBR } from 'date-fns/locale';
 interface KitchenReadyCardProps {
   item: KitchenItem;
   getPreparationTime: (addedAt: string, preparedAt: string | null) => number;
+  onUndoReady?: (itemId: string, source: 'comanda' | 'order') => void;
+  isUndoing?: boolean;
 }
 
-export function KitchenReadyCard({ item, getPreparationTime }: KitchenReadyCardProps) {
+export function KitchenReadyCard({ 
+  item, 
+  getPreparationTime,
+  onUndoReady,
+  isUndoing = false 
+}: KitchenReadyCardProps) {
   const prepTime = getPreparationTime(item.added_at, item.prepared_at);
   const preparedTime = item.prepared_at 
     ? format(new Date(item.prepared_at), 'HH:mm', { locale: ptBR })
@@ -60,7 +68,7 @@ export function KitchenReadyCard({ item, getPreparationTime }: KitchenReadyCardP
   };
 
   return (
-    <Card className="border-2 bg-green-500/10 border-green-500/50 opacity-80">
+    <Card className="border-2 bg-green-500/10 border-green-500/50 opacity-90 hover:opacity-100 transition-opacity">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -76,7 +84,7 @@ export function KitchenReadyCard({ item, getPreparationTime }: KitchenReadyCardP
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2">
+        <div className="space-y-3">
           <h3 className="text-lg font-semibold">
             {item.quantity}x {item.product_name}
           </h3>
@@ -94,6 +102,19 @@ export function KitchenReadyCard({ item, getPreparationTime }: KitchenReadyCardP
             </div>
             <span>Pronto às {preparedTime}</span>
           </div>
+
+          {onUndoReady && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="w-full mt-2 text-muted-foreground hover:text-orange-600 hover:bg-orange-500/10"
+              onClick={() => onUndoReady(item.id, item.source)}
+              disabled={isUndoing}
+            >
+              <Undo2 className="w-4 h-4 mr-1" />
+              Desfazer
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

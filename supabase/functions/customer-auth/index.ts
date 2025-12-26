@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '../_shared/rateLimiter.ts';
+import { normalizePhoneCanonical, getPhoneVariants, generateTempEmail } from '../_shared/phoneUtils.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -42,29 +43,18 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
     
-    // Normalizar e validar telefone
-    let normalizedPhone = phone.replace(/\D/g, '');
+    // Usar normalização canônica (sempre 11 dígitos para Brasil)
+    const normalizedPhone = normalizePhoneCanonical(phone);
+    const phoneVariants = getPhoneVariants(phone);
+    const tempEmail = generateTempEmail(phone);
     
-    // Remover DDI 55 se presente
-    if (normalizedPhone.startsWith('55') && normalizedPhone.length > 11) {
-      normalizedPhone = normalizedPhone.substring(2);
-    }
-    
-    // Remover 0 à esquerda do DDD se presente
-    if (normalizedPhone.startsWith('0') && normalizedPhone.length === 11) {
-      normalizedPhone = normalizedPhone.substring(1);
-    }
-    
-    // Validar formato (deve ter 10 ou 11 dígitos)
-    if (normalizedPhone.length < 10 || normalizedPhone.length > 11) {
-      console.log('Invalid phone format:', { original: phone?.substring(0, 4) + '***', normalized: normalizedPhone, length: normalizedPhone.length });
-      return new Response(
-        JSON.stringify({ error: 'Formato de telefone inválido. Use (XX) XXXXX-XXXX ou (XX) XXXX-XXXX' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-    
-    console.log('Customer auth request:', { action, phone: normalizedPhone?.substring(0, 4) + '***', phoneLength: normalizedPhone.length, ip: clientIP });
+    console.log('Customer auth request:', { 
+      action, 
+      phone: normalizedPhone?.substring(0, 4) + '***', 
+      phoneLength: normalizedPhone.length, 
+      variants: phoneVariants.length,
+      ip: clientIP 
+    });
 
     // === MODO CADASTRO ===
     if (action === 'register') {
@@ -75,11 +65,13 @@ serve(async (req) => {
         );
       }
 
-      // Verificar se telefone já existe
+      // Verificar se telefone já existe (busca tolerante)
       const { data: existingCustomer } = await supabase
         .from('customers')
         .select('id')
-        .eq('phone', normalizedPhone)
+        .in('phone', phoneVariants)
+        .is('deleted_at', null)
+        .limit(1)
         .maybeSingle();
 
       if (existingCustomer) {
@@ -89,11 +81,11 @@ serve(async (req) => {
         );
       }
 
-      // Criar usuário de autenticação
-      const tempEmail = `cliente_${normalizedPhone}@mostralo.me`;
+      // Criar usuário de autenticação com email baseado no telefone normalizado
+      const authTempEmail = generateTempEmail(phone);
       
       const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-        email: tempEmail,
+        email: authTempEmail,
         password: password,
         email_confirm: true,
         user_metadata: {
@@ -179,7 +171,7 @@ serve(async (req) => {
 
       // Fazer login automático
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: tempEmail,
+        email: authTempEmail,
         password: password
       });
 
@@ -203,11 +195,13 @@ serve(async (req) => {
     }
 
     // === MODO LOGIN ===
-    // Buscar cliente GLOBALMENTE
+    // Buscar cliente com busca tolerante (encontra 10 ou 11 dígitos)
     const { data: customer, error: customerError } = await supabase
       .from('customers')
       .select('id, name, auth_user_id, phone, email, address, latitude, longitude')
-      .eq('phone', normalizedPhone)
+      .in('phone', phoneVariants)
+      .is('deleted_at', null)
+      .limit(1)
       .maybeSingle();
     
     if (customerError) {
@@ -260,12 +254,12 @@ serve(async (req) => {
       }
       
       // Criar usuário de autenticação para cliente existente
-      const tempEmail = `cliente_${normalizedPhone}@mostralo.me`;
+      const authTempEmail = generateTempEmail(phone);
       
       console.log('Creating auth user for existing customer:', { customerId: customer.id, phone: normalizedPhone?.substring(0, 4) + '***' });
       
       const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-        email: tempEmail,
+        email: authTempEmail,
         password: password,
         email_confirm: true,
         user_metadata: {

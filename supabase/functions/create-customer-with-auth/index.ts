@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { normalizePhoneCanonical, getPhoneVariants, generateTempEmail } from '../_shared/phoneUtils.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -42,20 +43,19 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Normalizar telefone (remover DDI 55 se houver, manter apenas DDD + número)
-    let normalizedPhone = phone.replace(/\D/g, '');
-    if (normalizedPhone.startsWith('55') && normalizedPhone.length > 11) {
-      normalizedPhone = normalizedPhone.substring(2);
-    }
+    // Usar normalização canônica (sempre 11 dígitos para Brasil)
+    const normalizedPhone = normalizePhoneCanonical(phone);
+    const phoneVariants = getPhoneVariants(phone);
 
-    console.log('[create-customer-with-auth] Telefone normalizado:', normalizedPhone);
+    console.log('[create-customer-with-auth] Telefone normalizado:', normalizedPhone?.substring(0, 4) + '***', 'variantes:', phoneVariants.length);
 
-    // Verificar se cliente já existe
+    // Verificar se cliente já existe (busca tolerante)
     const { data: existingCustomer, error: searchError } = await supabase
       .from('customers')
       .select('id, auth_user_id, name')
-      .eq('phone', normalizedPhone)
+      .in('phone', phoneVariants)
       .is('deleted_at', null)
+      .limit(1)
       .maybeSingle();
 
     if (searchError) {
@@ -68,8 +68,8 @@ serve(async (req) => {
     let isNewCustomer = false;
     let alreadyHasAuth = false;
 
-    // Gerar email temporário se não fornecido
-    const tempEmail = email?.trim() || `cliente_${normalizedPhone}@mostralo.me`;
+    // Gerar email temporário usando função compartilhada
+    const tempEmail = email?.trim() || generateTempEmail(phone);
     
     // Senha = últimos 6 dígitos do telefone
     const autoPassword = normalizedPhone.slice(-6);

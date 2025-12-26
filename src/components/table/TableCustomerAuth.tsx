@@ -318,7 +318,8 @@ export function TableCustomerAuth({ storeId, tableNumber, onSuccess }: TableCust
             onSubmit={handleLogin}
             onBack={handleBack}
             isLoading={isLoading}
-            showForgotPassword={customerCheckResult?.isNewToThisStore}
+            showForgotPassword={true}
+            loginError={error}
           />
         )}
 

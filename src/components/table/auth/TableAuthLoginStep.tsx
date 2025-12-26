@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Lock, ArrowLeft, MessageCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, Lock, ArrowLeft, MessageCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -14,6 +15,7 @@ interface TableAuthLoginStepProps {
   onBack: () => void;
   isLoading: boolean;
   showForgotPassword?: boolean;
+  loginError?: string | null;
 }
 
 export function TableAuthLoginStep({
@@ -23,7 +25,8 @@ export function TableAuthLoginStep({
   onSubmit,
   onBack,
   isLoading,
-  showForgotPassword = false
+  showForgotPassword = true,
+  loginError
 }: TableAuthLoginStepProps) {
   const [isSendingRecovery, setIsSendingRecovery] = useState(false);
   const [recoverySent, setRecoverySent] = useState(false);
@@ -52,6 +55,9 @@ export function TableAuthLoginStep({
     }
   };
 
+  // Check if there's a login error (password incorrect)
+  const hasLoginError = loginError && loginError.toLowerCase().includes('senha');
+
   return (
     <>
       <div className="space-y-2">
@@ -65,12 +71,40 @@ export function TableAuthLoginStep({
           maxLength={6}
           value={password}
           onChange={(e) => onPasswordChange(e.target.value.replace(/\D/g, ''))}
-          className="text-lg h-12 tracking-widest"
+          className={`text-lg h-12 tracking-widest ${hasLoginError ? 'border-destructive' : ''}`}
           autoFocus
         />
       </div>
 
-      {showForgotPassword && (
+      {/* Show error alert with recovery suggestion when password is wrong */}
+      {hasLoginError && (
+        <Alert variant="destructive" className="py-2">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="flex flex-col gap-1">
+            <span>Senha incorreta.</span>
+            {!recoverySent && (
+              <Button
+                type="button"
+                variant="link"
+                size="sm"
+                onClick={handleForgotPassword}
+                disabled={isSendingRecovery}
+                className="text-destructive-foreground underline p-0 h-auto justify-start"
+              >
+                {isSendingRecovery ? 'Enviando...' : 'Receber senha por WhatsApp'}
+              </Button>
+            )}
+            {recoverySent && (
+              <span className="text-xs flex items-center gap-1">
+                <MessageCircle className="h-3 w-3" /> Senha enviada para seu WhatsApp!
+              </span>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Standard forgot password button (when no error) */}
+      {showForgotPassword && !hasLoginError && (
         <div className="text-center">
           {recoverySent ? (
             <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">

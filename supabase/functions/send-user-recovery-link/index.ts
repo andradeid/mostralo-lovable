@@ -55,12 +55,15 @@ serve(async (req) => {
       });
     }
 
+    // Usar domínio de produção ou variável de ambiente
+    const siteUrl = Deno.env.get('SITE_URL') || 'https://mostralo.com.br';
+    
     // Gerar link de recuperação usando Supabase Admin API
     const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
       type: 'recovery',
       email: email.toLowerCase().trim(),
       options: {
-        redirectTo: 'https://preview--mostralo.lovable.app/auth/reset-password'
+        redirectTo: `${siteUrl}/auth/reset-password`
       }
     });
 

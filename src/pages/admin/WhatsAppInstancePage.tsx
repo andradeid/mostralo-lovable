@@ -635,7 +635,7 @@ export default function WhatsAppInstancePage() {
   const isConnected = instance?.status === 'connected';
 
   return (
-    <div className="space-y-3 sm:space-y-6 px-0">
+    <div className="space-y-3 sm:space-y-6 px-2 sm:px-0">
       {/* Header compacto no mobile */}
       <div className="px-1 sm:px-0">
         <h1 className="text-lg sm:text-2xl font-bold">WhatsApp</h1>
@@ -645,14 +645,14 @@ export default function WhatsAppInstancePage() {
       </div>
 
       <Tabs defaultValue="connection" className="space-y-3 sm:space-y-6">
-        <TabsList className="grid grid-cols-2 h-8 sm:h-10 w-fit mx-auto sm:w-full">
-          <TabsTrigger value="connection" className="gap-1 text-[11px] sm:text-sm h-full px-2">
+        <TabsList className="grid w-full grid-cols-2 h-8 sm:h-10">
+          <TabsTrigger value="connection" className="gap-1.5 text-xs sm:text-sm h-full">
             <Smartphone className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-            <span className="hidden sm:inline">Conexão</span>
+            <span>Conexão</span>
           </TabsTrigger>
-          <TabsTrigger value="bot" className="gap-1 text-[11px] sm:text-sm h-full px-2">
+          <TabsTrigger value="bot" className="gap-1.5 text-xs sm:text-sm h-full">
             <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
-            <span className="hidden sm:inline">IA</span>
+            <span>IA</span>
           </TabsTrigger>
         </TabsList>
 

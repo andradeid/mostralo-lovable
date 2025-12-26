@@ -26,6 +26,7 @@ interface ProductData {
   image_gallery: string[] | null;
   button_text: string | null;
   is_available: boolean;
+  show_in_menu: boolean;
   display_order: number;
   created_at: string;
   updated_at: string;
@@ -223,6 +224,40 @@ const ProductsPage = () => {
       toast({
         title: 'Erro',
         description: 'Erro ao atualizar disponibilidade do produto.',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleToggleShowInMenu = async (productId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('products')
+        .update({ show_in_menu: !currentStatus })
+        .eq('id', productId);
+
+      if (error) {
+        toast({
+          title: 'Erro',
+          description: 'Erro ao atualizar visibilidade no cardápio.',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      toast({
+        title: 'Sucesso',
+        description: currentStatus 
+          ? 'Produto ocultado do cardápio digital' 
+          : 'Produto visível no cardápio digital',
+      });
+
+      fetchCategoriesAndProducts();
+    } catch (error) {
+      console.error('Erro ao atualizar visibilidade:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao atualizar visibilidade.',
         variant: 'destructive'
       });
     }
@@ -795,15 +830,29 @@ const ProductsPage = () => {
                                               </p>
                                             )}
                                             
-                                            <div className="flex items-center justify-between">
-                                              <div className="flex items-center space-x-2">
-                                                <Switch
-                                                  checked={product.is_available}
-                                                  onCheckedChange={() => handleToggleAvailability(product.id, product.is_available)}
-                                                />
-                                                <span className="text-sm text-muted-foreground">
-                                                  {product.is_available ? 'Ativo' : 'Inativo'}
-                                                </span>
+                                            <div className="flex items-center justify-between flex-wrap gap-2">
+                                              <div className="flex items-center gap-4 flex-wrap">
+                                                {/* Switch Ativo/Inativo */}
+                                                <div className="flex items-center space-x-2">
+                                                  <Switch
+                                                    checked={product.is_available}
+                                                    onCheckedChange={() => handleToggleAvailability(product.id, product.is_available)}
+                                                  />
+                                                  <span className="text-sm text-muted-foreground">
+                                                    {product.is_available ? 'Ativo' : 'Inativo'}
+                                                  </span>
+                                                </div>
+                                                
+                                                {/* Switch Ocultar do Cardápio Digital */}
+                                                <div className="flex items-center space-x-2">
+                                                  <Switch
+                                                    checked={!(product.show_in_menu ?? true)}
+                                                    onCheckedChange={() => handleToggleShowInMenu(product.id, product.show_in_menu ?? true)}
+                                                  />
+                                                  <span className="text-sm text-muted-foreground">
+                                                    {!(product.show_in_menu ?? true) ? 'Oculto do cardápio' : 'Só PDV'}
+                                                  </span>
+                                                </div>
                                               </div>
                                               <div className="flex space-x-2">
                                                 <Button 

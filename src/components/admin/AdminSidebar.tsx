@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import { PreloadNavLink } from "@/components/PreloadLink";
 import {
@@ -75,6 +75,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNewOrders } from "@/contexts/NewOrdersContext";
 import { useStoreModules } from "@/hooks/useStoreModules";
 import { useUnreadUpdates } from "@/hooks/useUnreadUpdates";
+import { useAttendantPermissions, PermissionKey } from "@/hooks/useAttendantPermissions";
 export function AdminSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
@@ -84,6 +85,13 @@ export function AdminSidebar() {
   const { pendingOrdersCount } = useNewOrders();
   const { hasModule, loading: modulesLoading } = useStoreModules(validatedStoreId);
   const { unreadCount: unreadUpdatesCount } = useUnreadUpdates();
+  
+  // Hook de permissões para atendentes
+  const attendantPermissions = useAttendantPermissions({
+    userId: userRole === 'attendant' ? (profile?.id ?? '') : '',
+    storeId: userRole === 'attendant' ? (validatedStoreId ?? '') : ''
+  });
+  
   const collapsed = state === "collapsed";
   const currentPath = location.pathname;
   const [storeConfig, setStoreConfig] = useState<any>(null);
@@ -329,22 +337,37 @@ export function AdminSidebar() {
       approvalStatus: profile?.approval_status ?? 'unknown'
     });
 
-    // Menu para Atendente
+    // Menu para Atendente - Filtrado pelas permissões configuradas pelo lojista
     if (userRole === 'attendant') {
-      return [
-        { title: 'Pedidos', url: '/dashboard/orders', icon: ShoppingCart, group: 'Vendas' },
-        { title: 'PDV', url: '/dashboard/pdv', icon: Monitor, group: 'Vendas Presenciais' },
-        { title: 'Comandas', url: '/dashboard/comandas', icon: Receipt, group: 'Vendas Presenciais' },
-        { title: 'Cozinha (KDS)', url: '/dashboard/cozinha', icon: UtensilsCrossed, group: 'Vendas Presenciais' },
-        { title: 'Clientes', url: '/dashboard/customers', icon: UserCircle, group: 'Vendas' },
-        { title: 'Relatórios', url: '/dashboard/reports', icon: BarChart3, group: 'Vendas' },
-        { title: 'Promoções', url: '/dashboard/promotions', icon: Tag, group: 'Vendas' },
-        { title: 'Produtos', url: '/dashboard/products', icon: Package, group: 'Loja' },
-        { title: 'Categorias', url: '/dashboard/categories', icon: Grid, group: 'Loja' },
-        { title: 'Adicionais', url: '/dashboard/addons', icon: Plus, group: 'Loja' },
-        { title: 'Categorias de Adicionais', url: '/dashboard/addon-categories', icon: Grid3X3, group: 'Loja' },
-        { title: 'Perfil', url: '/dashboard/profile', icon: User, group: 'Conta' }
+      // Se ainda está carregando permissões, mostrar menu mínimo
+      if (attendantPermissions.loading) {
+        return [
+          { title: 'Pedidos', url: '/dashboard/orders', icon: ShoppingCart, group: 'Vendas' },
+          { title: 'Perfil', url: '/dashboard/profile', icon: User, group: 'Conta' }
+        ];
+      }
+
+      // Lista completa de menus com suas permissões correspondentes
+      const allMenuItems: Array<{ title: string; url: string; icon: any; group: string; permissionKey: PermissionKey | null }> = [
+        { title: 'Pedidos', url: '/dashboard/orders', icon: ShoppingCart, group: 'Vendas', permissionKey: null }, // Sempre visível
+        { title: 'PDV', url: '/dashboard/pdv', icon: Monitor, group: 'Vendas Presenciais', permissionKey: 'pdv' },
+        { title: 'Comandas', url: '/dashboard/comandas', icon: Receipt, group: 'Vendas Presenciais', permissionKey: 'comandas' },
+        { title: 'Cozinha (KDS)', url: '/dashboard/cozinha', icon: UtensilsCrossed, group: 'Vendas Presenciais', permissionKey: 'kds' },
+        { title: 'Clientes', url: '/dashboard/customers', icon: UserCircle, group: 'Vendas', permissionKey: 'clientes' },
+        { title: 'Relatórios', url: '/dashboard/reports', icon: BarChart3, group: 'Vendas', permissionKey: 'relatorios' },
+        { title: 'Promoções', url: '/dashboard/promotions', icon: Tag, group: 'Vendas', permissionKey: null }, // Sempre visível
+        { title: 'Produtos', url: '/dashboard/products', icon: Package, group: 'Loja', permissionKey: 'produtos' },
+        { title: 'Categorias', url: '/dashboard/categories', icon: Grid, group: 'Loja', permissionKey: 'produtos' },
+        { title: 'Adicionais', url: '/dashboard/addons', icon: Plus, group: 'Loja', permissionKey: 'produtos' },
+        { title: 'Categorias de Adicionais', url: '/dashboard/addon-categories', icon: Grid3X3, group: 'Loja', permissionKey: 'produtos' },
+        { title: 'Perfil', url: '/dashboard/profile', icon: User, group: 'Conta', permissionKey: null } // Sempre visível
       ];
+
+      // Filtrar apenas itens com permissão habilitada
+      return allMenuItems.filter(item => {
+        if (!item.permissionKey) return true; // Sem permissionKey = sempre visível
+        return attendantPermissions.hasPermission(item.permissionKey);
+      }).map(({ permissionKey, ...rest }) => rest); // Remover permissionKey do objeto final
     }
 
     if (profile?.user_type === 'master_admin') {

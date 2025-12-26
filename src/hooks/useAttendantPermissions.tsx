@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 // Permissões disponíveis para atendentes
 export const ATTENDANT_PERMISSIONS = [
+  { key: 'pdv', label: 'PDV', description: 'Acesso ao Ponto de Venda', icon: 'Monitor' },
   { key: 'comandas', label: 'Comandas/Mesas', description: 'Abertura e gestão de mesas e comandas', icon: 'ClipboardList' },
   { key: 'kds', label: 'Cozinha (KDS)', description: 'Visualizar e gerenciar pedidos na cozinha', icon: 'UtensilsCrossed' },
   { key: 'pedidos_delivery', label: 'Pedidos Delivery', description: 'Ver pedidos que chegam por delivery', icon: 'Truck' },

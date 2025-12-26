@@ -3,15 +3,16 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useComandas } from '@/hooks/useComandas';
 import { PDVProductGrid } from '@/components/pdv/PDVProductGrid';
 import { CloseComandaModal } from '@/components/comandas/CloseComandaModal';
+import { WaiterApprovalPanel } from '@/components/comandas/WaiterApprovalPanel';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatCurrency } from '@/lib/utils';
-import { ArrowLeft, Plus, Trash2, Loader2, X, Printer, Clock, ChefHat, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Loader2, X, Printer, Clock, ChefHat, CheckCircle2, Smartphone } from 'lucide-react';
 import { printComanda } from '@/utils/printComanda';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -19,7 +20,8 @@ export default function ComandaDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { storeId } = useStoreAccess();
-  const { useComandaDetail, addItem, removeItem, closeComanda, isAddingItem, isRemovingItem, isClosing } = useComandas();
+  const queryClient = useQueryClient();
+  const { useComandaDetail, addItem, removeItem, closeComanda, isAddingItem, isRemovingItem, isClosing, refetchComandas } = useComandas();
   const { data, isLoading } = useComandaDetail(id);
   const isMobile = useIsMobile();
   const productsCardRef = useRef<HTMLDivElement>(null);
@@ -72,6 +74,12 @@ export default function ComandaDetailPage() {
   }
 
   const { comanda, items } = data;
+  const isSelfService = comanda.source === 'self_service';
+
+  const handleApprovalChange = () => {
+    queryClient.invalidateQueries({ queryKey: ['comanda-detail', id] });
+    refetchComandas();
+  };
 
   const handleAddProduct = async (product: { product_id: string; product_name: string; unit_price: number; quantity: number; notes?: string }) => {
     await addItem({ comanda_id: comanda.id, ...product });
@@ -106,11 +114,17 @@ export default function ComandaDetailPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-2xl font-bold">Comanda #{comanda.number}</h1>
               <Badge className={comanda.status === 'open' ? 'bg-green-500' : 'bg-gray-500'}>
                 {comanda.status === 'open' ? 'Aberta' : 'Fechada'}
               </Badge>
+              {isSelfService && (
+                <Badge variant="secondary" className="bg-orange-500/10 text-orange-600 border-orange-500/20">
+                  <Smartphone className="w-3 h-3 mr-1" />
+                  Self-Service
+                </Badge>
+              )}
             </div>
             <p className="text-muted-foreground">
               {comanda.type === 'mesa' ? `Mesa ${comanda.table_number}` : 'Balcão'}
@@ -136,6 +150,11 @@ export default function ComandaDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Painel de aprovação para itens self-service */}
+      {comanda.status === 'open' && (
+        <WaiterApprovalPanel items={items} onApprovalChange={handleApprovalChange} />
+      )}
 
       {/* Layout responsivo: produtos primeiro no mobile */}
       <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'}`}>

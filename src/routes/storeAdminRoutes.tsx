@@ -53,6 +53,7 @@ const PDVPage = lazy(() => import("@/pages/admin/PDVPage"));
 const ComandasPage = lazy(() => import("@/pages/admin/ComandasPage"));
 const ComandaDetailPage = lazy(() => import("@/pages/admin/ComandaDetailPage"));
 const KitchenDisplayPage = lazy(() => import("@/pages/admin/KitchenDisplayPage"));
+const TableQRCodePage = lazy(() => import("@/pages/admin/TableQRCodePage"));
 
 export const storeAdminRoutes = (
   <>
@@ -466,6 +467,15 @@ export const storeAdminRoutes = (
           <AttendantPermissionGate permissionKey="kds">
             <LazyRoute><KitchenDisplayPage /></LazyRoute>
           </AttendantPermissionGate>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    
+    {/* Mesas QR Code - Cardápio na Mesa */}
+    <Route path="/dashboard/mesas-qrcode" element={
+      <ProtectedRoute allowedRoles={['store_admin']}>
+        <AdminLayout pageTitle="Mesas QR Code">
+          <LazyRoute><TableQRCodePage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

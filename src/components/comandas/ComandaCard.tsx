@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Comanda } from '@/hooks/useComandas';
 import { formatCurrency } from '@/lib/utils';
-import { Clock, User, MoreVertical, Printer, DollarSign, X, Receipt } from 'lucide-react';
+import { Clock, User, MoreVertical, Printer, DollarSign, X, Receipt, Smartphone, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -20,6 +20,7 @@ interface ComandaCardProps {
   onClose?: () => void;
   onCancel?: () => void;
   onPrint?: () => void;
+  pendingApprovalCount?: number;
 }
 
 const statusColors: Record<string, string> = {
@@ -34,13 +35,14 @@ const statusLabels: Record<string, string> = {
   cancelled: 'Cancelada',
 };
 
-export function ComandaCard({ comanda, onClick, onClose, onCancel, onPrint }: ComandaCardProps) {
+export function ComandaCard({ comanda, onClick, onClose, onCancel, onPrint, pendingApprovalCount = 0 }: ComandaCardProps) {
   const isOpen = comanda.status === 'open';
   const isMobile = useIsMobile();
+  const isSelfService = comanda.source === 'self_service';
 
   return (
     <Card 
-      className={`cursor-pointer hover:border-primary transition-all active:scale-[0.99] ${isMobile ? 'touch-manipulation' : ''}`}
+      className={`cursor-pointer hover:border-primary transition-all active:scale-[0.99] ${isMobile ? 'touch-manipulation' : ''} ${isSelfService ? 'border-l-4 border-l-orange-500' : ''}`}
       onClick={onClick}
     >
       <CardHeader className={`pb-2 ${isMobile ? 'p-4' : ''}`}>
@@ -53,9 +55,23 @@ export function ComandaCard({ comanda, onClick, onClose, onCancel, onPrint }: Co
               <h3 className={`font-bold truncate ${isMobile ? 'text-lg' : 'text-base'}`}>
                 {comanda.type === 'mesa' ? `Mesa ${comanda.table_number}` : `Balcão #${comanda.number}`}
               </h3>
-              <Badge variant="outline" className={`mt-1 ${statusColors[comanda.status]}`}>
-                {statusLabels[comanda.status]}
-              </Badge>
+              <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                <Badge variant="outline" className={statusColors[comanda.status]}>
+                  {statusLabels[comanda.status]}
+                </Badge>
+                {isSelfService && (
+                  <Badge variant="secondary" className="bg-orange-500/10 text-orange-600 border-orange-500/20">
+                    <Smartphone className="w-3 h-3 mr-1" />
+                    Self-Service
+                  </Badge>
+                )}
+                {pendingApprovalCount > 0 && (
+                  <Badge variant="destructive" className="animate-pulse">
+                    <AlertCircle className="w-3 h-3 mr-1" />
+                    {pendingApprovalCount} pendente{pendingApprovalCount > 1 ? 's' : ''}
+                  </Badge>
+                )}
+              </div>
             </div>
           </div>
           

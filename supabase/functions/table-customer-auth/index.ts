@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { normalizePhoneCanonical, getPhoneVariants, generateTempEmail } from '../_shared/phoneUtils.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,28 +13,6 @@ interface RequestBody {
   phone: string;
   name?: string;
   password?: string;
-}
-
-// Normalizar telefone brasileiro para formato canônico (10-11 dígitos, SEM DDI 55)
-function normalizePhone(phone: string): string {
-  const digits = phone.replace(/\D/g, '');
-  // Remover DDI 55 se presente
-  if (digits.startsWith('55') && digits.length >= 12) {
-    return digits.substring(2);
-  }
-  return digits;
-}
-
-// Gerar variantes de telefone para busca tolerante
-function getPhoneVariants(phone: string): string[] {
-  const canonical = normalizePhone(phone);
-  return [canonical, '55' + canonical];
-}
-
-// Gerar email temporário baseado no telefone (mesmo padrão do customer-auth)
-function generateTempEmail(phone: string): string {
-  const normalized = normalizePhone(phone);
-  return `cliente_${normalized}@mostralo.me`;
 }
 
 Deno.serve(async (req) => {
@@ -56,8 +35,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    const normalizedPhone = normalizePhone(phone);
+    // Usar normalização canônica (sempre 11 dígitos para Brasil)
+    const normalizedPhone = normalizePhoneCanonical(phone);
     const tempEmail = generateTempEmail(phone);
+
+    console.log('📱 Telefone original:', phone?.substring(0, 4) + '***', '| Normalizado:', normalizedPhone?.substring(0, 4) + '***');
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;

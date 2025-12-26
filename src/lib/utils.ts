@@ -5,8 +5,29 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * Normaliza telefone brasileiro para formato CANÔNICO (11 dígitos com 9)
+ * Garante que "6194009368" e "61994009368" sejam tratados como o mesmo número
+ */
 export function normalizePhone(phone: string): string {
-  return phone.replace(/\D/g, '');
+  let digits = phone.replace(/\D/g, '');
+  
+  // Remover DDI 55 se presente
+  if (digits.startsWith('55') && digits.length >= 12) {
+    digits = digits.substring(2);
+  }
+  
+  // Remover 0 à esquerda do DDD se presente
+  if (digits.startsWith('0') && digits.length === 12) {
+    digits = digits.substring(1);
+  }
+  
+  // Se tem 10 dígitos, adicionar o 9 após o DDD
+  if (digits.length === 10) {
+    digits = digits.substring(0, 2) + '9' + digits.substring(2);
+  }
+  
+  return digits;
 }
 
 export function formatPhone(phone: string): string {

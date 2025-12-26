@@ -39,6 +39,7 @@ interface CustomerCheckResult {
 export function TableCustomerAuth({ storeId, tableNumber, onSuccess }: TableCustomerAuthProps) {
   const [step, setStep] = useState<Step>('phone');
   const [phone, setPhone] = useState('');
+  const [countryCode, setCountryCode] = useState('+55');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [existingCustomerName, setExistingCustomerName] = useState('');
@@ -104,10 +105,12 @@ export function TableCustomerAuth({ storeId, tableNumber, onSuccess }: TableCust
 
   const validateWhatsApp = async () => {
     const digits = phone.replace(/\D/g, '');
+    // Combinar DDI + telefone
+    const fullPhone = countryCode.replace('+', '') + digits;
     
     try {
       const { data, error } = await supabase.functions.invoke('validate-whatsapp-number', {
-        body: { phone: digits, sendWelcome: false }
+        body: { phone: fullPhone, sendWelcome: false }
       });
 
       if (error) throw error;
@@ -125,17 +128,26 @@ export function TableCustomerAuth({ storeId, tableNumber, onSuccess }: TableCust
     }
   };
 
-  const handlePhoneSubmit = async () => {
+  const handlePhoneSubmit = async (selectedCountryCode: string) => {
+    setCountryCode(selectedCountryCode);
     const digits = phone.replace(/\D/g, '');
-    if (digits.length < 10) {
+    if (digits.length < 7) {
       toast.error('Digite um telefone válido');
+      return;
+    }
+
+    // Para Brasil, validar mínimo de 10 dígitos
+    if (selectedCountryCode === '+55' && digits.length < 10) {
+      toast.error('Digite um telefone válido com DDD');
       return;
     }
 
     // Start animated flow
     setStep('identifying');
     
-    const result = await checkCustomer(digits, storeId, tableNumber);
+    // Combinar DDI + telefone para busca (sem o +)
+    const fullPhone = selectedCountryCode.replace('+', '') + digits;
+    const result = await checkCustomer(fullPhone, storeId, tableNumber);
     setCustomerCheckResult(result);
   };
 
@@ -150,8 +162,9 @@ export function TableCustomerAuth({ storeId, tableNumber, onSuccess }: TableCust
     }
 
     const digits = phone.replace(/\D/g, '');
+    const fullPhone = countryCode.replace('+', '') + digits;
     const success = await registerCustomer({
-      phone: digits,
+      phone: fullPhone,
       name: name.trim(),
       password,
       storeId,
@@ -159,7 +172,7 @@ export function TableCustomerAuth({ storeId, tableNumber, onSuccess }: TableCust
     });
 
     if (success) {
-      await handleCreateComanda(digits);
+      await handleCreateComanda(fullPhone);
     }
   };
 
@@ -170,15 +183,16 @@ export function TableCustomerAuth({ storeId, tableNumber, onSuccess }: TableCust
     }
 
     const digits = phone.replace(/\D/g, '');
+    const fullPhone = countryCode.replace('+', '') + digits;
     const success = await loginCustomer({
-      phone: digits,
+      phone: fullPhone,
       password,
       storeId,
       tableNumber
     });
 
     if (success) {
-      await handleCreateComanda(digits);
+      await handleCreateComanda(fullPhone);
     }
   };
 
@@ -189,8 +203,9 @@ export function TableCustomerAuth({ storeId, tableNumber, onSuccess }: TableCust
     }
 
     const digits = phone.replace(/\D/g, '');
+    const fullPhone = countryCode.replace('+', '') + digits;
     const success = await registerCustomer({
-      phone: digits,
+      phone: fullPhone,
       name: name || existingCustomerName,
       password,
       storeId,
@@ -198,7 +213,7 @@ export function TableCustomerAuth({ storeId, tableNumber, onSuccess }: TableCust
     });
 
     if (success) {
-      await handleCreateComanda(digits);
+      await handleCreateComanda(fullPhone);
     }
   };
 

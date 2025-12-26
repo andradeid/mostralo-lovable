@@ -12,6 +12,7 @@ import { LandingHeader } from '@/components/landing/LandingHeader';
 import { HeroSection } from '@/components/landing/HeroSection';
 import { WhatsAppMarketingSection } from '@/components/landing/WhatsAppMarketingSection';
 import { DigitalSignageSection } from '@/components/landing/DigitalSignageSection';
+import { TableMenuSection } from '@/components/landing/TableMenuSection';
 import { PasswordCallSection } from '@/components/landing/PasswordCallSection';
 import { PDVComandasSection } from '@/components/landing/PDVComandasSection';
 import { ProblemsSection } from '@/components/landing/ProblemsSection';
@@ -69,6 +70,7 @@ const Index = () => {
       <LandingHeader />
       <HeroSection />
       <WhatsAppMarketingSection />
+      <TableMenuSection />
       <DigitalSignageSection />
       <PasswordCallSection />
       <PDVComandasSection />

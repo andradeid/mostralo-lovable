@@ -720,10 +720,10 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
   const hasPendingRenewal = paymentApproval?.status === 'pending' && paymentApproval?.notes === 'Renovação de assinatura';
 
   return (
-    <div className="container mx-auto p-4 md:p-6 space-y-6">
+    <div className="container mx-auto px-3 md:px-6 py-4 md:py-6 space-y-4 md:space-y-6">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold mb-2">Minha Assinatura</h1>
-        <p className="text-muted-foreground">Gerencie sua assinatura e pagamentos</p>
+        <h1 className="text-xl md:text-3xl font-bold mb-1 md:mb-2">Minha Assinatura</h1>
+        <p className="text-sm md:text-base text-muted-foreground">Gerencie sua assinatura e pagamentos</p>
       </div>
 
       {/* Alert de Assinatura Expirada */}
@@ -855,29 +855,29 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
       {/* Seção de Renovação - Planos Disponíveis */}
       {(status.isExpired || status.isExpiring) && !hasPendingRenewal && (
         <Card className="border-primary/50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5" />
+          <CardHeader className="p-3 md:p-6">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <CreditCard className="h-4 w-4 md:h-5 md:w-5" />
               {status.isExpired ? 'Renovar Assinatura' : 'Renovar ou Trocar de Plano'}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs md:text-sm">
               {status.isExpired ? (
                 subscription?.customMonthlyPrice 
-                  ? 'Renove sua assinatura mantendo seu desconto especial'
-                  : 'Escolha um plano para renovar sua assinatura e continuar usando o sistema'
+                  ? 'Renove mantendo seu desconto especial'
+                  : 'Escolha um plano para continuar usando o sistema'
               ) : (
                 subscription?.customMonthlyPrice
-                  ? 'Sua assinatura está próxima ao vencimento. Renove agora mantendo seu desconto especial!'
-                  : 'Sua assinatura está próxima ao vencimento. Renove ou escolha um novo plano!'
+                  ? 'Assinatura próxima ao vencimento. Renove mantendo seu desconto!'
+                  : 'Assinatura próxima ao vencimento. Renove ou escolha um novo plano!'
               )}
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
             {/* Se tem desconto personalizado, mostrar apenas o plano atual com destaque */}
             {subscription?.customMonthlyPrice && subscription.currentPlanId ? (
               <div className="space-y-4">
                 <Card className="relative overflow-hidden border-primary bg-primary/5">
-                  <div className="absolute top-0 right-0 bg-gradient-to-l from-primary to-primary/80 text-primary-foreground px-4 py-1.5 text-xs font-bold rounded-bl-lg">
+                  <div className="absolute top-0 right-0 bg-gradient-to-l from-primary to-primary/80 text-primary-foreground px-2 md:px-4 py-1 md:py-1.5 text-[10px] md:text-xs font-bold rounded-bl-lg">
                     🎁 SEU PLANO ESPECIAL
                   </div>
                   {availablePlans.filter(p => p.id === subscription.currentPlanId).map((plan) => {
@@ -885,43 +885,43 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                     
                     return (
                       <div key={plan.id}>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                          <CardDescription className="text-base">
+                        <CardHeader className="pb-2 md:pb-3 pt-8 md:pt-10">
+                          <CardTitle className="text-lg md:text-2xl">{plan.name}</CardTitle>
+                          <CardDescription className="text-xs md:text-base">
                             {plan.description}
                           </CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="p-4 bg-background/60 rounded-lg space-y-3 border">
+                        <CardContent className="space-y-3 md:space-y-4 p-3 md:p-6 pt-0">
+                          <div className="p-3 md:p-4 bg-background/60 rounded-lg space-y-2 md:space-y-3 border">
                             <div>
-                              <p className="text-sm text-muted-foreground">Preço normal do plano</p>
-                              <p className="text-lg line-through text-muted-foreground">
+                              <p className="text-xs md:text-sm text-muted-foreground">Preço normal</p>
+                              <p className="text-base md:text-lg line-through text-muted-foreground">
                                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.planPrice)}
                               </p>
                             </div>
                             <div>
                               <div className="flex items-center gap-2">
-                                <p className="text-sm font-medium">SEU PREÇO PERSONALIZADO</p>
-                                <Badge className="bg-green-500 text-white">
+                                <p className="text-xs md:text-sm font-medium">SEU PREÇO</p>
+                                <Badge className="bg-green-500 text-white text-[10px] md:text-xs">
                                   -{discountPercent}% OFF
                                 </Badge>
                               </div>
-                              <p className="text-3xl font-bold text-primary">
+                              <p className="text-xl md:text-3xl font-bold text-primary">
                                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.actualPrice)}
-                                <span className="text-base font-normal text-muted-foreground">
+                                <span className="text-xs md:text-base font-normal text-muted-foreground">
                                   /{plan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
                                 </span>
                               </p>
                             </div>
                             {subscription.discountReason && (
                               <div className="pt-2 border-t">
-                                <p className="text-xs text-muted-foreground">Motivo do desconto</p>
-                                <p className="text-sm font-medium">{subscription.discountReason}</p>
+                                <p className="text-[10px] md:text-xs text-muted-foreground">Motivo do desconto</p>
+                                <p className="text-xs md:text-sm font-medium">{subscription.discountReason}</p>
                               </div>
                             )}
                           </div>
                           <Button 
-                            className="w-full" 
+                            className="w-full h-9 md:h-10 text-sm" 
                             size="lg"
                             onClick={() => handleSelectPlanForRenewal(plan)}
                           >
@@ -935,10 +935,10 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
 
                 {/* Opção de ver outros planos */}
                 <div className="text-center">
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Ou escolha um plano diferente (você perderá seu desconto atual)
+                  <p className="text-xs md:text-sm text-muted-foreground mb-2 md:mb-3">
+                    Ou escolha outro plano (perde desconto atual)
                   </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                     {availablePlans.filter(p => p.id !== subscription.currentPlanId).map((plan) => {
                       const finalPrice = plan.promotion_active && plan.discount_price 
                         ? plan.discount_price 
@@ -999,32 +999,32 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                   return (
                     <Card key={plan.id} className="relative overflow-hidden">
                       {hasDiscount && (
-                        <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 text-xs font-bold">
-                          PROMOÇÃO
+                        <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-2 py-0.5 text-[10px] md:text-xs font-bold">
+                          PROMO
                         </div>
                       )}
-                      <CardHeader>
-                        <CardTitle className="text-xl">{plan.name}</CardTitle>
-                        <CardDescription className="line-clamp-2">
+                      <CardHeader className="p-3 md:p-4 pb-2">
+                        <CardTitle className="text-base md:text-xl">{plan.name}</CardTitle>
+                        <CardDescription className="line-clamp-2 text-xs md:text-sm">
                           {plan.description}
                         </CardDescription>
                       </CardHeader>
-                      <CardContent className="space-y-4">
+                      <CardContent className="p-3 md:p-4 pt-0 space-y-3 md:space-y-4">
                         <div>
                           {hasDiscount && (
-                            <p className="text-sm text-muted-foreground line-through">
+                            <p className="text-xs text-muted-foreground line-through">
                               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plan.price)}
                             </p>
                           )}
-                          <p className="text-2xl font-bold text-primary">
+                          <p className="text-lg md:text-2xl font-bold text-primary">
                             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(finalPrice)}
-                            <span className="text-sm font-normal text-muted-foreground">
+                            <span className="text-[10px] md:text-sm font-normal text-muted-foreground">
                               /{plan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
                             </span>
                           </p>
                         </div>
                         <Button 
-                          className="w-full" 
+                          className="w-full h-9 text-sm" 
                           onClick={() => handleSelectPlanForRenewal(plan)}
                         >
                           Selecionar Plano
@@ -1040,97 +1040,90 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
       )}
 
       {/* Card Principal - Informações da Assinatura */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between flex-wrap gap-4">
-              <span className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5" />
+          <CardHeader className="p-3 md:p-6">
+            <CardTitle className="flex items-center justify-between flex-wrap gap-2 md:gap-4">
+              <span className="flex items-center gap-2 text-base md:text-lg">
+                <CreditCard className="h-4 w-4 md:h-5 md:w-5" />
                 Minha Assinatura
               </span>
               {status.badge}
             </CardTitle>
-            <CardDescription>{status.text}</CardDescription>
+            <CardDescription className="text-xs md:text-sm">{status.text}</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50">
-                <DollarSign className="h-8 w-8 text-primary" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Plano</p>
-                  <p className="text-lg font-bold">
+          <CardContent className="p-3 md:p-6 pt-0 md:pt-0 space-y-3 md:space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+              <div className="flex items-center gap-2 md:gap-3 p-3 md:p-4 rounded-lg bg-muted/50">
+                <DollarSign className="h-6 w-6 md:h-8 md:w-8 text-primary flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs md:text-sm text-muted-foreground">Plano</p>
+                  <p className="text-sm md:text-lg font-bold truncate">
                     {subscription?.planName}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50">
-                <DollarSign className="h-8 w-8 text-primary" />
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Valor</p>
+              <div className="flex items-center gap-2 md:gap-3 p-3 md:p-4 rounded-lg bg-muted/50">
+                <DollarSign className="h-6 w-6 md:h-8 md:w-8 text-primary flex-shrink-0" />
+                <div className="space-y-0.5 md:space-y-1 min-w-0">
+                  <p className="text-xs md:text-sm text-muted-foreground">Valor</p>
                   {couponInfo && subscription ? (
-                    <div className="space-y-2">
-                      {/* Preço original do plano pago */}
-                      <p className="text-xs text-muted-foreground">
+                    <div className="space-y-1 md:space-y-2">
+                      <p className="text-[10px] md:text-xs text-muted-foreground">
                         De: <span className="line-through">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(couponInfo.paidPlanPrice)}</span>
                       </p>
-                      
-                      {/* Preço atual - valor efetivamente pago */}
-                      <p className="text-xl font-bold text-green-600 dark:text-green-400">
+                      <p className="text-base md:text-xl font-bold text-green-600 dark:text-green-400">
                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(couponInfo.finalPaidAmount)}
-                        <span className="text-sm font-normal text-muted-foreground">/{subscription.billingCycle === 'monthly' ? 'mês' : 'ano'}</span>
+                        <span className="text-[10px] md:text-sm font-normal text-muted-foreground">/{subscription.billingCycle === 'monthly' ? 'mês' : 'ano'}</span>
                       </p>
-                      
-                      {/* Economia com proteção contra divisão por zero */}
-                      <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-500">
-                        <span>💰 Economia:</span>
+                      <div className="flex items-center gap-1 md:gap-1.5 text-[10px] md:text-xs text-green-600 dark:text-green-500">
+                        <span>💰</span>
                         <span className="font-medium">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(couponInfo.discountApplied)}</span>
-                        <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">
+                        <Badge variant="secondary" className="text-[8px] md:text-[10px] px-1 py-0 h-3 md:h-4">
                           -{couponInfo.paidPlanPrice > 0 ? Math.round((couponInfo.discountApplied / couponInfo.paidPlanPrice) * 100) : 0}%
                         </Badge>
                       </div>
-                      
-                      {/* Cupom usado */}
-                      <p className="text-xs text-muted-foreground">
-                        🎟️ Cupom: <span className="font-medium">{couponInfo.code}</span>
+                      <p className="text-[10px] md:text-xs text-muted-foreground">
+                        🎟️ <span className="font-medium">{couponInfo.code}</span>
                       </p>
                     </div>
                   ) : subscription?.customMonthlyPrice ? (
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <p className="text-xs line-through text-muted-foreground">
+                    <div className="space-y-0.5 md:space-y-1">
+                      <div className="flex items-center gap-1 md:gap-2">
+                        <p className="text-[10px] md:text-xs line-through text-muted-foreground">
                           {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.planPrice)}
                         </p>
-                        <Badge className="bg-green-500 text-white text-[10px] px-1.5 py-0">
+                        <Badge className="bg-green-500 text-white text-[8px] md:text-[10px] px-1 py-0">
                           -{Math.round(((subscription.planPrice - subscription.actualPrice) / subscription.planPrice) * 100)}%
                         </Badge>
                       </div>
-                      <p className="text-lg font-bold text-green-600 dark:text-green-400">
+                      <p className="text-base md:text-lg font-bold text-green-600 dark:text-green-400">
                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.actualPrice)}
-                        <span className="text-sm font-normal text-muted-foreground">
+                        <span className="text-[10px] md:text-sm font-normal text-muted-foreground">
                           /{subscription.billingCycle === 'monthly' ? 'mês' : 'ano'}
                         </span>
                       </p>
                       {subscription.discountReason && (
-                        <p className="text-xs text-muted-foreground italic">
+                        <p className="text-[10px] md:text-xs text-muted-foreground italic truncate">
                           {subscription.discountReason}
                         </p>
                       )}
                     </div>
                   ) : (
-                    <p className="text-lg font-bold">
+                    <p className="text-base md:text-lg font-bold">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription?.planPrice ?? 0)}
-                      <span className="text-sm font-normal text-muted-foreground">
+                      <span className="text-[10px] md:text-sm font-normal text-muted-foreground">
                         /{subscription?.billingCycle === 'monthly' ? 'mês' : 'ano'}
                       </span>
                     </p>
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50">
-                <Calendar className="h-8 w-8 text-primary" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Expira em</p>
-                  <p className="text-lg font-bold">
+              <div className="flex items-center gap-2 md:gap-3 p-3 md:p-4 rounded-lg bg-muted/50">
+                <Calendar className="h-6 w-6 md:h-8 md:w-8 text-primary flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs md:text-sm text-muted-foreground">Expira em</p>
+                  <p className="text-sm md:text-lg font-bold">
                     {subscription?.subscriptionExpiresAt 
                       ? new Date(subscription.subscriptionExpiresAt).toLocaleDateString('pt-BR')
                       : '-'
@@ -1143,30 +1136,30 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Status</CardTitle>
-            <CardDescription>Situação da assinatura</CardDescription>
+          <CardHeader className="p-3 md:p-6">
+            <CardTitle className="text-base md:text-lg">Status</CardTitle>
+            <CardDescription className="text-xs md:text-sm">Situação da assinatura</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="p-3 md:p-6 pt-0 md:pt-0 space-y-3 md:space-y-4">
             <div className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${
+              <div className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-full ${
                 status.text.includes('ativa') ? 'bg-green-500' : 
                 status.text.includes('Próxima') ? 'bg-yellow-500' : 
                 'bg-red-500'
               }`} />
-              <span className="text-sm font-medium">
+              <span className="text-xs md:text-sm font-medium">
                 {status.text.includes('ativa') ? 'Tudo em dia' : 
                  status.text.includes('Próxima') ? 'Atenção necessária' : 
                  'Ação imediata requerida'}
               </span>
             </div>
-            <div className="pt-4 space-y-2 text-sm">
+            <div className="pt-3 md:pt-4 space-y-2 text-xs md:text-sm">
               <p className="text-muted-foreground">
                 {status.text.includes('ativa')
                   ? 'Sua assinatura está ativa e todos os recursos estão disponíveis.' 
                   : status.text.includes('Próxima')
-                  ? 'Sua assinatura está próxima ao vencimento. Regularize para continuar.'
-                  : 'Sua assinatura expirou. Pague as mensalidades pendentes para reativar.'}
+                  ? 'Regularize para continuar usando.'
+                  : 'Pague para reativar.'}
               </p>
             </div>
           </CardContent>
@@ -1175,102 +1168,103 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
 
       {/* Histórico de Mensalidades */}
       <Card>
-        <CardHeader>
-          <CardTitle>Histórico de Mensalidades</CardTitle>
-          <CardDescription>Visualize todas as suas faturas e pagamentos</CardDescription>
+        <CardHeader className="p-3 md:p-6">
+          <CardTitle className="text-base md:text-lg">Histórico de Mensalidades</CardTitle>
+          <CardDescription className="text-xs md:text-sm">Visualize suas faturas e pagamentos</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0 md:p-6 md:pt-0">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>ID Transação</TableHead>
-                  <TableHead>Links</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
+                  <TableHead className="text-xs">Data</TableHead>
+                  <TableHead className="text-xs hidden sm:table-cell">Tipo</TableHead>
+                  <TableHead className="text-xs">Valor</TableHead>
+                  <TableHead className="text-xs">Status</TableHead>
+                  <TableHead className="text-xs hidden md:table-cell">ID Transação</TableHead>
+                  <TableHead className="text-xs hidden sm:table-cell">Links</TableHead>
+                  <TableHead className="text-xs text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {invoices.map((invoice) => (
                   <TableRow key={`invoice-${invoice.id}`}>
-                    <TableCell>
-                      {format(new Date(invoice.due_date), "dd/MM/yyyy", { locale: ptBR })}
+                    <TableCell className="text-xs md:text-sm py-2 md:py-4">
+                      {format(new Date(invoice.due_date), "dd/MM/yy", { locale: ptBR })}
                     </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">Mensalidade</Badge>
+                    <TableCell className="hidden sm:table-cell">
+                      <Badge variant="secondary" className="text-[10px] md:text-xs">Mensalidade</Badge>
                     </TableCell>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium text-xs md:text-sm py-2 md:py-4">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(invoice.amount)}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-2 md:py-4">
                       {getStatusBadge(invoice.payment_status, invoice.paid_at)}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell py-2 md:py-4">
                       {(() => {
                         const endToEndId = extractEndToEndId(invoice.notes);
                         const transactionId = endToEndId || invoice.pix_txid;
                         if (!transactionId) return <span className="text-muted-foreground text-xs">-</span>;
                         return (
                           <div className="flex items-center gap-1">
-                            <span className="font-mono text-xs" title={transactionId}>
-                              ...{transactionId.slice(-12)}
+                            <span className="font-mono text-[10px] md:text-xs" title={transactionId}>
+                              ...{transactionId.slice(-8)}
                             </span>
                             <Button
                               size="icon"
                               variant="ghost"
-                              className="h-6 w-6"
+                              className="h-5 w-5 md:h-6 md:w-6"
                               onClick={() => handleCopyId(transactionId)}
                             >
                               {copiedId === transactionId ? (
-                                <Check className="h-3 w-3 text-green-500" />
+                                <Check className="h-2.5 w-2.5 md:h-3 md:w-3 text-green-500" />
                               ) : (
-                                <Copy className="h-3 w-3" />
+                                <Copy className="h-2.5 w-2.5 md:h-3 md:w-3" />
                               )}
                             </Button>
                           </div>
                         );
                       })()}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell py-2 md:py-4">
                       <div className="flex items-center gap-1">
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="h-7 w-7"
+                          className="h-6 w-6 md:h-7 md:w-7"
                           asChild
                           title="Ver fatura"
                         >
                           <a href={`/invoice-payment/${invoice.id}`} target="_blank" rel="noopener noreferrer">
-                            <FileText className="h-4 w-4" />
+                            <FileText className="h-3 w-3 md:h-4 md:w-4" />
                           </a>
                         </Button>
                         {invoice.payment_status === 'paid' && (
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="h-7 w-7"
+                            className="h-6 w-6 md:h-7 md:w-7"
                             asChild
                             title="Ver recibo"
                           >
                             <a href={`/receipt/${invoice.id}`} target="_blank" rel="noopener noreferrer">
-                              <Receipt className="h-4 w-4" />
+                              <Receipt className="h-3 w-3 md:h-4 md:w-4" />
                             </a>
                           </Button>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right py-2 md:py-4">
                       {invoice.payment_status !== 'paid' && (
                         <Button 
                           size="sm" 
+                          className="h-7 text-xs md:h-8 md:text-sm"
                           onClick={() => handlePayClick(invoice)}
                           disabled={invoice.payment_proof_url !== null && invoice.payment_status === 'pending'}
                         >
                           {invoice.payment_proof_url && invoice.payment_status === 'pending' 
-                            ? 'Aguardando Aprovação' 
+                            ? 'Aguardando' 
                             : 'Pagar'}
                         </Button>
                       )}
@@ -1281,7 +1275,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                 {/* Empty state */}
                 {invoices.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-6 md:py-8 text-xs md:text-sm">
                       Nenhum registro encontrado
                     </TableCell>
                   </TableRow>
@@ -1294,12 +1288,12 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
 
       {/* Dialog de Pagamento */}
       <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-[95vw] sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Realizar Pagamento</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-lg">Realizar Pagamento</DialogTitle>
+            <DialogDescription className="text-sm">
               Fatura de R$ {selectedInvoice?.amount.toFixed(2)} - 
-              Vencimento: {selectedInvoice && format(new Date(selectedInvoice.due_date), "dd/MM/yyyy", { locale: ptBR })}
+              Vencimento: {selectedInvoice && format(new Date(selectedInvoice.due_date), "dd/MM/yy", { locale: ptBR })}
             </DialogDescription>
           </DialogHeader>
 
@@ -1393,36 +1387,36 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
         if (!open) closeRenewalDialog();
         else setShowRenewalDialog(true);
       }}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <RefreshCw className="h-5 w-5" />
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <RefreshCw className="h-4 w-4 md:h-5 md:w-5" />
               Renovar Assinatura
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-sm">
               {selectedPlan && `Plano ${selectedPlan.name}`}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             {/* Se ainda não gerou PIX, mostrar opções de cupom e preço */}
             {!renewalPixData ? (
               <>
                 {/* Card de Preço */}
-                <div className="p-4 bg-muted rounded-lg space-y-3">
+                <div className="p-3 md:p-4 bg-muted rounded-lg space-y-2 md:space-y-3">
                   {/* Preço base */}
                   <div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs md:text-sm text-muted-foreground">
                       {subscription?.customMonthlyPrice && selectedPlan?.id === subscription.currentPlanId 
                         ? 'Seu preço personalizado' 
                         : 'Preço do plano'}
                     </p>
                     {appliedRenewalCoupon ? (
-                      <p className="text-lg line-through text-muted-foreground">
+                      <p className="text-base md:text-lg line-through text-muted-foreground">
                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(getRenewalBasePrice())}
                       </p>
                     ) : (
-                      <p className="text-2xl font-bold text-primary">
+                      <p className="text-xl md:text-2xl font-bold text-primary">
                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(getRenewalBasePrice())}
                       </p>
                     )}
@@ -1432,29 +1426,29 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                   {appliedRenewalCoupon && (
                     <>
                       <div className="flex items-center justify-between text-green-600">
-                        <div className="flex items-center gap-2">
-                          <Gift className="h-4 w-4" />
-                          <span className="text-sm font-medium">
+                        <div className="flex items-center gap-1 md:gap-2">
+                          <Gift className="h-3 w-3 md:h-4 md:w-4" />
+                          <span className="text-xs md:text-sm font-medium">
                             Cupom {appliedRenewalCoupon.code}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">
+                        <div className="flex items-center gap-1 md:gap-2">
+                          <span className="text-xs md:text-sm font-medium">
                             -R$ {appliedRenewalCoupon.discountAmount.toFixed(2)}
                           </span>
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            className="h-6 w-6 p-0"
+                            className="h-5 w-5 md:h-6 md:w-6 p-0"
                             onClick={handleRemoveRenewalCoupon}
                           >
-                            <X className="h-3 w-3" />
+                            <X className="h-2.5 w-2.5 md:h-3 md:w-3" />
                           </Button>
                         </div>
                       </div>
                       <div className="pt-2 border-t">
-                        <p className="text-sm text-muted-foreground">Preço final</p>
-                        <p className="text-2xl font-bold text-green-600">
+                        <p className="text-xs md:text-sm text-muted-foreground">Preço final</p>
+                        <p className="text-xl md:text-2xl font-bold text-green-600">
                           {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(appliedRenewalCoupon.finalPrice)}
                         </p>
                       </div>
@@ -1465,41 +1459,42 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                 {/* Campo de Cupom */}
                 {!appliedRenewalCoupon && (
                   <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <Tag className="h-4 w-4" />
-                      Tem um cupom de desconto?
+                    <Label className="flex items-center gap-1 md:gap-2 text-xs md:text-sm">
+                      <Tag className="h-3 w-3 md:h-4 md:w-4" />
+                      Tem um cupom?
                     </Label>
                     <div className="flex gap-2">
                       <Input
-                        placeholder="Digite o código"
+                        placeholder="Código"
                         value={renewalCouponCode}
                         onChange={(e) => {
                           setRenewalCouponCode(e.target.value.toUpperCase());
                           setRenewalCouponError(null);
                         }}
-                        className="flex-1"
+                        className="flex-1 h-9 text-sm"
                       />
                       <Button 
                         variant="outline" 
+                        className="h-9 text-sm"
                         onClick={handleApplyRenewalCoupon}
                         disabled={couponValidationLoading || !renewalCouponCode.trim()}
                       >
                         {couponValidationLoading ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <Loader2 className="h-3 w-3 md:h-4 md:w-4 animate-spin" />
                         ) : (
                           'Aplicar'
                         )}
                       </Button>
                     </div>
                     {renewalCouponError && (
-                      <p className="text-sm text-destructive">{renewalCouponError}</p>
+                      <p className="text-xs md:text-sm text-destructive">{renewalCouponError}</p>
                     )}
                   </div>
                 )}
 
                 {/* Botão Gerar PIX */}
                 <Button 
-                  className="w-full" 
+                  className="w-full h-10" 
                   size="lg"
                   onClick={generateRenewalPix}
                   disabled={generatingRenewalPix}
@@ -1507,7 +1502,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                   {generatingRenewalPix ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Gerando QR Code PIX...
+                      Gerando PIX...
                     </>
                   ) : (
                     <>
@@ -1519,27 +1514,27 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
               </>
             ) : (
               /* Se já gerou PIX, mostrar QR Code */
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 {/* QR Code */}
-                <div className="flex flex-col items-center space-y-3">
-                  <div className="p-4 bg-white rounded-lg shadow-md">
+                <div className="flex flex-col items-center space-y-2 md:space-y-3">
+                  <div className="p-3 md:p-4 bg-white rounded-lg shadow-md">
                     <img
                       src={renewalPixData.qrCodeBase64.startsWith('data:') 
                         ? renewalPixData.qrCodeBase64 
                         : `data:image/png;base64,${renewalPixData.qrCodeBase64}`}
                       alt="QR Code PIX"
-                      className="w-48 h-48"
+                      className="w-36 h-36 md:w-48 md:h-48"
                     />
                   </div>
-                  <p className="text-sm text-muted-foreground text-center">
+                  <p className="text-xs md:text-sm text-muted-foreground text-center">
                     Escaneie com o app do seu banco
                   </p>
                 </div>
 
                 {/* Valor a pagar */}
-                <div className="p-3 bg-muted rounded-lg text-center">
-                  <p className="text-sm text-muted-foreground">Valor a pagar</p>
-                  <p className="text-2xl font-bold text-primary">
+                <div className="p-2 md:p-3 bg-muted rounded-lg text-center">
+                  <p className="text-xs md:text-sm text-muted-foreground">Valor a pagar</p>
+                  <p className="text-xl md:text-2xl font-bold text-primary">
                     {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
                       appliedRenewalCoupon ? appliedRenewalCoupon.finalPrice : getRenewalBasePrice()
                     )}
@@ -1547,17 +1542,18 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                 </div>
 
                 {/* Copia e Cola */}
-                <div className="space-y-2">
-                  <Label>Código PIX (Copia e Cola)</Label>
+                <div className="space-y-1 md:space-y-2">
+                  <Label className="text-xs md:text-sm">Código PIX (Copia e Cola)</Label>
                   <div className="flex gap-2">
                     <Input 
                       value={renewalPixData.pixCopiaECola} 
                       readOnly 
-                      className="font-mono text-xs"
+                      className="font-mono text-[10px] md:text-xs h-9"
                     />
                     <Button 
                       variant="outline" 
                       size="icon"
+                      className="h-9 w-9"
                       onClick={() => {
                         navigator.clipboard.writeText(renewalPixData.pixCopiaECola);
                         toast.success('Código PIX copiado!');
@@ -1570,16 +1566,16 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
 
                 {/* Status de verificação */}
                 <Alert className="border-blue-500/50 bg-blue-500/5">
-                  <RefreshCw className={`h-4 w-4 ${checkingRenewalPixStatus ? 'animate-spin' : ''}`} />
-                  <AlertDescription>
-                    Aguardando pagamento... Verificando automaticamente a cada 5 segundos.
+                  <RefreshCw className={`h-3 w-3 md:h-4 md:w-4 ${checkingRenewalPixStatus ? 'animate-spin' : ''}`} />
+                  <AlertDescription className="text-xs md:text-sm">
+                    Aguardando pagamento... Verificando a cada 5s.
                   </AlertDescription>
                 </Alert>
 
                 {/* Botão verificar manualmente */}
                 <Button 
                   variant="outline" 
-                  className="w-full"
+                  className="w-full h-9 text-sm"
                   onClick={() => checkRenewalPixStatus(renewalPixData.txid)}
                   disabled={checkingRenewalPixStatus}
                 >
@@ -1591,7 +1587,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                   ) : (
                     <>
                       <CheckCircle2 className="mr-2 h-4 w-4" />
-                      Verificar Pagamento Manualmente
+                      Verificar Pagamento
                     </>
                   )}
                 </Button>

@@ -180,6 +180,39 @@ Funcionalidades:
 - Links para promoções específicas
 - Agendamento de exibição
 
+## SENTINELA - RECOMPRA INTELIGENTE
+⭐ FUNCIONALIDADE EXCLUSIVA MOSTRALO
+
+Como Funciona:
+1. Você cadastra produtos com ciclo de consumo (30, 60, 90 dias)
+2. Sistema monitora clientes que compraram esses produtos
+3. Quando o produto está "acabando", envia WhatsApp automático
+4. Mensagem personalizada: "Oi {nome}, já está na hora de repor sua ração?"
+
+Benefícios:
+- +23% de aumento em vendas recorrentes
+- Cliente se sente lembrado (fidelização)
+- Automático - trabalha 24/7 sem você fazer nada
+- Configurável por produto
+
+Ideal para: Pet shops, farmácias, açougues, distribuidoras de água/gás, lojas de ração
+
+## PAINEL DIGITAL (DIGITAL SIGNAGE)
+- Exiba cardápio animado em TVs e totens
+- Slides rotativos de promoções
+- Vídeos promocionais em loop
+- Visual profissional igual a grandes redes
+- Sincronizado com cardápio digital
+- Ideal para: lanchonetes, pizzarias, restaurantes
+
+## CHAMADA DE SENHAS
+- Sistema de filas para fast-food e padarias
+- Exibição em TV/painel com design profissional
+- Chamada por VOZ com IA (masculina, feminina ou robô)
+- Inteligente: "Senha 42 - João - Seu X-Bacon está pronto!"
+- Integrado com PDV e comandas
+- WhatsApp automático quando pedido fica pronto
+
 ## COMPARATIVO: IFOOD vs MOSTRALO
 
 | Funcionalidade | iFood | Mostralo |
@@ -193,6 +226,11 @@ Funcionalidades:
 | App para entregadores | ❌ | ✅ |
 | Relatórios detalhados | Básico | Completo |
 | Cardápio na Mesa (QR) | ❌ | ✅ |
+| SENTINELA Recompra | ❌ | ✅ |
+| PDV e Comandas | ❌ | ✅ |
+| KDS Cozinha | ❌ | ✅ |
+| Chamada de Senhas | ❌ | ✅ |
+| Painel Digital | ❌ | ✅ |
 
 ## ECONOMIA MENSAL ESTIMADA
 

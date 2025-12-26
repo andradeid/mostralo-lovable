@@ -305,7 +305,7 @@ function generateProgramSection(): string {
 
 Enquanto seu cliente usar o Mostralo, a comissão cai na sua conta. É renda recorrente de verdade - não uma comissão única que some.
 
-O Mostralo é uma plataforma completa de **Delivery + Marketing Digital** para negócios locais.
+O Mostralo é uma plataforma completa de **Delivery + Marketing Digital + Gestão Financeira** para negócios locais.
 Enquanto iFood e outros marketplaces cobram 12-27% de cada venda, o Mostralo cobra uma mensalidade fixa.
 
 **Por que é fácil vender:**
@@ -313,10 +313,35 @@ Enquanto iFood e outros marketplaces cobram 12-27% de cada venda, o Mostralo cob
 - Marketing Digital incluído (o que custa R$ 2.000+ no mercado)
 - Lojista mantém 100% dos clientes dele
 - Sistema completo sem comissão por venda
+- **Gestão Financeira incluída** (dashboard, fluxo de caixa, relatórios)
 
 **Seu papel:**
 Você indica comerciantes, restaurantes, lojas - qualquer negócio que venda produtos.
-Quando eles assinam, você recebe comissão TODO MÊS que o cliente continuar pagando. Simples assim.`;
+Quando eles assinam, você recebe comissão TODO MÊS que o cliente continuar pagando. Simples assim.
+
+## 🏪 FUNCIONALIDADES PRESENCIAIS (ARGUMENTOS PARA LOJAS FÍSICAS)
+
+Para restaurantes, bares, lanchonetes com mesas:
+
+- **PDV e Comandas**: Vendas no balcão + controle de mesas + divisão de conta automática
+- **KDS (Kitchen Display)**: Tela da cozinha com cores por tempo de espera (verde/amarelo/vermelho)
+- **Cardápio na Mesa (QR Code)**: Cliente escaneia e faz pedido sozinho, sem precisar do garçom
+- **App do Garçom**: Celular do garçom vira terminal profissional (PWA, funciona offline)
+- **Chamada de Senhas**: Sistema de filas com voz IA (ElevenLabs) para fast-food
+- **Painel Digital**: TVs com cardápio animado + promoções em loop
+
+👉 Argumento: "Não é só delivery. É o sistema COMPLETO para delivery E atendimento presencial!"
+
+## 🎯 SENTINELA - RECOMPRA INTELIGENTE (ARGUMENTO MATADOR!)
+
+Sistema EXCLUSIVO de lembretes de recompra:
+- Detecta quando produto do cliente está "acabando"
+- Envia WhatsApp automático: "Oi João, já está na hora de repor sua ração?"
+- Ciclos de 30, 60 ou 90 dias configuráveis por produto
+- +23% de aumento em vendas recorrentes
+- Ideal para: pet shops, farmácias, açougues, distribuidoras
+
+👉 Argumento: "Imagina o cliente receber um lembrete automático quando a ração do cachorro está acabando? Vendas no piloto automático!"`;
 }
 
 function generateNoTechSection(): string {

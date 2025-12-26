@@ -215,6 +215,28 @@ O Mostralo inclui módulo de Gestão Financeira para o lojista:
 
 👉 O lojista tem controle TOTAL do seu negócio em um só lugar!
 
+## 🏪 FUNCIONALIDADES PRESENCIAIS (NOVO!)
+
+Para lojas físicas com atendimento no salão:
+- **PDV**: Vendas rápidas no balcão sem comandas
+- **Comandas Digitais**: Controle de mesas com divisão de conta automática
+- **App do Garçom**: Celular vira terminal de pedidos (PWA)
+- **KDS (Kitchen Display)**: Tela da cozinha com cores por tempo de espera
+- **Cardápio na Mesa (QR Code)**: Cliente escaneia e faz pedido sozinho
+- **Chamada de Senhas**: Sistema de filas com voz IA (ElevenLabs)
+- **Painel Digital**: TVs com cardápio animado e promoções
+
+👉 Tudo integrado: delivery + balcão + mesas em um só sistema!
+
+## 🎯 SENTINELA - RECOMPRA INTELIGENTE (EXCLUSIVO!)
+
+Sistema automático de lembretes de recompra:
+- Detecta quando produto do cliente está "acabando"
+- Envia WhatsApp automático: "Oi João, hora de repor sua ração?"
+- Ciclos de 30, 60 ou 90 dias configuráveis por produto
+- +23% de aumento em vendas recorrentes
+- Ideal para: pet shops, farmácias, açougues, distribuidoras
+
 ## WHATSAPP MARKETING INTEGRADO
 
 O Mostralo inclui WhatsApp Marketing completo:
@@ -238,6 +260,9 @@ O Mostralo inclui WhatsApp Marketing completo:
 
 4. "E se eu não tiver clientes no começo?"
    → Você terá 7 dias grátis para testar. Use a economia das taxas para investir em marketing.
+
+5. "Funciona para loja física também?"
+   → Sim! Temos PDV, comandas, KDS para cozinha, chamada de senhas... Sistema completo para delivery E presencial!
 
 ## FLUXO DE CONVERSA
 

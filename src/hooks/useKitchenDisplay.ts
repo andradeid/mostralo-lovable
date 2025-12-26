@@ -41,7 +41,8 @@ export function useKitchenDisplay() {
     queryFn: async () => {
       if (!storeId) return [];
 
-      // Buscar itens de comandas
+      // Buscar itens de comandas (abertas OU fechadas recentemente com itens pendentes)
+      // Removido filtro de status para permitir itens de PDV/balcão que fecham a comanda imediatamente
       const { data: comandaItems, error: comandaError } = await supabase
         .from('comanda_items')
         .select(`
@@ -52,11 +53,11 @@ export function useKitchenDisplay() {
             table_number,
             customer_name,
             store_id,
-            status
+            status,
+            created_at
           )
         `)
         .eq('comandas.store_id', storeId)
-        .eq('comandas.status', 'open')
         .in('preparation_status', ['pending', 'preparing'])
         .order('added_at', { ascending: true });
 

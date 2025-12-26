@@ -534,40 +534,49 @@ const ProductsPage = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6">
+      {/* Header Responsivo */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold">Produtos</h1>
-          <p className="text-muted-foreground">Gerencie os produtos da sua loja</p>
+          <h1 className="text-2xl md:text-3xl font-bold">Produtos</h1>
+          <p className="text-sm text-muted-foreground">Gerencie os produtos da sua loja</p>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2">
           <Button 
             variant="outline" 
+            size="sm"
+            className="flex-1 sm:flex-none"
             onClick={() => setCategoryFormOpen(true)}
           >
-            <Grid className="w-4 h-4 mr-2" />
-            Nova Categoria
+            <Grid className="w-4 h-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Nova Categoria</span>
+            <span className="sm:hidden">Categoria</span>
           </Button>
-          <Button onClick={() => navigate('/dashboard/products/new')}>
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Produto
+          <Button 
+            size="sm"
+            className="flex-1 sm:flex-none"
+            onClick={() => navigate('/dashboard/products/new')}
+          >
+            <Plus className="w-4 h-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Novo Produto</span>
+            <span className="sm:hidden">Produto</span>
           </Button>
         </div>
       </div>
 
-      {/* Cards de Estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Cards de Estatísticas - Grid 2x2 em mobile */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
         {statsCards.map((card, index) => (
-          <Card key={index}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+          <Card key={index} className="p-3 md:p-0">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 p-0 md:p-6">
+              <CardTitle className="text-xs md:text-sm font-medium">
                 {card.title}
               </CardTitle>
-              <card.icon className="h-4 w-4 text-muted-foreground" />
+              <card.icon className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{card.value}</div>
-              <p className="text-xs text-muted-foreground">
+            <CardContent className="p-0 md:p-6 md:pt-0">
+              <div className="text-xl md:text-2xl font-bold">{card.value}</div>
+              <p className="text-xs text-muted-foreground line-clamp-1">
                 {card.description}
               </p>
             </CardContent>
@@ -575,32 +584,32 @@ const ProductsPage = () => {
         ))}
       </div>
 
-      {/* Busca e Ordenação */}
-      <div className="flex items-center space-x-2">
+      {/* Busca e Ordenação - Empilhado em mobile */}
+      <div className="flex flex-col sm:flex-row gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar produtos por nome ou descrição..."
+            placeholder="Buscar produtos..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-8"
           />
         </div>
         <Select value={sortMode} onValueChange={(v) => setSortMode(v as 'manual' | 'alphabetical')}>
-          <SelectTrigger className="w-[220px]">
-            <SelectValue placeholder="Ordenar por..." />
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="Ordenar..." />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="manual">
               <div className="flex items-center gap-2">
                 <GripVertical className="w-4 h-4" />
-                Ordem Manual
+                Manual
               </div>
             </SelectItem>
             <SelectItem value="alphabetical">
               <div className="flex items-center gap-2">
                 <ArrowDownAZ className="w-4 h-4" />
-                Ordem Alfabética (A-Z)
+                A-Z
               </div>
             </SelectItem>
           </SelectContent>
@@ -638,12 +647,12 @@ const ProductsPage = () => {
               {filteredCategories.map((category, categoryIndex) => (
                 <AccordionItem key={category.id} value={category.id} className="border rounded-lg">
                   <Card>
-                    <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                      <div className="flex items-center justify-between w-full">
-                        <div className="flex items-center space-x-3">
-                          {/* Botões de reordenação de categoria */}
+                    <AccordionTrigger className="px-3 md:px-6 py-3 md:py-4 hover:no-underline">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-2">
+                        <div className="flex items-center space-x-2 sm:space-x-3">
+                          {/* Botões de reordenação - ocultos em mobile */}
                           {category.id !== 'uncategorized' && (
-                            <div className="flex flex-col items-center space-y-1 mr-2">
+                            <div className="hidden sm:flex flex-col items-center space-y-1 mr-2">
                               <span className="text-xs text-muted-foreground">#{category.display_order}</span>
                               <div className="flex flex-col space-y-1">
                                 <Button 
@@ -673,40 +682,42 @@ const ProductsPage = () => {
                               </div>
                             </div>
                           )}
-                          <Grid className="w-5 h-5 text-primary" />
-                          <div className="text-left">
-                            <h3 className="font-semibold text-lg">{category.name}</h3>
+                          <Grid className="w-4 h-4 md:w-5 md:h-5 text-primary flex-shrink-0" />
+                          <div className="text-left min-w-0">
+                            <h3 className="font-semibold text-sm md:text-lg truncate">{category.name}</h3>
                             {category.description && (
-                              <p className="text-sm text-muted-foreground mt-1">
+                              <p className="text-xs md:text-sm text-muted-foreground mt-0.5 md:mt-1 line-clamp-1 hidden sm:block">
                                 {category.description}
                               </p>
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center space-x-2 mr-4">
-                          <Badge variant="outline">
-                            {category.products.length} produto{category.products.length !== 1 ? 's' : ''}
+                        <div className="flex items-center gap-2 mr-0 sm:mr-4 ml-6 sm:ml-0">
+                          <Badge variant="outline" className="text-xs">
+                            {category.products.length} {category.products.length !== 1 ? 'itens' : 'item'}
                           </Badge>
                           <Button
                             size="sm"
                             variant="outline"
+                            className="h-7 w-7 p-0 sm:h-8 sm:w-8"
                             onClick={(e) => {
                               e.stopPropagation();
                               applyAlphabeticalOrderToCategory(category.id);
                             }}
                             title="Ordenar produtos de A-Z"
                           >
-                            <ArrowDownAZ className="w-4 h-4" />
+                            <ArrowDownAZ className="w-3 h-3 md:w-4 md:h-4" />
                           </Button>
                           <Button
                             size="sm"
+                            className="h-7 text-xs sm:h-8 sm:text-sm"
                             onClick={(e) => {
                               e.stopPropagation();
                               navigate(`/dashboard/products/new?category=${category.id}`);
                             }}
                           >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Adicionar
+                            <Plus className="w-3 h-3 md:w-4 md:h-4 mr-0 sm:mr-1" />
+                            <span className="hidden sm:inline">Adicionar</span>
                           </Button>
                         </div>
                       </div>
@@ -769,20 +780,21 @@ const ProductsPage = () => {
                                           : ''
                                       }`}
                                     >
-                                       <CardContent className="p-4">
-                                        <div className="flex items-center space-x-4">
-                                          {/* Handle de drag - apenas em modo manual */}
+                                       <CardContent className="p-3 md:p-4">
+                                        <div className="flex gap-3">
+                                          {/* Handle de drag - oculto em mobile */}
                                           {sortMode === 'manual' && (
                                             <div 
                                               {...provided.dragHandleProps}
-                                              className="flex flex-col items-center space-y-1 cursor-grab active:cursor-grabbing"
+                                              className="hidden sm:flex flex-col items-center space-y-1 cursor-grab active:cursor-grabbing"
                                             >
-                                              <GripVertical className="w-5 h-5 text-muted-foreground hover:text-primary transition-colors" />
+                                              <GripVertical className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground hover:text-primary transition-colors" />
                                               <span className="text-xs text-muted-foreground">#{product.display_order}</span>
                                             </div>
                                           )}
 
-                                          <div className="w-16 h-16 bg-muted rounded-lg overflow-hidden flex-shrink-0">
+                                          {/* Imagem do produto */}
+                                          <div className="w-14 h-14 md:w-16 md:h-16 bg-muted rounded-lg overflow-hidden flex-shrink-0">
                                             {product.image_url ? (
                                               <img
                                                 src={product.image_url}
@@ -791,88 +803,97 @@ const ProductsPage = () => {
                                               />
                                             ) : (
                                               <div className="w-full h-full flex items-center justify-center">
-                                                <Package className="w-6 h-6 text-muted-foreground" />
+                                                <Package className="w-5 h-5 md:w-6 md:h-6 text-muted-foreground" />
                                               </div>
                                             )}
                                           </div>
                                           
+                                          {/* Conteúdo do produto */}
                                           <div className="flex-1 min-w-0">
-                                            <div className="flex items-start justify-between mb-2">
-                                              <div className="flex items-center gap-2 flex-wrap">
-                                                <h4 className="font-semibold truncate">{product.name}</h4>
+                                            {/* Nome e Preço */}
+                                            <div className="flex items-start justify-between gap-2 mb-1">
+                                              <div className="flex items-center gap-1 flex-wrap min-w-0">
+                                                <h4 className="font-semibold text-sm md:text-base truncate">{product.name}</h4>
                                                 {product.is_on_offer && product.offer_price && (
-                                                  <Badge variant="destructive" className="text-xs">
-                                                    {Math.round((1 - product.offer_price / product.price) * 100)}% OFF
+                                                  <Badge variant="destructive" className="text-[10px] md:text-xs">
+                                                    {Math.round((1 - product.offer_price / product.price) * 100)}%
                                                   </Badge>
                                                 )}
                                               </div>
                                               <div className="flex flex-col items-end flex-shrink-0">
                                                 {product.is_on_offer && product.offer_price ? (
                                                   <>
-                                                    <span className="text-sm text-muted-foreground line-through">
+                                                    <span className="text-xs text-muted-foreground line-through">
                                                       R$ {Number(product.price).toFixed(2)}
                                                     </span>
-                                                    <span className="font-bold text-lg text-green-600">
+                                                    <span className="font-bold text-sm md:text-lg text-green-600">
                                                       R$ {Number(product.offer_price).toFixed(2)}
                                                     </span>
                                                   </>
                                                 ) : (
-                                                  <span className="font-bold text-lg text-primary">
+                                                  <span className="font-bold text-sm md:text-lg text-primary">
                                                     R$ {Number(product.price).toFixed(2)}
                                                   </span>
                                                 )}
                                               </div>
                                             </div>
                                             
+                                            {/* Descrição - linha única em mobile */}
                                             {product.description && (
-                                              <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                                              <p className="text-xs md:text-sm text-muted-foreground mb-2 line-clamp-1 md:line-clamp-2">
                                                 {product.description}
                                               </p>
                                             )}
                                             
-                                            <div className="flex items-center justify-between flex-wrap gap-2">
-                                              <div className="flex items-center gap-4 flex-wrap">
-                                                {/* Switch Ativo/Inativo */}
-                                                <div className="flex items-center space-x-2">
+                                            {/* Switches e Botões - Layout responsivo */}
+                                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                              {/* Switches */}
+                                              <div className="flex items-center gap-3 flex-wrap">
+                                                <div className="flex items-center gap-1.5">
                                                   <Switch
                                                     checked={product.is_available}
                                                     onCheckedChange={() => handleToggleAvailability(product.id, product.is_available)}
+                                                    className="scale-90"
                                                   />
-                                                  <span className="text-sm text-muted-foreground">
+                                                  <span className="text-xs text-muted-foreground">
                                                     {product.is_available ? 'Ativo' : 'Inativo'}
                                                   </span>
                                                 </div>
                                                 
-                                                {/* Switch Ocultar do Cardápio Digital */}
-                                                <div className="flex items-center space-x-2">
+                                                <div className="flex items-center gap-1.5">
                                                   <Switch
                                                     checked={!(product.show_in_menu ?? true)}
                                                     onCheckedChange={() => handleToggleShowInMenu(product.id, product.show_in_menu ?? true)}
+                                                    className="scale-90"
                                                   />
-                                                  <span className="text-sm text-muted-foreground">
-                                                    {!(product.show_in_menu ?? true) ? 'Oculto do cardápio' : 'Só PDV'}
+                                                  <span className="text-xs text-muted-foreground">
+                                                    {!(product.show_in_menu ?? true) ? 'Oculto' : 'Cardápio'}
                                                   </span>
                                                 </div>
                                               </div>
-                                              <div className="flex space-x-2">
+                                              
+                                              {/* Botões de Ação */}
+                                              <div className="flex gap-2">
                                                 <Button 
                                                   size="sm" 
                                                   variant="outline"
+                                                  className="h-7 text-xs flex-1 sm:flex-none"
                                                   onClick={() => handleEditProduct(product)}
                                                 >
-                                                  <Edit className="w-4 h-4 mr-1" />
+                                                  <Edit className="w-3 h-3 mr-1" />
                                                   Editar
                                                 </Button>
                                                 <Button 
                                                   size="sm" 
                                                   variant="outline"
+                                                  className="h-7 text-xs flex-1 sm:flex-none"
                                                   onClick={() => {
                                                     if (confirm('Tem certeza que deseja excluir este produto?')) {
                                                       handleDeleteProduct(product.id);
                                                     }
                                                   }}
                                                 >
-                                                  <Trash2 className="w-4 h-4 mr-1" />
+                                                  <Trash2 className="w-3 h-3 mr-1" />
                                                   Excluir
                                                 </Button>
                                               </div>

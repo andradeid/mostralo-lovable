@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useKitchenDisplay } from '@/hooks/useKitchenDisplay';
 import { KitchenHeader, KitchenStats, KitchenItemCard } from '@/components/kitchen';
-import { ChefHat, Loader2, CheckCircle2, Timer } from 'lucide-react';
+import { KitchenReadyCard } from '@/components/kitchen/KitchenReadyCard';
+import { ChefHat, Loader2, CheckCircle2, Timer, History } from 'lucide-react';
 
 export default function KitchenDisplayPage() {
   const {
     pendingItems,
     preparingItems,
+    readyItems,
     isLoading,
     refetch,
     startPreparing,
@@ -16,6 +18,7 @@ export default function KitchenDisplayPage() {
     isMarkingReady,
     getWaitingTime,
     getWaitingColor,
+    getPreparationTime,
     soundEnabled,
     setSoundEnabled,
   } = useKitchenDisplay();
@@ -40,6 +43,7 @@ export default function KitchenDisplayPage() {
 
   const totalPending = pendingItems.length;
   const totalPreparing = preparingItems.length;
+  const totalReady = readyItems.length;
   const isUpdating = isStartingPreparing || isMarkingReady;
 
   const renderItemsGrid = (items: typeof pendingItems) => (
@@ -67,13 +71,17 @@ export default function KitchenDisplayPage() {
         onRefresh={refetch}
       />
 
-      <KitchenStats totalPending={totalPending} totalPreparing={totalPreparing} />
+      <KitchenStats totalPending={totalPending} totalPreparing={totalPreparing} totalReady={totalReady} />
 
       <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 max-w-md">
+        <TabsList className="grid w-full grid-cols-4 max-w-lg">
           <TabsTrigger value="all">Todos ({totalPending + totalPreparing})</TabsTrigger>
           <TabsTrigger value="pending">Pendentes ({totalPending})</TabsTrigger>
           <TabsTrigger value="preparing">Preparando ({totalPreparing})</TabsTrigger>
+          <TabsTrigger value="ready" className="flex items-center gap-1">
+            <History className="w-3.5 h-3.5" />
+            Prontos ({totalReady})
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="mt-4">
@@ -107,6 +115,26 @@ export default function KitchenDisplayPage() {
             </div>
           ) : (
             renderItemsGrid(preparingItems)
+          )}
+        </TabsContent>
+
+        <TabsContent value="ready" className="mt-4">
+          {totalReady === 0 ? (
+            <div className="text-center py-12">
+              <CheckCircle2 className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <h2 className="text-xl font-semibold">Nenhum item pronto hoje</h2>
+              <p className="text-muted-foreground">Itens finalizados aparecerão aqui</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {readyItems.map((item) => (
+                <KitchenReadyCard
+                  key={item.id}
+                  item={item}
+                  getPreparationTime={getPreparationTime}
+                />
+              ))}
+            </div>
           )}
         </TabsContent>
       </Tabs>

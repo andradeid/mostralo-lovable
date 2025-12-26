@@ -3,9 +3,10 @@ import { usePDV } from '@/hooks/usePDV';
 import { PDVProductGrid } from '@/components/pdv/PDVProductGrid';
 import { PDVCart } from '@/components/pdv/PDVCart';
 import { PDVPaymentModal } from '@/components/pdv/PDVPaymentModal';
+import { PDVHistory } from '@/components/pdv/PDVHistory';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ShoppingCart, Package } from 'lucide-react';
+import { ShoppingCart, Package, History } from 'lucide-react';
 import { ModuleGate } from '@/components/admin/ModuleGate';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 
@@ -28,7 +29,7 @@ export default function PDVPage() {
       <ModuleGate moduleKey="pdv_comandas" storeId={storeId}>
         <div className="h-[calc(100vh-7rem)] flex flex-col">
         <Tabs defaultValue="products" className="flex-1 flex flex-col">
-          <TabsList className="grid grid-cols-2 h-14 mx-2 mb-2">
+          <TabsList className="grid grid-cols-3 h-14 mx-2 mb-2">
             <TabsTrigger value="products" className="h-12 text-base gap-2">
               <Package className="h-5 w-5" />
               Produtos
@@ -41,6 +42,10 @@ export default function PDVPage() {
                   {cartItemsCount}
                 </span>
               )}
+            </TabsTrigger>
+            <TabsTrigger value="history" className="h-12 text-base gap-2">
+              <History className="h-5 w-5" />
+              Histórico
             </TabsTrigger>
           </TabsList>
 
@@ -59,6 +64,10 @@ export default function PDVPage() {
               isProcessing={isProcessing}
             />
           </TabsContent>
+
+          <TabsContent value="history" className="flex-1 overflow-hidden px-2 pb-2 mt-0">
+            <PDVHistory />
+          </TabsContent>
         </Tabs>
 
         {/* Modal de pagamento */}
@@ -74,27 +83,48 @@ export default function PDVPage() {
     );
   }
 
-  // Layout Desktop (original)
+  // Layout Desktop com Tabs
   return (
     <ModuleGate moduleKey="pdv_comandas" storeId={storeId}>
-      <div className="h-[calc(100vh-8rem)] flex gap-4">
-      {/* Grid de produtos */}
-      <div className="flex-1 overflow-auto">
-        <PDVProductGrid onAddProduct={addToCart} />
-      </div>
+      <div className="h-[calc(100vh-8rem)] flex flex-col">
+        <Tabs defaultValue="pdv" className="flex-1 flex flex-col">
+          <TabsList className="w-fit mb-4">
+            <TabsTrigger value="pdv" className="gap-2">
+              <Package className="h-4 w-4" />
+              PDV
+            </TabsTrigger>
+            <TabsTrigger value="history" className="gap-2">
+              <History className="h-4 w-4" />
+              Histórico
+            </TabsTrigger>
+          </TabsList>
 
-      {/* Carrinho lateral */}
-      <div className="w-80 lg:w-96 flex-shrink-0">
-        <PDVCart
-          items={cart}
-          subtotal={subtotal}
-          onUpdateQuantity={updateCartItemQuantity}
-          onRemoveItem={removeFromCart}
-          onClearCart={clearCart}
-          onFinalize={() => setPaymentModalOpen(true)}
-          isProcessing={isProcessing}
-        />
-      </div>
+          <TabsContent value="pdv" className="flex-1 overflow-hidden mt-0">
+            <div className="h-full flex gap-4">
+              {/* Grid de produtos */}
+              <div className="flex-1 overflow-auto">
+                <PDVProductGrid onAddProduct={addToCart} />
+              </div>
+
+              {/* Carrinho lateral */}
+              <div className="w-80 lg:w-96 flex-shrink-0">
+                <PDVCart
+                  items={cart}
+                  subtotal={subtotal}
+                  onUpdateQuantity={updateCartItemQuantity}
+                  onRemoveItem={removeFromCart}
+                  onClearCart={clearCart}
+                  onFinalize={() => setPaymentModalOpen(true)}
+                  isProcessing={isProcessing}
+                />
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="history" className="flex-1 overflow-hidden mt-0">
+            <PDVHistory />
+          </TabsContent>
+        </Tabs>
 
         {/* Modal de pagamento */}
         <PDVPaymentModal

@@ -12,6 +12,7 @@ import { CustomerLocationPicker } from './CustomerLocationPicker';
 import { z } from 'zod';
 import { formatPhone, normalizePhone } from '@/lib/utils';
 import { useStoreModules } from '@/hooks/useStoreModules';
+import { ForgotPasswordButton } from '@/components/auth/ForgotPasswordButton';
 
 // Componentes de animação
 import { CheckoutAuthIdentifyingStep } from './auth/CheckoutAuthIdentifyingStep';
@@ -628,6 +629,7 @@ export function CustomerAuthDialog({
                         {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                     </div>
+                    <ForgotPasswordButton phone={loginPhone} disabled={loginRemainingSeconds > 0} />
                   </div>
 
                   <Button 

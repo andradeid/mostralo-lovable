@@ -537,6 +537,8 @@ export type Database = {
           added_at: string
           added_by: string | null
           addons: Json | null
+          approved_at: string | null
+          approved_by: string | null
           comanda_id: string
           id: string
           notes: string | null
@@ -546,6 +548,7 @@ export type Database = {
           product_id: string | null
           product_name: string
           quantity: number
+          requires_approval: boolean | null
           total_price: number
           unit_price: number
         }
@@ -553,6 +556,8 @@ export type Database = {
           added_at?: string
           added_by?: string | null
           addons?: Json | null
+          approved_at?: string | null
+          approved_by?: string | null
           comanda_id: string
           id?: string
           notes?: string | null
@@ -562,6 +567,7 @@ export type Database = {
           product_id?: string | null
           product_name: string
           quantity?: number
+          requires_approval?: boolean | null
           total_price: number
           unit_price: number
         }
@@ -569,6 +575,8 @@ export type Database = {
           added_at?: string
           added_by?: string | null
           addons?: Json | null
+          approved_at?: string | null
+          approved_by?: string | null
           comanda_id?: string
           id?: string
           notes?: string | null
@@ -578,10 +586,25 @@ export type Database = {
           product_id?: string | null
           product_name?: string
           quantity?: number
+          requires_approval?: boolean | null
           total_price?: number
           unit_price?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "comanda_items_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comanda_items_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "unified_users_view"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "comanda_items_comanda_id_fkey"
             columns: ["comanda_id"]
@@ -603,6 +626,7 @@ export type Database = {
           closed_at: string | null
           closed_by: string | null
           created_at: string
+          customer_id: string | null
           customer_name: string | null
           discount: number
           id: string
@@ -613,6 +637,7 @@ export type Database = {
           payment_details: Json | null
           payment_method: string | null
           service_fee: number
+          source: string | null
           status: string
           store_id: string
           subtotal: number
@@ -625,6 +650,7 @@ export type Database = {
           closed_at?: string | null
           closed_by?: string | null
           created_at?: string
+          customer_id?: string | null
           customer_name?: string | null
           discount?: number
           id?: string
@@ -635,6 +661,7 @@ export type Database = {
           payment_details?: Json | null
           payment_method?: string | null
           service_fee?: number
+          source?: string | null
           status?: string
           store_id: string
           subtotal?: number
@@ -647,6 +674,7 @@ export type Database = {
           closed_at?: string | null
           closed_by?: string | null
           created_at?: string
+          customer_id?: string | null
           customer_name?: string | null
           discount?: number
           id?: string
@@ -657,6 +685,7 @@ export type Database = {
           payment_details?: Json | null
           payment_method?: string | null
           service_fee?: number
+          source?: string | null
           status?: string
           store_id?: string
           subtotal?: number
@@ -666,6 +695,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "comandas_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "comandas_store_id_fkey"
             columns: ["store_id"]
@@ -985,7 +1021,9 @@ export type Database = {
           longitude: number | null
           name: string
           notes: string | null
+          password_salt: string | null
           phone: string
+          table_password: string | null
           total_orders: number | null
           total_spent: number | null
           updated_at: string | null
@@ -1005,7 +1043,9 @@ export type Database = {
           longitude?: number | null
           name: string
           notes?: string | null
+          password_salt?: string | null
           phone: string
+          table_password?: string | null
           total_orders?: number | null
           total_spent?: number | null
           updated_at?: string | null
@@ -1025,7 +1065,9 @@ export type Database = {
           longitude?: number | null
           name?: string
           notes?: string | null
+          password_salt?: string | null
           phone?: string
+          table_password?: string | null
           total_orders?: number | null
           total_spent?: number | null
           updated_at?: string | null
@@ -5916,6 +5958,57 @@ export type Database = {
             foreignKeyName: "store_signage_items_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_table_service_config: {
+        Row: {
+          allow_direct_payment: boolean | null
+          created_at: string | null
+          customer_password_required: boolean | null
+          id: string
+          max_comandas_per_table: number | null
+          require_waiter_approval: boolean | null
+          store_id: string
+          table_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          allow_direct_payment?: boolean | null
+          created_at?: string | null
+          customer_password_required?: boolean | null
+          id?: string
+          max_comandas_per_table?: number | null
+          require_waiter_approval?: boolean | null
+          store_id: string
+          table_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          allow_direct_payment?: boolean | null
+          created_at?: string | null
+          customer_password_required?: boolean | null
+          id?: string
+          max_comandas_per_table?: number | null
+          require_waiter_approval?: boolean | null
+          store_id?: string
+          table_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_table_service_config_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_table_service_config_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
             referencedRelation: "stores"
             referencedColumns: ["id"]
           },

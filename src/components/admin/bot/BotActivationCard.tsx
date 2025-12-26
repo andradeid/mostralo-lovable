@@ -109,16 +109,15 @@ export function BotActivationCard({
       <CardContent className="!p-3 !pt-0 sm:!p-6 sm:!pt-0 space-y-3 sm:space-y-4">
         {/* Alerta: Assistente não disponível (sem chave OpenAI) */}
         {hasOpenAIKey === false && (
-          <div className="p-2.5 sm:p-3 bg-red-500/10 border border-red-500/20 rounded-lg overflow-hidden">
+          <div className="p-2.5 sm:p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
             <div className="flex items-start gap-2">
               <Bot className="h-4 w-4 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
-              <div>
-                <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 font-medium">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-red-600 dark:text-red-400 font-medium whitespace-normal">
                   Assistente de IA não disponível
                 </p>
-                <p className="text-[10px] sm:text-xs text-red-600/80 dark:text-red-400/80 mt-1">
-                  A chave secreta da OpenAI não está configurada para esta loja. 
-                  Entre em contato com o administrador master para habilitar este recurso.
+                <p className="text-[10px] sm:text-xs text-red-600/80 dark:text-red-400/80 mt-1 whitespace-normal">
+                  A chave secreta da OpenAI não está configurada para esta loja. Entre em contato com o administrador master para habilitar este recurso.
                 </p>
               </div>
             </div>
@@ -127,8 +126,8 @@ export function BotActivationCard({
 
         {/* Alerta: WhatsApp não conectado */}
         {!isConnected && hasOpenAIKey !== false && (
-          <div className="p-2.5 sm:p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg overflow-hidden">
-            <p className="text-xs sm:text-sm text-orange-600 dark:text-orange-400 break-words hyphens-auto">
+          <div className="p-2.5 sm:p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg">
+            <p className="text-xs sm:text-sm text-orange-600 dark:text-orange-400 whitespace-normal">
               ⚠️ Conecte seu WhatsApp primeiro para ativar o assistente
             </p>
           </div>
@@ -153,13 +152,12 @@ export function BotActivationCard({
 
         {/* Info: IA ativa cuida das saudações */}
         {config.enabled && (
-          <div className="p-2.5 sm:p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg overflow-hidden">
+          <div className="p-2.5 sm:p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
             <div className="flex items-start gap-2">
               <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
-              <div>
-                <p className="text-xs sm:text-sm text-blue-600 dark:text-blue-400">
-                  O Assistente IA cuida da saudação de forma inteligente e personalizada.
-                  A mensagem de saudação automática fica desativada enquanto a IA estiver ativa.
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 whitespace-normal">
+                  O Assistente IA cuida da saudação de forma inteligente e personalizada. A mensagem de saudação automática fica desativada enquanto a IA estiver ativa.
                 </p>
               </div>
             </div>

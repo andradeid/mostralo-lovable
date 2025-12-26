@@ -86,54 +86,65 @@ export function CategoriesManager({
   };
 
   const renderCategoryTable = (categories: FinancialCategory[], type: 'income' | 'expense') => (
-    <div className="rounded-md border">
+    <div className="rounded-md border overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Cor</TableHead>
-            <TableHead>Nome</TableHead>
-            <TableHead>Origem</TableHead>
-            <TableHead className="w-[50px]"></TableHead>
+            <TableHead className="text-xs md:text-sm w-[50px]">Cor</TableHead>
+            <TableHead className="text-xs md:text-sm">Nome</TableHead>
+            <TableHead className="text-xs md:text-sm hidden sm:table-cell">Origem</TableHead>
+            <TableHead className="w-[40px] md:w-[50px]"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {categories.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+              <TableCell colSpan={4} className="text-center py-6 md:py-8 text-xs md:text-sm text-muted-foreground">
                 Nenhuma categoria encontrada
               </TableCell>
             </TableRow>
           ) : (
             categories.map((cat) => (
               <TableRow key={cat.id}>
-                <TableCell>
+                <TableCell className="py-2 md:py-4">
                   <div 
-                    className="w-6 h-6 rounded-full border-2 border-background shadow-sm"
+                    className="w-5 h-5 md:w-6 md:h-6 rounded-full border-2 border-background shadow-sm"
                     style={{ backgroundColor: cat.color }}
                   />
                 </TableCell>
-                <TableCell>
-                  <div className="font-medium">{cat.name}</div>
+                <TableCell className="py-2 md:py-4">
+                  <div className="font-medium text-xs md:text-sm">{cat.name}</div>
                   {cat.description && (
-                    <div className="text-xs text-muted-foreground">{cat.description}</div>
+                    <div className="text-[10px] md:text-xs text-muted-foreground truncate max-w-[150px] sm:max-w-none">{cat.description}</div>
                   )}
+                  {/* Badge de origem visível apenas em mobile */}
+                  <div className="sm:hidden mt-1">
+                    {cat.is_system ? (
+                      <Badge variant="secondary" className="gap-1 text-[10px]">
+                        <Lock className="h-2.5 w-2.5" />
+                        Sistema
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-[10px]">Personalizada</Badge>
+                    )}
+                  </div>
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden sm:table-cell py-2 md:py-4">
                   {cat.is_system ? (
-                    <Badge variant="secondary" className="gap-1">
-                      <Lock className="h-3 w-3" />
+                    <Badge variant="secondary" className="gap-1 text-[10px] md:text-xs">
+                      <Lock className="h-2.5 w-2.5 md:h-3 md:w-3" />
                       Sistema
                     </Badge>
                   ) : (
-                    <Badge variant="outline">Personalizada</Badge>
+                    <Badge variant="outline" className="text-[10px] md:text-xs">Personalizada</Badge>
                   )}
                 </TableCell>
-                <TableCell>
+                <TableCell className="py-2 md:py-4">
                   {!cat.is_system && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreVertical className="h-4 w-4" />
+                        <Button variant="ghost" size="icon" className="h-7 w-7 md:h-8 md:w-8">
+                          <MoreVertical className="h-3.5 w-3.5 md:h-4 md:w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
@@ -163,13 +174,13 @@ export function CategoriesManager({
   if (isLoading) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle>Categorias</CardTitle>
+        <CardHeader className="p-3 md:p-6">
+          <CardTitle className="text-base md:text-lg">Categorias</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+        <CardContent className="p-3 md:p-6 pt-0">
+          <div className="space-y-3 md:space-y-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-12 bg-muted animate-pulse rounded" />
+              <div key={i} className="h-10 md:h-12 bg-muted animate-pulse rounded" />
             ))}
           </div>
         </CardContent>
@@ -180,32 +191,31 @@ export function CategoriesManager({
   return (
     <>
       <Card>
-        <CardHeader>
-          <CardTitle>Categorias Financeiras</CardTitle>
-          <CardDescription>
-            Gerencie as categorias para organizar suas receitas e despesas. 
-            Categorias do sistema são globais e não podem ser editadas.
+        <CardHeader className="p-3 md:p-6">
+          <CardTitle className="text-base md:text-lg">Categorias Financeiras</CardTitle>
+          <CardDescription className="text-xs md:text-sm">
+            Gerencie categorias para organizar receitas e despesas.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 md:p-6 pt-0">
           <Tabs defaultValue="expense" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
-              <TabsTrigger value="expense" className="gap-2">
-                <TrendingDown className="h-4 w-4" />
+            <TabsList className="grid w-full grid-cols-2 mb-3 md:mb-4 h-9 md:h-10">
+              <TabsTrigger value="expense" className="gap-1 md:gap-2 text-xs md:text-sm">
+                <TrendingDown className="h-3.5 w-3.5 md:h-4 md:w-4" />
                 Despesas ({expenseCategories.length})
               </TabsTrigger>
-              <TabsTrigger value="income" className="gap-2">
-                <TrendingUp className="h-4 w-4" />
+              <TabsTrigger value="income" className="gap-1 md:gap-2 text-xs md:text-sm">
+                <TrendingUp className="h-3.5 w-3.5 md:h-4 md:w-4" />
                 Receitas ({incomeCategories.length})
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="expense">
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 <div className="flex justify-end">
-                  <Button onClick={() => handleAdd('expense')} size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Nova Categoria de Despesa
+                  <Button onClick={() => handleAdd('expense')} size="sm" className="w-full sm:w-auto h-8 md:h-9 text-xs md:text-sm">
+                    <Plus className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1.5 md:mr-2" />
+                    <span className="hidden sm:inline">Nova Categoria de </span>Despesa
                   </Button>
                 </div>
                 {renderCategoryTable(expenseCategories, 'expense')}
@@ -213,11 +223,11 @@ export function CategoriesManager({
             </TabsContent>
 
             <TabsContent value="income">
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 <div className="flex justify-end">
-                  <Button onClick={() => handleAdd('income')} size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Nova Categoria de Receita
+                  <Button onClick={() => handleAdd('income')} size="sm" className="w-full sm:w-auto h-8 md:h-9 text-xs md:text-sm">
+                    <Plus className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1.5 md:mr-2" />
+                    <span className="hidden sm:inline">Nova Categoria de </span>Receita
                   </Button>
                 </div>
                 {renderCategoryTable(incomeCategories, 'income')}
@@ -241,17 +251,16 @@ export function CategoriesManager({
 
       {/* Dialog de confirmação de exclusão */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-[95vw] sm:max-w-md">
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir esta categoria? 
-              Não será possível excluir se houver transações vinculadas.
+            <AlertDialogTitle className="text-lg">Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm">
+              Tem certeza? Não será possível excluir se houver transações vinculadas.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground">
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel className="w-full sm:w-auto h-9 text-sm">Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="w-full sm:w-auto h-9 text-sm bg-destructive text-destructive-foreground">
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>

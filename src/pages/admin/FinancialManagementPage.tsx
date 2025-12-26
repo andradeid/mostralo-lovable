@@ -127,31 +127,31 @@ export default function FinancialManagementPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6 px-2 md:px-0">
       <div>
-        <h1 className="text-2xl font-bold">Gestão Financeira</h1>
-        <p className="text-muted-foreground">
-          Controle suas receitas, despesas e fluxo de caixa
+        <h1 className="text-xl md:text-2xl font-bold">Gestão Financeira</h1>
+        <p className="text-sm md:text-base text-muted-foreground">
+          Controle receitas, despesas e fluxo de caixa
         </p>
       </div>
 
       <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
-          <TabsTrigger value="dashboard" className="gap-2">
-            <LayoutDashboard className="h-4 w-4" />
+        <TabsList className="grid w-full grid-cols-3 h-9 md:h-10 lg:w-[400px]">
+          <TabsTrigger value="dashboard" className="gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-3">
+            <LayoutDashboard className="h-3.5 w-3.5 md:h-4 md:w-4" />
             <span className="hidden sm:inline">Dashboard</span>
           </TabsTrigger>
-          <TabsTrigger value="transactions" className="gap-2">
-            <ArrowLeftRight className="h-4 w-4" />
+          <TabsTrigger value="transactions" className="gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-3">
+            <ArrowLeftRight className="h-3.5 w-3.5 md:h-4 md:w-4" />
             <span className="hidden sm:inline">Transações</span>
           </TabsTrigger>
-          <TabsTrigger value="categories" className="gap-2">
-            <Tags className="h-4 w-4" />
+          <TabsTrigger value="categories" className="gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-3">
+            <Tags className="h-3.5 w-3.5 md:h-4 md:w-4" />
             <span className="hidden sm:inline">Categorias</span>
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="dashboard" className="space-y-6 mt-6">
+        <TabsContent value="dashboard" className="space-y-4 md:space-y-6 mt-4 md:mt-6">
           <FinancialKPICards
             totalIncome={totalIncome}
             totalExpense={totalExpense}
@@ -164,7 +164,7 @@ export default function FinancialManagementPage() {
           />
         </TabsContent>
 
-        <TabsContent value="transactions" className="mt-6">
+        <TabsContent value="transactions" className="mt-4 md:mt-6">
           <TransactionsList
             transactions={transactions || []}
             categories={categories || []}
@@ -181,7 +181,7 @@ export default function FinancialManagementPage() {
           />
         </TabsContent>
 
-        <TabsContent value="categories" className="mt-6">
+        <TabsContent value="categories" className="mt-4 md:mt-6">
           <CategoriesManager
             categories={categories || []}
             incomeCategories={incomeCategories}

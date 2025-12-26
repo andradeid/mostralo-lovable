@@ -75,13 +75,13 @@ export function AttendantPermissionsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-primary" />
+      <DialogContent className="max-w-[95vw] sm:max-w-md max-h-[85vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
+          <DialogTitle className="flex items-center gap-2 text-base">
+            <Shield className="w-4 h-4 text-primary" />
             Configurar Atendente
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm truncate">
             {attendant.full_name || attendant.email}
           </DialogDescription>
         </DialogHeader>
@@ -91,24 +91,24 @@ export function AttendantPermissionsDialog({
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
           </div>
         ) : (
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="permissions" className="flex items-center gap-2">
-                <Shield className="w-4 h-4" />
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+            <TabsList className="grid w-full grid-cols-2 flex-shrink-0 h-9">
+              <TabsTrigger value="permissions" className="flex items-center gap-1.5 text-xs sm:text-sm">
+                <Shield className="w-3.5 h-3.5" />
                 Permissões
               </TabsTrigger>
-              <TabsTrigger value="notifications" className="flex items-center gap-2">
-                <Bell className="w-4 h-4" />
+              <TabsTrigger value="notifications" className="flex items-center gap-1.5 text-xs sm:text-sm">
+                <Bell className="w-3.5 h-3.5" />
                 Notificações
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="permissions" className="space-y-4 mt-4">
-              <p className="text-sm text-muted-foreground">
+            <TabsContent value="permissions" className="flex-1 overflow-y-auto mt-3 pr-1">
+              <p className="text-xs sm:text-sm text-muted-foreground mb-3">
                 Defina quais áreas do sistema o atendente pode acessar.
               </p>
               
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {ATTENDANT_PERMISSIONS.map((perm) => {
                   const Icon = iconMap[perm.icon];
                   const isEnabled = hasPermission(perm.key);
@@ -116,24 +116,24 @@ export function AttendantPermissionsDialog({
                   return (
                     <div 
                       key={perm.key}
-                      className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                      className="flex items-center justify-between p-2.5 sm:p-3 border rounded-lg hover:bg-muted/50 transition-colors gap-2"
                     >
-                      <div className="flex items-center gap-3">
-                        {Icon && <Icon className="w-4 h-4 text-muted-foreground" />}
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <Label className="font-medium">{perm.label}</Label>
+                      <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                        {Icon && <Icon className="w-4 h-4 text-muted-foreground flex-shrink-0" />}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <Label className="font-medium text-sm">{perm.label}</Label>
                             {isEnabled ? (
-                              <Badge variant="outline" className="text-xs text-green-600 border-green-300 bg-green-50">
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-green-600 border-green-300 bg-green-50">
                                 Liberado
                               </Badge>
                             ) : (
-                              <Badge variant="outline" className="text-xs text-red-600 border-red-300 bg-red-50">
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-red-600 border-red-300 bg-red-50">
                                 Bloqueado
                               </Badge>
                             )}
                           </div>
-                          <p className="text-xs text-muted-foreground mt-0.5">
+                          <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 line-clamp-2">
                             {perm.description}
                           </p>
                         </div>
@@ -142,6 +142,7 @@ export function AttendantPermissionsDialog({
                         checked={isEnabled}
                         onCheckedChange={(checked) => handlePermissionChange(perm.key, checked)}
                         disabled={saving}
+                        className="flex-shrink-0"
                       />
                     </div>
                   );
@@ -149,36 +150,36 @@ export function AttendantPermissionsDialog({
               </div>
             </TabsContent>
 
-            <TabsContent value="notifications" className="space-y-4 mt-4">
-              <p className="text-sm text-muted-foreground">
+            <TabsContent value="notifications" className="flex-1 overflow-y-auto mt-3 pr-1">
+              <p className="text-xs sm:text-sm text-muted-foreground mb-3">
                 Configure quais alertas o atendente deve receber.
               </p>
               
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {ATTENDANT_NOTIFICATIONS.map((notif) => {
                   const isEnabled = hasNotification(notif.key);
                   
                   return (
                     <div 
                       key={notif.key}
-                      className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                      className="flex items-center justify-between p-2.5 sm:p-3 border rounded-lg hover:bg-muted/50 transition-colors gap-2"
                     >
-                      <div className="flex items-center gap-3">
-                        <Bell className="w-4 h-4 text-muted-foreground" />
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <Label className="font-medium">{notif.label}</Label>
+                      <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                        <Bell className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <Label className="font-medium text-sm">{notif.label}</Label>
                             {isEnabled ? (
-                              <Badge variant="outline" className="text-xs text-green-600 border-green-300 bg-green-50">
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-green-600 border-green-300 bg-green-50">
                                 Ativo
                               </Badge>
                             ) : (
-                              <Badge variant="outline" className="text-xs text-muted-foreground">
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-muted-foreground">
                                 Desativado
                               </Badge>
                             )}
                           </div>
-                          <p className="text-xs text-muted-foreground mt-0.5">
+                          <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 line-clamp-2">
                             {notif.description}
                           </p>
                         </div>
@@ -187,6 +188,7 @@ export function AttendantPermissionsDialog({
                         checked={isEnabled}
                         onCheckedChange={(checked) => handleNotificationChange(notif.key, checked)}
                         disabled={saving}
+                        className="flex-shrink-0"
                       />
                     </div>
                   );

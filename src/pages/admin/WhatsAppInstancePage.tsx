@@ -646,13 +646,13 @@ export default function WhatsAppInstancePage() {
 
       <Tabs defaultValue="connection" className="space-y-3 sm:space-y-6">
         <TabsList className="grid w-full grid-cols-2 h-8 sm:h-10">
-          <TabsTrigger value="connection" className="gap-1 text-[11px] sm:text-sm h-full px-2 overflow-hidden">
-            <Smartphone className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
-            <span className="truncate">Conexão</span>
+          <TabsTrigger value="connection" className="gap-1 text-[11px] sm:text-sm h-full px-2">
+            <Smartphone className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+            <span className="hidden sm:inline">Conexão</span>
           </TabsTrigger>
-          <TabsTrigger value="bot" className="gap-1 text-[11px] sm:text-sm h-full px-2 overflow-hidden">
-            <Bot className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
-            <span className="truncate">IA</span>
+          <TabsTrigger value="bot" className="gap-1 text-[11px] sm:text-sm h-full px-2">
+            <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+            <span className="hidden sm:inline">IA</span>
           </TabsTrigger>
         </TabsList>
 

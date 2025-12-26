@@ -384,33 +384,32 @@ export default function AddonsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6">
+      {/* Header responsivo */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Adicionais</h1>
-          <p className="text-muted-foreground">Gerencie os adicionais da sua loja</p>
+          <h1 className="text-2xl md:text-3xl font-bold">Adicionais</h1>
+          <p className="text-sm text-muted-foreground">Gerencie os adicionais da sua loja</p>
         </div>
-        <div className="flex items-center space-x-2">
-          <Button onClick={() => setShowForm(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Novo Adicional
-          </Button>
-        </div>
+        <Button onClick={() => setShowForm(true)} size="sm" className="w-full sm:w-auto">
+          <Plus className="w-4 h-4 mr-2" />
+          Novo Adicional
+        </Button>
       </div>
 
-      {/* Cards de Estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Cards de Estatísticas - grid 2x2 em mobile */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
         {statsCards.map((card, index) => (
-          <Card key={index}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+          <Card key={index} className="p-3 md:p-0">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 md:pb-2 p-0 md:p-6">
+              <CardTitle className="text-xs md:text-sm font-medium">
                 {card.title}
               </CardTitle>
-              <card.icon className="h-4 w-4 text-muted-foreground" />
+              <card.icon className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{card.value}</div>
-              <p className="text-xs text-muted-foreground">
+            <CardContent className="p-0 md:p-6 md:pt-0">
+              <div className="text-xl md:text-2xl font-bold">{card.value}</div>
+              <p className="text-xs text-muted-foreground line-clamp-1">
                 {card.description}
               </p>
             </CardContent>
@@ -465,12 +464,12 @@ export default function AddonsPage() {
               {categories.map((category, categoryIndex) => (
                 <AccordionItem key={category.id} value={category.id} className="border rounded-lg">
                   <Card>
-                    <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                      <div className="flex items-center justify-between w-full">
-                        <div className="flex items-center space-x-3">
-                          {/* Botões de reordenação de categoria */}
+                    <AccordionTrigger className="px-3 md:px-6 py-3 md:py-4 hover:no-underline">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-2">
+                        <div className="flex items-center space-x-2 sm:space-x-3">
+                          {/* Botões de reordenação de categoria - ocultos em mobile */}
                           {category.id !== 'uncategorized' && (
-                            <div className="flex flex-col items-center space-y-1 mr-2">
+                            <div className="hidden sm:flex flex-col items-center space-y-1 mr-2">
                               <span className="text-xs text-muted-foreground">#{category.display_order}</span>
                               <div className="flex flex-col space-y-1">
                                 <Button 
@@ -500,35 +499,36 @@ export default function AddonsPage() {
                               </div>
                             </div>
                           )}
-                          <Grid className="w-5 h-5 text-primary" />
-                          <div className="text-left">
-                            <h3 className="font-semibold text-lg">{category.name}</h3>
+                          <Grid className="w-4 h-4 md:w-5 md:h-5 text-primary flex-shrink-0" />
+                          <div className="text-left min-w-0 max-w-[140px] sm:max-w-none">
+                            <h3 className="font-semibold text-sm md:text-lg truncate">{category.name}</h3>
                             {category.description && (
-                              <p className="text-sm text-muted-foreground mt-1">
+                              <p className="text-xs md:text-sm text-muted-foreground mt-0.5 md:mt-1 line-clamp-1 hidden sm:block">
                                 {category.description}
                               </p>
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center space-x-4 mr-4">
-                          <Badge variant="outline">
-                            {category.addons.length} adiciona{category.addons.length !== 1 ? 'is' : 'l'}
+                        <div className="flex items-center gap-2 mr-0 sm:mr-4 ml-6 sm:ml-0">
+                          <Badge variant="outline" className="text-xs">
+                            {category.addons.length} {category.addons.length !== 1 ? 'itens' : 'item'}
                           </Badge>
                           <Button
                             size="sm"
+                            className="h-7 text-xs sm:h-8 sm:text-sm"
                             onClick={(e) => {
                               e.stopPropagation();
                               setShowForm(true);
                             }}
                           >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Adicionar
+                            <Plus className="w-3 h-3 md:w-4 md:h-4 mr-0 sm:mr-1" />
+                            <span className="hidden sm:inline">Adicionar</span>
                           </Button>
                         </div>
                       </div>
                     </AccordionTrigger>
                     
-                    <AccordionContent className="px-6 pb-6">
+                    <AccordionContent className="px-3 md:px-6 pb-4 md:pb-6">
                       {category.addons.length === 0 ? (
                         <Droppable droppableId={category.id}>
                           {(provided, snapshot) => (
@@ -579,32 +579,42 @@ export default function AddonsPage() {
                                     <Card 
                                       ref={provided.innerRef}
                                       {...provided.draggableProps}
-                                      className={`overflow-hidden ${
+                                      className={`overflow-hidden w-[90%] sm:w-full mx-auto ${
                                         snapshot.isDragging 
                                           ? 'shadow-lg rotate-2 transform scale-105' 
                                           : ''
                                       }`}
                                     >
-                                      <CardContent className="p-4">
-                                        <div className="flex items-center space-x-4">
-                                          {/* Handle de drag */}
-                                          <div 
-                                            {...provided.dragHandleProps}
-                                            className="flex flex-col items-center space-y-1 cursor-grab active:cursor-grabbing"
-                                          >
-                                            <GripVertical className="w-5 h-5 text-muted-foreground hover:text-primary transition-colors" />
-                                            <span className="text-xs text-muted-foreground">#{addon.display_order}</span>
-                                          </div>
+                                      <CardContent className="p-3 md:p-4">
+                                        <div className="flex flex-col sm:flex-row gap-3">
+                                          {/* Imagem + Handle de drag */}
+                                          <div className="flex items-start gap-2">
+                                            {/* Handle de drag - oculto em mobile */}
+                                            <div 
+                                              {...provided.dragHandleProps}
+                                              className="hidden sm:flex flex-col items-center space-y-1 cursor-grab active:cursor-grabbing"
+                                            >
+                                              <GripVertical className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground hover:text-primary transition-colors" />
+                                              <span className="text-xs text-muted-foreground">#{addon.display_order}</span>
+                                            </div>
 
-                                          <div className="w-16 h-16 bg-muted rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center">
-                                            <Package className="w-6 h-6 text-muted-foreground" />
+                                            <div className="w-14 h-14 md:w-16 md:h-16 bg-muted rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center">
+                                              <Package className="w-5 h-5 md:w-6 md:h-6 text-muted-foreground" />
+                                            </div>
+
+                                            {/* Info mobile - ao lado da imagem */}
+                                            <div className="flex-1 sm:hidden">
+                                              <h4 className="font-semibold text-sm leading-tight">{addon.name}</h4>
+                                              <span className="font-bold text-sm text-primary mt-1 block">
+                                                +R$ {Number(addon.price).toFixed(2)}
+                                              </span>
+                                            </div>
                                           </div>
                                           
-                                          <div className="flex-1 min-w-0">
+                                          {/* Conteúdo desktop */}
+                                          <div className="flex-1 min-w-0 hidden sm:block">
                                             <div className="flex items-start justify-between mb-2">
-                                              <div className="flex items-center space-x-2">
-                                                <h4 className="font-semibold truncate">{addon.name}</h4>
-                                              </div>
+                                              <h4 className="font-semibold">{addon.name}</h4>
                                               <span className="font-bold text-lg text-primary flex-shrink-0">
                                                 +R$ {Number(addon.price).toFixed(2)}
                                               </span>
@@ -615,36 +625,47 @@ export default function AddonsPage() {
                                                 {addon.description}
                                               </p>
                                             )}
-                                            
-                                            <div className="flex items-center justify-between">
-                                              <div className="flex items-center space-x-2">
-                                                <Switch
-                                                  checked={addon.is_available}
-                                                  onCheckedChange={() => handleToggleAvailability(addon.id, addon.is_available)}
-                                                />
-                                                <span className="text-sm text-muted-foreground">
-                                                  {addon.is_available ? 'Ativo' : 'Inativo'}
-                                                </span>
-                                              </div>
-                                              <div className="flex space-x-2">
-                                                <Button 
-                                                  size="sm" 
-                                                  variant="outline"
-                                                  onClick={() => handleEdit(addon)}
-                                                >
-                                                  <Edit className="w-4 h-4 mr-1" />
-                                                  Editar
-                                                </Button>
-                                                <Button 
-                                                  size="sm" 
-                                                  variant="outline"
-                                                  onClick={() => handleDelete(addon.id)}
-                                                >
-                                                  <Trash2 className="w-4 h-4 mr-1" />
-                                                  Excluir
-                                                </Button>
-                                              </div>
-                                            </div>
+                                          </div>
+
+                                          {/* Descrição mobile */}
+                                          {addon.description && (
+                                            <p className="text-xs text-muted-foreground sm:hidden line-clamp-2">
+                                              {addon.description}
+                                            </p>
+                                          )}
+                                        </div>
+                                        
+                                        {/* Switches e Botões */}
+                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-3">
+                                          <div className="flex items-center gap-1.5">
+                                            <Switch
+                                              checked={addon.is_available}
+                                              onCheckedChange={() => handleToggleAvailability(addon.id, addon.is_available)}
+                                              className="scale-90"
+                                            />
+                                            <span className="text-xs text-muted-foreground">
+                                              {addon.is_available ? 'Ativo' : 'Inativo'}
+                                            </span>
+                                          </div>
+                                          <div className="flex gap-2">
+                                            <Button 
+                                              size="sm" 
+                                              variant="outline"
+                                              className="h-7 text-xs flex-1 sm:flex-none"
+                                              onClick={() => handleEdit(addon)}
+                                            >
+                                              <Edit className="w-3 h-3 mr-1" />
+                                              Editar
+                                            </Button>
+                                            <Button 
+                                              size="sm" 
+                                              variant="outline"
+                                              className="h-7 text-xs flex-1 sm:flex-none"
+                                              onClick={() => handleDelete(addon.id)}
+                                            >
+                                              <Trash2 className="w-3 h-3 mr-1" />
+                                              Excluir
+                                            </Button>
                                           </div>
                                         </div>
                                       </CardContent>

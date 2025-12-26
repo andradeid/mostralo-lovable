@@ -109,13 +109,13 @@ serve(async (req) => {
         .gte('created_at', periodStart.toISOString())
         .lt('created_at', periodEnd.toISOString()),
       
-      // New store subscriptions (stores with subscription_expires_at set in period)
+      // New subscriptions (approved payments in period)
       supabase
-        .from('stores')
+        .from('payment_approvals')
         .select('id', { count: 'exact', head: true })
-        .not('subscription_expires_at', 'is', null)
-        .gte('updated_at', periodStart.toISOString())
-        .lt('updated_at', periodEnd.toISOString()),
+        .eq('status', 'approved')
+        .gte('approved_at', periodStart.toISOString())
+        .lt('approved_at', periodEnd.toISOString()),
       
       // Revenue from approved payments in period
       supabase

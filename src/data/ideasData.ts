@@ -3101,5 +3101,62 @@ Oportunidade:
       '□ Criar rota /garcom (PWA garçom)',
       '□ Integrar vendas presenciais nos relatórios'
     ]
+  },
+  
+  // ==================== IDEIA 25 - EDGE FUNCTIONS ARQUIVADAS ====================
+  {
+    id: 25,
+    title: '🗃️ Edge Functions Arquivadas (Limite Supabase)',
+    status: 'idea',
+    priority: 'low',
+    createdAt: '2025-12-26',
+    description: 'Documentação de 3 Edge Functions removidas temporariamente para liberar espaço no limite do Supabase Free. Código completo disponível em src/data/archivedEdgeFunctions.ts para recuperação futura.',
+    
+    context: `O Supabase Free tem limite de Edge Functions. Com 88 funções, atingimos o limite máximo e não conseguíamos fazer deploy de novas funções críticas (fix-user-login, search-cep).
+
+Estas 3 funções foram arquivadas por serem menos críticas (usadas apenas pelo Master Admin para diagnóstico e testes):
+1. performance-diagnostics (174 linhas)
+2. master-test-instance (369 linhas)
+3. master-test-bot-sync (1191 linhas)
+
+O código completo está documentado em:
+📁 src/data/archivedEdgeFunctions.ts`,
+
+    problem: `Limite de Edge Functions atingido no Supabase:
+• 88 funções existentes
+• Limite máximo atingido
+• Novas funções críticas não podiam ser deployadas
+
+Solução aplicada:
+• Remover 3 funções de diagnóstico/teste
+• Liberar 3 slots (85 funções)
+• Permitir deploy de funções críticas`,
+
+    technicalDetails: {
+      title: '📦 Funções Arquivadas',
+      items: [
+        'performance-diagnostics: Diagnóstico de latência de Edge Functions e banco',
+        'master-test-instance: Gerenciamento de instância WhatsApp de teste',
+        'master-test-bot-sync: Sincronização de bot IA de teste com Evolution API',
+        'Código completo: src/data/archivedEdgeFunctions.ts',
+        'Impacto: Apenas Master Admin (página de ambiente de teste)',
+        'Produção: NENHUMA funcionalidade afetada'
+      ]
+    },
+
+    legalConsiderations: [
+      '✅ Nenhuma funcionalidade de produção afetada',
+      '✅ Apenas recursos de diagnóstico do Master Admin',
+      '⚠️ Página /dashboard/ambiente-teste temporariamente limitada',
+      '⚠️ Diagnóstico de performance via Edge Function desativado',
+      '📋 Código completo documentado para recuperação'
+    ],
+
+    nextSteps: [
+      '□ Fazer upgrade Supabase para Pro ($25/mês) - limite de 100 funções',
+      '□ Ou consolidar outras Edge Functions para liberar espaço',
+      '□ Restaurar funções quando houver espaço disponível',
+      '□ Ver instruções em src/data/archivedEdgeFunctions.ts'
+    ]
   }
 ];

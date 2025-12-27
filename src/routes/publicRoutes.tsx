@@ -53,6 +53,7 @@ const BioMundoPropostaPage = lazy(() => import("@/pages/public/BioMundoPropostaP
 const SupermercadosPage = lazy(() => import("@/pages/public/SupermercadosPage"));
 const AcouguesPage = lazy(() => import("@/pages/public/AcouguesPage"));
 const SalespersonSalesGuidePage = lazy(() => import("@/pages/public/SalespersonSalesGuidePage"));
+const TotemPage = lazy(() => import("@/pages/totem/TotemPage"));
 
 export const publicRoutes = (
   <>
@@ -95,6 +96,9 @@ export const publicRoutes = (
     {/* Cardápio na Mesa (Self-Service) */}
     <Route path="/mesa/:storeSlug/:tableNumber" element={<LazyRoute><TableAccessPage /></LazyRoute>} />
     <Route path="/mesa/:storeSlug/:tableNumber/cardapio" element={<LazyRoute><TableMenuPage /></LazyRoute>} />
+    
+    {/* Totem de Autoatendimento */}
+    <Route path="/totem/:storeSlug" element={<LazyRoute><TotemPage /></LazyRoute>} />
     
     {/* Cliente - Autenticação e Painel */}
     <Route path="/cliente/:storeSlug" element={<LazyRoute><CustomerAuth /></LazyRoute>} />

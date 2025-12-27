@@ -11,14 +11,14 @@ import {
   Package, Menu, ShoppingCart, BarChart3, Palette, MessageCircle,
   Truck, Users, Printer, Tag, Megaphone, Calendar, ExternalLink, 
   Image, Search, Filter, CheckCircle, XCircle, Sparkles, Shield, Zap,
-  Utensils, Settings2, Monitor, Wallet, Code, QrCode, MessageSquare, Target
+  Utensils, Settings2, Monitor, Wallet, Code, QrCode, MessageSquare, Target, Tablet
 } from 'lucide-react';
 
 // Mapeamento de ícones string -> componente
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Menu, ShoppingCart, BarChart3, Palette, MessageCircle,
   Truck, Printer, Tag, Megaphone, Calendar, ExternalLink,
-  Users, Image, Package, Utensils, Monitor, Wallet, Code, QrCode, MessageSquare, Target
+  Users, Image, Package, Utensils, Monitor, Wallet, Code, QrCode, MessageSquare, Target, Tablet
 };
 
 // Descrições detalhadas e categorias de cada módulo
@@ -105,6 +105,10 @@ const moduleDetails: Record<string, { description: string; category: 'core' | 'a
   },
   'sentinela': {
     description: 'Sistema inteligente de recompra automática. Configure o ciclo de vida dos produtos (whey 30 dias, fralda 15 dias, ração 30 dias) e o sistema envia lembretes via WhatsApp quando estiver prestes a acabar, aumentando a recorrência de vendas.',
+    category: 'premium'
+  },
+  'self_service_totem': {
+    description: 'Totem de autoatendimento para clientes fazerem pedidos diretamente em tablets ou telas touch. Reduz filas, economiza com atendentes e funciona 24h. Tela de boas-vindas personalizável, identificação opcional, pagamento PIX integrado e sistema de senhas.',
     category: 'premium'
   }
 };

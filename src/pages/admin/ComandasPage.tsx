@@ -17,7 +17,7 @@ import { ModuleGate } from '@/components/admin/ModuleGate';
 export default function ComandasPage() {
   const navigate = useNavigate();
   const { storeId } = useStoreAccess();
-  const { comandas, openComandas, loadingComandas, createComanda, closeComanda, cancelComanda, isCreating, isClosing } = useComandas();
+  const { comandas, openComandas, loadingComandas, createComanda, closeComanda, cancelComanda, isCreating, isClosing, pendingApprovalsByComanda } = useComandas();
   const isMobile = useIsMobile();
   
   const [newDialogOpen, setNewDialogOpen] = useState(false);
@@ -142,6 +142,7 @@ export default function ComandasPage() {
                 <ComandaCard
                   key={comanda.id}
                   comanda={comanda}
+                  pendingApprovalCount={pendingApprovalsByComanda[comanda.id] || 0}
                   onClick={() => navigate(`/dashboard/comandas/${comanda.id}`)}
                   onClose={() => handleCloseComanda(comanda)}
                   onCancel={() => handleCancelComanda(comanda)}
@@ -162,6 +163,7 @@ export default function ComandasPage() {
               <ComandaCard
                 key={comanda.id}
                 comanda={comanda}
+                pendingApprovalCount={pendingApprovalsByComanda[comanda.id] || 0}
                 onClick={() => navigate(`/dashboard/comandas/${comanda.id}`)}
                 onClose={() => handleCloseComanda(comanda)}
                 onCancel={() => handleCancelComanda(comanda)}
@@ -181,6 +183,7 @@ export default function ComandasPage() {
               <ComandaCard
                 key={comanda.id}
                 comanda={comanda}
+                pendingApprovalCount={pendingApprovalsByComanda[comanda.id] || 0}
                 onClick={() => navigate(`/dashboard/comandas/${comanda.id}`)}
                 onClose={() => handleCloseComanda(comanda)}
                 onCancel={() => handleCancelComanda(comanda)}

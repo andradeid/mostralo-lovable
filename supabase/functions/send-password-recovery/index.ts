@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { normalizePhoneCanonical, getPhoneVariants } from '../_shared/phoneUtils.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -27,14 +28,18 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Buscar cliente pelo telefone
-    const normalizedPhone = phone.replace(/\D/g, '');
+    // Buscar cliente pelo telefone usando variantes (tolera 10 ou 11 dígitos)
+    const phoneVariants = getPhoneVariants(phone);
+    const canonicalPhone = normalizePhoneCanonical(phone);
+    console.log(`[send-password-recovery] Buscando variantes: ${phoneVariants.join(', ')}`);
+    
     const { data: customer, error: customerError } = await supabase
       .from('customers')
       .select('id, name, phone, table_password, auth_user_id')
-      .eq('phone', normalizedPhone)
+      .in('phone', phoneVariants)
       .is('deleted_at', null)
-      .single();
+      .limit(1)
+      .maybeSingle();
 
     if (customerError || !customer) {
       console.log('[send-password-recovery] Cliente não encontrado');
@@ -153,8 +158,8 @@ Use ela em qualquer loja do sistema!
 🔒 _Mostralo - Sistema de Lojas_`;
     }
 
-    // Montar número completo do cliente
-    const customerNumber = '55' + normalizedPhone;
+    // Montar número completo do cliente usando formato canônico
+    const customerNumber = '55' + canonicalPhone;
 
     // Enviar mensagem via Evolution API
     const apiUrl = evolutionConfig.api_url.replace(/\/$/, '');

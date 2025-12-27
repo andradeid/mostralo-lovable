@@ -36,8 +36,12 @@ import {
   ChevronLeft,
   ChevronRight,
   Briefcase,
-  Headphones
+  Headphones,
+  MessageCircle,
+  Phone
 } from 'lucide-react';
+import { formatPhone } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 
 interface UnifiedUser {
@@ -46,6 +50,8 @@ interface UnifiedUser {
   full_name: string | null;
   user_type: string;
   avatar_url?: string | null;
+  phone?: string | null;
+  whatsapp_valid?: boolean | null;
   created_at: string;
   updated_at: string;
   is_blocked: boolean;
@@ -572,15 +578,37 @@ const UsersPage = () => {
                           </Badge>
                         </div>
                         
-                        {/* Email e Data */}
+                        {/* Email, Telefone e Data */}
                         <div className="flex flex-col text-xs md:text-sm text-muted-foreground mt-1 gap-0.5">
                           <div className="flex items-center gap-1.5 truncate">
                             <Mail className="w-3 h-3 shrink-0" />
                             <span className="truncate">{user.email}</span>
                           </div>
-                          <div className="flex items-center gap-1.5">
-                            <Calendar className="w-3 h-3 shrink-0" />
-                            <span>{new Date(user.created_at).toLocaleDateString('pt-BR')}</span>
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-1.5">
+                              <Calendar className="w-3 h-3 shrink-0" />
+                              <span>{new Date(user.created_at).toLocaleDateString('pt-BR')}</span>
+                            </div>
+                            {user.phone ? (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div className="flex items-center gap-1 cursor-help">
+                                      <MessageCircle className={`w-3 h-3 shrink-0 ${user.whatsapp_valid ? 'text-green-500' : 'text-muted-foreground'}`} />
+                                      <span className="text-[10px]">{formatPhone(user.phone)}</span>
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{user.whatsapp_valid ? 'WhatsApp válido' : 'WhatsApp não validado'}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            ) : (
+                              <div className="flex items-center gap-1 text-muted-foreground/50">
+                                <Phone className="w-3 h-3 shrink-0" />
+                                <span className="text-[10px]">Sem telefone</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -791,6 +819,7 @@ const UsersPage = () => {
         userId={resetPasswordUser?.id || ''}
         userEmail={resetPasswordUser?.email || ''}
         userName={resetPasswordUser?.full_name || resetPasswordUser?.email || ''}
+        userPhone={resetPasswordUser?.phone}
       />
 
       <FixUserLoginDialog

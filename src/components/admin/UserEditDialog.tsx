@@ -4,11 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Edit, Plus, X } from 'lucide-react';
+import { Loader2, Edit, Plus, X, Phone, MessageCircle, Check, AlertCircle } from 'lucide-react';
 import { useUserManagement } from '@/hooks/useUserManagement';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
+import { formatPhone } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 
 interface UserEditDialogProps {
   open: boolean;
@@ -18,6 +20,8 @@ interface UserEditDialogProps {
     full_name: string;
     email: string;
     user_type: string;
+    phone?: string | null;
+    whatsapp_valid?: boolean | null;
     roles?: any[];
   } | null;
   onSuccess: () => void;
@@ -32,6 +36,9 @@ export function UserEditDialog({ open, onOpenChange, user, onSuccess }: UserEdit
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [userType, setUserType] = useState('');
+  const [phone, setPhone] = useState('');
+  const [isWhatsAppValid, setIsWhatsAppValid] = useState<boolean | null>(null);
+  const [validatingWhatsApp, setValidatingWhatsApp] = useState(false);
   const [stores, setStores] = useState<Store[]>([]);
   const [selectedStore, setSelectedStore] = useState('');
   const [newRole, setNewRole] = useState('');
@@ -43,6 +50,8 @@ export function UserEditDialog({ open, onOpenChange, user, onSuccess }: UserEdit
       setFullName(user.full_name || '');
       setEmail(user.email || '');
       setUserType(user.user_type || '');
+      setPhone(user.phone ? formatPhone(user.phone) : '');
+      setIsWhatsAppValid(user.whatsapp_valid ?? null);
       loadStores();
     }
   }, [open, user]);
@@ -56,14 +65,58 @@ export function UserEditDialog({ open, onOpenChange, user, onSuccess }: UserEdit
     if (data) setStores(data);
   };
 
+  const handlePhoneChange = (value: string) => {
+    const formatted = formatPhone(value);
+    setPhone(formatted);
+    // Resetar validação quando telefone muda
+    if (formatted !== formatPhone(user?.phone || '')) {
+      setIsWhatsAppValid(null);
+    }
+  };
+
+  const validateWhatsApp = async () => {
+    const cleanPhone = phone.replace(/\D/g, '');
+    if (cleanPhone.length < 10) {
+      toast.error('Número de telefone inválido');
+      return;
+    }
+
+    setValidatingWhatsApp(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('validate-whatsapp-number', {
+        body: { phone: cleanPhone }
+      });
+
+      if (error) throw error;
+
+      if (data?.isValid) {
+        setIsWhatsAppValid(true);
+        toast.success('WhatsApp válido!');
+      } else {
+        setIsWhatsAppValid(false);
+        toast.error('Número não possui WhatsApp');
+      }
+    } catch (error: any) {
+      console.error('Erro ao validar WhatsApp:', error);
+      toast.error('Erro ao validar: ' + (error.message || 'Tente novamente'));
+      setIsWhatsAppValid(false);
+    } finally {
+      setValidatingWhatsApp(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!user || !fullName || !email) return;
 
+    const cleanPhone = phone.replace(/\D/g, '');
+    
     try {
       await updateUser(user.id, {
         full_name: fullName,
         email,
         user_type: userType,
+        phone: cleanPhone || null,
+        whatsapp_valid: isWhatsAppValid,
       });
       onSuccess();
       onOpenChange(false);
@@ -141,6 +194,68 @@ export function UserEditDialog({ open, onOpenChange, user, onSuccess }: UserEdit
                 className="h-9 md:h-10 text-sm"
               />
             </div>
+          </div>
+
+          {/* Campo Telefone com Validação WhatsApp */}
+          <div className="space-y-1.5 md:space-y-2">
+            <Label htmlFor="phone" className="text-xs md:text-sm flex items-center gap-1.5">
+              <Phone className="h-3.5 w-3.5" />
+              Telefone (WhatsApp)
+            </Label>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Input
+                  id="phone"
+                  value={phone}
+                  onChange={(e) => handlePhoneChange(e.target.value)}
+                  placeholder="(00) 00000-0000"
+                  maxLength={15}
+                  className="h-9 md:h-10 text-sm pr-8"
+                />
+                {isWhatsAppValid !== null && (
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                    {isWhatsAppValid ? (
+                      <Check className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 text-red-500" />
+                    )}
+                  </div>
+                )}
+              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={validateWhatsApp}
+                      disabled={validatingWhatsApp || phone.replace(/\D/g, '').length < 10}
+                      className="h-9 md:h-10 px-3"
+                    >
+                      {validatingWhatsApp ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <MessageCircle className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Validar WhatsApp</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            {isWhatsAppValid === true && (
+              <Badge variant="outline" className="text-[10px] bg-green-50 text-green-700 border-green-200">
+                <Check className="h-3 w-3 mr-1" /> WhatsApp válido
+              </Badge>
+            )}
+            {isWhatsAppValid === false && (
+              <Badge variant="outline" className="text-[10px] bg-red-50 text-red-700 border-red-200">
+                <AlertCircle className="h-3 w-3 mr-1" /> Não possui WhatsApp
+              </Badge>
+            )}
           </div>
 
           <div className="space-y-1.5 md:space-y-2">

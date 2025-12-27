@@ -15,7 +15,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Loader2, Mail, Key } from "lucide-react";
+import { Loader2, Mail, Key, MessageCircle, AlertCircle, Phone } from "lucide-react";
+import { formatPhone } from "@/lib/utils";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface UserPasswordResetDialogProps {
   open: boolean;
@@ -23,6 +25,7 @@ interface UserPasswordResetDialogProps {
   userId: string;
   userEmail: string;
   userName: string;
+  userPhone?: string | null;
 }
 
 /**
@@ -30,6 +33,7 @@ interface UserPasswordResetDialogProps {
  * Permite ao super admin:
  * 1. Enviar email de recuperação de senha
  * 2. Definir nova senha diretamente (sem email)
+ * 3. Enviar link de recuperação via WhatsApp
  */
 export function UserPasswordResetDialog({
   open,
@@ -37,12 +41,13 @@ export function UserPasswordResetDialog({
   userId,
   userEmail,
   userName,
+  userPhone,
 }: UserPasswordResetDialogProps) {
   const { profile } = useAuth();
   const queryClient = useQueryClient();
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [activeTab, setActiveTab] = useState<"email" | "manual">("email");
+  const [activeTab, setActiveTab] = useState<"email" | "manual" | "whatsapp">("email");
 
   // Mutation para enviar email de recuperação
   const sendRecoveryEmailMutation = useMutation({
@@ -68,6 +73,31 @@ export function UserPasswordResetDialog({
       console.error("Erro ao enviar email de recuperação:", error);
       toast.error("Erro ao enviar email", {
         description: error.message || "Não foi possível enviar o email de recuperação.",
+      });
+    },
+  });
+
+  // Mutation para enviar link via WhatsApp
+  const sendRecoveryWhatsAppMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke("send-user-recovery-link", {
+        body: { email: userEmail }
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Link enviado via WhatsApp!", {
+        description: `Um link de recuperação foi enviado para ${formatPhone(userPhone || '')}.`,
+      });
+      onOpenChange(false);
+    },
+    onError: (error: Error) => {
+      console.error("Erro ao enviar WhatsApp:", error);
+      toast.error("Erro ao enviar WhatsApp", {
+        description: error.message || "Não foi possível enviar o link via WhatsApp.",
       });
     },
   });
@@ -161,6 +191,11 @@ export function UserPasswordResetDialog({
     sendRecoveryEmailMutation.mutate();
   };
 
+  // Handler para enviar via WhatsApp
+  const handleSendRecoveryWhatsApp = () => {
+    sendRecoveryWhatsAppMutation.mutate();
+  };
+
   // Handler para resetar senha manualmente
   const handleResetPasswordManually = () => {
     // Validações
@@ -190,6 +225,7 @@ export function UserPasswordResetDialog({
 
   // Verificar se é master admin
   const isMasterAdmin = profile?.user_type === "master_admin";
+  const hasPhone = !!userPhone && userPhone.replace(/\D/g, '').length >= 10;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -205,19 +241,23 @@ export function UserPasswordResetDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "email" | "manual")} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 h-9 md:h-10">
-            <TabsTrigger value="email" className="text-xs md:text-sm flex items-center gap-1.5 md:gap-2">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "email" | "manual" | "whatsapp")} className="w-full">
+          <TabsList className="grid w-full grid-cols-3 h-9 md:h-10">
+            <TabsTrigger value="email" className="text-xs md:text-sm flex items-center gap-1 md:gap-1.5">
               <Mail className="h-3.5 w-3.5 md:h-4 md:w-4" />
-              <span className="hidden xs:inline">Enviar</span> Email
+              <span className="hidden xs:inline">Email</span>
+            </TabsTrigger>
+            <TabsTrigger value="whatsapp" className="text-xs md:text-sm flex items-center gap-1 md:gap-1.5">
+              <MessageCircle className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              <span className="hidden xs:inline">WhatsApp</span>
             </TabsTrigger>
             <TabsTrigger 
               value="manual" 
-              className="text-xs md:text-sm flex items-center gap-1.5 md:gap-2"
+              className="text-xs md:text-sm flex items-center gap-1 md:gap-1.5"
               disabled={!isMasterAdmin}
             >
               <Key className="h-3.5 w-3.5 md:h-4 md:w-4" />
-              <span className="hidden xs:inline">Definir</span> Senha
+              <span className="hidden xs:inline">Senha</span>
             </TabsTrigger>
           </TabsList>
 
@@ -272,6 +312,76 @@ export function UserPasswordResetDialog({
                 <span className="hidden sm:inline">Enviar </span>Email
               </Button>
             </DialogFooter>
+          </TabsContent>
+
+          {/* Tab: Enviar via WhatsApp */}
+          <TabsContent value="whatsapp" className="space-y-3 md:space-y-4 mt-3 md:mt-4">
+            {hasPhone ? (
+              <>
+                <div className="rounded-lg border bg-muted/50 p-3 md:p-4 space-y-2">
+                  <div className="flex items-start gap-2 md:gap-3">
+                    <MessageCircle className="h-4 w-4 md:h-5 md:w-5 text-green-600 mt-0.5 shrink-0" />
+                    <div className="space-y-1 flex-1 min-w-0">
+                      <p className="text-xs md:text-sm font-medium">Recuperação via WhatsApp</p>
+                      <p className="text-xs md:text-sm text-muted-foreground">
+                        Um link de recuperação será enviado para:
+                      </p>
+                      <div className="flex items-center gap-2 mt-2 p-2 rounded-md bg-background border">
+                        <Phone className="h-4 w-4 text-green-600" />
+                        <span className="text-sm font-medium">{formatPhone(userPhone || '')}</span>
+                      </div>
+                      <div className="mt-2 md:mt-3 p-2 md:p-3 rounded-md bg-background border">
+                        <p className="text-[10px] md:text-xs text-muted-foreground">
+                          <strong>Como funciona:</strong>
+                        </p>
+                        <ol className="text-[10px] md:text-xs text-muted-foreground mt-1.5 md:mt-2 space-y-0.5 md:space-y-1 list-decimal list-inside">
+                          <li>Mensagem enviada via WhatsApp</li>
+                          <li>Link válido por 1 hora</li>
+                          <li>Usuário define sua nova senha</li>
+                        </ol>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <DialogFooter className="gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => onOpenChange(false)}
+                    disabled={sendRecoveryWhatsAppMutation.isPending}
+                    size="sm"
+                    className="h-9"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleSendRecoveryWhatsApp}
+                    disabled={sendRecoveryWhatsAppMutation.isPending}
+                    size="sm"
+                    className="h-9 bg-green-600 hover:bg-green-700"
+                  >
+                    {sendRecoveryWhatsAppMutation.isPending && (
+                      <Loader2 className="mr-1.5 h-3.5 w-3.5 md:h-4 md:w-4 animate-spin" />
+                    )}
+                    <MessageCircle className="mr-1.5 h-3.5 w-3.5 md:h-4 md:w-4" />
+                    <span className="hidden sm:inline">Enviar </span>WhatsApp
+                  </Button>
+                </DialogFooter>
+              </>
+            ) : (
+              <Alert variant="default" className="border-yellow-200 bg-yellow-50 dark:bg-yellow-950/20">
+                <AlertCircle className="h-4 w-4 text-yellow-600" />
+                <AlertDescription className="text-xs md:text-sm text-yellow-800 dark:text-yellow-200">
+                  <strong>Telefone não cadastrado</strong>
+                  <p className="mt-1">
+                    Este usuário não possui um número de telefone cadastrado. 
+                    Edite o perfil do usuário para adicionar um telefone antes de usar esta opção.
+                  </p>
+                </AlertDescription>
+              </Alert>
+            )}
           </TabsContent>
 
           {/* Tab: Definir Senha Manualmente */}

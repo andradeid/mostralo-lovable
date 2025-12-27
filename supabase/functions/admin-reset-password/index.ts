@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.55.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -37,13 +37,35 @@ serve(async (req) => {
     }
 
     // Obter token do header
-    const authHeader = req.headers.get("Authorization");
+    const authHeader = req.headers.get("authorization") ?? req.headers.get("Authorization");
     console.log('🔐 Auth header presente:', !!authHeader);
     
     if (!authHeader) {
       console.error('❌ Missing authorization header');
       return new Response(
         JSON.stringify({ error: "Missing authorization header" }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Extrair token do header "Bearer <token>" (sem vazar o token nos logs)
+    const token = (authHeader.split(' ')[1] ?? '').trim();
+    console.log('🔐 Token parsed:', {
+      hasToken: !!token,
+      length: token.length,
+      parts: token ? token.split('.').length : 0,
+    });
+
+    if (!token) {
+      console.error('❌ Missing bearer token');
+      return new Response(
+        JSON.stringify({
+          error: "Unauthorized",
+          details: "Missing bearer token",
+        }),
         {
           status: 401,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -73,15 +95,13 @@ serve(async (req) => {
           persistSession: false,
         },
         global: {
-          headers: { Authorization: authHeader },
+          headers: { Authorization: `Bearer ${token}` },
         },
       }
     );
 
     // Verificar autenticação
-    // IMPORTANTE: Extrair o token do header e passar para getUser()
-    const token = authHeader.replace('Bearer ', '');
-    
+    // IMPORTANTE: passar o token explicitamente para evitar AuthSessionMissingError
     const {
       data: { user },
       error: authError,

@@ -77,7 +77,8 @@ export default function ComandaDetailPage() {
   const isSelfService = comanda.source === 'self_service';
 
   const handleApprovalChange = () => {
-    queryClient.invalidateQueries({ queryKey: ['comanda-detail', id] });
+    queryClient.invalidateQueries({ queryKey: ['comanda', id] });
+    queryClient.invalidateQueries({ queryKey: ['pending-approvals'] });
     refetchComandas();
   };
 

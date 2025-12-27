@@ -64,9 +64,7 @@ export function TotemProducts({
 
         if (categoriesData) {
           setCategories(categoriesData);
-          if (categoriesData.length > 0 && !selectedCategory) {
-            setSelectedCategory(categoriesData[0].id);
-          }
+          // Não seleciona categoria automaticamente - mostra todos os produtos
         }
 
         // Buscar produtos
@@ -108,7 +106,7 @@ export function TotemProducts({
     onAddToCart(newItem);
   };
 
-  const handleSelectCategory = (categoryId: string) => {
+  const handleSelectCategory = (categoryId: string | null) => {
     setSelectedCategory(categoryId);
     setCategoriesOpen(false);
   };
@@ -125,7 +123,9 @@ export function TotemProducts({
     large: 'min-h-[260px]',
   };
 
-  const selectedCategoryName = categories.find(c => c.id === selectedCategory)?.name || 'Todos';
+  const selectedCategoryName = selectedCategory 
+    ? categories.find(c => c.id === selectedCategory)?.name || 'Todos os Produtos'
+    : 'Todos os Produtos';
 
   return (
     <div className="h-full flex flex-col">
@@ -182,6 +182,22 @@ export function TotemProducts({
               </SheetTitle>
             </SheetHeader>
             <div className="mt-6 flex flex-col gap-2">
+              {/* Opção Todos os Produtos */}
+              <button
+                onClick={() => handleSelectCategory(null)}
+                className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+                  selectedCategory === null
+                    ? 'text-white shadow-lg'
+                    : config.dark_mode
+                    ? 'bg-gray-800 hover:bg-gray-700'
+                    : 'bg-gray-100 hover:bg-gray-200'
+                }`}
+                style={{
+                  backgroundColor: selectedCategory === null ? config.theme_color : undefined,
+                }}
+              >
+                Todos os Produtos
+              </button>
               {categories.map((category) => (
                 <button
                   key={category.id}

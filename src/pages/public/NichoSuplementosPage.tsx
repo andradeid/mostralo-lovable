@@ -21,6 +21,7 @@ import {
 import { Link } from "react-router-dom";
 import { usePageSEO } from "@/hooks/useSEO";
 import { useState } from "react";
+import { WhatsAppLeadButton } from "@/components/leads/WhatsAppLeadButton";
 
 const NichoSuplementosPage = () => {
   usePageSEO({
@@ -515,6 +516,8 @@ const NichoSuplementosPage = () => {
           </div>
         </div>
       </footer>
+      
+      <WhatsAppLeadButton />
     </div>
   );
 };

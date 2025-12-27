@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { usePageSEO } from "@/hooks/useSEO";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { WhatsAppLeadButton } from "@/components/leads/WhatsAppLeadButton";
 
 const ConversaoLandingPage = () => {
   usePageSEO({
@@ -504,6 +505,8 @@ const ConversaoLandingPage = () => {
           </p>
         </div>
       </footer>
+      
+      <WhatsAppLeadButton />
     </div>
   );
 };

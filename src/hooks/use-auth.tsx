@@ -7,6 +7,8 @@ interface Profile {
   id: string;
   email: string;
   full_name?: string;
+  phone?: string | null;
+  whatsapp_valid?: boolean | null;
   user_type: 'master_admin' | 'store_admin';
   avatar_url?: string;
   approval_status?: string | null;

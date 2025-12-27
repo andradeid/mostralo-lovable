@@ -97,6 +97,31 @@ export function useComandas() {
     enabled: !!storeId,
   });
 
+  // Buscar contagem de itens pendentes de aprovação por comanda
+  const { data: pendingApprovalsByComanda = {} } = useQuery({
+    queryKey: ['pending-approvals', storeId],
+    queryFn: async () => {
+      if (!storeId) return {};
+      
+      const { data, error } = await supabase
+        .from('comanda_items')
+        .select('comanda_id')
+        .eq('requires_approval', true)
+        .is('approved_at', null);
+
+      if (error) throw error;
+      
+      const counts: Record<string, number> = {};
+      data.forEach(item => {
+        counts[item.comanda_id] = (counts[item.comanda_id] || 0) + 1;
+      });
+      
+      return counts;
+    },
+    enabled: !!storeId,
+    refetchInterval: 10000,
+  });
+
   // Buscar comandas abertas
   const openComandas = comandas.filter(c => c.status === 'open');
 
@@ -347,6 +372,7 @@ export function useComandas() {
     openComandas,
     loadingComandas,
     refetchComandas,
+    pendingApprovalsByComanda,
     useComandaDetail,
     createComanda: createComandaMutation.mutateAsync,
     isCreating: createComandaMutation.isPending,

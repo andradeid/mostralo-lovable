@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { formatPhone } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
+import { CountryCodeSelect } from '@/components/ui/country-code-select';
 
 interface UserEditDialogProps {
   open: boolean;
@@ -37,6 +38,7 @@ export function UserEditDialog({ open, onOpenChange, user, onSuccess }: UserEdit
   const [email, setEmail] = useState('');
   const [userType, setUserType] = useState('');
   const [phone, setPhone] = useState('');
+  const [countryCode, setCountryCode] = useState('+55');
   const [isWhatsAppValid, setIsWhatsAppValid] = useState<boolean | null>(null);
   const [validatingWhatsApp, setValidatingWhatsApp] = useState(false);
   const [stores, setStores] = useState<Store[]>([]);
@@ -83,13 +85,14 @@ export function UserEditDialog({ open, onOpenChange, user, onSuccess }: UserEdit
 
     setValidatingWhatsApp(true);
     try {
+      const fullPhone = countryCode.replace('+', '') + cleanPhone;
       const { data, error } = await supabase.functions.invoke('validate-whatsapp-number', {
-        body: { phone: cleanPhone }
+        body: { phone: fullPhone }
       });
 
       if (error) throw error;
 
-      if (data?.isValid) {
+      if (data?.valid) {
         setIsWhatsAppValid(true);
         toast.success('WhatsApp válido!');
       } else {
@@ -203,6 +206,7 @@ export function UserEditDialog({ open, onOpenChange, user, onSuccess }: UserEdit
               Telefone (WhatsApp)
             </Label>
             <div className="flex gap-2">
+              <CountryCodeSelect value={countryCode} onChange={setCountryCode} />
               <div className="relative flex-1">
                 <Input
                   id="phone"

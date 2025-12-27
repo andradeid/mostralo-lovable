@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User, LogOut, Settings, Camera, UserCheck, MessageCircle, Loader2, CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { CountryCodeSelect } from "@/components/ui/country-code-select";
 
 const formatPhone = (value: string) => {
   const numbers = value.replace(/\D/g, '').slice(0, 11);
@@ -26,6 +27,7 @@ export function UserProfileHeader() {
   const [uploading, setUploading] = useState(false);
   const [fullName, setFullName] = useState(profile?.full_name || '');
   const [phone, setPhone] = useState('');
+  const [countryCode, setCountryCode] = useState('+55');
   const [whatsappValid, setWhatsappValid] = useState(false);
   const [validatingWhatsApp, setValidatingWhatsApp] = useState(false);
   const { toast } = useToast();
@@ -130,13 +132,14 @@ export function UserProfileHeader() {
 
     setValidatingWhatsApp(true);
     try {
+      const fullPhone = countryCode.replace('+', '') + phoneNumbers;
       const { data, error } = await supabase.functions.invoke('validate-whatsapp-number', {
-        body: { phone: phoneNumbers }
+        body: { phone: fullPhone }
       });
 
       if (error) throw error;
 
-      if (data.exists) {
+      if (data.valid) {
         setWhatsappValid(true);
         toast({ title: "Sucesso", description: "Número de WhatsApp válido!" });
       } else {
@@ -291,6 +294,7 @@ export function UserProfileHeader() {
                 <div className="space-y-2">
                   <Label htmlFor="phone">Telefone (WhatsApp)</Label>
                   <div className="flex gap-2">
+                    <CountryCodeSelect value={countryCode} onChange={setCountryCode} />
                     <Input
                       id="phone"
                       value={phone}

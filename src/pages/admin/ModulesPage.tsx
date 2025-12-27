@@ -11,7 +11,8 @@ import {
   Package, Menu, ShoppingCart, BarChart3, Palette, MessageCircle,
   Truck, Users, Printer, Tag, Megaphone, Calendar, ExternalLink, 
   Image, Search, Filter, CheckCircle, XCircle, Sparkles, Shield, Zap,
-  Utensils, Settings2, Monitor, Wallet, Code, QrCode, MessageSquare, Target, Tablet
+  Utensils, Settings2, Monitor, Wallet, Code, QrCode, MessageSquare, Target, Tablet,
+  DollarSign, TrendingUp, AlertTriangle, Link2
 } from 'lucide-react';
 
 // Mapeamento de ícones string -> componente
@@ -110,6 +111,22 @@ const moduleDetails: Record<string, { description: string; category: 'core' | 'a
   'self_service_totem': {
     description: 'Totem de autoatendimento para clientes fazerem pedidos diretamente em tablets ou telas touch. Reduz filas, economiza com atendentes e funciona 24h. Tela de boas-vindas personalizável, identificação opcional, pagamento PIX integrado e sistema de senhas.',
     category: 'premium'
+  },
+  'self_service_table': {
+    description: 'Cardápio digital na mesa com QR Code. Clientes fazem pedidos diretamente do celular, reduzindo tempo de atendimento e erros.',
+    category: 'advanced'
+  },
+  'password_call': {
+    description: 'Sistema de chamada de senhas para organizar a retirada de pedidos. Exibe na tela da loja e notifica clientes.',
+    category: 'advanced'
+  },
+  'kds': {
+    description: 'Kitchen Display System para visualização de pedidos na cozinha em tempo real. Gerencia preparo e priorização.',
+    category: 'premium'
+  },
+  'pdv_comandas': {
+    description: 'Sistema de PDV e comandas para controle de mesas, contas abertas, divisão de pagamentos e fechamento de caixa.',
+    category: 'premium'
   }
 };
 
@@ -127,7 +144,14 @@ interface Module {
   icon: string | null;
   is_active: boolean | null;
   created_at: string;
+  suggested_price: number | null;
+  price_reference: string | null;
+  dependencies: string | null;
 }
+
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+};
 
 const ModulesPage = () => {
   usePageSEO({
@@ -175,6 +199,29 @@ const ModulesPage = () => {
     premium: modules.filter(m => m.key && moduleDetails[m.key]?.category === 'premium').length
   }), [modules]);
 
+  // Cálculo do valor total dos módulos
+  const totalModulesValue = useMemo(() => {
+    return modules.reduce((sum, m) => sum + (m.suggested_price || 0), 0);
+  }, [modules]);
+
+  const planPrice = 397.90;
+  const savings = totalModulesValue - planPrice;
+  const savingsPercent = totalModulesValue > 0 ? Math.round((savings / totalModulesValue) * 100) : 0;
+
+  // Função para obter nomes dos módulos dependentes
+  const getDependencyNames = (dependencies: string | null): string[] => {
+    if (!dependencies) return [];
+    try {
+      const depKeys = JSON.parse(dependencies) as string[];
+      return depKeys.map(key => {
+        const mod = modules.find(m => m.key === key);
+        return mod?.name || key;
+      });
+    } catch {
+      return [];
+    }
+  };
+
   const getIcon = (iconName: string | null) => {
     if (!iconName) return Package;
     return iconMap[iconName] || Package;
@@ -213,6 +260,46 @@ const ModulesPage = () => {
           </Badge>
         </div>
       </div>
+
+      {/* Card de Valor Total */}
+      <Card className="bg-gradient-to-br from-amber-500/10 via-orange-500/10 to-red-500/10 border-amber-500/30">
+        <CardContent className="p-6">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-full bg-amber-500/20">
+                <DollarSign className="w-8 h-8 text-amber-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  💰 Valor Total dos Módulos
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Soma dos preços sugeridos se vendidos individualmente
+                </p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-8">
+              <div className="text-center sm:text-right">
+                <p className="text-sm text-muted-foreground">Se comprados separados</p>
+                <p className="text-2xl font-bold text-foreground">{formatCurrency(totalModulesValue)}<span className="text-sm font-normal">/mês</span></p>
+              </div>
+              <div className="text-center sm:text-right">
+                <p className="text-sm text-muted-foreground">No plano Mostralo</p>
+                <p className="text-2xl font-bold text-green-600">{formatCurrency(planPrice)}<span className="text-sm font-normal">/mês</span></p>
+              </div>
+              <div className="text-center sm:text-right">
+                <p className="text-sm text-muted-foreground">Economia do cliente</p>
+                <div className="flex items-center justify-center sm:justify-end gap-2">
+                  <TrendingUp className="w-5 h-5 text-green-600" />
+                  <p className="text-2xl font-bold text-green-600">{formatCurrency(savings)}</p>
+                  <Badge className="bg-green-600 text-white">{savingsPercent}%</Badge>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Estatísticas */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -316,6 +403,8 @@ const ModulesPage = () => {
           const category = details?.category || 'advanced';
           const categoryInfo = categoryConfig[category];
           const CategoryIcon = categoryInfo.icon;
+          const dependencyNames = getDependencyNames(module.dependencies);
+          const isCore = (module.suggested_price || 0) === 0;
 
           return (
             <Card key={module.id} className="hover:shadow-md transition-shadow">
@@ -347,14 +436,45 @@ const ModulesPage = () => {
                   )}
                 </div>
               </CardHeader>
-              <CardContent className="pt-0">
-                <CardDescription className="text-sm leading-relaxed mb-3">
+              <CardContent className="pt-0 space-y-3">
+                <CardDescription className="text-sm leading-relaxed">
                   {details?.description || module.description || 'Sem descrição disponível.'}
                 </CardDescription>
-                <Badge variant="outline" className={categoryInfo.color}>
-                  <CategoryIcon className="w-3 h-3 mr-1" />
-                  {categoryInfo.label}
-                </Badge>
+                
+                {/* Preço Sugerido */}
+                <div className="flex items-center justify-between">
+                  <Badge variant="outline" className={categoryInfo.color}>
+                    <CategoryIcon className="w-3 h-3 mr-1" />
+                    {categoryInfo.label}
+                  </Badge>
+                  {isCore ? (
+                    <Badge className="bg-green-600 text-white">
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      INCLUSO
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/30">
+                      <DollarSign className="w-3 h-3 mr-0.5" />
+                      {formatCurrency(module.suggested_price || 0)}/mês
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Referência de Mercado */}
+                {module.price_reference && (
+                  <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/50 rounded-md p-2">
+                    <BarChart3 className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                    <span>📊 Ref: {module.price_reference}</span>
+                  </div>
+                )}
+
+                {/* Dependências */}
+                {dependencyNames.length > 0 && (
+                  <div className="flex items-start gap-2 text-xs text-amber-600 bg-amber-500/10 rounded-md p-2">
+                    <Link2 className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                    <span>⚠️ Requer: {dependencyNames.join(', ')}</span>
+                  </div>
+                )}
               </CardContent>
             </Card>
           );
@@ -384,6 +504,7 @@ const ModulesPage = () => {
               Todos os módulos estão habilitados por padrão para todas as lojas. 
               Para bloquear módulos específicos para uma loja individual, acesse a 
               página de <strong>Assinantes</strong> e edite as permissões da loja desejada.
+              Os preços sugeridos são baseados em pesquisa de mercado e servem como referência para precificação individual.
             </p>
           </div>
         </CardContent>

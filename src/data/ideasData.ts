@@ -3264,5 +3264,77 @@ Solução proposta:
       '□ Testar fluxo completo',
       '□ Remover/deprecar send-password-recovery antiga'
     ]
+  },
+  {
+    id: 22,
+    title: '💰 Exibir Economia de Módulos para Clientes',
+    status: 'idea',
+    priority: 'medium',
+    createdAt: '2025-12-27',
+    description: 'Mostrar os valores individuais dos módulos na Landing Page e no Dashboard do lojista para evidenciar a economia do plano.',
+    
+    context: `Os módulos já têm preços sugeridos baseados em pesquisa de mercado.
+Total se vendidos separadamente: ~R$ 1.196,30/mês
+Plano Mostralo completo: R$ 397,90/mês
+Economia: R$ 798,40/mês (67%)
+
+Atualmente essa informação está disponível apenas no painel Master Admin (página de Módulos).`,
+    
+    problem: `Clientes potenciais não têm noção do valor que estão recebendo.
+Mostrar a economia pode:
+• Aumentar conversão de novos assinantes
+• Reduzir churn (lojistas entendem o valor que perderiam)
+• Justificar o preço do plano completo
+• Criar argumento de vendas poderoso`,
+    
+    marketAnalysis: {
+      title: '📊 Potencial de Impacto',
+      items: [
+        'Mostrar economia de R$ 798,40/mês pode aumentar conversão em 15-30%',
+        'Lojistas que entendem o valor completo têm menor taxa de cancelamento',
+        'Argumento forte contra concorrência que cobra módulos separados',
+        'Transparência gera confiança e percepção de valor justo'
+      ]
+    },
+    
+    phases: [
+      {
+        name: 'Fase 1 - Landing Page',
+        description: 'Adicionar seção de economia na página de planos',
+        items: [
+          'Card mostrando "Valor real: R$ 1.196,30/mês → Você paga: R$ 397,90"',
+          'Lista dos módulos premium inclusos com valores individuais',
+          'Destaque visual na economia de 67%',
+          'Comparativo com concorrentes que cobram módulos separados'
+        ]
+      },
+      {
+        name: 'Fase 2 - Dashboard do Lojista',
+        description: 'Card de economia no painel do lojista',
+        items: [
+          'Card "Sua Economia Mensal" no dashboard',
+          'Lista de módulos ativos com valores',
+          'Cálculo dinâmico baseado nos módulos que o lojista usa',
+          'Mensagem motivacional tipo "Você economiza R$ XXX/mês"'
+        ]
+      }
+    ],
+    
+    technicalDetails: {
+      title: '🔧 Implementação Técnica',
+      items: [
+        'Buscar preços dos módulos via API (já disponível na tabela modules)',
+        'Criar componente ModulesSavingsCard.tsx reutilizável',
+        'Adicionar animação de contador para valores',
+        'Implementar cálculo dinâmico por plano/loja'
+      ]
+    },
+    
+    nextSteps: [
+      '□ Implementar seção de economia na Landing Page',
+      '□ Criar card de economia no Dashboard do lojista',
+      '□ Adicionar animação de contador para valores',
+      '□ A/B test para medir impacto na conversão'
+    ]
   }
 ];

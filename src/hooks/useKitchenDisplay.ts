@@ -254,6 +254,7 @@ export function useKitchenDisplay() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['kitchen-items', storeId] });
+      refetch(); // Forçar refetch imediato
     },
     onError: (error) => {
       console.error('Erro ao iniciar preparo:', error);
@@ -282,6 +283,8 @@ export function useKitchenDisplay() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['kitchen-items', storeId] });
+      queryClient.invalidateQueries({ queryKey: ['kitchen-ready-items', storeId] });
+      refetch(); // Forçar refetch imediato
       toast({
         title: 'Item pronto!',
         description: 'O garçom/entregador foi notificado.',

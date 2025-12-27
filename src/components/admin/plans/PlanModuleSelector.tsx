@@ -47,6 +47,10 @@ const iconMap: Record<string, React.ComponentType<any>> = {
     Utensils: LucideIcons.Utensils,
     Monitor: LucideIcons.Monitor,
     Target: LucideIcons.Target,
+    Tablet: LucideIcons.Tablet,
+    UtensilsCrossed: LucideIcons.UtensilsCrossed,
+    Receipt: LucideIcons.Receipt,
+    Bell: LucideIcons.Bell,
   };
   
   return iconMap[iconName] || LucideIcons.Package;
@@ -95,13 +99,13 @@ export function PlanModuleSelector({ planId, selectedModuleIds, onModulesChange 
 
   // Agrupar módulos por categoria (baseado no key)
   const coreModules = modules.filter(m => 
-    ['digital_menu', 'order_management', 'delivery', 'customization'].includes(m.key || '')
+    ['digital_menu', 'order_management', 'delivery', 'customization', 'pdv_comandas'].includes(m.key || '')
   );
   const advancedModules = modules.filter(m => 
-    ['reports', 'whatsapp', 'printing', 'scheduled_orders', 'delivery_drivers', 'promotions', 'password_call'].includes(m.key || '')
+    ['reports', 'whatsapp', 'printing', 'scheduled_orders', 'delivery_drivers', 'promotions', 'password_call', 'kds', 'self_service_table'].includes(m.key || '')
   );
   const premiumModules = modules.filter(m => 
-    ['marketing', 'integrations', 'custom_scripts', 'marketing_material', 'financial_management', 'ifood_integration', 'whatsapp_recovery', 'banners', 'attendants', 'digital_signage', 'sentinela'].includes(m.key || '')
+    ['marketing', 'integrations', 'custom_scripts', 'marketing_material', 'financial_management', 'ifood_integration', 'whatsapp_recovery', 'banners', 'attendants', 'digital_signage', 'sentinela', 'self_service_totem'].includes(m.key || '')
   );
 
   const renderModuleGroup = (groupModules: Module[], title: string, badgeColor: string) => (

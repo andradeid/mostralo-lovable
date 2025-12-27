@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
+import { CountryCodeSelect } from '@/components/ui/country-code-select';
 
 interface Profile {
   id: string;
@@ -55,6 +56,7 @@ const ProfilePage = () => {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [validatingWhatsApp, setValidatingWhatsApp] = useState(false);
+  const [countryCode, setCountryCode] = useState('+55');
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
@@ -117,13 +119,14 @@ const ProfilePage = () => {
 
     setValidatingWhatsApp(true);
     try {
+      const fullPhone = countryCode.replace('+', '') + phoneNumbers;
       const { data, error } = await supabase.functions.invoke('validate-whatsapp-number', {
-        body: { phone: phoneNumbers }
+        body: { phone: fullPhone }
       });
 
       if (error) throw error;
 
-      if (data.exists) {
+      if (data.valid) {
         setFormData(prev => ({ ...prev, whatsapp_valid: true }));
         toast({ title: "Sucesso", description: "Número de WhatsApp válido!" });
       } else {
@@ -320,6 +323,7 @@ const ProfilePage = () => {
               <Label htmlFor="phone">Telefone (WhatsApp)</Label>
               {editing ? (
                 <div className="flex gap-2">
+                  <CountryCodeSelect value={countryCode} onChange={setCountryCode} />
                   <Input
                     id="phone"
                     value={formData.phone}

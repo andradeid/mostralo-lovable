@@ -79,12 +79,13 @@ serve(async (req) => {
     );
 
     // Verificar autenticação
-    // IMPORTANTE: Se verify_jwt está true no config.toml, o Supabase já valida o JWT antes
-    // Mas vamos validar novamente para garantir e ter logs
+    // IMPORTANTE: Extrair o token do header e passar para getUser()
+    const token = authHeader.replace('Bearer ', '');
+    
     const {
       data: { user },
       error: authError,
-    } = await supabaseClient.auth.getUser();
+    } = await supabaseClient.auth.getUser(token);
 
     console.log('🔐 User auth check:', { 
       hasUser: !!user, 

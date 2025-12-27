@@ -184,13 +184,35 @@ export function useTotemConfig(storeId: string | null) {
     }
   };
 
-  const initializeConfig = async (): Promise<boolean> => {
+const initializeConfig = async (customColors?: { theme_color?: string; background_color?: string }): Promise<boolean> => {
     if (!storeId || config) return false;
 
     try {
+      // Buscar cores da loja para usar como padrão
+      let storeThemeColor = defaultConfig.theme_color;
+      
+      if (!customColors) {
+        const { data: storeConfig } = await supabase
+          .from('store_configurations')
+          .select('primary_color')
+          .eq('store_id', storeId)
+          .maybeSingle();
+        
+        if (storeConfig?.primary_color) {
+          storeThemeColor = storeConfig.primary_color;
+        }
+      }
+
+      const configToInsert = {
+        store_id: storeId,
+        ...defaultConfig,
+        theme_color: customColors?.theme_color || storeThemeColor,
+        background_color: customColors?.background_color || defaultConfig.background_color
+      };
+
       const { data, error } = await supabase
         .from('store_totem_config')
-        .insert({ store_id: storeId, ...defaultConfig })
+        .insert(configToInsert)
         .select()
         .single();
 

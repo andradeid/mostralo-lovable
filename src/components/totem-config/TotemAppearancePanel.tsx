@@ -2,17 +2,63 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { TotemConfig } from '@/hooks/useTotemConfig';
-import { Monitor, Smartphone } from 'lucide-react';
+import { Monitor, Smartphone, RefreshCw } from 'lucide-react';
 
 interface TotemAppearancePanelProps {
   config: Partial<TotemConfig>;
   onChange: (updates: Partial<TotemConfig>) => void;
+  storePrimaryColor?: string | null;
+  storeSecondaryColor?: string | null;
 }
 
-export function TotemAppearancePanel({ config, onChange }: TotemAppearancePanelProps) {
+export function TotemAppearancePanel({ config, onChange, storePrimaryColor, storeSecondaryColor }: TotemAppearancePanelProps) {
+  const hasStoreColors = !!storePrimaryColor;
+  
+  const handleSyncWithStoreColors = () => {
+    onChange({
+      theme_color: storePrimaryColor || '#f97316',
+      background_color: '#ffffff'
+    });
+  };
+
+  // Verificar se as cores estão sincronizadas com a loja
+  const isSynced = storePrimaryColor && config.theme_color === storePrimaryColor;
+
   return (
     <div className="space-y-6">
+      {/* Botão de sincronização com cores da loja */}
+      {hasStoreColors && (
+        <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/50">
+          <div className="space-y-0.5">
+            <p className="text-sm font-medium">Cores da Loja</p>
+            <p className="text-xs text-muted-foreground">
+              {isSynced ? 'Cores sincronizadas com a personalização da loja' : 'Use as cores configuradas na personalização da loja'}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            {storePrimaryColor && (
+              <div 
+                className="w-6 h-6 rounded-full border shadow-sm" 
+                style={{ backgroundColor: storePrimaryColor }}
+                title={`Cor principal: ${storePrimaryColor}`}
+              />
+            )}
+            <Button
+              type="button"
+              variant={isSynced ? "secondary" : "outline"}
+              size="sm"
+              onClick={handleSyncWithStoreColors}
+              disabled={isSynced}
+            >
+              <RefreshCw className="h-3 w-3 mr-1" />
+              {isSynced ? 'Sincronizado' : 'Sincronizar'}
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-2">
         <Label>Orientação do Totem</Label>
         <div className="flex gap-4">

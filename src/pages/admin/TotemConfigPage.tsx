@@ -22,20 +22,36 @@ export default function TotemConfigPage() {
   const { config, loading, updateConfig, uploadWelcomeImage, initializeConfig } = useTotemConfig(storeId);
   const { toast } = useToast();
 
-  const [localConfig, setLocalConfig] = useState<Partial<TotemConfig>>({});
+const [localConfig, setLocalConfig] = useState<Partial<TotemConfig>>({});
   const [saving, setSaving] = useState(false);
   const [storeInfo, setStoreInfo] = useState<{ slug: string; name: string; logo_url: string | null } | null>(null);
+  const [storeColors, setStoreColors] = useState<{ primary_color: string | null; secondary_color: string | null }>({ primary_color: null, secondary_color: null });
 
-  // Buscar info da loja
+  // Buscar info da loja e cores de personalização
   useEffect(() => {
     const fetchStoreInfo = async () => {
       if (!storeId) return;
-      const { data } = await supabase
+      
+      // Buscar info básica da loja
+      const { data: storeData } = await supabase
         .from('stores')
         .select('slug, name, logo_url')
         .eq('id', storeId)
         .single();
-      if (data) setStoreInfo(data);
+      if (storeData) setStoreInfo(storeData);
+
+      // Buscar cores de personalização da loja
+      const { data: configData } = await supabase
+        .from('store_configurations')
+        .select('primary_color, secondary_color')
+        .eq('store_id', storeId)
+        .maybeSingle();
+      if (configData) {
+        setStoreColors({
+          primary_color: configData.primary_color,
+          secondary_color: configData.secondary_color
+        });
+      }
     };
     fetchStoreInfo();
   }, [storeId]);
@@ -162,7 +178,12 @@ export default function TotemConfigPage() {
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
-                    <TotemAppearancePanel config={localConfig} onChange={handleChange} />
+                    <TotemAppearancePanel 
+                      config={localConfig} 
+                      onChange={handleChange}
+                      storePrimaryColor={storeColors.primary_color}
+                      storeSecondaryColor={storeColors.secondary_color}
+                    />
                   </AccordionContent>
                 </AccordionItem>
 

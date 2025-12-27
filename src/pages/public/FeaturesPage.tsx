@@ -1906,6 +1906,143 @@ Site: mostralo.com.br`;
           </div>
         </section>
 
+        {/* Section: Totem Autoatendimento */}
+        <section id="totem" className="py-16 bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-teal-950/20 dark:to-cyan-950/20">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-12 h-12 bg-teal-500/10 rounded-xl flex items-center justify-center">
+                <Smartphone className="h-6 w-6 text-teal-500" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">Totem Autoatendimento</h2>
+                  <span className="bg-teal-500 text-white text-xs font-bold px-2 py-1 rounded-full">🆕 NOVO!</span>
+                  <button
+                    onClick={() => copyWhatsAppText('totem')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
+                <p className="text-muted-foreground">Seu cliente faz o pedido sozinho, sem fila</p>
+              </div>
+            </div>
+
+            {/* Problema que resolve */}
+            <div className="bg-gradient-to-r from-red-500/10 via-orange-500/10 to-teal-500/10 border border-teal-500/30 rounded-xl p-6 mb-8">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-teal-500 rounded-xl flex items-center justify-center">
+                  <AlertTriangle className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-foreground text-lg">Problema que o Totem Resolve</h4>
+                  <p className="text-muted-foreground text-sm">Filas no caixa, erros de anotação, custos com atendentes</p>
+                </div>
+              </div>
+              <div className="grid md:grid-cols-4 gap-4 mt-4">
+                <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-center">
+                  <span className="text-2xl mb-1 block">😫</span>
+                  <p className="text-xs text-muted-foreground">Filas no horário de pico</p>
+                </div>
+                <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-3 text-center">
+                  <span className="text-2xl mb-1 block">📝</span>
+                  <p className="text-xs text-muted-foreground">Erros de anotação manual</p>
+                </div>
+                <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 text-center">
+                  <span className="text-2xl mb-1 block">💸</span>
+                  <p className="text-xs text-muted-foreground">Custos com atendentes</p>
+                </div>
+                <div className="bg-teal-500/10 border border-teal-500/20 rounded-lg p-3 text-center">
+                  <span className="text-2xl mb-1 block">✅</span>
+                  <p className="text-xs text-muted-foreground font-medium">Totem resolve tudo!</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {[
+                { title: 'Autoatendimento', desc: 'Cliente faz pedido sozinho no tablet ou totem', icon: Smartphone },
+                { title: 'Tela de Boas-Vindas', desc: 'Logo e mensagem personalizada da sua marca', icon: Image },
+                { title: 'Identificação Opcional', desc: 'Por telefone, nome ou CPF - você escolhe', icon: Users },
+                { title: 'Cardápio Visual', desc: 'Fotos, variações e adicionais interativos', icon: Package },
+                { title: 'Pagamento PIX', desc: 'QR Code com confirmação automática integrada', icon: QrCode },
+                { title: 'Senha Automática', desc: 'Integrada com sistema de chamada de senhas', icon: Volume2 },
+              ].map((item, i) => (
+                <Card key={i} className="bg-card hover:shadow-md transition-shadow">
+                  <CardContent className="p-5">
+                    <item.icon className="h-8 w-8 text-teal-500 mb-3" />
+                    <h4 className="font-semibold text-foreground mb-1">{item.title}</h4>
+                    <p className="text-sm text-muted-foreground">{item.desc}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Benefícios */}
+            <div className="grid md:grid-cols-2 gap-6 mb-8">
+              <div className="bg-teal-500/10 border border-teal-500/20 rounded-xl p-6">
+                <h4 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-teal-500" /> Benefícios Comprovados
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-teal-500" />
+                    <span className="text-sm text-muted-foreground">Reduz filas em até 70%</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-teal-500" />
+                    <span className="text-sm text-muted-foreground">Aumenta ticket médio em 15-25%</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-teal-500" />
+                    <span className="text-sm text-muted-foreground">Zero erros de anotação</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-teal-500" />
+                    <span className="text-sm text-muted-foreground">Funciona 24h sem supervisão</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-teal-500" />
+                    <span className="text-sm text-muted-foreground">Libera equipe para produção</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-teal-500/20 to-cyan-500/20 border border-teal-500/30 rounded-xl p-6">
+                <h4 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <Smartphone className="h-5 w-5 text-teal-500" /> Visual de Grandes Redes
+                </h4>
+                <p className="text-sm text-muted-foreground mb-4">
+                  O mesmo visual profissional do McDonald's e Burger King na sua loja. 
+                  Funciona em tablet horizontal, vertical ou totem dedicado.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <span className="bg-teal-500/20 text-teal-700 dark:text-teal-300 text-xs px-2 py-1 rounded">Modo Escuro</span>
+                  <span className="bg-teal-500/20 text-teal-700 dark:text-teal-300 text-xs px-2 py-1 rounded">Modo Claro</span>
+                  <span className="bg-teal-500/20 text-teal-700 dark:text-teal-300 text-xs px-2 py-1 rounded">Horizontal</span>
+                  <span className="bg-teal-500/20 text-teal-700 dark:text-teal-300 text-xs px-2 py-1 rounded">Vertical</span>
+                  <span className="bg-teal-500/20 text-teal-700 dark:text-teal-300 text-xs px-2 py-1 rounded">Timer Inteligente</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-teal-500/10 border border-teal-500/20 rounded-xl p-6">
+              <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                <Target className="h-5 w-5 text-teal-500" /> Ideal Para:
+              </h4>
+              <div className="flex flex-wrap gap-2 mt-2">
+                <span className="bg-teal-500/20 text-teal-700 dark:text-teal-300 text-sm px-3 py-1 rounded-full">🍔 Fast-food</span>
+                <span className="bg-teal-500/20 text-teal-700 dark:text-teal-300 text-sm px-3 py-1 rounded-full">🥐 Padarias</span>
+                <span className="bg-teal-500/20 text-teal-700 dark:text-teal-300 text-sm px-3 py-1 rounded-full">🍕 Pizzarias</span>
+                <span className="bg-teal-500/20 text-teal-700 dark:text-teal-300 text-sm px-3 py-1 rounded-full">☕ Cafeterias</span>
+                <span className="bg-teal-500/20 text-teal-700 dark:text-teal-300 text-sm px-3 py-1 rounded-full">🍜 Restaurantes</span>
+                <span className="bg-teal-500/20 text-teal-700 dark:text-teal-300 text-sm px-3 py-1 rounded-full">🏪 Conveniências</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Section: Personalização */}
         <section id="personalizacao" className="py-16 bg-background">
           <div className="container mx-auto px-4">

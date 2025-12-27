@@ -128,7 +128,7 @@ export function TotemProducts({
     : 'Todos os Produtos';
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col relative">
       {/* Header */}
       <header
         className="flex items-center justify-between p-4 border-b"
@@ -245,7 +245,7 @@ export function TotemProducts({
             <Loader2 className="h-8 w-8 animate-spin" style={{ color: config.theme_color }} />
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 ${cartItemsCount > 0 ? 'pb-24' : ''}`}>
             {filteredProducts.map((product) => (
               <div
                 key={product.id}
@@ -296,10 +296,10 @@ export function TotemProducts({
         )}
       </ScrollArea>
 
-      {/* Cart Bar */}
+      {/* Cart Bar - Fixed at bottom */}
       {cartItemsCount > 0 && (
         <div
-          className="p-4 border-t cursor-pointer"
+          className="fixed bottom-0 left-0 right-0 p-4 border-t cursor-pointer z-50"
           style={{
             backgroundColor: config.theme_color,
             borderColor: config.theme_color,

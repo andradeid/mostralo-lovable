@@ -113,9 +113,9 @@ export function TotemProducts({
   };
 
   const cardSizeClasses = {
-    small: 'h-32',
-    medium: 'h-40',
-    large: 'h-48',
+    small: 'min-h-[180px]',
+    medium: 'min-h-[220px]',
+    large: 'min-h-[260px]',
   };
 
   return (
@@ -184,7 +184,7 @@ export function TotemProducts({
             {filteredProducts.map((product) => (
               <div
                 key={product.id}
-                className={`rounded-xl border overflow-hidden cursor-pointer transition-transform hover:scale-105 ${cardSizeClasses[config.product_card_size || 'medium']}`}
+                className={`rounded-xl border overflow-hidden cursor-pointer transition-transform hover:scale-105 flex flex-col ${cardSizeClasses[config.product_card_size || 'medium']}`}
                 style={{
                   borderColor: config.dark_mode ? '#333' : '#e5e7eb',
                   backgroundColor: config.dark_mode ? '#262626' : '#fff',
@@ -192,7 +192,7 @@ export function TotemProducts({
                 onClick={() => setSelectedProduct(product)}
               >
                 {config.show_product_images && product.image_url && (
-                  <div className="h-1/2 overflow-hidden">
+                  <div className="aspect-[4/3] w-full overflow-hidden flex-shrink-0">
                     <img
                       src={product.image_url}
                       alt={product.name}
@@ -200,8 +200,8 @@ export function TotemProducts({
                     />
                   </div>
                 )}
-                <div className="p-3 flex flex-col justify-between h-1/2">
-                  <div>
+                <div className="p-3 pb-4 flex flex-col justify-between flex-1">
+                  <div className="flex-1 min-h-0">
                     <h3 className="font-medium text-sm line-clamp-2">{product.name}</h3>
                     {config.show_product_description && product.description && (
                       <p
@@ -212,7 +212,7 @@ export function TotemProducts({
                       </p>
                     )}
                   </div>
-                  <div className="flex items-center justify-between mt-2">
+                  <div className="flex items-center justify-between mt-2 pt-1">
                     <span className="font-bold text-sm" style={{ color: config.theme_color }}>
                       R$ {product.price.toFixed(2)}
                     </span>
@@ -221,7 +221,7 @@ export function TotemProducts({
                         e.stopPropagation();
                         handleQuickAdd(product);
                       }}
-                      className="p-2 rounded-full text-white"
+                      className="p-2 rounded-full text-white flex-shrink-0"
                       style={{ backgroundColor: config.theme_color }}
                     >
                       <Plus className="h-4 w-4" />

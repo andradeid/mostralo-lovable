@@ -92,6 +92,12 @@ export function useTableComanda(): UseTableComandaReturn {
       if (fnError) throw new Error(fnError.message);
       if (result.error) throw new Error(result.error);
 
+      // Se veio session, autenticar no browser (igual ao cardápio digital)
+      if (result.session) {
+        await supabase.auth.setSession(result.session);
+        console.log('✅ Session configurada após registro');
+      }
+
       return true;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao cadastrar';
@@ -119,6 +125,12 @@ export function useTableComanda(): UseTableComandaReturn {
 
       if (fnError) throw new Error(fnError.message);
       if (result.error) throw new Error(result.error);
+
+      // Se veio session, autenticar no browser (igual ao cardápio digital)
+      if (result.session) {
+        await supabase.auth.setSession(result.session);
+        console.log('✅ Session configurada após login');
+      }
 
       return true;
     } catch (err) {

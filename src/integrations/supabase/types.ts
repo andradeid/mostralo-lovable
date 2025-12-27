@@ -7953,6 +7953,10 @@ export type Database = {
         Args: { check_store_id: string }
         Returns: boolean
       }
+      can_customer_access_comanda: {
+        Args: { _comanda_id: string }
+        Returns: boolean
+      }
       cleanup_old_password_calls: { Args: never; Returns: undefined }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
       generate_product_slug: {

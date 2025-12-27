@@ -1,24 +1,43 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { User, LogOut, Settings, Camera, UserCheck } from "lucide-react";
+import { User, LogOut, Settings, Camera, UserCheck, MessageCircle, Loader2, CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
+
+const formatPhone = (value: string) => {
+  const numbers = value.replace(/\D/g, '').slice(0, 11);
+  if (numbers.length <= 2) return numbers;
+  if (numbers.length <= 7) return `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`;
+  return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7)}`;
+};
 
 export function UserProfileHeader() {
   const { profile, signOut, isImpersonating, originalAdmin, stopImpersonation, user } = useAuth();
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [fullName, setFullName] = useState(profile?.full_name || '');
+  const [phone, setPhone] = useState('');
+  const [whatsappValid, setWhatsappValid] = useState(false);
+  const [validatingWhatsApp, setValidatingWhatsApp] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (profile) {
+      setFullName(profile.full_name || '');
+      setPhone(profile.phone ? formatPhone(profile.phone) : '');
+      setWhatsappValid(profile.whatsapp_valid || false);
+    }
+  }, [profile]);
 
   const handleSignOut = async () => {
     try {
@@ -102,13 +121,47 @@ export function UserProfileHeader() {
     }
   };
 
+  const handleValidateWhatsApp = async () => {
+    const phoneNumbers = phone.replace(/\D/g, '');
+    if (phoneNumbers.length < 10) {
+      toast({ title: "Erro", description: "Telefone inválido", variant: "destructive" });
+      return;
+    }
+
+    setValidatingWhatsApp(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('validate-whatsapp-number', {
+        body: { phone: phoneNumbers }
+      });
+
+      if (error) throw error;
+
+      if (data.exists) {
+        setWhatsappValid(true);
+        toast({ title: "Sucesso", description: "Número de WhatsApp válido!" });
+      } else {
+        setWhatsappValid(false);
+        toast({ title: "Aviso", description: "Este número não possui WhatsApp", variant: "destructive" });
+      }
+    } catch (error: any) {
+      toast({ title: "Erro", description: "Erro ao validar WhatsApp", variant: "destructive" });
+    } finally {
+      setValidatingWhatsApp(false);
+    }
+  };
+
   const handleUpdateProfile = async () => {
     if (!user) return;
 
     try {
+      const phoneNumbers = phone.replace(/\D/g, '');
       const { error } = await supabase
         .from('profiles')
-        .update({ full_name: fullName })
+        .update({ 
+          full_name: fullName,
+          phone: phoneNumbers || null,
+          whatsapp_valid: whatsappValid
+        })
         .eq('id', user.id);
 
       if (error) throw error;
@@ -232,6 +285,43 @@ export function UserProfileHeader() {
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Digite seu nome completo"
                   />
+                </div>
+
+                {/* Telefone/WhatsApp */}
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Telefone (WhatsApp)</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="phone"
+                      value={phone}
+                      onChange={(e) => {
+                        setPhone(formatPhone(e.target.value));
+                        setWhatsappValid(false);
+                      }}
+                      placeholder="(00) 00000-0000"
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="outline"
+                      onClick={handleValidateWhatsApp}
+                      disabled={validatingWhatsApp || phone.replace(/\D/g, '').length < 10}
+                      title="Validar WhatsApp"
+                    >
+                      {validatingWhatsApp ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <MessageCircle className="w-4 h-4" />
+                      )}
+                    </Button>
+                  </div>
+                  {whatsappValid && (
+                    <Badge className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      WhatsApp válido
+                    </Badge>
+                  )}
                 </div>
 
                 {/* E-mail (readonly) */}

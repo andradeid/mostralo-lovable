@@ -54,6 +54,7 @@ const ComandasPage = lazy(() => import("@/pages/admin/ComandasPage"));
 const ComandaDetailPage = lazy(() => import("@/pages/admin/ComandaDetailPage"));
 const KitchenDisplayPage = lazy(() => import("@/pages/admin/KitchenDisplayPage"));
 const TableQRCodePage = lazy(() => import("@/pages/admin/TableQRCodePage"));
+const TotemConfigPage = lazy(() => import("@/pages/admin/TotemConfigPage"));
 
 export const storeAdminRoutes = (
   <>
@@ -476,6 +477,15 @@ export const storeAdminRoutes = (
       <ProtectedRoute allowedRoles={['store_admin']}>
         <AdminLayout pageTitle="Mesas QR Code">
           <LazyRoute><TableQRCodePage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+
+    {/* Totem de Autoatendimento */}
+    <Route path="/dashboard/totem-config" element={
+      <ProtectedRoute allowedRoles={['store_admin']}>
+        <AdminLayout pageTitle="Totem de Autoatendimento">
+          <LazyRoute><TotemConfigPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

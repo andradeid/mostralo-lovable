@@ -6017,6 +6017,123 @@ export type Database = {
           },
         ]
       }
+      store_totem_config: {
+        Row: {
+          allow_customer_identification: boolean | null
+          auto_print_receipt: boolean | null
+          background_color: string | null
+          cart_position: string | null
+          categories_position: string | null
+          created_at: string | null
+          dark_mode: boolean | null
+          id: string
+          identification_fields: string[] | null
+          identification_type: string | null
+          inactivity_timeout_seconds: number | null
+          inactivity_warning_seconds: number | null
+          is_enabled: boolean | null
+          logo_size: string | null
+          orientation: string | null
+          password_display_duration_seconds: number | null
+          payment_methods: string[] | null
+          pix_timeout_seconds: number | null
+          product_card_size: string | null
+          show_item_notes: boolean | null
+          show_logo: boolean | null
+          show_order_summary_on_confirmation: boolean | null
+          show_product_description: boolean | null
+          show_product_images: boolean | null
+          show_welcome_image: boolean | null
+          store_id: string
+          theme_color: string | null
+          updated_at: string | null
+          welcome_image_url: string | null
+          welcome_subtitle: string | null
+          welcome_title: string | null
+        }
+        Insert: {
+          allow_customer_identification?: boolean | null
+          auto_print_receipt?: boolean | null
+          background_color?: string | null
+          cart_position?: string | null
+          categories_position?: string | null
+          created_at?: string | null
+          dark_mode?: boolean | null
+          id?: string
+          identification_fields?: string[] | null
+          identification_type?: string | null
+          inactivity_timeout_seconds?: number | null
+          inactivity_warning_seconds?: number | null
+          is_enabled?: boolean | null
+          logo_size?: string | null
+          orientation?: string | null
+          password_display_duration_seconds?: number | null
+          payment_methods?: string[] | null
+          pix_timeout_seconds?: number | null
+          product_card_size?: string | null
+          show_item_notes?: boolean | null
+          show_logo?: boolean | null
+          show_order_summary_on_confirmation?: boolean | null
+          show_product_description?: boolean | null
+          show_product_images?: boolean | null
+          show_welcome_image?: boolean | null
+          store_id: string
+          theme_color?: string | null
+          updated_at?: string | null
+          welcome_image_url?: string | null
+          welcome_subtitle?: string | null
+          welcome_title?: string | null
+        }
+        Update: {
+          allow_customer_identification?: boolean | null
+          auto_print_receipt?: boolean | null
+          background_color?: string | null
+          cart_position?: string | null
+          categories_position?: string | null
+          created_at?: string | null
+          dark_mode?: boolean | null
+          id?: string
+          identification_fields?: string[] | null
+          identification_type?: string | null
+          inactivity_timeout_seconds?: number | null
+          inactivity_warning_seconds?: number | null
+          is_enabled?: boolean | null
+          logo_size?: string | null
+          orientation?: string | null
+          password_display_duration_seconds?: number | null
+          payment_methods?: string[] | null
+          pix_timeout_seconds?: number | null
+          product_card_size?: string | null
+          show_item_notes?: boolean | null
+          show_logo?: boolean | null
+          show_order_summary_on_confirmation?: boolean | null
+          show_product_description?: boolean | null
+          show_product_images?: boolean | null
+          show_welcome_image?: boolean | null
+          store_id?: string
+          theme_color?: string | null
+          updated_at?: string | null
+          welcome_image_url?: string | null
+          welcome_subtitle?: string | null
+          welcome_title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_totem_config_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_totem_config_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stores: {
         Row: {
           accepts_card: boolean | null

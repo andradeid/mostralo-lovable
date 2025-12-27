@@ -592,7 +592,8 @@ export function AdminSidebar() {
         menuItems.push(
           { title: 'PDV', url: '/dashboard/pdv', icon: Monitor, group: 'Vendas Presenciais' },
           { title: 'Comandas', url: '/dashboard/comandas', icon: Receipt, group: 'Vendas Presenciais' },
-          { title: 'Cozinha (KDS)', url: '/dashboard/cozinha', icon: UtensilsCrossed, group: 'Vendas Presenciais' }
+          { title: 'Cozinha (KDS)', url: '/dashboard/cozinha', icon: UtensilsCrossed, group: 'Vendas Presenciais' },
+          { title: 'Totem Autoatendimento', url: '/dashboard/totem-config', icon: Smartphone, group: 'Vendas Presenciais' }
         );
       }
 

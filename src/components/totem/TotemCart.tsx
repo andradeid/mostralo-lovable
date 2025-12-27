@@ -1,10 +1,12 @@
+import { useState } from 'react';
 import { StoreInfo, TotemCartItem } from '@/pages/totem/TotemPage';
 import { TotemConfig } from '@/hooks/useTotemConfig';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowLeft, Plus, Minus, Trash2, ShoppingCart, Store } from 'lucide-react';
+import { ArrowLeft, Plus, Minus, Trash2, ShoppingCart, Phone, CreditCard } from 'lucide-react';
+import { TotemNumericKeyboard } from './TotemNumericKeyboard';
 
 interface TotemCartProps {
   store: StoreInfo;
@@ -31,6 +33,8 @@ export function TotemCart({
   onBack,
   onCheckout,
 }: TotemCartProps) {
+  const [activeField, setActiveField] = useState<'phone' | 'cpf' | null>(null);
+  
   const identificationFields = config.identification_fields || ['phone'];
   const showIdentification = config.identification_type !== 'none';
   const isIdentificationRequired = config.identification_type === 'required';
@@ -46,10 +50,31 @@ export function TotemCart({
     });
   };
 
-  const logoSizeMap = {
-    small: 'h-8 w-8',
-    medium: 'h-10 w-10',
-    large: 'h-12 w-12',
+  const formatPhoneDisplay = (digits: string): string => {
+    if (!digits) return '';
+    const clean = digits.replace(/\D/g, '');
+    if (clean.length === 0) return '';
+    if (clean.length <= 2) return `(${clean}`;
+    if (clean.length <= 7) return `(${clean.slice(0, 2)}) ${clean.slice(2)}`;
+    return `(${clean.slice(0, 2)}) ${clean.slice(2, 7)}-${clean.slice(7, 11)}`;
+  };
+
+  const formatCPFDisplay = (digits: string): string => {
+    if (!digits) return '';
+    const clean = digits.replace(/\D/g, '');
+    if (clean.length === 0) return '';
+    if (clean.length <= 3) return clean;
+    if (clean.length <= 6) return `${clean.slice(0, 3)}.${clean.slice(3)}`;
+    if (clean.length <= 9) return `${clean.slice(0, 3)}.${clean.slice(3, 6)}.${clean.slice(6)}`;
+    return `${clean.slice(0, 3)}.${clean.slice(3, 6)}.${clean.slice(6, 9)}-${clean.slice(9, 11)}`;
+  };
+
+  const handleKeyboardChange = (value: string) => {
+    if (activeField === 'phone') {
+      onUpdateCustomerInfo({ ...customerInfo, phone: value });
+    } else if (activeField === 'cpf') {
+      onUpdateCustomerInfo({ ...customerInfo, cpf: value });
+    }
   };
 
   return (
@@ -170,25 +195,57 @@ export function TotemCart({
               {identificationFields.includes('phone') && (
                 <div>
                   <Label htmlFor="phone">Telefone</Label>
-                  <Input
-                    id="phone"
-                    value={customerInfo.phone || ''}
-                    onChange={(e) => onUpdateCustomerInfo({ ...customerInfo, phone: e.target.value })}
-                    placeholder="(00) 00000-0000"
-                    className="mt-1"
-                  />
+                  <button
+                    onClick={() => setActiveField('phone')}
+                    className="w-full mt-1 flex items-center gap-3 p-3 rounded-lg border-2 text-left transition-colors"
+                    style={{
+                      borderColor: customerInfo.phone ? config.theme_color : (config.dark_mode ? '#333' : '#e5e7eb'),
+                      backgroundColor: config.dark_mode ? '#1a1a1a' : '#f9fafb',
+                    }}
+                  >
+                    <Phone 
+                      className="h-5 w-5" 
+                      style={{ color: customerInfo.phone ? config.theme_color : (config.dark_mode ? '#6b7280' : '#9ca3af') }}
+                    />
+                    <span
+                      className="text-lg"
+                      style={{ 
+                        color: customerInfo.phone 
+                          ? (config.dark_mode ? '#ffffff' : '#000000')
+                          : (config.dark_mode ? '#6b7280' : '#9ca3af')
+                      }}
+                    >
+                      {formatPhoneDisplay(customerInfo.phone || '') || '(00) 00000-0000'}
+                    </span>
+                  </button>
                 </div>
               )}
               {identificationFields.includes('cpf') && (
                 <div>
                   <Label htmlFor="cpf">CPF</Label>
-                  <Input
-                    id="cpf"
-                    value={customerInfo.cpf || ''}
-                    onChange={(e) => onUpdateCustomerInfo({ ...customerInfo, cpf: e.target.value })}
-                    placeholder="000.000.000-00"
-                    className="mt-1"
-                  />
+                  <button
+                    onClick={() => setActiveField('cpf')}
+                    className="w-full mt-1 flex items-center gap-3 p-3 rounded-lg border-2 text-left transition-colors"
+                    style={{
+                      borderColor: customerInfo.cpf ? config.theme_color : (config.dark_mode ? '#333' : '#e5e7eb'),
+                      backgroundColor: config.dark_mode ? '#1a1a1a' : '#f9fafb',
+                    }}
+                  >
+                    <CreditCard 
+                      className="h-5 w-5" 
+                      style={{ color: customerInfo.cpf ? config.theme_color : (config.dark_mode ? '#6b7280' : '#9ca3af') }}
+                    />
+                    <span
+                      className="text-lg"
+                      style={{ 
+                        color: customerInfo.cpf 
+                          ? (config.dark_mode ? '#ffffff' : '#000000')
+                          : (config.dark_mode ? '#6b7280' : '#9ca3af')
+                      }}
+                    >
+                      {formatCPFDisplay(customerInfo.cpf || '') || '000.000.000-00'}
+                    </span>
+                  </button>
                 </div>
               )}
             </div>
@@ -216,6 +273,18 @@ export function TotemCart({
           Ir para Pagamento
         </Button>
       </div>
+
+      {/* Virtual Numeric Keyboard */}
+      {activeField && (
+        <TotemNumericKeyboard
+          value={(activeField === 'phone' ? customerInfo.phone : customerInfo.cpf) || ''}
+          onChange={handleKeyboardChange}
+          onClose={() => setActiveField(null)}
+          type={activeField}
+          themeColor={config.theme_color}
+          darkMode={config.dark_mode}
+        />
+      )}
     </div>
   );
 }

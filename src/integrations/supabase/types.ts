@@ -3832,6 +3832,7 @@ export type Database = {
           terms_accepted_at: string | null
           updated_at: string
           user_type: Database["public"]["Enums"]["user_type"] | null
+          whatsapp_valid: boolean | null
         }
         Insert: {
           accepted_terms_version?: string | null
@@ -3853,6 +3854,7 @@ export type Database = {
           terms_accepted_at?: string | null
           updated_at?: string
           user_type?: Database["public"]["Enums"]["user_type"] | null
+          whatsapp_valid?: boolean | null
         }
         Update: {
           accepted_terms_version?: string | null
@@ -3874,6 +3876,7 @@ export type Database = {
           terms_accepted_at?: string | null
           updated_at?: string
           user_type?: Database["public"]["Enums"]["user_type"] | null
+          whatsapp_valid?: boolean | null
         }
         Relationships: []
       }

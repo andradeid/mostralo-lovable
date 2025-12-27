@@ -2866,30 +2866,39 @@ export type Database = {
       modules: {
         Row: {
           created_at: string
+          dependencies: string | null
           description: string | null
           icon: string | null
           id: string
           is_active: boolean | null
           key: string | null
           name: string
+          price_reference: string | null
+          suggested_price: number | null
         }
         Insert: {
           created_at?: string
+          dependencies?: string | null
           description?: string | null
           icon?: string | null
           id?: string
           is_active?: boolean | null
           key?: string | null
           name: string
+          price_reference?: string | null
+          suggested_price?: number | null
         }
         Update: {
           created_at?: string
+          dependencies?: string | null
           description?: string | null
           icon?: string | null
           id?: string
           is_active?: boolean | null
           key?: string | null
           name?: string
+          price_reference?: string | null
+          suggested_price?: number | null
         }
         Relationships: []
       }

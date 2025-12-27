@@ -78,12 +78,23 @@ const ProfilePage = () => {
 
       if (error) throw error;
 
-      setProfile(data as Profile);
+      const profileData: Profile = {
+        id: data.id,
+        email: data.email,
+        full_name: data.full_name,
+        phone: data.phone,
+        whatsapp_valid: data.whatsapp_valid ?? false,
+        user_type: data.user_type as 'master_admin' | 'store_admin',
+        created_at: data.created_at,
+        updated_at: data.updated_at
+      };
+
+      setProfile(profileData);
       setFormData({
-        full_name: data.full_name || '',
-        email: data.email || '',
-        phone: data.phone ? formatPhone(data.phone) : '',
-        whatsapp_valid: (data as any).whatsapp_valid || false
+        full_name: profileData.full_name || '',
+        email: profileData.email || '',
+        phone: profileData.phone ? formatPhone(profileData.phone) : '',
+        whatsapp_valid: profileData.whatsapp_valid || false
       });
     } catch (error) {
       console.error('Erro ao buscar perfil:', error);

@@ -15,6 +15,7 @@ import { DigitalSignageSection } from '@/components/landing/DigitalSignageSectio
 import { TableMenuSection } from '@/components/landing/TableMenuSection';
 import { PasswordCallSection } from '@/components/landing/PasswordCallSection';
 import { PDVComandasSection } from '@/components/landing/PDVComandasSection';
+import { TotemSection } from '@/components/landing/TotemSection';
 import { ProblemsSection } from '@/components/landing/ProblemsSection';
 import { SavingsCalculator } from '@/components/landing/SavingsCalculator';
 import { MarketingDigitalSection } from '@/components/landing/MarketingDigitalSection';
@@ -74,6 +75,7 @@ const Index = () => {
       <DigitalSignageSection />
       <PasswordCallSection />
       <PDVComandasSection />
+      <TotemSection />
       <ProblemsSection />
       <SavingsCalculator />
       <MarketingDigitalSection />

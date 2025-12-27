@@ -123,6 +123,13 @@ function generateContextSection(): string {
 2. Funcionário que "protege" o dono
 3. "Não tenho interesse" sem saber do que se trata
 4. "Manda por email" para se livrar
+
+### DIFERENCIAIS ÚNICOS DO MOSTRALO:
+- WhatsApp Marketing com recuperação automática de clientes inativos
+- SENTINELA: sistema de recompra inteligente
+- **TOTEM AUTOATENDIMENTO (NOVO!)**: Cliente faz pedido sozinho no tablet, pagamento PIX automático, senha de retirada integrada - economiza com atendentes e reduz filas
+- Marketing Digital INCLUSO (valor R$ 800-2.000/mês no mercado)
+- KDS, Chamada de Senhas, App do Garçom
 `;
 }
 

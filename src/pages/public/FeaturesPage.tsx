@@ -33,6 +33,7 @@ const sections = [
   { id: 'kds', title: 'KDS (Cozinha)', icon: UtensilsCrossed },
   { id: 'painel-digital', title: 'Painel Digital (TV)', icon: Monitor },
   { id: 'chamada-senhas', title: 'Chamada de Senhas', icon: Volume2 },
+  { id: 'totem', title: '🆕 Totem Autoatendimento', icon: Smartphone },
   { id: 'personalizacao', title: 'Personalização', icon: Palette },
   { id: 'delivery', title: 'Delivery Inteligente', icon: Map },
   { id: 'atendentes', title: 'Gestão de Atendentes', icon: Users },
@@ -307,7 +308,7 @@ const whatsappTexts: Record<string, string> = {
 • QR Code leva direto pro cardápio
 • Materiais padronizados da sua marca`,
 
-  'scripts': `⚙️ *SCRIPTS PERSONALIZADOS* 🔧 AVANÇADO
+'scripts': `⚙️ *SCRIPTS PERSONALIZADOS* 🔧 AVANÇADO
 
 ✅ Integração com chatbots externos
 ✅ Pixels de rastreamento (Facebook, Google)
@@ -319,6 +320,26 @@ const whatsappTexts: Record<string, string> = {
 • Agências de marketing configurando clientes
 • Lojas com estratégias avançadas de ads
 • Integrações personalizadas`,
+
+  'totem': `📱 *TOTEM AUTOATENDIMENTO* 🆕 NOVO!
+
+⚠️ *Problema:* Filas, erros de anotação, custos com atendentes
+
+✅ Cliente faz pedido sozinho no tablet/totem
+✅ Tela de boas-vindas personalizada com logo
+✅ Identificação opcional (telefone, nome, CPF)
+✅ Cardápio visual com fotos e adicionais
+✅ Pagamento PIX com QR Code automático
+✅ Senha de retirada integrada com chamada
+✅ Funciona 24h sem supervisão
+✅ Relatórios unificados com outros canais
+
+📊 *Benefícios:*
+• Reduz filas e tempo de espera
+• Economiza com atendentes
+• Zero erros de anotação
+• Visual moderno de grandes redes
+• Ideal para fast-food, padarias, lanchonetes`,
 
   'pdv': `🛒 *PDV - PONTO DE VENDA* ⭐ PRESENCIAL
 
@@ -510,6 +531,17 @@ Funcionalidades:
 - Estatísticas ao vivo (pendentes, preparando, prontos)
 - Sincronizado com garçom, PDV e comandas
 - Funciona em TV, tablet ou monitor
+
+## TOTEM DE AUTOATENDIMENTO (NOVO!)
+- Cliente faz pedido sozinho no tablet ou totem
+- Tela de boas-vindas com logo e cores da loja
+- Identificação opcional (telefone, nome, CPF)
+- Cardápio visual com fotos e adicionais
+- Pagamento PIX com QR Code automático
+- Senha de retirada integrada com chamada
+- Reduz filas e economiza com atendentes
+- Funciona 24h sem supervisão
+- Ideal para fast-food, padarias, restaurantes self-service
 
 ## PERSONALIZAÇÃO DA LOJA
 - Logo e cores da sua marca

@@ -244,6 +244,27 @@ Deno.serve(async (req) => {
           console.log('✅ Auth user criado e vinculado ao cliente');
         }
         customerId = existingCustomer.id;
+        
+        // Fazer login para obter session após criar senha
+        if (requirePassword && !existingCustomer.auth_user_id) {
+          // Já criamos o auth user acima, agora fazer login
+          const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+            email: tempEmail,
+            password: password!
+          });
+
+          if (!loginError && loginData.session) {
+            return new Response(
+              JSON.stringify({ 
+                success: true, 
+                session: loginData.session,
+                customer_id: customerId,
+                message: 'Cadastro realizado com sucesso'
+              }),
+              { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+        }
       } else {
         // Criar novo cliente COM Supabase Auth
         console.log('📝 Criando novo cliente com Supabase Auth...');
@@ -307,6 +328,24 @@ Deno.serve(async (req) => {
           .select();
 
         console.log('✅ Cliente criado com auth_user_id');
+
+        // Fazer login para obter session
+        const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+          email: tempEmail,
+          password: password || '102030'
+        });
+
+        if (!loginError && loginData.session) {
+          return new Response(
+            JSON.stringify({ 
+              success: true, 
+              session: loginData.session,
+              customer_id: customerId,
+              message: 'Cadastro realizado com sucesso'
+            }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
       }
 
       return new Response(
@@ -374,8 +413,20 @@ Deno.serve(async (req) => {
         }
 
         console.log('✅ Login bem-sucedido via Supabase Auth');
+
+        // Retornar com session para autenticar no frontend
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            session: authData.session,
+            customer_id: customer.id,
+            customer_name: customer.name
+          }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
 
+      // Login sem senha requerida
       return new Response(
         JSON.stringify({ 
           success: true, 

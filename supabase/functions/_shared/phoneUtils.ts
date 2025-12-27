@@ -45,10 +45,23 @@ export function normalizePhoneCanonical(phone: string): string {
  * - "5561994009368" (com DDI 55)
  */
 export function getPhoneVariants(phone: string): string[] {
-  const canonical = normalizePhoneCanonical(phone);
   const variants = new Set<string>();
   
-  // Versão canônica (11 dígitos)
+  // Limpar o telefone original
+  let originalClean = phone.replace(/\D/g, '');
+  
+  // Remover DDI 55 se presente
+  if (originalClean.startsWith('55') && originalClean.length >= 12) {
+    originalClean = originalClean.substring(2);
+  }
+  
+  // Remover 0 à esquerda do DDD se presente
+  if (originalClean.startsWith('0') && originalClean.length === 12) {
+    originalClean = originalClean.substring(1);
+  }
+  
+  // Versão canônica (sempre 11 dígitos)
+  const canonical = normalizePhoneCanonical(phone);
   variants.add(canonical);
   
   // Versão sem o 9 (10 dígitos) - para compatibilidade com dados antigos
@@ -57,14 +70,26 @@ export function getPhoneVariants(phone: string): string[] {
     variants.add(withoutNine);
   }
   
-  // Com DDI 55
+  // Com DDI 55 (versão canônica)
   variants.add('55' + canonical);
   
-  // Original limpo (caso seja diferente)
-  const originalClean = phone.replace(/\D/g, '');
-  if (originalClean.startsWith('55') && originalClean.length >= 12) {
-    variants.add(originalClean.substring(2));
+  // Se original tem 10 dígitos, também gerar versão com 11
+  if (originalClean.length === 10) {
+    const ddd = originalClean.substring(0, 2);
+    const number = originalClean.substring(2);
+    const with9 = ddd + '9' + number;
+    variants.add(with9);
+    variants.add('55' + with9);
   }
+  
+  // Se original tem 11 dígitos, também gerar versão com 10
+  if (originalClean.length === 11) {
+    const without9 = originalClean.substring(0, 2) + originalClean.substring(3);
+    variants.add(without9);
+    variants.add('55' + originalClean);
+  }
+  
+  // Adicionar original limpo também
   variants.add(originalClean);
   
   return Array.from(variants);

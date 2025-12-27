@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ interface TotemWelcomePanelProps {
 
 export function TotemWelcomePanel({ config, onChange, onUploadImage }: TotemWelcomePanelProps) {
   const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -26,6 +27,8 @@ export function TotemWelcomePanel({ config, onChange, onUploadImage }: TotemWelc
         onChange({ welcome_image_url: url });
       }
     } finally {
+      // Permite selecionar o mesmo arquivo novamente
+      e.target.value = '';
       setUploading(false);
     }
   };
@@ -66,36 +69,62 @@ export function TotemWelcomePanel({ config, onChange, onUploadImage }: TotemWelc
       {config.show_welcome_image && (
         <div className="space-y-2">
           <Label>Imagem de Boas-Vindas</Label>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="sr-only"
+            id="welcome-image-upload"
+            disabled={uploading}
+          />
+
           {config.welcome_image_url ? (
-            <div className="relative inline-block">
-              <img
-                src={config.welcome_image_url}
-                alt="Welcome"
-                className="max-w-full max-h-48 rounded-lg border"
-              />
-              <Button
-                type="button"
-                variant="destructive"
-                size="icon"
-                className="absolute -top-2 -right-2 h-6 w-6"
-                onClick={() => onChange({ welcome_image_url: null })}
-              >
-                <X className="h-4 w-4" />
-              </Button>
+            <div className="space-y-3">
+              <div className="relative inline-block">
+                <img
+                  src={config.welcome_image_url}
+                  alt="Imagem de boas-vindas do totem"
+                  className="max-w-full max-h-48 rounded-lg border"
+                />
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  className="absolute -top-2 -right-2 h-6 w-6"
+                  onClick={() => onChange({ welcome_image_url: null })}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                >
+                  {uploading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Upload className="mr-2 h-4 w-4" />
+                  )}
+                  {uploading ? 'Enviando...' : 'Trocar imagem'}
+                </Button>
+              </div>
             </div>
           ) : (
             <div className="border-2 border-dashed rounded-lg p-6 text-center">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="hidden"
-                id="welcome-image-upload"
-                disabled={uploading}
-              />
               <label
                 htmlFor="welcome-image-upload"
                 className="cursor-pointer flex flex-col items-center gap-2"
+                onClick={(e) => {
+                  // Garante abertura do seletor mesmo com input visualmente oculto
+                  e.preventDefault();
+                  fileInputRef.current?.click();
+                }}
               >
                 {uploading ? (
                   <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />

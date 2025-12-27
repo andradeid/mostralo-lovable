@@ -9,7 +9,9 @@ import {
   Monitor,
   Megaphone,
   Shield,
-  ClipboardList
+  ClipboardList,
+  QrCode,
+  Tablet
 } from 'lucide-react';
 
 export const ComparisonSection = () => {
@@ -182,17 +184,45 @@ export const ComparisonSection = () => {
               </div>
             </div>
 
-            {/* PDV e Comandas */}
+            {/* PDV e Comandas (App Garçom) */}
             <div className="grid grid-cols-5 border-t bg-muted/20">
               <div className="p-4 font-medium border-r flex items-center gap-2">
                 <ClipboardList className="w-4 h-4 text-orange-600" />
-                PDV e Comandas (Garçom)
+                App Garçom / Comanda Digital
               </div>
-              <div className="p-4 text-center border-r text-destructive">❌</div>
-              <div className="p-4 text-center border-r text-destructive">❌</div>
+              <div className="p-4 text-center border-r text-green-600">✅</div>
+              <div className="p-4 text-center border-r text-green-600">✅</div>
               <div className="p-4 text-center border-r text-destructive">❌</div>
               <div className="p-4 text-center bg-green-50 dark:bg-green-950/20">
                 <Badge className="bg-orange-600">✅ INCLUSO</Badge>
+              </div>
+            </div>
+
+            {/* Pedidos na Mesa (QR Code) */}
+            <div className="grid grid-cols-5 border-t">
+              <div className="p-4 font-medium border-r flex items-center gap-2">
+                <QrCode className="w-4 h-4 text-blue-600" />
+                Pedidos na Mesa (QR Code)
+              </div>
+              <div className="p-4 text-center border-r text-green-600">✅</div>
+              <div className="p-4 text-center border-r text-green-600">✅</div>
+              <div className="p-4 text-center border-r text-green-600">✅</div>
+              <div className="p-4 text-center bg-green-50 dark:bg-green-950/20">
+                <Badge className="bg-blue-600">✅ INCLUSO</Badge>
+              </div>
+            </div>
+
+            {/* Totem de Autoatendimento */}
+            <div className="grid grid-cols-5 border-t bg-muted/20">
+              <div className="p-4 font-medium border-r flex items-center gap-2">
+                <Tablet className="w-4 h-4 text-indigo-600" />
+                Totem de Autoatendimento
+              </div>
+              <div className="p-4 text-center border-r text-destructive">❌</div>
+              <div className="p-4 text-center border-r text-amber-600">💰 Pago</div>
+              <div className="p-4 text-center border-r text-destructive">❌</div>
+              <div className="p-4 text-center bg-green-50 dark:bg-green-950/20">
+                <Badge className="bg-indigo-600">✅ INCLUSO</Badge>
               </div>
             </div>
           </div>
@@ -201,7 +231,7 @@ export const ComparisonSection = () => {
         {/* CTA */}
         <div className="text-center mt-12">
           <p className="text-xl font-bold mb-6 text-primary">
-            🚀 Único no Brasil: Delivery + PDV/Comandas + Marketing + Financeiro + Painel Digital + SENTINELA
+            🚀 Único no Brasil: Delivery + App Garçom + Mesa QR + Totem + Marketing + Financeiro + Painel Digital
           </p>
           <Link to="/signup">
             <Button size="lg" className="text-lg h-14 px-8 shadow-lg hover:shadow-xl">

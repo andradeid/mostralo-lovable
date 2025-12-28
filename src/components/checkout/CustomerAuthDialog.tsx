@@ -206,16 +206,26 @@ export function CustomerAuthDialog({
   const validateWhatsApp = async (phone: string) => {
     try {
       setWhatsappStatus('validating');
-      const { data, error } = await supabase.functions.invoke('validate-whatsapp-number', {
+      
+      // Timeout de 5 segundos para evitar trava
+      const timeoutPromise = new Promise<{ data: null; error: Error }>((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout')), 5000)
+      );
+      
+      const fetchPromise = supabase.functions.invoke('validate-whatsapp-number', {
         body: { phone, storeId }
       });
+      
+      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
 
-      if (error || !data?.isValid) {
+      // Campo correto é "valid" (não "isValid")
+      if (error || !data?.valid) {
         setWhatsappStatus('invalid');
       } else {
         setWhatsappStatus('valid');
       }
     } catch {
+      // Em caso de timeout ou erro, marcar como inválido e continuar
       setWhatsappStatus('invalid');
     } finally {
       // Avançar para o resultado

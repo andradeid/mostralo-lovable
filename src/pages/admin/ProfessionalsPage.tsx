@@ -76,6 +76,7 @@ import {
   WhatsAppValidationStatus,
   validateAndWelcomeProfessional 
 } from '@/components/admin/booking/ProfessionalWhatsAppValidator';
+import { ProfessionalPhotoUpload } from '@/components/admin/booking/ProfessionalPhotoUpload';
 import { supabase } from '@/integrations/supabase/client';
 
 const ProfessionalsPage = () => {
@@ -652,15 +653,13 @@ const ProfessionalsPage = () => {
                   rows={3}
                 />
               </div>
-              <div>
-                <Label htmlFor="photo_url">URL da Foto</Label>
-                <Input
-                  id="photo_url"
-                  value={formData.photo_url}
-                  onChange={(e) => setFormData(prev => ({ ...prev, photo_url: e.target.value }))}
-                  placeholder="https://..."
-                />
-              </div>
+              {/* Photo Upload */}
+              <ProfessionalPhotoUpload
+                currentPhotoUrl={formData.photo_url}
+                professionalName={formData.name}
+                onPhotoChange={(url) => setFormData(prev => ({ ...prev, photo_url: url }))}
+                disabled={creatingProfessional}
+              />
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="commission_type">Tipo de Comissão</Label>
@@ -758,15 +757,13 @@ const ProfessionalsPage = () => {
                   rows={3}
                 />
               </div>
-              <div>
-                <Label htmlFor="edit-photo_url">URL da Foto</Label>
-                <Input
-                  id="edit-photo_url"
-                  value={formData.photo_url}
-                  onChange={(e) => setFormData(prev => ({ ...prev, photo_url: e.target.value }))}
-                  placeholder="https://..."
-                />
-              </div>
+              {/* Photo Upload for Edit */}
+              <ProfessionalPhotoUpload
+                currentPhotoUrl={formData.photo_url}
+                professionalName={formData.name}
+                onPhotoChange={(url) => setFormData(prev => ({ ...prev, photo_url: url }))}
+                disabled={updatingProfessional}
+              />
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="edit-commission_type">Tipo de Comissão</Label>

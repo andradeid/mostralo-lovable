@@ -2,6 +2,7 @@ import { usePageSEO } from '@/hooks/useSEO';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Link } from 'react-router-dom';
 import { 
   Scissors, 
@@ -24,9 +25,14 @@ import {
   AlertTriangle,
   Gift,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  ChevronLeft,
+  RotateCcw
 } from 'lucide-react';
 import { useState } from 'react';
+import { format, isBefore, startOfDay, addDays } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 
 // ============ Hero Section ============
 const HeroSection = () => (
@@ -280,16 +286,333 @@ const FourPillarsSection = () => (
   </section>
 );
 
+// ============ Demo Data ============
+const demoServices = [
+  { id: 'corte', name: 'Corte Degradê', price: 45, duration: 30, icon: '✂️' },
+  { id: 'barba', name: 'Barba Completa', price: 35, duration: 20, icon: '🧔' },
+  { id: 'combo', name: 'Corte + Barba', price: 70, duration: 45, icon: '💈', popular: true }
+];
+
+const demoProfessionals = [
+  { id: 'marcos', name: 'Marcos Silva', rating: 4.9, specialty: 'Degradê Americano', avatar: '💈' },
+  { id: 'carlos', name: 'Carlos Santos', rating: 4.8, specialty: 'Barba Vintage', avatar: '✂️' },
+  { id: 'rafael', name: 'Rafael Costa', rating: 4.7, specialty: 'Corte Moderno', avatar: '💇' }
+];
+
+const demoTimeSlots = ['09:00', '09:30', '10:00', '10:30', '11:00', '14:00', '14:30', '15:00', '15:30', '16:00'];
+
+// ============ Interactive Booking Demo ============
+const InteractiveBookingDemo = () => {
+  const [step, setStep] = useState(1);
+  const [selectedService, setSelectedService] = useState<string | null>(null);
+  const [selectedProfessional, setSelectedProfessional] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  const service = demoServices.find(s => s.id === selectedService);
+  const professional = demoProfessionals.find(p => p.id === selectedProfessional);
+
+  const handleConfirm = () => {
+    setShowSuccess(true);
+    setTimeout(() => {
+      setShowSuccess(false);
+      setStep(1);
+      setSelectedService(null);
+      setSelectedProfessional(null);
+      setSelectedDate(undefined);
+      setSelectedTime(null);
+    }, 3000);
+  };
+
+  const handleBack = () => {
+    if (step > 1) setStep(step - 1);
+  };
+
+  const handleReset = () => {
+    setStep(1);
+    setSelectedService(null);
+    setSelectedProfessional(null);
+    setSelectedDate(undefined);
+    setSelectedTime(null);
+  };
+
+  return (
+    <Card className="bg-zinc-900 border-zinc-800 relative overflow-hidden">
+      {/* Success overlay */}
+      {showSuccess && (
+        <div className="absolute inset-0 bg-green-600/95 flex flex-col items-center justify-center z-20 animate-fade-in">
+          <CheckCircle className="w-20 h-20 text-white mb-4" />
+          <p className="text-white text-2xl font-bold mb-2">Agendamento Confirmado!</p>
+          <p className="text-white/80">Você receberá um lembrete no WhatsApp</p>
+        </div>
+      )}
+
+      <CardHeader className="border-b border-zinc-800">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-white flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-orange-500" />
+            Agendamento Online - Barbearia do João
+          </CardTitle>
+          {step > 1 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleReset}
+              className="text-zinc-400 hover:text-white"
+            >
+              <RotateCcw className="w-4 h-4 mr-1" />
+              Reiniciar
+            </Button>
+          )}
+        </div>
+      </CardHeader>
+
+      <CardContent className="p-6">
+        {/* Progress bar */}
+        <div className="flex items-center justify-center gap-2 mb-8">
+          {[1, 2, 3, 4].map((s) => (
+            <div key={s} className="flex items-center">
+              <div
+                className={cn(
+                  "w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all",
+                  step >= s
+                    ? "bg-orange-500 text-white"
+                    : "bg-zinc-800 text-zinc-500"
+                )}
+              >
+                {s}
+              </div>
+              {s < 4 && (
+                <div className={cn(
+                  "w-8 h-1 mx-1 transition-all",
+                  step > s ? "bg-orange-500" : "bg-zinc-800"
+                )} />
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Step 1: Service Selection */}
+        {step === 1 && (
+          <div className="animate-fade-in">
+            <h3 className="text-lg font-semibold text-white mb-4 text-center">Escolha o Serviço</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {demoServices.map((svc) => (
+                <div
+                  key={svc.id}
+                  onClick={() => {
+                    setSelectedService(svc.id);
+                    setStep(2);
+                  }}
+                  className={cn(
+                    "relative bg-zinc-800 rounded-xl p-4 cursor-pointer border-2 transition-all hover:-translate-y-1",
+                    selectedService === svc.id
+                      ? "border-orange-500"
+                      : "border-transparent hover:border-orange-500/50"
+                  )}
+                >
+                  {svc.popular && (
+                    <Badge className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs">
+                      Popular
+                    </Badge>
+                  )}
+                  <div className="text-3xl mb-2">{svc.icon}</div>
+                  <h4 className="text-white font-semibold">{svc.name}</h4>
+                  <p className="text-zinc-400 text-sm">{svc.duration} min</p>
+                  <p className="text-orange-500 font-bold mt-2">R$ {svc.price.toFixed(2)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Step 2: Professional Selection */}
+        {step === 2 && (
+          <div className="animate-fade-in">
+            <div className="flex items-center gap-2 mb-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBack}
+                className="text-zinc-400 hover:text-white"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Voltar
+              </Button>
+              <h3 className="text-lg font-semibold text-white">Escolha o Barbeiro</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {demoProfessionals.map((prof) => (
+                <div
+                  key={prof.id}
+                  onClick={() => {
+                    setSelectedProfessional(prof.id);
+                    setStep(3);
+                  }}
+                  className={cn(
+                    "bg-zinc-800 rounded-xl p-4 cursor-pointer border-2 transition-all hover:-translate-y-1 text-center",
+                    selectedProfessional === prof.id
+                      ? "border-orange-500"
+                      : "border-transparent hover:border-orange-500/50"
+                  )}
+                >
+                  <div className="text-4xl mb-2">{prof.avatar}</div>
+                  <h4 className="text-white font-semibold">{prof.name}</h4>
+                  <div className="flex items-center justify-center gap-1 text-yellow-400 my-1">
+                    <Star className="w-4 h-4 fill-yellow-400" />
+                    <span className="text-sm">{prof.rating}</span>
+                  </div>
+                  <p className="text-zinc-400 text-sm">{prof.specialty}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Date and Time Selection */}
+        {step === 3 && (
+          <div className="animate-fade-in">
+            <div className="flex items-center gap-2 mb-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBack}
+                className="text-zinc-400 hover:text-white"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Voltar
+              </Button>
+              <h3 className="text-lg font-semibold text-white">Escolha Data e Horário</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Calendar */}
+              <div className="flex justify-center">
+                <CalendarComponent
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => {
+                    setSelectedDate(date);
+                    setSelectedTime(null);
+                  }}
+                  locale={ptBR}
+                  disabled={(date) => isBefore(date, startOfDay(new Date())) || isBefore(addDays(new Date(), 30), date)}
+                  className="bg-zinc-800 border border-zinc-700 rounded-lg pointer-events-auto"
+                  classNames={{
+                    day_selected: "bg-orange-500 text-white hover:bg-orange-600 focus:bg-orange-600",
+                    day_today: "border-2 border-orange-500/50 text-orange-400",
+                    nav_button: "text-zinc-400 hover:text-white hover:bg-zinc-700",
+                    caption: "text-white",
+                    head_cell: "text-zinc-400",
+                    cell: "text-zinc-300",
+                    day: "hover:bg-zinc-700 text-zinc-300",
+                    day_outside: "text-zinc-600",
+                    day_disabled: "text-zinc-600 opacity-50",
+                  }}
+                />
+              </div>
+
+              {/* Time slots */}
+              <div>
+                <p className="text-zinc-400 text-sm mb-3">
+                  {selectedDate 
+                    ? `Horários para ${format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}`
+                    : 'Selecione uma data primeiro'
+                  }
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {demoTimeSlots.map((time) => (
+                    <Button
+                      key={time}
+                      variant={selectedTime === time ? "default" : "outline"}
+                      disabled={!selectedDate}
+                      onClick={() => {
+                        setSelectedTime(time);
+                        setStep(4);
+                      }}
+                      className={cn(
+                        "text-sm",
+                        selectedTime === time
+                          ? "bg-orange-500 hover:bg-orange-600 text-white"
+                          : "border-zinc-700 text-zinc-300 hover:border-orange-500 hover:text-white"
+                      )}
+                    >
+                      {time}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Step 4: Confirmation */}
+        {step === 4 && service && professional && selectedDate && selectedTime && (
+          <div className="animate-fade-in">
+            <div className="flex items-center gap-2 mb-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBack}
+                className="text-zinc-400 hover:text-white"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Voltar
+              </Button>
+              <h3 className="text-lg font-semibold text-white">Confirmar Agendamento</h3>
+            </div>
+
+            <div className="bg-zinc-800 rounded-xl p-6 mb-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-zinc-700">
+                  <span className="text-zinc-400">Serviço</span>
+                  <span className="text-white font-semibold">{service.name}</span>
+                </div>
+                <div className="flex items-center justify-between pb-3 border-b border-zinc-700">
+                  <span className="text-zinc-400">Barbeiro</span>
+                  <span className="text-white font-semibold">{professional.name}</span>
+                </div>
+                <div className="flex items-center justify-between pb-3 border-b border-zinc-700">
+                  <span className="text-zinc-400">Data</span>
+                  <span className="text-white font-semibold">
+                    {format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between pb-3 border-b border-zinc-700">
+                  <span className="text-zinc-400">Horário</span>
+                  <span className="text-white font-semibold">{selectedTime}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-400">Valor</span>
+                  <span className="text-orange-500 font-bold text-xl">R$ {service.price.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4 mb-6">
+              <p className="text-orange-400 text-sm flex items-center gap-2">
+                <CreditCard className="w-4 h-4" />
+                Sinal de R$ 10,00 via PIX para confirmar a vaga
+              </p>
+            </div>
+
+            <Button
+              onClick={handleConfirm}
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white text-lg py-6"
+            >
+              <CheckCircle className="w-5 h-5 mr-2" />
+              Confirmar Agendamento
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
 // ============ Flow Simulator Section ============
 const FlowSimulatorSection = () => {
   const [activeTab, setActiveTab] = useState<'agenda' | 'comanda'>('agenda');
-  
-  const agendaSteps = [
-    { step: 1, title: 'Escolher Serviço', desc: 'Corte + Barba', icon: Scissors },
-    { step: 2, title: 'Escolher Barbeiro', desc: 'Marcos - 4.9★', icon: Users },
-    { step: 3, title: 'Escolher Horário', desc: 'Hoje, 15:30', icon: Clock },
-    { step: 4, title: 'Confirmar com PIX', desc: 'R$ 10 de sinal', icon: CreditCard }
-  ];
   
   const comandaItems = [
     { name: 'Corte Degradê', price: 45.00, qty: 1 },
@@ -306,11 +629,14 @@ const FlowSimulatorSection = () => {
         <div className="max-w-4xl mx-auto text-center mb-12">
           <Badge className="mb-4 bg-orange-500/20 text-orange-400 border-orange-500/30">
             <Smartphone className="w-4 h-4 mr-2" />
-            Veja na Prática
+            Teste Agora - 100% Interativo
           </Badge>
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Simples Assim, <span className="text-orange-500">Para Você e Para o Cliente</span>
+            Experimente <span className="text-orange-500">Como o Cliente Vê</span>
           </h2>
+          <p className="text-zinc-400">
+            Clique e navegue pelo sistema real de agendamento
+          </p>
         </div>
         
         {/* Tab buttons */}
@@ -342,37 +668,7 @@ const FlowSimulatorSection = () => {
         {/* Simulator content */}
         <div className="max-w-3xl mx-auto">
           {activeTab === 'agenda' ? (
-            <Card className="bg-zinc-900 border-zinc-800">
-              <CardHeader className="border-b border-zinc-800">
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-orange-500" />
-                  Agendamento Online - Barbearia do João
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {agendaSteps.map((step, index) => (
-                    <div 
-                      key={index} 
-                      className="bg-zinc-800 rounded-xl p-4 text-center border-2 border-transparent hover:border-orange-500 transition-all cursor-pointer"
-                    >
-                      <div className="w-10 h-10 mx-auto mb-3 rounded-full bg-orange-500/20 flex items-center justify-center">
-                        <step.icon className="w-5 h-5 text-orange-500" />
-                      </div>
-                      <p className="text-xs text-zinc-500 mb-1">Passo {step.step}</p>
-                      <p className="text-white font-semibold text-sm">{step.title}</p>
-                      <p className="text-orange-400 text-sm mt-1">{step.desc}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-6 text-center">
-                  <p className="text-green-400 flex items-center justify-center gap-2">
-                    <CheckCircle className="w-5 h-5" />
-                    Cliente recebe confirmação automática no WhatsApp!
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            <InteractiveBookingDemo />
           ) : (
             <Card className="bg-zinc-900 border-zinc-800">
               <CardHeader className="border-b border-zinc-800">

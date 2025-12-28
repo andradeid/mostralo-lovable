@@ -171,10 +171,25 @@ const BookingPage = () => {
         const slots: TimeSlot[] = [];
         const duration = selectedService.duration_minutes;
         
+        // Check if selected date is today
+        const now = new Date();
+        const isToday = startOfDay(selectedDate).getTime() === startOfDay(now).getTime();
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+        
+        // Safety margin: 30 minutes from now
+        const marginMinutes = 30;
+        const minAvailableTime = currentHour * 60 + currentMinute + marginMinutes;
+        
         for (let hour = 9; hour < 18; hour++) {
           for (let minute = 0; minute < 60; minute += 30) {
             const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-            slots.push({ time, available: true });
+            const slotMinutes = hour * 60 + minute;
+            
+            // If today, check if slot has passed
+            const isPastSlot = isToday && slotMinutes < minAvailableTime;
+            
+            slots.push({ time, available: !isPastSlot });
           }
         }
         
@@ -551,9 +566,18 @@ const BookingPage = () => {
             
             {selectedDate && (
               <div className="space-y-2">
-                <h3 className="font-medium">
-                  Horários disponíveis em {format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
-                </h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="font-medium">
+                    Horários disponíveis em {format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
+                  </h3>
+                  {/* Show current time indicator if today */}
+                  {startOfDay(selectedDate).getTime() === startOfDay(new Date()).getTime() && (
+                    <span className="text-xs text-muted-foreground flex items-center gap-1 bg-muted px-2 py-1 rounded-full">
+                      <Clock className="h-3 w-3" />
+                      Agora: {format(new Date(), 'HH:mm')}
+                    </span>
+                  )}
+                </div>
                 {loadingSlots ? (
                   <div className="flex justify-center py-4">
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />

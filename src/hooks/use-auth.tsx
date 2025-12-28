@@ -21,7 +21,7 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
-  userRole: 'delivery_driver' | 'store_admin' | 'master_admin' | 'customer' | 'attendant' | 'salesperson' | null;
+  userRole: 'delivery_driver' | 'store_admin' | 'master_admin' | 'customer' | 'attendant' | 'salesperson' | 'professional' | null;
   signIn: (email: string, password: string) => Promise<{ error: any; rateLimitSeconds?: number }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
   signOut: (redirectTo?: string) => Promise<void>;
@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [userRole, setUserRole] = useState<'delivery_driver' | 'store_admin' | 'master_admin' | 'customer' | 'attendant' | 'salesperson' | null>(null);
+  const [userRole, setUserRole] = useState<'delivery_driver' | 'store_admin' | 'master_admin' | 'customer' | 'attendant' | 'salesperson' | 'professional' | null>(null);
   const [isImpersonating, setIsImpersonating] = useState(false);
   const [originalAdmin, setOriginalAdmin] = useState<Profile | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);

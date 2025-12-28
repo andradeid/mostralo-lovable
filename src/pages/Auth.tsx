@@ -98,6 +98,12 @@ const Auth = () => {
       return;
     }
 
+    // Profissionais vão para painel do profissional
+    if (userRole === 'professional') {
+      navigate('/profissional');
+      return;
+    }
+
     // Atendentes vão direto para pedidos
     if (userRole === 'attendant') {
       navigate('/dashboard/orders');
@@ -113,7 +119,6 @@ const Auth = () => {
     // Admins: master_admin ou store_admin
     navigate('/dashboard');
   }, [user, userRole, profile, authLoading, navigate, toast]);
-
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     

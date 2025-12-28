@@ -24,7 +24,11 @@ import {
   ExternalLink,
   Settings,
   UserCheck,
-  UserX
+  UserX,
+  Mail,
+  Copy,
+  CheckCircle2,
+  Key
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/use-auth';
@@ -108,6 +112,7 @@ const ProfessionalsPage = () => {
   
   const [formData, setFormData] = useState({
     name: '',
+    email: '',
     specialty: '',
     description: '',
     photo_url: '',
@@ -116,6 +121,8 @@ const ProfessionalsPage = () => {
     phone: '',
     countryCode: '+55'
   });
+  const [createdCredentials, setCreatedCredentials] = useState<{ email: string; temporary_password: string } | null>(null);
+  const [showCredentialsDialog, setShowCredentialsDialog] = useState(false);
 
   usePageSEO({
     title: 'Profissionais - Agendamento',
@@ -144,6 +151,7 @@ const ProfessionalsPage = () => {
   const resetForm = () => {
     setFormData({
       name: '',
+      email: '',
       specialty: '',
       description: '',
       photo_url: '',
@@ -153,6 +161,7 @@ const ProfessionalsPage = () => {
       countryCode: '+55'
     });
     setWhatsappStatus('idle');
+    setCreatedCredentials(null);
   };
 
   // Fetch store name for welcome message
@@ -172,58 +181,75 @@ const ProfessionalsPage = () => {
       return;
     }
 
-    // If phone is provided, validate WhatsApp first
-    if (formData.phone.trim()) {
-      setShowValidationOverlay(true);
-      
-      const fullPhone = `${formData.countryCode.replace('+', '')}${formData.phone.replace(/\D/g, '')}`;
-      
-      await validateAndWelcomeProfessional(
-        formData.phone,
-        formData.countryCode,
-        formData.name.trim(),
-        storeName || 'nossa loja',
-        storeId,
-        setWhatsappStatus
-      );
-      
-      // Wait for animation
-      await new Promise(resolve => setTimeout(resolve, 2500));
-      
-      try {
-        await createProfessional({
-          store_id: storeId,
+    if (!formData.email.trim()) {
+      toast.error('Email é obrigatório para acesso ao portal');
+      return;
+    }
+
+    // Validar formato do email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email.trim())) {
+      toast.error('Email inválido');
+      return;
+    }
+
+    setShowValidationOverlay(true);
+    setWhatsappStatus('validating');
+
+    try {
+      // Chamar edge function para criar conta com autenticação
+      const { data, error } = await supabase.functions.invoke('create-professional-account', {
+        body: {
           name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim() || undefined,
+          countryCode: formData.countryCode,
           specialty: formData.specialty.trim() || undefined,
           description: formData.description.trim() || undefined,
           photo_url: formData.photo_url.trim() || undefined,
           commission_type: formData.commission_type,
           commission_value: formData.commission_value,
-          phone: fullPhone
-        });
-        setShowValidationOverlay(false);
-        setIsCreateDialogOpen(false);
-        resetForm();
-      } catch (error) {
-        setShowValidationOverlay(false);
+          store_id: storeId
+        }
+      });
+
+      if (error) {
+        throw new Error(error.message);
       }
-    } else {
-      // No phone, create directly
-      try {
-        await createProfessional({
-          store_id: storeId,
-          name: formData.name.trim(),
-          specialty: formData.specialty.trim() || undefined,
-          description: formData.description.trim() || undefined,
-          photo_url: formData.photo_url.trim() || undefined,
-          commission_type: formData.commission_type,
-          commission_value: formData.commission_value
-        });
-        setIsCreateDialogOpen(false);
-        resetForm();
-      } catch (error) {
-        // Error handled by hook
+
+      if (!data?.success) {
+        throw new Error(data?.error || 'Erro ao criar profissional');
       }
+
+      setWhatsappStatus(data.whatsapp_sent ? 'valid' : 'idle');
+      
+      // Guardar credenciais para exibir
+      setCreatedCredentials(data.credentials);
+      
+      // Aguardar animação
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      setShowValidationOverlay(false);
+      setIsCreateDialogOpen(false);
+      
+      // Mostrar dialog com credenciais
+      setShowCredentialsDialog(true);
+      
+      toast.success('Profissional criado com sucesso!', {
+        description: data.whatsapp_sent 
+          ? 'Credenciais enviadas via WhatsApp'
+          : 'Copie as credenciais para enviar ao profissional'
+      });
+      
+      // Refresh da lista (forçar refetch)
+      // O hook useBooking já deve fazer isso automaticamente
+
+    } catch (error) {
+      console.error('Erro ao criar profissional:', error);
+      setWhatsappStatus('invalid');
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      setShowValidationOverlay(false);
+      toast.error(error instanceof Error ? error.message : 'Erro ao criar profissional');
     }
   };
 
@@ -290,6 +316,7 @@ const ProfessionalsPage = () => {
     }
     setFormData({
       name: professional.name,
+      email: '', // Email não editável depois de criado
       specialty: professional.specialty || '',
       description: professional.description || '',
       photo_url: professional.photo_url || '',
@@ -624,7 +651,7 @@ const ProfessionalsPage = () => {
                 Cadastre um novo profissional para realizar atendimentos
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
               <div>
                 <Label htmlFor="name">Nome *</Label>
                 <Input
@@ -632,6 +659,19 @@ const ProfessionalsPage = () => {
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="Nome do profissional"
+                />
+              </div>
+              <div>
+                <Label htmlFor="email" className="flex items-center gap-1">
+                  <Mail className="h-3.5 w-3.5" />
+                  Email * <span className="text-xs text-muted-foreground">(para acesso ao portal)</span>
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="profissional@email.com"
                 />
               </div>
               <div>
@@ -887,6 +927,103 @@ const ProfessionalsPage = () => {
             onComplete={() => setShowValidationOverlay(false)}
           />
         )}
+
+        {/* Credentials Dialog */}
+        <Dialog open={showCredentialsDialog} onOpenChange={(open) => {
+          setShowCredentialsDialog(open);
+          if (!open) {
+            resetForm();
+          }
+        }}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                Profissional Criado!
+              </DialogTitle>
+              <DialogDescription>
+                Guarde as credenciais abaixo para que o profissional possa acessar o portal.
+              </DialogDescription>
+            </DialogHeader>
+            
+            {createdCredentials && (
+              <div className="space-y-4">
+                <div className="p-4 rounded-lg bg-muted/50 border space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Email:</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <code className="text-sm bg-background px-2 py-1 rounded">
+                        {createdCredentials.email}
+                      </code>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7"
+                        onClick={() => {
+                          navigator.clipboard.writeText(createdCredentials.email);
+                          toast.success('Email copiado!');
+                        }}
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Key className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Senha:</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <code className="text-sm bg-background px-2 py-1 rounded font-mono">
+                        {createdCredentials.temporary_password}
+                      </code>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7"
+                        onClick={() => {
+                          navigator.clipboard.writeText(createdCredentials.temporary_password);
+                          toast.success('Senha copiada!');
+                        }}
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                  <Info className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+                  <p className="text-xs text-amber-700 dark:text-amber-400">
+                    Esta senha é temporária. Recomende ao profissional trocar a senha no primeiro acesso.
+                  </p>
+                </div>
+
+                <Button 
+                  className="w-full"
+                  onClick={() => {
+                    const text = `📱 Acesso ao Portal do Profissional\n\n🔗 Link: ${window.location.origin}/auth\n📧 Email: ${createdCredentials.email}\n🔑 Senha: ${createdCredentials.temporary_password}\n\n⚠️ Troque a senha no primeiro acesso!`;
+                    navigator.clipboard.writeText(text);
+                    toast.success('Credenciais copiadas para compartilhar!');
+                  }}
+                >
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copiar Tudo para Compartilhar
+                </Button>
+              </div>
+            )}
+            
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowCredentialsDialog(false)}>
+                Fechar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </ModuleGate>
   );

@@ -287,3 +287,6 @@ verify_jwt = true
 
 [functions.search-cep]
 verify_jwt = false
+
+[functions.create-professional-account]
+verify_jwt = true

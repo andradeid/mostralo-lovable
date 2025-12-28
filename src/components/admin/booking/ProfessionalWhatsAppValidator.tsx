@@ -254,31 +254,11 @@ export async function validateAndWelcomeProfessional(
 
     if (validationError) throw validationError;
 
-    const isValid = validationData?.isValid || validationData?.exists;
+    const isValid = validationData?.valid || validationData?.exists;
 
     if (isValid) {
       onStatusChange('valid');
-      
-      // Send welcome message
-      const welcomeMessage = `Olá ${professionalName}! 👋
-
-Você foi cadastrado como profissional no *${storeName}*! 🎉
-
-Em breve você receberá acesso ao seu portal exclusivo para:
-📅 Visualizar sua agenda
-💰 Acompanhar suas comissões
-⏰ Gerenciar seus horários
-
-Qualquer dúvida, entre em contato conosco! 😊`;
-
-      await supabase.functions.invoke('send-whatsapp-message', {
-        body: {
-          phone: fullPhone,
-          message: welcomeMessage,
-          storeId
-        }
-      });
-
+      // Mensagem de boas-vindas será enviada pela edge function create-professional-account
       return true;
     } else {
       onStatusChange('invalid');

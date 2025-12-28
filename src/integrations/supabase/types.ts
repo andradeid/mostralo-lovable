@@ -481,6 +481,286 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_services: {
+        Row: {
+          buffer_minutes: number | null
+          category_id: string | null
+          created_at: string | null
+          deposit_amount: number | null
+          deposit_percentage: number | null
+          description: string | null
+          display_order: number | null
+          duration_minutes: number
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          name: string
+          price: number
+          price_type: string | null
+          requires_deposit: boolean | null
+          store_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          buffer_minutes?: number | null
+          category_id?: string | null
+          created_at?: string | null
+          deposit_amount?: number | null
+          deposit_percentage?: number | null
+          description?: string | null
+          display_order?: number | null
+          duration_minutes?: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          name: string
+          price?: number
+          price_type?: string | null
+          requires_deposit?: boolean | null
+          store_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          buffer_minutes?: number | null
+          category_id?: string | null
+          created_at?: string | null
+          deposit_amount?: number | null
+          deposit_percentage?: number | null
+          description?: string | null
+          display_order?: number | null
+          duration_minutes?: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          name?: string
+          price?: number
+          price_type?: string | null
+          requires_deposit?: boolean | null
+          store_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_services_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_services_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      booking_settings: {
+        Row: {
+          allow_any_professional: boolean | null
+          cancellation_hours_limit: number | null
+          confirmation_message_template: string | null
+          created_at: string | null
+          default_deposit_percentage: number | null
+          id: string
+          max_advance_days: number | null
+          min_advance_hours: number | null
+          reminder_hours_before: number | null
+          reminder_message_template: string | null
+          require_deposit: boolean | null
+          satisfaction_message_template: string | null
+          send_confirmation_message: boolean | null
+          send_reminder_message: boolean | null
+          send_satisfaction_survey: boolean | null
+          slot_interval_minutes: number | null
+          store_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          allow_any_professional?: boolean | null
+          cancellation_hours_limit?: number | null
+          confirmation_message_template?: string | null
+          created_at?: string | null
+          default_deposit_percentage?: number | null
+          id?: string
+          max_advance_days?: number | null
+          min_advance_hours?: number | null
+          reminder_hours_before?: number | null
+          reminder_message_template?: string | null
+          require_deposit?: boolean | null
+          satisfaction_message_template?: string | null
+          send_confirmation_message?: boolean | null
+          send_reminder_message?: boolean | null
+          send_satisfaction_survey?: boolean | null
+          slot_interval_minutes?: number | null
+          store_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          allow_any_professional?: boolean | null
+          cancellation_hours_limit?: number | null
+          confirmation_message_template?: string | null
+          created_at?: string | null
+          default_deposit_percentage?: number | null
+          id?: string
+          max_advance_days?: number | null
+          min_advance_hours?: number | null
+          reminder_hours_before?: number | null
+          reminder_message_template?: string | null
+          require_deposit?: boolean | null
+          satisfaction_message_template?: string | null
+          send_confirmation_message?: boolean | null
+          send_reminder_message?: boolean | null
+          send_satisfaction_survey?: boolean | null
+          slot_interval_minutes?: number | null
+          store_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_settings_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_settings_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bookings: {
+        Row: {
+          booking_date: string
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          comanda_id: string | null
+          confirmation_sent: boolean | null
+          created_at: string | null
+          customer_email: string | null
+          customer_id: string | null
+          customer_name: string
+          customer_phone: string
+          deposit_amount: number | null
+          deposit_paid: boolean | null
+          deposit_paid_at: string | null
+          end_time: string
+          id: string
+          notes: string | null
+          price: number
+          professional_id: string
+          reminder_sent: boolean | null
+          service_id: string
+          start_time: string
+          status: string | null
+          store_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          booking_date: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          comanda_id?: string | null
+          confirmation_sent?: boolean | null
+          created_at?: string | null
+          customer_email?: string | null
+          customer_id?: string | null
+          customer_name: string
+          customer_phone: string
+          deposit_amount?: number | null
+          deposit_paid?: boolean | null
+          deposit_paid_at?: string | null
+          end_time: string
+          id?: string
+          notes?: string | null
+          price: number
+          professional_id: string
+          reminder_sent?: boolean | null
+          service_id: string
+          start_time: string
+          status?: string | null
+          store_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          booking_date?: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          comanda_id?: string | null
+          confirmation_sent?: boolean | null
+          created_at?: string | null
+          customer_email?: string | null
+          customer_id?: string | null
+          customer_name?: string
+          customer_phone?: string
+          deposit_amount?: number | null
+          deposit_paid?: boolean | null
+          deposit_paid_at?: string | null
+          end_time?: string
+          id?: string
+          notes?: string | null
+          price?: number
+          professional_id?: string
+          reminder_sent?: boolean | null
+          service_id?: string
+          start_time?: string
+          status?: string | null
+          store_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_comanda_id_fkey"
+            columns: ["comanda_id"]
+            isOneToOne: false
+            referencedRelation: "comandas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "booking_services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           created_at: string
@@ -3813,6 +4093,202 @@ export type Database = {
           },
           {
             foreignKeyName: "products_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      professional_blocks: {
+        Row: {
+          block_date: string
+          created_at: string | null
+          end_time: string | null
+          id: string
+          is_all_day: boolean | null
+          professional_id: string
+          reason: string | null
+          start_time: string | null
+        }
+        Insert: {
+          block_date: string
+          created_at?: string | null
+          end_time?: string | null
+          id?: string
+          is_all_day?: boolean | null
+          professional_id: string
+          reason?: string | null
+          start_time?: string | null
+        }
+        Update: {
+          block_date?: string
+          created_at?: string | null
+          end_time?: string | null
+          id?: string
+          is_all_day?: boolean | null
+          professional_id?: string
+          reason?: string | null
+          start_time?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_blocks_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      professional_schedules: {
+        Row: {
+          break_end: string | null
+          break_start: string | null
+          created_at: string | null
+          day_of_week: number
+          end_time: string
+          id: string
+          is_available: boolean | null
+          professional_id: string
+          start_time: string
+          updated_at: string | null
+        }
+        Insert: {
+          break_end?: string | null
+          break_start?: string | null
+          created_at?: string | null
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_available?: boolean | null
+          professional_id: string
+          start_time: string
+          updated_at?: string | null
+        }
+        Update: {
+          break_end?: string | null
+          break_start?: string | null
+          created_at?: string | null
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_available?: boolean | null
+          professional_id?: string
+          start_time?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_schedules_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      professional_services: {
+        Row: {
+          created_at: string | null
+          custom_duration: number | null
+          custom_price: number | null
+          id: string
+          is_active: boolean | null
+          professional_id: string
+          service_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          custom_duration?: number | null
+          custom_price?: number | null
+          id?: string
+          is_active?: boolean | null
+          professional_id: string
+          service_id: string
+        }
+        Update: {
+          created_at?: string | null
+          custom_duration?: number | null
+          custom_price?: number | null
+          id?: string
+          is_active?: boolean | null
+          professional_id?: string
+          service_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_services_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professional_services_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "booking_services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      professionals: {
+        Row: {
+          commission_type: string | null
+          commission_value: number | null
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          photo_url: string | null
+          specialty: string | null
+          store_id: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          commission_type?: string | null
+          commission_value?: number | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          photo_url?: string | null
+          specialty?: string | null
+          store_id: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          commission_type?: string | null
+          commission_value?: number | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          photo_url?: string | null
+          specialty?: string | null
+          store_id?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professionals_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professionals_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"

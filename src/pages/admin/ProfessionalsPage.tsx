@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,7 +20,11 @@ import {
   Scissors,
   Info,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  ExternalLink,
+  Settings,
+  UserCheck,
+  UserX
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/use-auth';
@@ -109,6 +114,19 @@ const ProfessionalsPage = () => {
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.specialty?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Calculate KPIs
+  const kpis = useMemo(() => {
+    const active = professionals.filter(p => p.is_active).length;
+    const inactive = professionals.filter(p => !p.is_active).length;
+    const withCommission = professionals.filter(p => p.commission_value > 0).length;
+    return {
+      total: professionals.length,
+      active,
+      inactive,
+      withCommission
+    };
+  }, [professionals]);
 
   const resetForm = () => {
     setFormData({
@@ -210,69 +228,120 @@ const ProfessionalsPage = () => {
 
   return (
     <ModuleGate moduleKey="booking" storeId={storeId}>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+      <div className="space-y-4 sm:space-y-6">
+        {/* Header with Badges */}
+        <div className="space-y-3">
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-primary/10">
               <Users className="h-6 w-6 text-primary" />
-              Profissionais
-            </h1>
-            <p className="text-muted-foreground">
-              Gerencie os profissionais que realizam atendimentos
-            </p>
+            </div>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">
+                Profissionais
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Gerencie os profissionais que realizam atendimentos
+              </p>
+            </div>
           </div>
-          <Button onClick={() => { resetForm(); setIsCreateDialogOpen(true); }}>
-            <UserPlus className="h-4 w-4 mr-2" />
-            Novo Profissional
-          </Button>
+          
+          {/* Header Badges */}
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="outline" className="gap-1">
+              <Users className="h-3 w-3" />
+              {kpis.total} Total
+            </Badge>
+            <Badge variant="default" className="gap-1 bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/20">
+              <UserCheck className="h-3 w-3" />
+              {kpis.active} Ativos
+            </Badge>
+            {kpis.inactive > 0 && (
+              <Badge variant="secondary" className="gap-1">
+                <UserX className="h-3 w-3" />
+                {kpis.inactive} Inativos
+              </Badge>
+            )}
+          </div>
         </div>
+
+        {/* Quick Actions Card - Mobile Optimized */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Ações Rápidas</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+              <Button variant="outline" size="sm" className="h-auto py-3 flex-col gap-1.5" asChild>
+                <Link to="/dashboard/booking/calendar">
+                  <Calendar className="h-4 w-4" />
+                  <span className="text-xs">Ver Agenda</span>
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" className="h-auto py-3 flex-col gap-1.5" asChild>
+                <Link to="/dashboard/booking/services">
+                  <Settings className="h-4 w-4" />
+                  <span className="text-xs">Serviços</span>
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" className="h-auto py-3 flex-col gap-1.5" asChild>
+                <a href={`/${storeId}/agendar`} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-4 w-4" />
+                  <span className="text-xs">Pág. Pública</span>
+                </a>
+              </Button>
+              <Button size="sm" className="h-auto py-3 flex-col gap-1.5" onClick={() => { resetForm(); setIsCreateDialogOpen(true); }}>
+                <UserPlus className="h-4 w-4" />
+                <span className="text-xs font-semibold">Novo Prof.</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Tutorial Card */}
         <Collapsible open={isHelpOpen} onOpenChange={setIsHelpOpen}>
           <Card className="border-primary/20 bg-primary/5">
-            <CardHeader className="pb-2">
+            <CardHeader className="pb-2 px-4">
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" className="w-full justify-between p-0 h-auto hover:bg-transparent">
                   <div className="flex items-center gap-2">
-                    <Info className="h-5 w-5 text-primary" />
-                    <CardTitle className="text-base">Como configurar Profissionais</CardTitle>
+                    <Info className="h-4 w-4 text-primary" />
+                    <CardTitle className="text-sm">Como configurar Profissionais</CardTitle>
                   </div>
                   {isHelpOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </Button>
               </CollapsibleTrigger>
             </CardHeader>
             <CollapsibleContent>
-              <CardContent className="pt-0">
-                <div className="grid gap-3 text-sm text-muted-foreground">
+              <CardContent className="pt-0 px-4">
+                <div className="grid gap-2.5 text-sm text-muted-foreground">
                   <div className="flex items-start gap-2">
                     <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">1</span>
-                    <div>
-                      <span className="font-medium text-foreground">Cadastre o profissional</span> com nome e especialidade (ex: Barbeiro, Manicure).
+                    <div className="text-xs sm:text-sm">
+                      <span className="font-medium text-foreground">Cadastre o profissional</span> com nome e especialidade.
                     </div>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">2</span>
-                    <div>
-                      <span className="font-medium text-foreground">Configure os HORÁRIOS</span> de trabalho no menu ⋮ → Horários (dias e horas disponíveis).
+                    <div className="text-xs sm:text-sm">
+                      <span className="font-medium text-foreground">Configure os HORÁRIOS</span> no menu ⋮ → Horários.
                     </div>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">3</span>
-                    <div>
-                      <span className="font-medium text-foreground">Adicione BLOQUEIOS</span> para férias, folgas ou horários específicos indisponíveis.
+                    <div className="text-xs sm:text-sm">
+                      <span className="font-medium text-foreground">Adicione BLOQUEIOS</span> para férias ou folgas.
                     </div>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">4</span>
-                    <div>
-                      <span className="font-medium text-foreground">Vincule os SERVIÇOS</span> que este profissional pode realizar.
+                    <div className="text-xs sm:text-sm">
+                      <span className="font-medium text-foreground">Vincule os SERVIÇOS</span> que pode realizar.
                     </div>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">5</span>
-                    <div>
-                      <span className="font-medium text-foreground">Defina a COMISSÃO:</span> porcentagem (%) ou valor fixo (R$) por atendimento.
+                    <div className="text-xs sm:text-sm">
+                      <span className="font-medium text-foreground">Defina a COMISSÃO</span> (% ou R$ fixo).
                     </div>
                   </div>
                 </div>
@@ -281,8 +350,56 @@ const ProfessionalsPage = () => {
           </Card>
         </Collapsible>
 
+        {/* KPI Summary Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+          <Card className="p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10">
+                <Users className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-lg sm:text-2xl font-bold">{kpis.total}</p>
+                <p className="text-xs text-muted-foreground">Total</p>
+              </div>
+            </div>
+          </Card>
+          <Card className="p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 rounded-lg bg-green-500/10">
+                <UserCheck className="h-4 w-4 text-green-600" />
+              </div>
+              <div>
+                <p className="text-lg sm:text-2xl font-bold text-green-600">{kpis.active}</p>
+                <p className="text-xs text-muted-foreground">Ativos</p>
+              </div>
+            </div>
+          </Card>
+          <Card className="p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 rounded-lg bg-muted">
+                <UserX className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-lg sm:text-2xl font-bold text-muted-foreground">{kpis.inactive}</p>
+                <p className="text-xs text-muted-foreground">Inativos</p>
+              </div>
+            </div>
+          </Card>
+          <Card className="p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 rounded-lg bg-blue-500/10">
+                <Percent className="h-4 w-4 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-lg sm:text-2xl font-bold text-blue-600">{kpis.withCommission}</p>
+                <p className="text-xs text-muted-foreground">Com Comissão</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
         {/* Search */}
-        <div className="relative max-w-md">
+        <div className="relative w-full sm:max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar profissional..."

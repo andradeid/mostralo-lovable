@@ -16,6 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import { assignCustomerLabels } from '@/utils/customerLabelUtils';
 
 interface Customer {
   id: string;
@@ -146,6 +147,7 @@ export function CreateOrderDialog({ open, onOpenChange, onSuccess }: CreateOrder
           payment_details: paymentDetails,
           payment_status: paymentStatus,
           status: 'entrada',
+          source: 'manual',
           subtotal,
           delivery_fee: finalDeliveryFee,
           total,
@@ -156,6 +158,13 @@ export function CreateOrderDialog({ open, onOpenChange, onSuccess }: CreateOrder
         .single();
       
       if (orderError) throw orderError;
+
+      // Aplicar etiquetas ao cliente
+      const labelsToApply = ['Balcão'];
+      if (deliveryType === 'delivery') {
+        labelsToApply.push('Delivery');
+      }
+      await assignCustomerLabels(selectedCustomer.id, validatedStoreId!, labelsToApply);
 
       // Criar delivery_assignment se houver entregador atribuído
       if (selectedDriverId && deliveryType === 'delivery') {

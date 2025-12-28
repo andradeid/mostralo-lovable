@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
 import { formatPhone } from "@/lib/utils";
+import { assignCustomerLabels } from "@/utils/customerLabelUtils";
 import type { Database } from "@/integrations/supabase/types";
 import type { ZoneValidationResult } from "@/utils/deliveryZoneValidation";
 import type { Promotion } from "@/types/promotions";
@@ -359,11 +360,19 @@ export default function Checkout() {
         payment_details: paymentDetails,
         payment_status: isPixOnline ? 'pending' : 'pending', // PIX online aguarda confirmação
         status: isPixOnline ? 'aguardando_pagamento' : 'entrada', // Status especial para aguardar PIX
+        source: 'ecommerce',
         subtotal,
         delivery_fee: finalDeliveryFee,
         total,
         notes: notes?.trim() || null,
       };
+      
+      // Aplicar etiquetas ao cliente
+      const labelsToApply = ['E-commerce'];
+      if (deliveryType === 'delivery') {
+        labelsToApply.push('Delivery');
+      }
+      assignCustomerLabels(customerId, storeId, labelsToApply).catch(console.error);
       
       // Agendamento (se houver)
       if (isScheduled && selectedDate && selectedTime) {

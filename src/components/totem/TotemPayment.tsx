@@ -4,6 +4,7 @@ import { TotemConfig } from '@/hooks/useTotemConfig';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2, QrCode, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { assignCustomerLabel } from '@/utils/customerLabelUtils';
 
 interface TotemPaymentProps {
   store: StoreInfo;
@@ -134,6 +135,31 @@ export function TotemPayment({
         addons: item.addons.length > 0 ? item.addons : null,
       }));
 
+      // Buscar ou criar cliente para aplicar etiqueta
+      let customerId: string | null = null;
+      if (customerInfo.phone) {
+        const normalizedPhone = customerInfo.phone.replace(/\D/g, '');
+        const { data: existingCustomer } = await supabase
+          .from('customers')
+          .select('id')
+          .eq('phone', normalizedPhone)
+          .maybeSingle();
+        
+        if (existingCustomer) {
+          customerId = existingCustomer.id;
+        } else {
+          const { data: newCustomer } = await supabase
+            .from('customers')
+            .insert({
+              name: customerInfo.name || 'Cliente Totem',
+              phone: normalizedPhone,
+            })
+            .select('id')
+            .single();
+          customerId = newCustomer?.id || null;
+        }
+      }
+
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .insert([{
@@ -142,6 +168,7 @@ export function TotemPayment({
           status: 'em_preparo',
           total: cartTotal,
           subtotal: cartTotal,
+          customer_id: customerId,
           customer_name: customerInfo.name || null,
           customer_phone: customerInfo.phone || null,
           order_type: 'local',
@@ -154,6 +181,11 @@ export function TotemPayment({
         .single();
 
       if (orderError) throw orderError;
+
+      // Aplicar etiqueta "Totem" ao cliente
+      if (customerId) {
+        await assignCustomerLabel(customerId, store.id, 'Totem');
+      }
 
       // Criar chamada de senha
       const { error: passwordError } = await supabase

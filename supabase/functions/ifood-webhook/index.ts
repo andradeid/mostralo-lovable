@@ -383,6 +383,38 @@ async function createOrderFromEvent(supabase: any, storeId: string, event: any) 
     ? `${delivery.streetName}, ${delivery.streetNumber}${delivery.complement ? ' - ' + delivery.complement : ''}, ${delivery.neighborhood}, ${delivery.city} - ${delivery.state}`
     : null
 
+  // Buscar ou criar cliente para aplicar etiqueta
+  let customerId: string | null = null
+  const customerPhone = orderData.customer?.phone?.number || ''
+  const customerName = orderData.customer?.name || 'Cliente iFood'
+  
+  if (customerPhone) {
+    const normalizedPhone = customerPhone.replace(/\D/g, '')
+    
+    // Verificar se cliente já existe
+    const { data: existingCustomer } = await supabase
+      .from('customers')
+      .select('id')
+      .eq('phone', normalizedPhone)
+      .maybeSingle()
+    
+    if (existingCustomer) {
+      customerId = existingCustomer.id
+    } else {
+      // Criar novo cliente
+      const { data: newCustomer } = await supabase
+        .from('customers')
+        .insert({
+          name: customerName,
+          phone: normalizedPhone,
+          address: customerAddress,
+        })
+        .select('id')
+        .single()
+      customerId = newCustomer?.id || null
+    }
+  }
+
   // Criar pedido COM short_reference (localizador do iFood)
   const { data: order, error: orderError } = await supabase
     .from('orders')
@@ -390,8 +422,9 @@ async function createOrderFromEvent(supabase: any, storeId: string, event: any) 
       store_id: storeId,
       order_number: orderNumber,
       short_reference: orderData.shortReference || null, // Localizador do iFood (ex: "2677 3093")
-      customer_name: orderData.customer?.name || 'Cliente iFood',
-      customer_phone: orderData.customer?.phone?.number || '',
+      customer_id: customerId,
+      customer_name: customerName,
+      customer_phone: customerPhone,
       customer_address: customerAddress,
       delivery_type: orderData.orderType === 'DELIVERY' ? 'delivery' : 'pickup',
       subtotal: orderData.total?.subTotal || 0,
@@ -413,6 +446,45 @@ async function createOrderFromEvent(supabase: any, storeId: string, event: any) 
   }
 
   console.log(`✅ Pedido ${orderNumber} criado com sucesso | Localizador: ${orderData.shortReference}`)
+
+  // Aplicar etiquetas "iFood" e "Delivery" ao cliente
+  if (customerId) {
+    const labelsToApply = ['iFood']
+    if (orderData.orderType === 'DELIVERY') {
+      labelsToApply.push('Delivery')
+    }
+    
+    for (const labelName of labelsToApply) {
+      // Buscar label_id
+      const { data: label } = await supabase
+        .from('customer_labels')
+        .select('id')
+        .eq('store_id', storeId)
+        .eq('name', labelName)
+        .maybeSingle()
+      
+      if (label) {
+        // Verificar se já existe a atribuição
+        const { data: existing } = await supabase
+          .from('customer_label_assignments')
+          .select('id')
+          .eq('customer_id', customerId)
+          .eq('label_id', label.id)
+          .maybeSingle()
+        
+        if (!existing) {
+          await supabase
+            .from('customer_label_assignments')
+            .insert({
+              customer_id: customerId,
+              label_id: label.id,
+              store_id: storeId,
+            })
+          console.log(`🏷️ Etiqueta "${labelName}" aplicada ao cliente ${customerId}`)
+        }
+      }
+    }
+  }
 
   // Criar itens do pedido
   for (const item of orderData.items || []) {

@@ -25,7 +25,7 @@ interface Schedule {
   end_time: string;
   break_start: string | null;
   break_end: string | null;
-  is_active: boolean;
+  is_available: boolean;
 }
 
 const DAYS_OF_WEEK = [
@@ -43,7 +43,7 @@ const DEFAULT_SCHEDULE: Omit<Schedule, 'professional_id' | 'day_of_week'> = {
   end_time: '18:00',
   break_start: '12:00',
   break_end: '13:00',
-  is_active: false
+  is_available: false
 };
 
 export function ProfessionalScheduleDialog({
@@ -118,7 +118,7 @@ export function ProfessionalScheduleDialog({
             .update(scheduleData)
             .eq('id', id);
           if (error) throw error;
-        } else if (schedule.is_active) {
+        } else if (schedule.is_available) {
           // Only insert if active
           const { error } = await (supabase as any)
             .from('professional_schedules')
@@ -148,7 +148,7 @@ export function ProfessionalScheduleDialog({
       end_time: source.end_time,
       break_start: source.break_start,
       break_end: source.break_end,
-      is_active: s.day_of_week === 0 || s.day_of_week === 6 ? s.is_active : source.is_active
+      is_available: s.day_of_week === 0 || s.day_of_week === 6 ? s.is_available : source.is_available
     })));
     
     toast.success('Horários copiados para os dias da semana');
@@ -180,18 +180,18 @@ export function ProfessionalScheduleDialog({
                   key={schedule.day_of_week} 
                   className={cn(
                     "border rounded-lg p-4 transition-opacity",
-                    !schedule.is_active && "opacity-50 bg-muted/50"
+                    !schedule.is_available && "opacity-50 bg-muted/50"
                   )}
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <Switch
-                        checked={schedule.is_active}
-                        onCheckedChange={(checked) => updateSchedule(schedule.day_of_week, 'is_active', checked)}
+                        checked={schedule.is_available}
+                        onCheckedChange={(checked) => updateSchedule(schedule.day_of_week, 'is_available', checked)}
                       />
                       <span className="font-medium">{day?.label}</span>
                     </div>
-                    {index === 1 && schedule.is_active && (
+                    {index === 1 && schedule.is_available && (
                       <Button 
                         variant="ghost" 
                         size="sm"
@@ -202,7 +202,7 @@ export function ProfessionalScheduleDialog({
                     )}
                   </div>
 
-                  {schedule.is_active && (
+                  {schedule.is_available && (
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       <div>
                         <Label className="text-xs">Início</Label>

@@ -8,6 +8,7 @@ const corsHeaders = {
 interface CreateProfessionalRequest {
   name: string;
   email: string;
+  password: string;
   phone?: string;
   countryCode?: string;
   specialty?: string;
@@ -16,15 +17,7 @@ interface CreateProfessionalRequest {
   commission_type?: 'percentage' | 'fixed';
   commission_value?: number;
   store_id: string;
-}
-
-function generateTemporaryPassword(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
-  let password = 'Pro@';
-  for (let i = 0; i < 6; i++) {
-    password += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return password;
+  send_whatsapp?: boolean;
 }
 
 Deno.serve(async (req) => {
@@ -36,7 +29,8 @@ Deno.serve(async (req) => {
     const body: CreateProfessionalRequest = await req.json();
     const { 
       name, 
-      email, 
+      email,
+      password,
       phone, 
       countryCode = '+55',
       specialty, 
@@ -44,14 +38,23 @@ Deno.serve(async (req) => {
       photo_url, 
       commission_type = 'percentage', 
       commission_value = 0,
-      store_id 
+      store_id,
+      send_whatsapp = false
     } = body;
 
     console.log(`📨 Criando conta profissional: ${name} (${email})`);
 
+    // Validações
     if (!name || !email || !store_id) {
       return new Response(
-        JSON.stringify({ error: 'Dados obrigatórios faltando: name, email, store_id' }),
+        JSON.stringify({ success: false, error: 'Dados obrigatórios faltando: name, email, store_id' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!password || password.length < 6) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Senha deve ter pelo menos 6 caracteres' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -66,7 +69,7 @@ Deno.serve(async (req) => {
     
     if (userExists) {
       return new Response(
-        JSON.stringify({ error: 'Este email já está cadastrado no sistema' }),
+        JSON.stringify({ success: false, error: 'Este email já está cadastrado no sistema' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -79,17 +82,12 @@ Deno.serve(async (req) => {
       .single();
 
     const storeName = storeData?.name || 'nossa loja';
-    const storeSlug = storeData?.slug || '';
 
-    // 3. Gerar senha temporária
-    const temporaryPassword = generateTemporaryPassword();
-    console.log(`🔑 Senha temporária gerada para ${email}`);
-
-    // 4. Criar usuário no auth.users
+    // 3. Criar usuário no auth.users com a senha definida pelo lojista
     const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
       email: email.toLowerCase(),
-      password: temporaryPassword,
-      email_confirm: true, // Auto-confirma o email
+      password: password,
+      email_confirm: true,
       user_metadata: {
         name,
         user_type: 'professional',
@@ -100,20 +98,20 @@ Deno.serve(async (req) => {
     if (authError || !authUser.user) {
       console.error('❌ Erro ao criar usuário auth:', authError);
       return new Response(
-        JSON.stringify({ error: authError?.message || 'Erro ao criar usuário' }),
+        JSON.stringify({ success: false, error: authError?.message || 'Erro ao criar usuário' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     console.log(`✅ Usuário auth criado: ${authUser.user.id}`);
 
-    // 5. Formatar telefone
+    // 4. Formatar telefone
     let formattedPhone = '';
     if (phone) {
       formattedPhone = `${countryCode.replace('+', '')}${phone.replace(/\D/g, '')}`;
     }
 
-    // 6. Criar registro em professionals
+    // 5. Criar registro em professionals
     const { data: professional, error: professionalError } = await supabase
       .from('professionals')
       .insert({
@@ -136,14 +134,14 @@ Deno.serve(async (req) => {
       // Rollback: deletar usuário auth
       await supabase.auth.admin.deleteUser(authUser.user.id);
       return new Response(
-        JSON.stringify({ error: professionalError.message }),
+        JSON.stringify({ success: false, error: professionalError.message }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     console.log(`✅ Profissional criado: ${professional.id}`);
 
-    // 7. Inserir role na tabela user_roles
+    // 6. Inserir role na tabela user_roles
     const { error: roleError } = await supabase
       .from('user_roles')
       .insert({
@@ -153,13 +151,12 @@ Deno.serve(async (req) => {
       });
 
     if (roleError) {
-      console.error('❌ Erro ao inserir role:', roleError);
-      // Não fazemos rollback aqui, apenas logamos
+      console.error('⚠️ Aviso ao inserir role:', roleError);
     }
 
     console.log(`✅ Role 'professional' atribuída`);
 
-    // 8. Criar profile se não existir
+    // 7. Criar profile se não existir
     const { error: profileError } = await supabase
       .from('profiles')
       .upsert({
@@ -174,9 +171,9 @@ Deno.serve(async (req) => {
       console.error('⚠️ Aviso ao criar profile:', profileError);
     }
 
-    // 9. Enviar credenciais via WhatsApp (se tiver telefone)
+    // 8. Enviar notificação via WhatsApp (se tiver telefone e solicitado)
     let whatsappSent = false;
-    if (formattedPhone) {
+    if (send_whatsapp && formattedPhone) {
       try {
         // Buscar configuração Evolution
         const { data: evolutionConfig } = await supabase
@@ -196,6 +193,7 @@ Deno.serve(async (req) => {
           const firstName = name.split(' ')[0];
           const loginUrl = `${req.headers.get('origin') || 'https://mostralo.com.br'}/auth`;
           
+          // Mensagem sem incluir a senha (definida pelo lojista)
           const message = `Olá ${firstName}! 🎉
 
 Você foi cadastrado como *Profissional* em *${storeName}*!
@@ -204,16 +202,14 @@ Você foi cadastrado como *Profissional* em *${storeName}*!
 ${loginUrl}
 
 📧 *Seu email:* ${email}
-🔑 *Senha temporária:* ${temporaryPassword}
+🔑 *Sua senha foi definida pelo administrador*
 
-⚠️ *Importante:* Recomendamos trocar a senha no primeiro acesso!
+Entre em contato com o responsável da loja caso precise das suas credenciais! 💬
 
 No portal você pode:
 ✅ Ver sua agenda de atendimentos
 ✅ Acompanhar suas comissões
-✅ Gerenciar seus horários e bloqueios
-
-Qualquer dúvida, fale com o responsável da loja! 💬`;
+✅ Gerenciar seus horários e bloqueios`;
 
           const evolutionUrl = `${evolutionConfig.api_url}/message/sendText/${masterConfig.instance_name}`;
           
@@ -231,7 +227,7 @@ Qualquer dúvida, fale com o responsável da loja! 💬`;
 
           if (response.ok) {
             whatsappSent = true;
-            console.log(`✅ Credenciais enviadas via WhatsApp para ${formattedPhone}`);
+            console.log(`✅ Notificação enviada via WhatsApp para ${formattedPhone}`);
           } else {
             console.error('⚠️ Falha ao enviar WhatsApp:', await response.text());
           }
@@ -248,10 +244,9 @@ Qualquer dúvida, fale com o responsável da loja! 💬`;
         professional,
         user_id: authUser.user.id,
         whatsapp_sent: whatsappSent,
-        // Retornar credenciais apenas para exibição no frontend (uma única vez)
         credentials: {
           email: email.toLowerCase(),
-          temporary_password: temporaryPassword,
+          password_set: true
         }
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -260,7 +255,7 @@ Qualquer dúvida, fale com o responsável da loja! 💬`;
   } catch (error) {
     console.error('❌ Erro no create-professional-account:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Erro desconhecido' }),
+      JSON.stringify({ success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

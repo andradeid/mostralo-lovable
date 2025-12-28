@@ -26,7 +26,6 @@ import {
   UserCheck,
   UserX,
   Mail,
-  Copy,
   CheckCircle2,
   Key
 } from 'lucide-react';
@@ -113,6 +112,8 @@ const ProfessionalsPage = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    password: '',
+    confirmPassword: '',
     specialty: '',
     description: '',
     photo_url: '',
@@ -121,8 +122,13 @@ const ProfessionalsPage = () => {
     phone: '',
     countryCode: '+55'
   });
-  const [createdCredentials, setCreatedCredentials] = useState<{ email: string; temporary_password: string } | null>(null);
-  const [showCredentialsDialog, setShowCredentialsDialog] = useState(false);
+  
+  // Estado para edição de senha
+  const [editPasswordData, setEditPasswordData] = useState({
+    newPassword: '',
+    confirmNewPassword: ''
+  });
+  const [updatingPassword, setUpdatingPassword] = useState(false);
 
   usePageSEO({
     title: 'Profissionais - Agendamento',
@@ -152,6 +158,8 @@ const ProfessionalsPage = () => {
     setFormData({
       name: '',
       email: '',
+      password: '',
+      confirmPassword: '',
       specialty: '',
       description: '',
       photo_url: '',
@@ -160,8 +168,11 @@ const ProfessionalsPage = () => {
       phone: '',
       countryCode: '+55'
     });
+    setEditPasswordData({
+      newPassword: '',
+      confirmNewPassword: ''
+    });
     setWhatsappStatus('idle');
-    setCreatedCredentials(null);
   };
 
   // Fetch store name for welcome message
@@ -193,6 +204,17 @@ const ProfessionalsPage = () => {
       return;
     }
 
+    // Validar senha
+    if (!formData.password || formData.password.length < 6) {
+      toast.error('Senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      toast.error('As senhas não coincidem');
+      return;
+    }
+
     setShowValidationOverlay(true);
     setWhatsappStatus('validating');
 
@@ -202,6 +224,7 @@ const ProfessionalsPage = () => {
         body: {
           name: formData.name.trim(),
           email: formData.email.trim(),
+          password: formData.password,
           phone: formData.phone.trim() || undefined,
           countryCode: formData.countryCode,
           specialty: formData.specialty.trim() || undefined,
@@ -209,7 +232,8 @@ const ProfessionalsPage = () => {
           photo_url: formData.photo_url.trim() || undefined,
           commission_type: formData.commission_type,
           commission_value: formData.commission_value,
-          store_id: storeId
+          store_id: storeId,
+          send_whatsapp: !!formData.phone.trim()
         }
       });
 
@@ -223,26 +247,18 @@ const ProfessionalsPage = () => {
 
       setWhatsappStatus(data.whatsapp_sent ? 'valid' : 'idle');
       
-      // Guardar credenciais para exibir
-      setCreatedCredentials(data.credentials);
-      
       // Aguardar animação
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       setShowValidationOverlay(false);
       setIsCreateDialogOpen(false);
-      
-      // Mostrar dialog com credenciais
-      setShowCredentialsDialog(true);
+      resetForm();
       
       toast.success('Profissional criado com sucesso!', {
         description: data.whatsapp_sent 
-          ? 'Credenciais enviadas via WhatsApp'
-          : 'Copie as credenciais para enviar ao profissional'
+          ? 'Notificação enviada via WhatsApp'
+          : 'Informe as credenciais ao profissional'
       });
-      
-      // Refresh da lista (forçar refetch)
-      // O hook useBooking já deve fazer isso automaticamente
 
     } catch (error) {
       console.error('Erro ao criar profissional:', error);
@@ -259,7 +275,20 @@ const ProfessionalsPage = () => {
       return;
     }
 
+    // Validar senha se preenchida
+    if (editPasswordData.newPassword) {
+      if (editPasswordData.newPassword.length < 6) {
+        toast.error('Nova senha deve ter pelo menos 6 caracteres');
+        return;
+      }
+      if (editPasswordData.newPassword !== editPasswordData.confirmNewPassword) {
+        toast.error('As novas senhas não coincidem');
+        return;
+      }
+    }
+
     try {
+      // Atualizar dados do profissional
       await updateProfessional({
         id: selectedProfessional.id,
         name: formData.name.trim(),
@@ -269,10 +298,32 @@ const ProfessionalsPage = () => {
         commission_type: formData.commission_type,
         commission_value: formData.commission_value
       });
+
+      // Atualizar senha se preenchida
+      if (editPasswordData.newPassword && selectedProfessional.user_id && storeId) {
+        setUpdatingPassword(true);
+        const { data, error } = await supabase.functions.invoke('update-professional-password', {
+          body: {
+            professional_id: selectedProfessional.id,
+            new_password: editPasswordData.newPassword,
+            store_id: storeId
+          }
+        });
+
+        if (error || !data?.success) {
+          toast.error(data?.error || 'Erro ao atualizar senha');
+          setUpdatingPassword(false);
+          return;
+        }
+        toast.success('Senha atualizada com sucesso!');
+        setUpdatingPassword(false);
+      }
+
       setIsEditDialogOpen(false);
       setSelectedProfessional(null);
       resetForm();
     } catch (error) {
+      setUpdatingPassword(false);
       // Error handled by hook
     }
   };
@@ -317,6 +368,8 @@ const ProfessionalsPage = () => {
     setFormData({
       name: professional.name,
       email: '', // Email não editável depois de criado
+      password: '',
+      confirmPassword: '',
       specialty: professional.specialty || '',
       description: professional.description || '',
       photo_url: professional.photo_url || '',
@@ -324,6 +377,10 @@ const ProfessionalsPage = () => {
       commission_value: professional.commission_value,
       phone,
       countryCode
+    });
+    setEditPasswordData({
+      newPassword: '',
+      confirmNewPassword: ''
     });
     setWhatsappStatus('idle');
     setIsEditDialogOpen(true);
@@ -746,6 +803,44 @@ const ProfessionalsPage = () => {
                 status={whatsappStatus}
                 disabled={creatingProfessional}
               />
+
+              {/* Senha de Acesso */}
+              <div className="space-y-3 p-3 rounded-lg bg-muted/30 border">
+                <div className="flex items-center gap-2">
+                  <Key className="h-4 w-4 text-primary" />
+                  <Label className="text-sm font-medium">Credenciais de Acesso</Label>
+                </div>
+                <div className="grid gap-3">
+                  <div>
+                    <Label htmlFor="password">Senha *</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                      placeholder="Mínimo 6 caracteres"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="confirmPassword">Confirmar Senha *</Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      value={formData.confirmPassword}
+                      onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                      placeholder="Digite a senha novamente"
+                    />
+                    {formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                      <p className="text-xs text-destructive mt-1">As senhas não coincidem</p>
+                    )}
+                    {formData.password && formData.confirmPassword && formData.password === formData.confirmPassword && (
+                      <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                        <CheckCircle2 className="h-3 w-3" /> Senhas coincidem
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
@@ -847,8 +942,51 @@ const ProfessionalsPage = () => {
                 onCountryCodeChange={(countryCode) => setFormData(prev => ({ ...prev, countryCode }))}
                 onStatusChange={setWhatsappStatus}
                 status={whatsappStatus}
-                disabled={updatingProfessional}
+                disabled={updatingProfessional || updatingPassword}
               />
+
+              {/* Alterar Senha - Opcional */}
+              {selectedProfessional?.user_id && (
+                <div className="space-y-3 p-3 rounded-lg bg-muted/30 border">
+                  <div className="flex items-center gap-2">
+                    <Key className="h-4 w-4 text-primary" />
+                    <Label className="text-sm font-medium">Alterar Senha (Opcional)</Label>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Deixe em branco para manter a senha atual
+                  </p>
+                  <div className="grid gap-3">
+                    <div>
+                      <Label htmlFor="newPassword">Nova Senha</Label>
+                      <Input
+                        id="newPassword"
+                        type="password"
+                        value={editPasswordData.newPassword}
+                        onChange={(e) => setEditPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                        placeholder="Mínimo 6 caracteres"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="confirmNewPassword">Confirmar Nova Senha</Label>
+                      <Input
+                        id="confirmNewPassword"
+                        type="password"
+                        value={editPasswordData.confirmNewPassword}
+                        onChange={(e) => setEditPasswordData(prev => ({ ...prev, confirmNewPassword: e.target.value }))}
+                        placeholder="Digite a nova senha novamente"
+                      />
+                      {editPasswordData.newPassword && editPasswordData.confirmNewPassword && editPasswordData.newPassword !== editPasswordData.confirmNewPassword && (
+                        <p className="text-xs text-destructive mt-1">As senhas não coincidem</p>
+                      )}
+                      {editPasswordData.newPassword && editPasswordData.confirmNewPassword && editPasswordData.newPassword === editPasswordData.confirmNewPassword && (
+                        <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                          <CheckCircle2 className="h-3 w-3" /> Senhas coincidem
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
             </div>
             <DialogFooter>
@@ -928,102 +1066,6 @@ const ProfessionalsPage = () => {
           />
         )}
 
-        {/* Credentials Dialog */}
-        <Dialog open={showCredentialsDialog} onOpenChange={(open) => {
-          setShowCredentialsDialog(open);
-          if (!open) {
-            resetForm();
-          }
-        }}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
-                Profissional Criado!
-              </DialogTitle>
-              <DialogDescription>
-                Guarde as credenciais abaixo para que o profissional possa acessar o portal.
-              </DialogDescription>
-            </DialogHeader>
-            
-            {createdCredentials && (
-              <div className="space-y-4">
-                <div className="p-4 rounded-lg bg-muted/50 border space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Email:</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <code className="text-sm bg-background px-2 py-1 rounded">
-                        {createdCredentials.email}
-                      </code>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-7 w-7"
-                        onClick={() => {
-                          navigator.clipboard.writeText(createdCredentials.email);
-                          toast.success('Email copiado!');
-                        }}
-                      >
-                        <Copy className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Key className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Senha:</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <code className="text-sm bg-background px-2 py-1 rounded font-mono">
-                        {createdCredentials.temporary_password}
-                      </code>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-7 w-7"
-                        onClick={() => {
-                          navigator.clipboard.writeText(createdCredentials.temporary_password);
-                          toast.success('Senha copiada!');
-                        }}
-                      >
-                        <Copy className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                  <Info className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
-                  <p className="text-xs text-amber-700 dark:text-amber-400">
-                    Esta senha é temporária. Recomende ao profissional trocar a senha no primeiro acesso.
-                  </p>
-                </div>
-
-                <Button 
-                  className="w-full"
-                  onClick={() => {
-                    const text = `📱 Acesso ao Portal do Profissional\n\n🔗 Link: ${window.location.origin}/auth\n📧 Email: ${createdCredentials.email}\n🔑 Senha: ${createdCredentials.temporary_password}\n\n⚠️ Troque a senha no primeiro acesso!`;
-                    navigator.clipboard.writeText(text);
-                    toast.success('Credenciais copiadas para compartilhar!');
-                  }}
-                >
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copiar Tudo para Compartilhar
-                </Button>
-              </div>
-            )}
-            
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowCredentialsDialog(false)}>
-                Fechar
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </ModuleGate>
   );

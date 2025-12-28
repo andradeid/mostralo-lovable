@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { toast } from 'sonner';
 import { Search, KeyRound, Phone, Mail, MapPin, Calendar, ShoppingBag } from 'lucide-react';
 import { formatPhone } from '@/lib/utils';
+import { useCustomerLabelAssignments } from '@/hooks/useCustomerLabels';
+import { CustomerLabelBadge } from '@/components/customers/CustomerLabelBadge';
 
 interface Customer {
   id: string;
@@ -19,6 +21,112 @@ interface Customer {
   auth_user_id: string | null;
   created_at: string;
   order_count?: number;
+}
+
+// Componente separado para a lista de clientes com etiquetas
+function CustomerList({ 
+  customers, 
+  onResetPassword 
+}: { 
+  customers: Customer[]; 
+  onResetPassword: (customer: Customer) => void;
+}) {
+  const customerIds = useMemo(() => customers.map(c => c.id), [customers]);
+  const { assignments } = useCustomerLabelAssignments(customerIds);
+
+  if (customers.length === 0) return null;
+
+  return (
+    <div className="grid gap-4">
+      {customers.map((customer) => {
+        const customerLabels = assignments[customer.id] || [];
+        
+        return (
+          <Card key={customer.id}>
+            <CardContent className="pt-6">
+              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                <div className="space-y-3 flex-1 min-w-0">
+                  {/* Nome e badges */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-lg font-semibold">{customer.name}</h3>
+                    {customer.auth_user_id ? (
+                      <Badge variant="default" className="bg-green-600 shrink-0">
+                        ✓ Com Senha
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary" className="bg-orange-600 text-white shrink-0">
+                        ⚠ Sem Senha
+                      </Badge>
+                    )}
+                  </div>
+
+                  {/* Etiquetas do cliente */}
+                  {customerLabels.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {customerLabels.map((label) => (
+                        <CustomerLabelBadge
+                          key={label.id}
+                          name={label.name}
+                          color={label.color}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Informações do cliente */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 shrink-0" />
+                      <span className="truncate">{formatPhone(customer.phone)}</span>
+                    </div>
+
+                    {customer.email && (
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 shrink-0" />
+                        <span className="truncate">{customer.email}</span>
+                      </div>
+                    )}
+
+                    {customer.address && (
+                      <div className="flex items-center gap-2 col-span-1 sm:col-span-2">
+                        <MapPin className="h-4 w-4 shrink-0" />
+                        <span className="truncate">
+                          {customer.address.substring(0, 50)}
+                          {customer.address.length > 50 && '...'}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 shrink-0" />
+                      <span>Cliente desde {new Date(customer.created_at).toLocaleDateString('pt-BR')}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <ShoppingBag className="h-4 w-4 shrink-0" />
+                      <span>{customer.order_count} {customer.order_count === 1 ? 'pedido' : 'pedidos'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Botão de ação */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onResetPassword(customer)}
+                  className="w-full md:w-auto shrink-0"
+                  disabled={!customer.auth_user_id}
+                >
+                  <KeyRound className="h-4 w-4 mr-2" />
+                  Resetar Senha
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  );
 }
 
 export default function AdminCustomersPage() {
@@ -354,81 +462,18 @@ export default function AdminCustomersPage() {
       </div>
 
       {/* Lista de Clientes */}
-      <div className="grid gap-4">
-        {filteredCustomers.map((customer) => (
-          <Card key={customer.id}>
-            <CardContent className="pt-6">
-              <div className="flex items-start justify-between">
-                <div className="space-y-3 flex-1">
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-lg font-semibold">{customer.name}</h3>
-                    {customer.auth_user_id ? (
-                      <Badge variant="default" className="bg-green-600">
-                        ✓ Com Senha
-                      </Badge>
-                    ) : (
-                      <Badge variant="secondary" className="bg-orange-600 text-white">
-                        ⚠ Sem Senha
-                      </Badge>
-                    )}
-                  </div>
+      <CustomerList 
+        customers={filteredCustomers} 
+        onResetPassword={openResetDialog} 
+      />
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4" />
-                      {formatPhone(customer.phone)}
-                    </div>
-
-                    {customer.email && (
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4" />
-                        {customer.email}
-                      </div>
-                    )}
-
-                    {customer.address && (
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4" />
-                        {customer.address.substring(0, 50)}
-                        {customer.address.length > 50 && '...'}
-                      </div>
-                    )}
-
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      Cliente desde {new Date(customer.created_at).toLocaleDateString('pt-BR')}
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <ShoppingBag className="h-4 w-4" />
-                      {customer.order_count} {customer.order_count === 1 ? 'pedido' : 'pedidos'}
-                    </div>
-                  </div>
-                </div>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => openResetDialog(customer)}
-                  className="ml-4"
-                  disabled={!customer.auth_user_id}
-                >
-                  <KeyRound className="h-4 w-4 mr-2" />
-                  Resetar Senha
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-
-        {filteredCustomers.length === 0 && (
-          <Card>
-            <CardContent className="pt-6 text-center text-muted-foreground">
-              Nenhum cliente encontrado
-            </CardContent>
-          </Card>
-        )}
-      </div>
+      {filteredCustomers.length === 0 && (
+        <Card>
+          <CardContent className="pt-6 text-center text-muted-foreground">
+            Nenhum cliente encontrado
+          </CardContent>
+        </Card>
+      )}
 
       {/* Dialog de Reset de Senha */}
       <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>

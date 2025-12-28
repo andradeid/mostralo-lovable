@@ -55,6 +55,9 @@ const ComandaDetailPage = lazy(() => import("@/pages/admin/ComandaDetailPage"));
 const KitchenDisplayPage = lazy(() => import("@/pages/admin/KitchenDisplayPage"));
 const TableQRCodePage = lazy(() => import("@/pages/admin/TableQRCodePage"));
 const TotemConfigPage = lazy(() => import("@/pages/admin/TotemConfigPage"));
+const BookingCalendarPage = lazy(() => import("@/pages/admin/BookingCalendarPage"));
+const ProfessionalsPage = lazy(() => import("@/pages/admin/ProfessionalsPage"));
+const BookingServicesPage = lazy(() => import("@/pages/admin/BookingServicesPage"));
 
 export const storeAdminRoutes = (
   <>
@@ -486,6 +489,29 @@ export const storeAdminRoutes = (
       <ProtectedRoute allowedRoles={['store_admin']}>
         <AdminLayout pageTitle="Totem de Autoatendimento">
           <LazyRoute><TotemConfigPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+
+    {/* Módulo de Agendamento (Booking) */}
+    <Route path="/dashboard/booking" element={
+      <ProtectedRoute allowedRoles={['store_admin', 'attendant']}>
+        <AdminLayout pageTitle="Agenda">
+          <LazyRoute><BookingCalendarPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/booking/professionals" element={
+      <ProtectedRoute allowedRoles={['store_admin', 'attendant']}>
+        <AdminLayout pageTitle="Profissionais">
+          <LazyRoute><ProfessionalsPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/booking/services" element={
+      <ProtectedRoute allowedRoles={['store_admin', 'attendant']}>
+        <AdminLayout pageTitle="Serviços de Agendamento">
+          <LazyRoute><BookingServicesPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

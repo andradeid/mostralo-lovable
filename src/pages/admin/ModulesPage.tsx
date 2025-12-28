@@ -127,6 +127,10 @@ const moduleDetails: Record<string, { description: string; category: 'core' | 'a
   'pdv_comandas': {
     description: 'Sistema de PDV e comandas para controle de mesas, contas abertas, divisão de pagamentos e fechamento de caixa.',
     category: 'premium'
+  },
+  'booking': {
+    description: 'Sistema completo de agendamento de serviços com gestão de profissionais, horários de trabalho, bloqueios manuais (férias/folgas), vínculo com serviços e automações via WhatsApp (confirmação, lembretes, satisfação).',
+    category: 'premium'
   }
 };
 

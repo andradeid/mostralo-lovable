@@ -47,9 +47,9 @@ const CustomersPage = () => {
   // Hook para buscar etiquetas disponíveis
   const { labels: availableLabels } = useCustomerLabels(validatedStoreId || '');
 
-  // Hook para buscar etiquetas dos clientes
+  // Hook para buscar etiquetas dos clientes (filtrado por loja)
   const customerIds = customers.map(c => c.id);
-  const { assignments: labelAssignments, refetch: refetchLabels } = useCustomerLabelAssignments(customerIds);
+  const { assignments: labelAssignments, refetch: refetchLabels } = useCustomerLabelAssignments(customerIds, validatedStoreId);
 
   useEffect(() => {
     if (!storeAccessLoading && hasAccess && validatedStoreId) {

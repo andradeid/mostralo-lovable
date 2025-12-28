@@ -49,7 +49,7 @@ export const useCustomerLabels = (storeId: string | null) => {
   return { labels, loading, refetch: fetchLabels };
 };
 
-export const useCustomerLabelAssignments = (customerIds: string[]) => {
+export const useCustomerLabelAssignments = (customerIds: string[], storeId?: string | null) => {
   const [assignments, setAssignments] = useState<Record<string, CustomerLabel[]>>({});
   const [loading, setLoading] = useState(true);
 
@@ -60,12 +60,12 @@ export const useCustomerLabelAssignments = (customerIds: string[]) => {
       setAssignments({});
       setLoading(false);
     }
-  }, [customerIds.join(',')]);
+  }, [customerIds.join(','), storeId]);
 
   const fetchAssignments = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('customer_label_assignments')
         .select(`
           customer_id,
@@ -78,6 +78,13 @@ export const useCustomerLabelAssignments = (customerIds: string[]) => {
           )
         `)
         .in('customer_id', customerIds);
+
+      // Filtrar por store_id se fornecido
+      if (storeId) {
+        query = query.eq('store_id', storeId);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 

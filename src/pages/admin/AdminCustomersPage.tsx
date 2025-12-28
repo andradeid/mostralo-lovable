@@ -26,13 +26,15 @@ interface Customer {
 // Componente separado para a lista de clientes com etiquetas
 function CustomerList({ 
   customers, 
+  storeId,
   onResetPassword 
 }: { 
   customers: Customer[]; 
+  storeId?: string | null;
   onResetPassword: (customer: Customer) => void;
 }) {
   const customerIds = useMemo(() => customers.map(c => c.id), [customers]);
-  const { assignments } = useCustomerLabelAssignments(customerIds);
+  const { assignments } = useCustomerLabelAssignments(customerIds, storeId);
 
   if (customers.length === 0) return null;
 
@@ -138,6 +140,7 @@ export default function AdminCustomersPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [resetting, setResetting] = useState(false);
+  const [currentStoreId, setCurrentStoreId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCustomers();
@@ -195,6 +198,7 @@ export default function AdminCustomersPage() {
       console.log('✅ Perfil:', { store_id: roleData?.store_id, user_type: profile?.user_type });
 
       const storeId = roleData?.store_id;
+      setCurrentStoreId(storeId || null);
       const userType = profile?.user_type;
 
       // Se for master_admin, mostra todos os clientes
@@ -464,6 +468,7 @@ export default function AdminCustomersPage() {
       {/* Lista de Clientes */}
       <CustomerList 
         customers={filteredCustomers} 
+        storeId={currentStoreId}
         onResetPassword={openResetDialog} 
       />
 

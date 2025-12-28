@@ -7,10 +7,11 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Search, KeyRound, Phone, Mail, MapPin, Calendar, ShoppingBag } from 'lucide-react';
+import { Search, KeyRound, Phone, Mail, MapPin, Calendar, ShoppingBag, Tags } from 'lucide-react';
 import { formatPhone } from '@/lib/utils';
-import { useCustomerLabelAssignments } from '@/hooks/useCustomerLabels';
+import { useCustomerLabels, useCustomerLabelAssignments } from '@/hooks/useCustomerLabels';
 import { CustomerLabelBadge } from '@/components/customers/CustomerLabelBadge';
+import { LabelFilterDropdown } from '@/components/customers/LabelFilterDropdown';
 
 interface Customer {
   id: string;
@@ -141,23 +142,44 @@ export default function AdminCustomersPage() {
   const [newPassword, setNewPassword] = useState('');
   const [resetting, setResetting] = useState(false);
   const [currentStoreId, setCurrentStoreId] = useState<string | null>(null);
+  const [selectedLabelIds, setSelectedLabelIds] = useState<string[]>([]);
+
+  // Hook para buscar etiquetas disponíveis da loja
+  const { labels: availableLabels } = useCustomerLabels(currentStoreId);
+
+  // Hook para buscar etiquetas dos clientes (para filtro)
+  const customerIds = useMemo(() => customers.map(c => c.id), [customers]);
+  const { assignments: allAssignments } = useCustomerLabelAssignments(customerIds, currentStoreId);
 
   useEffect(() => {
     fetchCustomers();
   }, []);
 
   useEffect(() => {
+    let result = customers;
+    
+    // Filtro por busca
     if (searchTerm) {
-      const filtered = customers.filter(customer =>
-        customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      const term = searchTerm.toLowerCase();
+      result = result.filter(customer =>
+        customer.name.toLowerCase().includes(term) ||
         customer.phone.includes(searchTerm) ||
-        customer.email?.toLowerCase().includes(searchTerm.toLowerCase())
+        customer.email?.toLowerCase().includes(term)
       );
-      setFilteredCustomers(filtered);
-    } else {
-      setFilteredCustomers(customers);
     }
-  }, [searchTerm, customers]);
+    
+    // Filtro por etiquetas
+    if (selectedLabelIds.length > 0) {
+      result = result.filter(customer => {
+        const customerLabels = allAssignments[customer.id] || [];
+        return selectedLabelIds.some(labelId => 
+          customerLabels.some(l => l.id === labelId)
+        );
+      });
+    }
+    
+    setFilteredCustomers(result);
+  }, [searchTerm, customers, selectedLabelIds, allAssignments]);
 
   const fetchCustomers = async () => {
     try {
@@ -424,7 +446,7 @@ export default function AdminCustomersPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <Input
                 placeholder="Buscar por nome, telefone ou e-mail..."
@@ -432,9 +454,19 @@ export default function AdminCustomersPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Button variant="outline" onClick={() => setSearchTerm('')}>
-              Limpar
-            </Button>
+            <div className="flex gap-2">
+              <LabelFilterDropdown
+                labels={availableLabels}
+                selectedLabelIds={selectedLabelIds}
+                onSelectionChange={setSelectedLabelIds}
+              />
+              <Button variant="outline" onClick={() => {
+                setSearchTerm('');
+                setSelectedLabelIds([]);
+              }}>
+                Limpar
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -604,6 +604,15 @@ export function AdminSidebar() {
         );
       }
 
+      // Agendamento - verifica módulo
+      if (hasModule('booking')) {
+        menuItems.push(
+          { title: 'Agenda', url: '/dashboard/booking', icon: Calendar, group: 'Agendamento' },
+          { title: 'Profissionais', url: '/dashboard/booking/professionals', icon: Users, group: 'Agendamento' },
+          { title: 'Serviços', url: '/dashboard/booking/services', icon: Tag, group: 'Agendamento' }
+        );
+      }
+
       return menuItems;
     }
   };

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -70,6 +70,13 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { 
+  ProfessionalWhatsAppValidator, 
+  WhatsAppValidationOverlay,
+  WhatsAppValidationStatus,
+  validateAndWelcomeProfessional 
+} from '@/components/admin/booking/ProfessionalWhatsAppValidator';
+import { supabase } from '@/integrations/supabase/client';
 
 const ProfessionalsPage = () => {
   const { profile } = useAuth();
@@ -94,6 +101,9 @@ const ProfessionalsPage = () => {
   const [isServicesDialogOpen, setIsServicesDialogOpen] = useState(false);
   const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [showValidationOverlay, setShowValidationOverlay] = useState(false);
+  const [whatsappStatus, setWhatsappStatus] = useState<WhatsAppValidationStatus>('idle');
+  const [storeName, setStoreName] = useState('');
   
   const [formData, setFormData] = useState({
     name: '',
@@ -101,7 +111,9 @@ const ProfessionalsPage = () => {
     description: '',
     photo_url: '',
     commission_type: 'percentage' as 'percentage' | 'fixed',
-    commission_value: 0
+    commission_value: 0,
+    phone: '',
+    countryCode: '+55'
   });
 
   usePageSEO({
@@ -135,9 +147,23 @@ const ProfessionalsPage = () => {
       description: '',
       photo_url: '',
       commission_type: 'percentage',
-      commission_value: 0
+      commission_value: 0,
+      phone: '',
+      countryCode: '+55'
     });
+    setWhatsappStatus('idle');
   };
+
+  // Fetch store name for welcome message
+  const fetchStoreName = useCallback(async () => {
+    if (!storeId) return;
+    const { data } = await supabase.from('stores').select('name').eq('id', storeId).single();
+    if (data?.name) setStoreName(data.name);
+  }, [storeId]);
+
+  useState(() => {
+    fetchStoreName();
+  });
 
   const handleCreate = async () => {
     if (!storeId || !formData.name.trim()) {
@@ -145,20 +171,58 @@ const ProfessionalsPage = () => {
       return;
     }
 
-    try {
-      await createProfessional({
-        store_id: storeId,
-        name: formData.name.trim(),
-        specialty: formData.specialty.trim() || undefined,
-        description: formData.description.trim() || undefined,
-        photo_url: formData.photo_url.trim() || undefined,
-        commission_type: formData.commission_type,
-        commission_value: formData.commission_value
-      });
-      setIsCreateDialogOpen(false);
-      resetForm();
-    } catch (error) {
-      // Error handled by hook
+    // If phone is provided, validate WhatsApp first
+    if (formData.phone.trim()) {
+      setShowValidationOverlay(true);
+      
+      const fullPhone = `${formData.countryCode.replace('+', '')}${formData.phone.replace(/\D/g, '')}`;
+      
+      await validateAndWelcomeProfessional(
+        formData.phone,
+        formData.countryCode,
+        formData.name.trim(),
+        storeName || 'nossa loja',
+        storeId,
+        setWhatsappStatus
+      );
+      
+      // Wait for animation
+      await new Promise(resolve => setTimeout(resolve, 2500));
+      
+      try {
+        await createProfessional({
+          store_id: storeId,
+          name: formData.name.trim(),
+          specialty: formData.specialty.trim() || undefined,
+          description: formData.description.trim() || undefined,
+          photo_url: formData.photo_url.trim() || undefined,
+          commission_type: formData.commission_type,
+          commission_value: formData.commission_value,
+          phone: fullPhone
+        });
+        setShowValidationOverlay(false);
+        setIsCreateDialogOpen(false);
+        resetForm();
+      } catch (error) {
+        setShowValidationOverlay(false);
+      }
+    } else {
+      // No phone, create directly
+      try {
+        await createProfessional({
+          store_id: storeId,
+          name: formData.name.trim(),
+          specialty: formData.specialty.trim() || undefined,
+          description: formData.description.trim() || undefined,
+          photo_url: formData.photo_url.trim() || undefined,
+          commission_type: formData.commission_type,
+          commission_value: formData.commission_value
+        });
+        setIsCreateDialogOpen(false);
+        resetForm();
+      } catch (error) {
+        // Error handled by hook
+      }
     }
   };
 
@@ -211,14 +275,29 @@ const ProfessionalsPage = () => {
 
   const openEditDialog = (professional: Professional) => {
     setSelectedProfessional(professional);
+    // Parse phone if exists (format: 5561999999999 -> countryCode: +55, phone: formatted)
+    let countryCode = '+55';
+    let phone = '';
+    if (professional.phone) {
+      // Assume Brazilian format for now
+      if (professional.phone.startsWith('55')) {
+        countryCode = '+55';
+        phone = professional.phone.slice(2);
+      } else {
+        phone = professional.phone;
+      }
+    }
     setFormData({
       name: professional.name,
       specialty: professional.specialty || '',
       description: professional.description || '',
       photo_url: professional.photo_url || '',
       commission_type: professional.commission_type,
-      commission_value: professional.commission_value
+      commission_value: professional.commission_value,
+      phone,
+      countryCode
     });
+    setWhatsappStatus('idle');
     setIsEditDialogOpen(true);
   };
 
@@ -617,6 +696,17 @@ const ProfessionalsPage = () => {
                   />
                 </div>
               </div>
+              
+              {/* WhatsApp Field */}
+              <ProfessionalWhatsAppValidator
+                phone={formData.phone}
+                countryCode={formData.countryCode}
+                onPhoneChange={(phone) => setFormData(prev => ({ ...prev, phone }))}
+                onCountryCodeChange={(countryCode) => setFormData(prev => ({ ...prev, countryCode }))}
+                onStatusChange={setWhatsappStatus}
+                status={whatsappStatus}
+                disabled={creatingProfessional}
+              />
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
@@ -710,8 +800,19 @@ const ProfessionalsPage = () => {
                       commission_value: parseFloat(e.target.value) || 0 
                     }))}
                   />
-                </div>
               </div>
+              
+              {/* WhatsApp Field for Edit */}
+              <ProfessionalWhatsAppValidator
+                phone={formData.phone}
+                countryCode={formData.countryCode}
+                onPhoneChange={(phone) => setFormData(prev => ({ ...prev, phone }))}
+                onCountryCodeChange={(countryCode) => setFormData(prev => ({ ...prev, countryCode }))}
+                onStatusChange={setWhatsappStatus}
+                status={whatsappStatus}
+                disabled={updatingProfessional}
+              />
+            </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
@@ -776,6 +877,17 @@ const ProfessionalsPage = () => {
             professionalId={selectedProfessional.id}
             professionalName={selectedProfessional.name}
             storeId={storeId}
+          />
+        )}
+
+        {/* WhatsApp Validation Overlay */}
+        {showValidationOverlay && (
+          <WhatsAppValidationOverlay
+            status={whatsappStatus}
+            phone={formData.phone}
+            professionalName={formData.name}
+            storeName={storeName}
+            onComplete={() => setShowValidationOverlay(false)}
           />
         )}
       </div>

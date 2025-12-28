@@ -7,10 +7,12 @@ import { Button } from '@/components/ui/button';
 import { CustomerCard } from '@/components/admin/CustomerCard';
 import { CustomerDetailsModal } from '@/components/admin/CustomerDetailsModal';
 import { CustomerFormDialog } from '@/components/admin/CustomerFormDialog';
+import { ManageCustomerLabelsModal } from '@/components/customers/ManageCustomerLabelsModal';
 import { Users, Search, TrendingUp, Calendar, Loader2, Plus } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { toast } from '@/hooks/use-toast';
+import { useCustomerLabelAssignments } from '@/hooks/useCustomerLabels';
 
 interface Customer {
   id: string;
@@ -34,10 +36,15 @@ const CustomersPage = () => {
   const [sortBy, setSortBy] = useState('recent');
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [labelCustomerId, setLabelCustomerId] = useState<string | null>(null);
   const [stats, setStats] = useState({
     total: 0,
     newThisMonth: 0,
   });
+
+  // Hook para buscar etiquetas dos clientes
+  const customerIds = customers.map(c => c.id);
+  const { assignments: labelAssignments, refetch: refetchLabels } = useCustomerLabelAssignments(customerIds);
 
   useEffect(() => {
     if (!storeAccessLoading && hasAccess && validatedStoreId) {
@@ -244,7 +251,9 @@ const CustomersPage = () => {
             <CustomerCard
               key={customer.id}
               customer={customer}
+              labels={labelAssignments[customer.id] || []}
               onViewDetails={setSelectedCustomerId}
+              onManageLabels={setLabelCustomerId}
             />
           ))}
         </div>
@@ -265,6 +274,17 @@ const CustomersPage = () => {
         onClose={() => setShowAddDialog(false)}
         onSuccess={loadCustomers}
       />
+
+      {/* Modal de Gerenciar Etiquetas */}
+      {labelCustomerId && validatedStoreId && (
+        <ManageCustomerLabelsModal
+          open={!!labelCustomerId}
+          onClose={() => setLabelCustomerId(null)}
+          customerId={labelCustomerId}
+          storeId={validatedStoreId}
+          onSuccess={refetchLabels}
+        />
+      )}
     </div>
   );
 };

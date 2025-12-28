@@ -278,7 +278,32 @@ const BookingPage = () => {
         customerId = newCustomer?.id || null;
       }
 
-      // 2. Criar booking COM customer_id
+      // 2. Aplicar etiqueta "Agendamento Online" automaticamente
+      if (customerId) {
+        try {
+          const { data: originLabel } = await supabase
+            .from('customer_labels')
+            .select('id')
+            .eq('store_id', store.id)
+            .eq('name', 'Agendamento Online')
+            .single();
+          
+          if (originLabel) {
+            await supabase
+              .from('customer_label_assignments')
+              .insert({
+                customer_id: customerId,
+                label_id: originLabel.id,
+                store_id: store.id
+              });
+          }
+        } catch (labelError) {
+          console.error('Error assigning label:', labelError);
+          // Não bloquear o fluxo se falhar
+        }
+      }
+
+      // 3. Criar booking COM customer_id
       const { error } = await supabase
         .from('bookings')
         .insert({

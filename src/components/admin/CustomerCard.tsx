@@ -1,9 +1,17 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Mail, MapPin, Phone, ShoppingBag, Eye } from 'lucide-react';
+import { Mail, MapPin, Phone, ShoppingBag, Eye, Tags } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { CustomerLabelBadge } from '@/components/customers/CustomerLabelBadge';
+
+interface CustomerLabel {
+  id: string;
+  name: string;
+  color: string;
+  label_type: string;
+}
 
 interface Customer {
   id: string;
@@ -18,10 +26,12 @@ interface Customer {
 
 interface CustomerCardProps {
   customer: Customer;
+  labels?: CustomerLabel[];
   onViewDetails: (id: string) => void;
+  onManageLabels?: (id: string) => void;
 }
 
-export const CustomerCard = ({ customer, onViewDetails }: CustomerCardProps) => {
+export const CustomerCard = ({ customer, labels = [], onViewDetails, onManageLabels }: CustomerCardProps) => {
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardContent className="p-6">
@@ -29,6 +39,20 @@ export const CustomerCard = ({ customer, onViewDetails }: CustomerCardProps) => 
           <div className="space-y-3 flex-1">
             <div>
               <h3 className="font-semibold text-lg">{customer.name}</h3>
+              
+              {/* Etiquetas do cliente */}
+              {labels.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {labels.map((label) => (
+                    <CustomerLabelBadge
+                      key={label.id}
+                      name={label.name}
+                      color={label.color}
+                    />
+                  ))}
+                </div>
+              )}
+              
               <div className="flex flex-wrap items-center gap-2 mt-2">
                 <Badge variant="secondary" className="flex items-center gap-1">
                   <ShoppingBag className="h-3 w-3" />
@@ -69,6 +93,17 @@ export const CustomerCard = ({ customer, onViewDetails }: CustomerCardProps) => 
           </div>
 
           <div className="flex md:flex-col gap-2">
+            {onManageLabels && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onManageLabels(customer.id)}
+                className="flex-1 md:flex-none"
+              >
+                <Tags className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">Etiquetas</span>
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"

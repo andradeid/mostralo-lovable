@@ -1230,6 +1230,113 @@ export type Database = {
           },
         ]
       }
+      customer_label_assignments: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          customer_id: string
+          id: string
+          label_id: string
+          store_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          customer_id: string
+          id?: string
+          label_id: string
+          store_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          customer_id?: string
+          id?: string
+          label_id?: string
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_label_assignments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_label_assignments_label_id_fkey"
+            columns: ["label_id"]
+            isOneToOne: false
+            referencedRelation: "customer_labels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_label_assignments_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_label_assignments_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_labels: {
+        Row: {
+          color: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_system: boolean | null
+          label_type: string | null
+          name: string
+          store_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          color?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_system?: boolean | null
+          label_type?: string | null
+          name: string
+          store_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          color?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_system?: boolean | null
+          label_type?: string | null
+          name?: string
+          store_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_labels_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_labels_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customer_stores: {
         Row: {
           created_at: string | null

@@ -8,11 +8,12 @@ import { CustomerCard } from '@/components/admin/CustomerCard';
 import { CustomerDetailsModal } from '@/components/admin/CustomerDetailsModal';
 import { CustomerFormDialog } from '@/components/admin/CustomerFormDialog';
 import { ManageCustomerLabelsModal } from '@/components/customers/ManageCustomerLabelsModal';
+import { LabelFilterDropdown } from '@/components/customers/LabelFilterDropdown';
 import { Users, Search, TrendingUp, Calendar, Loader2, Plus } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { toast } from '@/hooks/use-toast';
-import { useCustomerLabelAssignments } from '@/hooks/useCustomerLabels';
+import { useCustomerLabels, useCustomerLabelAssignments } from '@/hooks/useCustomerLabels';
 
 interface Customer {
   id: string;
@@ -34,6 +35,7 @@ const CustomersPage = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('recent');
+  const [selectedLabelIds, setSelectedLabelIds] = useState<string[]>([]);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [labelCustomerId, setLabelCustomerId] = useState<string | null>(null);
@@ -41,6 +43,9 @@ const CustomersPage = () => {
     total: 0,
     newThisMonth: 0,
   });
+
+  // Hook para buscar etiquetas disponíveis
+  const { labels: availableLabels } = useCustomerLabels(validatedStoreId || '');
 
   // Hook para buscar etiquetas dos clientes
   const customerIds = customers.map(c => c.id);
@@ -54,7 +59,7 @@ const CustomersPage = () => {
 
   useEffect(() => {
     filterAndSortCustomers();
-  }, [customers, searchQuery, sortBy]);
+  }, [customers, searchQuery, sortBy, selectedLabelIds, labelAssignments]);
 
   const loadCustomers = async () => {
     if (!validatedStoreId) return;
@@ -126,6 +131,14 @@ const CustomersPage = () => {
           c.phone.includes(query) ||
           c.email?.toLowerCase().includes(query)
       );
+    }
+
+    // Filtrar por etiquetas selecionadas
+    if (selectedLabelIds.length > 0) {
+      filtered = filtered.filter((c) => {
+        const customerLabelIds = (labelAssignments[c.id] || []).map((l) => l.id);
+        return selectedLabelIds.some((labelId) => customerLabelIds.includes(labelId));
+      });
     }
 
     // Ordenar
@@ -214,7 +227,7 @@ const CustomersPage = () => {
               />
             </div>
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-full md:w-[200px]">
+              <SelectTrigger className="w-full md:w-[180px]">
                 <SelectValue placeholder="Ordenar por" />
               </SelectTrigger>
               <SelectContent>
@@ -223,6 +236,11 @@ const CustomersPage = () => {
                 <SelectItem value="spent">Maior Gasto</SelectItem>
               </SelectContent>
             </Select>
+            <LabelFilterDropdown
+              labels={availableLabels}
+              selectedLabelIds={selectedLabelIds}
+              onSelectionChange={setSelectedLabelIds}
+            />
           </div>
         </CardContent>
       </Card>

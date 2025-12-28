@@ -109,13 +109,21 @@ export function TableCustomerAuth({ storeId, tableNumber, onSuccess }: TableCust
     const fullPhone = countryCode.replace('+', '') + digits;
     
     try {
-      const { data, error } = await supabase.functions.invoke('validate-whatsapp-number', {
+      // Timeout de 5 segundos para evitar trava na UI
+      const timeoutPromise = new Promise<{ data: null; error: Error }>((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout')), 5000)
+      );
+      
+      const fetchPromise = supabase.functions.invoke('validate-whatsapp-number', {
         body: { phone: fullPhone, sendWelcome: false }
       });
 
+      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
+
       if (error) throw error;
 
-      if (data?.exists) {
+      // Campo correto é "valid" (não "exists" ou "isValid")
+      if (data?.valid) {
         setWhatsappStatus('valid');
       } else {
         setWhatsappStatus('invalid');

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +10,8 @@ import {
   User,
   Loader2,
   Plus,
-  Settings
+  Settings,
+  ExternalLink
 } from 'lucide-react';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useBooking, Booking, Professional } from '@/hooks/useBooking';
@@ -21,6 +22,8 @@ import { ptBR } from 'date-fns/locale';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
+import { NewBookingDialog } from '@/components/admin/booking/NewBookingDialog';
+import { supabase } from '@/integrations/supabase/client';
 
 const BookingCalendarPage = () => {
   const { storeId } = useStoreAccess();
@@ -36,6 +39,22 @@ const BookingCalendarPage = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
   const [viewMode, setViewMode] = useState<'day' | 'week'>('day');
+  const [isNewBookingOpen, setIsNewBookingOpen] = useState(false);
+  const [storeSlug, setStoreSlug] = useState<string | null>(null);
+
+  // Fetch store slug for public link
+  useEffect(() => {
+    const fetchStoreSlug = async () => {
+      if (!storeId) return;
+      const { data } = await supabase
+        .from('stores')
+        .select('slug')
+        .eq('id', storeId)
+        .single();
+      if (data) setStoreSlug(data.slug);
+    };
+    fetchStoreSlug();
+  }, [storeId]);
 
   usePageSEO({
     title: 'Agenda - Agendamentos',
@@ -268,7 +287,15 @@ const BookingCalendarPage = () => {
               Visualize e gerencie os agendamentos
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            {storeSlug && (
+              <Button variant="outline" asChild>
+                <a href={`/agendar/${storeSlug}`} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Página Pública
+                </a>
+              </Button>
+            )}
             <Button variant="outline" asChild>
               <Link to="/dashboard/booking/professionals">
                 <User className="h-4 w-4 mr-2" />
@@ -281,12 +308,41 @@ const BookingCalendarPage = () => {
                 Serviços
               </Link>
             </Button>
-            <Button>
+            <Button onClick={() => setIsNewBookingOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Novo Agendamento
             </Button>
           </div>
         </div>
+
+        {/* New Booking Dialog */}
+        <NewBookingDialog
+          open={isNewBookingOpen}
+          onOpenChange={setIsNewBookingOpen}
+          storeId={storeId}
+          defaultDate={selectedDate}
+          defaultProfessionalId={selectedProfessionalId !== 'all' ? selectedProfessionalId : undefined}
+          onSuccess={() => {
+            // Refetch bookings
+            const loadBookings = async () => {
+              if (!storeId) return;
+              let start: Date, end: Date;
+              if (viewMode === 'week') {
+                start = startOfWeek(selectedDate, { locale: ptBR });
+                end = endOfWeek(selectedDate, { locale: ptBR });
+              } else {
+                start = selectedDate;
+                end = selectedDate;
+              }
+              const data = await fetchBookings(
+                format(start, 'yyyy-MM-dd'),
+                format(end, 'yyyy-MM-dd')
+              );
+              setBookings(data);
+            };
+            loadBookings();
+          }}
+        />
 
         {/* Filters and Navigation */}
         <Card>

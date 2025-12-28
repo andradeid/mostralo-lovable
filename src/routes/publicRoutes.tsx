@@ -67,6 +67,7 @@ const NichoPadariasPage = lazy(() => import("@/pages/public/NichoPadariasPage"))
 const NichoSupermercadosPage = lazy(() => import("@/pages/public/NichoSupermercadosPage"));
 const NichoSorveteriasPage = lazy(() => import("@/pages/public/NichoSorveteriasPage"));
 const NichoDistribuidorasPage = lazy(() => import("@/pages/public/NichoDistribuidorasPage"));
+const BookingPage = lazy(() => import("@/pages/public/BookingPage"));
 
 export const publicRoutes = (
   <>
@@ -125,6 +126,9 @@ export const publicRoutes = (
     
     {/* Totem de Autoatendimento */}
     <Route path="/totem/:storeSlug" element={<LazyRoute><TotemPage /></LazyRoute>} />
+    
+    {/* Agendamento Online */}
+    <Route path="/agendar/:storeSlug" element={<LazyRoute><BookingPage /></LazyRoute>} />
     
     {/* Cliente - Autenticação e Painel */}
     <Route path="/cliente/:storeSlug" element={<LazyRoute><CustomerAuth /></LazyRoute>} />

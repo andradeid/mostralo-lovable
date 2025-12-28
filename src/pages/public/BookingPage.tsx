@@ -257,22 +257,35 @@ const BookingPage = () => {
     try {
       const endTime = calculateEndTime(selectedTime, selectedService.duration_minutes);
       
-      const client = supabase as unknown as {
-        from: (table: string) => {
-          insert: (data: Record<string, unknown>) => {
-            select: () => {
-              single: () => Promise<{ data: unknown; error: Error | null }>;
-            };
-          };
-        };
-      };
+      // 1. Cadastrar cliente de forma simples
+      let customerId: string | null = null;
       
-      const { error } = await client
+      const { data: newCustomer, error: customerError } = await supabase
+        .from('customers')
+        .insert({
+          name: customerName.trim(),
+          phone: customerPhone.trim(),
+          email: customerEmail.trim() || null,
+          notes: notes.trim() || null
+        })
+        .select('id')
+        .single();
+
+      if (customerError) {
+        console.error('Error creating customer:', customerError);
+        // Continuar mesmo com erro (fallback)
+      } else {
+        customerId = newCustomer?.id || null;
+      }
+
+      // 2. Criar booking COM customer_id
+      const { error } = await supabase
         .from('bookings')
         .insert({
           store_id: store.id,
           professional_id: selectedProfessional.id,
           service_id: selectedService.id,
+          customer_id: customerId,
           customer_name: customerName.trim(),
           customer_phone: customerPhone.trim(),
           customer_email: customerEmail.trim() || null,

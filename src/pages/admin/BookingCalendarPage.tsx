@@ -411,97 +411,146 @@ const BookingCalendarPage = () => {
     }
   };
 
+  // Stats for badges and KPIs
+  const todayBookings = getBookingsForDay(new Date());
+  const pendingCount = filteredBookings.filter(b => b.status === 'pending').length;
+  const confirmedCount = filteredBookings.filter(b => b.status === 'confirmed').length;
+  const activeProfessionalsCount = professionals.filter(p => p.is_active).length;
+
   return (
     <ModuleGate moduleKey="booking" storeId={storeId}>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <CalendarIcon className="h-6 w-6 text-primary" />
-              Agenda
-            </h1>
-            <p className="text-muted-foreground">
-              Visualize e gerencie os agendamentos
-            </p>
+      <div className="space-y-4 sm:space-y-6">
+        {/* Header with Badges */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <CalendarIcon className="h-6 w-6 text-primary" />
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">Agenda</h1>
           </div>
+          <p className="text-sm text-muted-foreground">
+            Visualize e gerencie os agendamentos
+          </p>
           <div className="flex flex-wrap gap-2">
-            {storeSlug && (
-              <Button variant="outline" asChild>
-                <a href={`/agendar/${storeSlug}`} target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Página Pública
-                </a>
-              </Button>
+            <Badge variant="secondary" className="text-xs">
+              {todayBookings.length} Hoje
+            </Badge>
+            {pendingCount > 0 && (
+              <Badge variant="outline" className="text-xs bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
+                {pendingCount} Pendente{pendingCount > 1 ? 's' : ''}
+              </Badge>
             )}
-            <Button variant="outline" asChild>
-              <Link to="/dashboard/booking/professionals">
-                <User className="h-4 w-4 mr-2" />
-                Profissionais
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link to="/dashboard/booking/services">
-                <Settings className="h-4 w-4 mr-2" />
-                Serviços
-              </Link>
-            </Button>
-            <Button onClick={() => setIsNewBookingOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Agendamento
-            </Button>
+            {confirmedCount > 0 && (
+              <Badge variant="outline" className="text-xs bg-green-500/10 text-green-600 border-green-500/20">
+                {confirmedCount} Confirmado{confirmedCount > 1 ? 's' : ''}
+              </Badge>
+            )}
           </div>
         </div>
 
-        {/* Tutorial Card - Status Legend */}
+        {/* Action Buttons Grid - 2x2 on mobile */}
+        <Card>
+          <CardContent className="p-3 sm:p-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+              {storeSlug && (
+                <Button variant="outline" className="h-auto py-3 flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-xs sm:text-sm" asChild>
+                  <a href={`/agendar/${storeSlug}`} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-4 w-4" />
+                    <span>Pág. Pública</span>
+                  </a>
+                </Button>
+              )}
+              <Button variant="outline" className="h-auto py-3 flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-xs sm:text-sm" asChild>
+                <Link to="/dashboard/booking/professionals">
+                  <User className="h-4 w-4" />
+                  <span>Profissionais</span>
+                </Link>
+              </Button>
+              <Button variant="outline" className="h-auto py-3 flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-xs sm:text-sm" asChild>
+                <Link to="/dashboard/booking/services">
+                  <Settings className="h-4 w-4" />
+                  <span>Serviços</span>
+                </Link>
+              </Button>
+              <Button className="h-auto py-3 flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-xs sm:text-sm" onClick={() => setIsNewBookingOpen(true)}>
+                <Plus className="h-4 w-4" />
+                <span>Novo</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* KPI Summary Cards - 2x2 Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
+          <Card className="p-3 sm:p-4">
+            <div className="flex flex-col">
+              <span className="text-xs text-muted-foreground">Hoje</span>
+              <span className="text-xl sm:text-2xl font-bold">{todayBookings.length}</span>
+            </div>
+          </Card>
+          <Card className="p-3 sm:p-4">
+            <div className="flex flex-col">
+              <span className="text-xs text-muted-foreground">Confirmados</span>
+              <span className="text-xl sm:text-2xl font-bold text-green-600">{confirmedCount}</span>
+            </div>
+          </Card>
+          <Card className="p-3 sm:p-4">
+            <div className="flex flex-col">
+              <span className="text-xs text-muted-foreground">Pendentes</span>
+              <span className="text-xl sm:text-2xl font-bold text-yellow-600">{pendingCount}</span>
+            </div>
+          </Card>
+          <Card className="p-3 sm:p-4">
+            <div className="flex flex-col">
+              <span className="text-xs text-muted-foreground">Profissionais</span>
+              <span className="text-xl sm:text-2xl font-bold">{activeProfessionalsCount}</span>
+            </div>
+          </Card>
+        </div>
+
+        {/* Help Card - Collapsible */}
         <Collapsible open={isHelpOpen} onOpenChange={setIsHelpOpen}>
           <Card className="border-primary/20 bg-primary/5">
-            <CardHeader className="pb-2">
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" className="w-full justify-between p-0 h-auto hover:bg-transparent">
-                  <div className="flex items-center gap-2">
-                    <Info className="h-5 w-5 text-primary" />
-                    <CardTitle className="text-base">Entenda a Agenda</CardTitle>
-                  </div>
-                  {isHelpOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                </Button>
-              </CollapsibleTrigger>
-            </CardHeader>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" className="w-full justify-between p-3 sm:p-4 h-auto hover:bg-transparent">
+                <div className="flex items-center gap-2">
+                  <Info className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium">Entenda a Agenda</span>
+                </div>
+                {isHelpOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </Button>
+            </CollapsibleTrigger>
             <CollapsibleContent>
-              <CardContent className="pt-0">
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm font-medium text-foreground mb-2">Legenda de Status:</p>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full bg-yellow-500" />
-                        <span className="text-muted-foreground">Pendente</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full bg-green-500" />
-                        <span className="text-muted-foreground">Confirmado</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full bg-blue-500" />
-                        <span className="text-muted-foreground">Em Atendimento</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full bg-gray-500" />
-                        <span className="text-muted-foreground">Concluído</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full bg-orange-500" />
-                        <span className="text-muted-foreground">Não Compareceu</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full bg-red-500" />
-                        <span className="text-muted-foreground">Cancelado</span>
-                      </div>
+              <CardContent className="pt-0 pb-4 px-3 sm:px-4">
+                <div className="space-y-3">
+                  <p className="text-xs font-medium text-foreground">Legenda de Status:</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="h-2.5 w-2.5 rounded-full bg-yellow-500" />
+                      <span className="text-muted-foreground">Pendente</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
+                      <span className="text-muted-foreground">Confirmado</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+                      <span className="text-muted-foreground">Em Atendimento</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="h-2.5 w-2.5 rounded-full bg-gray-500" />
+                      <span className="text-muted-foreground">Concluído</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="h-2.5 w-2.5 rounded-full bg-orange-500" />
+                      <span className="text-muted-foreground">Não Compareceu</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="h-2.5 w-2.5 rounded-full bg-red-500" />
+                      <span className="text-muted-foreground">Cancelado</span>
                     </div>
                   </div>
-                  <div className="text-sm text-muted-foreground border-t pt-3">
-                    <p><span className="font-medium text-foreground">Dica:</span> Clique em um agendamento para ver opções como confirmar, iniciar atendimento, marcar como concluído ou cancelar.</p>
-                  </div>
+                  <p className="text-xs text-muted-foreground border-t pt-2">
+                    <span className="font-medium text-foreground">Dica:</span> Toque em um agendamento para ver opções.
+                  </p>
                 </div>
               </CardContent>
             </CollapsibleContent>
@@ -526,30 +575,32 @@ const BookingCalendarPage = () => {
           onSuccess={refetchBookings}
         />
 
-        {/* Filters and Navigation */}
+        {/* Filters and Navigation - Mobile Optimized */}
         <Card>
-          <CardContent className="py-4">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              {/* Date Navigation */}
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon" onClick={() => navigateDate('prev')}>
+          <CardContent className="p-3 sm:py-4 sm:px-6">
+            <div className="space-y-3">
+              {/* Date Navigation Row */}
+              <div className="flex items-center justify-between gap-2">
+                <Button variant="outline" size="icon" className="h-8 w-8 sm:h-10 sm:w-10" onClick={() => navigateDate('prev')}>
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <Button variant="outline" onClick={goToToday}>
-                  Hoje
-                </Button>
-                <Button variant="outline" size="icon" onClick={() => navigateDate('next')}>
+                <div className="flex-1 text-center">
+                  <Button variant="ghost" size="sm" onClick={goToToday} className="text-xs text-muted-foreground hover:text-foreground">
+                    Hoje
+                  </Button>
+                  <div className="text-sm sm:text-lg font-semibold capitalize truncate">
+                    {getDateTitle()}
+                  </div>
+                </div>
+                <Button variant="outline" size="icon" className="h-8 w-8 sm:h-10 sm:w-10" onClick={() => navigateDate('next')}>
                   <ChevronRight className="h-4 w-4" />
                 </Button>
-                <span className="text-lg font-semibold ml-2 capitalize">
-                  {getDateTitle()}
-                </span>
               </div>
               
-              {/* View Mode and Filters */}
-              <div className="flex items-center gap-2">
+              {/* Filters Row - Stack on mobile */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <Select value={selectedProfessionalId} onValueChange={setSelectedProfessionalId}>
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-full sm:w-[180px] h-9 text-sm">
                     <SelectValue placeholder="Todos profissionais" />
                   </SelectTrigger>
                   <SelectContent>
@@ -562,12 +613,13 @@ const BookingCalendarPage = () => {
                   </SelectContent>
                 </Select>
                 
-                <div className="flex rounded-md border">
+                {/* View Mode Toggle */}
+                <div className="flex rounded-md border w-full sm:w-auto">
                   <Button
                     variant={viewMode === 'day' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => setViewMode('day')}
-                    className="rounded-r-none"
+                    className="flex-1 sm:flex-none rounded-r-none text-xs sm:text-sm h-9"
                   >
                     Dia
                   </Button>
@@ -575,7 +627,7 @@ const BookingCalendarPage = () => {
                     variant={viewMode === 'week' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => setViewMode('week')}
-                    className="rounded-none border-x"
+                    className="flex-1 sm:flex-none rounded-none border-x text-xs sm:text-sm h-9"
                   >
                     Semana
                   </Button>
@@ -583,7 +635,7 @@ const BookingCalendarPage = () => {
                     variant={viewMode === 'month' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => setViewMode('month')}
-                    className="rounded-l-none"
+                    className="flex-1 sm:flex-none rounded-l-none text-xs sm:text-sm h-9"
                   >
                     Mês
                   </Button>
@@ -606,49 +658,6 @@ const BookingCalendarPage = () => {
           </>
         )}
 
-        {/* Summary */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Agendamentos Hoje</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {getBookingsForDay(new Date()).length}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Confirmados</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {filteredBookings.filter(b => b.status === 'confirmed').length}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">
-                {filteredBookings.filter(b => b.status === 'pending').length}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Profissionais Ativos</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {professionals.filter(p => p.is_active).length}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </ModuleGate>
   );

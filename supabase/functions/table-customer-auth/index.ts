@@ -517,6 +517,44 @@ Deno.serve(async (req) => {
 
       console.log('✅ Comanda criada:', newComanda.number);
 
+      // Aplicar etiqueta "Cardápio na Mesa" ao cliente
+      try {
+        const labelName = 'Cardápio na Mesa';
+        const { data: label } = await supabase
+          .from('customer_labels')
+          .select('id')
+          .eq('store_id', store_id)
+          .eq('name', labelName)
+          .maybeSingle();
+
+        if (label) {
+          // Verificar se já existe a atribuição
+          const { data: existing } = await supabase
+            .from('customer_label_assignments')
+            .select('id')
+            .eq('customer_id', customer.id)
+            .eq('label_id', label.id)
+            .maybeSingle();
+
+          if (!existing) {
+            await supabase
+              .from('customer_label_assignments')
+              .insert({
+                customer_id: customer.id,
+                label_id: label.id,
+                store_id: store_id,
+              });
+            console.log('🏷️ Etiqueta "Cardápio na Mesa" aplicada ao cliente:', customer.id);
+          } else {
+            console.log('🏷️ Cliente já possui etiqueta "Cardápio na Mesa"');
+          }
+        } else {
+          console.log('⚠️ Etiqueta "Cardápio na Mesa" não encontrada para loja:', store_id);
+        }
+      } catch (labelError) {
+        console.error('⚠️ Erro ao aplicar etiqueta (não crítico):', labelError);
+      }
+
       return new Response(
         JSON.stringify({ 
           success: true, 

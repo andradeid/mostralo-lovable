@@ -14,7 +14,9 @@ import {
   Calendar,
   Clock,
   Percent,
-  DollarSign
+  DollarSign,
+  CalendarOff,
+  Scissors
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/use-auth';
@@ -51,6 +53,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ProfessionalScheduleDialog } from '@/components/admin/booking/ProfessionalScheduleDialog';
+import { ProfessionalBlocksDialog } from '@/components/admin/booking/ProfessionalBlocksDialog';
+import { ProfessionalServicesDialog } from '@/components/admin/booking/ProfessionalServicesDialog';
 
 const ProfessionalsPage = () => {
   const { profile } = useAuth();
@@ -71,6 +76,8 @@ const ProfessionalsPage = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
+  const [isBlocksDialogOpen, setIsBlocksDialogOpen] = useState(false);
+  const [isServicesDialogOpen, setIsServicesDialogOpen] = useState(false);
   const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
   
   const [formData, setFormData] = useState({
@@ -283,6 +290,20 @@ const ProfessionalsPage = () => {
                         }}>
                           <Clock className="h-4 w-4 mr-2" />
                           Horários
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => {
+                          setSelectedProfessional(professional);
+                          setIsBlocksDialogOpen(true);
+                        }}>
+                          <CalendarOff className="h-4 w-4 mr-2" />
+                          Bloqueios
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => {
+                          setSelectedProfessional(professional);
+                          setIsServicesDialogOpen(true);
+                        }}>
+                          <Scissors className="h-4 w-4 mr-2" />
+                          Serviços
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem 
@@ -547,27 +568,36 @@ const ProfessionalsPage = () => {
           </AlertDialogContent>
         </AlertDialog>
 
-        {/* Schedule Dialog - TODO: Implement full schedule management */}
-        <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Horários de {selectedProfessional?.name}</DialogTitle>
-              <DialogDescription>
-                Configure os horários de trabalho do profissional
-              </DialogDescription>
-            </DialogHeader>
-            <div className="py-4">
-              <p className="text-muted-foreground text-center">
-                Configuração de horários será implementada em breve.
-              </p>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsScheduleDialogOpen(false)}>
-                Fechar
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        {/* Schedule Dialog */}
+        {selectedProfessional && (
+          <ProfessionalScheduleDialog
+            open={isScheduleDialogOpen}
+            onOpenChange={setIsScheduleDialogOpen}
+            professionalId={selectedProfessional.id}
+            professionalName={selectedProfessional.name}
+          />
+        )}
+
+        {/* Blocks Dialog */}
+        {selectedProfessional && (
+          <ProfessionalBlocksDialog
+            open={isBlocksDialogOpen}
+            onOpenChange={setIsBlocksDialogOpen}
+            professionalId={selectedProfessional.id}
+            professionalName={selectedProfessional.name}
+          />
+        )}
+
+        {/* Services Dialog */}
+        {selectedProfessional && storeId && (
+          <ProfessionalServicesDialog
+            open={isServicesDialogOpen}
+            onOpenChange={setIsServicesDialogOpen}
+            professionalId={selectedProfessional.id}
+            professionalName={selectedProfessional.name}
+            storeId={storeId}
+          />
+        )}
       </div>
     </ModuleGate>
   );

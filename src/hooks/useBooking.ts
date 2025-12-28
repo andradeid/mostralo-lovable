@@ -16,6 +16,7 @@ export interface Professional {
   display_order: number;
   commission_type: 'percentage' | 'fixed';
   commission_value: number;
+  phone: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -132,6 +133,7 @@ export interface CreateProfessionalInput {
   description?: string;
   commission_type?: 'percentage' | 'fixed';
   commission_value?: number;
+  phone?: string;
 }
 
 export interface UpdateProfessionalInput extends Partial<CreateProfessionalInput> {

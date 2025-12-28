@@ -856,14 +856,15 @@ const ProfessionalsPage = () => {
 
         {/* Edit Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
+          <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
+            <DialogHeader className="flex-shrink-0">
               <DialogTitle>Editar Profissional</DialogTitle>
               <DialogDescription>
                 Atualize as informações do profissional
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
+            
+            <div className="space-y-4 overflow-y-auto flex-1 pr-2">
               <div>
                 <Label htmlFor="edit-name">Nome *</Label>
                 <Input
@@ -892,6 +893,7 @@ const ProfessionalsPage = () => {
                   rows={3}
                 />
               </div>
+              
               {/* Photo Upload for Edit */}
               <ProfessionalPhotoUpload
                 currentPhotoUrl={formData.photo_url}
@@ -899,7 +901,8 @@ const ProfessionalsPage = () => {
                 onPhotoChange={(url) => setFormData(prev => ({ ...prev, photo_url: url }))}
                 disabled={updatingProfessional}
               />
-              <div className="grid grid-cols-2 gap-4">
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="edit-commission_type">Tipo de Comissão</Label>
                   <Select
@@ -932,6 +935,7 @@ const ProfessionalsPage = () => {
                       commission_value: parseFloat(e.target.value) || 0 
                     }))}
                   />
+                </div>
               </div>
               
               {/* WhatsApp Field for Edit */}
@@ -988,8 +992,8 @@ const ProfessionalsPage = () => {
                 </div>
               )}
             </div>
-            </div>
-            <DialogFooter>
+            
+            <DialogFooter className="flex-shrink-0 pt-4 border-t">
               <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                 Cancelar
               </Button>

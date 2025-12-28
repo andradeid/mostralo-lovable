@@ -13,7 +13,10 @@ import {
   MoreVertical,
   Clock,
   DollarSign,
-  Timer
+  Timer,
+  Info,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
@@ -49,6 +52,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { InfoTooltip } from '@/components/ui/info-tooltip';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 
 const BookingServicesPage = () => {
   const { storeId } = useStoreAccess();
@@ -68,6 +77,7 @@ const BookingServicesPage = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<BookingService | null>(null);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -242,6 +252,53 @@ const BookingServicesPage = () => {
             Novo Serviço
           </Button>
         </div>
+
+        {/* Tutorial Card */}
+        <Collapsible open={isHelpOpen} onOpenChange={setIsHelpOpen}>
+          <Card className="border-primary/20 bg-primary/5">
+            <CardHeader className="pb-2">
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between p-0 h-auto hover:bg-transparent">
+                  <div className="flex items-center gap-2">
+                    <Info className="h-5 w-5 text-primary" />
+                    <CardTitle className="text-base">Como usar os Serviços de Agendamento</CardTitle>
+                  </div>
+                  {isHelpOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+              </CollapsibleTrigger>
+            </CardHeader>
+            <CollapsibleContent>
+              <CardContent className="pt-0">
+                <div className="grid gap-3 text-sm text-muted-foreground">
+                  <div className="flex items-start gap-2">
+                    <Clock className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <div>
+                      <span className="font-medium text-foreground">Duração:</span> Tempo estimado para realizar o serviço. Será usado para calcular os horários disponíveis na agenda.
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Timer className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <div>
+                      <span className="font-medium text-foreground">Buffer:</span> Intervalo automático entre atendimentos para limpeza e preparo. Ex: 10min entre um cliente e outro.
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <DollarSign className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <div>
+                      <span className="font-medium text-foreground">Tipo de Preço:</span> "Preço Fixo" = valor exato cobrado | "A partir de" = indica que o preço pode variar conforme condições.
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <DollarSign className="h-4 w-4 mt-0.5 text-amber-500 shrink-0" />
+                    <div>
+                      <span className="font-medium text-foreground">Sinal/Depósito:</span> Pagamento antecipado para confirmar a reserva e reduzir faltas (no-show).
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
 
         {/* Search */}
         <div className="relative max-w-md">

@@ -11,7 +11,10 @@ import {
   Loader2,
   Plus,
   Settings,
-  ExternalLink
+  ExternalLink,
+  Info,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useBooking, Booking, Professional } from '@/hooks/useBooking';
@@ -37,6 +40,11 @@ import { Link } from 'react-router-dom';
 import { NewBookingDialog } from '@/components/admin/booking/NewBookingDialog';
 import { BookingActionsDialog } from '@/components/admin/booking/BookingActionsDialog';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 
 type ViewMode = 'day' | 'week' | 'month';
 
@@ -60,6 +68,7 @@ const BookingCalendarPage = () => {
   // Selected booking for actions dialog
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isActionsDialogOpen, setIsActionsDialogOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   // Fetch store slug for public link
   useEffect(() => {
@@ -443,6 +452,61 @@ const BookingCalendarPage = () => {
             </Button>
           </div>
         </div>
+
+        {/* Tutorial Card - Status Legend */}
+        <Collapsible open={isHelpOpen} onOpenChange={setIsHelpOpen}>
+          <Card className="border-primary/20 bg-primary/5">
+            <CardHeader className="pb-2">
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between p-0 h-auto hover:bg-transparent">
+                  <div className="flex items-center gap-2">
+                    <Info className="h-5 w-5 text-primary" />
+                    <CardTitle className="text-base">Entenda a Agenda</CardTitle>
+                  </div>
+                  {isHelpOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+              </CollapsibleTrigger>
+            </CardHeader>
+            <CollapsibleContent>
+              <CardContent className="pt-0">
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm font-medium text-foreground mb-2">Legenda de Status:</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="h-3 w-3 rounded-full bg-yellow-500" />
+                        <span className="text-muted-foreground">Pendente</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="h-3 w-3 rounded-full bg-green-500" />
+                        <span className="text-muted-foreground">Confirmado</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="h-3 w-3 rounded-full bg-blue-500" />
+                        <span className="text-muted-foreground">Em Atendimento</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="h-3 w-3 rounded-full bg-gray-500" />
+                        <span className="text-muted-foreground">Concluído</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="h-3 w-3 rounded-full bg-orange-500" />
+                        <span className="text-muted-foreground">Não Compareceu</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="h-3 w-3 rounded-full bg-red-500" />
+                        <span className="text-muted-foreground">Cancelado</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-sm text-muted-foreground border-t pt-3">
+                    <p><span className="font-medium text-foreground">Dica:</span> Clique em um agendamento para ver opções como confirmar, iniciar atendimento, marcar como concluído ou cancelar.</p>
+                  </div>
+                </div>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
 
         {/* New Booking Dialog */}
         <NewBookingDialog

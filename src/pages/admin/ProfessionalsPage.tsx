@@ -16,7 +16,10 @@ import {
   Percent,
   DollarSign,
   CalendarOff,
-  Scissors
+  Scissors,
+  Info,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/use-auth';
@@ -56,6 +59,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ProfessionalScheduleDialog } from '@/components/admin/booking/ProfessionalScheduleDialog';
 import { ProfessionalBlocksDialog } from '@/components/admin/booking/ProfessionalBlocksDialog';
 import { ProfessionalServicesDialog } from '@/components/admin/booking/ProfessionalServicesDialog';
+import { InfoTooltip } from '@/components/ui/info-tooltip';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 
 const ProfessionalsPage = () => {
   const { profile } = useAuth();
@@ -79,6 +88,7 @@ const ProfessionalsPage = () => {
   const [isBlocksDialogOpen, setIsBlocksDialogOpen] = useState(false);
   const [isServicesDialogOpen, setIsServicesDialogOpen] = useState(false);
   const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -217,6 +227,59 @@ const ProfessionalsPage = () => {
             Novo Profissional
           </Button>
         </div>
+
+        {/* Tutorial Card */}
+        <Collapsible open={isHelpOpen} onOpenChange={setIsHelpOpen}>
+          <Card className="border-primary/20 bg-primary/5">
+            <CardHeader className="pb-2">
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between p-0 h-auto hover:bg-transparent">
+                  <div className="flex items-center gap-2">
+                    <Info className="h-5 w-5 text-primary" />
+                    <CardTitle className="text-base">Como configurar Profissionais</CardTitle>
+                  </div>
+                  {isHelpOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+              </CollapsibleTrigger>
+            </CardHeader>
+            <CollapsibleContent>
+              <CardContent className="pt-0">
+                <div className="grid gap-3 text-sm text-muted-foreground">
+                  <div className="flex items-start gap-2">
+                    <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">1</span>
+                    <div>
+                      <span className="font-medium text-foreground">Cadastre o profissional</span> com nome e especialidade (ex: Barbeiro, Manicure).
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">2</span>
+                    <div>
+                      <span className="font-medium text-foreground">Configure os HORÁRIOS</span> de trabalho no menu ⋮ → Horários (dias e horas disponíveis).
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">3</span>
+                    <div>
+                      <span className="font-medium text-foreground">Adicione BLOQUEIOS</span> para férias, folgas ou horários específicos indisponíveis.
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">4</span>
+                    <div>
+                      <span className="font-medium text-foreground">Vincule os SERVIÇOS</span> que este profissional pode realizar.
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="flex items-center justify-center h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">5</span>
+                    <div>
+                      <span className="font-medium text-foreground">Defina a COMISSÃO:</span> porcentagem (%) ou valor fixo (R$) por atendimento.
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
 
         {/* Search */}
         <div className="relative max-w-md">

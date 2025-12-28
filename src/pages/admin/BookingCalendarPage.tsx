@@ -17,13 +17,28 @@ import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useBooking, Booking, Professional } from '@/hooks/useBooking';
 import { ModuleGate } from '@/components/admin/ModuleGate';
 import { usePageSEO } from '@/hooks/useSEO';
-import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday } from 'date-fns';
+import { 
+  format, 
+  addDays, 
+  addMonths,
+  startOfWeek, 
+  endOfWeek, 
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval, 
+  isSameDay, 
+  isSameMonth,
+  isToday 
+} from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import { NewBookingDialog } from '@/components/admin/booking/NewBookingDialog';
+import { BookingActionsDialog } from '@/components/admin/booking/BookingActionsDialog';
 import { supabase } from '@/integrations/supabase/client';
+
+type ViewMode = 'day' | 'week' | 'month';
 
 const BookingCalendarPage = () => {
   const { storeId } = useStoreAccess();
@@ -38,9 +53,13 @@ const BookingCalendarPage = () => {
   const [selectedProfessionalId, setSelectedProfessionalId] = useState<string>('all');
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
-  const [viewMode, setViewMode] = useState<'day' | 'week'>('day');
+  const [viewMode, setViewMode] = useState<ViewMode>('day');
   const [isNewBookingOpen, setIsNewBookingOpen] = useState(false);
   const [storeSlug, setStoreSlug] = useState<string | null>(null);
+  
+  // Selected booking for actions dialog
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [isActionsDialogOpen, setIsActionsDialogOpen] = useState(false);
 
   // Fetch store slug for public link
   useEffect(() => {
@@ -62,37 +81,41 @@ const BookingCalendarPage = () => {
     keywords: 'agenda, agendamento, calendário, profissionais'
   });
 
-  // Fetch bookings when date changes
-  useEffect(() => {
-    const loadBookings = async () => {
-      if (!storeId) return;
+  // Refetch function for use after updates
+  const refetchBookings = useCallback(async () => {
+    if (!storeId) return;
+    
+    setLoadingBookings(true);
+    try {
+      let start: Date, end: Date;
       
-      setLoadingBookings(true);
-      try {
-        let start: Date, end: Date;
-        
-        if (viewMode === 'week') {
-          start = startOfWeek(selectedDate, { locale: ptBR });
-          end = endOfWeek(selectedDate, { locale: ptBR });
-        } else {
-          start = selectedDate;
-          end = selectedDate;
-        }
-        
-        const data = await fetchBookings(
-          format(start, 'yyyy-MM-dd'),
-          format(end, 'yyyy-MM-dd')
-        );
-        setBookings(data);
-      } catch (error) {
-        console.error('Error fetching bookings:', error);
-      } finally {
-        setLoadingBookings(false);
+      if (viewMode === 'month') {
+        start = startOfMonth(selectedDate);
+        end = endOfMonth(selectedDate);
+      } else if (viewMode === 'week') {
+        start = startOfWeek(selectedDate, { locale: ptBR });
+        end = endOfWeek(selectedDate, { locale: ptBR });
+      } else {
+        start = selectedDate;
+        end = selectedDate;
       }
-    };
-
-    loadBookings();
+      
+      const data = await fetchBookings(
+        format(start, 'yyyy-MM-dd'),
+        format(end, 'yyyy-MM-dd')
+      );
+      setBookings(data);
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+    } finally {
+      setLoadingBookings(false);
+    }
   }, [storeId, selectedDate, viewMode, fetchBookings]);
+
+  // Fetch bookings when date/view changes
+  useEffect(() => {
+    refetchBookings();
+  }, [refetchBookings]);
 
   // Filter bookings by selected professional
   const filteredBookings = useMemo(() => {
@@ -122,9 +145,22 @@ const BookingCalendarPage = () => {
     return eachDayOfInterval({ start, end });
   }, [selectedDate]);
 
+  // Get days for month view (including days from prev/next months to fill the grid)
+  const monthDays = useMemo(() => {
+    const monthStart = startOfMonth(selectedDate);
+    const monthEnd = endOfMonth(selectedDate);
+    const calendarStart = startOfWeek(monthStart, { locale: ptBR });
+    const calendarEnd = endOfWeek(monthEnd, { locale: ptBR });
+    return eachDayOfInterval({ start: calendarStart, end: calendarEnd });
+  }, [selectedDate]);
+
   const navigateDate = (direction: 'prev' | 'next') => {
-    const days = viewMode === 'week' ? 7 : 1;
-    setSelectedDate(prev => addDays(prev, direction === 'next' ? days : -days));
+    if (viewMode === 'month') {
+      setSelectedDate(prev => addMonths(prev, direction === 'next' ? 1 : -1));
+    } else {
+      const days = viewMode === 'week' ? 7 : 1;
+      setSelectedDate(prev => addDays(prev, direction === 'next' ? days : -days));
+    }
   };
 
   const goToToday = () => {
@@ -167,6 +203,16 @@ const BookingCalendarPage = () => {
     return service?.name || 'Serviço';
   };
 
+  // Handle booking click
+  const handleBookingClick = (booking: Booking) => {
+    setSelectedBooking({
+      ...booking,
+      professional_name: getProfessionalName(booking.professional_id),
+      service_name: getServiceName(booking.service_id)
+    } as Booking & { professional_name?: string; service_name?: string });
+    setIsActionsDialogOpen(true);
+  };
+
   const renderDayView = () => {
     const dayBookings = getBookingsForDay(selectedDate);
     
@@ -184,7 +230,7 @@ const BookingCalendarPage = () => {
           
           {/* Events column */}
           <div className="relative divide-y">
-            {timeSlots.map((time, index) => (
+            {timeSlots.map((time) => (
               <div key={time} className="h-16 relative">
                 {/* Render bookings that start at this time */}
                 {dayBookings
@@ -192,8 +238,9 @@ const BookingCalendarPage = () => {
                   .map(booking => (
                     <div
                       key={booking.id}
+                      onClick={() => handleBookingClick(booking)}
                       className={cn(
-                        "absolute left-1 right-1 rounded-md p-2 text-white text-xs z-10",
+                        "absolute left-1 right-1 rounded-md p-2 text-white text-xs z-10 cursor-pointer hover:opacity-90 transition-opacity",
                         getStatusColor(booking.status)
                       )}
                       style={{ top: 0 }}
@@ -224,10 +271,14 @@ const BookingCalendarPage = () => {
             <div
               key={day.toISOString()}
               className={cn(
-                "p-3 text-center",
+                "p-3 text-center cursor-pointer hover:bg-muted/50 transition-colors",
                 isToday(day) && "bg-primary/10",
                 isSameDay(day, selectedDate) && "bg-primary/5"
               )}
+              onClick={() => {
+                setSelectedDate(day);
+                setViewMode('day');
+              }}
             >
               <div className="text-xs text-muted-foreground">
                 {format(day, 'EEE', { locale: ptBR })}
@@ -246,7 +297,7 @@ const BookingCalendarPage = () => {
           {weekDays.map(day => {
             const dayBookings = getBookingsForDay(day);
             return (
-              <div key={day.toISOString()} className="p-2 space-y-1">
+              <div key={day.toISOString()} className="p-2 space-y-1 max-h-[400px] overflow-y-auto">
                 {dayBookings.length === 0 ? (
                   <div className="text-xs text-muted-foreground text-center py-4">
                     Sem agendamentos
@@ -255,8 +306,9 @@ const BookingCalendarPage = () => {
                   dayBookings.map(booking => (
                     <div
                       key={booking.id}
+                      onClick={() => handleBookingClick(booking)}
                       className={cn(
-                        "rounded p-1.5 text-white text-xs",
+                        "rounded p-1.5 text-white text-xs cursor-pointer hover:opacity-90 transition-opacity",
                         getStatusColor(booking.status)
                       )}
                     >
@@ -271,6 +323,83 @@ const BookingCalendarPage = () => {
         </div>
       </div>
     );
+  };
+
+  const renderMonthView = () => {
+    return (
+      <div className="bg-card border rounded-lg overflow-hidden">
+        {/* Weekday headers */}
+        <div className="grid grid-cols-7 divide-x border-b bg-muted/30">
+          {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
+            <div key={day} className="p-2 text-center text-xs font-medium text-muted-foreground">
+              {day}
+            </div>
+          ))}
+        </div>
+        
+        {/* Days grid */}
+        <div className="grid grid-cols-7 divide-x">
+          {monthDays.map((day, index) => {
+            const dayBookings = getBookingsForDay(day);
+            const isCurrentMonth = isSameMonth(day, selectedDate);
+            
+            return (
+              <div
+                key={day.toISOString()}
+                className={cn(
+                  "min-h-[100px] p-1 border-b cursor-pointer hover:bg-muted/30 transition-colors",
+                  !isCurrentMonth && "bg-muted/10 opacity-60"
+                )}
+                onClick={() => {
+                  setSelectedDate(day);
+                  setViewMode('day');
+                }}
+              >
+                <div className={cn(
+                  "text-sm font-medium mb-1 flex items-center justify-center w-7 h-7 rounded-full",
+                  isToday(day) && "bg-primary text-primary-foreground",
+                  !isToday(day) && isCurrentMonth && "text-foreground"
+                )}>
+                  {format(day, 'd')}
+                </div>
+                <div className="space-y-0.5">
+                  {dayBookings.slice(0, 3).map(booking => (
+                    <div
+                      key={booking.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleBookingClick(booking);
+                      }}
+                      className={cn(
+                        "rounded px-1 py-0.5 text-white text-[10px] truncate cursor-pointer hover:opacity-90",
+                        getStatusColor(booking.status)
+                      )}
+                    >
+                      {booking.start_time.slice(0, 5)} {booking.customer_name}
+                    </div>
+                  ))}
+                  {dayBookings.length > 3 && (
+                    <div className="text-[10px] text-muted-foreground px-1">
+                      +{dayBookings.length - 3} mais
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const getDateTitle = () => {
+    if (viewMode === 'month') {
+      return format(selectedDate, "MMMM 'de' yyyy", { locale: ptBR });
+    } else if (viewMode === 'week') {
+      return `${format(startOfWeek(selectedDate, { locale: ptBR }), 'dd/MM')} - ${format(endOfWeek(selectedDate, { locale: ptBR }), 'dd/MM/yyyy')}`;
+    } else {
+      return format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+    }
   };
 
   return (
@@ -322,26 +451,15 @@ const BookingCalendarPage = () => {
           storeId={storeId}
           defaultDate={selectedDate}
           defaultProfessionalId={selectedProfessionalId !== 'all' ? selectedProfessionalId : undefined}
-          onSuccess={() => {
-            // Refetch bookings
-            const loadBookings = async () => {
-              if (!storeId) return;
-              let start: Date, end: Date;
-              if (viewMode === 'week') {
-                start = startOfWeek(selectedDate, { locale: ptBR });
-                end = endOfWeek(selectedDate, { locale: ptBR });
-              } else {
-                start = selectedDate;
-                end = selectedDate;
-              }
-              const data = await fetchBookings(
-                format(start, 'yyyy-MM-dd'),
-                format(end, 'yyyy-MM-dd')
-              );
-              setBookings(data);
-            };
-            loadBookings();
-          }}
+          onSuccess={refetchBookings}
+        />
+
+        {/* Booking Actions Dialog */}
+        <BookingActionsDialog
+          open={isActionsDialogOpen}
+          onOpenChange={setIsActionsDialogOpen}
+          booking={selectedBooking as any}
+          onSuccess={refetchBookings}
         />
 
         {/* Filters and Navigation */}
@@ -359,11 +477,8 @@ const BookingCalendarPage = () => {
                 <Button variant="outline" size="icon" onClick={() => navigateDate('next')}>
                   <ChevronRight className="h-4 w-4" />
                 </Button>
-                <span className="text-lg font-semibold ml-2">
-                  {viewMode === 'day' 
-                    ? format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
-                    : `${format(startOfWeek(selectedDate, { locale: ptBR }), 'dd/MM')} - ${format(endOfWeek(selectedDate, { locale: ptBR }), 'dd/MM/yyyy')}`
-                  }
+                <span className="text-lg font-semibold ml-2 capitalize">
+                  {getDateTitle()}
                 </span>
               </div>
               
@@ -396,9 +511,17 @@ const BookingCalendarPage = () => {
                     variant={viewMode === 'week' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => setViewMode('week')}
-                    className="rounded-l-none"
+                    className="rounded-none border-x"
                   >
                     Semana
+                  </Button>
+                  <Button
+                    variant={viewMode === 'month' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('month')}
+                    className="rounded-l-none"
+                  >
+                    Mês
                   </Button>
                 </div>
               </div>
@@ -412,7 +535,11 @@ const BookingCalendarPage = () => {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : (
-          viewMode === 'day' ? renderDayView() : renderWeekView()
+          <>
+            {viewMode === 'day' && renderDayView()}
+            {viewMode === 'week' && renderWeekView()}
+            {viewMode === 'month' && renderMonthView()}
+          </>
         )}
 
         {/* Summary */}

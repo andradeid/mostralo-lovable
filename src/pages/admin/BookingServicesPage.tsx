@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,7 +17,14 @@ import {
   Timer,
   Info,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Calendar,
+  Users,
+  ExternalLink,
+  Globe,
+  CheckCircle2,
+  XCircle,
+  Banknote
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
@@ -97,6 +105,11 @@ const BookingServicesPage = () => {
     description: 'Gerencie os serviços disponíveis para agendamento',
     keywords: 'serviços, agendamento, duração, preço'
   });
+
+  // Counters for KPIs
+  const activeServices = bookingServices.filter(s => s.is_active).length;
+  const inactiveServices = bookingServices.filter(s => !s.is_active).length;
+  const depositServices = bookingServices.filter(s => s.requires_deposit).length;
 
   const filteredServices = bookingServices.filter(s =>
     s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -235,22 +248,129 @@ const BookingServicesPage = () => {
 
   return (
     <ModuleGate moduleKey="booking" storeId={storeId}>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <Scissors className="h-6 w-6 text-primary" />
+      <div className="space-y-4 sm:space-y-6">
+        {/* Header with Badges */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Scissors className="h-6 w-6 text-primary" />
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">
               Serviços de Agendamento
             </h1>
-            <p className="text-muted-foreground">
-              Configure os serviços disponíveis para agendamento online
-            </p>
           </div>
-          <Button onClick={() => { resetForm(); setIsCreateDialogOpen(true); }}>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Serviço
-          </Button>
+          <p className="text-sm text-muted-foreground">
+            Configure os serviços disponíveis para agendamento online
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="outline" className="text-xs">
+              {bookingServices.length} Total
+            </Badge>
+            <Badge variant="outline" className="text-xs bg-green-500/10 text-green-600 border-green-500/30">
+              {activeServices} Ativos
+            </Badge>
+            <Badge variant="outline" className="text-xs bg-muted text-muted-foreground">
+              {inactiveServices} Inativos
+            </Badge>
+          </div>
+        </div>
+
+        {/* Quick Actions Grid */}
+        <Card>
+          <CardContent className="p-3 sm:p-4">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
+              <Button 
+                variant="outline" 
+                className="h-auto py-3 flex-col gap-1.5"
+                asChild
+              >
+                <Link to="/dashboard/booking/calendar">
+                  <Calendar className="h-5 w-5 text-primary" />
+                  <span className="text-xs font-medium">Ver Agenda</span>
+                </Link>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-auto py-3 flex-col gap-1.5"
+                asChild
+              >
+                <Link to="/dashboard/booking/professionals">
+                  <Users className="h-5 w-5 text-primary" />
+                  <span className="text-xs font-medium">Profissionais</span>
+                </Link>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-auto py-3 flex-col gap-1.5"
+                asChild
+              >
+                <a 
+                  href={`/${storeId}/agendar`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                >
+                  <Globe className="h-5 w-5 text-primary" />
+                  <span className="text-xs font-medium flex items-center gap-1">
+                    Pág. Pública
+                    <ExternalLink className="h-3 w-3" />
+                  </span>
+                </a>
+              </Button>
+              <Button 
+                className="h-auto py-3 flex-col gap-1.5"
+                onClick={() => { resetForm(); setIsCreateDialogOpen(true); }}
+              >
+                <Plus className="h-5 w-5" />
+                <span className="text-xs font-medium">Novo Serviço</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* KPI Summary Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+          <Card className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-md bg-primary/10">
+                <Scissors className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Total</p>
+                <p className="text-lg font-bold">{bookingServices.length}</p>
+              </div>
+            </div>
+          </Card>
+          <Card className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-md bg-green-500/10">
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Ativos</p>
+                <p className="text-lg font-bold text-green-600">{activeServices}</p>
+              </div>
+            </div>
+          </Card>
+          <Card className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-md bg-muted">
+                <XCircle className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Inativos</p>
+                <p className="text-lg font-bold text-muted-foreground">{inactiveServices}</p>
+              </div>
+            </div>
+          </Card>
+          <Card className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-md bg-amber-500/10">
+                <Banknote className="h-4 w-4 text-amber-600" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Com Sinal</p>
+                <p className="text-lg font-bold text-amber-600">{depositServices}</p>
+              </div>
+            </div>
+          </Card>
         </div>
 
         {/* Tutorial Card */}
@@ -300,8 +420,8 @@ const BookingServicesPage = () => {
           </Card>
         </Collapsible>
 
-        {/* Search */}
-        <div className="relative max-w-md">
+        {/* Search - Full Width on Mobile */}
+        <div className="relative w-full sm:max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar serviço..."

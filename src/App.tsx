@@ -18,7 +18,8 @@ import {
   storeAdminRoutes,
   deliveryRoutes,
   salespersonRoutes,
-  customerRoutes
+  customerRoutes,
+  professionalRoutes
 } from "@/routes";
 
 // Página de sinalização (100% pública)
@@ -72,6 +73,9 @@ function MainAppWithProviders() {
                 
                 {/* Rotas Vendedor */}
                 {salespersonRoutes}
+                
+                {/* Rotas Profissional */}
+                {professionalRoutes}
                 
                 {/* Rotas Cliente */}
                 {customerRoutes}

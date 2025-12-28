@@ -4141,6 +4141,80 @@ export type Database = {
           },
         ]
       }
+      professional_commissions: {
+        Row: {
+          booking_id: string
+          commission_amount: number
+          commission_type: string
+          commission_value: number
+          created_at: string | null
+          id: string
+          paid_at: string | null
+          professional_id: string
+          service_price: number
+          status: string | null
+          store_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          booking_id: string
+          commission_amount?: number
+          commission_type?: string
+          commission_value?: number
+          created_at?: string | null
+          id?: string
+          paid_at?: string | null
+          professional_id: string
+          service_price: number
+          status?: string | null
+          store_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          booking_id?: string
+          commission_amount?: number
+          commission_type?: string
+          commission_value?: number
+          created_at?: string | null
+          id?: string
+          paid_at?: string | null
+          professional_id?: string
+          service_price?: number
+          status?: string | null
+          store_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_commissions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professional_commissions_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professional_commissions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professional_commissions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       professional_schedules: {
         Row: {
           break_end: string | null
@@ -8595,6 +8669,10 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_professional_store_id: {
+        Args: { _professional_id: string }
+        Returns: string
+      }
       get_user_store_ids_direct: {
         Args: { check_user_id: string }
         Returns: {
@@ -8661,6 +8739,10 @@ export type Database = {
         Args: { variant_product_id: string }
         Returns: boolean
       }
+      is_professional_self: {
+        Args: { _professional_id: string }
+        Returns: boolean
+      }
       is_store_admin_of: { Args: { _store_id: string }; Returns: boolean }
       is_store_admin_of_attendant: {
         Args: { attendant_user_id: string }
@@ -8699,6 +8781,7 @@ export type Database = {
         | "delivery_driver"
         | "attendant"
         | "salesperson"
+        | "professional"
       billing_cycle_type: "monthly" | "quarterly" | "biannual" | "annual"
       delivery_type: "delivery" | "pickup"
       order_status:
@@ -8890,6 +8973,7 @@ export const Constants = {
         "delivery_driver",
         "attendant",
         "salesperson",
+        "professional",
       ],
       billing_cycle_type: ["monthly", "quarterly", "biannual", "annual"],
       delivery_type: ["delivery", "pickup"],

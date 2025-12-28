@@ -24,8 +24,12 @@ import {
   Globe,
   CheckCircle2,
   XCircle,
-  Banknote
+  Banknote,
+  Upload,
+  X,
+  ImageIcon
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useBooking, BookingService, CreateBookingServiceInput } from '@/hooks/useBooking';
@@ -86,6 +90,8 @@ const BookingServicesPage = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<BookingService | null>(null);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -129,6 +135,57 @@ const BookingServicesPage = () => {
       deposit_amount: 0,
       deposit_percentage: 0
     });
+    setImagePreview(null);
+  };
+
+  const uploadImage = async (file: File): Promise<string | null> => {
+    if (!storeId) return null;
+    
+    try {
+      setUploading(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `${storeId}/${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('booking-service-images')
+        .upload(filePath, file);
+        
+      if (uploadError) throw uploadError;
+      
+      const { data } = supabase.storage
+        .from('booking-service-images')
+        .getPublicUrl(filePath);
+        
+      return data.publicUrl;
+    } catch (error) {
+      console.error('Erro no upload:', error);
+      toast.error('Não foi possível fazer upload da imagem.');
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    // Preview local enquanto faz upload
+    const reader = new FileReader();
+    reader.onload = (e) => setImagePreview(e.target?.result as string);
+    reader.readAsDataURL(file);
+    
+    const imageUrl = await uploadImage(file);
+    if (imageUrl) {
+      setFormData(prev => ({ ...prev, image_url: imageUrl }));
+      toast.success('Imagem enviada com sucesso!');
+    }
+  };
+
+  const removeImage = () => {
+    setFormData(prev => ({ ...prev, image_url: '' }));
+    setImagePreview(null);
   };
 
   const handleCreate = async () => {
@@ -228,6 +285,7 @@ const BookingServicesPage = () => {
       deposit_amount: service.deposit_amount || 0,
       deposit_percentage: service.deposit_percentage || 0
     });
+    setImagePreview(service.image_url || null);
     setIsEditDialogOpen(true);
   };
 
@@ -641,14 +699,64 @@ const BookingServicesPage = () => {
                   </Select>
                 </div>
               </div>
-              <div>
-                <Label htmlFor="image_url">URL da Imagem</Label>
-                <Input
-                  id="image_url"
-                  value={formData.image_url}
-                  onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
-                  placeholder="https://..."
-                />
+              {/* Image Upload */}
+              <div className="space-y-2">
+                <Label>Imagem do Serviço</Label>
+                
+                {/* Preview da imagem */}
+                {(formData.image_url || imagePreview) && (
+                  <div className="relative w-full h-40 border rounded-lg overflow-hidden bg-muted">
+                    <img 
+                      src={imagePreview || formData.image_url} 
+                      alt="Preview" 
+                      className="w-full h-full object-cover"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2 h-8 w-8"
+                      onClick={removeImage}
+                      disabled={uploading}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+                
+                {/* Input de upload */}
+                {!formData.image_url && !imagePreview && (
+                  <label 
+                    htmlFor="image-upload" 
+                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex flex-col items-center justify-center py-4">
+                      <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                      <p className="text-sm text-primary font-medium">
+                        Clique para selecionar
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        PNG, JPG até 5MB
+                      </p>
+                    </div>
+                    <Input
+                      id="image-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      disabled={uploading}
+                    />
+                  </label>
+                )}
+                
+                {/* Loading indicator */}
+                {uploading && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Enviando imagem...
+                  </div>
+                )}
               </div>
               
               {/* Deposit section */}

@@ -26,7 +26,7 @@ export const AnimatedCounter = ({
           setHasStarted(true);
         }
       },
-      { threshold: 0.5 }
+      { threshold: 0.3 }
     );
 
     if (ref.current) {
@@ -46,7 +46,7 @@ export const AnimatedCounter = ({
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
       
-      // Easing function for smooth animation
+      // Smooth easing function
       const easeOutQuart = 1 - Math.pow(1 - progress, 4);
       
       setCount(Math.round(from + diff * easeOutQuart));
@@ -60,7 +60,13 @@ export const AnimatedCounter = ({
   }, [hasStarted, from, to, duration]);
 
   return (
-    <span ref={ref} className="tabular-nums">
+    <span 
+      ref={ref} 
+      className="tabular-nums inline-block transition-transform duration-200"
+      style={{
+        transform: hasStarted ? 'scale(1)' : 'scale(0.9)',
+      }}
+    >
       {prefix}{count}{suffix}
     </span>
   );

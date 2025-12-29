@@ -2342,7 +2342,9 @@ export type Database = {
         Row: {
           amount: number
           attachment_url: string | null
+          booking_id: string | null
           category_id: string
+          comanda_id: string | null
           created_at: string
           created_by: string | null
           description: string
@@ -2361,7 +2363,9 @@ export type Database = {
         Insert: {
           amount: number
           attachment_url?: string | null
+          booking_id?: string | null
           category_id: string
+          comanda_id?: string | null
           created_at?: string
           created_by?: string | null
           description: string
@@ -2380,7 +2384,9 @@ export type Database = {
         Update: {
           amount?: number
           attachment_url?: string | null
+          booking_id?: string | null
           category_id?: string
+          comanda_id?: string | null
           created_at?: string
           created_by?: string | null
           description?: string
@@ -2398,10 +2404,24 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "financial_transactions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "financial_transactions_category_id_fkey"
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "financial_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_transactions_comanda_id_fkey"
+            columns: ["comanda_id"]
+            isOneToOne: false
+            referencedRelation: "comandas"
             referencedColumns: ["id"]
           },
           {

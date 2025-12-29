@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LayoutDashboard, ArrowLeftRight, Tags } from 'lucide-react';
+import { LayoutDashboard, ArrowLeftRight, Tags, BarChart3 } from 'lucide-react';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useFinancialCategories } from '@/hooks/useFinancialCategories';
 import { useFinancialTransactions, FinancialTransaction } from '@/hooks/useFinancialTransactions';
@@ -10,6 +10,7 @@ import { FinancialChart } from '@/components/admin/financial/FinancialChart';
 import { TransactionsList } from '@/components/admin/financial/TransactionsList';
 import { TransactionForm } from '@/components/admin/financial/TransactionForm';
 import { CategoriesManager } from '@/components/admin/financial/CategoriesManager';
+import { ChannelRevenueDashboard } from '@/components/admin/financial/ChannelRevenueDashboard';
 
 export default function FinancialManagementPage() {
   const { storeId } = useStoreAccess();
@@ -136,10 +137,14 @@ export default function FinancialManagementPage() {
       </div>
 
       <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 h-9 md:h-10 lg:w-[400px]">
+        <TabsList className="grid w-full grid-cols-4 h-9 md:h-10 lg:w-[500px]">
           <TabsTrigger value="dashboard" className="gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-3">
             <LayoutDashboard className="h-3.5 w-3.5 md:h-4 md:w-4" />
             <span className="hidden sm:inline">Dashboard</span>
+          </TabsTrigger>
+          <TabsTrigger value="channels" className="gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-3">
+            <BarChart3 className="h-3.5 w-3.5 md:h-4 md:w-4" />
+            <span className="hidden sm:inline">Por Canal</span>
           </TabsTrigger>
           <TabsTrigger value="transactions" className="gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-3">
             <ArrowLeftRight className="h-3.5 w-3.5 md:h-4 md:w-4" />
@@ -162,6 +167,10 @@ export default function FinancialManagementPage() {
             data={monthlyData} 
             isLoading={summaryLoading} 
           />
+        </TabsContent>
+
+        <TabsContent value="channels" className="mt-4 md:mt-6">
+          <ChannelRevenueDashboard storeId={storeId} />
         </TabsContent>
 
         <TabsContent value="transactions" className="mt-4 md:mt-6">

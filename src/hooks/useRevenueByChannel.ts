@@ -14,6 +14,7 @@ export interface ChannelRevenue {
 export interface MonthlyChannelData {
   month: string;
   online: number;
+  totem: number;
   pdv: number;
   mesa: number;
   agendamentos: number;
@@ -27,6 +28,7 @@ export interface RevenueByChannelData {
 
 const CHANNEL_CONFIG: Record<string, { color: string; icon: string; label: string }> = {
   'Vendas': { color: '#10b981', icon: 'ShoppingCart', label: 'Pedidos Online' },
+  'Vendas Totem': { color: '#f97316', icon: 'Tablet', label: 'Totem' },
   'Vendas PDV': { color: '#3b82f6', icon: 'Store', label: 'PDV/Balcão' },
   'Vendas Mesa': { color: '#8b5cf6', icon: 'UtensilsCrossed', label: 'Mesa' },
   'Agendamentos': { color: '#f59e0b', icon: 'Calendar', label: 'Agendamentos' },
@@ -45,7 +47,7 @@ export function useRevenueByChannel(storeId: string | null) {
         .from('financial_categories')
         .select('id, name')
         .eq('type', 'income')
-        .in('name', ['Vendas', 'Vendas PDV', 'Vendas Mesa', 'Agendamentos']);
+        .in('name', ['Vendas', 'Vendas Totem', 'Vendas PDV', 'Vendas Mesa', 'Agendamentos']);
 
       if (catError) throw catError;
 
@@ -103,6 +105,7 @@ export function useRevenueByChannel(storeId: string | null) {
         const monthData: MonthlyChannelData = {
           month: monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1),
           online: 0,
+          totem: 0,
           pdv: 0,
           mesa: 0,
           agendamentos: 0,
@@ -115,6 +118,7 @@ export function useRevenueByChannel(storeId: string | null) {
             const amount = Number(tx.amount);
             
             if (categoryName === 'Vendas') monthData.online += amount;
+            else if (categoryName === 'Vendas Totem') monthData.totem += amount;
             else if (categoryName === 'Vendas PDV') monthData.pdv += amount;
             else if (categoryName === 'Vendas Mesa') monthData.mesa += amount;
             else if (categoryName === 'Agendamentos') monthData.agendamentos += amount;

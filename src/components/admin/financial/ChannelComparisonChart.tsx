@@ -23,6 +23,7 @@ interface ChannelComparisonChartProps {
 
 const CHANNEL_COLORS = {
   online: '#10b981',
+  totem: '#f97316',
   pdv: '#3b82f6',
   mesa: '#8b5cf6',
   agendamentos: '#f59e0b',
@@ -141,6 +142,7 @@ export function ChannelComparisonChart({ channels, monthlyData, isLoading }: Cha
                   formatter={(value) => {
                     const labels: Record<string, string> = {
                       online: 'Pedidos Online',
+                      totem: 'Totem',
                       pdv: 'PDV/Balcão',
                       mesa: 'Mesa',
                       agendamentos: 'Agendamentos',
@@ -149,6 +151,7 @@ export function ChannelComparisonChart({ channels, monthlyData, isLoading }: Cha
                   }}
                 />
                 <Bar dataKey="online" name="online" fill={CHANNEL_COLORS.online} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="totem" name="totem" fill={CHANNEL_COLORS.totem} radius={[4, 4, 0, 0]} />
                 <Bar dataKey="pdv" name="pdv" fill={CHANNEL_COLORS.pdv} radius={[4, 4, 0, 0]} />
                 <Bar dataKey="mesa" name="mesa" fill={CHANNEL_COLORS.mesa} radius={[4, 4, 0, 0]} />
                 <Bar dataKey="agendamentos" name="agendamentos" fill={CHANNEL_COLORS.agendamentos} radius={[4, 4, 0, 0]} />

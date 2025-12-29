@@ -3336,5 +3336,244 @@ Mostrar a economia pode:
       '□ Adicionar animação de contador para valores',
       '□ A/B test para medir impacto na conversão'
     ]
+  },
+  {
+    id: 27,
+    title: '📴 Modo Offline com Sincronização',
+    status: 'idea',
+    priority: 'high',
+    createdAt: '2025-12-29',
+    description: 'Permitir que o sistema funcione sem internet (PDV, Totem, Comandas) e sincronize automaticamente quando a conexão for restaurada.',
+    
+    context: `O sistema já possui Service Worker (public/sw.js) com estratégias de cache:
+• Cache First para assets (CSS, JS, imagens)
+• Network First para HTML
+• Stale While Revalidate para conteúdo dinâmico
+
+Também existe safeStorage.ts para armazenamento local.
+
+PORÉM: Não há sincronização de dados offline. Transações feitas sem internet são perdidas.`,
+
+    problem: `Problemas críticos para lojistas:
+• Quedas de internet = operação parada
+• Perda de vendas durante instabilidade de rede
+• Totems e PDVs são críticos - não podem depender 100% de internet
+• Áreas rurais ou com internet instável são inviáveis
+
+Impacto nos nichos:
+• Food Trucks: operam em eventos sem Wi-Fi
+• Feiras: conexão instável ou inexistente
+• Supermercados: checkout não pode parar
+• Arenas Esportivas: picos de demanda sobrecarregam rede`,
+
+    marketAnalysis: {
+      title: '📊 Análise de Mercado',
+      items: [
+        'Diferencial competitivo ENORME - poucos sistemas oferecem modo offline real',
+        'iFood/Rappi não funcionam offline - oportunidade para delivery local',
+        'Totems de autoatendimento precisam de resiliência',
+        'Supermercados exigem 99.9% de uptime no PDV',
+        'Food trucks frequentemente operam em locais sem internet estável'
+      ]
+    },
+
+    technicalDetails: {
+      title: '🔧 Arquitetura Técnica',
+      items: [
+        'IndexedDB para armazenamento robusto (suporta GB de dados)',
+        'Dexie.js como wrapper para IndexedDB (API mais simples)',
+        'Fila de operações pendentes (offline queue)',
+        'Detector de conexão (navigator.onLine + ping periódico)',
+        'Sync Manager para sincronização em background',
+        'Resolução de conflitos (timestamp-based ou merge manual)',
+        'Indicador visual de status de conexão em tempo real',
+        'Cache do catálogo completo (produtos, preços, imagens)',
+        'Geração de IDs temporários (UUID local) para pedidos offline'
+      ]
+    },
+
+    phases: [
+      {
+        name: 'Fase 1 - Infraestrutura Base',
+        description: 'Criar camada de armazenamento offline e detecção de conexão',
+        items: [
+          'Instalar e configurar Dexie.js para IndexedDB',
+          'Criar esquema de tabelas offline (products, orders, offline_queue)',
+          'Implementar ConnectionDetector com eventos online/offline',
+          'Criar componente ConnectionStatusIndicator visual',
+          'Implementar OfflineQueue para enfileirar operações',
+          'Criar SyncManager para processar fila quando online'
+        ]
+      },
+      {
+        name: 'Fase 2 - Cache do Catálogo',
+        description: 'Sincronizar produtos e dados estáticos para acesso offline',
+        items: [
+          'Baixar catálogo completo ao abrir PDV/Totem',
+          'Cache de produtos, categorias, preços, adicionais',
+          'Cache de imagens de produtos no IndexedDB',
+          'Atualização incremental (delta sync) quando online',
+          'Indicador de "última sincronização" para usuário'
+        ]
+      },
+      {
+        name: 'Fase 3 - PDV Offline',
+        description: 'Permitir vendas no PDV sem internet',
+        items: [
+          'Criar pedidos com ID temporário (UUID)',
+          'Salvar pedido no IndexedDB',
+          'Adicionar à fila de sincronização',
+          'Processar fila automaticamente ao reconectar',
+          'Resolver conflitos (produto indisponível, preço alterado)',
+          'Imprimir comprovante mesmo offline (se impressora local)'
+        ]
+      },
+      {
+        name: 'Fase 4 - Totem Offline',
+        description: 'Autoatendimento resiliente a quedas de internet',
+        items: [
+          'Catálogo completo disponível offline',
+          'Criação de pedidos offline com confirmação posterior',
+          'Pagamento PIX: mostrar aviso "indisponível offline"',
+          'Pagamento no caixa: funciona normalmente offline',
+          'Sincronização automática em background'
+        ]
+      },
+      {
+        name: 'Fase 5 - Comandas Offline',
+        description: 'Sistema de comandas funcionando sem internet',
+        items: [
+          'Criar/atualizar comandas offline',
+          'Adicionar itens às comandas sem conexão',
+          'Fechar comandas e gerar pedido offline',
+          'Sincronizar tudo quando reconectar',
+          'Resolver conflitos de comandas editadas por múltiplos dispositivos'
+        ]
+      }
+    ],
+
+    options: [
+      {
+        name: 'Opção 1: Offline-First Completo',
+        description: 'Sistema funciona 100% offline, sync quando possível',
+        pros: [
+          'Máxima resiliência - operação nunca para',
+          'UX superior - sem loading/travamentos',
+          'Funciona em qualquer condição de rede',
+          'Diferencial competitivo forte',
+          'Ideal para food trucks, feiras, eventos'
+        ],
+        cons: [
+          'Complexidade alta de implementação',
+          'Resolução de conflitos pode ser complexa',
+          'Pagamentos online (PIX) não funcionam offline',
+          'Requer mais espaço de armazenamento no dispositivo',
+          'Tempo de desenvolvimento: 4-6 semanas'
+        ]
+      },
+      {
+        name: 'Opção 2: Offline Parcial (Cache + Fila)',
+        description: 'Cache de leitura + fila de escritas para sync posterior',
+        pros: [
+          'Implementação mais simples',
+          'Catálogo sempre disponível para consulta',
+          'Pedidos são enfileirados e enviados depois',
+          'Menor risco de conflitos',
+          'Tempo de desenvolvimento: 2-3 semanas'
+        ],
+        cons: [
+          'Menos features offline que opção 1',
+          'Usuário precisa esperar sync para confirmar pedidos',
+          'Estoque pode ficar desatualizado',
+          'Não é "offline-first" puro'
+        ]
+      },
+      {
+        name: 'Opção 3: Apenas Indicador de Status',
+        description: 'Informar ao usuário quando está offline, sem funcionalidade extra',
+        pros: [
+          'Implementação muito simples (1-2 dias)',
+          'Melhora UX com feedback visual',
+          'Zero risco de conflitos de dados',
+          'Base para implementar offline depois'
+        ],
+        cons: [
+          'Não resolve o problema de operação offline',
+          'Sistema ainda para quando sem internet',
+          'Não é diferencial competitivo'
+        ]
+      }
+    ],
+
+    riskAnalysis: {
+      title: '⚠️ Análise de Riscos',
+      sections: [
+        {
+          level: 'high',
+          title: 'Riscos Altos',
+          items: [
+            'Conflitos de dados: mesmo pedido criado em múltiplos dispositivos offline',
+            'Estoque negativo: vendas offline sem verificar estoque real',
+            'PIX não funciona offline - cliente frustrado',
+            'Preços alterados enquanto offline - pedido com preço errado'
+          ]
+        },
+        {
+          level: 'medium',
+          title: 'Riscos Médios',
+          items: [
+            'Espaço de armazenamento limitado em dispositivos antigos',
+            'IndexedDB pode ser limpo pelo navegador em modo incógnito',
+            'Sincronização pode demorar com muitos pedidos pendentes',
+            'Impressão offline depende de driver local'
+          ]
+        },
+        {
+          level: 'low',
+          title: 'Riscos Baixos',
+          items: [
+            'Dexie.js é biblioteca madura e bem mantida',
+            'Service Worker já existe no projeto',
+            'Arquitetura React facilita estado offline'
+          ]
+        }
+      ]
+    },
+
+    recommendation: `**Recomendação: Implementação Progressiva (Opção 2 → 1)**
+
+1. **COMEÇAR com Indicador de Status** (1-2 dias)
+   → Componente visual mostrando online/offline
+   → Feedback imediato para o usuário
+   → Base técnica para próximas fases
+
+2. **IMPLEMENTAR Cache de Catálogo** (1 semana)
+   → Produtos sempre disponíveis para consulta
+   → Melhora performance mesmo com internet
+   → Validação da arquitetura IndexedDB
+
+3. **ADICIONAR Fila de Operações** (1-2 semanas)
+   → Pedidos enfileirados quando offline
+   → Sincronização automática ao reconectar
+   → PDV resiliente a quedas de conexão
+
+4. **EXPANDIR para Offline-First** (2-3 semanas)
+   → Comandas offline
+   → Totem offline
+   → Resolução de conflitos avançada`,
+
+    nextSteps: [
+      '□ Instalar Dexie.js (npm install dexie)',
+      '□ Criar src/lib/offline/OfflineDatabase.ts',
+      '□ Criar src/hooks/useConnectionStatus.ts',
+      '□ Criar componente ConnectionStatusIndicator',
+      '□ Implementar cache de produtos no PDV',
+      '□ Criar OfflineQueue para operações pendentes',
+      '□ Implementar SyncManager com retry logic',
+      '□ Adicionar indicador visual em PDV/Totem',
+      '□ Testar cenários de desconexão e reconexão',
+      '□ Implementar resolução de conflitos básica',
+      '□ Documentar comportamento offline para lojistas'
+    ]
   }
 ];

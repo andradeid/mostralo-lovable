@@ -31,7 +31,8 @@ export type NichoType =
   | 'feirantes' 
   | 'lojistas' 
   | 'biomundo'
-  | 'petshop';
+  | 'petshop'
+  | 'arena_esportiva';
 
 const DEFAULT_MESSAGES: WhatsAppMessages = {
   default: 'Olá! Gostaria de saber mais sobre o Mostralo',
@@ -43,7 +44,8 @@ const DEFAULT_MESSAGES: WhatsAppMessages = {
   feirantes: 'Oi! Sou lojista de feira e quero saber mais sobre o Mostralo',
   lojistas: 'Olá! Tenho uma loja física e quero criar minha loja online com o Mostralo',
   biomundo: 'Olá! Sou da Bio Mundo e gostaria de agendar uma apresentação do Mostralo',
-  petshop: 'Olá! Tenho um Pet Shop e quero saber mais sobre o Mostralo'
+  petshop: 'Olá! Tenho um Pet Shop e quero saber mais sobre o Mostralo',
+  arena_esportiva: 'Olá! Tenho uma arena esportiva (Beach/Padel/Society) e quero saber mais sobre o Mostralo'
 };
 
 const DEFAULT_FALLBACK_NUMBER = '5511941941427';

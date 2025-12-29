@@ -3580,141 +3580,146 @@ Impacto nos nichos:
   // ==================== IDEIA 28: PINPAD/TEF PARA TOTEM ====================
   {
     id: 28,
-    title: '💳 Integração Pinpad/TEF para Totem',
-    status: 'idea',
+    title: '💳 Integração Pagamentos para Totem (PIX + Cartão + NFC)',
+    status: 'analyzing',
     priority: 'high',
     createdAt: '2025-12-29',
-    description: 'Permitir pagamento com cartão de crédito/débito no Totem através de Pinpad (TEF), integrando máquinas de pagamento Stone, Cielo, Rede, PagSeguro, etc.',
+    description: 'Solução completa de pagamentos para Totem: PIX (já implementado), Cartão de Crédito digitado (EFI), e Tap to Pay/NFC via PagBank Tap On ou Mercado Pago Tap para débito, crédito e aproximação.',
     
-    context: `Atualmente o Totem (TotemConfigPage.tsx) suporta apenas:
-• PIX - Implementado e funcional via EFI
-• Cartão - Marcado como "Em breve" (disabled)
+    context: `Atualmente o Totem (TotemConfigPage.tsx) suporta:
+• PIX - ✅ Implementado e funcional via EFI
+• Cartão - 🔜 Em análise (múltiplas opções)
 
-O pagamento em cartão no Totem exige hardware físico (Pinpad) conectado ao dispositivo onde o Totem roda. Diferente do PIX que é 100% web, a integração com Pinpad requer:
-• Software local intermediário (TEF Client)
-• Comunicação entre navegador e hardware
-• Certificação PCI-DSS para segurança
+**Comparativo de Métodos de Pagamento:**
 
-Arquitetura atual do pagamento no Totem:
+| Método             | Web  | Android | Hardware   | Débito | Crédito | NFC  | PIX  |
+|--------------------|------|---------|------------|--------|---------|------|------|
+| EFI PIX            | ✅   | ✅      | Nenhum     | ❌     | ❌      | ❌   | ✅   |
+| EFI Cartão Digitado| ✅   | ✅      | Nenhum     | ❌     | ✅      | ❌   | ❌   |
+| PagBank Tap On     | ❌   | ✅      | Celular NFC| ✅     | ✅      | ✅   | ❌   |
+| Mercado Pago Tap   | ❌   | ✅      | Celular NFC| ✅     | ✅      | ✅   | ❌   |
+| Pinpad TEF         | ✅*  | ✅*     | Pinpad USB | ✅     | ✅      | ✅   | ❌   |
+
+*Requer TEF Client local instalado
+
+**Modelos de Integração:**
+1. **Web (Browser):** Apenas PIX QR Code e cartão digitado
+2. **Android Nativo:** PIX + Cartão + NFC via Intent para app do adquirente
+3. **Híbrido (WebView + App Ponte):** Totem web dentro de app Android que faz bridge para NFC
+
+**Arquitetura de Pagamento Atual:**
 • TotemPayment.tsx - Componente de pagamento PIX
-• efi-create-pix-charge - Edge function para gerar cobrança
-• efi-check-pix-status - Edge function para verificar pagamento`,
+• efi-create-pix-charge - Edge function para gerar cobrança PIX
+• efi-check-pix-status - Edge function para verificar pagamento PIX
+• Gateway EFI já configurado com credenciais na loja`,
 
     problem: `Limitações atuais:
 • Clientes que preferem cartão não podem usar o Totem
 • PIX nem sempre é conveniente (limite diário, banco fora do ar)
 • Competidores (McDonald's, Burger King) aceitam cartão em totens
 • Perda de vendas por falta de opção de pagamento
+• Totem web não acessa NFC do dispositivo
 
 Impacto nos nichos:
 • Supermercados: cartão é o método principal (60%+ das vendas)
 • Farmácias: muitos usam cartão de benefício (Alelo, Sodexo)
 • Fast food: público jovem prefere aproximação (NFC)
 • Arenas/Eventos: filas precisam ser rápidas
-• Postos de gasolina: cartão de frota é comum`,
+• Postos de gasolina: cartão de frota é comum
+
+**Solução Proposta em Fases:**
+1. **Fase 1 (Imediata):** PIX EFI (✅ pronto) + Cartão Crédito Digitado EFI
+2. **Fase 2 (Curto prazo):** App Android com PagBank Tap On para NFC
+3. **Fase 3 (Médio prazo):** Multi-adquirente + Pinpad TEF tradicional`,
 
     marketAnalysis: {
-      title: '📊 Análise de Mercado',
+      title: '📊 Análise de Mercado - Tap to Pay',
       items: [
-        'TEF é padrão em totens de grandes redes (McDonald\'s, Subway, Cinemark)',
-        'Stone, Cielo e Rede dominam 80% do mercado brasileiro de adquirência',
-        'Tendência: pagamento por aproximação (NFC) cresce 200%/ano no Brasil',
-        'Smart POS (maquininhas Android) ganham espaço - facilitam integração',
-        'Diferencial competitivo ENORME para sistema SaaS de Totens',
-        'Poucos sistemas para PMEs oferecem TEF integrado - grande oportunidade!',
-        'Mercado de totens de autoatendimento cresce 15%/ano no Brasil',
-        'Pós-pandemia: clientes preferem autoatendimento para evitar filas'
+        'Tap to Pay cresce 200%/ano no Brasil - público prefere aproximação',
+        'PagBank Tap On e Mercado Pago Tap são gratuitos (taxa apenas por transação)',
+        'Zero custo de hardware - usa o celular/tablet NFC que já existe',
+        'Apple Pay e Google Pay crescem exponencialmente no Brasil',
+        'Carteiras digitais (NuPay, PicPay, Iti) aceitam NFC',
+        'Tendência global: SoftPOS substitui máquinas físicas',
+        'Cielo Tap e Stone Tap em expansão no mercado brasileiro',
+        'Modelo Android + Tap to Pay elimina necessidade de Pinpad tradicional',
+        'Totens em tablets Android são tendência vs. PC tradicional'
       ]
     },
 
     technicalDetails: {
-      title: '🔧 Arquitetura Técnica',
+      title: '🔧 Arquitetura Técnica por Método',
       items: [
-        'TEF (Transferência Eletrônica de Fundos): protocolo padrão brasileiro para transações com cartão',
-        'Pinpad: hardware que lê cartão (chip, tarja magnética, NFC/contactless)',
-        'Servidor TEF Local: software intermediário que comunica com adquirente',
-        'Arquitetura híbrida: Navegador ↔ API Local (localhost) ↔ Pinpad ↔ Adquirente',
-        'WebSocket ou HTTP localhost para comunicação browser-pinpad',
-        'SDK específico por adquirente (Stone SDK, Cielo LIO SDK, Rede e-Rede)',
-        'Alternativa: Smart POS Android com app customizado rodando o Totem',
-        'Edge Function para confirmar transação e atualizar pedido no banco',
-        'Webhook do adquirente para confirmação assíncrona de transações',
-        'Tabela card_transactions para auditoria e reconciliação',
-        'Suporte a múltiplas bandeiras: Visa, Master, Elo, Amex, Hipercard'
+        '**EFI Cartão Digitado:** Frontend coleta dados → payment-token-efi gera token → Edge function cria cobrança → EFI processa',
+        '**PagBank Tap On:** App Android abre via Intent → Cliente aproxima cartão → Callback retorna status → Pedido criado',
+        '**Mercado Pago Tap:** Similar ao PagBank, usa Intent para abrir app nativo com parâmetros',
+        '**Arquitetura Híbrida:** WebView carrega Totem web → JavaScript chama bridge nativa → App processa NFC → Callback para WebView',
+        '**Comunicação WebView ↔ App:** Interface JavaScript injetada no WebView para comunicação bidirecional',
+        '**Exemplo Intent PagBank:** Intent("br.com.uol.ps.tapon.OPEN_APP").setPackage("br.com.uol.ps.tapon").putExtra("TAP_ON_PAYMENT_DATA", json)',
+        '**Requisitos PagBank Tap On:** Android 11+, NFC habilitado, App Tap On instalado, AppKey válida, Conta PagBank ativa',
+        '**Requisitos Mercado Pago Tap:** Android 9+, NFC habilitado, App Point Tap instalado, Access Token OAuth'
       ]
     },
 
     phases: [
       {
-        name: 'Fase 1 - Infraestrutura Base',
-        description: 'Criar camada de abstração para pagamentos por cartão no sistema',
+        name: 'Fase 1 - EFI Cartão Digitado (Web)',
+        description: 'Implementação imediata usando gateway EFI que já está configurado',
         items: [
-          'Criar interface PaymentProvider abstrata (src/lib/payment/PaymentProvider.ts)',
-          'Definir tipos TypeScript: PinpadTransaction, PinpadStatus, PinpadConfig',
-          'Criar hook useCardPayment com estados (idle, processing, success, error, cancelled)',
-          'Adicionar configuração de Pinpad na tabela totem_config',
-          'Criar tabela card_transactions para registrar todas as transações',
-          'Implementar edge function card-transaction-webhook para processar callbacks',
-          'Criar edge function card-create-transaction para iniciar transação'
+          'Instalar biblioteca payment-token-efi para tokenização de cartão',
+          'Criar Edge Function efi-create-card-charge para processar cobranças',
+          'Criar componente TotemCardPayment.tsx com formulário de cartão',
+          'Integrar no TotemPayment.tsx como nova opção de pagamento',
+          'Adicionar configuração de parcelas no TotemPaymentPanel.tsx',
+          'Suportar: crédito à vista e parcelado (até 12x)',
+          'Validação de CVV, número, validade e nome do titular',
+          'Feedback visual: processando, aprovado, negado',
+          'Zero hardware adicional - funciona no Totem web atual',
+          'Estimativa: 1-2 semanas de desenvolvimento'
         ]
       },
       {
-        name: 'Fase 2 - TEF Client (Aplicativo Local)',
-        description: 'Desenvolver aplicativo local que conecta o navegador ao Pinpad físico',
+        name: 'Fase 2 - Android App com PagBank Tap On',
+        description: 'Criar app Android simples com WebView que integra Tap to Pay',
         items: [
-          'Criar projeto TEF Client em Node.js + Electron (cross-platform)',
-          'Implementar servidor HTTP localhost na porta configurável (default: 3847)',
-          'Endpoints REST: GET /status, POST /pay, POST /cancel, POST /refund',
-          'Integrar SDK do adquirente Stone como piloto inicial',
-          'Comunicação com Pinpad via porta serial (RS-232) ou USB',
-          'Implementar logs locais para debugging e auditoria',
-          'Auto-start com o sistema operacional (Windows Service / systemd)',
-          'Criar instalador simples: .exe (Windows), .deb/.rpm (Linux), .dmg (macOS)',
-          'Implementar health check e auto-reconnect com Pinpad'
+          'Criar projeto Android básico com WebView para carregar Totem web',
+          'Implementar interface JavaScript para comunicação WebView ↔ App nativo',
+          'Integrar PagBank Tap On via Intent para pagamentos NFC',
+          'Suportar: débito, crédito (à vista e parcelado), carteiras digitais',
+          'Callback de sucesso/erro retorna para WebView e cria pedido',
+          'App simples, apenas WebView + bridge de pagamento',
+          'Manter investimento no frontend web atual',
+          'Publicar na Play Store ou distribuir via APK',
+          'Documentar processo de configuração do AppKey',
+          'Estimativa: 3-4 semanas de desenvolvimento'
         ]
       },
       {
-        name: 'Fase 3 - Integração no Totem',
-        description: 'Conectar o fluxo de pagamento do Totem com o TEF Client local',
+        name: 'Fase 3 - Multi-Adquirente e Expansão',
+        description: 'Adicionar suporte a outros adquirentes e métodos de pagamento',
         items: [
-          'Detectar se TEF Client está rodando (ping localhost:3847/status)',
-          'Mostrar opção "Cartão de Crédito/Débito" apenas se Pinpad disponível',
-          'Enviar requisição de pagamento ao TEF Client com valor e parcelas',
-          'Exibir tela animada "Insira, aproxime ou passe seu cartão"',
-          'Mostrar progresso: "Processando...", "Aguarde autorização..."',
-          'Processar resposta: aprovado (criar pedido), negado (mostrar erro), cancelado',
-          'Confirmar pedido via edge function após aprovação do adquirente',
-          'Imprimir comprovante se impressora configurada (via comprovante térmico)',
-          'Timeout configurável para transações (default: 60 segundos)'
+          'Implementar Mercado Pago Tap como alternativa ao PagBank',
+          'Adicionar suporte a Cielo Tap quando disponível API',
+          'Implementar Stone Tap (atualmente só iOS) quando disponível Android',
+          'Pinpad TEF tradicional para lojistas que preferem/já possuem',
+          'Cartões de benefício: VR, Alelo, Sodexo via TEF',
+          'Selector de adquirente no painel de configuração',
+          'Suporte a múltiplos métodos simultâneos',
+          'Documentação completa por adquirente'
         ]
       },
       {
-        name: 'Fase 4 - Painel de Configuração',
-        description: 'Interface administrativa para configurar Pinpad e adquirente',
+        name: 'Fase 4 - TEF Tradicional (Pinpad USB)',
+        description: 'Opção para lojistas que preferem Pinpad tradicional ou já possuem',
         items: [
-          'Adicionar seção "Pagamento Cartão" em TotemConfigPage.tsx',
-          'Seletor de adquirente: Stone, Cielo, Rede, PagSeguro, GetNet',
-          'Campos para credenciais do adquirente (Stone Code, Merchant ID, etc)',
-          'Configuração da porta do TEF Client (default: 3847)',
-          'Botão "Testar Conexão" com feedback visual (conectado/desconectado)',
-          'Botão "Transação de Teste" para validar integração (R$ 0,01)',
-          'Status em tempo real do Pinpad (online, offline, ocupado)',
-          'Configuração de parcelas: máximo de parcelas, parcelamento lojista',
-          'Logs de transações recentes com filtros de data/status'
-        ]
-      },
-      {
-        name: 'Fase 5 - Multi-Adquirente e Expansão',
-        description: 'Expandir suporte para outros adquirentes e modalidades',
-        items: [
-          'Implementar adapter para Cielo (Pinpad USB e LIO Smart POS)',
-          'Implementar adapter para Rede (e-Rede com Pinpad)',
-          'Implementar adapter para PagSeguro (Moderninha Smart)',
-          'Implementar adapter para GetNet (POS e Pinpad)',
-          'Suporte a cartões de benefício (VR, Alelo, Sodexo, Ticket)',
-          'Documentação completa de setup para cada adquirente',
-          'Vídeos tutoriais de instalação e configuração',
-          'Processo de homologação e certificação por adquirente'
+          'Criar TEF Client em Electron (Node.js cross-platform)',
+          'Servidor HTTP localhost para comunicação browser ↔ Pinpad',
+          'Integrar SDK Stone como primeiro adquirente',
+          'Suporte a Pinpads: Gertec, Ingenico, PAX',
+          'Instalador Windows (.exe), Linux (.deb), macOS (.dmg)',
+          'Auto-start com sistema operacional',
+          'Adicionar Cielo, Rede, PagSeguro como adapters',
+          'Estimativa: 6-8 semanas de desenvolvimento'
         ]
       }
     ],
@@ -3729,7 +3734,8 @@ Impacto nos nichos:
           'Hardware mais barato (Pinpad simples a partir de R$ 200)',
           'Funciona offline quando transação offline permitida pelo adquirente',
           'Maior controle sobre o fluxo de pagamento',
-          'Pode usar Pinpad que lojista já possui'
+          'Pode usar Pinpad que lojista já possui',
+          'Suporta débito, crédito, NFC e cartões de benefício'
         ],
         cons: [
           'Requer instalação de software local (TEF Client)',
@@ -3779,6 +3785,70 @@ Impacto nos nichos:
           'Não funciona em Totem web tradicional (PC/monitor)',
           'Pode confundir o cliente com troca de apps'
         ]
+      },
+      {
+        name: 'Opção 4: PagBank Tap On (RECOMENDADO para NFC)',
+        description: 'Transforma celular/tablet Android com NFC em máquina de cartão via app PagBank Tap On',
+        pros: [
+          'Zero custo de hardware - usa celular/tablet que já existe',
+          'Suporta débito, crédito, parcelado e carteiras digitais (Apple Pay, Google Pay)',
+          'Aprovação do adquirente via app já certificado (PCI compliance)',
+          'Taxas competitivas: 1.99% débito, 3.79% crédito à vista',
+          'Integração via Intent simples e bem documentada',
+          'Maior cobertura Android do mercado brasileiro',
+          'Funciona com tablets Android 11+ com NFC',
+          'Suporte técnico PagBank para integradores',
+          'Tempo de desenvolvimento estimado: 3-4 semanas'
+        ],
+        cons: [
+          'Requer Android 11+ com NFC (tablets antigos não funcionam)',
+          'Só funciona com conta PagBank ativa',
+          'UX com troca de app (vai pro Tap On e volta)',
+          'Não funciona em Totem web puro (precisa do app ponte)',
+          'PIX fica separado (EFI) - não unifica gateway'
+        ]
+      },
+      {
+        name: 'Opção 5: Solução Híbrida - WebView + App Ponte',
+        description: 'App Android simples que carrega Totem web em WebView e faz ponte para pagamentos NFC',
+        pros: [
+          'Mantém 100% do investimento no frontend web atual',
+          'Adiciona capacidade NFC sem reescrever Totem',
+          'App Android é apenas "container" simples',
+          'Permite múltiplos adquirentes (PagBank, MP, Cielo)',
+          'Atualização do Totem é instantânea (é web)',
+          'Pode distribuir via Play Store ou APK interno',
+          'Combina o melhor: Totem web + pagamento nativo',
+          'Fallback para PIX web se NFC falhar'
+        ],
+        cons: [
+          'Requer desenvolvimento de app Android (mesmo que simples)',
+          'Comunicação WebView ↔ App adiciona complexidade',
+          'Debug mais difícil (web + nativo)',
+          'Lojista precisa instalar app específico',
+          'Limitado a tablets/celulares Android'
+        ]
+      },
+      {
+        name: 'Opção 6: EFI Cartão Digitado (RECOMENDADO para início)',
+        description: 'Usar gateway EFI (já configurado) para aceitar cartão de crédito digitado no Totem web',
+        pros: [
+          'Zero hardware adicional - funciona no Totem atual',
+          'Usa gateway EFI que já está configurado na loja',
+          'Mesma conta/credenciais do PIX - gestão unificada',
+          'Implementação rápida (1-2 semanas)',
+          'Crédito à vista e parcelado (até 12x)',
+          'Funciona em qualquer navegador/dispositivo',
+          'Sandbox disponível para testes imediatos',
+          'Biblioteca payment-token-efi oficial e documentada'
+        ],
+        cons: [
+          'Só crédito (débito não suportado online)',
+          'Cliente precisa digitar dados do cartão (menos prático que NFC)',
+          'Não aceita carteiras digitais (Apple/Google Pay)',
+          'Risco de digitação errada pelo cliente',
+          'Chargeback é responsabilidade do lojista'
+        ]
       }
     ],
 
@@ -3787,7 +3857,7 @@ Impacto nos nichos:
       sections: [
         {
           level: 'high',
-          title: 'Riscos Altos',
+          title: 'Riscos Altos (TEF Tradicional)',
           items: [
             'Certificação PCI-DSS: obrigatória para processar/armazenar dados de cartão',
             'Processo de homologação: cada adquirente tem requisitos diferentes',
@@ -3799,96 +3869,91 @@ Impacto nos nichos:
         },
         {
           level: 'medium',
-          title: 'Riscos Médios',
+          title: 'Riscos Médios (Tap to Pay)',
           items: [
-            'Instalação do TEF Client: pode ser complexa para lojistas não-técnicos',
-            'Drivers de Pinpad: podem causar conflitos com outros softwares',
-            'Atualizações do adquirente: podem quebrar integração existente',
-            'Suporte técnico: problemas de hardware exigem atendimento presencial',
-            'Custo de manutenção: múltiplos SDKs = múltiplas manutenções',
-            'Latência de rede: pode causar timeouts em transações'
+            'Dependência do app PagBank/MP: atualizações podem quebrar integração',
+            'Requisito de NFC: nem todos tablets têm NFC',
+            'UX fragmentada: troca de apps pode confundir cliente',
+            'Suporte técnico: problemas podem estar no app do adquirente',
+            'Limites de transação: alguns adquirentes limitam valor por NFC'
           ]
         },
         {
           level: 'low',
-          title: 'Riscos Baixos',
+          title: 'Riscos Baixos (EFI Cartão)',
           items: [
-            'Arquitetura modular permite adicionar novos adquirentes depois',
-            'Stone tem SDK bem documentado e suporte a integradores',
-            'Mercado de TEF é maduro e estável no Brasil',
-            'Edge functions do Supabase lidam bem com webhooks',
-            'Padrão de comunicação HTTP/REST é simples de implementar',
-            'Electron é multiplataforma e bem testado'
+            'Gateway EFI já está funcionando para PIX',
+            'Biblioteca payment-token-efi é oficial e bem documentada',
+            'Tokenização garante que dados do cartão não passam pelo servidor',
+            'Sandbox disponível para testes extensivos',
+            'Mesmo suporte técnico que já usamos para PIX'
           ]
         }
       ]
     },
 
     legalConsiderations: [
-      'PCI-DSS: Certificação obrigatória para qualquer sistema que processe dados de cartão',
-      'Contrato com adquirente: cada lojista precisa ter conta própria no adquirente escolhido',
+      'PCI-DSS: EFI e Tap to Pay já são PCI compliant - responsabilidade do adquirente',
+      'Tokenização: payment-token-efi gera token no frontend, dados não transitam no servidor',
+      'Contrato com adquirente: lojista já tem conta EFI (PIX) ou precisa criar conta PagBank/MP',
       'Responsabilidade por chargebacks: definir claramente nos termos de uso do sistema',
       'LGPD: dados de transações são dados pessoais e devem ser tratados conforme a lei',
-      'Nota fiscal: integração com emissor de NFC-e pode ser necessária para compliance',
       'Transparência de taxas: informar claramente as taxas cobradas pelo adquirente',
-      'Termo de uso: lojista deve aceitar termos específicos para uso do módulo TEF',
-      'Auditoria: manter logs de transações por mínimo de 5 anos (exigência legal)',
-      'Antifraude: implementar medidas básicas de prevenção a fraudes'
+      'Termo de uso: lojista deve aceitar termos específicos para uso do módulo de cartão',
+      'Auditoria: manter logs de transações por mínimo de 5 anos (exigência legal)'
     ],
 
-    recommendation: `**Recomendação: Começar com Stone TEF (Opção 1)**
+    recommendation: `**Recomendação: Abordagem em Fases Progressivas**
 
-**Por que Stone como primeiro adquirente?**
-• SDK mais moderno e bem documentado do mercado brasileiro
-• Suporte técnico excelente para desenvolvedores/integradores
-• Processo de homologação mais simples e rápido
-• Grande base instalada de lojistas no Brasil
-• Pinpads compatíveis facilmente disponíveis no mercado
-• Documentação em português com exemplos práticos
+**🎯 Fase 1 - Imediata: EFI Cartão Digitado**
+→ Usa gateway que já está configurado (zero setup novo)
+→ Implementação rápida (1-2 semanas)
+→ Crédito à vista e parcelado funcionando
+→ Valida demanda real por pagamento em cartão no Totem
+→ Zero custo de hardware adicional
 
-**Roadmap Sugerido de Implementação:**
+**📱 Fase 2 - Curto Prazo: App Android + PagBank Tap On**
+→ Adiciona débito, crédito e NFC (aproximação)
+→ Zero custo de hardware (usa tablet NFC)
+→ App simples: WebView + bridge para Tap On
+→ Mantém investimento no frontend web
+→ Aceita Apple Pay, Google Pay, Samsung Pay
 
-1. **MVP com Stone** (6-8 semanas)
-   → Desenvolver TEF Client básico com Stone SDK
-   → Fluxo completo: inserir cartão → autorização → pedido criado
-   → Painel de configuração mínimo viável
-   → Testes extensivos em ambiente sandbox Stone
+**🔧 Fase 3 - Médio Prazo: Multi-Adquirente**
+→ Adicionar Mercado Pago Tap como alternativa
+→ Suporte a Cielo Tap quando disponível
+→ TEF tradicional para quem prefere/já tem Pinpad
+→ Cartões de benefício via TEF
 
-2. **Piloto com 3-5 Lojistas** (2-4 semanas)
-   → Selecionar lojistas parceiros para teste real
-   → Validar processo de instalação e setup do TEF Client
-   → Coletar feedback de UX dos clientes finais
-   → Identificar problemas reais de campo
-   → Ajustar documentação baseado em dúvidas
-
-3. **Produção + Segundo Adquirente** (4-6 semanas)
-   → Lançar oficialmente para todos os lojistas interessados
-   → Implementar segundo adquirente (Cielo ou Rede)
-   → Melhorar painel de configuração com base no feedback
-   → Criar materiais de marketing sobre a feature
-
-4. **Multi-Adquirente e Escala** (ongoing)
-   → Adicionar PagSeguro, GetNet, Safrapay
-   → Smart POS como alternativa ao Pinpad tradicional
-   → Cartões de benefício (VR, Alelo, Sodexo)
-   → Documentação completa por adquirente
-   → Programa de parceria com revendedores de Pinpad`,
+**Por que esta ordem?**
+1. EFI Cartão é o mais rápido e usa infraestrutura existente
+2. PagBank Tap On resolve NFC com zero hardware
+3. Multi-adquirente dá flexibilidade para diferentes perfis de lojista
+4. TEF tradicional como opção para casos específicos`,
 
     nextSteps: [
-      '□ Pesquisar requisitos de homologação Stone para integradores',
-      '□ Solicitar acesso ao SDK Stone e ambiente sandbox',
-      '□ Definir modelo de Pinpad recomendado (Gertec, Ingenico, PAX)',
-      '□ Criar projeto do TEF Client (repositório separado: Node.js + Electron)',
-      '□ Implementar servidor HTTP localhost com endpoints básicos',
-      '□ Integrar Stone SDK no TEF Client',
-      '□ Criar tabela card_transactions no Supabase',
-      '□ Adicionar campos de config Pinpad em totem_config',
-      '□ Implementar hook useCardPayment no frontend',
+      '**FASE 1 - EFI Cartão (Imediato):**',
+      '□ Instalar payment-token-efi via npm',
+      '□ Criar Edge Function efi-create-card-charge',
       '□ Criar componente TotemCardPayment.tsx',
-      '□ Desenvolver painel de configuração de Pinpad no admin',
-      '□ Testar fluxo completo em sandbox Stone',
-      '□ Documentar processo de instalação do TEF Client',
-      '□ Criar instalador Windows (.exe) com NSIS ou electron-builder'
+      '□ Integrar no fluxo de pagamento do TotemPayment.tsx',
+      '□ Adicionar configuração de parcelas no admin',
+      '□ Testar em sandbox EFI',
+      '',
+      '**FASE 2 - PagBank Tap On (Curto Prazo):**',
+      '□ Solicitar AppKey ao PagBank para integração',
+      '□ Criar projeto Android básico com WebView',
+      '□ Implementar interface JavaScript para bridge WebView ↔ App',
+      '□ Integrar PagBank Tap On via Intent',
+      '□ Implementar callback de sucesso/erro',
+      '□ Testar em dispositivo Android com NFC',
+      '□ Publicar na Play Store ou distribuir APK',
+      '',
+      '**FASE 3 - Expansão:**',
+      '□ Adicionar Mercado Pago Tap como alternativa',
+      '□ Implementar selector de adquirente no admin',
+      '□ Documentar processo de configuração por adquirente',
+      '□ Avaliar demanda por TEF tradicional/Pinpad'
     ]
   }
 ];

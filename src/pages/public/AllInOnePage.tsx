@@ -5,6 +5,7 @@ import { EcosystemPillars } from '@/components/all-in-one/EcosystemPillars';
 import { ROINumbers } from '@/components/all-in-one/ROINumbers';
 import { CostComparisonTable } from '@/components/all-in-one/CostComparisonTable';
 import { EliteInvitation } from '@/components/all-in-one/EliteInvitation';
+import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
 import { Link } from 'react-router-dom';
 import { Store, ArrowLeft } from 'lucide-react';
 
@@ -86,6 +87,9 @@ const AllInOnePage = () => {
           </div>
         </div>
       </footer>
+
+      {/* WhatsApp Lead Button */}
+      <WhatsAppLeadButton />
     </div>
   );
 };

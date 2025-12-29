@@ -81,6 +81,30 @@ const routeSections: RouteSection[] = [
     ]
   },
   {
+    id: "public-nichos",
+    title: "Verticais por Nicho",
+    icon: <Store className="h-4 w-4 md:h-5 md:w-5" />,
+    badgeColor: "bg-emerald-500",
+    routes: [
+      { path: "/nicho-acaiterias", name: "Nicho: Açaiterias", component: "NichoAcaiteriasPage.tsx", roles: ["public"] },
+      { path: "/nicho-arenas", name: "Nicho: Arenas Esportivas", component: "NichoArenasEsportivasPage.tsx", roles: ["public"] },
+      { path: "/nicho-barbearias", name: "Nicho: Barbearias", component: "NichoBarbeariasPage.tsx", roles: ["public"] },
+      { path: "/nicho-churrasquinhos", name: "Nicho: Churrasquinhos", component: "NichoChurrasquinhosPage.tsx", roles: ["public"] },
+      { path: "/nicho-distribuidoras", name: "Nicho: Distribuidoras", component: "NichoDistribuidorasPage.tsx", roles: ["public"] },
+      { path: "/nicho-farmacias", name: "Nicho: Farmácias", component: "NichoFarmaciasPage.tsx", roles: ["public"] },
+      { path: "/nicho-food-truck", name: "Nicho: Food Trucks", component: "NichoFoodTruckPage.tsx", roles: ["public"] },
+      { path: "/nicho-hamburguerias", name: "Nicho: Hamburguerias", component: "NichoHamburgueriasPage.tsx", roles: ["public"] },
+      { path: "/nicho-nail-designers", name: "Nicho: Nail Designers", component: "NichoNailDesignersPage.tsx", roles: ["public"] },
+      { path: "/nicho-padarias", name: "Nicho: Padarias", component: "NichoPadariasPage.tsx", roles: ["public"] },
+      { path: "/nicho-pastelarias", name: "Nicho: Pastelarias", component: "NichoPastelariasPage.tsx", roles: ["public"] },
+      { path: "/nicho-pet-shop", name: "Nicho: Pet Shops", component: "NichoPetShopsPage.tsx", roles: ["public"] },
+      { path: "/nicho-pizzarias", name: "Nicho: Pizzarias", component: "NichoPizzariasPage.tsx", roles: ["public"] },
+      { path: "/nicho-sorveterias", name: "Nicho: Sorveterias", component: "NichoSorveteriasPage.tsx", roles: ["public"] },
+      { path: "/nicho-supermercados", name: "Nicho: Supermercados", component: "NichoSupermercadosPage.tsx", roles: ["public"] },
+      { path: "/nicho-suplementos", name: "Nicho: Suplementos", component: "NichoSuplementosPage.tsx", roles: ["public"] },
+    ]
+  },
+  {
     id: "public-recruitment",
     title: "Recrutamento",
     icon: <Briefcase className="h-4 w-4 md:h-5 md:w-5" />,

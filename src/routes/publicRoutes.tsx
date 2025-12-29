@@ -70,6 +70,7 @@ const NichoDistribuidorasPage = lazy(() => import("@/pages/public/NichoDistribui
 const NichoBarbeariasPage = lazy(() => import("@/pages/public/NichoBarbeariasPage"));
 const NichoNailDesignersPage = lazy(() => import("@/pages/public/NichoNailDesignersPage"));
 const NichoPetShopsPage = lazy(() => import("@/pages/public/NichoPetShopsPage"));
+const NichoArenasEsportivasPage = lazy(() => import("@/pages/public/NichoArenasEsportivasPage"));
 const BookingPage = lazy(() => import("@/pages/public/BookingPage"));
 
 export const publicRoutes = (

@@ -1062,6 +1062,27 @@ const FAQSection = () => {
   );
 };
 
+// ============ Floating WhatsApp Button ============
+const FloatingWhatsAppButton = () => {
+  const phoneNumber = '5511999999999';
+  const message = encodeURIComponent('Olá! Sou dono de barbearia e quero conhecer o Mostralo 💈');
+  const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+  
+  return (
+    <a
+      href={whatsappUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="fixed bottom-6 right-6 z-50 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg shadow-green-500/30 hover:shadow-green-500/50 transition-all duration-300 animate-pulse hover:animate-none flex items-center gap-2 group"
+    >
+      <MessageSquare className="w-6 h-6" />
+      <span className="max-w-0 overflow-hidden group-hover:max-w-[200px] transition-all duration-300 whitespace-nowrap">
+        Falar com Consultor
+      </span>
+    </a>
+  );
+};
+
 // ============ Footer Section ============
 const FooterSection = () => (
   <footer className="py-12 bg-zinc-950 border-t border-zinc-800">
@@ -1111,6 +1132,7 @@ const NichoBarbeariasPage = () => {
       <PlansSection />
       <FAQSection />
       <FooterSection />
+      <FloatingWhatsAppButton />
     </div>
   );
 };

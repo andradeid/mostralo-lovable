@@ -3584,88 +3584,232 @@ Impacto nos nichos:
     status: 'analyzing',
     priority: 'high',
     createdAt: '2025-12-29',
-    description: 'Solução completa de pagamentos para Totem: PIX (já implementado), Cartão de Crédito digitado (EFI), e Tap to Pay/NFC via PagBank Tap On ou Mercado Pago Tap para débito, crédito e aproximação.',
+    description: 'Solução completa de pagamentos: PIX (EFI), Cartão digitado (EFI), e NFC via Stone/Ton Intent para débito, crédito e aproximação. Importante: NFC só funciona no Totem Android, não na Mesa (celular do cliente).',
     
-    context: `Atualmente o Totem (TotemConfigPage.tsx) suporta:
-• PIX - ✅ Implementado e funcional via EFI
-• Cartão - 🔜 Em análise (múltiplas opções)
+    context: `## 🎯 Cenários de Uso - Diferença Crítica
 
-**Comparativo de Métodos de Pagamento:**
+| Cenário | Dispositivo | PIX | Cartão Digitado | NFC/Débito |
+|---------|-------------|-----|-----------------|------------|
+| **Mesa** (cliente usa próprio celular) | Navegador web | ✅ QR Code EFI | ✅ EFI | ❌ **NÃO FUNCIONA** |
+| **Totem** (tablet Android da loja) | App Android | ✅ QR Code EFI | ✅ EFI | ✅ Stone Intent |
+
+### ❓ Por que NFC não funciona na Mesa?
+**Navegadores web NÃO têm acesso ao chip NFC do dispositivo** por razões de segurança.
+- Chrome, Safari, Firefox: nenhum suporta NFC para pagamentos
+- Apenas apps nativos (Android/iOS) podem acessar o hardware NFC
+- Por isso, cliente na mesa só pode pagar com PIX ou cartão digitado
+
+### ✅ Por que funciona no Totem?
+O Totem roda em um **App Android** (WebView + Bridge) que pode:
+- Abrir o app Stone/Ton via Intent
+- Processar pagamento NFC
+- Retornar resultado para o Totem
+
+---
+
+## 📊 Comparativo de Métodos de Pagamento
 
 | Método             | Web  | Android | Hardware   | Débito | Crédito | NFC  | PIX  |
 |--------------------|------|---------|------------|--------|---------|------|------|
 | EFI PIX            | ✅   | ✅      | Nenhum     | ❌     | ❌      | ❌   | ✅   |
 | EFI Cartão Digitado| ✅   | ✅      | Nenhum     | ❌     | ✅      | ❌   | ❌   |
+| Stone/Ton Intent   | ❌   | ✅      | Celular NFC| ✅     | ✅      | ✅   | ❌   |
 | PagBank Tap On     | ❌   | ✅      | Celular NFC| ✅     | ✅      | ✅   | ❌   |
 | Mercado Pago Tap   | ❌   | ✅      | Celular NFC| ✅     | ✅      | ✅   | ❌   |
 | Pinpad TEF         | ✅*  | ✅*     | Pinpad USB | ✅     | ✅      | ✅   | ❌   |
 
 *Requer TEF Client local instalado
 
-**Modelos de Integração:**
-1. **Web (Browser):** Apenas PIX QR Code e cartão digitado
-2. **Android Nativo:** PIX + Cartão + NFC via Intent para app do adquirente
-3. **Híbrido (WebView + App Ponte):** Totem web dentro de app Android que faz bridge para NFC
+---
 
-**Arquitetura de Pagamento Atual:**
-• TotemPayment.tsx - Componente de pagamento PIX
-• efi-create-pix-charge - Edge function para gerar cobrança PIX
-• efi-check-pix-status - Edge function para verificar pagamento PIX
-• Gateway EFI já configurado com credenciais na loja`,
+## 💰 Comparativo de Taxas por Adquirente
 
-    problem: `Limitações atuais:
-• Clientes que preferem cartão não podem usar o Totem
-• PIX nem sempre é conveniente (limite diário, banco fora do ar)
-• Competidores (McDonald's, Burger King) aceitam cartão em totens
-• Perda de vendas por falta de opção de pagamento
-• Totem web não acessa NFC do dispositivo
+| Adquirente    | Débito | Crédito Vista | Crédito 12x | PIX   | Obs |
+|---------------|--------|---------------|-------------|-------|-----|
+| **Ton (Stone)** | **1.45%** | **3.20%** | 10.89% | - | ⭐ Menores taxas |
+| PagBank       | 1.99%  | 3.79%         | 13.38%      | 0%    | |
+| Mercado Pago  | 1.99%  | 4.74%         | 14.49%      | 0.99% | |
+| InfinitePay   | 1.37%  | 3.15%         | 11.89%      | 0%    | Menores, mas menos confiável |
+| EFI (Online)  | -      | ~3.5%*        | ~12%*       | 0%    | Só crédito online |
 
-Impacto nos nichos:
-• Supermercados: cartão é o método principal (60%+ das vendas)
-• Farmácias: muitos usam cartão de benefício (Alelo, Sodexo)
-• Fast food: público jovem prefere aproximação (NFC)
-• Arenas/Eventos: filas precisam ser rápidas
-• Postos de gasolina: cartão de frota é comum
+---
 
-**Solução Proposta em Fases:**
-1. **Fase 1 (Imediata):** PIX EFI (✅ pronto) + Cartão Crédito Digitado EFI
-2. **Fase 2 (Curto prazo):** App Android com PagBank Tap On para NFC
-3. **Fase 3 (Médio prazo):** Multi-adquirente + Pinpad TEF tradicional`,
+## 🏗️ Requisitos de Homologação
+
+| Adquirente    | Tipo           | Complexidade | Prazo      |
+|---------------|----------------|--------------|------------|
+| EFI Cartão    | Já homologado  | ✅ Zero      | Imediato   |
+| **Stone/Ton** | SDK + Intent   | 🟡 Média     | **15-30 dias** |
+| PagBank Tap   | AppKey         | 🟢 Baixa     | 5-15 dias  |
+| Mercado Pago  | OAuth + Intent | 🟡 Média     | 10-20 dias |
+| Cielo Tap     | Parceria       | 🔴 Alta      | 30-60 dias |
+
+---
+
+## 🏦 Modelo de Conta do Lojista
+
+### ✅ Modelo Recomendado: Cada Lojista com Conta Própria
+
+\`\`\`
+┌─────────────────────────────────────────────────────────────┐
+│ COMO FUNCIONA                                               │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  1. Lojista cria conta Stone/Ton (gratuito)                │
+│  2. Recebe credenciais (stone_code)                        │
+│  3. Configura stone_code no painel Mostralo                │
+│  4. Cliente paga no Totem → Stone processa                 │
+│  5. Fundos vão DIRETO para conta do lojista                │
+│                                                             │
+│  ✅ Mostralo NÃO toca no dinheiro                          │
+│  ✅ Sem necessidade de regulação BACEN                     │
+│  ✅ Lojista é responsável pela conta e taxas               │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+\`\`\`
+
+**Vantagens:**
+- Mais simples de implementar
+- Mostralo não precisa ser sub-adquirente
+- Lojista já conhece Stone/Ton (marca forte)
+- Zero burocracia para Mostralo
+
+**Desvantagem:**
+- Mostralo não ganha % sobre transações (cobra no plano mensal)`,
+
+    problem: `## 🚨 Problema Atual
+
+### Limitações no Totem:
+- ❌ Clientes que preferem cartão não podem usar o Totem
+- ❌ PIX nem sempre é conveniente (limite diário, banco fora do ar)
+- ❌ Competidores (McDonald's, Burger King) aceitam cartão em totens
+- ❌ Perda de vendas por falta de opção de pagamento
+
+### Limitação Técnica na Mesa:
+- ❌ **NFC é IMPOSSÍVEL** no navegador do celular do cliente
+- ❌ Navegadores não têm acesso ao chip NFC
+- ⚠️ Única opção: PIX ou cartão digitado
+
+### Impacto por Nicho:
+- 🛒 **Supermercados:** cartão é método principal (60%+ das vendas)
+- 💊 **Farmácias:** muitos usam cartão benefício (Alelo, Sodexo)
+- 🍔 **Fast food:** público jovem prefere aproximação (NFC)
+- 🏟️ **Arenas/Eventos:** filas precisam ser rápidas
+- ⛽ **Postos:** cartão de frota é comum
+
+---
+
+## ✅ Solução Proposta em Fases
+
+### Fase 1 (Imediata): EFI Cartão Digitado
+- ✅ PIX EFI (já pronto)
+- ✅ Cartão crédito digitado (EFI) - web
+- 🎯 Funciona na Mesa E no Totem
+
+### Fase 2 (Curto prazo): Stone/Ton NFC
+- ✅ App Android com WebView
+- ✅ Stone Intent para NFC/Débito
+- 🎯 Só funciona no TOTEM (não na Mesa)
+
+### Fase 3 (Médio prazo): Multi-adquirente
+- Suporte a PagBank, Mercado Pago
+- Pinpad TEF para casos específicos`,
 
     marketAnalysis: {
-      title: '📊 Análise de Mercado - Tap to Pay',
+      title: '📊 Análise de Mercado',
       items: [
-        'Tap to Pay cresce 200%/ano no Brasil - público prefere aproximação',
-        'PagBank Tap On e Mercado Pago Tap são gratuitos (taxa apenas por transação)',
-        'Zero custo de hardware - usa o celular/tablet NFC que já existe',
-        'Apple Pay e Google Pay crescem exponencialmente no Brasil',
-        'Carteiras digitais (NuPay, PicPay, Iti) aceitam NFC',
-        'Tendência global: SoftPOS substitui máquinas físicas',
-        'Cielo Tap e Stone Tap em expansão no mercado brasileiro',
-        'Modelo Android + Tap to Pay elimina necessidade de Pinpad tradicional',
-        'Totens em tablets Android são tendência vs. PC tradicional'
+        '🚀 Tap to Pay cresce 200%/ano no Brasil - público prefere aproximação',
+        '💰 Stone/Ton tem menores taxas: 1.45% débito vs 1.99% PagBank',
+        '📱 Zero custo de hardware - usa o celular/tablet NFC que já existe',
+        '🍎 Apple Pay e Google Pay crescem exponencialmente no Brasil',
+        '💳 Carteiras digitais (NuPay, PicPay, Iti) aceitam NFC',
+        '🌍 Tendência global: SoftPOS substitui máquinas físicas',
+        '🏢 Stone é marca mais conhecida e gera mais confiança que PagBank',
+        '📊 Totens em tablets Android são tendência vs. PC tradicional',
+        '⚡ Modelo de conta própria do lojista é mais simples (sem BACEN)'
       ]
     },
 
     technicalDetails: {
-      title: '🔧 Arquitetura Técnica por Método',
+      title: '🔧 Fluxo UX Detalhado - Pagamento no Totem',
       items: [
-        '**EFI Cartão Digitado:** Frontend coleta dados → payment-token-efi gera token → Edge function cria cobrança → EFI processa',
-        '**PagBank Tap On:** App Android abre via Intent → Cliente aproxima cartão → Callback retorna status → Pedido criado',
-        '**Mercado Pago Tap:** Similar ao PagBank, usa Intent para abrir app nativo com parâmetros',
-        '**Arquitetura Híbrida:** WebView carrega Totem web → JavaScript chama bridge nativa → App processa NFC → Callback para WebView',
-        '**Comunicação WebView ↔ App:** Interface JavaScript injetada no WebView para comunicação bidirecional',
-        '**Exemplo Intent PagBank:** Intent("br.com.uol.ps.tapon.OPEN_APP").setPackage("br.com.uol.ps.tapon").putExtra("TAP_ON_PAYMENT_DATA", json)',
-        '**Requisitos PagBank Tap On:** Android 11+, NFC habilitado, App Tap On instalado, AppKey válida, Conta PagBank ativa',
-        '**Requisitos Mercado Pago Tap:** Android 9+, NFC habilitado, App Point Tap instalado, Access Token OAuth'
+        '**1. Cliente finaliza pedido no Totem (WebView)**',
+        '**2. Escolhe "Cartão/Débito" como forma de pagamento**',
+        '**3. Totem (JavaScript) chama bridge nativa Android**',
+        '**4. App Android abre Stone via Intent:**',
+        '   ```kotlin',
+        '   val intent = Intent("stone.intent.action.PAYMENT")',
+        '   intent.putExtra("amount", 5000) // R$ 50,00 em centavos',
+        '   intent.putExtra("installments", 1)',
+        '   startActivityForResult(intent, REQUEST_PAYMENT)',
+        '   ```',
+        '**5. Tela Stone aparece SOBRE o Totem**',
+        '**6. Cliente aproxima/insere cartão no NFC**',
+        '**7. Stone processa e exibe resultado**',
+        '**8. Stone fecha automaticamente**',
+        '**9. Callback retorna ao app com status:**',
+        '   ```kotlin',
+        '   override fun onActivityResult(request: Int, result: Int, data: Intent?) {',
+        '     if (result == RESULT_OK) {',
+        '       val authCode = data?.getStringExtra("authorization_code")',
+        '       webView.evaluateJavascript("onPaymentSuccess(\'$authCode\')", null)',
+        '     }',
+        '   }',
+        '   ```',
+        '**10. App notifica WebView via bridge JavaScript**',
+        '**11. Totem exibe confirmação e cria pedido no Supabase**',
+        '',
+        '---',
+        '',
+        '**Diagrama de Arquitetura - Mesa vs Totem:**',
+        '',
+        '```',
+        '┌───────────────────────────────────────────────────────────┐',
+        '│                    CENÁRIO: MESA                          │',
+        '│              (Cliente no próprio celular)                 │',
+        '├───────────────────────────────────────────────────────────┤',
+        '│                                                           │',
+        '│   📱 Navegador do Cliente                                │',
+        '│        │                                                  │',
+        '│        ├── PIX QR Code (EFI) ✅                          │',
+        '│        ├── Cartão Digitado (EFI) ✅                      │',
+        '│        └── NFC ❌ (navegador não acessa NFC)             │',
+        '│                                                           │',
+        '└───────────────────────────────────────────────────────────┘',
+        '',
+        '┌───────────────────────────────────────────────────────────┐',
+        '│                    CENÁRIO: TOTEM                         │',
+        '│               (Tablet Android da loja)                    │',
+        '├───────────────────────────────────────────────────────────┤',
+        '│                                                           │',
+        '│   📱 App Android Mostralo (WebView + Bridge)             │',
+        '│        │                                                  │',
+        '│        ├── PIX QR Code (EFI) ✅                          │',
+        '│        ├── Cartão Digitado (EFI) ✅                      │',
+        '│        └── NFC/Débito/Crédito ✅                         │',
+        '│              │                                            │',
+        '│              └── Stone Intent                             │',
+        '│                    │                                      │',
+        '│                    ▼                                      │',
+        '│              ┌─────────────┐                              │',
+        '│              │  App Stone  │  ← Abre SOBRE o Totem       │',
+        '│              │  (NFC/Chip) │                              │',
+        '│              └──────┬──────┘                              │',
+        '│                     │                                     │',
+        '│                     ▼                                     │',
+        '│              Callback → WebView → Pedido criado          │',
+        '│                                                           │',
+        '└───────────────────────────────────────────────────────────┘',
+        '```'
       ]
     },
 
     phases: [
       {
         name: 'Fase 1 - EFI Cartão Digitado (Web)',
-        description: 'Implementação imediata usando gateway EFI que já está configurado',
+        description: 'Implementação imediata usando gateway EFI que já está configurado. Funciona na Mesa E no Totem.',
         items: [
+          '✅ Funciona em QUALQUER dispositivo (Mesa + Totem)',
           'Instalar biblioteca payment-token-efi para tokenização de cartão',
           'Criar Edge Function efi-create-card-charge para processar cobranças',
           'Criar componente TotemCardPayment.tsx com formulário de cartão',
@@ -3679,175 +3823,112 @@ Impacto nos nichos:
         ]
       },
       {
-        name: 'Fase 2 - Android App com PagBank Tap On',
-        description: 'Criar app Android simples com WebView que integra Tap to Pay',
+        name: 'Fase 2 - Android App com Stone/Ton (NFC)',
+        description: 'Criar app Android simples com WebView que integra Stone via Intent para NFC. SÓ FUNCIONA NO TOTEM.',
         items: [
+          '⚠️ SÓ funciona no TOTEM (não na Mesa do cliente)',
           'Criar projeto Android básico com WebView para carregar Totem web',
           'Implementar interface JavaScript para comunicação WebView ↔ App nativo',
-          'Integrar PagBank Tap On via Intent para pagamentos NFC',
-          'Suportar: débito, crédito (à vista e parcelado), carteiras digitais',
+          'Integrar Stone/Ton via Intent para pagamentos NFC',
+          'Suportar: débito (1.45%), crédito (3.20%), NFC, carteiras digitais',
+          'Lojista precisa ter conta Stone/Ton e configurar stone_code no admin',
           'Callback de sucesso/erro retorna para WebView e cria pedido',
           'App simples, apenas WebView + bridge de pagamento',
           'Manter investimento no frontend web atual',
           'Publicar na Play Store ou distribuir via APK',
-          'Documentar processo de configuração do AppKey',
-          'Estimativa: 3-4 semanas de desenvolvimento'
+          'Estimativa: 3-4 semanas de desenvolvimento + 15-30 dias homologação'
         ]
       },
       {
         name: 'Fase 3 - Multi-Adquirente e Expansão',
-        description: 'Adicionar suporte a outros adquirentes e métodos de pagamento',
+        description: 'Adicionar suporte a outros adquirentes para lojistas que preferem',
         items: [
-          'Implementar Mercado Pago Tap como alternativa ao PagBank',
+          'Implementar PagBank Tap On como alternativa ao Stone',
+          'Implementar Mercado Pago Tap para lojistas que preferem',
           'Adicionar suporte a Cielo Tap quando disponível API',
-          'Implementar Stone Tap (atualmente só iOS) quando disponível Android',
           'Pinpad TEF tradicional para lojistas que preferem/já possuem',
           'Cartões de benefício: VR, Alelo, Sodexo via TEF',
           'Selector de adquirente no painel de configuração',
           'Suporte a múltiplos métodos simultâneos',
           'Documentação completa por adquirente'
         ]
-      },
-      {
-        name: 'Fase 4 - TEF Tradicional (Pinpad USB)',
-        description: 'Opção para lojistas que preferem Pinpad tradicional ou já possuem',
-        items: [
-          'Criar TEF Client em Electron (Node.js cross-platform)',
-          'Servidor HTTP localhost para comunicação browser ↔ Pinpad',
-          'Integrar SDK Stone como primeiro adquirente',
-          'Suporte a Pinpads: Gertec, Ingenico, PAX',
-          'Instalador Windows (.exe), Linux (.deb), macOS (.dmg)',
-          'Auto-start com sistema operacional',
-          'Adicionar Cielo, Rede, PagSeguro como adapters',
-          'Estimativa: 6-8 semanas de desenvolvimento'
-        ]
       }
     ],
 
     options: [
       {
-        name: 'Opção 1: TEF Tradicional (Pinpad USB/Serial)',
-        description: 'Pinpad conectado via cabo (USB ou Serial) ao computador onde roda o Totem',
+        name: 'Opção 1: EFI Cartão Digitado (RECOMENDADO para início)',
+        description: 'Usar gateway EFI (já configurado) para aceitar cartão de crédito digitado. Funciona na Mesa E no Totem.',
         pros: [
-          'Padrão de mercado consolidado há décadas',
-          'Compatível com qualquer adquirente brasileiro',
-          'Hardware mais barato (Pinpad simples a partir de R$ 200)',
-          'Funciona offline quando transação offline permitida pelo adquirente',
-          'Maior controle sobre o fluxo de pagamento',
-          'Pode usar Pinpad que lojista já possui',
-          'Suporta débito, crédito, NFC e cartões de benefício'
-        ],
-        cons: [
-          'Requer instalação de software local (TEF Client)',
-          'Instalação mais complexa para lojistas leigos',
-          'Manutenção do software local (atualizações)',
-          'Certificação PCI-DSS pode ser necessária',
-          'Cada adquirente tem SDK diferente',
-          'Tempo de desenvolvimento estimado: 6-8 semanas'
-        ]
-      },
-      {
-        name: 'Opção 2: Smart POS Android (Stone/Cielo/Rede)',
-        description: 'Usar maquininha Android como dispositivo do Totem (Stone, Cielo LIO, etc)',
-        pros: [
-          'Tudo integrado em um único dispositivo (tela + leitor)',
-          'SDK moderno e bem documentado (Android)',
-          'Atualizações automáticas via Play Store do adquirente',
-          'Suporte técnico direto do adquirente',
-          'Certificações PCI já incluídas no dispositivo',
-          'Pode rodar o Totem web no próprio dispositivo'
-        ],
-        cons: [
-          'Custo do hardware maior (R$ 500-1500)',
-          'Preso ao ecossistema do adquirente específico',
-          'Tela menor que monitor tradicional de Totem',
-          'Menos customização visual possível',
-          'App precisa ser aprovado/homologado pelo adquirente',
-          'Tempo de desenvolvimento estimado: 4-6 semanas'
-        ]
-      },
-      {
-        name: 'Opção 3: Deep Link / Intent (Mobile Only)',
-        description: 'Abrir app nativo do adquirente via deep link, processar pagamento e retornar ao Totem',
-        pros: [
-          'Implementação mais simples e rápida',
-          'Sem necessidade de certificação PCI própria',
-          'Funciona com qualquer adquirente que suporte deep links',
-          'Zero manutenção de código de pagamento',
-          'Adquirente assume toda responsabilidade de segurança',
-          'Tempo de desenvolvimento estimado: 2-3 semanas'
-        ],
-        cons: [
-          'Só funciona em Android/iOS (não funciona em web puro)',
-          'UX fragmentada (sai do Totem, vai pro app, volta)',
-          'Dependente de suporte do adquirente ao deep link',
-          'Menos controle sobre o fluxo e experiência do usuário',
-          'Não funciona em Totem web tradicional (PC/monitor)',
-          'Pode confundir o cliente com troca de apps'
-        ]
-      },
-      {
-        name: 'Opção 4: PagBank Tap On (RECOMENDADO para NFC)',
-        description: 'Transforma celular/tablet Android com NFC em máquina de cartão via app PagBank Tap On',
-        pros: [
-          'Zero custo de hardware - usa celular/tablet que já existe',
-          'Suporta débito, crédito, parcelado e carteiras digitais (Apple Pay, Google Pay)',
-          'Aprovação do adquirente via app já certificado (PCI compliance)',
-          'Taxas competitivas: 1.99% débito, 3.79% crédito à vista',
-          'Integração via Intent simples e bem documentada',
-          'Maior cobertura Android do mercado brasileiro',
-          'Funciona com tablets Android 11+ com NFC',
-          'Suporte técnico PagBank para integradores',
-          'Tempo de desenvolvimento estimado: 3-4 semanas'
-        ],
-        cons: [
-          'Requer Android 11+ com NFC (tablets antigos não funcionam)',
-          'Só funciona com conta PagBank ativa',
-          'UX com troca de app (vai pro Tap On e volta)',
-          'Não funciona em Totem web puro (precisa do app ponte)',
-          'PIX fica separado (EFI) - não unifica gateway'
-        ]
-      },
-      {
-        name: 'Opção 5: Solução Híbrida - WebView + App Ponte',
-        description: 'App Android simples que carrega Totem web em WebView e faz ponte para pagamentos NFC',
-        pros: [
-          'Mantém 100% do investimento no frontend web atual',
-          'Adiciona capacidade NFC sem reescrever Totem',
-          'App Android é apenas "container" simples',
-          'Permite múltiplos adquirentes (PagBank, MP, Cielo)',
-          'Atualização do Totem é instantânea (é web)',
-          'Pode distribuir via Play Store ou APK interno',
-          'Combina o melhor: Totem web + pagamento nativo',
-          'Fallback para PIX web se NFC falhar'
-        ],
-        cons: [
-          'Requer desenvolvimento de app Android (mesmo que simples)',
-          'Comunicação WebView ↔ App adiciona complexidade',
-          'Debug mais difícil (web + nativo)',
-          'Lojista precisa instalar app específico',
-          'Limitado a tablets/celulares Android'
-        ]
-      },
-      {
-        name: 'Opção 6: EFI Cartão Digitado (RECOMENDADO para início)',
-        description: 'Usar gateway EFI (já configurado) para aceitar cartão de crédito digitado no Totem web',
-        pros: [
+          '✅ Funciona em TODOS os cenários (Mesa + Totem)',
           'Zero hardware adicional - funciona no Totem atual',
           'Usa gateway EFI que já está configurado na loja',
           'Mesma conta/credenciais do PIX - gestão unificada',
           'Implementação rápida (1-2 semanas)',
           'Crédito à vista e parcelado (até 12x)',
           'Funciona em qualquer navegador/dispositivo',
-          'Sandbox disponível para testes imediatos',
-          'Biblioteca payment-token-efi oficial e documentada'
+          'Sandbox disponível para testes imediatos'
         ],
         cons: [
           'Só crédito (débito não suportado online)',
           'Cliente precisa digitar dados do cartão (menos prático que NFC)',
           'Não aceita carteiras digitais (Apple/Google Pay)',
-          'Risco de digitação errada pelo cliente',
-          'Chargeback é responsabilidade do lojista'
+          'Taxas um pouco maiores que Stone (~3.5% vs 3.20%)'
+        ]
+      },
+      {
+        name: 'Opção 2: Stone/Ton via Intent (RECOMENDADO - Menores Taxas)',
+        description: 'App Android abre Stone/Ton via Intent para processar débito, crédito e NFC. SÓ FUNCIONA NO TOTEM.',
+        pros: [
+          '💰 **Menores taxas do mercado:** 1.45% débito, 3.20% crédito à vista',
+          'Suporta débito, crédito, parcelado e NFC',
+          'Integração simples via Intent Android',
+          'Aceita carteiras digitais (Apple Pay, Google Pay, Samsung Pay)',
+          '🏢 Marca Stone é conhecida e gera confiança',
+          'Cada lojista tem sua própria conta - fundos vão direto',
+          '✅ Mostralo não precisa intermediar dinheiro (sem regulação BACEN)',
+          'Processo de homologação relativamente simples (15-30 dias)'
+        ],
+        cons: [
+          '⚠️ **SÓ funciona no TOTEM** (não funciona na Mesa do cliente)',
+          'Lojista precisa criar conta Stone/Ton',
+          'Só funciona em Android (não funciona em web puro)',
+          'UX com troca de app (vai pro Stone e volta)',
+          'Requer desenvolvimento de app Android'
+        ]
+      },
+      {
+        name: 'Opção 3: PagBank Tap On',
+        description: 'Transforma celular/tablet Android com NFC em máquina de cartão via app PagBank Tap On',
+        pros: [
+          'Zero custo de hardware - usa celular/tablet que já existe',
+          'Suporta débito, crédito, parcelado e carteiras digitais',
+          'Integração via Intent simples e bem documentada',
+          'Maior cobertura Android do mercado brasileiro',
+          'Homologação mais rápida (5-15 dias)'
+        ],
+        cons: [
+          '⚠️ **SÓ funciona no TOTEM** (não funciona na Mesa)',
+          'Taxas maiores que Stone: 1.99% débito, 3.79% crédito',
+          'Requer Android 11+ com NFC',
+          'Só funciona com conta PagBank ativa',
+          'UX com troca de app'
+        ]
+      },
+      {
+        name: 'Opção 4: TEF Tradicional (Pinpad USB)',
+        description: 'Pinpad conectado via cabo ao computador. Para lojistas que já possuem ou preferem hardware dedicado.',
+        pros: [
+          'Padrão de mercado consolidado',
+          'Pode usar Pinpad que lojista já possui',
+          'Suporta todos os tipos de cartão',
+          'Funciona offline quando permitido'
+        ],
+        cons: [
+          'Requer instalação de software local (TEF Client)',
+          'Instalação complexa para lojistas leigos',
+          'Tempo de desenvolvimento: 6-8 semanas',
+          'Certificação PCI-DSS pode ser necessária'
         ]
       }
     ],
@@ -3856,83 +3937,101 @@ Impacto nos nichos:
       title: '⚠️ Análise de Riscos',
       sections: [
         {
-          level: 'high',
-          title: 'Riscos Altos (TEF Tradicional)',
+          level: 'low',
+          title: 'Riscos Baixos (EFI Cartão)',
           items: [
-            'Certificação PCI-DSS: obrigatória para processar/armazenar dados de cartão',
-            'Processo de homologação: cada adquirente tem requisitos diferentes',
-            'Suporte a hardware: Pinpads têm diversos modelos/fabricantes/versões',
-            'Responsabilidade por fraudes: definir claramente nos termos de uso',
-            'SDKs proprietários: podem mudar sem aviso prévio',
-            'Chargebacks: impacto financeiro pode ser significativo'
+            '✅ Gateway EFI já está funcionando para PIX',
+            '✅ Biblioteca payment-token-efi é oficial e bem documentada',
+            '✅ Tokenização garante que dados do cartão não passam pelo servidor',
+            '✅ Sandbox disponível para testes extensivos',
+            '✅ Mesmo suporte técnico que já usamos para PIX'
           ]
         },
         {
           level: 'medium',
-          title: 'Riscos Médios (Tap to Pay)',
+          title: 'Riscos Médios (Stone/Ton Intent)',
           items: [
-            'Dependência do app PagBank/MP: atualizações podem quebrar integração',
-            'Requisito de NFC: nem todos tablets têm NFC',
-            'UX fragmentada: troca de apps pode confundir cliente',
-            'Suporte técnico: problemas podem estar no app do adquirente',
-            'Limites de transação: alguns adquirentes limitam valor por NFC'
+            '🟡 Homologação SDK pode levar 15-30 dias',
+            '🟡 Lojista precisa criar conta Stone/Ton',
+            '🟡 App Android adiciona complexidade de manutenção',
+            '🟡 Dependência do app Stone: atualizações podem quebrar integração',
+            '🟡 Debug mais difícil (web + nativo)'
           ]
         },
         {
-          level: 'low',
-          title: 'Riscos Baixos (EFI Cartão)',
+          level: 'high',
+          title: 'Riscos Altos (TEF Tradicional)',
           items: [
-            'Gateway EFI já está funcionando para PIX',
-            'Biblioteca payment-token-efi é oficial e bem documentada',
-            'Tokenização garante que dados do cartão não passam pelo servidor',
-            'Sandbox disponível para testes extensivos',
-            'Mesmo suporte técnico que já usamos para PIX'
+            '🔴 Certificação PCI-DSS obrigatória',
+            '🔴 Cada adquirente tem SDK diferente',
+            '🔴 Suporte a hardware diverso (Pinpads)',
+            '🔴 Instalação complexa para lojistas',
+            '🔴 Tempo de desenvolvimento: 6-8 semanas'
           ]
         }
       ]
     },
 
     legalConsiderations: [
-      'PCI-DSS: EFI e Tap to Pay já são PCI compliant - responsabilidade do adquirente',
+      '✅ **Modelo de Conta Própria:** Lojista cria conta Stone/Ton, Mostralo não toca no dinheiro',
+      '✅ **Sem regulação BACEN:** Mostralo não é sub-adquirente, não precisa de licença',
+      'PCI-DSS: EFI e Stone já são PCI compliant - responsabilidade do adquirente',
       'Tokenização: payment-token-efi gera token no frontend, dados não transitam no servidor',
-      'Contrato com adquirente: lojista já tem conta EFI (PIX) ou precisa criar conta PagBank/MP',
-      'Responsabilidade por chargebacks: definir claramente nos termos de uso do sistema',
-      'LGPD: dados de transações são dados pessoais e devem ser tratados conforme a lei',
-      'Transparência de taxas: informar claramente as taxas cobradas pelo adquirente',
-      'Termo de uso: lojista deve aceitar termos específicos para uso do módulo de cartão',
-      'Auditoria: manter logs de transações por mínimo de 5 anos (exigência legal)'
+      'Contrato com adquirente: lojista já tem conta EFI (PIX) ou precisa criar conta Stone',
+      'Responsabilidade por chargebacks: definir claramente nos termos de uso',
+      'LGPD: dados de transações são dados pessoais',
+      'Auditoria: manter logs de transações por mínimo de 5 anos'
     ],
 
-    recommendation: `**Recomendação: Abordagem em Fases Progressivas**
+    recommendation: `## 🎯 Recomendação: Abordagem em Fases
 
-**🎯 Fase 1 - Imediata: EFI Cartão Digitado**
-→ Usa gateway que já está configurado (zero setup novo)
-→ Implementação rápida (1-2 semanas)
-→ Crédito à vista e parcelado funcionando
-→ Valida demanda real por pagamento em cartão no Totem
-→ Zero custo de hardware adicional
+### 📋 Resumo Rápido
 
-**📱 Fase 2 - Curto Prazo: App Android + PagBank Tap On**
-→ Adiciona débito, crédito e NFC (aproximação)
-→ Zero custo de hardware (usa tablet NFC)
-→ App simples: WebView + bridge para Tap On
-→ Mantém investimento no frontend web
-→ Aceita Apple Pay, Google Pay, Samsung Pay
+| Cenário | Fase 1 (Imediato) | Fase 2 (Curto prazo) |
+|---------|-------------------|----------------------|
+| **Mesa** (celular cliente) | PIX + Cartão digitado (EFI) | Sem NFC (impossível) |
+| **Totem** (tablet loja) | PIX + Cartão digitado (EFI) | + NFC via Stone Intent |
 
-**🔧 Fase 3 - Médio Prazo: Multi-Adquirente**
-→ Adicionar Mercado Pago Tap como alternativa
-→ Suporte a Cielo Tap quando disponível
-→ TEF tradicional para quem prefere/já tem Pinpad
-→ Cartões de benefício via TEF
+---
 
-**Por que esta ordem?**
-1. EFI Cartão é o mais rápido e usa infraestrutura existente
-2. PagBank Tap On resolve NFC com zero hardware
-3. Multi-adquirente dá flexibilidade para diferentes perfis de lojista
-4. TEF tradicional como opção para casos específicos`,
+### 🚀 Fase 1 - Imediata: EFI Cartão Digitado
+**Funciona na Mesa E no Totem**
+- ✅ Usa gateway que já está configurado (zero setup novo)
+- ✅ Implementação rápida (1-2 semanas)
+- ✅ Crédito à vista e parcelado funcionando
+- ✅ Valida demanda real por pagamento em cartão
+- ✅ Zero custo de hardware adicional
+
+---
+
+### 📱 Fase 2 - Curto Prazo: Stone/Ton Intent
+**SÓ funciona no Totem (App Android)**
+- ✅ Adiciona débito (1.45%), crédito (3.20%) e NFC
+- ✅ Menores taxas do mercado (Stone/Ton)
+- ✅ Zero custo de hardware (usa tablet NFC)
+- ✅ App Android simples: WebView + bridge
+- ✅ Aceita Apple Pay, Google Pay, Samsung Pay
+- ✅ Lojista cria conta Ton - fundos vão direto
+
+---
+
+### 🔧 Fase 3 - Médio Prazo: Multi-Adquirente
+- Adicionar PagBank Tap como alternativa
+- Suporte a Mercado Pago Tap
+- TEF tradicional para quem prefere Pinpad
+
+---
+
+### 💡 Por que esta ordem?
+
+1. **EFI Cartão** é o mais rápido e usa infraestrutura existente
+2. **Stone/Ton** tem as menores taxas e é mais conhecido
+3. **Modelo de conta própria** evita regulação BACEN
+4. Cliente na Mesa tem PIX + cartão digitado (suficiente)
+5. Cliente no Totem tem PIX + cartão + NFC (experiência completa)`,
 
     nextSteps: [
-      '**FASE 1 - EFI Cartão (Imediato):**',
+      '**FASE 1 - EFI Cartão (Imediato - 1-2 semanas):**',
       '□ Instalar payment-token-efi via npm',
       '□ Criar Edge Function efi-create-card-charge',
       '□ Criar componente TotemCardPayment.tsx',
@@ -3940,17 +4039,21 @@ Impacto nos nichos:
       '□ Adicionar configuração de parcelas no admin',
       '□ Testar em sandbox EFI',
       '',
-      '**FASE 2 - PagBank Tap On (Curto Prazo):**',
-      '□ Solicitar AppKey ao PagBank para integração',
+      '**FASE 2 - Stone/Ton NFC (3-4 semanas + homologação):**',
+      '□ Lojista cria conta Ton (https://ton.com.br)',
+      '□ Solicitar credenciais de integração à Stone',
       '□ Criar projeto Android básico com WebView',
       '□ Implementar interface JavaScript para bridge WebView ↔ App',
-      '□ Integrar PagBank Tap On via Intent',
+      '□ Integrar Stone via Intent para pagamentos',
+      '□ Criar tela de configuração stone_code no admin Mostralo',
       '□ Implementar callback de sucesso/erro',
       '□ Testar em dispositivo Android com NFC',
+      '□ Homologar com Stone (15-30 dias)',
       '□ Publicar na Play Store ou distribuir APK',
       '',
       '**FASE 3 - Expansão:**',
-      '□ Adicionar Mercado Pago Tap como alternativa',
+      '□ Adicionar PagBank Tap On como alternativa',
+      '□ Adicionar Mercado Pago Tap',
       '□ Implementar selector de adquirente no admin',
       '□ Documentar processo de configuração por adquirente',
       '□ Avaliar demanda por TEF tradicional/Pinpad'

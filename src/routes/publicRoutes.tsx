@@ -106,6 +106,7 @@ export const publicRoutes = (
       <Route path="/nicho-barbearias" element={<LazyRoute><NichoBarbeariasPage /></LazyRoute>} />
       <Route path="/nicho-nail-designers" element={<LazyRoute><NichoNailDesignersPage /></LazyRoute>} />
       <Route path="/nicho-pet-shop" element={<LazyRoute><NichoPetShopsPage /></LazyRoute>} />
+      <Route path="/nicho-arenas" element={<LazyRoute><NichoArenasEsportivasPage /></LazyRoute>} />
     <Route path="/sitemap.xml" element={<LazyRoute><Sitemap /></LazyRoute>} />
     <Route path="/navegar" element={<LazyRoute><NavigatePage /></LazyRoute>} />
     

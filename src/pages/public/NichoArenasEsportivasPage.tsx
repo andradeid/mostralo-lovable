@@ -417,13 +417,10 @@ const CourtScheduleSection = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'livre': return 'bg-lime-500/20 border-lime-500/30 text-lime-400 hover:bg-lime-500/30';
-      case 'reservado': return 'bg-orange-500/20 border-orange-500/30 text-orange-400';
-      case 'ocupado': return 'bg-zinc-700/50 border-zinc-600/30 text-zinc-500';
-      default: return 'bg-zinc-800 border-zinc-700 text-zinc-400';
-    }
+  // Calcular horários livres por quadra
+  const getAvailableCount = (courtId: string) => {
+    const courtSchedule = schedule[courtId] || {};
+    return Object.values(courtSchedule).filter(s => s.status === 'livre').length;
   };
 
   return (
@@ -442,60 +439,147 @@ const CourtScheduleSection = () => {
           </p>
         </div>
 
-        {/* Court Tabs */}
-        <div className="flex flex-wrap justify-center gap-3 mb-8">
-          {courts.map((court) => (
-            <button
-              key={court.id}
-              onClick={() => setSelectedCourt(selectedCourt === court.id ? null : court.id)}
-              className={`px-6 py-3 rounded-xl font-medium transition-all ${
-                selectedCourt === court.id
-                  ? 'bg-gradient-to-r from-orange-500 to-lime-500 text-white'
-                  : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
-              }`}
-            >
-              <span className="mr-2">{court.emoji}</span>
-              {court.name}
-            </button>
-          ))}
+        {/* Court Selector */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+          {courts.map((court) => {
+            const availableCount = getAvailableCount(court.id);
+            const isSelected = selectedCourt === court.id;
+            
+            return (
+              <button
+                key={court.id}
+                onClick={() => setSelectedCourt(isSelected ? null : court.id)}
+                className={`p-4 rounded-xl font-medium transition-all text-left ${
+                  isSelected
+                    ? 'bg-gradient-to-r from-orange-500 to-lime-500 text-white'
+                    : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700 border border-zinc-700'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">{court.emoji}</span>
+                  <span className="font-semibold text-sm md:text-base truncate">{court.name}</span>
+                </div>
+                <div className={`text-xs ${isSelected ? 'text-white/80' : 'text-lime-400'}`}>
+                  {availableCount} horários livres
+                </div>
+              </button>
+            );
+          })}
         </div>
 
-        {/* Schedule Grid */}
-        <div className="bg-zinc-950 rounded-2xl border border-zinc-800 p-6 overflow-x-auto">
-          <div className="min-w-[800px]">
-            {/* Header */}
-            <div className="grid grid-cols-13 gap-2 mb-4">
-              <div className="text-zinc-500 text-sm font-medium p-2">Quadra</div>
-              {timeSlots.map((time) => (
-                <div key={time} className="text-zinc-500 text-sm font-medium text-center p-2">{time}</div>
-              ))}
-            </div>
-
-            {/* Rows */}
-            {courts.filter(c => !selectedCourt || c.id === selectedCourt).map((court) => (
-              <div key={court.id} className="grid grid-cols-13 gap-2 mb-2">
-                <div className="flex items-center gap-2 p-2 bg-zinc-900 rounded-lg">
-                  <span>{court.emoji}</span>
-                  <span className="text-white text-sm font-medium truncate">{court.name}</span>
+        {/* Schedule Grid - Mobile First */}
+        <div className="bg-zinc-950 rounded-2xl border border-zinc-800 p-4 md:p-6">
+          {selectedCourt ? (
+            <>
+              {/* Selected Court Header */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">
+                    {courts.find(c => c.id === selectedCourt)?.emoji}
+                  </span>
+                  <div>
+                    <h3 className="text-white font-bold text-lg">
+                      {courts.find(c => c.id === selectedCourt)?.name}
+                    </h3>
+                    <p className="text-zinc-500 text-sm">Hoje - {new Date().toLocaleDateString('pt-BR')}</p>
+                  </div>
                 </div>
+                <button
+                  onClick={() => setSelectedCourt(null)}
+                  className="text-zinc-400 hover:text-white text-sm flex items-center gap-1"
+                >
+                  ← Voltar
+                </button>
+              </div>
+
+              {/* Time Slots Grid - Responsive */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
                 {timeSlots.map((time) => {
-                  const slot = schedule[court.id]?.[time] || { status: 'livre' };
+                  const slot = schedule[selectedCourt]?.[time] || { status: 'livre' };
+                  
                   return (
                     <div
-                      key={`${court.id}-${time}`}
-                      className={`p-2 rounded-lg border text-center text-xs cursor-pointer transition-all ${getStatusColor(slot.status)}`}
-                      title={slot.cliente || slot.status}
+                      key={time}
+                      className={`p-4 rounded-xl border transition-all ${
+                        slot.status === 'livre' 
+                          ? 'bg-lime-500/10 border-lime-500/30 hover:bg-lime-500/20 cursor-pointer' 
+                          : slot.status === 'reservado'
+                          ? 'bg-orange-500/10 border-orange-500/30'
+                          : 'bg-zinc-800/50 border-zinc-700/30'
+                      }`}
                     >
-                      {slot.status === 'livre' ? '✓' : slot.status === 'reservado' ? '📅' : '🔒'}
+                      <div className={`font-bold text-lg mb-2 ${
+                        slot.status === 'livre' ? 'text-lime-400' :
+                        slot.status === 'reservado' ? 'text-orange-400' : 'text-zinc-500'
+                      }`}>
+                        {time}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {slot.status === 'livre' ? (
+                          <>
+                            <CheckCircle2 className="w-4 h-4 text-lime-400" />
+                            <span className="text-lime-400 text-sm">Disponível</span>
+                          </>
+                        ) : slot.status === 'reservado' ? (
+                          <>
+                            <Calendar className="w-4 h-4 text-orange-400" />
+                            <span className="text-orange-400 text-sm truncate">{slot.cliente}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Clock className="w-4 h-4 text-zinc-500" />
+                            <span className="text-zinc-500 text-sm">Em uso</span>
+                          </>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
               </div>
-            ))}
-          </div>
+            </>
+          ) : (
+            /* Overview - All Courts Summary */
+            <div className="text-center py-8">
+              <div className="w-16 h-16 rounded-full bg-orange-500/10 flex items-center justify-center mx-auto mb-4">
+                <Calendar className="w-8 h-8 text-orange-400" />
+              </div>
+              <h3 className="text-white font-bold text-xl mb-2">Selecione uma quadra</h3>
+              <p className="text-zinc-400 mb-6">Clique em uma quadra acima para ver os horários disponíveis</p>
+              
+              {/* Quick Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl mx-auto">
+                {courts.map((court) => {
+                  const available = getAvailableCount(court.id);
+                  const total = timeSlots.length;
+                  const percentage = Math.round((available / total) * 100);
+                  
+                  return (
+                    <div 
+                      key={court.id}
+                      onClick={() => setSelectedCourt(court.id)}
+                      className="bg-zinc-800/50 rounded-xl p-4 cursor-pointer hover:bg-zinc-800 transition-all border border-zinc-700/50 hover:border-lime-500/30"
+                    >
+                      <span className="text-2xl">{court.emoji}</span>
+                      <p className="text-white font-medium text-sm mt-2 truncate">{court.name}</p>
+                      <div className="flex items-center justify-center gap-1 mt-1">
+                        <span className="text-lime-400 font-bold">{available}</span>
+                        <span className="text-zinc-500 text-xs">/{total} livres</span>
+                      </div>
+                      <div className="w-full bg-zinc-700 rounded-full h-1.5 mt-2">
+                        <div 
+                          className="bg-gradient-to-r from-lime-500 to-lime-400 h-1.5 rounded-full"
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Legend */}
-          <div className="flex flex-wrap justify-center gap-6 mt-6 pt-6 border-t border-zinc-800">
+          <div className="flex flex-wrap justify-center gap-4 md:gap-6 mt-6 pt-6 border-t border-zinc-800">
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 rounded bg-lime-500/20 border border-lime-500/30" />
               <span className="text-zinc-400 text-sm">Livre</span>
@@ -506,7 +590,7 @@ const CourtScheduleSection = () => {
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 rounded bg-zinc-700/50 border border-zinc-600/30" />
-              <span className="text-zinc-400 text-sm">Ocupado</span>
+              <span className="text-zinc-400 text-sm">Em uso</span>
             </div>
           </div>
         </div>

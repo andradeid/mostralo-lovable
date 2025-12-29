@@ -3575,5 +3575,320 @@ Impacto nos nichos:
       '□ Implementar resolução de conflitos básica',
       '□ Documentar comportamento offline para lojistas'
     ]
+  },
+
+  // ==================== IDEIA 28: PINPAD/TEF PARA TOTEM ====================
+  {
+    id: 28,
+    title: '💳 Integração Pinpad/TEF para Totem',
+    status: 'idea',
+    priority: 'high',
+    createdAt: '2025-12-29',
+    description: 'Permitir pagamento com cartão de crédito/débito no Totem através de Pinpad (TEF), integrando máquinas de pagamento Stone, Cielo, Rede, PagSeguro, etc.',
+    
+    context: `Atualmente o Totem (TotemConfigPage.tsx) suporta apenas:
+• PIX - Implementado e funcional via EFI
+• Cartão - Marcado como "Em breve" (disabled)
+
+O pagamento em cartão no Totem exige hardware físico (Pinpad) conectado ao dispositivo onde o Totem roda. Diferente do PIX que é 100% web, a integração com Pinpad requer:
+• Software local intermediário (TEF Client)
+• Comunicação entre navegador e hardware
+• Certificação PCI-DSS para segurança
+
+Arquitetura atual do pagamento no Totem:
+• TotemPayment.tsx - Componente de pagamento PIX
+• efi-create-pix-charge - Edge function para gerar cobrança
+• efi-check-pix-status - Edge function para verificar pagamento`,
+
+    problem: `Limitações atuais:
+• Clientes que preferem cartão não podem usar o Totem
+• PIX nem sempre é conveniente (limite diário, banco fora do ar)
+• Competidores (McDonald's, Burger King) aceitam cartão em totens
+• Perda de vendas por falta de opção de pagamento
+
+Impacto nos nichos:
+• Supermercados: cartão é o método principal (60%+ das vendas)
+• Farmácias: muitos usam cartão de benefício (Alelo, Sodexo)
+• Fast food: público jovem prefere aproximação (NFC)
+• Arenas/Eventos: filas precisam ser rápidas
+• Postos de gasolina: cartão de frota é comum`,
+
+    marketAnalysis: {
+      title: '📊 Análise de Mercado',
+      items: [
+        'TEF é padrão em totens de grandes redes (McDonald\'s, Subway, Cinemark)',
+        'Stone, Cielo e Rede dominam 80% do mercado brasileiro de adquirência',
+        'Tendência: pagamento por aproximação (NFC) cresce 200%/ano no Brasil',
+        'Smart POS (maquininhas Android) ganham espaço - facilitam integração',
+        'Diferencial competitivo ENORME para sistema SaaS de Totens',
+        'Poucos sistemas para PMEs oferecem TEF integrado - grande oportunidade!',
+        'Mercado de totens de autoatendimento cresce 15%/ano no Brasil',
+        'Pós-pandemia: clientes preferem autoatendimento para evitar filas'
+      ]
+    },
+
+    technicalDetails: {
+      title: '🔧 Arquitetura Técnica',
+      items: [
+        'TEF (Transferência Eletrônica de Fundos): protocolo padrão brasileiro para transações com cartão',
+        'Pinpad: hardware que lê cartão (chip, tarja magnética, NFC/contactless)',
+        'Servidor TEF Local: software intermediário que comunica com adquirente',
+        'Arquitetura híbrida: Navegador ↔ API Local (localhost) ↔ Pinpad ↔ Adquirente',
+        'WebSocket ou HTTP localhost para comunicação browser-pinpad',
+        'SDK específico por adquirente (Stone SDK, Cielo LIO SDK, Rede e-Rede)',
+        'Alternativa: Smart POS Android com app customizado rodando o Totem',
+        'Edge Function para confirmar transação e atualizar pedido no banco',
+        'Webhook do adquirente para confirmação assíncrona de transações',
+        'Tabela card_transactions para auditoria e reconciliação',
+        'Suporte a múltiplas bandeiras: Visa, Master, Elo, Amex, Hipercard'
+      ]
+    },
+
+    phases: [
+      {
+        name: 'Fase 1 - Infraestrutura Base',
+        description: 'Criar camada de abstração para pagamentos por cartão no sistema',
+        items: [
+          'Criar interface PaymentProvider abstrata (src/lib/payment/PaymentProvider.ts)',
+          'Definir tipos TypeScript: PinpadTransaction, PinpadStatus, PinpadConfig',
+          'Criar hook useCardPayment com estados (idle, processing, success, error, cancelled)',
+          'Adicionar configuração de Pinpad na tabela totem_config',
+          'Criar tabela card_transactions para registrar todas as transações',
+          'Implementar edge function card-transaction-webhook para processar callbacks',
+          'Criar edge function card-create-transaction para iniciar transação'
+        ]
+      },
+      {
+        name: 'Fase 2 - TEF Client (Aplicativo Local)',
+        description: 'Desenvolver aplicativo local que conecta o navegador ao Pinpad físico',
+        items: [
+          'Criar projeto TEF Client em Node.js + Electron (cross-platform)',
+          'Implementar servidor HTTP localhost na porta configurável (default: 3847)',
+          'Endpoints REST: GET /status, POST /pay, POST /cancel, POST /refund',
+          'Integrar SDK do adquirente Stone como piloto inicial',
+          'Comunicação com Pinpad via porta serial (RS-232) ou USB',
+          'Implementar logs locais para debugging e auditoria',
+          'Auto-start com o sistema operacional (Windows Service / systemd)',
+          'Criar instalador simples: .exe (Windows), .deb/.rpm (Linux), .dmg (macOS)',
+          'Implementar health check e auto-reconnect com Pinpad'
+        ]
+      },
+      {
+        name: 'Fase 3 - Integração no Totem',
+        description: 'Conectar o fluxo de pagamento do Totem com o TEF Client local',
+        items: [
+          'Detectar se TEF Client está rodando (ping localhost:3847/status)',
+          'Mostrar opção "Cartão de Crédito/Débito" apenas se Pinpad disponível',
+          'Enviar requisição de pagamento ao TEF Client com valor e parcelas',
+          'Exibir tela animada "Insira, aproxime ou passe seu cartão"',
+          'Mostrar progresso: "Processando...", "Aguarde autorização..."',
+          'Processar resposta: aprovado (criar pedido), negado (mostrar erro), cancelado',
+          'Confirmar pedido via edge function após aprovação do adquirente',
+          'Imprimir comprovante se impressora configurada (via comprovante térmico)',
+          'Timeout configurável para transações (default: 60 segundos)'
+        ]
+      },
+      {
+        name: 'Fase 4 - Painel de Configuração',
+        description: 'Interface administrativa para configurar Pinpad e adquirente',
+        items: [
+          'Adicionar seção "Pagamento Cartão" em TotemConfigPage.tsx',
+          'Seletor de adquirente: Stone, Cielo, Rede, PagSeguro, GetNet',
+          'Campos para credenciais do adquirente (Stone Code, Merchant ID, etc)',
+          'Configuração da porta do TEF Client (default: 3847)',
+          'Botão "Testar Conexão" com feedback visual (conectado/desconectado)',
+          'Botão "Transação de Teste" para validar integração (R$ 0,01)',
+          'Status em tempo real do Pinpad (online, offline, ocupado)',
+          'Configuração de parcelas: máximo de parcelas, parcelamento lojista',
+          'Logs de transações recentes com filtros de data/status'
+        ]
+      },
+      {
+        name: 'Fase 5 - Multi-Adquirente e Expansão',
+        description: 'Expandir suporte para outros adquirentes e modalidades',
+        items: [
+          'Implementar adapter para Cielo (Pinpad USB e LIO Smart POS)',
+          'Implementar adapter para Rede (e-Rede com Pinpad)',
+          'Implementar adapter para PagSeguro (Moderninha Smart)',
+          'Implementar adapter para GetNet (POS e Pinpad)',
+          'Suporte a cartões de benefício (VR, Alelo, Sodexo, Ticket)',
+          'Documentação completa de setup para cada adquirente',
+          'Vídeos tutoriais de instalação e configuração',
+          'Processo de homologação e certificação por adquirente'
+        ]
+      }
+    ],
+
+    options: [
+      {
+        name: 'Opção 1: TEF Tradicional (Pinpad USB/Serial)',
+        description: 'Pinpad conectado via cabo (USB ou Serial) ao computador onde roda o Totem',
+        pros: [
+          'Padrão de mercado consolidado há décadas',
+          'Compatível com qualquer adquirente brasileiro',
+          'Hardware mais barato (Pinpad simples a partir de R$ 200)',
+          'Funciona offline quando transação offline permitida pelo adquirente',
+          'Maior controle sobre o fluxo de pagamento',
+          'Pode usar Pinpad que lojista já possui'
+        ],
+        cons: [
+          'Requer instalação de software local (TEF Client)',
+          'Instalação mais complexa para lojistas leigos',
+          'Manutenção do software local (atualizações)',
+          'Certificação PCI-DSS pode ser necessária',
+          'Cada adquirente tem SDK diferente',
+          'Tempo de desenvolvimento estimado: 6-8 semanas'
+        ]
+      },
+      {
+        name: 'Opção 2: Smart POS Android (Stone/Cielo/Rede)',
+        description: 'Usar maquininha Android como dispositivo do Totem (Stone, Cielo LIO, etc)',
+        pros: [
+          'Tudo integrado em um único dispositivo (tela + leitor)',
+          'SDK moderno e bem documentado (Android)',
+          'Atualizações automáticas via Play Store do adquirente',
+          'Suporte técnico direto do adquirente',
+          'Certificações PCI já incluídas no dispositivo',
+          'Pode rodar o Totem web no próprio dispositivo'
+        ],
+        cons: [
+          'Custo do hardware maior (R$ 500-1500)',
+          'Preso ao ecossistema do adquirente específico',
+          'Tela menor que monitor tradicional de Totem',
+          'Menos customização visual possível',
+          'App precisa ser aprovado/homologado pelo adquirente',
+          'Tempo de desenvolvimento estimado: 4-6 semanas'
+        ]
+      },
+      {
+        name: 'Opção 3: Deep Link / Intent (Mobile Only)',
+        description: 'Abrir app nativo do adquirente via deep link, processar pagamento e retornar ao Totem',
+        pros: [
+          'Implementação mais simples e rápida',
+          'Sem necessidade de certificação PCI própria',
+          'Funciona com qualquer adquirente que suporte deep links',
+          'Zero manutenção de código de pagamento',
+          'Adquirente assume toda responsabilidade de segurança',
+          'Tempo de desenvolvimento estimado: 2-3 semanas'
+        ],
+        cons: [
+          'Só funciona em Android/iOS (não funciona em web puro)',
+          'UX fragmentada (sai do Totem, vai pro app, volta)',
+          'Dependente de suporte do adquirente ao deep link',
+          'Menos controle sobre o fluxo e experiência do usuário',
+          'Não funciona em Totem web tradicional (PC/monitor)',
+          'Pode confundir o cliente com troca de apps'
+        ]
+      }
+    ],
+
+    riskAnalysis: {
+      title: '⚠️ Análise de Riscos',
+      sections: [
+        {
+          level: 'high',
+          title: 'Riscos Altos',
+          items: [
+            'Certificação PCI-DSS: obrigatória para processar/armazenar dados de cartão',
+            'Processo de homologação: cada adquirente tem requisitos diferentes',
+            'Suporte a hardware: Pinpads têm diversos modelos/fabricantes/versões',
+            'Responsabilidade por fraudes: definir claramente nos termos de uso',
+            'SDKs proprietários: podem mudar sem aviso prévio',
+            'Chargebacks: impacto financeiro pode ser significativo'
+          ]
+        },
+        {
+          level: 'medium',
+          title: 'Riscos Médios',
+          items: [
+            'Instalação do TEF Client: pode ser complexa para lojistas não-técnicos',
+            'Drivers de Pinpad: podem causar conflitos com outros softwares',
+            'Atualizações do adquirente: podem quebrar integração existente',
+            'Suporte técnico: problemas de hardware exigem atendimento presencial',
+            'Custo de manutenção: múltiplos SDKs = múltiplas manutenções',
+            'Latência de rede: pode causar timeouts em transações'
+          ]
+        },
+        {
+          level: 'low',
+          title: 'Riscos Baixos',
+          items: [
+            'Arquitetura modular permite adicionar novos adquirentes depois',
+            'Stone tem SDK bem documentado e suporte a integradores',
+            'Mercado de TEF é maduro e estável no Brasil',
+            'Edge functions do Supabase lidam bem com webhooks',
+            'Padrão de comunicação HTTP/REST é simples de implementar',
+            'Electron é multiplataforma e bem testado'
+          ]
+        }
+      ]
+    },
+
+    legalConsiderations: [
+      'PCI-DSS: Certificação obrigatória para qualquer sistema que processe dados de cartão',
+      'Contrato com adquirente: cada lojista precisa ter conta própria no adquirente escolhido',
+      'Responsabilidade por chargebacks: definir claramente nos termos de uso do sistema',
+      'LGPD: dados de transações são dados pessoais e devem ser tratados conforme a lei',
+      'Nota fiscal: integração com emissor de NFC-e pode ser necessária para compliance',
+      'Transparência de taxas: informar claramente as taxas cobradas pelo adquirente',
+      'Termo de uso: lojista deve aceitar termos específicos para uso do módulo TEF',
+      'Auditoria: manter logs de transações por mínimo de 5 anos (exigência legal)',
+      'Antifraude: implementar medidas básicas de prevenção a fraudes'
+    ],
+
+    recommendation: `**Recomendação: Começar com Stone TEF (Opção 1)**
+
+**Por que Stone como primeiro adquirente?**
+• SDK mais moderno e bem documentado do mercado brasileiro
+• Suporte técnico excelente para desenvolvedores/integradores
+• Processo de homologação mais simples e rápido
+• Grande base instalada de lojistas no Brasil
+• Pinpads compatíveis facilmente disponíveis no mercado
+• Documentação em português com exemplos práticos
+
+**Roadmap Sugerido de Implementação:**
+
+1. **MVP com Stone** (6-8 semanas)
+   → Desenvolver TEF Client básico com Stone SDK
+   → Fluxo completo: inserir cartão → autorização → pedido criado
+   → Painel de configuração mínimo viável
+   → Testes extensivos em ambiente sandbox Stone
+
+2. **Piloto com 3-5 Lojistas** (2-4 semanas)
+   → Selecionar lojistas parceiros para teste real
+   → Validar processo de instalação e setup do TEF Client
+   → Coletar feedback de UX dos clientes finais
+   → Identificar problemas reais de campo
+   → Ajustar documentação baseado em dúvidas
+
+3. **Produção + Segundo Adquirente** (4-6 semanas)
+   → Lançar oficialmente para todos os lojistas interessados
+   → Implementar segundo adquirente (Cielo ou Rede)
+   → Melhorar painel de configuração com base no feedback
+   → Criar materiais de marketing sobre a feature
+
+4. **Multi-Adquirente e Escala** (ongoing)
+   → Adicionar PagSeguro, GetNet, Safrapay
+   → Smart POS como alternativa ao Pinpad tradicional
+   → Cartões de benefício (VR, Alelo, Sodexo)
+   → Documentação completa por adquirente
+   → Programa de parceria com revendedores de Pinpad`,
+
+    nextSteps: [
+      '□ Pesquisar requisitos de homologação Stone para integradores',
+      '□ Solicitar acesso ao SDK Stone e ambiente sandbox',
+      '□ Definir modelo de Pinpad recomendado (Gertec, Ingenico, PAX)',
+      '□ Criar projeto do TEF Client (repositório separado: Node.js + Electron)',
+      '□ Implementar servidor HTTP localhost com endpoints básicos',
+      '□ Integrar Stone SDK no TEF Client',
+      '□ Criar tabela card_transactions no Supabase',
+      '□ Adicionar campos de config Pinpad em totem_config',
+      '□ Implementar hook useCardPayment no frontend',
+      '□ Criar componente TotemCardPayment.tsx',
+      '□ Desenvolver painel de configuração de Pinpad no admin',
+      '□ Testar fluxo completo em sandbox Stone',
+      '□ Documentar processo de instalação do TEF Client',
+      '□ Criar instalador Windows (.exe) com NSIS ou electron-builder'
+    ]
   }
 ];

@@ -237,6 +237,81 @@ const TECHNICAL_FEATURES = {
     'Logo e identidade',
     'Total personalização',
   ],
+  'Agendamento de Serviços (NOVO!)': [
+    'Sistema completo de agendamento online',
+    'Gestão de profissionais e disponibilidade',
+    'Calendário visual com bloqueios de horário',
+    'Confirmação automática por WhatsApp',
+    'Link público para clientes agendarem sozinhos',
+    'Ideal para salões, barbearias, clínicas, estúdios',
+  ],
+  'Pedidos Agendados': [
+    'Cliente escolhe data e hora para receber o pedido',
+    'Gestão de slots de entrega por horário',
+    'Calendário de pedidos programados',
+    'Notificações automáticas antes da entrega',
+    'Ideal para encomendas e delivery programado',
+  ],
+  'Vendas Sugeridas - Upsell/Cross-sell (EXCLUSIVO!)': [
+    'Sugestão automática de acompanhamentos',
+    'Cross-sell por categoria (ex: bebida com pizza)',
+    'Upsell para tamanho maior ou combo',
+    'Estatísticas de conversão por sugestão',
+    'Aumenta ticket médio em até 15%',
+    'Configuração por produto ou categoria',
+  ],
+  'Promoções e Cupons': [
+    'Cupons de desconto personalizados',
+    'Promoções por período (happy hour, aniversário)',
+    'Combos e kits promocionais',
+    'Códigos de desconto rastreáveis',
+    'Relatórios de uso e conversão',
+    'Descontos automáticos por valor mínimo',
+  ],
+  'Entregadores': [
+    'App exclusivo para entregadores (PWA)',
+    'Rastreamento em tempo real',
+    'Gestão de entregas por motoboy',
+    'Comissão e pagamentos automáticos',
+    'Histórico de entregas por profissional',
+    'Convites e controle de frota própria',
+  ],
+  'Impressão Térmica': [
+    'Impressão automática na cozinha e balcão',
+    'Compatível com impressoras 80mm',
+    'QR Code nos pedidos impressos',
+    'Configuração por setores (cozinha, bar)',
+    'Impressão de comandas e recibos',
+  ],
+  'Material de Marketing': [
+    'Geração de cardápios para impressão',
+    'QR Codes personalizados da loja',
+    'Materiais prontos para redes sociais',
+    'Banners e artes para WhatsApp',
+    'Logo e identidade visual',
+  ],
+  'Scripts e Pixels de Rastreamento': [
+    'Integração com Facebook Pixel',
+    'Google Analytics e GTM',
+    'Botões de WhatsApp flutuantes',
+    'Chatbots externos',
+    'Rastreamento de conversões',
+    'Remarketing e públicos personalizados',
+  ],
+  'Banners Promocionais': [
+    'Banners rotativos na loja online',
+    'Promoções em destaque visual',
+    'Links para categorias ou produtos',
+    'Imagens para desktop e mobile',
+    'Agendamento de banners por período',
+  ],
+  'Atendentes e Permissões': [
+    'Gestão de atendentes por loja',
+    'Permissões específicas por função',
+    'Notificações personalizadas',
+    'Controle de acesso ao painel',
+    'Múltiplos usuários por loja',
+  ],
 };
 
 const TESTIMONIALS = [
@@ -305,6 +380,27 @@ const FAQ = [
   {
     question: 'Posso personalizar as mensagens do WhatsApp?',
     answer: 'Sim! Use variáveis como {nome}, {último_pedido}, {dias_inativo}. Ex: "Olá {nome}, faz {dias_inativo} dias que você não pede. Que tal um desconto especial?"',
+  },
+  // FAQs de módulos avançados
+  {
+    question: 'Vocês têm sistema de agendamento para serviços?',
+    answer: 'Sim! Temos módulo completo de Agendamento de Serviços. Ideal para salões, barbearias, clínicas. O cliente agenda pelo link público e você gerencia tudo pelo painel, com calendário visual e confirmação por WhatsApp.',
+  },
+  {
+    question: 'O sistema sugere produtos adicionais pro cliente?',
+    answer: 'Sim! Nosso módulo de Vendas Sugeridas faz upsell e cross-sell automático. Quando o cliente adiciona pizza, sugere bebida. Quando escolhe lanche, sugere batata. Aumenta o ticket médio em até 15% sem esforço extra.',
+  },
+  {
+    question: 'Posso criar cupons de desconto?',
+    answer: 'Sim! O módulo de Promoções e Cupons permite criar cupons personalizados, promoções por período (happy hour, aniversário), combos promocionais e rastrear conversões de cada código.',
+  },
+  {
+    question: 'Funciona para lojas com entregadores próprios?',
+    answer: 'Sim! Temos módulo de Entregadores com app exclusivo para motoboys, rastreamento em tempo real, cálculo de comissões e pagamentos automáticos. Você controla sua frota direto pelo painel.',
+  },
+  {
+    question: 'Consigo imprimir os pedidos automaticamente?',
+    answer: 'Sim! O módulo de Impressão Térmica imprime pedidos automaticamente na cozinha e balcão, compatível com impressoras 80mm. Configura setores diferentes e inclui QR Code nos pedidos.',
   },
 ];
 

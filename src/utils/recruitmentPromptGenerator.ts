@@ -341,7 +341,45 @@ Sistema EXCLUSIVO de lembretes de recompra:
 - +23% de aumento em vendas recorrentes
 - Ideal para: pet shops, farmácias, açougues, distribuidoras
 
-👉 Argumento: "Imagina o cliente receber um lembrete automático quando a ração do cachorro está acabando? Vendas no piloto automático!"`;
+👉 Argumento: "Imagina o cliente receber um lembrete automático quando a ração do cachorro está acabando? Vendas no piloto automático!"
+
+## 🆕 MÓDULOS AVANÇADOS (ARGUMENTOS EXTRAS!)
+
+Funcionalidades que diferenciam o Mostralo da concorrência:
+
+**Agendamento de Serviços:**
+- Sistema completo para salões, barbearias, clínicas, estúdios
+- Cliente agenda sozinho pelo link, sem ligar
+- Calendário visual, gestão de profissionais, confirmação por WhatsApp
+- 👉 Argumento: "Além de delivery, funciona pra serviços! Salão de beleza pode receber agendamentos online."
+
+**Vendas Sugeridas (Upsell/Cross-sell):**
+- Sistema sugere automaticamente acompanhamentos
+- Cliente pediu pizza? Sugere bebida. Pediu lanche? Sugere batata.
+- Aumenta ticket médio em até 15%
+- 👉 Argumento: "O sistema vende mais sozinho! Sugere produtos complementares automaticamente."
+
+**Promoções e Cupons:**
+- Cupons de desconto personalizados e rastreáveis
+- Promoções por período (happy hour, aniversário)
+- Combos promocionais
+- 👉 Argumento: "Crie cupons, promoções de happy hour, combos... tudo pelo painel!"
+
+**Entregadores:**
+- App exclusivo para motoboys
+- Rastreamento em tempo real
+- Comissão e pagamentos automáticos
+- 👉 Argumento: "Controla a frota de entregadores direto no sistema, com rastreamento e comissões."
+
+**Pedidos Agendados:**
+- Cliente escolhe data e hora para receber
+- Ideal para encomendas e eventos
+- 👉 Argumento: "Cliente pode agendar pedido pra amanhã, semana que vem... perfeito pra festas e eventos."
+
+**Impressão Térmica:**
+- Impressão automática na cozinha
+- Compatível com impressoras 80mm
+- 👉 Argumento: "Pedido caiu, imprime automático na cozinha. Sem precisar ficar olhando tela."`;
 }
 
 function generateNoTechSection(): string {

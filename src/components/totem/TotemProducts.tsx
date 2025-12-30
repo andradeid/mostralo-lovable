@@ -7,6 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { ShoppingCart, Plus, ArrowLeft, Store, Loader2, Menu } from 'lucide-react';
 import { TotemProductModal } from './TotemProductModal';
+import { UpsellModal } from '@/components/upsell/UpsellModal';
 
 interface Category {
   id: string;
@@ -47,6 +48,8 @@ export function TotemProducts({
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [upsellTriggerProductId, setUpsellTriggerProductId] = useState<string | null>(null);
+  const [showUpsellModal, setShowUpsellModal] = useState(false);
 
   const cartItemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -104,6 +107,31 @@ export function TotemProducts({
       addons: [],
     };
     onAddToCart(newItem);
+    
+    // Mostrar modal de upsell após adicionar
+    setUpsellTriggerProductId(product.id);
+    setShowUpsellModal(true);
+  };
+
+  const handleUpsellAccept = (upsellProduct: { id: string; name: string; price: number; image_url: string | null; quantity: number }) => {
+    const upsellItem: TotemCartItem = {
+      id: `${upsellProduct.id}-${Date.now()}`,
+      product_id: upsellProduct.id,
+      name: upsellProduct.name,
+      price: upsellProduct.price,
+      quantity: upsellProduct.quantity,
+      image_url: upsellProduct.image_url,
+      notes: '',
+      addons: [],
+    };
+    onAddToCart(upsellItem);
+    setShowUpsellModal(false);
+    setUpsellTriggerProductId(null);
+  };
+
+  const handleUpsellDecline = () => {
+    setShowUpsellModal(false);
+    setUpsellTriggerProductId(null);
   };
 
   const handleSelectCategory = (categoryId: string | null) => {
@@ -333,7 +361,23 @@ export function TotemProducts({
           onAddToCart={(item) => {
             onAddToCart(item);
             setSelectedProduct(null);
+            // Mostrar upsell após adicionar do modal
+            setUpsellTriggerProductId(item.product_id);
+            setShowUpsellModal(true);
           }}
+        />
+      )}
+
+      {/* Upsell Modal */}
+      {showUpsellModal && upsellTriggerProductId && (
+        <UpsellModal
+          open={showUpsellModal}
+          onOpenChange={setShowUpsellModal}
+          storeId={store.id}
+          triggerProductId={upsellTriggerProductId}
+          onAccept={handleUpsellAccept}
+          onDecline={handleUpsellDecline}
+          themeColor={config.theme_color}
         />
       )}
     </div>

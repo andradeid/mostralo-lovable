@@ -2,16 +2,18 @@ import { Minus, Plus, Trash2, X } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { CrossSellSection } from '@/components/crosssell/CrossSellSection';
 
 interface CartDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCheckout: () => void;
   primaryColor?: string;
+  storeId?: string;
 }
 
-export function CartDrawer({ open, onOpenChange, onCheckout, primaryColor = '#3B82F6' }: CartDrawerProps) {
-  const { items, updateQuantity, removeItem, getTotalPrice } = useCart();
+export function CartDrawer({ open, onOpenChange, onCheckout, primaryColor = '#3B82F6', storeId }: CartDrawerProps) {
+  const { items, updateQuantity, removeItem, getTotalPrice, addItem } = useCart();
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -96,6 +98,25 @@ export function CartDrawer({ open, onOpenChange, onCheckout, primaryColor = '#3B
                 ))}
               </div>
             </div>
+
+            {/* Cross-sell Section */}
+            {storeId && items.length > 0 && (
+              <div className="px-6 py-4 border-t">
+                <CrossSellSection
+                  storeId={storeId}
+                  cartItems={items.map(item => ({ category_id: null, product_id: item.id }))}
+                  onAddProduct={(product) => {
+                    addItem({
+                      id: product.id,
+                      name: product.name,
+                      price: product.price,
+                      image_url: product.image_url || undefined
+                    }, 1);
+                  }}
+                  themeColor={primaryColor}
+                />
+              </div>
+            )}
 
             <div className="border-t px-6 py-4 space-y-4">
               <div className="flex items-center justify-between text-lg font-bold">

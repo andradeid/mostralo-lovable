@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Plus, Minus, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Minus, Loader2 } from 'lucide-react';
 import { useUpsell } from '@/hooks/useUpsell';
 import { formatCurrency } from '@/lib/utils';
 
@@ -47,29 +47,59 @@ export function UpsellModal({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [upsellProducts, setUpsellProducts] = useState<UpsellProduct[]>([]);
+  const [loading, setLoading] = useState(true);
   const { fetchUpsells, recordImpression, recordAccepted, recordRejected, hasAccess } = useUpsell(storeId);
 
   useEffect(() => {
     if (open && triggerProductId && hasAccess) {
       loadUpsells();
+    } else if (open && !hasAccess) {
+      // Se não tem acesso, fechar imediatamente
+      onDecline();
+      onOpenChange(false);
     }
   }, [open, triggerProductId, hasAccess]);
 
   const loadUpsells = async () => {
-    const upsells = await fetchUpsells(triggerProductId);
-    setUpsellProducts(upsells);
-    setCurrentIndex(0);
-    setQuantity(1);
-    
-    // Registrar impressão do primeiro upsell
-    if (upsells.length > 0) {
+    setLoading(true);
+    try {
+      const upsells = await fetchUpsells(triggerProductId);
+      setUpsellProducts(upsells);
+      setCurrentIndex(0);
+      setQuantity(1);
+      
+      // Se não há upsells, fechar o modal graciosamente
+      if (upsells.length === 0) {
+        onDecline();
+        onOpenChange(false);
+        return;
+      }
+      
+      // Registrar impressão do primeiro upsell
       recordImpression(upsells[0].id);
+    } finally {
+      setLoading(false);
     }
   };
 
   const currentUpsell = upsellProducts[currentIndex];
   
-  if (!currentUpsell || !hasAccess) {
+  // Mostrar loader enquanto carrega
+  if (loading && open) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <div className="flex flex-col items-center justify-center py-12 gap-3">
+            <Loader2 className="h-8 w-8 animate-spin" style={{ color: themeColor }} />
+            <span className="text-sm text-muted-foreground">Carregando sugestões...</span>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Se não tem upsell após carregar, não mostrar nada
+  if (!currentUpsell) {
     return null;
   }
 

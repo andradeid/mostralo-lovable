@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { X, Plus, GripVertical, Search } from 'lucide-react';
+import { X, Plus, Loader2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 import {
   Command,
   CommandEmpty,
@@ -28,6 +29,7 @@ interface Product {
 }
 
 interface UpsellConfig {
+  id?: string;
   productId: string;
   price: number | null;
   priority: number;
@@ -35,47 +37,107 @@ interface UpsellConfig {
 }
 
 interface ProductUpsellSelectorProps {
-  storeId: string | undefined;
-  productId?: string;
-  selectedUpsells: UpsellConfig[];
-  onUpsellsChange: (upsells: UpsellConfig[]) => void;
+  storeId: string;
+  productId: string;
 }
 
 export function ProductUpsellSelector({
   storeId,
   productId,
-  selectedUpsells,
-  onUpsellsChange
 }: ProductUpsellSelectorProps) {
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [selectedUpsells, setSelectedUpsells] = useState<UpsellConfig[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const { toast } = useToast();
 
   useEffect(() => {
-    if (storeId) {
-      fetchProducts();
+    if (storeId && productId) {
+      fetchData();
     }
-  }, [storeId]);
+  }, [storeId, productId]);
 
-  const fetchProducts = async () => {
-    if (!storeId) return;
-    
+  const fetchData = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Buscar produtos da loja
+      const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select('id, name, price, image_url')
         .eq('store_id', storeId)
         .eq('is_available', true)
         .order('name');
 
-      if (error) throw error;
-      setProducts(data || []);
+      if (productsError) throw productsError;
+      setProducts(productsData || []);
+
+      // Buscar upsells existentes
+      const { data: upsellsData, error: upsellsError } = await supabase
+        .from('product_upsells')
+        .select('id, upsell_product_id, upsell_price, priority')
+        .eq('product_id', productId)
+        .eq('is_active', true)
+        .order('priority');
+
+      if (upsellsError) throw upsellsError;
+
+      // Mapear upsells para formato interno
+      const mappedUpsells: UpsellConfig[] = (upsellsData || []).map(u => ({
+        id: u.id,
+        productId: u.upsell_product_id,
+        price: u.upsell_price,
+        priority: u.priority,
+        product: productsData?.find(p => p.id === u.upsell_product_id)
+      }));
+
+      setSelectedUpsells(mappedUpsells);
     } catch (err) {
-      console.error('Erro ao buscar produtos:', err);
+      console.error('Erro ao buscar dados:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const saveUpsells = async (upsells: UpsellConfig[]) => {
+    setSaving(true);
+    try {
+      // Deletar upsells existentes
+      await supabase
+        .from('product_upsells')
+        .delete()
+        .eq('product_id', productId);
+
+      // Inserir novos upsells
+      if (upsells.length > 0) {
+        const { error } = await supabase
+          .from('product_upsells')
+          .insert(upsells.map((u, idx) => ({
+            store_id: storeId,
+            product_id: productId,
+            upsell_product_id: u.productId,
+            upsell_price: u.price,
+            priority: idx + 1,
+            is_active: true
+          })));
+
+        if (error) throw error;
+      }
+
+      toast({
+        title: "Upsells salvos",
+        description: "As configurações de upsell foram atualizadas.",
+      });
+    } catch (err) {
+      console.error('Erro ao salvar upsells:', err);
+      toast({
+        title: "Erro ao salvar",
+        description: "Não foi possível salvar as configurações de upsell.",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -88,7 +150,7 @@ export function ProductUpsellSelector({
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAddUpsell = (product: Product) => {
+  const handleAddUpsell = async (product: Product) => {
     if (selectedUpsells.length >= 3) return;
     
     const newUpsell: UpsellConfig = {
@@ -98,39 +160,56 @@ export function ProductUpsellSelector({
       product
     };
 
-    onUpsellsChange([...selectedUpsells, newUpsell]);
+    const updated = [...selectedUpsells, newUpsell];
+    setSelectedUpsells(updated);
     setSearchOpen(false);
     setSearchTerm('');
+    await saveUpsells(updated);
   };
 
-  const handleRemoveUpsell = (productId: string) => {
+  const handleRemoveUpsell = async (removeProductId: string) => {
     const updated = selectedUpsells
-      .filter(u => u.productId !== productId)
+      .filter(u => u.productId !== removeProductId)
       .map((u, idx) => ({ ...u, priority: idx + 1 }));
-    onUpsellsChange(updated);
+    setSelectedUpsells(updated);
+    await saveUpsells(updated);
   };
 
-  const handlePriceChange = (productId: string, price: string) => {
+  const handlePriceChange = async (upsellProductId: string, price: string) => {
     const numPrice = price === '' ? null : parseFloat(price);
     const updated = selectedUpsells.map(u => 
-      u.productId === productId ? { ...u, price: numPrice } : u
+      u.productId === upsellProductId ? { ...u, price: numPrice } : u
     );
-    onUpsellsChange(updated);
+    setSelectedUpsells(updated);
+    // Debounce save on price change
+    await saveUpsells(updated);
   };
 
-  const moveUp = (index: number) => {
+  const moveUp = async (index: number) => {
     if (index === 0) return;
     const updated = [...selectedUpsells];
     [updated[index - 1], updated[index]] = [updated[index], updated[index - 1]];
-    onUpsellsChange(updated.map((u, idx) => ({ ...u, priority: idx + 1 })));
+    const reordered = updated.map((u, idx) => ({ ...u, priority: idx + 1 }));
+    setSelectedUpsells(reordered);
+    await saveUpsells(reordered);
   };
 
-  const moveDown = (index: number) => {
+  const moveDown = async (index: number) => {
     if (index === selectedUpsells.length - 1) return;
     const updated = [...selectedUpsells];
     [updated[index], updated[index + 1]] = [updated[index + 1], updated[index]];
-    onUpsellsChange(updated.map((u, idx) => ({ ...u, priority: idx + 1 })));
+    const reordered = updated.map((u, idx) => ({ ...u, priority: idx + 1 }));
+    setSelectedUpsells(reordered);
+    await saveUpsells(reordered);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -153,7 +232,7 @@ export function ProductUpsellSelector({
                       <button
                         type="button"
                         onClick={() => moveUp(index)}
-                        disabled={index === 0}
+                        disabled={index === 0 || saving}
                         className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
                       >
                         ▲
@@ -161,7 +240,7 @@ export function ProductUpsellSelector({
                       <button
                         type="button"
                         onClick={() => moveDown(index)}
-                        disabled={index === selectedUpsells.length - 1}
+                        disabled={index === selectedUpsells.length - 1 || saving}
                         className="p-1 text-muted-foreground hover:text-foreground disabled:opacity-30"
                       >
                         ▼
@@ -194,6 +273,7 @@ export function ProductUpsellSelector({
                           size="icon"
                           className="h-8 w-8 text-destructive"
                           onClick={() => handleRemoveUpsell(upsell.productId)}
+                          disabled={saving}
                         >
                           <X className="h-4 w-4" />
                         </Button>
@@ -209,6 +289,7 @@ export function ProductUpsellSelector({
                           value={upsell.price ?? ''}
                           onChange={(e) => handlePriceChange(upsell.productId, e.target.value)}
                           className="h-8 mt-1"
+                          disabled={saving}
                         />
                       </div>
                     </div>
@@ -224,8 +305,12 @@ export function ProductUpsellSelector({
       {selectedUpsells.length < 3 && (
         <Popover open={searchOpen} onOpenChange={setSearchOpen}>
           <PopoverTrigger asChild>
-            <Button type="button" variant="outline" className="w-full">
-              <Plus className="h-4 w-4 mr-2" />
+            <Button type="button" variant="outline" className="w-full" disabled={saving}>
+              {saving ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Plus className="h-4 w-4 mr-2" />
+              )}
               Adicionar Upsell ({selectedUpsells.length}/3)
             </Button>
           </PopoverTrigger>

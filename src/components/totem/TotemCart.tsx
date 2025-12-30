@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { StoreInfo, TotemCartItem } from '@/pages/totem/TotemPage';
 import { TotemConfig } from '@/hooks/useTotemConfig';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ArrowLeft, Plus, Minus, Trash2, ShoppingCart, Phone, CreditCard } from 'lucide-react';
 import { TotemNumericKeyboard } from './TotemNumericKeyboard';
+import { CrossSellSection } from '@/components/crosssell/CrossSellSection';
 
 interface TotemCartProps {
   store: StoreInfo;
@@ -166,6 +167,21 @@ export function TotemCart({
             );
           })}
         </div>
+
+        {/* Cross-sell Section */}
+        {cart.length > 0 && (
+          <div className="px-4 py-4">
+            <CrossSellSection
+              storeId={store.id}
+              cartItems={cart.map(item => ({ category_id: null, product_id: item.product_id }))}
+              onAddProduct={(product) => {
+                // Cross-sell apenas mostra sugestões, não adiciona diretamente
+                // O usuário precisa clicar para ir ao produto
+              }}
+              themeColor={config.theme_color}
+            />
+          </div>
+        )}
 
         {/* Identificação do Cliente */}
         {showIdentification && (

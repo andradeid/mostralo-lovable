@@ -613,6 +613,14 @@ export function AdminSidebar() {
         );
       }
 
+      // Vendas Sugeridas (Upsell/Cross-sell) - verifica módulo
+      if (hasModule('upsell')) {
+        menuItems.push(
+          { title: 'Vendas Sugeridas', url: '/dashboard/vendas-sugeridas', icon: TrendingUp, group: 'Vendas' },
+          { title: 'Regras Cross-sell', url: '/dashboard/vendas-sugeridas/crosssell', icon: Tag, group: 'Vendas' }
+        );
+      }
+
       return menuItems;
     }
   };

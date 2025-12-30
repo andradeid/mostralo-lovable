@@ -47,21 +47,49 @@ export function UpsellModal({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [upsellProducts, setUpsellProducts] = useState<UpsellProduct[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { fetchUpsells, recordImpression, recordAccepted, recordRejected, hasAccess } = useUpsell(storeId);
+  const [loadingUpsells, setLoadingUpsells] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
+  
+  const { 
+    fetchUpsells, 
+    recordImpression, 
+    recordAccepted, 
+    recordRejected, 
+    hasAccess,
+    modulesLoading 
+  } = useUpsell(storeId);
 
+  // Resetar estados quando o modal fecha
   useEffect(() => {
-    if (open && triggerProductId && hasAccess) {
-      loadUpsells();
-    } else if (open && !hasAccess) {
-      // Se não tem acesso, fechar imediatamente
+    if (!open) {
+      setHasInitialized(false);
+      setUpsellProducts([]);
+      setCurrentIndex(0);
+      setQuantity(1);
+      setLoadingUpsells(false);
+    }
+  }, [open]);
+
+  // Carregar upsells apenas quando módulos terminarem de carregar
+  useEffect(() => {
+    // Não fazer nada se modal não está aberto, módulos carregando ou já inicializou
+    if (!open || modulesLoading || hasInitialized) return;
+    
+    setHasInitialized(true);
+    
+    // Se não tem acesso após módulos carregarem, fechar
+    if (!hasAccess) {
       onDecline();
       onOpenChange(false);
+      return;
     }
-  }, [open, triggerProductId, hasAccess]);
+    
+    // Tem acesso - carregar upsells
+    loadUpsells();
+  }, [open, modulesLoading, hasInitialized, hasAccess, triggerProductId]);
 
   const loadUpsells = async () => {
-    setLoading(true);
+    setLoadingUpsells(true);
     try {
       const upsells = await fetchUpsells(triggerProductId);
       setUpsellProducts(upsells);
@@ -78,14 +106,14 @@ export function UpsellModal({
       // Registrar impressão do primeiro upsell
       recordImpression(upsells[0].id);
     } finally {
-      setLoading(false);
+      setLoadingUpsells(false);
     }
   };
 
   const currentUpsell = upsellProducts[currentIndex];
   
-  // Mostrar loader enquanto carrega
-  if (loading && open) {
+  // Mostrar loader enquanto módulos ou upsells estão carregando
+  if (open && (modulesLoading || loadingUpsells || (!hasInitialized && !modulesLoading))) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-md">

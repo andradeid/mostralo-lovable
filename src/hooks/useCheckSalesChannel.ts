@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-export type SalesChannelKey = 'totem_enabled' | 'mesa_enabled' | 'pdv_enabled' | 'ifood_enabled' | 'delivery_enabled';
+export type SalesChannelKey = 'totem_enabled' | 'mesa_enabled' | 'pdv_enabled' | 'ifood_enabled' | 'delivery_enabled' | 'booking_enabled';
 
 interface SalesChannelStatus {
   isEnabled: boolean;
@@ -15,6 +15,7 @@ const CHANNEL_MESSAGES: Record<SalesChannelKey, string> = {
   pdv_enabled: 'Vendas no balcão temporariamente pausadas.',
   ifood_enabled: 'Integração iFood pausada.',
   delivery_enabled: 'Delivery temporariamente pausado.',
+  booking_enabled: 'Agendamentos online temporariamente pausados.',
 };
 
 export function useCheckSalesChannel(

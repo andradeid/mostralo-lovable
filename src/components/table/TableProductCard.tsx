@@ -15,9 +15,10 @@ interface TableProductCardProps {
   product: Product;
   onAdd: () => void;
   isLoading: boolean;
+  disabled?: boolean;
 }
 
-export function TableProductCard({ product, onAdd, isLoading }: TableProductCardProps) {
+export function TableProductCard({ product, onAdd, isLoading, disabled = false }: TableProductCardProps) {
   return (
     <Card className="overflow-hidden">
       <div className="flex">
@@ -42,10 +43,13 @@ export function TableProductCard({ product, onAdd, isLoading }: TableProductCard
             <Button 
               size="sm" 
               onClick={onAdd}
-              disabled={isLoading}
+              disabled={isLoading || disabled}
+              variant={disabled ? 'secondary' : 'default'}
             >
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
+              ) : disabled ? (
+                'Pausado'
               ) : (
                 <>
                   <Plus className="h-4 w-4 mr-1" />

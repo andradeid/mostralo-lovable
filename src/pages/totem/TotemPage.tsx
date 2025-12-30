@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { TotemConfig } from '@/hooks/useTotemConfig';
+import { useCheckSalesChannel } from '@/hooks/useCheckSalesChannel';
 import { Loader2 } from 'lucide-react';
 import { TotemWelcome } from '@/components/totem/TotemWelcome';
 import { TotemProducts } from '@/components/totem/TotemProducts';
@@ -9,6 +10,7 @@ import { TotemCart } from '@/components/totem/TotemCart';
 import { TotemPayment } from '@/components/totem/TotemPayment';
 import { TotemConfirmation } from '@/components/totem/TotemConfirmation';
 import { TotemInactivityWarning } from '@/components/totem/TotemInactivityWarning';
+import { SalesChannelPausedBanner } from '@/components/shared/SalesChannelPausedBanner';
 
 export interface TotemCartItem {
   id: string;
@@ -45,6 +47,10 @@ export default function TotemPage() {
   const [passwordNumber, setPasswordNumber] = useState<string | null>(null);
   const [showInactivityWarning, setShowInactivityWarning] = useState(false);
   const [lastActivity, setLastActivity] = useState(Date.now());
+
+  // Verificar se o canal totem está ativo
+  const { isEnabled: isTotemEnabled, isLoading: isChannelLoading, message: channelMessage } = useCheckSalesChannel(store?.id, 'totem_enabled');
+  const salesPaused = !isTotemEnabled;
 
   // Buscar dados da loja e configuração
   useEffect(() => {
@@ -219,6 +225,11 @@ export default function TotemPage() {
         color: 'var(--totem-text)',
       }}
     >
+      {/* Banner de vendas pausadas */}
+      {salesPaused && step !== 'welcome' && (
+        <SalesChannelPausedBanner message={channelMessage} className="rounded-none border-x-0 border-t-0" />
+      )}
+
       {step === 'welcome' && (
         <TotemWelcome
           store={store}
@@ -254,6 +265,7 @@ export default function TotemPage() {
           onUpdateCustomerInfo={setCustomerInfo}
           onBack={() => setStep('products')}
           onCheckout={() => setStep('payment')}
+          salesPaused={salesPaused}
         />
       )}
 

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePDV } from '@/hooks/usePDV';
 import { useComandas, Comanda } from '@/hooks/useComandas';
+import { useCheckSalesChannel } from '@/hooks/useCheckSalesChannel';
 import { PDVProductGrid } from '@/components/pdv/PDVProductGrid';
 import { PDVCart } from '@/components/pdv/PDVCart';
 import { PDVPaymentModal } from '@/components/pdv/PDVPaymentModal';
@@ -17,6 +18,7 @@ import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { printComanda } from '@/utils/printComanda';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { SalesChannelPausedBanner } from '@/components/shared/SalesChannelPausedBanner';
 
 export default function PDVPage() {
   const navigate = useNavigate();
@@ -42,6 +44,10 @@ export default function PDVPage() {
     },
     enabled: !!storeId,
   });
+
+  // Verificar se o canal PDV está ativo
+  const { isEnabled: isPdvEnabled, message: channelMessage } = useCheckSalesChannel(storeId, 'pdv_enabled');
+  const salesPaused = !isPdvEnabled;
 
   const handleFinalize = async (paymentMethod: string, discount: number, paymentDetails?: Record<string, any>) => {
     await finalizeSale(paymentMethod, discount, paymentDetails);
@@ -85,6 +91,9 @@ export default function PDVPage() {
     return (
       <ModuleGate moduleKey="pdv_comandas" storeId={storeId}>
         <div className="flex flex-col flex-1 min-h-0">
+          {salesPaused && (
+            <SalesChannelPausedBanner message={channelMessage} className="mx-2 mt-2" />
+          )}
           <Tabs defaultValue="products" className="flex-1 flex flex-col">
             <TabsList className="grid grid-cols-2 gap-2 h-auto mx-2 mb-2 p-2">
               <TabsTrigger value="products" className="h-12 text-sm gap-1.5">
@@ -128,6 +137,7 @@ export default function PDVPage() {
                 onClearCart={clearCart}
                 onFinalize={() => setPaymentModalOpen(true)}
                 isProcessing={isProcessing}
+                salesPaused={salesPaused}
               />
             </TabsContent>
 
@@ -187,6 +197,9 @@ export default function PDVPage() {
   return (
     <ModuleGate moduleKey="pdv_comandas" storeId={storeId}>
       <div className="flex flex-col flex-1 min-h-0">
+        {salesPaused && (
+          <SalesChannelPausedBanner message={channelMessage} className="mb-4" />
+        )}
         <Tabs defaultValue="pdv" className="flex-1 flex flex-col">
           <TabsList className="w-fit mb-4">
             <TabsTrigger value="pdv" className="gap-2">
@@ -225,6 +238,7 @@ export default function PDVPage() {
                   onClearCart={clearCart}
                   onFinalize={() => setPaymentModalOpen(true)}
                   isProcessing={isProcessing}
+                  salesPaused={salesPaused}
                 />
               </div>
             </div>

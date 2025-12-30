@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTableComanda } from '@/hooks/useTableComanda';
+import { useCheckSalesChannel } from '@/hooks/useCheckSalesChannel';
 import { formatCurrency } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -14,6 +15,7 @@ import { TableSummaryPanel } from '@/components/table/TableSummaryPanel';
 import { TableBottomBar } from '@/components/table/TableBottomBar';
 import { TablePendingWarning } from '@/components/table/TablePendingWarning';
 import { UpsellModal } from '@/components/upsell/UpsellModal';
+import { SalesChannelPausedBanner } from '@/components/shared/SalesChannelPausedBanner';
 
 interface Product {
   id: string;
@@ -71,6 +73,10 @@ export default function TableMenuPage() {
   });
 
   const primaryColor = (store?.theme_colors as any)?.primary || '#3B82F6';
+
+  // Verificar se o canal mesa está ativo
+  const { isEnabled: isMesaEnabled, message: channelMessage } = useCheckSalesChannel(store?.id, 'mesa_enabled');
+  const salesPaused = !isMesaEnabled;
 
   const { data: categories = [] } = useQuery({
     queryKey: ['categories', store?.id],
@@ -184,6 +190,11 @@ export default function TableMenuPage() {
 
   return (
     <div className="min-h-screen bg-background pb-32">
+      {/* Banner de vendas pausadas */}
+      {salesPaused && (
+        <SalesChannelPausedBanner message={channelMessage} className="rounded-none border-x-0 border-t-0" />
+      )}
+
       {/* Header */}
       <div className="sticky top-0 z-40 bg-background border-b">
         <TableMenuHeader
@@ -218,6 +229,7 @@ export default function TableMenuPage() {
             product={product}
             onAdd={() => handleAddItem(product)}
             isLoading={isAddingItem}
+            disabled={salesPaused}
           />
         ))}
       </div>

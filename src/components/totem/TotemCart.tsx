@@ -20,6 +20,7 @@ interface TotemCartProps {
   onUpdateCustomerInfo: (info: { phone?: string; cpf?: string; name?: string }) => void;
   onBack: () => void;
   onCheckout: () => void;
+  salesPaused?: boolean;
 }
 
 export function TotemCart({
@@ -33,6 +34,7 @@ export function TotemCart({
   onUpdateCustomerInfo,
   onBack,
   onCheckout,
+  salesPaused = false,
 }: TotemCartProps) {
   const [activeField, setActiveField] = useState<'phone' | 'cpf' | null>(null);
   
@@ -41,6 +43,7 @@ export function TotemCart({
   const isIdentificationRequired = config.identification_type === 'required';
 
   const canCheckout = () => {
+    if (salesPaused) return false;
     if (cart.length === 0) return false;
     if (!isIdentificationRequired) return true;
 
@@ -283,10 +286,10 @@ export function TotemCart({
         <Button
           onClick={onCheckout}
           disabled={!canCheckout()}
-          className="w-full h-14 text-lg font-semibold text-white"
-          style={{ backgroundColor: config.theme_color }}
+          className="w-full h-14 text-lg font-semibold text-white disabled:opacity-50"
+          style={{ backgroundColor: salesPaused ? '#9ca3af' : config.theme_color }}
         >
-          Ir para Pagamento
+          {salesPaused ? 'Vendas Pausadas' : 'Ir para Pagamento'}
         </Button>
       </div>
 

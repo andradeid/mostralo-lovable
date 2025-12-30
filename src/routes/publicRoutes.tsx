@@ -3,11 +3,13 @@ import { lazy } from "react";
 import { LazyRoute } from "@/components/LazyRoute";
 import { UpdatesRedirect } from "@/components/system-updates/UpdatesRedirect";
 
-// Critical pages - loaded immediately (landing, auth, store)
+// Critical pages - loaded immediately (landing, auth, store, totem, booking)
 import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
 import Store from "@/pages/Store";
 import NotFound from "@/pages/NotFound";
+import TotemPage from "@/pages/totem/TotemPage";
+import BookingPage from "@/pages/public/BookingPage";
 
 // Public Pages - Lazy loaded
 const SignUp = lazy(() => import("@/pages/SignUp"));
@@ -53,7 +55,6 @@ const BioMundoPropostaPage = lazy(() => import("@/pages/public/BioMundoPropostaP
 const SupermercadosPage = lazy(() => import("@/pages/public/SupermercadosPage"));
 const AcouguesPage = lazy(() => import("@/pages/public/AcouguesPage"));
 const SalespersonSalesGuidePage = lazy(() => import("@/pages/public/SalespersonSalesGuidePage"));
-const TotemPage = lazy(() => import("@/pages/totem/TotemPage"));
 const ConversaoLandingPage = lazy(() => import("@/pages/public/ConversaoLandingPage"));
 const NichoSuplementosPage = lazy(() => import("@/pages/public/NichoSuplementosPage"));
 const NichoPizzariasPage = lazy(() => import("@/pages/public/NichoPizzariasPage"));
@@ -71,7 +72,6 @@ const NichoBarbeariasPage = lazy(() => import("@/pages/public/NichoBarbeariasPag
 const NichoNailDesignersPage = lazy(() => import("@/pages/public/NichoNailDesignersPage"));
 const NichoPetShopsPage = lazy(() => import("@/pages/public/NichoPetShopsPage"));
 const NichoArenasEsportivasPage = lazy(() => import("@/pages/public/NichoArenasEsportivasPage"));
-const BookingPage = lazy(() => import("@/pages/public/BookingPage"));
 const AllInOnePage = lazy(() => import("@/pages/public/AllInOnePage"));
 
 export const publicRoutes = (
@@ -134,11 +134,11 @@ export const publicRoutes = (
     <Route path="/mesa/:storeSlug/:tableNumber" element={<LazyRoute><TableAccessPage /></LazyRoute>} />
     <Route path="/mesa/:storeSlug/:tableNumber/cardapio" element={<LazyRoute><TableMenuPage /></LazyRoute>} />
     
-    {/* Totem de Autoatendimento */}
-    <Route path="/totem/:storeSlug" element={<LazyRoute><TotemPage /></LazyRoute>} />
+    {/* Totem de Autoatendimento - Direct import (critical) */}
+    <Route path="/totem/:storeSlug" element={<TotemPage />} />
     
-    {/* Agendamento Online */}
-    <Route path="/agendar/:storeSlug" element={<LazyRoute><BookingPage /></LazyRoute>} />
+    {/* Agendamento Online - Direct import (critical) */}
+    <Route path="/agendar/:storeSlug" element={<BookingPage />} />
     
     {/* Cliente - Autenticação e Painel */}
     <Route path="/cliente/:storeSlug" element={<LazyRoute><CustomerAuth /></LazyRoute>} />

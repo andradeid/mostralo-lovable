@@ -41,14 +41,14 @@ export default function ComandaDetailPage() {
     }
   }, [showProducts, isMobile]);
 
-  // Buscar nome da loja para impressão
+  // Buscar dados da loja para impressão e tema
   const { data: storeData } = useQuery({
-    queryKey: ['store-name', storeId],
+    queryKey: ['store-data', storeId],
     queryFn: async () => {
       if (!storeId) return null;
       const { data, error } = await supabase
         .from('stores')
-        .select('name')
+        .select('name, theme_colors')
         .eq('id', storeId)
         .single();
       if (error) throw error;
@@ -56,6 +56,8 @@ export default function ComandaDetailPage() {
     },
     enabled: !!storeId,
   });
+
+  const primaryColor = (storeData?.theme_colors as any)?.primary || '#3B82F6';
 
   if (isLoading) {
     return (
@@ -314,6 +316,7 @@ export default function ComandaDetailPage() {
           triggerProductId={upsellTriggerProductId || ''}
           onAccept={handleUpsellAccept}
           onDecline={handleUpsellDecline}
+          themeColor={primaryColor}
         />
       )}
     </div>

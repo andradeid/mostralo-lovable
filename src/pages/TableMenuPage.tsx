@@ -61,7 +61,7 @@ export default function TableMenuPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('stores')
-        .select('id, name, slug, logo_url')
+        .select('id, name, slug, logo_url, theme_colors')
         .eq('slug', storeSlug)
         .single();
       if (error) throw error;
@@ -69,6 +69,8 @@ export default function TableMenuPage() {
     },
     enabled: !!storeSlug
   });
+
+  const primaryColor = (store?.theme_colors as any)?.primary || '#3B82F6';
 
   const { data: categories = [] } = useQuery({
     queryKey: ['categories', store?.id],
@@ -238,6 +240,7 @@ export default function TableMenuPage() {
           triggerProductId={upsellTriggerProductId || ''}
           onAccept={handleUpsellAccept}
           onDecline={handleUpsellDecline}
+          themeColor={primaryColor}
         />
       )}
     </div>

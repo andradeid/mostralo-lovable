@@ -328,6 +328,16 @@ SENTINELA - RECOMPRA INTELIGENTE (EXCLUSIVO!):
 - Aumenta +23% as vendas recorrentes
 - Ideal para pet shops, farmácias, distribuidoras, açougues
 
+MÓDULOS AVANÇADOS DISPONÍVEIS:
+- Agendamento de Serviços: Sistema para agendar horários com profissionais (salões, barbearias, clínicas)
+- Pedidos Agendados: Cliente escolhe data e hora para receber o pedido
+- Vendas Sugeridas: Upsell e cross-sell automáticos para aumentar ticket médio
+- Promoções e Cupons: Cupons de desconto e promoções especiais personalizadas
+- Entregadores: App exclusivo para motoboys com rastreamento em tempo real
+- Impressão Térmica: Impressão automática de pedidos na cozinha
+- Material de Marketing: Geração de cardápios, QR codes e artes para redes sociais
+- Banners Promocionais: Banners rotativos na loja online com promoções em destaque
+
 LINKS DE PRODUTOS:
 - Quando o cliente perguntar sobre um produto específico, SEMPRE envie o link do produto
 - Use o formato: "Você pode ver mais detalhes e pedir aqui: [link]"

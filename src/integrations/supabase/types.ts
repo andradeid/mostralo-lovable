@@ -812,6 +812,74 @@ export type Database = {
           },
         ]
       }
+      category_crosssell_rules: {
+        Row: {
+          created_at: string | null
+          discount_percentage: number | null
+          id: string
+          is_active: boolean | null
+          max_suggestions: number | null
+          priority: number | null
+          store_id: string
+          suggest_category_id: string
+          trigger_category_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          discount_percentage?: number | null
+          id?: string
+          is_active?: boolean | null
+          max_suggestions?: number | null
+          priority?: number | null
+          store_id: string
+          suggest_category_id: string
+          trigger_category_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          discount_percentage?: number | null
+          id?: string
+          is_active?: boolean | null
+          max_suggestions?: number | null
+          priority?: number | null
+          store_id?: string
+          suggest_category_id?: string
+          trigger_category_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "category_crosssell_rules_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "category_crosssell_rules_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "category_crosssell_rules_suggest_category_id_fkey"
+            columns: ["suggest_category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "category_crosssell_rules_trigger_category_id_fkey"
+            columns: ["trigger_category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comanda_items: {
         Row: {
           added_at: string
@@ -1181,6 +1249,61 @@ export type Database = {
           used_count?: number | null
         }
         Relationships: []
+      }
+      crosssell_statistics: {
+        Row: {
+          accepted_count: number | null
+          created_at: string | null
+          id: string
+          rejected_count: number | null
+          revenue_generated: number | null
+          rule_id: string
+          shown_count: number | null
+          store_id: string
+        }
+        Insert: {
+          accepted_count?: number | null
+          created_at?: string | null
+          id?: string
+          rejected_count?: number | null
+          revenue_generated?: number | null
+          rule_id: string
+          shown_count?: number | null
+          store_id: string
+        }
+        Update: {
+          accepted_count?: number | null
+          created_at?: string | null
+          id?: string
+          rejected_count?: number | null
+          revenue_generated?: number | null
+          rule_id?: string
+          shown_count?: number | null
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crosssell_statistics_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: true
+            referencedRelation: "category_crosssell_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crosssell_statistics_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crosssell_statistics_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       custom_menus: {
         Row: {
@@ -4099,6 +4222,71 @@ export type Database = {
           product_id?: string
         }
         Relationships: []
+      }
+      product_upsells: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          priority: number | null
+          product_id: string
+          store_id: string
+          updated_at: string | null
+          upsell_price: number | null
+          upsell_product_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          priority?: number | null
+          product_id: string
+          store_id: string
+          updated_at?: string | null
+          upsell_price?: number | null
+          upsell_product_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          priority?: number | null
+          product_id?: string
+          store_id?: string
+          updated_at?: string | null
+          upsell_price?: number | null
+          upsell_product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_upsells_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_upsells_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_upsells_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_upsells_upsell_product_id_fkey"
+            columns: ["upsell_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_variants: {
         Row: {
@@ -7451,6 +7639,61 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "unified_users_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upsell_statistics: {
+        Row: {
+          accepted_count: number | null
+          created_at: string | null
+          id: string
+          product_upsell_id: string
+          rejected_count: number | null
+          revenue_generated: number | null
+          shown_count: number | null
+          store_id: string
+        }
+        Insert: {
+          accepted_count?: number | null
+          created_at?: string | null
+          id?: string
+          product_upsell_id: string
+          rejected_count?: number | null
+          revenue_generated?: number | null
+          shown_count?: number | null
+          store_id: string
+        }
+        Update: {
+          accepted_count?: number | null
+          created_at?: string | null
+          id?: string
+          product_upsell_id?: string
+          rejected_count?: number | null
+          revenue_generated?: number | null
+          shown_count?: number | null
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upsell_statistics_product_upsell_id_fkey"
+            columns: ["product_upsell_id"]
+            isOneToOne: true
+            referencedRelation: "product_upsells"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upsell_statistics_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upsell_statistics_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
             referencedColumns: ["id"]
           },
         ]

@@ -105,7 +105,7 @@ export function PlanModuleSelector({ planId, selectedModuleIds, onModulesChange 
     ['reports', 'whatsapp', 'printing', 'scheduled_orders', 'booking', 'delivery_drivers', 'promotions', 'password_call', 'kds', 'self_service_table'].includes(m.key || '')
   );
   const premiumModules = modules.filter(m => 
-    ['marketing', 'integrations', 'custom_scripts', 'marketing_material', 'financial_management', 'ifood_integration', 'whatsapp_recovery', 'banners', 'attendants', 'digital_signage', 'sentinela', 'self_service_totem'].includes(m.key || '')
+    ['marketing', 'integrations', 'custom_scripts', 'marketing_material', 'financial_management', 'ifood_integration', 'whatsapp_recovery', 'banners', 'attendants', 'digital_signage', 'sentinela', 'self_service_totem', 'upsell'].includes(m.key || '')
   );
 
   const renderModuleGroup = (groupModules: Module[], title: string, badgeColor: string) => (

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Plus, Minus, Loader2 } from 'lucide-react';
@@ -48,7 +48,7 @@ export function UpsellModal({
   const [quantity, setQuantity] = useState(1);
   const [upsellProducts, setUpsellProducts] = useState<UpsellProduct[]>([]);
   const [loadingUpsells, setLoadingUpsells] = useState(false);
-  const [hasInitialized, setHasInitialized] = useState(false);
+  const hasLoadedRef = useRef(false);
   
   const { 
     fetchUpsells, 
@@ -62,7 +62,7 @@ export function UpsellModal({
   // Resetar estados quando o modal fecha
   useEffect(() => {
     if (!open) {
-      setHasInitialized(false);
+      hasLoadedRef.current = false;
       setUpsellProducts([]);
       setCurrentIndex(0);
       setQuantity(1);
@@ -70,34 +70,44 @@ export function UpsellModal({
     }
   }, [open]);
 
-  // Carregar upsells apenas quando módulos terminarem de carregar
+  // Carregar upsells - usar ref para garantir execução única
   useEffect(() => {
-    // Não fazer nada se modal não está aberto, módulos carregando ou já inicializou
-    if (!open || modulesLoading || hasInitialized) return;
+    if (!open) return;
+    if (modulesLoading) return;
+    if (hasLoadedRef.current) return;
     
-    setHasInitialized(true);
+    // Marcar como carregado ANTES de verificar acesso (ref não causa re-render)
+    hasLoadedRef.current = true;
     
-    // Se não tem acesso após módulos carregarem, fechar
+    console.log('🔍 UpsellModal: Verificando acesso...', { hasAccess, modulesLoading });
+    
+    // Verificar acesso APÓS módulos terem carregado
     if (!hasAccess) {
+      console.log('❌ UpsellModal: Sem acesso ao módulo upsell');
       onDecline();
       onOpenChange(false);
       return;
     }
     
     // Tem acesso - carregar upsells
+    console.log('✅ UpsellModal: Tem acesso, carregando upsells...');
     loadUpsells();
-  }, [open, modulesLoading, hasInitialized, hasAccess, triggerProductId]);
+  }, [open, modulesLoading]); // NÃO incluir hasAccess nas dependências!
 
   const loadUpsells = async () => {
     setLoadingUpsells(true);
     try {
+      console.log('📦 UpsellModal: Buscando upsells para produto:', triggerProductId);
       const upsells = await fetchUpsells(triggerProductId);
+      console.log('📦 UpsellModal: Upsells encontrados:', upsells.length);
+      
       setUpsellProducts(upsells);
       setCurrentIndex(0);
       setQuantity(1);
       
       // Se não há upsells, fechar o modal graciosamente
       if (upsells.length === 0) {
+        console.log('ℹ️ UpsellModal: Nenhum upsell configurado');
         onDecline();
         onOpenChange(false);
         return;
@@ -105,6 +115,10 @@ export function UpsellModal({
       
       // Registrar impressão do primeiro upsell
       recordImpression(upsells[0].id);
+    } catch (err) {
+      console.error('❌ UpsellModal: Erro ao carregar upsells:', err);
+      onDecline();
+      onOpenChange(false);
     } finally {
       setLoadingUpsells(false);
     }
@@ -113,7 +127,7 @@ export function UpsellModal({
   const currentUpsell = upsellProducts[currentIndex];
   
   // Mostrar loader enquanto módulos ou upsells estão carregando
-  if (open && (modulesLoading || loadingUpsells || (!hasInitialized && !modulesLoading))) {
+  if (open && (modulesLoading || loadingUpsells)) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-md">

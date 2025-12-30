@@ -254,27 +254,30 @@ const MyStorePage = () => {
   const statusInfo = getStatusInfo(store.status);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Minha Loja</h1>
-          <p className="text-muted-foreground">Gerencie as informações da sua loja</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">Minha Loja</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Gerencie as informações da sua loja</p>
         </div>
-        <div className="flex space-x-2">
-          <Button variant="outline" onClick={openStoreProfile}>
-            <Eye className="w-4 h-4 mr-2" />
-            Ver Loja Pública
+        <div className="grid grid-cols-2 sm:flex gap-2">
+          <Button variant="outline" size="sm" onClick={openStoreProfile} className="text-xs sm:text-sm">
+            <Eye className="w-4 h-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Ver Loja</span>
+            <span className="sm:hidden">Ver</span>
           </Button>
-          <Button variant="outline" onClick={copyStoreUrl}>
-            <Copy className="w-4 h-4 mr-2" />
-            Copiar Link
+          <Button variant="outline" size="sm" onClick={copyStoreUrl} className="text-xs sm:text-sm">
+            <Copy className="w-4 h-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Copiar Link</span>
+            <span className="sm:hidden">Copiar</span>
           </Button>
-          <Button variant="outline" onClick={() => navigate('/dashboard/store-configuration')}>
-            <Settings className="w-4 h-4 mr-2" />
-            Configurar Loja
+          <Button variant="outline" size="sm" onClick={() => navigate('/dashboard/store-configuration')} className="text-xs sm:text-sm">
+            <Settings className="w-4 h-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Configurar</span>
+            <span className="sm:hidden">Config</span>
           </Button>
-          <Button onClick={() => setEditing(!editing)}>
-            <Edit className="w-4 h-4 mr-2" />
+          <Button size="sm" onClick={() => setEditing(!editing)} className="text-xs sm:text-sm">
+            <Edit className="w-4 h-4 mr-1 sm:mr-2" />
             {editing ? 'Cancelar' : 'Editar'}
           </Button>
         </div>
@@ -289,24 +292,24 @@ const MyStorePage = () => {
               <CardDescription>Compartilhe sua loja com clientes</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="p-3 bg-muted rounded-lg">
+              <div className="p-3 bg-muted rounded-lg overflow-hidden">
                 <Label className="text-sm font-medium">URL da Loja:</Label>
-                <div className="flex items-center space-x-2 mt-1">
-                  <code className="text-sm bg-background px-2 py-1 rounded flex-1">
+                <div className="flex items-center gap-2 mt-1">
+                  <code className="text-xs sm:text-sm bg-background px-2 py-1 rounded flex-1 break-all">
                     {window.location.origin}/loja/{store.slug}
                   </code>
-                  <Button size="sm" variant="outline" onClick={copyStoreUrl}>
+                  <Button size="sm" variant="outline" onClick={copyStoreUrl} className="shrink-0">
                     <Copy className="w-4 h-4" />
                   </Button>
                 </div>
               </div>
               
-              <div className="flex space-x-2">
-                <Button onClick={openStoreProfile} className="flex-1">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button onClick={openStoreProfile} className="flex-1" size="sm">
                   <Eye className="w-4 h-4 mr-2" />
                   Visualizar Loja
                 </Button>
-                <Button variant="outline" onClick={copyStoreUrl} className="flex-1">
+                <Button variant="outline" onClick={copyStoreUrl} className="flex-1" size="sm">
                   <ExternalLink className="w-4 h-4 mr-2" />
                   Compartilhar Link
                 </Button>
@@ -388,9 +391,9 @@ const MyStorePage = () => {
               </div>
 
               {editing && (
-                <div className="flex space-x-2 pt-4">
-                  <Button onClick={handleSaveChanges}>Salvar Alterações</Button>
-                  <Button variant="outline" onClick={() => setEditing(false)}>
+                <div className="flex flex-col sm:flex-row gap-2 pt-4">
+                  <Button onClick={handleSaveChanges} className="flex-1 sm:flex-initial">Salvar Alterações</Button>
+                  <Button variant="outline" onClick={() => setEditing(false)} className="flex-1 sm:flex-initial">
                     Cancelar
                   </Button>
                 </div>

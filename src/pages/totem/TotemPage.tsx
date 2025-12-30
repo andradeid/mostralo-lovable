@@ -250,6 +250,7 @@ export default function TotemPage() {
           onAddToCart={addToCart}
           onViewCart={() => setStep('cart')}
           onBack={handleReset}
+          salesPaused={salesPaused}
         />
       )}
 

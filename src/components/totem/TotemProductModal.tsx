@@ -35,6 +35,7 @@ interface TotemProductModalProps {
   storeId: string;
   onClose: () => void;
   onAddToCart: (item: TotemCartItem) => void;
+  salesPaused?: boolean;
 }
 
 export function TotemProductModal({
@@ -43,6 +44,7 @@ export function TotemProductModal({
   storeId,
   onClose,
   onAddToCart,
+  salesPaused = false,
 }: TotemProductModalProps) {
   const [quantity, setQuantity] = useState(1);
   const [notes, setNotes] = useState('');
@@ -268,10 +270,11 @@ export function TotemProductModal({
 
           <Button
             onClick={handleAddToCart}
-            className="w-full h-14 text-lg font-semibold text-white"
+            disabled={salesPaused}
+            className={`w-full h-14 text-lg font-semibold text-white ${salesPaused ? 'opacity-50 cursor-not-allowed' : ''}`}
             style={{ backgroundColor: config.theme_color }}
           >
-            Adicionar ao Carrinho
+            {salesPaused ? 'Vendas Pausadas' : 'Adicionar ao Carrinho'}
           </Button>
         </div>
       </div>

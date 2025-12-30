@@ -31,6 +31,7 @@ interface TotemProductsProps {
   onAddToCart: (item: TotemCartItem) => void;
   onViewCart: () => void;
   onBack: () => void;
+  salesPaused?: boolean;
 }
 
 export function TotemProducts({
@@ -41,6 +42,7 @@ export function TotemProducts({
   onAddToCart,
   onViewCart,
   onBack,
+  salesPaused = false,
 }: TotemProductsProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -309,13 +311,18 @@ export function TotemProducts({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleQuickAdd(product);
+                      if (!salesPaused) {
+                        handleQuickAdd(product);
+                      }
                     }}
-                    className="w-full mt-3 py-2.5 px-3 rounded-lg text-white font-bold text-sm flex items-center justify-center gap-2 transition-opacity hover:opacity-90 active:scale-95"
+                    disabled={salesPaused}
+                    className={`w-full mt-3 py-2.5 px-3 rounded-lg text-white font-bold text-sm flex items-center justify-center gap-2 transition-opacity ${
+                      salesPaused ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90 active:scale-95'
+                    }`}
                     style={{ backgroundColor: config.theme_color }}
                   >
                     <span>R$ {product.price.toFixed(2)}</span>
-                    <Plus className="h-4 w-4" />
+                    {!salesPaused && <Plus className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
@@ -365,6 +372,7 @@ export function TotemProducts({
             setUpsellTriggerProductId(item.product_id);
             setShowUpsellModal(true);
           }}
+          salesPaused={salesPaused}
         />
       )}
 

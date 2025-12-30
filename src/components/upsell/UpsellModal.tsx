@@ -229,7 +229,7 @@ export function UpsellModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm max-h-[75vh] p-0 gap-0 overflow-hidden">
+      <DialogContent className="sm:max-w-sm max-h-[75vh] p-0 gap-0 overflow-hidden animate-fade-in">
         <DialogHeader className="p-3 pb-1">
           <DialogTitle className="text-center text-sm font-medium">
             Que tal adicionar?

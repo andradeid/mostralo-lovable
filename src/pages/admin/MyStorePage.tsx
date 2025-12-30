@@ -12,6 +12,7 @@ import { usePageSEO } from '@/hooks/useSEO';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Store, Edit, Camera, Settings, ExternalLink, Eye, Copy, PauseCircle, PlayCircle } from 'lucide-react';
 import { CreateStoreForm } from '@/components/admin/CreateStoreForm';
+import { SalesChannelsCard } from '@/components/admin/store/SalesChannelsCard';
 import { useNavigate } from 'react-router-dom';
 
 interface StoreData {
@@ -362,6 +363,9 @@ const MyStorePage = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Card de Canais de Vendas */}
+      <SalesChannelsCard storeId={store.id} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Informações Principais */}

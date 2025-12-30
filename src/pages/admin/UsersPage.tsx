@@ -196,9 +196,33 @@ const UsersPage = () => {
 
       console.log('👔 Donos de loja reais:', Array.from(storeOwnersSet));
 
+      // 4ª CHAMADA: Buscar telefones da tabela customers
+      let customersPhoneMap: Record<string, string> = {};
+
+      try {
+        const { data: customers, error: customersError } = await supabase
+          .from('customers')
+          .select('auth_user_id, phone')
+          .not('auth_user_id', 'is', null);
+
+        console.log('📱 Customers com telefone:', customers?.length || 0);
+
+        if (!customersError && customers) {
+          customers.forEach((customer) => {
+            if (customer.auth_user_id && customer.phone) {
+              customersPhoneMap[customer.auth_user_id] = customer.phone;
+            }
+          });
+        }
+      } catch (customersErr) {
+        console.warn('⚠️ Erro ao buscar customers (não crítico):', customersErr);
+      }
+
       // Merge dos dados
       const transformedData = profiles.map(profile => ({
         ...profile,
+        // Se profile.phone estiver vazio, usar o phone do customer
+        phone: profile.phone || customersPhoneMap[profile.id] || null,
         roles: rolesMap[profile.id] || [],
         hasStore: storeOwnersSet.has(profile.id),
       }));

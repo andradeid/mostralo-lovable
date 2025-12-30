@@ -28,7 +28,7 @@ interface UpsellStatistics {
 export function useUpsell(storeId: string | null) {
   const [loading, setLoading] = useState(false);
   const [upsells, setUpsells] = useState<UpsellProduct[]>([]);
-  const { hasModule } = useStoreModules(storeId);
+  const { hasModule, loading: modulesLoading } = useStoreModules(storeId);
 
   const hasAccess = hasModule('upsell');
 
@@ -237,6 +237,7 @@ export function useUpsell(storeId: string | null) {
     loading,
     upsells,
     hasAccess,
+    modulesLoading,
     fetchUpsells,
     recordImpression,
     recordAccepted,

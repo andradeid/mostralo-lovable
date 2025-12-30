@@ -6,6 +6,8 @@ import { Loader2, QrCode, UtensilsCrossed } from 'lucide-react';
 import { TableCustomerAuth } from '@/components/table/TableCustomerAuth';
 import { useTableComanda } from '@/hooks/useTableComanda';
 import { useSEO } from '@/hooks/useSEO';
+import { useCheckSalesChannel } from '@/hooks/useCheckSalesChannel';
+import { SalesChannelPausedBanner } from '@/components/shared/SalesChannelPausedBanner';
 
 interface Store {
   id: string;
@@ -39,6 +41,10 @@ export default function TableAccessPage() {
     enabled: !!storeSlug
   });
 
+  // Verificar se o canal de mesa está ativo
+  const { isEnabled: isMesaEnabled, isLoading: channelLoading, message: channelMessage } = 
+    useCheckSalesChannel(store?.id, 'mesa_enabled');
+
   // SEO
   useSEO({
     title: store ? `Mesa ${tableNumber} - ${store.name}` : 'Cardápio na Mesa',
@@ -59,7 +65,7 @@ export default function TableAccessPage() {
     navigate(`/mesa/${storeSlug}/${tableNumber}/cardapio`);
   };
 
-  if (storeLoading) {
+  if (storeLoading || channelLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -113,13 +119,32 @@ export default function TableAccessPage() {
         </div>
       </div>
 
-      {/* Auth Form */}
+      {/* Banner de canal pausado */}
+      {!isMesaEnabled && (
+        <div className="max-w-md mx-auto px-4 pt-4">
+          <SalesChannelPausedBanner message={channelMessage} />
+        </div>
+      )}
+
+      {/* Auth Form ou mensagem de indisponível */}
       <div className="max-w-md mx-auto p-6">
-        <TableCustomerAuth
-          storeId={store.id}
-          tableNumber={tableNumber || ''}
-          onSuccess={handleAuthSuccess}
-        />
+        {isMesaEnabled ? (
+          <TableCustomerAuth
+            storeId={store.id}
+            tableNumber={tableNumber || ''}
+            onSuccess={handleAuthSuccess}
+          />
+        ) : (
+          <div className="text-center p-6 bg-muted/50 rounded-lg">
+            <UtensilsCrossed className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">
+              O serviço de pedidos pela mesa está temporariamente indisponível.
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Por favor, aguarde ou chame um atendente.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Footer */}

@@ -3,13 +3,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { useUpsell } from '@/hooks/useUpsell';
-import { formatCurrency, cn } from '@/lib/utils';
-import { 
-  Carousel, 
-  CarouselContent, 
-  CarouselItem,
-  type CarouselApi 
-} from '@/components/ui/carousel';
+import { formatCurrency } from '@/lib/utils';
 
 interface UpsellProduct {
   id: string;
@@ -55,7 +49,6 @@ export function UpsellModal({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [upsellProducts, setUpsellProducts] = useState<UpsellProduct[]>([]);
   const [loadingUpsells, setLoadingUpsells] = useState(false);
-  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
   const hasLoadedRef = useRef(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   
@@ -76,30 +69,12 @@ export function UpsellModal({
       setUpsellProducts([]);
       setCurrentIndex(0);
       setLoadingUpsells(false);
-      setCarouselApi(undefined);
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
       }
     }
   }, [open]);
-
-  // Sincronizar índice do carousel e registrar impressões
-  useEffect(() => {
-    if (!carouselApi) return;
-    
-    const onSelect = () => {
-      const newIndex = carouselApi.selectedScrollSnap();
-      setCurrentIndex(newIndex);
-      // Registrar impressão do novo upsell visualizado
-      if (upsellProducts[newIndex]) {
-        recordImpression(upsellProducts[newIndex].id);
-      }
-    };
-    
-    carouselApi.on('select', onSelect);
-    return () => { carouselApi.off('select', onSelect); };
-  }, [carouselApi, upsellProducts, recordImpression]);
 
   // Carregar upsells - usar ref para garantir execução única
   useEffect(() => {
@@ -215,30 +190,24 @@ export function UpsellModal({
     return null;
   }
 
-  const handleAccept = (upsell: UpsellProduct) => {
-    const price = upsell.upsell_price ?? upsell.product.price;
-    recordAccepted(upsell.id, price);
+  const finalPrice = currentUpsell.upsell_price ?? currentUpsell.product.price;
+
+  const handleAccept = () => {
+    recordAccepted(currentUpsell.id, finalPrice);
     onAccept({
-      id: upsell.product.id,
-      name: upsell.product.name,
-      price: price,
-      image_url: upsell.product.image_url,
+      id: currentUpsell.product.id,
+      name: currentUpsell.product.name,
+      price: finalPrice,
+      image_url: currentUpsell.product.image_url,
       quantity: 1
     });
     onOpenChange(false);
   };
 
-  const handleDecline = (upsell: UpsellProduct) => {
-    recordRejected(upsell.id);
-    
-    // Se há mais upsells, avança para o próximo
-    if (currentIndex < upsellProducts.length - 1) {
-      carouselApi?.scrollNext();
-    } else {
-      // Último upsell - fecha o modal
-      onDecline();
-      onOpenChange(false);
-    }
+  const handleDecline = () => {
+    recordRejected(currentUpsell.id);
+    onDecline();
+    onOpenChange(false);
   };
 
   return (
@@ -247,72 +216,43 @@ export function UpsellModal({
         className="w-[85%] max-w-[340px] p-0 rounded-3xl border-4 overflow-hidden animate-fade-in"
         style={{ borderColor: themeColor }}
       >
-        <Carousel setApi={setCarouselApi} opts={{ loop: false }}>
-          <CarouselContent className="-ml-0">
-            {upsellProducts.map((upsell) => {
-              const price = upsell.upsell_price ?? upsell.product.price;
-              return (
-                <CarouselItem key={upsell.id} className="pl-0">
-                  {/* Imagem do Produto */}
-                  <div className="aspect-[4/3] bg-muted overflow-hidden">
-                    {upsell.product.image_url ? (
-                      <img
-                        src={upsell.product.image_url}
-                        alt={upsell.product.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-muted">
-                        <span className="text-muted-foreground text-4xl">🍽️</span>
-                      </div>
-                    )}
-                  </div>
+        {/* Imagem do Produto */}
+        <div className="aspect-[4/3] bg-muted overflow-hidden">
+          {currentUpsell.product.image_url ? (
+            <img
+              src={currentUpsell.product.image_url}
+              alt={currentUpsell.product.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-muted">
+              <span className="text-muted-foreground text-4xl">🍽️</span>
+            </div>
+          )}
+        </div>
 
-                  {/* Conteúdo */}
-                  <div className="p-6 bg-background text-center">
-                    <p className="text-lg font-semibold text-foreground mb-6">
-                      Deseja adicionar {upsell.product.name} por mais {formatCurrency(price)}?
-                    </p>
-                    
-                    {/* Botões lado a lado */}
-                    <div className="flex gap-3">
-                      <Button
-                        onClick={() => handleAccept(upsell)}
-                        className="flex-1 py-6 text-lg font-semibold rounded-xl bg-green-500 hover:bg-green-600 text-white"
-                      >
-                        Sim
-                      </Button>
-                      <Button
-                        onClick={() => handleDecline(upsell)}
-                        className="flex-1 py-6 text-lg font-semibold rounded-xl bg-red-500 hover:bg-red-600 text-white"
-                      >
-                        Não
-                      </Button>
-                    </div>
-                  </div>
-                </CarouselItem>
-              );
-            })}
-          </CarouselContent>
-        </Carousel>
-
-        {/* Indicadores de página (dots) - só aparece se tiver mais de 1 upsell */}
-        {upsellProducts.length > 1 && (
-          <div className="flex justify-center gap-2 pb-4 bg-background">
-            {upsellProducts.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => carouselApi?.scrollTo(index)}
-                className={cn(
-                  "w-2 h-2 rounded-full transition-colors",
-                  index === currentIndex 
-                    ? "bg-primary" 
-                    : "bg-muted-foreground/30"
-                )}
-              />
-            ))}
+        {/* Conteúdo */}
+        <div className="p-6 bg-background text-center">
+          <p className="text-lg font-semibold text-foreground mb-6">
+            Deseja adicionar {currentUpsell.product.name} por mais {formatCurrency(finalPrice)}?
+          </p>
+          
+          {/* Botões lado a lado */}
+          <div className="flex gap-3">
+            <Button
+              onClick={handleAccept}
+              className="flex-1 py-6 text-lg font-semibold rounded-xl bg-green-500 hover:bg-green-600 text-white"
+            >
+              Sim
+            </Button>
+            <Button
+              onClick={handleDecline}
+              className="flex-1 py-6 text-lg font-semibold rounded-xl bg-red-500 hover:bg-red-600 text-white"
+            >
+              Não
+            </Button>
           </div>
-        )}
+        </div>
       </DialogContent>
     </Dialog>
   );

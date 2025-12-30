@@ -365,7 +365,7 @@ const MyStorePage = () => {
       </Card>
 
       {/* Card de Canais de Vendas */}
-      <SalesChannelsCard storeId={store.id} />
+      <SalesChannelsCard storeId={store.id} storeSlug={store.slug} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Informações Principais */}

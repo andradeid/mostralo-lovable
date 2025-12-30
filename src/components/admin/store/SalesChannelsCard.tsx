@@ -113,7 +113,7 @@ export function SalesChannelsCard({ storeId, storeSlug }: SalesChannelsCardProps
         <CardTitle className="text-lg">Canais de Vendas</CardTitle>
         <CardDescription>Ative ou desative os canais de atendimento</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {CHANNELS.map((channel) => {
           const Icon = channel.icon;
           const isEnabled = channels?.[channel.key] ?? true;
@@ -128,17 +128,17 @@ export function SalesChannelsCard({ storeId, storeSlug }: SalesChannelsCardProps
                 isEnabled ? channel.bgActive : channel.bgInactive
               }`}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg bg-background/80 ${channel.color}`}>
-                    <Icon className="w-5 h-5" />
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start gap-2 min-w-0 flex-1">
+                  <div className={`p-1.5 rounded-lg bg-background/80 ${channel.color} shrink-0`}>
+                    <Icon className="w-4 h-4" />
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="font-medium text-sm">{channel.name}</span>
                       <Badge
                         variant={isEnabled ? 'default' : 'secondary'}
-                        className={`text-xs px-1.5 py-0 ${
+                        className={`text-[10px] px-1 py-0 ${
                           isEnabled 
                             ? 'bg-green-500 hover:bg-green-600' 
                             : 'bg-muted text-muted-foreground'
@@ -147,23 +147,23 @@ export function SalesChannelsCard({ storeId, storeSlug }: SalesChannelsCardProps
                         {isEnabled ? 'Ativo' : 'Inativo'}
                       </Badge>
                     </div>
-                    <p className="text-xs text-muted-foreground">{channel.description}</p>
+                    <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">{channel.description}</p>
                   </div>
                 </div>
                 <Switch
                   checked={isEnabled}
                   onCheckedChange={(value) => updateChannel(channel.key, value)}
                   disabled={updating}
-                  className="data-[state=checked]:bg-green-500"
+                  className="data-[state=checked]:bg-green-500 shrink-0"
                 />
               </div>
 
               {/* Link copiável */}
               {channelUrl && (
-                <div className="mt-2 ml-11">
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 flex items-center gap-1.5 bg-background/60 rounded px-2 py-1 text-xs">
-                      <Link2 className="h-3 w-3 text-muted-foreground shrink-0" />
+                <div className="mt-2 ml-7">
+                  <div className="flex items-center gap-1">
+                    <div className="flex-1 flex items-center gap-1 bg-background/60 rounded px-1.5 py-0.5 text-[10px] min-w-0">
+                      <Link2 className="h-2.5 w-2.5 text-muted-foreground shrink-0" />
                       <span className="text-muted-foreground truncate">
                         {window.location.origin}{channelUrl}
                       </span>
@@ -172,17 +172,17 @@ export function SalesChannelsCard({ storeId, storeSlug }: SalesChannelsCardProps
                       variant="ghost"
                       size="sm"
                       onClick={() => copyToClipboard(channel.key, channelUrl)}
-                      className="h-7 px-2 text-xs"
+                      className="h-6 w-6 p-0"
                     >
                       {isCopied ? (
-                        <Check className="h-3.5 w-3.5 text-green-500" />
+                        <Check className="h-3 w-3 text-green-500" />
                       ) : (
-                        <Copy className="h-3.5 w-3.5" />
+                        <Copy className="h-3 w-3" />
                       )}
                     </Button>
                   </div>
                   {channel.urlNote && (
-                    <p className="text-[10px] text-muted-foreground mt-1 italic">
+                    <p className="text-[9px] text-muted-foreground mt-0.5 italic">
                       ⓘ {channel.urlNote}
                     </p>
                   )}

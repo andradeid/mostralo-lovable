@@ -10,6 +10,7 @@ import { Search, Plus, Loader2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AddItemConfirmModal } from '@/components/comandas/AddItemConfirmModal';
+import { UpsellModal } from '@/components/upsell/UpsellModal';
 
 interface Product {
   id: string;
@@ -35,6 +36,8 @@ export function PDVProductGrid({ onAddProduct, isAdding = false }: PDVProductGri
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [showUpsellModal, setShowUpsellModal] = useState(false);
+  const [upsellTriggerProductId, setUpsellTriggerProductId] = useState<string | null>(null);
   const isMobile = useIsMobile();
 
   // Buscar produtos da loja
@@ -105,7 +108,25 @@ export function PDVProductGrid({ onAddProduct, isAdding = false }: PDVProductGri
       notes: notes || undefined,
     });
     setConfirmModalOpen(false);
+    
+    // Mostrar modal de upsell
+    setUpsellTriggerProductId(product.id);
+    setShowUpsellModal(true);
     setSelectedProduct(null);
+  };
+
+  const handleUpsellAccept = (upsellProduct: { id: string; name: string; price: number; image_url: string | null; quantity: number }) => {
+    onAddProduct({
+      product_id: upsellProduct.id,
+      product_name: upsellProduct.name,
+      unit_price: upsellProduct.price,
+      quantity: upsellProduct.quantity,
+    });
+  };
+
+  const handleUpsellDecline = () => {
+    setShowUpsellModal(false);
+    setUpsellTriggerProductId(null);
   };
 
   if (loadingProducts) {
@@ -240,6 +261,21 @@ export function PDVProductGrid({ onAddProduct, isAdding = false }: PDVProductGri
         onConfirm={handleConfirmAdd}
         isAdding={isAdding}
       />
+
+      {/* Upsell Modal */}
+      {storeId && (
+        <UpsellModal
+          open={showUpsellModal}
+          onOpenChange={(open) => {
+            setShowUpsellModal(open);
+            if (!open) setUpsellTriggerProductId(null);
+          }}
+          storeId={storeId}
+          triggerProductId={upsellTriggerProductId || ''}
+          onAccept={handleUpsellAccept}
+          onDecline={handleUpsellDecline}
+        />
+      )}
     </div>
   );
 }

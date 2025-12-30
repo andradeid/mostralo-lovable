@@ -7,6 +7,7 @@ import { PaymentStep } from "@/components/checkout/steps/PaymentStep";
 import { ConfirmationStep } from "@/components/checkout/steps/ConfirmationStep";
 import { CheckoutProgressIndicator } from "@/components/checkout/CheckoutProgressIndicator";
 import { PixPaymentModal } from "@/components/checkout/PixPaymentModal";
+import { CrossSellSection } from "@/components/crosssell/CrossSellSection";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,7 +37,7 @@ const CHECKOUT_STEPS = [
 
 export default function Checkout() {
   const navigate = useNavigate();
-  const { items, clearCart, getTotalPrice } = useCart();
+  const { items, clearCart, getTotalPrice, addItem } = useCart();
   
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -613,28 +614,53 @@ export default function Checkout() {
         )}
         
         {currentStep === 3 && (
-          <ConfirmationStep
-            customerName={customerName}
-            customerPhone={customerPhone}
-            customerEmail={customerEmail}
-            customerAddress={customerAddress}
-            deliveryType={deliveryType}
-            paymentMethod={paymentMethod}
-            needsChange={needsChange}
-            changeAmount={changeAmount}
-            items={items}
-            subtotal={getTotalPrice()}
-            deliveryFee={deliveryType === 'delivery' ? deliveryFee : 0}
-            promotionDiscount={0}
-            total={getTotalPrice() + (deliveryType === 'delivery' ? deliveryFee : 0)}
-            appliedPromotion={appliedPromotion}
-            isScheduled={isScheduled}
-            selectedDate={selectedDate}
-            selectedTime={selectedTime}
-            onEditStep={handleEditStep}
-            primaryColor={primaryColor}
-            secondaryColor={secondaryColor}
-          />
+          <>
+            <ConfirmationStep
+              customerName={customerName}
+              customerPhone={customerPhone}
+              customerEmail={customerEmail}
+              customerAddress={customerAddress}
+              deliveryType={deliveryType}
+              paymentMethod={paymentMethod}
+              needsChange={needsChange}
+              changeAmount={changeAmount}
+              items={items}
+              subtotal={getTotalPrice()}
+              deliveryFee={deliveryType === 'delivery' ? deliveryFee : 0}
+              promotionDiscount={0}
+              total={getTotalPrice() + (deliveryType === 'delivery' ? deliveryFee : 0)}
+              appliedPromotion={appliedPromotion}
+              isScheduled={isScheduled}
+              selectedDate={selectedDate}
+              selectedTime={selectedTime}
+              onEditStep={handleEditStep}
+              primaryColor={primaryColor}
+              secondaryColor={secondaryColor}
+            />
+            
+            {/* Cross-sell Section */}
+            {storeId && items.length > 0 && (
+              <div className="mt-6">
+                <CrossSellSection
+                  storeId={storeId}
+                  cartItems={items.map(item => ({ 
+                    category_id: null,
+                    product_id: item.id.split('_')[0]
+                  }))}
+                  onAddProduct={(product) => {
+                    addItem({
+                      id: product.id,
+                      name: product.name,
+                      price: product.price,
+                      image_url: product.image_url
+                    }, 1);
+                  }}
+                  themeColor={primaryColor}
+                  title="Adicione algo mais ao seu pedido"
+                />
+              </div>
+            )}
+          </>
         )}
       </main>
       

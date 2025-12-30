@@ -21,15 +21,6 @@ interface ChannelConfig {
 
 const CHANNELS: ChannelConfig[] = [
   {
-    key: 'delivery_enabled',
-    name: 'Delivery',
-    description: 'Vendas pelo cardápio online',
-    icon: Truck,
-    color: 'text-green-600',
-    bgActive: 'bg-green-50 dark:bg-green-950/30',
-    bgInactive: 'bg-red-50 dark:bg-red-950/30',
-  },
-  {
     key: 'ifood_enabled',
     name: 'iFood',
     description: 'Integração com marketplace iFood',

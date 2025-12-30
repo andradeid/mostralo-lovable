@@ -16,6 +16,7 @@ interface PDVCartProps {
   onClearCart: () => void;
   onFinalize: () => void;
   isProcessing?: boolean;
+  salesPaused?: boolean;
 }
 
 export function PDVCart({
@@ -27,6 +28,7 @@ export function PDVCart({
   onClearCart,
   onFinalize,
   isProcessing = false,
+  salesPaused = false,
 }: PDVCartProps) {
   const total = subtotal - discount;
   const isMobile = useIsMobile();
@@ -150,9 +152,10 @@ export function PDVCart({
             className={`w-full ${isMobile ? 'h-14 text-lg' : ''}`}
             size="lg"
             onClick={onFinalize}
-            disabled={isProcessing}
+            disabled={isProcessing || salesPaused}
+            variant={salesPaused ? 'secondary' : 'default'}
           >
-            {isProcessing ? 'Processando...' : 'Finalizar Venda'}
+            {isProcessing ? 'Processando...' : salesPaused ? 'Vendas Pausadas' : 'Finalizar Venda'}
           </Button>
         </CardFooter>
       )}

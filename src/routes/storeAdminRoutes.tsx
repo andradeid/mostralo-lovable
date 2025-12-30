@@ -58,6 +58,8 @@ const TotemConfigPage = lazy(() => import("@/pages/admin/TotemConfigPage"));
 const BookingCalendarPage = lazy(() => import("@/pages/admin/BookingCalendarPage"));
 const ProfessionalsPage = lazy(() => import("@/pages/admin/ProfessionalsPage"));
 const BookingServicesPage = lazy(() => import("@/pages/admin/BookingServicesPage"));
+const CrossSellRulesPage = lazy(() => import("@/pages/admin/CrossSellRulesPage"));
+const UpsellCrossSellStatsPage = lazy(() => import("@/pages/admin/UpsellCrossSellStatsPage"));
 
 export const storeAdminRoutes = (
   <>
@@ -512,6 +514,22 @@ export const storeAdminRoutes = (
       <ProtectedRoute allowedRoles={['store_admin', 'attendant']}>
         <AdminLayout pageTitle="Serviços de Agendamento">
           <LazyRoute><BookingServicesPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+
+    {/* Vendas Sugeridas (Upsell/Cross-sell) */}
+    <Route path="/dashboard/vendas-sugeridas" element={
+      <ProtectedRoute allowedRoles={['store_admin']}>
+        <AdminLayout pageTitle="Estatísticas de Vendas Sugeridas">
+          <LazyRoute><UpsellCrossSellStatsPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/vendas-sugeridas/crosssell" element={
+      <ProtectedRoute allowedRoles={['store_admin']}>
+        <AdminLayout pageTitle="Regras de Cross-sell">
+          <LazyRoute><CrossSellRulesPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

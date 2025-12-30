@@ -1227,6 +1227,7 @@ Poderia me ajudar?`;
         triggerProductId={upsellTriggerProductId || ''}
         onAccept={handleUpsellAccept}
         onDecline={handleUpsellDecline}
+        themeColor={primaryColor}
       />
 
       {/* Schema.org structured data */}

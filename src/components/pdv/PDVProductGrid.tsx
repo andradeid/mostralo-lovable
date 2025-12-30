@@ -87,6 +87,23 @@ export function PDVProductGrid({ onAddProduct, isAdding = false }: PDVProductGri
     enabled: !!storeId,
   });
 
+  // Buscar cores da loja
+  const { data: storeColors } = useQuery({
+    queryKey: ['store-colors', storeId],
+    queryFn: async () => {
+      if (!storeId) return null;
+      const { data } = await supabase
+        .from('stores')
+        .select('theme_colors')
+        .eq('id', storeId)
+        .single();
+      return data;
+    },
+    enabled: !!storeId,
+  });
+
+  const primaryColor = (storeColors?.theme_colors as any)?.primary || '#3B82F6';
+
   // Filtrar produtos
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -274,6 +291,7 @@ export function PDVProductGrid({ onAddProduct, isAdding = false }: PDVProductGri
           triggerProductId={upsellTriggerProductId || ''}
           onAccept={handleUpsellAccept}
           onDecline={handleUpsellDecline}
+          themeColor={primaryColor}
         />
       )}
     </div>

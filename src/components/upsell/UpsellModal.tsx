@@ -175,10 +175,10 @@ export function UpsellModal({
   if (open && isLoading) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md">
-          <div className="flex flex-col items-center justify-center py-12 gap-3">
-            <Loader2 className="h-8 w-8 animate-spin" style={{ color: themeColor }} />
-            <span className="text-sm text-muted-foreground">Carregando sugestões...</span>
+        <DialogContent className="sm:max-w-sm max-h-[70vh] p-0">
+          <div className="flex flex-col items-center justify-center py-8 gap-2">
+            <Loader2 className="h-6 w-6 animate-spin" style={{ color: themeColor }} />
+            <span className="text-xs text-muted-foreground">Carregando...</span>
           </div>
         </DialogContent>
       </Dialog>
@@ -229,15 +229,15 @@ export function UpsellModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md p-0 gap-0 overflow-hidden">
-        <DialogHeader className="p-4 pb-2">
-          <DialogTitle className="text-center text-lg">
+      <DialogContent className="sm:max-w-sm max-h-[75vh] p-0 gap-0 overflow-hidden">
+        <DialogHeader className="p-3 pb-1">
+          <DialogTitle className="text-center text-sm font-medium">
             Que tal adicionar?
           </DialogTitle>
         </DialogHeader>
 
         {/* Product Image */}
-        <div className="relative aspect-[4/3] bg-muted">
+        <div className="relative aspect-video max-h-[25vh] bg-muted overflow-hidden">
           {currentUpsell.product.image_url ? (
             <img
               src={currentUpsell.product.image_url}
@@ -246,7 +246,7 @@ export function UpsellModal({
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-muted">
-              <span className="text-muted-foreground text-4xl">🍽️</span>
+              <span className="text-muted-foreground text-2xl">🍽️</span>
             </div>
           )}
           
@@ -256,24 +256,24 @@ export function UpsellModal({
               <button
                 onClick={handlePrev}
                 disabled={currentIndex === 0}
-                className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-background/80 disabled:opacity-30"
+                className="absolute left-1 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-background/80 disabled:opacity-30"
               >
-                <ChevronLeft className="h-5 w-5" />
+                <ChevronLeft className="h-4 w-4" />
               </button>
               <button
                 onClick={handleNext}
                 disabled={currentIndex === upsellProducts.length - 1}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-background/80 disabled:opacity-30"
+                className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-background/80 disabled:opacity-30"
               >
-                <ChevronRight className="h-5 w-5" />
+                <ChevronRight className="h-4 w-4" />
               </button>
               
               {/* Pagination dots */}
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+              <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-1">
                 {upsellProducts.map((_, idx) => (
                   <div
                     key={idx}
-                    className={`h-2 w-2 rounded-full transition-colors ${
+                    className={`h-1.5 w-1.5 rounded-full transition-colors ${
                       idx === currentIndex ? 'bg-white' : 'bg-white/50'
                     }`}
                   />
@@ -284,11 +284,11 @@ export function UpsellModal({
         </div>
 
         {/* Product Info */}
-        <div className="p-4 space-y-4">
+        <div className="p-3 space-y-2 overflow-y-auto">
           <div className="text-center">
-            <h3 className="font-semibold text-lg">{currentUpsell.product.name}</h3>
+            <h3 className="font-semibold text-sm">{currentUpsell.product.name}</h3>
             {currentUpsell.product.description && (
-              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
                 {currentUpsell.product.description}
               </p>
             )}
@@ -297,51 +297,51 @@ export function UpsellModal({
           {/* Price */}
           <div className="text-center">
             {hasDiscount ? (
-              <div className="space-y-1">
-                <span className="text-sm text-muted-foreground line-through">
+              <div className="space-y-0.5">
+                <span className="text-xs text-muted-foreground line-through">
                   De {formatCurrency(currentUpsell.product.price)}
                 </span>
-                <div className="text-2xl font-bold" style={{ color: themeColor }}>
+                <div className="text-lg font-bold" style={{ color: themeColor }}>
                   Por {formatCurrency(finalPrice)}
                 </div>
               </div>
             ) : (
-              <div className="text-2xl font-bold" style={{ color: themeColor }}>
+              <div className="text-lg font-bold" style={{ color: themeColor }}>
                 {formatCurrency(finalPrice)}
               </div>
             )}
           </div>
 
           {/* Quantity Selector */}
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex items-center justify-center gap-3">
             <button
               onClick={() => setQuantity(q => Math.max(1, q - 1))}
-              className="p-2 rounded-lg border border-border hover:bg-muted"
+              className="p-1.5 rounded-md border border-border hover:bg-muted"
             >
-              <Minus className="h-4 w-4" />
+              <Minus className="h-3 w-3" />
             </button>
-            <span className="text-xl font-semibold w-8 text-center">{quantity}</span>
+            <span className="text-base font-semibold w-6 text-center">{quantity}</span>
             <button
               onClick={() => setQuantity(q => q + 1)}
-              className="p-2 rounded-lg text-white"
+              className="p-1.5 rounded-md text-white"
               style={{ backgroundColor: themeColor }}
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-3 w-3" />
             </button>
           </div>
 
           {/* Total */}
           {quantity > 1 && (
-            <div className="text-center text-sm text-muted-foreground">
+            <div className="text-center text-xs text-muted-foreground">
               Total: <span className="font-semibold">{formatCurrency(totalPrice)}</span>
             </div>
           )}
 
           {/* Action Buttons */}
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1.5 pt-1">
             <Button
               onClick={handleAccept}
-              className="w-full py-6 text-lg font-semibold"
+              className="w-full py-3 text-sm font-semibold"
               style={{ backgroundColor: themeColor }}
             >
               Adicionar {formatCurrency(totalPrice)}
@@ -349,7 +349,7 @@ export function UpsellModal({
             <Button
               variant="ghost"
               onClick={handleDecline}
-              className="w-full text-muted-foreground"
+              className="w-full text-xs text-muted-foreground py-2"
             >
               Não, obrigado
             </Button>

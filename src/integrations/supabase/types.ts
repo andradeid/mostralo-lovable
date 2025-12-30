@@ -6726,6 +6726,57 @@ export type Database = {
           },
         ]
       }
+      store_sales_channels: {
+        Row: {
+          created_at: string | null
+          delivery_enabled: boolean | null
+          id: string
+          ifood_enabled: boolean | null
+          mesa_enabled: boolean | null
+          pdv_enabled: boolean | null
+          store_id: string
+          totem_enabled: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          delivery_enabled?: boolean | null
+          id?: string
+          ifood_enabled?: boolean | null
+          mesa_enabled?: boolean | null
+          pdv_enabled?: boolean | null
+          store_id: string
+          totem_enabled?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          delivery_enabled?: boolean | null
+          id?: string
+          ifood_enabled?: boolean | null
+          mesa_enabled?: boolean | null
+          pdv_enabled?: boolean | null
+          store_id?: string
+          totem_enabled?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_sales_channels_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_sales_channels_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_signage_config: {
         Row: {
           background_color: string

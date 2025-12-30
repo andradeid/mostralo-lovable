@@ -5,11 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { usePageSEO } from '@/hooks/useSEO';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Store, Edit, Camera, Settings, ExternalLink, Eye, Copy } from 'lucide-react';
+import { Loader2, Store, Edit, Camera, Settings, ExternalLink, Eye, Copy, PauseCircle, PlayCircle } from 'lucide-react';
 import { CreateStoreForm } from '@/components/admin/CreateStoreForm';
 import { useNavigate } from 'react-router-dom';
 
@@ -25,6 +26,7 @@ interface StoreData {
   status: string;
   theme_colors: any;
   created_at: string;
+  business_hours: any;
 }
 
 const MyStorePage = () => {
@@ -39,6 +41,8 @@ const MyStorePage = () => {
   const [editing, setEditing] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [uploading, setUploading] = useState({ logo: false, cover: false });
+  const [isServicePaused, setIsServicePaused] = useState(false);
+  const [togglingPause, setTogglingPause] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
@@ -65,7 +69,8 @@ const MyStorePage = () => {
         return;
       }
 
-      setStore(data);
+      setStore(data as StoreData);
+      setIsServicePaused((data.business_hours as any)?.service_paused || false);
       setFormData({
         name: data.name,
         slug: data.slug,
@@ -77,6 +82,45 @@ const MyStorePage = () => {
       console.error('Erro ao buscar loja:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const toggleServicePause = async () => {
+    if (!store) return;
+    
+    setTogglingPause(true);
+    try {
+      const newPausedState = !isServicePaused;
+      const updatedBusinessHours = {
+        ...(store.business_hours || {}),
+        service_paused: newPausedState
+      };
+      
+      const { error } = await supabase
+        .from('stores')
+        .update({ business_hours: updatedBusinessHours })
+        .eq('id', store.id);
+      
+      if (error) throw error;
+      
+      setIsServicePaused(newPausedState);
+      setStore(prev => prev ? { ...prev, business_hours: updatedBusinessHours } : null);
+      
+      toast({
+        title: newPausedState ? '⏸️ Loja fechada' : '✅ Loja aberta',
+        description: newPausedState 
+          ? 'Sua loja está temporariamente fechada para novos pedidos'
+          : 'Sua loja está aberta e recebendo pedidos'
+      });
+    } catch (error) {
+      console.error('Erro ao alterar status:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível alterar o status da loja',
+        variant: 'destructive'
+      });
+    } finally {
+      setTogglingPause(false);
     }
   };
 
@@ -282,6 +326,42 @@ const MyStorePage = () => {
           </Button>
         </div>
       </div>
+
+      {/* Card de Status Rápido - Abrir/Fechar Loja */}
+      <Card className={`border-2 transition-colors ${isServicePaused ? 'border-destructive/50 bg-destructive/5' : 'border-green-500/50 bg-green-500/5'}`}>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              {isServicePaused ? (
+                <PauseCircle className="w-8 h-8 text-destructive" />
+              ) : (
+                <PlayCircle className="w-8 h-8 text-green-500" />
+              )}
+              <div>
+                <p className="font-semibold text-base">
+                  {isServicePaused ? 'Loja Fechada' : 'Loja Aberta'}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {isServicePaused 
+                    ? 'Novos pedidos estão desabilitados' 
+                    : 'Recebendo pedidos normalmente'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium hidden sm:block">
+                {isServicePaused ? 'Abrir' : 'Fechar'}
+              </span>
+              <Switch
+                checked={!isServicePaused}
+                onCheckedChange={toggleServicePause}
+                disabled={togglingPause}
+                className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-destructive"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Informações Principais */}

@@ -6728,6 +6728,7 @@ export type Database = {
       }
       store_sales_channels: {
         Row: {
+          booking_enabled: boolean | null
           created_at: string | null
           delivery_enabled: boolean | null
           id: string
@@ -6739,6 +6740,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          booking_enabled?: boolean | null
           created_at?: string | null
           delivery_enabled?: boolean | null
           id?: string
@@ -6750,6 +6752,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          booking_enabled?: boolean | null
           created_at?: string | null
           delivery_enabled?: boolean | null
           id?: string

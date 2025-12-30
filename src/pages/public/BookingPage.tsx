@@ -24,6 +24,8 @@ import { format, addDays, isBefore, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { z } from 'zod';
+import { useCheckSalesChannel } from '@/hooks/useCheckSalesChannel';
+import { SalesChannelPausedBanner } from '@/components/shared/SalesChannelPausedBanner';
 
 // Types
 interface Professional {
@@ -91,6 +93,9 @@ const BookingPage = () => {
   const [customerEmail, setCustomerEmail] = useState('');
   const [notes, setNotes] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Check if booking channel is enabled
+  const { isEnabled: isBookingEnabled, isLoading: isCheckingChannel, message: channelMessage } = useCheckSalesChannel(store?.id, 'booking_enabled');
 
   // Fetch store and services data
   useEffect(() => {
@@ -366,10 +371,49 @@ const BookingPage = () => {
     }
   };
 
-  if (loading) {
+  if (loading || isCheckingChannel) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Booking channel is disabled - show paused message
+  if (!isBookingEnabled && store) {
+    return (
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="border-b bg-card">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center gap-3">
+              {store.logo_url && (
+                <img 
+                  src={store.logo_url} 
+                  alt={store.name} 
+                  className="h-10 w-10 rounded-full object-cover"
+                />
+              )}
+              <div>
+                <h1 className="text-xl font-bold">{store.name}</h1>
+                <p className="text-sm text-muted-foreground">Agendamento Online</p>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main className="container mx-auto px-4 py-6 max-w-2xl">
+          <SalesChannelPausedBanner message={channelMessage} />
+          <Card className="mt-4">
+            <CardContent className="py-8 text-center">
+              <CalendarIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h2 className="text-lg font-semibold mb-2">Agendamentos Temporariamente Pausados</h2>
+              <p className="text-muted-foreground">
+                Entre em contato diretamente com o estabelecimento para realizar seu agendamento.
+              </p>
+            </CardContent>
+          </Card>
+        </main>
       </div>
     );
   }

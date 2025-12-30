@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { 
   Calendar as CalendarIcon, 
   ChevronLeft, 
@@ -14,10 +15,12 @@ import {
   ExternalLink,
   Info,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Globe
 } from 'lucide-react';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useBooking, Booking, Professional } from '@/hooks/useBooking';
+import { useSalesChannels } from '@/hooks/useSalesChannels';
 import { ModuleGate } from '@/components/admin/ModuleGate';
 import { usePageSEO } from '@/hooks/useSEO';
 import { 
@@ -56,6 +59,8 @@ const BookingCalendarPage = () => {
     bookingServices,
     fetchBookings
   } = useBooking(storeId);
+  
+  const { channels, loading: loadingChannels, updating: updatingChannel, updateChannel } = useSalesChannels(storeId);
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedProfessionalId, setSelectedProfessionalId] = useState<string>('all');
@@ -421,7 +426,7 @@ const BookingCalendarPage = () => {
     <ModuleGate moduleKey="booking" storeId={storeId}>
       <div className="space-y-4 sm:space-y-6">
         {/* Header with Badges */}
-        <div className="space-y-2">
+        <div className="space-y-3">
           <div className="flex items-center gap-2">
             <CalendarIcon className="h-6 w-6 text-primary" />
             <h1 className="text-xl sm:text-2xl font-bold text-foreground">Agenda</h1>
@@ -429,6 +434,39 @@ const BookingCalendarPage = () => {
           <p className="text-sm text-muted-foreground">
             Visualize e gerencie os agendamentos
           </p>
+          
+          {/* Booking Online Toggle */}
+          <Card className="border-dashed">
+            <CardContent className="py-3 px-4">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <Globe className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium">Agendamento Online</p>
+                    <p className="text-xs text-muted-foreground">
+                      {channels?.booking_enabled !== false 
+                        ? 'Clientes podem agendar via link público' 
+                        : 'Agendamentos pausados para clientes'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={cn(
+                    "text-xs font-medium",
+                    channels?.booking_enabled !== false ? "text-green-600" : "text-orange-600"
+                  )}>
+                    {channels?.booking_enabled !== false ? 'Ativo' : 'Pausado'}
+                  </span>
+                  <Switch
+                    checked={channels?.booking_enabled !== false}
+                    onCheckedChange={(checked) => updateChannel('booking_enabled', checked)}
+                    disabled={loadingChannels || updatingChannel}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
           <div className="flex flex-wrap gap-2">
             <Badge variant="secondary" className="text-xs">
               {todayBookings.length} Hoje

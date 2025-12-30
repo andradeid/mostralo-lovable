@@ -10,6 +10,7 @@ export interface SalesChannels {
   totem_enabled: boolean;
   mesa_enabled: boolean;
   pdv_enabled: boolean;
+  booking_enabled: boolean;
 }
 
 const DEFAULT_CHANNELS: Omit<SalesChannels, 'store_id'> = {
@@ -18,6 +19,7 @@ const DEFAULT_CHANNELS: Omit<SalesChannels, 'store_id'> = {
   totem_enabled: true,
   mesa_enabled: true,
   pdv_enabled: true,
+  booking_enabled: true,
 };
 
 export function useSalesChannels(storeId: string | null) {
@@ -93,6 +95,7 @@ export function useSalesChannels(storeId: string | null) {
         totem_enabled: 'Totem',
         mesa_enabled: 'Mesa',
         pdv_enabled: 'PDV/Balcão',
+        booking_enabled: 'Agendamento Online',
       };
 
       toast({

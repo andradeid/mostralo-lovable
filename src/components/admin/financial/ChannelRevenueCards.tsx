@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ShoppingCart, Store, UtensilsCrossed, Calendar, Tablet } from 'lucide-react';
+import { ShoppingCart, Store, UtensilsCrossed, Calendar, Tablet, Smartphone } from 'lucide-react';
 import { ChannelRevenue } from '@/hooks/useRevenueByChannel';
 
 interface ChannelRevenueCardsProps {
@@ -10,6 +10,7 @@ interface ChannelRevenueCardsProps {
 
 const iconMap: Record<string, React.ElementType> = {
   ShoppingCart,
+  Smartphone,
   Tablet,
   Store,
   UtensilsCrossed,

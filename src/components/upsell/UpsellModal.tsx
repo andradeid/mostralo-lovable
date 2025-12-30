@@ -22,7 +22,7 @@ interface UpsellProduct {
 interface UpsellModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  storeId: string;
+  storeId: string | null;
   triggerProductId: string;
   onAccept: (product: { 
     id: string; 
@@ -33,6 +33,7 @@ interface UpsellModalProps {
   }) => void;
   onDecline: () => void;
   themeColor?: string;
+  mode?: 'public' | 'admin';
 }
 
 export function UpsellModal({
@@ -42,16 +43,19 @@ export function UpsellModal({
   triggerProductId,
   onAccept,
   onDecline,
-  themeColor = '#f97316'
+  themeColor = '#f97316',
+  mode = 'public',
 }: UpsellModalProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [upsellProducts, setUpsellProducts] = useState<UpsellProduct[]>([]);
   const [loadingUpsells, setLoadingUpsells] = useState(false);
   const hasLoadedRef = useRef(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const { 
     fetchUpsells, 
+    fetchUpsellsPublic,
     recordImpression, 
     recordAccepted, 
     recordRejected, 
@@ -67,38 +71,77 @@ export function UpsellModal({
       setCurrentIndex(0);
       setQuantity(1);
       setLoadingUpsells(false);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
     }
   }, [open]);
 
   // Carregar upsells - usar ref para garantir execução única
   useEffect(() => {
     if (!open) return;
-    if (modulesLoading) return;
     if (hasLoadedRef.current) return;
     
-    // Marcar como carregado ANTES de verificar acesso (ref não causa re-render)
-    hasLoadedRef.current = true;
-    
-    console.log('🔍 UpsellModal: Verificando acesso...', { hasAccess, modulesLoading });
-    
-    // Verificar acesso APÓS módulos terem carregado
-    if (!hasAccess) {
-      console.log('❌ UpsellModal: Sem acesso ao módulo upsell');
-      onDecline();
-      onOpenChange(false);
-      return;
+    // Modo público: não espera modulesLoading, vai direto
+    // Modo admin: espera módulos carregarem para verificar hasAccess
+    if (mode === 'admin') {
+      if (modulesLoading) return;
+      
+      hasLoadedRef.current = true;
+      
+      if (!hasAccess) {
+        console.log('❌ UpsellModal: Sem acesso ao módulo upsell (admin)');
+        onDecline();
+        onOpenChange(false);
+        return;
+      }
+    } else {
+      // Modo público - não verifica hasAccess
+      hasLoadedRef.current = true;
     }
     
-    // Tem acesso - carregar upsells
-    console.log('✅ UpsellModal: Tem acesso, carregando upsells...');
+    console.log('✅ UpsellModal: Carregando upsells...', { mode });
     loadUpsells();
-  }, [open, modulesLoading]); // NÃO incluir hasAccess nas dependências!
+  }, [open, modulesLoading, mode]);
 
   const loadUpsells = async () => {
     setLoadingUpsells(true);
+    
+    // Timeout de segurança (6 segundos)
+    const timeoutPromise = new Promise<null>((resolve) => {
+      timeoutRef.current = setTimeout(() => {
+        console.warn('⏱️ UpsellModal: Timeout ao carregar upsells');
+        resolve(null);
+      }, 6000);
+    });
+    
     try {
       console.log('📦 UpsellModal: Buscando upsells para produto:', triggerProductId);
-      const upsells = await fetchUpsells(triggerProductId);
+      
+      // Usar fetch público no modo public, fetch normal no admin
+      const fetchFn = mode === 'public' ? fetchUpsellsPublic : fetchUpsells;
+      
+      const result = await Promise.race([
+        fetchFn(triggerProductId),
+        timeoutPromise
+      ]);
+      
+      // Limpar timeout se completou antes
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      
+      // Timeout ou erro
+      if (result === null) {
+        console.log('⏱️ UpsellModal: Fechando por timeout');
+        onDecline();
+        onOpenChange(false);
+        return;
+      }
+      
+      const upsells = result;
       console.log('📦 UpsellModal: Upsells encontrados:', upsells.length);
       
       setUpsellProducts(upsells);
@@ -126,8 +169,10 @@ export function UpsellModal({
 
   const currentUpsell = upsellProducts[currentIndex];
   
-  // Mostrar loader enquanto módulos ou upsells estão carregando
-  if (open && (modulesLoading || loadingUpsells)) {
+  // Mostrar loader - no modo público só depende de loadingUpsells
+  const isLoading = mode === 'public' ? loadingUpsells : (modulesLoading || loadingUpsells);
+  
+  if (open && isLoading) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-md">

@@ -378,6 +378,7 @@ export function TotemProducts({
           onAccept={handleUpsellAccept}
           onDecline={handleUpsellDecline}
           themeColor={config.theme_color}
+          mode="public"
         />
       )}
     </div>

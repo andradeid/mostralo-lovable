@@ -32,8 +32,9 @@ export function useUpsell(storeId: string | null) {
 
   const hasAccess = hasModule('upsell');
 
-  const fetchUpsells = useCallback(async (productId: string): Promise<UpsellProduct[]> => {
-    if (!storeId || !hasAccess) return [];
+  // Fetch público - não depende de hasAccess (para Totem/Loja/Mesa)
+  const fetchUpsellsPublic = useCallback(async (productId: string): Promise<UpsellProduct[]> => {
+    if (!storeId) return [];
     
     setLoading(true);
     try {
@@ -69,7 +70,13 @@ export function useUpsell(storeId: string | null) {
     } finally {
       setLoading(false);
     }
-  }, [storeId, hasAccess]);
+  }, [storeId]);
+
+  // Fetch admin - depende de hasAccess (para telas administrativas)
+  const fetchUpsells = useCallback(async (productId: string): Promise<UpsellProduct[]> => {
+    if (!storeId || !hasAccess) return [];
+    return fetchUpsellsPublic(productId);
+  }, [storeId, hasAccess, fetchUpsellsPublic]);
 
   const recordImpression = useCallback(async (upsellId: string) => {
     if (!storeId) return;
@@ -239,6 +246,7 @@ export function useUpsell(storeId: string | null) {
     hasAccess,
     modulesLoading,
     fetchUpsells,
+    fetchUpsellsPublic,
     recordImpression,
     recordAccepted,
     recordRejected,

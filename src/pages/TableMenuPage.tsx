@@ -13,6 +13,7 @@ import { TableProductCard } from '@/components/table/TableProductCard';
 import { TableSummaryPanel } from '@/components/table/TableSummaryPanel';
 import { TableBottomBar } from '@/components/table/TableBottomBar';
 import { TablePendingWarning } from '@/components/table/TablePendingWarning';
+import { UpsellModal } from '@/components/upsell/UpsellModal';
 
 interface Product {
   id: string;
@@ -46,6 +47,8 @@ export default function TableMenuPage() {
   const { customerData, addItemToComanda, isLoading: isAddingItem, clearSession } = useTableComanda();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showSummary, setShowSummary] = useState(false);
+  const [showUpsellModal, setShowUpsellModal] = useState(false);
+  const [upsellTriggerProductId, setUpsellTriggerProductId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!customerData?.comandaId) {
@@ -131,7 +134,30 @@ export default function TableMenuPage() {
           : 'Enviado para a cozinha'
       });
       refetchItems();
+      
+      // Mostrar modal de upsell
+      setUpsellTriggerProductId(product.id);
+      setShowUpsellModal(true);
     }
+  };
+
+  const handleUpsellAccept = async (upsellProduct: { id: string; name: string; price: number; image_url: string | null; quantity: number }) => {
+    const success = await addItemToComanda({
+      productId: upsellProduct.id,
+      productName: upsellProduct.name,
+      unitPrice: upsellProduct.price,
+      quantity: upsellProduct.quantity
+    });
+
+    if (success) {
+      toast.success(`${upsellProduct.name} adicionado!`);
+      refetchItems();
+    }
+  };
+
+  const handleUpsellDecline = () => {
+    setShowUpsellModal(false);
+    setUpsellTriggerProductId(null);
   };
 
   const handleLogout = () => {
@@ -199,6 +225,21 @@ export default function TableMenuPage() {
         itemsCount={comandaItems.length}
         onViewComanda={() => setShowSummary(!showSummary)}
       />
+
+      {/* Upsell Modal */}
+      {store?.id && (
+        <UpsellModal
+          open={showUpsellModal}
+          onOpenChange={(open) => {
+            setShowUpsellModal(open);
+            if (!open) setUpsellTriggerProductId(null);
+          }}
+          storeId={store.id}
+          triggerProductId={upsellTriggerProductId || ''}
+          onAccept={handleUpsellAccept}
+          onDecline={handleUpsellDecline}
+        />
+      )}
     </div>
   );
 }

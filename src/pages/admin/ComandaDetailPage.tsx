@@ -15,6 +15,7 @@ import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { UpsellModal } from '@/components/upsell/UpsellModal';
 
 export default function ComandaDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -28,6 +29,8 @@ export default function ComandaDetailPage() {
   
   const [showProducts, setShowProducts] = useState(false);
   const [closeModalOpen, setCloseModalOpen] = useState(false);
+  const [showUpsellModal, setShowUpsellModal] = useState(false);
+  const [upsellTriggerProductId, setUpsellTriggerProductId] = useState<string | null>(null);
 
   // Auto-scroll para produtos quando abrir no mobile
   useEffect(() => {
@@ -84,6 +87,25 @@ export default function ComandaDetailPage() {
 
   const handleAddProduct = async (product: { product_id: string; product_name: string; unit_price: number; quantity: number; notes?: string }) => {
     await addItem({ comanda_id: comanda.id, ...product });
+    
+    // Mostrar modal de upsell
+    setUpsellTriggerProductId(product.product_id);
+    setShowUpsellModal(true);
+  };
+
+  const handleUpsellAccept = async (upsellProduct: { id: string; name: string; price: number; image_url: string | null; quantity: number }) => {
+    await addItem({ 
+      comanda_id: comanda.id, 
+      product_id: upsellProduct.id,
+      product_name: upsellProduct.name,
+      unit_price: upsellProduct.price,
+      quantity: upsellProduct.quantity
+    });
+  };
+
+  const handleUpsellDecline = () => {
+    setShowUpsellModal(false);
+    setUpsellTriggerProductId(null);
   };
 
   const handleRemoveItem = async (itemId: string) => {
@@ -279,6 +301,21 @@ export default function ComandaDetailPage() {
         isProcessing={isClosing}
         onPrint={handlePrint}
       />
+
+      {/* Upsell Modal */}
+      {storeId && (
+        <UpsellModal
+          open={showUpsellModal}
+          onOpenChange={(open) => {
+            setShowUpsellModal(open);
+            if (!open) setUpsellTriggerProductId(null);
+          }}
+          storeId={storeId}
+          triggerProductId={upsellTriggerProductId || ''}
+          onAccept={handleUpsellAccept}
+          onDecline={handleUpsellDecline}
+        />
+      )}
     </div>
   );
 }

@@ -32,6 +32,7 @@ import { CartDrawer } from '@/components/checkout/CartDrawer';
 import { CheckoutDialog } from '@/components/checkout/CheckoutDialog';
 import { CustomerAuthDialog } from '@/components/checkout/CustomerAuthDialog';
 import { CustomerRegisterDialog } from '@/components/checkout/CustomerRegisterDialog';
+import { UpsellModal } from '@/components/upsell/UpsellModal';
 
 interface Store {
   id: string;
@@ -126,6 +127,8 @@ const ProductPage = () => {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [businessHours, setBusinessHours] = useState<any>(null);
   const [deliveryConfig, setDeliveryConfig] = useState<any>(null);
+  const [showUpsellModal, setShowUpsellModal] = useState(false);
+  const [upsellTriggerProductId, setUpsellTriggerProductId] = useState<string | null>(null);
   const { addItem, getTotalPrice, getTotalItems } = useCart();
   const { toast } = useToast();
   
@@ -567,7 +570,27 @@ const ProductPage = () => {
       description: `${quantity}x ${product.name}${discountInfo?.source === 'promotion' ? ' com promoção aplicada' : ''} adicionado ao carrinho.`,
     });
 
-    // Redirecionar para a loja
+    // Mostrar modal de upsell
+    setUpsellTriggerProductId(product.id);
+    setShowUpsellModal(true);
+  };
+
+  const handleUpsellAccept = (upsellProduct: { id: string; name: string; price: number; image_url: string | null; quantity: number }) => {
+    addItem({
+      id: upsellProduct.id,
+      name: upsellProduct.name,
+      price: upsellProduct.price,
+      image_url: upsellProduct.image_url
+    }, upsellProduct.quantity);
+    toast({
+      title: "Upsell adicionado!",
+      description: `${upsellProduct.quantity}x ${upsellProduct.name} adicionado ao carrinho.`,
+    });
+  };
+
+  const handleUpsellDecline = () => {
+    setShowUpsellModal(false);
+    setUpsellTriggerProductId(null);
     navigate(`/loja/${storeSlug}`);
   };
 
@@ -1189,6 +1212,22 @@ Poderia me ajudar?`;
           storeId={store.id}
         />
       )}
+
+      {/* Upsell Modal */}
+      <UpsellModal
+        open={showUpsellModal}
+        onOpenChange={(open) => {
+          setShowUpsellModal(open);
+          if (!open) {
+            setUpsellTriggerProductId(null);
+            navigate(`/loja/${storeSlug}`);
+          }
+        }}
+        storeId={store.id}
+        triggerProductId={upsellTriggerProductId || ''}
+        onAccept={handleUpsellAccept}
+        onDecline={handleUpsellDecline}
+      />
 
       {/* Schema.org structured data */}
       <script type="application/ld+json">

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Plus, Minus, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useUpsell } from '@/hooks/useUpsell';
 import { formatCurrency } from '@/lib/utils';
 
@@ -47,7 +47,6 @@ export function UpsellModal({
   mode = 'public',
 }: UpsellModalProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [quantity, setQuantity] = useState(1);
   const [upsellProducts, setUpsellProducts] = useState<UpsellProduct[]>([]);
   const [loadingUpsells, setLoadingUpsells] = useState(false);
   const hasLoadedRef = useRef(false);
@@ -69,7 +68,6 @@ export function UpsellModal({
       hasLoadedRef.current = false;
       setUpsellProducts([]);
       setCurrentIndex(0);
-      setQuantity(1);
       setLoadingUpsells(false);
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
@@ -146,7 +144,6 @@ export function UpsellModal({
       
       setUpsellProducts(upsells);
       setCurrentIndex(0);
-      setQuantity(1);
       
       // Se não há upsells, fechar o modal graciosamente
       if (upsells.length === 0) {
@@ -175,10 +172,13 @@ export function UpsellModal({
   if (open && isLoading) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-sm max-h-[70vh] p-0">
-          <div className="flex flex-col items-center justify-center py-8 gap-2">
-            <Loader2 className="h-6 w-6 animate-spin" style={{ color: themeColor }} />
-            <span className="text-xs text-muted-foreground">Carregando...</span>
+        <DialogContent 
+          className="w-[85%] max-w-[340px] p-0 rounded-3xl border-4 overflow-hidden"
+          style={{ borderColor: themeColor }}
+        >
+          <div className="flex flex-col items-center justify-center py-12 gap-3 bg-background">
+            <Loader2 className="h-8 w-8 animate-spin" style={{ color: themeColor }} />
+            <span className="text-sm text-muted-foreground">Carregando...</span>
           </div>
         </DialogContent>
       </Dialog>
@@ -191,32 +191,15 @@ export function UpsellModal({
   }
 
   const finalPrice = currentUpsell.upsell_price ?? currentUpsell.product.price;
-  const hasDiscount = currentUpsell.upsell_price !== null && currentUpsell.upsell_price < currentUpsell.product.price;
-  const totalPrice = finalPrice * quantity;
-
-  const handleNext = () => {
-    if (currentIndex < upsellProducts.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-      setQuantity(1);
-      recordImpression(upsellProducts[currentIndex + 1].id);
-    }
-  };
-
-  const handlePrev = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(prev => prev - 1);
-      setQuantity(1);
-    }
-  };
 
   const handleAccept = () => {
-    recordAccepted(currentUpsell.id, totalPrice);
+    recordAccepted(currentUpsell.id, finalPrice);
     onAccept({
       id: currentUpsell.product.id,
       name: currentUpsell.product.name,
       price: finalPrice,
       image_url: currentUpsell.product.image_url,
-      quantity
+      quantity: 1
     });
     onOpenChange(false);
   };
@@ -229,15 +212,12 @@ export function UpsellModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm max-h-[75vh] p-0 gap-0 overflow-hidden animate-fade-in">
-        <DialogHeader className="p-3 pb-1">
-          <DialogTitle className="text-center text-sm font-medium">
-            Que tal adicionar?
-          </DialogTitle>
-        </DialogHeader>
-
-        {/* Product Image */}
-        <div className="relative aspect-video max-h-[25vh] bg-muted overflow-hidden">
+      <DialogContent 
+        className="w-[85%] max-w-[340px] p-0 rounded-3xl border-4 overflow-hidden animate-fade-in"
+        style={{ borderColor: themeColor }}
+      >
+        {/* Imagem do Produto */}
+        <div className="aspect-[4/3] bg-muted overflow-hidden">
           {currentUpsell.product.image_url ? (
             <img
               src={currentUpsell.product.image_url}
@@ -246,112 +226,30 @@ export function UpsellModal({
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-muted">
-              <span className="text-muted-foreground text-2xl">🍽️</span>
+              <span className="text-muted-foreground text-4xl">🍽️</span>
             </div>
-          )}
-          
-          {/* Navigation arrows */}
-          {upsellProducts.length > 1 && (
-            <>
-              <button
-                onClick={handlePrev}
-                disabled={currentIndex === 0}
-                className="absolute left-1 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-background/80 disabled:opacity-30"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                onClick={handleNext}
-                disabled={currentIndex === upsellProducts.length - 1}
-                className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-background/80 disabled:opacity-30"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-              
-              {/* Pagination dots */}
-              <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-1">
-                {upsellProducts.map((_, idx) => (
-                  <div
-                    key={idx}
-                    className={`h-1.5 w-1.5 rounded-full transition-colors ${
-                      idx === currentIndex ? 'bg-white' : 'bg-white/50'
-                    }`}
-                  />
-                ))}
-              </div>
-            </>
           )}
         </div>
 
-        {/* Product Info */}
-        <div className="p-3 space-y-2 overflow-y-auto">
-          <div className="text-center">
-            <h3 className="font-semibold text-sm">{currentUpsell.product.name}</h3>
-            {currentUpsell.product.description && (
-              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                {currentUpsell.product.description}
-              </p>
-            )}
-          </div>
-
-          {/* Price */}
-          <div className="text-center">
-            {hasDiscount ? (
-              <div className="space-y-0.5">
-                <span className="text-xs text-muted-foreground line-through">
-                  De {formatCurrency(currentUpsell.product.price)}
-                </span>
-                <div className="text-lg font-bold" style={{ color: themeColor }}>
-                  Por {formatCurrency(finalPrice)}
-                </div>
-              </div>
-            ) : (
-              <div className="text-lg font-bold" style={{ color: themeColor }}>
-                {formatCurrency(finalPrice)}
-              </div>
-            )}
-          </div>
-
-          {/* Quantity Selector */}
-          <div className="flex items-center justify-center gap-3">
-            <button
-              onClick={() => setQuantity(q => Math.max(1, q - 1))}
-              className="p-1.5 rounded-md border border-border hover:bg-muted"
-            >
-              <Minus className="h-3 w-3" />
-            </button>
-            <span className="text-base font-semibold w-6 text-center">{quantity}</span>
-            <button
-              onClick={() => setQuantity(q => q + 1)}
-              className="p-1.5 rounded-md text-white"
-              style={{ backgroundColor: themeColor }}
-            >
-              <Plus className="h-3 w-3" />
-            </button>
-          </div>
-
-          {/* Total */}
-          {quantity > 1 && (
-            <div className="text-center text-xs text-muted-foreground">
-              Total: <span className="font-semibold">{formatCurrency(totalPrice)}</span>
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex flex-col gap-1.5 pt-1">
+        {/* Conteúdo */}
+        <div className="p-6 bg-background text-center">
+          <p className="text-lg font-semibold text-foreground mb-6">
+            Deseja adicionar {currentUpsell.product.name} por mais {formatCurrency(finalPrice)}?
+          </p>
+          
+          {/* Botões lado a lado */}
+          <div className="flex gap-3">
             <Button
               onClick={handleAccept}
-              className="w-full py-3 text-sm font-semibold"
-              style={{ backgroundColor: themeColor }}
+              className="flex-1 py-6 text-lg font-semibold rounded-xl bg-green-500 hover:bg-green-600 text-white"
             >
-              Adicionar {formatCurrency(totalPrice)}
+              Sim
             </Button>
             <Button
-              variant="ghost"
               onClick={handleDecline}
-              className="w-full text-xs text-muted-foreground py-2"
+              className="flex-1 py-6 text-lg font-semibold rounded-xl bg-red-500 hover:bg-red-600 text-white"
             >
-              Não, obrigado
+              Não
             </Button>
           </div>
         </div>

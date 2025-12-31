@@ -335,6 +335,406 @@ const TESTIMONIALS = [
   },
 ];
 
+// ============================================
+// MATRIZ DE NICHOS - AIDA INTELIGENTE
+// ============================================
+interface NichoConfig {
+  nome: string;
+  variacoes: string[];
+  modulosPrincipais: string[];
+  perguntasAIDA: {
+    atencao: string;
+    interesse: string;
+    desejo: string;
+    acao: string;
+  };
+  formulaImpacto: string;
+  argumentosFoco: string[];
+  perguntasProibidas: string[];
+}
+
+const NICHO_MATRIZ: Record<string, NichoConfig> = {
+  'barbearia_salao': {
+    nome: 'Barbearia/Salão',
+    variacoes: ['barbearia', 'salão', 'salao', 'cabeleireiro', 'cabeleireira', 'barbeiro', 'studio de beleza', 'estúdio de beleza', 'manicure', 'pedicure', 'nail designer', 'designer de sobrancelhas', 'micropigmentação', 'esteticista', 'estética', 'spa', 'massagista', 'depilação', 'bronzeamento'],
+    modulosPrincipais: ['Agendamento Online', 'WhatsApp Automático', 'Gestão de Profissionais', 'Promoções'],
+    perguntasAIDA: {
+      atencao: 'Quantos clientes você perde por não conseguirem agendar fora do horário comercial?',
+      interesse: 'Qual o valor médio do serviço? Quantos no-shows (faltas) você tem por mês?',
+      desejo: 'Se você recuperasse apenas 5 clientes que desistiram de agendar por semana, seriam R$ [valor] a mais por mês!',
+      acao: 'Quer ver o agendamento online funcionando agora? Posso te mostrar em 2 minutos.'
+    },
+    formulaImpacto: 'clientes_perdidos_semana × ticket_medio × 4',
+    argumentosFoco: [
+      'Agendamento 24/7 - cliente agenda às 23h, domingo',
+      'Confirmação automática por WhatsApp',
+      'Lembrete automático reduz no-shows em 60%',
+      'Link de agendamento para bio do Instagram'
+    ],
+    perguntasProibidas: ['iFood', 'taxa de marketplace', 'delivery', 'entregador', 'motoboy', 'frete', 'KDS', 'cozinha']
+  },
+
+  'restaurante_delivery': {
+    nome: 'Restaurante/Delivery',
+    variacoes: ['restaurante', 'delivery', 'ifood', 'rappi', 'uber eats', 'entrega', 'comida', 'marmitex', 'quentinha', 'refeição', 'almoço', 'janta', 'jantar'],
+    modulosPrincipais: ['Delivery Próprio', 'Gestão de Pedidos', 'WhatsApp Marketing', 'Upsell/Cross-sell'],
+    perguntasAIDA: {
+      atencao: 'Quanto você fatura por mês pelo iFood ou outros apps de delivery?',
+      interesse: 'Você sabe que 25% de cada pedido vai pro bolso deles? Com R$ [valor], você paga R$ [taxa] todo mês!',
+      desejo: 'Se você tivesse seu próprio app, essa taxa seria R$ 0. No Mostralo você paga R$ 397,90 fixo. Economia de R$ [diferença] por mês!',
+      acao: 'Vou calcular sua economia exata. Quanto você fatura no delivery?'
+    },
+    formulaImpacto: 'faturamento_mensal × 0.25 - 397.90',
+    argumentosFoco: [
+      'Taxa ZERO por pedido',
+      'Clientes são SEUS, não do app',
+      'WhatsApp Marketing recupera inativos',
+      'Upsell automático aumenta ticket'
+    ],
+    perguntasProibidas: ['agendamento de serviço', 'booking', 'profissional', 'horário disponível']
+  },
+
+  'pizzaria': {
+    nome: 'Pizzaria',
+    variacoes: ['pizzaria', 'pizza', 'pizzas', 'rodízio de pizza'],
+    modulosPrincipais: ['Delivery Próprio', 'KDS Cozinha', 'Upsell (bordas, bebidas)', 'WhatsApp Marketing'],
+    perguntasAIDA: {
+      atencao: 'Quantas pizzas você vende por mês? Usa iFood?',
+      interesse: 'Com ticket médio de R$ 50 e 25% de taxa, a cada 100 pizzas você dá R$ 1.250 pro iFood!',
+      desejo: 'Esse valor pagaria 3 meses do Mostralo. E nosso upsell automático sugere bordas recheadas e bebidas - aumenta o ticket em 15%!',
+      acao: 'Quer ver como funciona o cardápio digital com sugestão automática de bordas?'
+    },
+    formulaImpacto: 'pizzas_mes × ticket_medio × 0.25',
+    argumentosFoco: [
+      'Sugestão automática de bordas e bebidas',
+      'KDS para organizar produção',
+      'Promoções de rodízio e combos',
+      'WhatsApp recupera cliente de pizza de sexta'
+    ],
+    perguntasProibidas: ['agendamento de serviço', 'booking', 'profissional']
+  },
+
+  'hamburgueria': {
+    nome: 'Hamburgueria',
+    variacoes: ['hamburgueria', 'hamburguer', 'hambúrguer', 'burger', 'lanchonete gourmet', 'artesanal'],
+    modulosPrincipais: ['Delivery Próprio', 'Upsell (batata, bebida)', 'Totem Autoatendimento', 'KDS'],
+    perguntasAIDA: {
+      atencao: 'Quantos combos você vende por dia? Quanto vai pro iFood?',
+      interesse: 'Hamburgueria boa vende R$ 20-30 mil/mês. Com 25% de taxa, são R$ 5-7.500 pro app!',
+      desejo: 'No Mostralo você paga R$ 397,90 fixo. E nosso upsell sugere batata, onion rings e bebida automaticamente!',
+      acao: 'Quantos clientes pedem SÓ o lanche, sem acompanhamento? Nosso sistema muda isso!'
+    },
+    formulaImpacto: 'faturamento × 0.25 - 397.90',
+    argumentosFoco: [
+      'Cross-sell de batata e bebida automático',
+      'Combos personalizáveis',
+      'Totem para atendimento no balcão',
+      'Tempo de preparo no KDS'
+    ],
+    perguntasProibidas: ['agendamento de serviço', 'booking', 'profissional']
+  },
+
+  'pet_shop': {
+    nome: 'Pet Shop',
+    variacoes: ['pet shop', 'petshop', 'loja de pet', 'veterinária', 'banho e tosa', 'ração', 'pet', 'animal', 'cachorro', 'gato'],
+    modulosPrincipais: ['SENTINELA (Recompra)', 'Agendamento (banho/tosa)', 'WhatsApp Marketing', 'Delivery'],
+    perguntasAIDA: {
+      atencao: 'Quantos clientes compram ração uma vez e demoram mais que o normal pra voltar?',
+      interesse: 'Se a ração dura 30 dias, por que o cliente demora 60, 90 dias pra voltar? Ele está comprando em outro lugar!',
+      desejo: 'Nosso SENTINELA avisa automaticamente: "Oi João, a ração do Rex deve estar acabando. Quer que eu entregue amanhã?"',
+      acao: 'Quantos clientes você tem que compram ração todo mês? Vou calcular quanto você está perdendo.'
+    },
+    formulaImpacto: 'clientes_recorrentes × ticket_medio × taxa_perda',
+    argumentosFoco: [
+      'SENTINELA lembra cliente de recomprar',
+      'Agendamento de banho/tosa online',
+      'Delivery de ração e produtos',
+      'Lembretes de vacinas e consultas'
+    ],
+    perguntasProibidas: ['iFood', 'taxa de marketplace', 'KDS', 'cozinha']
+  },
+
+  'farmacia': {
+    nome: 'Farmácia',
+    variacoes: ['farmácia', 'farmacia', 'drogaria', 'medicamentos', 'remédios', 'remedios'],
+    modulosPrincipais: ['SENTINELA (Medicamentos)', 'Delivery', 'WhatsApp Marketing'],
+    perguntasAIDA: {
+      atencao: 'Quantos clientes de uso contínuo você tem? Hipertensos, diabéticos?',
+      interesse: 'Esses clientes PRECISAM comprar todo mês. Mas quantos esquecem e vão na concorrência?',
+      desejo: 'O SENTINELA avisa: "Dona Maria, seu remédio de pressão deve estar acabando. Entregamos hoje!"',
+      acao: 'Imagine 50 clientes de uso contínuo comprando SEMPRE na sua farmácia. Quer ver como funciona?'
+    },
+    formulaImpacto: 'clientes_uso_continuo × ticket_medio × 12',
+    argumentosFoco: [
+      'SENTINELA para medicamentos de uso contínuo',
+      'Delivery rápido',
+      'Lembretes personalizados',
+      'Fidelização de clientes crônicos'
+    ],
+    perguntasProibidas: ['iFood', 'taxa de marketplace', 'agendamento', 'booking', 'KDS']
+  },
+
+  'acougue': {
+    nome: 'Açougue',
+    variacoes: ['açougue', 'acougue', 'casa de carnes', 'carnes', 'churrasco', 'churrascaria', 'boutique de carnes'],
+    modulosPrincipais: ['SENTINELA', 'Delivery', 'WhatsApp Marketing', 'Promoções'],
+    perguntasAIDA: {
+      atencao: 'Você tem clientes que fazem churrasco todo final de semana?',
+      interesse: 'Se eles compram a cada 15 dias e você não lembra, eles vão no concorrente mais perto.',
+      desejo: 'Nosso sistema avisa na quinta: "Ei Carlos, o churrasco do sábado tá garantido? Tenho picanha em promoção!"',
+      acao: 'Quantos clientes frequentes você tem? Vou calcular quanto você pode aumentar em vendas.'
+    },
+    formulaImpacto: 'clientes_frequentes × ticket_churrasco × frequencia',
+    argumentosFoco: [
+      'SENTINELA para churrasco de fim de semana',
+      'Promoções por WhatsApp',
+      'Kits de churrasco prontos',
+      'Delivery de carnes'
+    ],
+    perguntasProibidas: ['iFood', 'agendamento de serviço', 'booking', 'profissional']
+  },
+
+  'padaria': {
+    nome: 'Padaria',
+    variacoes: ['padaria', 'panificadora', 'pão', 'confeitaria', 'doces', 'bolos', 'café da manhã'],
+    modulosPrincipais: ['Pedidos Agendados', 'Totem', 'Chamada de Senhas', 'WhatsApp Marketing'],
+    perguntasAIDA: {
+      atencao: 'Vocês fazem encomendas de bolos e salgados para festas?',
+      interesse: 'Quanto tempo você perde anotando pedidos pelo WhatsApp e ligações?',
+      desejo: 'Com pedidos agendados online, o cliente escolhe data, produtos, e paga antes. Você só prepara!',
+      acao: 'E no balcão, já pensou em totem de autoatendimento? Fila menor, atendimento mais rápido.'
+    },
+    formulaImpacto: 'encomendas_mes × ticket_medio + economia_tempo',
+    argumentosFoco: [
+      'Encomendas online com agendamento',
+      'Totem no balcão para pães e lanches',
+      'Chamada de senhas profissional',
+      'Promoções de café da manhã'
+    ],
+    perguntasProibidas: ['iFood taxa 25%', 'motoboy', 'entregador freelancer']
+  },
+
+  'supermercado': {
+    nome: 'Supermercado/Mercearia',
+    variacoes: ['supermercado', 'mercado', 'mercearia', 'minimercado', 'mercadinho', 'hortifruti', 'sacolão', 'atacado', 'atacarejo'],
+    modulosPrincipais: ['Delivery', 'SENTINELA', 'WhatsApp Marketing', 'Promoções'],
+    perguntasAIDA: {
+      atencao: 'Vocês fazem entrega? Têm clientes que pedem toda semana?',
+      interesse: 'Cliente de mercado é ouro! Compra toda semana. Mas se você não lembra, ele vai no concorrente.',
+      desejo: 'O SENTINELA identifica o ciclo de compra e avisa: "Oi Ana, tá na hora da feira? Temos ofertas especiais!"',
+      acao: 'Quantos clientes fazem compras recorrentes? Vou calcular o potencial.'
+    },
+    formulaImpacto: 'clientes_recorrentes × ticket_semanal × 4',
+    argumentosFoco: [
+      'SENTINELA para compras semanais',
+      'Ofertas personalizadas por cliente',
+      'Delivery organizado',
+      'Lista de compras favoritas'
+    ],
+    perguntasProibidas: ['agendamento de serviço', 'booking', 'profissional', 'banho e tosa']
+  },
+
+  'suplementos': {
+    nome: 'Loja de Suplementos',
+    variacoes: ['suplementos', 'whey', 'academia', 'fitness', 'loja fitness', 'nutrição esportiva', 'vitaminas', 'manipulados'],
+    modulosPrincipais: ['SENTINELA', 'WhatsApp Marketing', 'Delivery', 'Promoções'],
+    perguntasAIDA: {
+      atencao: 'Whey dura quanto? 30 dias? E seus clientes voltam a cada quanto tempo?',
+      interesse: 'Cliente de suplemento PRECISA comprar todo mês. Mas se você não lembra, ele compra online ou no concorrente.',
+      desejo: 'O SENTINELA avisa: "Fala João, o Whey deve tá acabando! Chegou sabor novo. Quer que eu separe?"',
+      acao: 'Quantos clientes de whey você tem? Vou calcular quanto você está deixando escapar.'
+    },
+    formulaImpacto: 'clientes_whey × ticket_medio × taxa_perda',
+    argumentosFoco: [
+      'SENTINELA para ciclo de 30 dias',
+      'Lançamentos e novos sabores por WhatsApp',
+      'Programa de fidelidade',
+      'Combos de suplementos'
+    ],
+    perguntasProibidas: ['iFood', 'taxa de marketplace', 'agendamento de serviço', 'booking']
+  },
+
+  'arena_esportiva': {
+    nome: 'Arena Esportiva',
+    variacoes: ['arena', 'quadra', 'society', 'futebol', 'beach tennis', 'tênis', 'padel', 'vôlei', 'basquete', 'esportes', 'aluguel de quadra'],
+    modulosPrincipais: ['Agendamento de Quadras', 'WhatsApp Automático', 'Gestão de Horários', 'Pagamento Online'],
+    perguntasAIDA: {
+      atencao: 'Quantas vezes por semana a quadra fica vazia em horário nobre?',
+      interesse: 'Cada hora vazia é dinheiro perdido. Quanto você cobra por hora?',
+      desejo: 'Com agendamento online, o cliente reserva às 23h pra jogar no sábado. E paga antes! Sem no-show.',
+      acao: 'Quer ver o sistema de agendamento com pagamento antecipado?'
+    },
+    formulaImpacto: 'horas_vazias_semana × valor_hora × 4',
+    argumentosFoco: [
+      'Agendamento online 24/7',
+      'Pagamento antecipado (reduz no-show)',
+      'Lembrete automático por WhatsApp',
+      'Horários fixos semanais'
+    ],
+    perguntasProibidas: ['iFood', 'delivery', 'entrega', 'cozinha', 'KDS']
+  },
+
+  'lanchonete': {
+    nome: 'Lanchonete',
+    variacoes: ['lanchonete', 'lanche', 'salgados', 'pastel', 'pastelaria', 'hot dog', 'cachorro quente', 'espetinho'],
+    modulosPrincipais: ['Totem Autoatendimento', 'Chamada de Senhas', 'KDS', 'Delivery'],
+    perguntasAIDA: {
+      atencao: 'Quanto tempo seu cliente espera na fila no horário de pico?',
+      interesse: 'Cada minuto de espera é cliente que desiste. Fila grande espanta!',
+      desejo: 'Com totem de autoatendimento, o cliente pede sozinho. Sem fila, sem erro de anotação.',
+      acao: 'E a chamada de senhas por VOZ? "Senha 42, retire no balcão!" Profissional igual McDonald\'s!'
+    },
+    formulaImpacto: 'clientes_perdidos_fila × ticket_medio × dias_mes',
+    argumentosFoco: [
+      'Totem elimina filas',
+      'Chamada de senhas por voz',
+      'KDS organiza produção',
+      'Delivery próprio'
+    ],
+    perguntasProibidas: ['agendamento de serviço', 'booking', 'profissional', 'banho e tosa']
+  },
+
+  'cafeteria': {
+    nome: 'Cafeteria',
+    variacoes: ['cafeteria', 'café', 'coffee', 'coffee shop', 'bistrô', 'bistro', 'doceria café'],
+    modulosPrincipais: ['Comandas Digitais', 'Cardápio QR Code', 'WhatsApp Marketing', 'Promoções'],
+    perguntasAIDA: {
+      atencao: 'Seus clientes pedem direto no balcão ou sentam nas mesas?',
+      interesse: 'Quanto tempo o garçom perde anotando pedido e levando pra cozinha?',
+      desejo: 'Com QR Code na mesa, o cliente vê o cardápio, pede e paga sozinho. Você só entrega!',
+      acao: 'Quer ver o cardápio digital com fotos dos produtos? Aumenta o ticket em 20%!'
+    },
+    formulaImpacto: 'mesas × rotatividade × aumento_ticket',
+    argumentosFoco: [
+      'QR Code na mesa',
+      'Fotos que vendem',
+      'Promoções de happy hour',
+      'Programa de fidelidade café'
+    ],
+    perguntasProibidas: ['iFood taxa 25%', 'entregador', 'motoboy']
+  },
+
+  'sorveteria': {
+    nome: 'Sorveteria',
+    variacoes: ['sorveteria', 'sorvete', 'açaí', 'acai', 'gelato', 'picolé', 'frozen', 'milk shake'],
+    modulosPrincipais: ['Totem', 'Chamada de Senhas', 'Delivery', 'WhatsApp Marketing'],
+    perguntasAIDA: {
+      atencao: 'No verão a fila fica grande? Quantos clientes desistem por causa da espera?',
+      interesse: 'Cada cliente que desiste é R$ 15-25 perdidos. Em dia quente, quantos você perde?',
+      desejo: 'Totem de autoatendimento: cliente monta o açaí sozinho, paga e espera a senha. Sem fila!',
+      acao: 'E no delivery, já pensou em entregar açaí? Nosso sistema calcula frete automático.'
+    },
+    formulaImpacto: 'clientes_desistentes_dia × ticket_medio × dias_verao',
+    argumentosFoco: [
+      'Totem reduz filas no verão',
+      'Montagem personalizada de açaí',
+      'Delivery com frete calculado',
+      'Promoções sazonais'
+    ],
+    perguntasProibidas: ['agendamento de serviço', 'booking', 'profissional']
+  },
+
+  'doceria': {
+    nome: 'Doceria',
+    variacoes: ['doceria', 'doces', 'brigadeiro', 'brownie', 'bolo', 'confeitaria artesanal', 'cake designer', 'bolos decorados', 'doces finos'],
+    modulosPrincipais: ['Pedidos Agendados', 'WhatsApp Marketing', 'Delivery', 'Catálogo Digital'],
+    perguntasAIDA: {
+      atencao: 'Você trabalha com encomendas? Festas, aniversários?',
+      interesse: 'Quanto tempo você gasta respondendo WhatsApp sobre preços e disponibilidade?',
+      desejo: 'Com catálogo digital, o cliente vê fotos, preços, escolhe data e faz o pedido. Você só produz!',
+      acao: 'E o WhatsApp Marketing lembra: "Oi Maria, o aniversário do Pedro é semana que vem. Vamos repetir o bolo?"'
+    },
+    formulaImpacto: 'encomendas_mes × ticket_medio + economia_tempo',
+    argumentosFoco: [
+      'Catálogo com fotos lindas',
+      'Encomendas com data de entrega',
+      'Lembrete de datas especiais',
+      'Antecipação de pagamento'
+    ],
+    perguntasProibidas: ['iFood taxa 25%', 'motoboy freelancer', 'KDS']
+  },
+
+  'marmitaria': {
+    nome: 'Marmitaria',
+    variacoes: ['marmitaria', 'marmita', 'marmitex', 'quentinha', 'refeição', 'comida caseira', 'self-service', 'buffet', 'por quilo'],
+    modulosPrincipais: ['Delivery', 'Pedidos Agendados', 'WhatsApp Marketing', 'SENTINELA'],
+    perguntasAIDA: {
+      atencao: 'Vocês entregam em empresas? Têm clientes que pedem todo dia?',
+      interesse: 'Cliente de marmita é fiel! Come todo dia. Mas se você não facilita, ele pede em outro lugar.',
+      desejo: 'Com pedido agendado, o cliente escolhe a marmita da semana inteira de uma vez. Pagamento antecipado!',
+      acao: 'E o SENTINELA avisa quando o cliente para de pedir: "Oi João, sentimos sua falta. Voltou a trazer almoço de casa?"'
+    },
+    formulaImpacto: 'clientes_diarios × ticket × dias_uteis',
+    argumentosFoco: [
+      'Pedidos para semana toda',
+      'Entrega em empresas',
+      'SENTINELA para clientes inativos',
+      'Cardápio do dia por WhatsApp'
+    ],
+    perguntasProibidas: ['agendamento de serviço', 'booking', 'profissional', 'banho e tosa']
+  },
+
+  'food_truck': {
+    nome: 'Food Truck',
+    variacoes: ['food truck', 'foodtruck', 'trailer', 'food trailer', 'comida de rua', 'street food'],
+    modulosPrincipais: ['Chamada de Senhas', 'Totem', 'Redes Sociais', 'WhatsApp Marketing'],
+    perguntasAIDA: {
+      atencao: 'Você para em lugares fixos ou roda pela cidade?',
+      interesse: 'Como seus clientes sabem onde você está? Dependem do Instagram?',
+      desejo: 'Com WhatsApp Marketing, você avisa seus clientes: "Hoje estou na Praça X até 22h! Venham!"',
+      acao: 'E a chamada de senhas organiza a fila. Cliente pede, recebe senha e espera tranquilo.'
+    },
+    formulaImpacto: 'aumento_clientes × ticket_medio × dias_operacao',
+    argumentosFoco: [
+      'Avisar localização por WhatsApp',
+      'Chamada de senhas organizada',
+      'Cardápio digital no celular',
+      'Fidelização de seguidores'
+    ],
+    perguntasProibidas: ['agendamento de serviço', 'booking', 'profissional', 'delivery fixo']
+  },
+
+  'bar_pub': {
+    nome: 'Bar/Pub',
+    variacoes: ['bar', 'pub', 'boteco', 'choperia', 'cervejaria', 'happy hour', 'petiscaria', 'espetinho'],
+    modulosPrincipais: ['Comandas Digitais', 'Cardápio QR Code', 'Divisão de Conta', 'WhatsApp Marketing'],
+    perguntasAIDA: {
+      atencao: 'Vocês trabalham com comanda de papel? Quantas se perdem por mês?',
+      interesse: 'Comanda perdida = prejuízo. E na hora de dividir a conta? Quanto tempo demora?',
+      desejo: 'Com comanda digital, tudo fica registrado. Divisão de conta automática! Cada um paga o seu.',
+      acao: 'E o QR Code na mesa: cliente vê cardápio, pede mais uma rodada sem chamar garçom!'
+    },
+    formulaImpacto: 'comandas_perdidas × valor_medio + economia_tempo',
+    argumentosFoco: [
+      'Comanda digital sem perda',
+      'Divisão de conta automática',
+      'QR Code para pedir mais',
+      'Happy hour com promoções'
+    ],
+    perguntasProibidas: ['agendamento de serviço', 'booking', 'delivery', 'SENTINELA']
+  },
+
+  'generico': {
+    nome: 'Genérico',
+    variacoes: [],
+    modulosPrincipais: ['WhatsApp Marketing', 'Gestão de Clientes', 'Promoções', 'Relatórios'],
+    perguntasAIDA: {
+      atencao: 'Qual é o seu tipo de negócio? Me conta mais sobre o que você vende.',
+      interesse: 'Quantos clientes você atende por mês? E quantos voltam a comprar?',
+      desejo: 'Nosso sistema ajuda a fidelizar clientes e aumentar vendas com automação.',
+      acao: 'Quer que eu te mostre as funcionalidades que mais combinam com seu negócio?'
+    },
+    formulaImpacto: 'clientes × ticket_medio × frequencia',
+    argumentosFoco: [
+      'Automação de atendimento',
+      'WhatsApp Marketing',
+      'Gestão de clientes',
+      'Relatórios inteligentes'
+    ],
+    perguntasProibidas: []
+  }
+};
+
 const FAQ = [
   {
     question: 'Como vou atrair clientes sem o marketplace?',
@@ -995,14 +1395,145 @@ Me manda esses dados que eu já crio sua conta! 🚀"
 [ ] Forma de pagamento definida (PIX)`;
 }
 
+// ============================================
+// GERADOR DE SEÇÃO AIDA POR NICHO
+// ============================================
+function generateAIDAByNichoSection(type: PromptType): string {
+  let section = `\n## 🎯 FLUXO AIDA INTELIGENTE POR NICHO
+
+### ⚠️ REGRA OBRIGATÓRIA - IDENTIFICAÇÃO INICIAL
+
+**SEMPRE COMECE A CONVERSA PERGUNTANDO O TIPO DE NEGÓCIO:**
+
+"Para te ajudar da melhor forma, me conta: qual é o seu tipo de negócio?"
+
+OU
+
+"Olá! Antes de te apresentar nosso sistema, me conta: você trabalha com o quê?"
+
+---
+
+### 📋 MATRIZ DE ADAPTAÇÃO POR NICHO
+
+Após identificar o nicho do cliente, **ADAPTE TODA A CONVERSA** usando o fluxo AIDA específico:
+
+`;
+
+  // Adicionar cada nicho com seu fluxo AIDA
+  Object.entries(NICHO_MATRIZ).forEach(([key, nicho]) => {
+    section += `\n---\n\n#### 🏪 ${nicho.nome.toUpperCase()}\n`;
+    section += `**Palavras-chave para identificar:** ${nicho.variacoes.slice(0, 5).join(', ')}${nicho.variacoes.length > 5 ? '...' : ''}\n\n`;
+    
+    section += `**MÓDULOS PRINCIPAIS:** ${nicho.modulosPrincipais.join(', ')}\n\n`;
+    
+    section += `**FLUXO AIDA:**\n`;
+    section += `1. **🔔 ATENÇÃO:** "${nicho.perguntasAIDA.atencao}"\n`;
+    section += `2. **💡 INTERESSE:** "${nicho.perguntasAIDA.interesse}"\n`;
+    section += `3. **🔥 DESEJO:** "${nicho.perguntasAIDA.desejo}"\n`;
+    section += `4. **🎯 AÇÃO:** "${nicho.perguntasAIDA.acao}"\n\n`;
+    
+    section += `**ARGUMENTOS FOCO:**\n`;
+    nicho.argumentosFoco.forEach(arg => {
+      section += `- ${arg}\n`;
+    });
+    
+    if (nicho.perguntasProibidas.length > 0) {
+      section += `\n**🚫 NUNCA PERGUNTAR/MENCIONAR:** ${nicho.perguntasProibidas.join(', ')}\n`;
+    }
+  });
+
+  // Adicionar regras de transição
+  section += `\n---\n\n## 🔄 REGRAS DE TRANSIÇÃO ENTRE ETAPAS
+
+### Após cada resposta do cliente:
+1. **CALCULE** o impacto financeiro usando os números que ele forneceu
+2. **USE** os dados do cliente na argumentação (nunca valores genéricos)
+3. **CONECTE** a dor identificada ao módulo que resolve
+4. **AVANCE** para próxima etapa do AIDA naturalmente
+
+### Transições naturais:
+- ATENÇÃO → INTERESSE: "Interessante. E quanto [dado específico]?"
+- INTERESSE → DESEJO: "Deixa eu te mostrar o impacto disso em reais..."
+- DESEJO → AÇÃO: "Quer ver funcionando agora? Posso te mostrar em 2 minutos."
+
+`;
+
+  // Técnicas de fechamento baseadas no tipo de abordagem
+  const fechamentos = {
+    basic: `### 🤝 TÉCNICAS DE FECHAMENTO (CONSULTIVO)
+
+1. **Fechamento por Resumo:**
+   "Então, resumindo: você [problema identificado]. Nosso [módulo] resolve isso automaticamente. Faz sentido testar?"
+
+2. **Fechamento por Benefício:**
+   "Com base no que você me contou, você pode [benefício concreto]. Quer ver como funciona?"
+
+3. **Fechamento por Próximo Passo:**
+   "Que tal agendarmos uma demonstração de 15 minutos? Sem compromisso."`,
+
+    intermediate: `### 📊 TÉCNICAS DE FECHAMENTO (PERSUASIVO)
+
+1. **Fechamento por Economia:**
+   "Você perde R$ [valor]/mês. O sistema custa R$ 397,90. ROI em [X] dias. Os números fazem sentido?"
+
+2. **Fechamento por Comparação:**
+   "R$ 397,90 é menos que [analogia com valor perdido]. Em uma semana você recupera o investimento."
+
+3. **Fechamento por Prova Social:**
+   "[Nome similar] tinha o mesmo problema. Em 3 meses [resultado]. Quer o mesmo resultado?"`,
+
+    aggressive: `### 🔥 TÉCNICAS DE FECHAMENTO (URGÊNCIA)
+
+1. **Fechamento por Perda:**
+   "Enquanto você 'pensa', está perdendo R$ [valor/dia] POR DIA. Quantos dias mais?"
+
+2. **Fechamento por Escassez:**
+   "Cada hora que passa são mais clientes comprando no concorrente. Quer mudar isso AGORA?"
+
+3. **Fechamento Direto:**
+   "Vou ser direto: você quer continuar perdendo dinheiro ou quer resolver isso hoje? 7 dias grátis, sem cartão."`,
+  };
+
+  section += fechamentos[type];
+
+  // Adicionar objeções por nicho
+  section += `\n\n---\n\n## 💬 OBJEÇÕES ESPECÍFICAS POR NICHO
+
+### Barbearia/Salão:
+- "Meus clientes ligam pra agendar" → "E quando você tá atendendo? Quantas ligações perde? O agendamento online funciona 24/7."
+- "Já uso agenda do Google" → "Seu cliente consegue agendar sozinho? Ver horários disponíveis? Receber lembrete automático?"
+
+### Restaurante/Delivery:
+- "Não tenho clientes fora do iFood" → "Os clientes são SEUS, só estão no app. Com WhatsApp Marketing você recupera eles."
+- "O iFood traz clientes" → "Traz, mas cobra 25% PARA SEMPRE. Você está alugando seus próprios clientes."
+
+### Pet Shop:
+- "Meus clientes voltam quando precisam" → "68% não voltam. O SENTINELA lembra eles antes de irem no concorrente."
+- "Não fazemos delivery" → "E se fizesse? Cliente quer comodidade. Concorrente já entrega ração na porta."
+
+### Farmácia:
+- "Clientes de uso contínuo já conhecem a gente" → "Mas quantos esqueceram e compraram na concorrência esse mês?"
+- "Não podemos fazer propaganda de remédios" → "Não é propaganda! É lembrete de recompra pro cliente que JÁ compra com você."
+
+### Genérico (qualquer nicho):
+- "Está caro" → "Quanto você perde por mês com [problema identificado]? O sistema se paga em [X] dias."
+- "Vou pensar" → "Entendo. Enquanto pensa, quanto mais você perde? 7 dias grátis para testar."
+- "Já tenho sistema" → "O que você tem faz [funcionalidade diferencial]? Quanto paga por mês?"
+
+`;
+
+  return section;
+}
+
 export function generateSalesPrompt(config: PromptConfig): string {
   const { type, plans } = config;
 
   let prompt = generateIdentitySection(type);
   prompt += generatePlansSection(plans);
+  prompt += generateAIDAByNichoSection(type); // Nova seção AIDA por Nicho
   prompt += generateMarketplaceProblemsSection();
   prompt += generateFeaturesSection();
-  prompt += generateWhatsAppMarketingSection(type); // Nova seção de WhatsApp Marketing
+  prompt += generateWhatsAppMarketingSection(type);
   prompt += generateTestimonialsSection();
   prompt += generateCalculatorSection(type);
   prompt += generateConversationFlowSection(type);

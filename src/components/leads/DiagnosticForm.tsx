@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ChevronRight, ChevronLeft, User, Phone, Building2, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { ChevronRight, ChevronLeft, User, Phone, Building2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,6 +7,8 @@ import { Progress } from '@/components/ui/progress';
 import { cn, formatBrazilianPhone, formatInternationalPhone } from '@/lib/utils';
 import { DiagnosticLoadingScreen } from './DiagnosticLoadingScreen';
 import { CountryCodeSelect } from '@/components/ui/country-code-select';
+import { WhatsAppValidationSteps, INITIAL_VALIDATION_STEPS, type ValidationStep, type StepStatus } from './WhatsAppValidationSteps';
+import { WhatsAppProfilePreview } from './WhatsAppProfilePreview';
 import { supabase } from '@/integrations/supabase/client';
 import type { DiagnosticAnswers, ContactData } from '@/lib/diagnosticScoring';
 
@@ -73,6 +75,9 @@ const LOADING_DURATIONS: Record<string, number> = {
   q4: 6000
 };
 
+// Helper para delay
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Partial<DiagnosticAnswers>>({});
@@ -89,6 +94,12 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
   const [whatsappProfilePic, setWhatsappProfilePic] = useState<string | null>(null);
   const [whatsappPushName, setWhatsappPushName] = useState<string | null>(null);
   const [whatsappFormattedNumber, setWhatsappFormattedNumber] = useState<string | null>(null);
+  const [whatsappPhotoPrivate, setWhatsappPhotoPrivate] = useState(false);
+  
+  // Estados para validação progressiva
+  const [validationSteps, setValidationSteps] = useState<ValidationStep[]>(INITIAL_VALIDATION_STEPS);
+  const [showValidationSteps, setShowValidationSteps] = useState(false);
+  const [showProfilePreview, setShowProfilePreview] = useState(false);
   
   const totalSteps = QUESTIONS.length + 1;
   const progress = ((currentStep + 1) / totalSteps) * 100;
@@ -97,6 +108,13 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
   // Validação automática quando completar o número
   const cleanPhone = contact.phone.replace(/\D/g, '');
   const canValidateWhatsapp = cleanPhone.length >= 10 && contact.name.trim().length >= 3;
+  
+  // Função para atualizar status de uma etapa
+  const updateStepStatus = useCallback((stepId: string, status: StepStatus, result?: string) => {
+    setValidationSteps(prev => prev.map(step => 
+      step.id === stepId ? { ...step, status, result } : step
+    ));
+  }, []);
   
   const handleAnswer = (questionId: keyof DiagnosticAnswers, value: string) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
@@ -139,14 +157,20 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
     if (whatsappStatus !== 'idle') {
       setWhatsappStatus('idle');
       setIsWhatsappValidated(false);
+      setShowValidationSteps(false);
+      setShowProfilePreview(false);
+      setValidationSteps(INITIAL_VALIDATION_STEPS);
+      setWhatsappProfilePic(null);
+      setWhatsappPushName(null);
+      setWhatsappFormattedNumber(null);
+      setWhatsappPhotoPrivate(false);
     }
   };
 
   // Validar WhatsApp quando perder foco ou completar número
   const handlePhoneBlur = async () => {
     if (canValidateWhatsapp && whatsappStatus === 'idle') {
-      const isValid = await validateWhatsApp();
-      setIsWhatsappValidated(true);
+      await validateWhatsApp();
     }
   };
 
@@ -155,10 +179,17 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
     if (cleanPhone.length < 10) return false;
     
     setWhatsappStatus('validating');
+    setShowValidationSteps(true);
+    setShowProfilePreview(false);
+    setValidationSteps(INITIAL_VALIDATION_STEPS);
     
     const fullPhone = countryCode.replace('+', '') + cleanPhone;
     
     try {
+      // Etapa 1: Validando número
+      updateStepStatus('validate', 'loading');
+      await delay(600);
+      
       const { data, error } = await supabase.functions.invoke('validate-whatsapp-number', {
         body: { 
           phone: fullPhone,
@@ -170,25 +201,60 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
       if (error) throw error;
       
       const isValid = data?.valid || false;
-      setWhatsappStatus(isValid ? 'valid' : 'invalid');
       
-      // Guardar dados do perfil WhatsApp se válido
-      if (isValid) {
-        if (data?.profilePictureUrl) {
-          setWhatsappProfilePic(data.profilePictureUrl);
-        }
-        if (data?.pushName) {
-          setWhatsappPushName(data.pushName);
-        }
-        if (data?.formattedNumber) {
-          setWhatsappFormattedNumber(data.formattedNumber);
-        }
+      if (!isValid) {
+        updateStepStatus('validate', 'error', 'Número não encontrado no WhatsApp');
+        updateStepStatus('photo', 'pending');
+        updateStepStatus('name', 'pending');
+        setWhatsappStatus('invalid');
+        setIsWhatsappValidated(true);
+        return false;
       }
       
-      return isValid;
+      updateStepStatus('validate', 'success', 'Número válido!');
+      
+      // Etapa 2: Foto do perfil
+      updateStepStatus('photo', 'loading');
+      await delay(500);
+      
+      if (data?.profilePictureUrl) {
+        setWhatsappProfilePic(data.profilePictureUrl);
+        setWhatsappPhotoPrivate(false);
+        updateStepStatus('photo', 'success', 'Foto encontrada!');
+      } else {
+        setWhatsappPhotoPrivate(true);
+        updateStepStatus('photo', 'warning', 'Foto privada ou não disponível');
+      }
+      
+      // Etapa 3: Nome do contato
+      updateStepStatus('name', 'loading');
+      await delay(400);
+      
+      if (data?.pushName) {
+        setWhatsappPushName(data.pushName);
+        updateStepStatus('name', 'success', data.pushName);
+      } else {
+        updateStepStatus('name', 'warning', 'Nome não disponível');
+      }
+      
+      // Guardar número formatado
+      if (data?.formattedNumber) {
+        setWhatsappFormattedNumber(data.formattedNumber);
+      }
+      
+      setWhatsappStatus('valid');
+      setIsWhatsappValidated(true);
+      
+      // Mostrar preview após pequeno delay
+      await delay(300);
+      setShowProfilePreview(true);
+      
+      return true;
     } catch (err) {
       console.error('Erro ao validar WhatsApp:', err);
+      updateStepStatus('validate', 'error', 'Erro na validação');
       setWhatsappStatus('invalid');
+      setIsWhatsappValidated(true);
       return false;
     }
   };
@@ -347,35 +413,34 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
                       onChange={(e) => handlePhoneChange(e.target.value)}
                       onBlur={handlePhoneBlur}
                       disabled={isSubmitting}
-                      className={cn(
-                        "h-12 pr-10",
-                        whatsappStatus === 'valid' && 'border-emerald-500 focus-visible:ring-emerald-500',
-                        whatsappStatus === 'invalid' && 'border-amber-500 focus-visible:ring-amber-500'
-                      )}
+                      className="h-12"
                     />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      {whatsappStatus === 'validating' && (
-                        <Loader2 className="w-5 h-5 text-primary animate-spin" />
-                      )}
-                      {whatsappStatus === 'valid' && (
-                        <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                      )}
-                      {whatsappStatus === 'invalid' && (
-                        <AlertCircle className="w-5 h-5 text-amber-500" />
-                      )}
-                    </div>
                   </div>
                 </div>
-                {whatsappStatus !== 'idle' && (
-                  <p className={cn(
-                    "text-xs animate-fade-in",
-                    whatsappStatus === 'validating' && 'text-muted-foreground',
-                    whatsappStatus === 'valid' && 'text-emerald-500',
-                    whatsappStatus === 'invalid' && 'text-amber-500'
-                  )}>
-                    {whatsappStatus === 'validating' && '● Verificando WhatsApp...'}
-                    {whatsappStatus === 'valid' && '✓ WhatsApp verificado! Mensagem de boas-vindas enviada.'}
-                    {whatsappStatus === 'invalid' && '⚠ WhatsApp não encontrado (o cadastro continuará)'}
+                
+                {/* Etapas de validação progressiva */}
+                {showValidationSteps && (
+                  <WhatsAppValidationSteps 
+                    steps={validationSteps} 
+                    className="mt-3"
+                  />
+                )}
+                
+                {/* Preview do perfil WhatsApp */}
+                {showProfilePreview && whatsappStatus === 'valid' && (
+                  <WhatsAppProfilePreview
+                    profilePicture={whatsappProfilePic}
+                    pushName={whatsappPushName}
+                    formattedNumber={whatsappFormattedNumber}
+                    formName={contact.name}
+                    isPrivatePhoto={whatsappPhotoPrivate}
+                    className="mt-4"
+                  />
+                )}
+                
+                {!showValidationSteps && canValidateWhatsapp && whatsappStatus === 'idle' && (
+                  <p className="text-xs text-muted-foreground">
+                    Clique fora do campo WhatsApp para validar
                   </p>
                 )}
               </div>
@@ -399,11 +464,6 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
                   )}
                   disabled={!isWhatsappValidated || isSubmitting}
                 />
-                {!isWhatsappValidated && canValidateWhatsapp && whatsappStatus === 'idle' && (
-                  <p className="text-xs text-muted-foreground">
-                    Clique fora do campo WhatsApp para validar
-                  </p>
-                )}
               </div>
               
               <Button

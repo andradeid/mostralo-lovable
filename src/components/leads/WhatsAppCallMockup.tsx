@@ -41,7 +41,6 @@ export function WhatsAppCallMockup({
   const [callState, setCallState] = useState<CallState>('idle');
   const [callDuration, setCallDuration] = useState(0);
   const [audioPlaying, setAudioPlaying] = useState(false);
-  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const vibrationRef = useRef<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);

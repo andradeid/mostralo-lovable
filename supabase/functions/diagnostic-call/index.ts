@@ -23,50 +23,99 @@ interface RequestBody {
 
 function generatePersonalizedScript(data: RequestBody): string {
   const { leadName, companyName, answers, level } = data;
+  const firstName = leadName.split(' ')[0];
   
-  // Saudação inicial baseada no nível
-  let greeting = '';
-  if (level === 'elite') {
-    greeting = `Olá, ${leadName}! Aqui é o Marcos Andrade da Mostralo! Parabéns! A ${companyName} tem uma operação com altíssimo potencial de escala!`;
-  } else {
-    greeting = `Olá, ${leadName}! Aqui é o Marcos Andrade da Mostralo! A ${companyName} está no caminho certo e identificamos oportunidades incríveis para você!`;
+  // ============================================
+  // FRAMEWORK PAS: PROBLEM - AGITATE - SOLVE
+  // ============================================
+  
+  // 1. ABERTURA COM GANCHO (Pattern Interrupt + Suspense)
+  const opening = `${firstName}! Aqui é o Marcos Andrade, da Mostralo. Acabei de analisar pessoalmente o diagnóstico da ${companyName} e preciso te contar uma coisa...`;
+  
+  // 2. VALIDAÇÃO DO MAIOR DESAFIO - Q4 (Espelhamento + Empatia)
+  let painValidation = '';
+  switch (answers.q4) {
+    case 'a': // Reduzir custos
+      painValidation = `Você disse que seu maior desafio é reduzir custos com funcionários e erros. Eu te entendo perfeitamente. Folha de pagamento que só cresce, funcionário que falta, pedido errado... é dinheiro escorrendo pelo ralo todo dia.`;
+      break;
+    case 'b': // Atrair clientes
+      painValidation = `Você disse que precisa atrair mais clientes qualificados. E olha, esse é o desafio número um de 80% dos lojistas que chegam até mim. Você investe em divulgação mas parece que o retorno nunca vem, não é?`;
+      break;
+    case 'c': // Escalar/franquear
+      painValidation = `Você quer escalar sua operação e abrir novas unidades. Isso me mostra que você pensa grande! Mas deixa eu te perguntar: como você vai replicar o que funciona se cada atendente faz de um jeito diferente?`;
+      break;
+    case 'd': // Melhorar experiência
+      painValidation = `Você quer melhorar a experiência do cliente. Isso mostra que você entende o jogo! Cliente satisfeito volta e indica. Mas como garantir um atendimento impecável quando você não consegue estar em todo lugar ao mesmo tempo?`;
+      break;
+    default:
+      painValidation = `Analisei o diagnóstico da ${companyName} e identifiquei pontos críticos que estão travando seu crescimento.`;
   }
   
-  // Personalização baseada na Q1 (Google Shopping)
-  let q1Text = '';
+  // 3. AGITAR A DOR - Q1, Q2, Q3 (Gatilho de Perda + Urgência)
+  const painPoints: string[] = [];
+  
+  // Q1 - Google Shopping
   if (answers.q1 === 'b') {
-    q1Text = `Percebi que sua loja ainda não aparece no Google Shopping. Isso significa que você está perdendo clientes todos os dias que poderiam estar comprando de você! Vou te mostrar como resolver isso rapidinho.`;
+    painPoints.push(`E tem mais: enquanto a gente conversa, dezenas de pessoas estão pesquisando exatamente o que você vende no Google. Só que elas não encontram a ${companyName}. Estão comprando do seu concorrente. Todo. Santo. Dia.`);
   } else if (answers.q1 === 'c') {
-    q1Text = `Vi que você ainda não sabe como aparecer no Google Shopping. Não se preocupe, vou te mostrar exatamente como fazer isso de forma simples e eficiente!`;
+    painPoints.push(`E olha, tem um canal de vendas poderoso que você ainda nem explorou: o Google Shopping. Seus concorrentes estão lá, aparecendo pra quem já quer comprar, e a ${companyName} está invisível.`);
   }
   
-  // Personalização baseada na Q2 (WhatsApp/IA)
-  let q2Text = '';
+  // Q2 - WhatsApp/IA
   if (answers.q2 === 'a') {
-    q2Text = `E sobre o WhatsApp, você mencionou que perde vendas por demora no atendimento. Nossa IA resolve isso completamente, atendendo 24 horas, tirando dúvidas e até fechando vendas sozinha!`;
+    painPoints.push(`Além disso, cada mensagem no WhatsApp que demora mais de 5 minutos pra responder é uma venda que você perdeu. O cliente já foi pro próximo. E isso está acontecendo agora mesmo.`);
   } else if (answers.q2 === 'b') {
-    q2Text = `Vi que seus funcionários estão sobrecarregados no WhatsApp. Com nossa automação inteligente, eles vão poder focar no que realmente importa enquanto a IA cuida do básico.`;
+    painPoints.push(`Seus funcionários estão sobrecarregados respondendo WhatsApp, fazendo trabalho repetitivo, enquanto poderiam estar fechando vendas de maior valor. É retrabalho que custa caro.`);
   }
   
-  // Personalização baseada na Q3 (Upsell)
-  let q3Text = '';
+  // Q3 - Upsell
   if (answers.q3 === 'a') {
-    q3Text = `Também notei que o upsell na sua operação depende só da proatividade do atendente. Com o Mostralo, isso fica automático e você pode aumentar seu ticket médio em até 25%!`;
+    painPoints.push(`E quando o cliente compra, você depende da boa vontade do atendente pra oferecer mais. Resultado? Ticket médio baixo e dinheiro que poderia ser seu ficando na mesa.`);
   } else if (answers.q3 === 'b') {
-    q3Text = `Vi que você já tenta fazer upsell, mas não é automatizado. Deixa eu te mostrar como a gente resolve isso de forma inteligente!`;
+    painPoints.push(`Vi que você tenta fazer upsell, mas não é automático. Isso significa que você está deixando dinheiro na mesa em cada venda.`);
   }
   
-  // CTA final baseado no nível
+  // Combinar dores (máximo 2 para não ficar longo demais)
+  const painAgitation = painPoints.slice(0, 2).join(' ');
+  
+  // 4. VIRADA - APRESENTAR A SOLUÇÃO (Contraste + Benefício Quantificado)
+  let solutionIntro = `Mas a boa notícia é que isso tem solução. E é exatamente isso que o Mostralo faz.`;
+  
+  // Benefício principal baseado na maior dor
+  let mainBenefit = '';
+  if (answers.q1 === 'b' || answers.q1 === 'c') {
+    mainBenefit = `Seus produtos aparecem automaticamente no Google Shopping, na frente de quem está pronto pra comprar. Sem você precisar fazer nada.`;
+  } else if (answers.q2 === 'a' || answers.q2 === 'b') {
+    mainBenefit = `Uma inteligência artificial atende seus clientes no WhatsApp 24 horas, 7 dias por semana, sem você pagar um centavo de hora extra. Ela responde, tira dúvidas e até fecha vendas.`;
+  } else if (answers.q3 === 'a' || answers.q3 === 'b') {
+    mainBenefit = `O sistema sugere automaticamente produtos complementares em cada venda, aumentando seu ticket médio em até 25%. É como ter um vendedor campeão que nunca esquece de oferecer mais.`;
+  } else {
+    mainBenefit = `A gente automatiza seu atendimento, coloca você no Google Shopping e aumenta seu ticket médio com upsell inteligente. Tudo integrado.`;
+  }
+  
+  // 5. PROVA SOCIAL (Resultado Específico + Timeframe)
+  const socialProof = `Lojistas como você já aumentaram o faturamento em até 40% nos primeiros 90 dias usando essas mesmas estratégias.`;
+  
+  // 6. CTA COM URGÊNCIA E ESCASSEZ
   let cta = '';
   if (level === 'elite') {
-    cta = `${leadName}, você foi qualificado para o nosso Programa de Aceleração Elite! Isso significa isenção total da taxa de setup e mentoria personalizada comigo. Clique agora em Agendar Consultoria e vamos conversar sobre como transformar a ${companyName} em uma máquina de vendas! Te vejo em breve!`;
+    cta = `${firstName}, pela sua pontuação no diagnóstico, você foi qualificado para o Programa de Aceleração Elite. Isso significa mentoria direta comigo e isenção da taxa de implementação. Mas atenção: só tenho 5 vagas por semana. Clica agora no botão Agendar Consultoria que aparece na tela e garante a sua. Te vejo do outro lado!`;
   } else {
-    cta = `${leadName}, você foi qualificado para o Programa de Aceleração Mostralo! Clique em Agendar Consultoria para conversarmos sobre as oportunidades que identificamos para a ${companyName}. Te espero lá!`;
+    cta = `${firstName}, você foi qualificado para o Programa de Aceleração Mostralo. Tenho um horário especial reservado pra você essa semana. Clica no botão Agendar Consultoria e vamos desenhar juntos o plano de crescimento da ${companyName}. Te espero!`;
   }
   
-  // Montar script completo
-  const parts = [greeting, q1Text, q2Text, q3Text, cta].filter(Boolean);
-  return parts.join(' ');
+  // MONTAR SCRIPT FINAL (Framework PAS completo)
+  const scriptParts = [
+    opening,
+    painValidation,
+    painAgitation,
+    solutionIntro,
+    mainBenefit,
+    socialProof,
+    cta
+  ].filter(Boolean);
+  
+  return scriptParts.join(' ');
 }
 
 serve(async (req) => {

@@ -188,6 +188,26 @@ export default {
 						opacity: '1',
 						transform: 'translateY(0)'
 					}
+				},
+				'ping-slow': {
+					'0%': {
+						transform: 'scale(1)',
+						opacity: '0.6'
+					},
+					'75%, 100%': {
+						transform: 'scale(1.5)',
+						opacity: '0'
+					}
+				},
+				'pulse-gentle': {
+					'0%, 100%': {
+						transform: 'scale(1)',
+						opacity: '1'
+					},
+					'50%': {
+						transform: 'scale(1.05)',
+						opacity: '0.9'
+					}
 				}
 			},
 			animation: {
@@ -203,7 +223,9 @@ export default {
 				'radar-ping': 'radar-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite',
 				'shield-glow': 'shield-glow 2s ease-in-out infinite',
 				'wave': 'wave 1s ease-in-out',
-				'fade-in': 'fade-in 0.3s ease-out forwards'
+				'fade-in': 'fade-in 0.3s ease-out forwards',
+				'ping-slow': 'ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite',
+				'pulse-gentle': 'pulse-gentle 2s ease-in-out infinite'
 			}
 		}
 	},

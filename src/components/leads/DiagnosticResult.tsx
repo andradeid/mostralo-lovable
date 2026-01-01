@@ -84,6 +84,13 @@ export function DiagnosticResult({ result }: DiagnosticResultProps) {
       callerName="Marcos Andrade"
       callerRole="Consultor Mostralo"
       onScheduleConsultation={handleWhatsAppClick}
+      leadData={{
+        name: result.contact.name,
+        company: result.contact.company,
+        answers: result.answers,
+        score: result.score,
+        level: result.level
+      }}
     />
     <div className="w-full max-w-3xl mx-auto space-y-8">
       {/* Header com animação de check */}

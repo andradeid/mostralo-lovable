@@ -40,10 +40,16 @@ export function generateSofiaScript(data: ScriptData): string {
   const qualification = getQualificationMessage(firstName, data.level);
   parts.push(qualification);
 
-  // 5. ESCASSEZ + CTA suave - Aguardar contato
+  // 5. ESCASSEZ FORTE - Vagas limitadas + Inversão de poder
   parts.push(
-    `A agenda dele está bem concorrida essa semana, mas ele reservou um horário especial ` +
-    `pra conversar com você. Fica de olho aqui no WhatsApp que ele vai te chamar. Até já!`
+    `Só pra você saber: essa semana o Marcos vai atender apenas 3 lojas de suplementos. ` +
+    `Se por algum motivo você não tiver interesse, só me avisa que a gente passa a vaga pro próximo da lista.`
+  );
+
+  // 6. CTA + ENCERRAMENTO POSITIVO
+  parts.push(
+    `Mas acredito que você vai querer aproveitar essa oportunidade. ` +
+    `Fica de olho aqui no WhatsApp que ele vai te chamar em breve. Até já!`
   );
 
   return parts.join(' ');

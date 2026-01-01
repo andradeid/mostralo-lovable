@@ -22,6 +22,8 @@ interface WhatsAppCallMockupProps {
   callerAvatar?: string;
   onScheduleConsultation: () => void;
   leadData?: LeadData;
+  savedAudioBase64?: string | null;
+  onAudioGenerated?: (audioBase64: string) => void;
 }
 
 type CallState = 'idle' | 'incoming' | 'connecting' | 'connected' | 'ended';
@@ -36,7 +38,9 @@ export function WhatsAppCallMockup({
   callerRole,
   callerAvatar,
   onScheduleConsultation,
-  leadData
+  leadData,
+  savedAudioBase64,
+  onAudioGenerated
 }: WhatsAppCallMockupProps) {
   const [callState, setCallState] = useState<CallState>('idle');
   const [callDuration, setCallDuration] = useState(0);
@@ -127,6 +131,31 @@ export function WhatsAppCallMockup({
   const handleAccept = async () => {
     setCallState('connecting');
     
+    // Se já tem áudio salvo, usar ele diretamente
+    if (savedAudioBase64) {
+      console.log('Using saved audio from localStorage');
+      setCallState('connected');
+      setAudioPlaying(true);
+      
+      const savedAudioUrl = `data:audio/mpeg;base64,${savedAudioBase64}`;
+      setAudioUrl(savedAudioUrl);
+      audioRef.current = new Audio(savedAudioUrl);
+      
+      audioRef.current.onended = () => {
+        console.log('Audio playback finished');
+        setAudioPlaying(false);
+        setCallState('ended');
+      };
+      
+      audioRef.current.onerror = (e) => {
+        console.error('Audio playback error:', e);
+        setAudioPlaying(false);
+      };
+      
+      await audioRef.current.play();
+      return;
+    }
+    
     if (leadData) {
       try {
         // Gerar script Sofia com técnica Flávio Augusto (Pedestal + Escassez)
@@ -154,6 +183,11 @@ export function WhatsAppCallMockup({
 
         if (data?.audioContent) {
           console.log('Audio received, playing...');
+          
+          // Notificar para salvar no localStorage
+          if (onAudioGenerated) {
+            onAudioGenerated(data.audioContent);
+          }
           
           setCallState('connected');
           setAudioPlaying(true);

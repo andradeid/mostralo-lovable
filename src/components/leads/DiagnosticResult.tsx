@@ -9,6 +9,8 @@ import { WhatsAppCallMockup } from './WhatsAppCallMockup';
 
 interface DiagnosticResultProps {
   result: DiagnosticResultType;
+  savedAudioBase64?: string | null;
+  onAudioGenerated?: (audioBase64: string) => void;
 }
 
 const LEVEL_CONFIG: Record<QualificationLevel, {
@@ -67,7 +69,7 @@ const BENEFITS = [
   'Prioridade na Fila de integração do Agente de IA'
 ];
 
-export function DiagnosticResult({ result }: DiagnosticResultProps) {
+export function DiagnosticResult({ result, savedAudioBase64, onAudioGenerated }: DiagnosticResultProps) {
   const [showCallMockup, setShowCallMockup] = useState(false);
   const config = LEVEL_CONFIG[result.level];
   
@@ -91,6 +93,8 @@ export function DiagnosticResult({ result }: DiagnosticResultProps) {
         score: result.score,
         level: result.level
       }}
+      savedAudioBase64={savedAudioBase64}
+      onAudioGenerated={onAudioGenerated}
     />
     <div className="w-full max-w-3xl mx-auto space-y-8">
       {/* Header com animação de check */}

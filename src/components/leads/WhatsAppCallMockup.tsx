@@ -140,7 +140,8 @@ export function WhatsAppCallMockup({
     }
     
     script += `Gostaria de agendar uma consultoria gratuita para conversarmos sobre as melhores estratégias para sua loja? `;
-    script += `Clique no botão abaixo para agendar o melhor horário. Até já!`;
+    script += `Ao final desta ligação, vai aparecer um botão para você agendar o melhor horário para nossa conversa. `;
+    script += `Até já!`;
     
     return script;
   };
@@ -307,9 +308,9 @@ export function WhatsAppCallMockup({
               <p className="text-[#25D366] font-medium text-lg">
                 Conectando...
               </p>
-              <p className="text-white/50 text-base">
-                Preparando sua mensagem personalizada
-              </p>
+                <p className="text-white/50 text-base">
+                  Aguarde um momento
+                </p>
             </div>
           )}
           

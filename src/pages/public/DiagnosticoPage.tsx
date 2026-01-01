@@ -30,6 +30,13 @@ export default function DiagnosticoPage() {
   // Novos estados para o fluxo invertido
   const [showProcessing, setShowProcessing] = useState(false);
   const [showSofiaCall, setShowSofiaCall] = useState(false);
+  
+  // Perfil WhatsApp do lead
+  const [whatsappProfile, setWhatsappProfile] = useState<{
+    pictureUrl: string | null;
+    pushName: string | null;
+    formattedNumber: string | null;
+  }>({ pictureUrl: null, pushName: null, formattedNumber: null });
 
   // Verificar localStorage ao carregar
   useEffect(() => {
@@ -53,6 +60,13 @@ export default function DiagnosticoPage() {
     
     try {
       const diagnosticResult = getDiagnosticResult(answers, contact);
+      
+      // Guardar perfil WhatsApp
+      setWhatsappProfile({
+        pictureUrl: contact.whatsappProfilePicture || null,
+        pushName: contact.whatsappPushName || null,
+        formattedNumber: contact.whatsappFormattedNumber || null
+      });
       
       // Extrair DDD e número do telefone
       const phoneNumbers = contact.phone.replace(/\D/g, '');
@@ -166,6 +180,7 @@ export default function DiagnosticoPage() {
             score: pendingResult.score,
             level: pendingResult.level
           }}
+          whatsappProfile={whatsappProfile}
           savedAudioBase64={savedAudio}
           onAudioComplete={handleSofiaCallComplete}
         />

@@ -11,6 +11,10 @@ export interface ContactData {
   name: string;
   phone: string;
   company: string;
+  // Dados do perfil WhatsApp (buscados na validação)
+  whatsappProfilePicture?: string | null;
+  whatsappPushName?: string | null;
+  whatsappFormattedNumber?: string | null;
 }
 
 export type QualificationLevel = 'elite' | 'potential' | 'disqualified';

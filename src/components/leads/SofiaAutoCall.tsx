@@ -13,9 +13,16 @@ interface LeadData {
   level: QualificationLevel;
 }
 
+interface WhatsAppProfile {
+  pictureUrl: string | null;
+  pushName: string | null;
+  formattedNumber: string | null;
+}
+
 interface SofiaAutoCallProps {
   isOpen: boolean;
   leadData: LeadData;
+  whatsappProfile?: WhatsAppProfile;
   savedAudioBase64?: string | null;
   onAudioComplete: (audioBase64: string) => void;
   onSkip?: () => void;
@@ -26,10 +33,29 @@ type CallState = 'connecting' | 'connected' | 'ended';
 export function SofiaAutoCall({
   isOpen,
   leadData,
+  whatsappProfile,
   savedAudioBase64,
   onAudioComplete,
   onSkip
 }: SofiaAutoCallProps) {
+  // Formatar número para exibição
+  const formatPhoneDisplay = (number: string | null | undefined): string => {
+    if (!number) return '';
+    
+    const clean = number.replace(/\D/g, '');
+    if (clean.length >= 12) {
+      const country = clean.slice(0, 2);
+      const ddd = clean.slice(2, 4);
+      const part1 = clean.slice(4, 9);
+      const part2 = clean.slice(9);
+      return `+${country} ${ddd} ${part1}-${part2}`;
+    }
+    return `+${clean}`;
+  };
+
+  // Nome a exibir (pushName do WhatsApp ou nome digitado)
+  const displayName = whatsappProfile?.pushName || leadData.name;
+  const firstName = displayName.split(' ')[0];
   const [callState, setCallState] = useState<CallState>('connecting');
   const [callDuration, setCallDuration] = useState(0);
   const [audioPlaying, setAudioPlaying] = useState(false);
@@ -207,7 +233,7 @@ export function SofiaAutoCall({
 
       {/* Conteúdo Principal - Centralizado */}
       <div className="flex-1 flex flex-col justify-center px-6 pb-8">
-        {/* Avatar com Anéis */}
+        {/* Avatar com Foto do WhatsApp */}
         <div className="flex justify-center mb-8">
           <div className="relative">
             {/* Avatar */}
@@ -215,7 +241,19 @@ export function SofiaAutoCall({
               "relative w-36 h-36 rounded-full overflow-hidden border-4",
               callState === 'connected' ? "border-[#25D366]" : "border-white/20"
             )}>
-              <div className="w-full h-full bg-gradient-to-br from-[#25D366] to-[#128C7E] flex items-center justify-center">
+              {whatsappProfile?.pictureUrl ? (
+                <img 
+                  src={whatsappProfile.pictureUrl} 
+                  alt={displayName}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // Fallback se imagem falhar - esconde e mostra ícone
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              ) : null}
+              {/* Fallback sempre presente (fica atrás da imagem) */}
+              <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-[#25D366] to-[#128C7E] flex items-center justify-center -z-10">
                 <User className="w-16 h-16 text-white" />
               </div>
             </div>
@@ -229,16 +267,20 @@ export function SofiaAutoCall({
           </div>
         </div>
 
-        {/* Info do Chamador */}
+        {/* Info do Lead */}
         <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold text-white mb-2">Sofia</h2>
-          <p className="text-white/60 text-lg">Assistente de IA do Marcos Andrade</p>
+          <h2 className="text-3xl font-bold text-white mb-1">{displayName}</h2>
+          {whatsappProfile?.formattedNumber && (
+            <p className="text-white/50 text-lg mb-2">
+              {formatPhoneDisplay(whatsappProfile.formattedNumber)}
+            </p>
+          )}
           
           {callState === 'connecting' && (
             <div className="mt-6 flex flex-col items-center gap-3">
               <Loader2 className="w-8 h-8 animate-spin text-[#25D366]" />
               <p className="text-[#25D366] font-medium text-lg">
-                Conectando...
+                Conectando ao WhatsApp de {firstName}...
               </p>
               <p className="text-white/50 text-base">
                 Preparando sua análise personalizada

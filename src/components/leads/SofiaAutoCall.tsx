@@ -4,7 +4,8 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import type { DiagnosticAnswers, QualificationLevel } from '@/lib/diagnosticScoring';
 import { generateSofiaScript } from '@/lib/callScriptGenerator';
-import { CallValidationSteps, INITIAL_CALL_STEPS, type CallStep, type CallStepStatus } from './CallValidationSteps';
+import { CallStepCard, type CallStep, type StepStatus } from './CallStepCard';
+import { ConfettiExplosion } from './ConfettiExplosion';
 
 interface LeadData {
   name: string;
@@ -32,6 +33,15 @@ interface SofiaAutoCallProps {
 type CallState = 'connecting' | 'connected' | 'ended';
 
 const STEP_DURATION = 3000; // 3 segundos por etapa
+const CELEBRATION_DURATION = 1200; // 1.2s para confete
+
+const CALL_STEPS_CONFIG: Omit<CallStep, 'status'>[] = [
+  { id: 'validate', label: 'Validando número...', icon: 'phone' },
+  { id: 'photo', label: 'Buscando foto do perfil...', icon: 'camera' },
+  { id: 'name', label: 'Buscando nome do contato...', icon: 'user' },
+  { id: 'script', label: 'Gerando script personalizado...', icon: 'file' },
+  { id: 'voice', label: 'Preparando voz da Sofia...', icon: 'mic' },
+];
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -60,12 +70,17 @@ export function SofiaAutoCall({
 
   // Nome a exibir (pushName do WhatsApp ou nome digitado)
   const displayName = whatsappProfile?.pushName || leadData.name;
-  const firstName = displayName.split(' ')[0];
   const [callState, setCallState] = useState<CallState>('connecting');
   const [callDuration, setCallDuration] = useState(0);
   const [audioPlaying, setAudioPlaying] = useState(false);
   const [generatedAudioBase64, setGeneratedAudioBase64] = useState<string | null>(null);
-  const [callSteps, setCallSteps] = useState<CallStep[]>(INITIAL_CALL_STEPS);
+  
+  // Estados para cards sequenciais
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [currentStep, setCurrentStep] = useState<CallStep>({ ...CALL_STEPS_CONFIG[0], status: 'pending' });
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [isCardExiting, setIsCardExiting] = useState(false);
+  const [allStepsComplete, setAllStepsComplete] = useState(false);
   
   // Estados para reveal progressivo
   const [showNumber, setShowNumber] = useState(false);
@@ -76,13 +91,6 @@ export function SofiaAutoCall({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasStartedRef = useRef(false);
   const audioReadyRef = useRef<string | null>(null);
-
-  // Atualizar status de uma etapa
-  const updateCallStep = useCallback((stepId: string, status: CallStepStatus, result?: string) => {
-    setCallSteps(prev => prev.map(step => 
-      step.id === stepId ? { ...step, status, result } : step
-    ));
-  }, []);
 
   // Iniciar chamada automaticamente quando abre
   useEffect(() => {
@@ -130,6 +138,41 @@ export function SofiaAutoCall({
     setCallState('ended');
   }, []);
 
+  // Função para processar uma etapa com animação
+  const processStep = async (
+    stepIndex: number, 
+    successMessage: string,
+    onSuccess?: () => void
+  ) => {
+    const stepConfig = CALL_STEPS_CONFIG[stepIndex];
+    
+    // Mostrar card com loading
+    setCurrentStep({ ...stepConfig, status: 'loading' });
+    setIsCardExiting(false);
+    
+    // Aguardar duração da etapa
+    await delay(STEP_DURATION);
+    
+    // Mostrar sucesso
+    setCurrentStep({ ...stepConfig, status: 'success', message: successMessage });
+    
+    // Disparar confete
+    setShowConfetti(true);
+    
+    // Executar callback (revelar dados)
+    if (onSuccess) onSuccess();
+    
+    // Aguardar animação de celebração
+    await delay(CELEBRATION_DURATION);
+    
+    // Esconder confete e animar saída do card
+    setShowConfetti(false);
+    setIsCardExiting(true);
+    
+    // Aguardar animação de saída
+    await delay(400);
+  };
+
   const startCall = async () => {
     setCallState('connecting');
     
@@ -139,39 +182,24 @@ export function SofiaAutoCall({
       audioReadyRef.current = savedAudioBase64;
     }
     
-    // Etapa 1: Validando número (3s)
-    updateCallStep('validate', 'loading');
-    await delay(STEP_DURATION);
-    updateCallStep('validate', 'success', 'Número válido!');
-    setShowNumber(true); // REVELA O NÚMERO
+    // Etapa 1: Validando número
+    await processStep(0, 'Número válido!', () => setShowNumber(true));
+    setCurrentStepIndex(1);
     
-    // Etapa 2: Buscando foto (3s)
-    updateCallStep('photo', 'loading');
-    await delay(STEP_DURATION);
-    if (whatsappProfile?.pictureUrl) {
-      updateCallStep('photo', 'success', 'Foto encontrada!');
-    } else {
-      updateCallStep('photo', 'warning', 'Foto privada');
-    }
-    setShowPhoto(true); // REVELA A FOTO
+    // Etapa 2: Buscando foto
+    const photoMessage = whatsappProfile?.pictureUrl ? 'Foto encontrada!' : 'Foto privada';
+    await processStep(1, photoMessage, () => setShowPhoto(true));
+    setCurrentStepIndex(2);
     
-    // Etapa 3: Buscando nome (3s)
-    updateCallStep('name', 'loading');
-    await delay(STEP_DURATION);
-    if (whatsappProfile?.pushName) {
-      updateCallStep('name', 'success', whatsappProfile.pushName);
-    } else {
-      updateCallStep('name', 'warning', 'Nome não disponível');
-    }
-    setShowName(true); // REVELA O NOME
+    // Etapa 3: Buscando nome
+    const nameMessage = whatsappProfile?.pushName || 'Nome não disponível';
+    await processStep(2, nameMessage, () => setShowName(true));
+    setCurrentStepIndex(3);
     
-    // Etapa 4: Gerando script (3s) - inicia geração real em paralelo se não tiver áudio salvo
-    updateCallStep('script', 'loading');
-    
+    // Etapa 4: Gerando script - inicia geração real em paralelo se não tiver áudio salvo
     let audioGenerationPromise: Promise<string | null> | null = null;
     
     if (!savedAudioBase64) {
-      // Iniciar geração do áudio em paralelo
       audioGenerationPromise = (async () => {
         try {
           const script = generateSofiaScript({
@@ -199,11 +227,13 @@ export function SofiaAutoCall({
       })();
     }
     
-    await delay(STEP_DURATION);
-    updateCallStep('script', 'success', 'Script pronto!');
+    await processStep(3, 'Script pronto!');
+    setCurrentStepIndex(4);
     
-    // Etapa 5: Preparando voz (3s) - aguarda áudio se necessário
-    updateCallStep('voice', 'loading');
+    // Etapa 5: Preparando voz - aguarda áudio se necessário
+    const stepConfig = CALL_STEPS_CONFIG[4];
+    setCurrentStep({ ...stepConfig, status: 'loading' });
+    setIsCardExiting(false);
     
     const startTime = Date.now();
     
@@ -221,7 +251,12 @@ export function SofiaAutoCall({
       await delay(STEP_DURATION - elapsed);
     }
     
-    updateCallStep('voice', 'success', 'Voz preparada!');
+    // Mostrar sucesso da última etapa
+    setCurrentStep({ ...stepConfig, status: 'success', message: 'Voz preparada!' });
+    setShowConfetti(true);
+    await delay(CELEBRATION_DURATION);
+    setShowConfetti(false);
+    setAllStepsComplete(true);
     
     // Pequena pausa antes de conectar
     await delay(500);
@@ -378,9 +413,21 @@ export function SofiaAutoCall({
             )}
           </p>
           
-          {callState === 'connecting' && (
-            <div className="mt-6">
-              <CallValidationSteps steps={callSteps} />
+          {callState === 'connecting' && !allStepsComplete && (
+            <div className="mt-6 relative flex flex-col items-center">
+              {/* Confete */}
+              {showConfetti && <ConfettiExplosion />}
+              
+              {/* Card único da etapa atual */}
+              <CallStepCard 
+                step={currentStep}
+                isExiting={isCardExiting}
+              />
+              
+              {/* Indicador de progresso */}
+              <p className="text-white/40 text-sm mt-4">
+                Etapa {currentStepIndex + 1} de {CALL_STEPS_CONFIG.length}
+              </p>
             </div>
           )}
           

@@ -79,18 +79,11 @@ export function SofiaAutoCall({
   }, []);
 
   const handleAudioEnded = useCallback(() => {
-    console.log('Audio playback finished - showing result');
+    console.log('Audio playback finished - waiting for user to click button');
     setAudioPlaying(false);
     setCallState('ended');
-    
-    // Pequeno delay para animação, depois dispara callback
-    setTimeout(() => {
-      const audioToReturn = generatedAudioBase64 || savedAudioBase64;
-      if (audioToReturn) {
-        onAudioComplete(audioToReturn);
-      }
-    }, 500);
-  }, [generatedAudioBase64, savedAudioBase64, onAudioComplete]);
+    // Não dispara callback automaticamente - usuário precisa clicar no botão
+  }, []);
 
   const startCall = async () => {
     setCallState('connecting');
@@ -260,9 +253,22 @@ export function SofiaAutoCall({
           )}
           
           {callState === 'ended' && (
-            <p className="text-white/60 mt-4 text-lg">
-              Chamada encerrada • {formatTime(callDuration)}
-            </p>
+            <>
+              <p className="text-white/60 mt-4 text-lg">
+                Chamada encerrada • {formatTime(callDuration)}
+              </p>
+              
+              {/* Botão para ver diagnóstico */}
+              <button
+                onClick={() => {
+                  const audioToReturn = generatedAudioBase64 || savedAudioBase64;
+                  onAudioComplete(audioToReturn || '');
+                }}
+                className="mt-8 px-8 py-4 bg-[#25D366] hover:bg-[#1ebe5a] text-white font-semibold text-lg rounded-full shadow-lg shadow-[#25D366]/30 transition-all hover:scale-105 animate-fade-in"
+              >
+                Ver Meu Diagnóstico
+              </button>
+            </>
           )}
         </div>
 

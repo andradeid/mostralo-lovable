@@ -147,19 +147,10 @@ export default function DiagnosticoPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-center">
           <a href="/" className="flex items-center gap-2">
             <Store className="w-8 h-8 text-primary" />
             <span className="font-bold text-xl text-foreground">Mostralo</span>
-          </a>
-          
-          <a
-            href="https://wa.me/5561994009368"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
-          >
-            Falar com Consultor
           </a>
         </div>
       </header>

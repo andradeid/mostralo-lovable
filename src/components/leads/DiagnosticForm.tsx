@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { ChevronRight, ChevronLeft, User, Phone, Building2 } from 'lucide-react';
+import { ChevronRight, ChevronLeft, User, Phone, Building2, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { cn } from '@/lib/utils';
+import { cn, formatBrazilianPhone, formatInternationalPhone } from '@/lib/utils';
 import { DiagnosticLoadingScreen } from './DiagnosticLoadingScreen';
+import { CountryCodeSelect } from '@/components/ui/country-code-select';
+import { supabase } from '@/integrations/supabase/client';
 import type { DiagnosticAnswers, ContactData } from '@/lib/diagnosticScoring';
 
 interface DiagnosticFormProps {
@@ -78,6 +80,9 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
   const [animating, setAnimating] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingQuestionId, setProcessingQuestionId] = useState<string | null>(null);
+  const [countryCode, setCountryCode] = useState('+55');
+  const [whatsappStatus, setWhatsappStatus] = useState<'idle' | 'validating' | 'valid' | 'invalid'>('idle');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const totalSteps = QUESTIONS.length + 1;
   const progress = ((currentStep + 1) / totalSteps) * 100;
@@ -114,18 +119,56 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
     }
   };
   
-  const handleSubmit = () => {
-    if (contact.name && contact.phone && contact.company) {
-      onComplete(answers as DiagnosticAnswers, contact);
+  const handlePhoneChange = (value: string) => {
+    const formatted = countryCode === '+55'
+      ? formatBrazilianPhone(value)
+      : formatInternationalPhone(value);
+    setContact(prev => ({ ...prev, phone: formatted }));
+    
+    if (whatsappStatus !== 'idle') {
+      setWhatsappStatus('idle');
     }
   };
-  
-  const formatPhone = (value: string) => {
-    const numbers = value.replace(/\D/g, '');
-    if (numbers.length <= 2) return numbers;
-    if (numbers.length <= 7) return `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`;
-    if (numbers.length <= 11) return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7)}`;
-    return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7, 11)}`;
+
+  const validateWhatsApp = async (): Promise<boolean> => {
+    const cleanPhone = contact.phone.replace(/\D/g, '');
+    if (cleanPhone.length < 10) return false;
+    
+    setWhatsappStatus('validating');
+    
+    const fullPhone = countryCode.replace('+', '') + cleanPhone;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('validate-whatsapp-number', {
+        body: { 
+          phone: fullPhone,
+          leadName: contact.name,
+          sendWelcome: true
+        }
+      });
+      
+      if (error) throw error;
+      
+      const isValid = data?.valid || false;
+      setWhatsappStatus(isValid ? 'valid' : 'invalid');
+      return isValid;
+    } catch (err) {
+      console.error('Erro ao validar WhatsApp:', err);
+      setWhatsappStatus('invalid');
+      return false;
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (contact.name && contact.phone && contact.company && !isSubmitting) {
+      setIsSubmitting(true);
+      
+      await validateWhatsApp();
+      
+      setTimeout(() => {
+        onComplete(answers as DiagnosticAnswers, contact);
+      }, 2000);
+    }
   };
   
   const isContactValid = contact.name.trim().length >= 3 && 
@@ -252,13 +295,50 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
                   <Phone className="w-4 h-4" />
                   WhatsApp
                 </Label>
-                <Input
-                  id="phone"
-                  placeholder="(00) 00000-0000"
-                  value={contact.phone}
-                  onChange={(e) => setContact(prev => ({ ...prev, phone: formatPhone(e.target.value) }))}
-                  className="h-12"
-                />
+                <div className="flex gap-2">
+                  <CountryCodeSelect
+                    value={countryCode}
+                    onChange={setCountryCode}
+                    disabled={isSubmitting}
+                  />
+                  <div className="relative flex-1">
+                    <Input
+                      id="phone"
+                      placeholder={countryCode === '+55' ? '(11) 99999-9999' : '999 999 9999'}
+                      value={contact.phone}
+                      onChange={(e) => handlePhoneChange(e.target.value)}
+                      disabled={isSubmitting}
+                      className={cn(
+                        "h-12 pr-10",
+                        whatsappStatus === 'valid' && 'border-emerald-500 focus-visible:ring-emerald-500',
+                        whatsappStatus === 'invalid' && 'border-amber-500 focus-visible:ring-amber-500'
+                      )}
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      {whatsappStatus === 'validating' && (
+                        <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                      )}
+                      {whatsappStatus === 'valid' && (
+                        <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                      )}
+                      {whatsappStatus === 'invalid' && (
+                        <AlertCircle className="w-5 h-5 text-amber-500" />
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {whatsappStatus !== 'idle' && (
+                  <p className={cn(
+                    "text-xs animate-fade-in",
+                    whatsappStatus === 'validating' && 'text-muted-foreground',
+                    whatsappStatus === 'valid' && 'text-emerald-500',
+                    whatsappStatus === 'invalid' && 'text-amber-500'
+                  )}>
+                    {whatsappStatus === 'validating' && '● Verificando WhatsApp...'}
+                    {whatsappStatus === 'valid' && '✓ WhatsApp verificado! Mensagem de boas-vindas enviada.'}
+                    {whatsappStatus === 'invalid' && '⚠ WhatsApp não encontrado (o cadastro continuará)'}
+                  </p>
+                )}
               </div>
               
               <div className="space-y-2">
@@ -277,12 +357,21 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
               
               <Button
                 onClick={handleSubmit}
-                disabled={!isContactValid}
+                disabled={!isContactValid || isSubmitting}
                 className="w-full h-14 text-lg font-semibold mt-6"
                 size="lg"
               >
-                Ver Meu Resultado
-                <ChevronRight className="w-5 h-5 ml-2" />
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Validando...
+                  </>
+                ) : (
+                  <>
+                    Ver Meu Resultado
+                    <ChevronRight className="w-5 h-5 ml-2" />
+                  </>
+                )}
               </Button>
             </div>
           </div>

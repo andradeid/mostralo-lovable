@@ -4058,5 +4058,127 @@ O Totem roda em um **App Android** (WebView + Bridge) que pode:
       '□ Documentar processo de configuração por adquirente',
       '□ Avaliar demanda por TEF tradicional/Pinpad'
     ]
+  },
+  {
+    id: 29,
+    title: '🎙️ Enviar Áudio da Sofia via WhatsApp após Diagnóstico',
+    status: 'idea',
+    priority: 'high',
+    createdAt: '2026-01-01',
+    description: 'Criar edge function que gera áudio personalizado da Sofia (IA) usando ElevenLabs e envia automaticamente para o WhatsApp do lead após completar o diagnóstico.',
+    
+    context: `Atualmente o sistema gera áudio da Sofia (voz Ana Alice - ORgG8rwdAiMYRug8RJwR) apenas para reprodução no navegador durante o diagnóstico. O áudio é descartado após reprodução.
+
+Infraestrutura existente:
+- supabase/functions/text-to-speech - Gera áudio via ElevenLabs (base64)
+- supabase/functions/whatsapp-send - Envia mensagens/mídia via Evolution API
+- whatsapp_instances - Instâncias WhatsApp conectadas
+- evolution_config - Configuração da API Evolution
+- DiagnosticoPage.tsx - Página do diagnóstico onde lead é salvo`,
+
+    problem: `O lead recebe apenas o resultado visual do diagnóstico. Oportunidade identificada:
+- Aumentar engajamento enviando áudio personalizado via WhatsApp
+- Reforçar a presença da Sofia como assistente IA
+- Criar touchpoint adicional de follow-up
+- Diferencial competitivo (poucos sistemas fazem isso)
+- Lead recebe conteúdo de valor no próprio WhatsApp`,
+
+    technicalDetails: {
+      title: '🔧 Implementação Técnica',
+      items: [
+        'Criar bucket temp-audios no Supabase Storage (public, para URLs temporárias)',
+        'Criar Edge Function send-diagnostic-audio',
+        'Receber dados: leadName, companyName, phone, answers, score, level',
+        'Gerar script personalizado (reutilizar lógica diagnostic-call)',
+        'Chamar ElevenLabs API com voz Ana Alice (ORgG8rwdAiMYRug8RJwR)',
+        'Converter base64 para Uint8Array e fazer upload no Storage',
+        'Gerar URL pública temporária do áudio',
+        'Buscar config Evolution API da instância master',
+        'Enviar áudio via endpoint sendWhatsAppAudio',
+        'Deletar arquivo do Storage após envio bem-sucedido',
+        'Atualizar DiagnosticoPage.tsx para chamar função após salvar lead'
+      ]
+    },
+
+    phases: [
+      {
+        name: 'Fase 1 - Infraestrutura',
+        description: 'Criar bucket e edge function base',
+        items: [
+          'Criar bucket temp-audios no Supabase Storage',
+          'Configurar RLS para service_role (edge functions)',
+          'Criar estrutura da Edge Function send-diagnostic-audio',
+          'Implementar geração de script personalizado'
+        ]
+      },
+      {
+        name: 'Fase 2 - Integração ElevenLabs + Storage',
+        description: 'Gerar áudio e fazer upload temporário',
+        items: [
+          'Chamar ElevenLabs com texto gerado',
+          'Converter base64 para formato binário',
+          'Upload para temp-audios/{uuid}.mp3',
+          'Gerar URL pública para o arquivo'
+        ]
+      },
+      {
+        name: 'Fase 3 - Envio WhatsApp + Cleanup',
+        description: 'Enviar via Evolution e limpar arquivo',
+        items: [
+          'Buscar configuração Evolution da instância master',
+          'Formatar número de telefone do lead',
+          'Enviar áudio via sendWhatsAppAudio',
+          'Deletar arquivo do Storage após envio',
+          'Implementar tratamento de erros e logs'
+        ]
+      },
+      {
+        name: 'Fase 4 - Integração Frontend',
+        description: 'Conectar ao fluxo do diagnóstico',
+        items: [
+          'Atualizar DiagnosticoPage.tsx',
+          'Chamar edge function após salvar lead (background)',
+          'Não bloquear exibição do resultado para o usuário',
+          'Adicionar logs para monitoramento'
+        ]
+      }
+    ],
+
+    riskAnalysis: {
+      title: '⚠️ Análise de Riscos',
+      sections: [
+        {
+          level: 'low',
+          title: 'Riscos Baixos',
+          items: [
+            'Arquivos temporários acumulando (mitigado por auto-delete)',
+            'Latência na geração do áudio (3-5 segundos típico)',
+            'Custo ElevenLabs por áudio (~$0.002-0.005 por geração)'
+          ]
+        },
+        {
+          level: 'medium',
+          title: 'Riscos Médios',
+          items: [
+            'Instância WhatsApp master desconectada (verificar status antes)',
+            'ElevenLabs API indisponível (implementar retry)',
+            'Número de telefone do lead inválido (validar formato)'
+          ]
+        }
+      ]
+    },
+
+    nextSteps: [
+      '□ Criar migração SQL para bucket temp-audios',
+      '□ Criar Edge Function send-diagnostic-audio',
+      '□ Implementar geração de script personalizado',
+      '□ Integrar com ElevenLabs (voz Ana Alice)',
+      '□ Implementar upload temporário no Storage',
+      '□ Integrar com Evolution API para envio',
+      '□ Implementar auto-delete após envio',
+      '□ Atualizar DiagnosticoPage.tsx',
+      '□ Testar fluxo completo',
+      '□ Monitorar logs e ajustar conforme necessário'
+    ]
   }
 ];

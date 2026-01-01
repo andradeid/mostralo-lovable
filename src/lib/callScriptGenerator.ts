@@ -96,3 +96,47 @@ function getQualificationMessage(firstName: string, level: QualificationLevel): 
 export function generatePersonalizedScript(data: ScriptData): string {
   return generateSofiaScript(data);
 }
+
+/**
+ * Gera mensagem de follow-up personalizada para o Marcos enviar
+ * Técnica Flávio Augusto: Entrada pelo pedestal após Sofia preparar o terreno
+ */
+export function generateMarcosFollowUp(data: ScriptData): string {
+  const firstName = data.leadName.split(' ')[0];
+  
+  // Insight baseado nas respostas do diagnóstico
+  const insight = getFollowUpInsight(data.answers);
+  
+  if (data.level === 'elite') {
+    return `Olá, ${firstName}! Marcos Andrade aqui 👋\n\n` +
+      `Minha assistente me passou seu diagnóstico agora. ${insight}\n\n` +
+      `Vi que você foi qualificado pro Programa Elite - isso significa mentoria direta comigo ` +
+      `e isenção da taxa de implementação.\n\n` +
+      `Tenho um horário amanhã às 10h ou às 15h para validarmos seu plano de implementação. ` +
+      `Qual fica melhor pra você?`;
+  }
+  
+  return `Olá, ${firstName}! Marcos Andrade aqui 👋\n\n` +
+    `A Sofia me passou o diagnóstico da ${data.companyName}. ${insight}\n\n` +
+    `Vi que vocês têm um bom potencial pra crescer com as estratégias certas.\n\n` +
+    `Posso te ligar amanhã pra conversarmos? Qual melhor horário?`;
+}
+
+/**
+ * Insight específico para o follow-up baseado nas dores
+ */
+function getFollowUpInsight(answers: ScriptData['answers']): string {
+  if (answers.q1 === 'b' || answers.q1 === 'c') {
+    return `Realmente, ficar invisível no Google enquanto os concorrentes aparecem é complicado.`;
+  }
+  
+  if (answers.q2 === 'a' || answers.q2 === 'b') {
+    return `Sei bem como é perder vendas por demorar pra responder no WhatsApp.`;
+  }
+  
+  if (answers.q3 === 'a' || answers.q3 === 'b') {
+    return `Aumentar o ticket médio sem parecer insistente é uma arte - e a gente domina isso.`;
+  }
+
+  return `Vi algumas oportunidades interessantes no seu diagnóstico.`;
+}

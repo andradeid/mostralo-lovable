@@ -44,6 +44,7 @@ const PlansPage = lazy(() => import("@/pages/admin/PlansPage"));
 const AdminCouponsPage = lazy(() => import("@/pages/admin/AdminCouponsPage"));
 const EvolutionConfigPage = lazy(() => import("@/pages/admin/EvolutionConfigPage"));
 const LeadsManagementPage = lazy(() => import("@/pages/admin/LeadsManagementPage"));
+const FollowUpQueuePage = lazy(() => import("@/pages/admin/FollowUpQueuePage"));
 const AdminSharePage = lazy(() => import("@/pages/admin/AdminSharePage"));
 const ContractTemplateEditPage = lazy(() => import("@/pages/admin/ContractTemplateEditPage"));
 const SystemUpdatesManagementPage = lazy(() => import("@/pages/admin/SystemUpdatesManagementPage"));
@@ -334,6 +335,13 @@ export const masterRoutes = (
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Gestão de Leads">
           <LazyRoute><LeadsManagementPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/follow-up-queue" element={
+      <ProtectedRoute allowedRoles={['master_admin']}>
+        <AdminLayout pageTitle="Fila de Follow-up">
+          <LazyRoute><FollowUpQueuePage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

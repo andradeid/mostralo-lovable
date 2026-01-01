@@ -215,8 +215,7 @@ export function WhatsAppCallMockup({
     <div 
       className={cn(
         "fixed inset-0 z-[100] flex flex-col",
-        "bg-gradient-to-b from-[#1F2C34] to-[#0B141A]",
-        callState === 'incoming' && "animate-phone-vibrate"
+        "bg-gradient-to-b from-[#1F2C34] to-[#0B141A]"
       )}
     >
       {/* Header */}

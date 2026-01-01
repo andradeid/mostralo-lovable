@@ -26,6 +26,7 @@ interface SofiaAutoCallProps {
   leadData: LeadData;
   whatsappProfile?: WhatsAppProfile;
   savedAudioBase64?: string | null;
+  customScript?: string;
   onAudioComplete: (audioBase64: string) => void;
   onSkip?: () => void;
 }
@@ -48,6 +49,7 @@ export function SofiaAutoCall({
   leadData,
   whatsappProfile,
   savedAudioBase64,
+  customScript,
   onAudioComplete,
   onSkip
 }: SofiaAutoCallProps) {
@@ -184,7 +186,8 @@ export function SofiaAutoCall({
       // Gerar áudio em paralelo com as etapas visuais
       audioGenerationPromise = (async () => {
         try {
-          const script = generateSofiaScript({
+          // Usar script customizado se fornecido, senão gerar o padrão
+          const script = customScript || generateSofiaScript({
             leadName: leadData.name,
             companyName: leadData.company,
             answers: leadData.answers,

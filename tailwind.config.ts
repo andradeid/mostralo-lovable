@@ -83,15 +83,9 @@ export default {
         },
         'phone-vibrate': {
           '0%, 100%': { transform: 'translateX(0) rotate(0deg)' },
-          '10%': { transform: 'translateX(-2px) rotate(-1deg)' },
-          '20%': { transform: 'translateX(2px) rotate(1deg)' },
-          '30%': { transform: 'translateX(-2px) rotate(0deg)' },
-          '40%': { transform: 'translateX(2px) rotate(1deg)' },
-          '50%': { transform: 'translateX(-2px) rotate(-1deg)' },
-          '60%': { transform: 'translateX(2px) rotate(0deg)' },
-          '70%': { transform: 'translateX(-2px) rotate(1deg)' },
-          '80%': { transform: 'translateX(2px) rotate(-1deg)' },
-          '90%': { transform: 'translateX(-2px) rotate(0deg)' }
+          '25%': { transform: 'translateX(-1px) rotate(-0.5deg)' },
+          '50%': { transform: 'translateX(1px) rotate(0.5deg)' },
+          '75%': { transform: 'translateX(-1px) rotate(-0.5deg)' }
         },
         'ring-pulse': {
           '0%': { transform: 'scale(1)', opacity: '0.8' },
@@ -250,7 +244,7 @@ export default {
 				'fade-in': 'fade-in 0.3s ease-out forwards',
 				'ping-slow': 'ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite',
 				'pulse-gentle': 'pulse-gentle 2s ease-in-out infinite',
-				'phone-vibrate': 'phone-vibrate 0.3s linear infinite',
+				'phone-vibrate': 'phone-vibrate 0.8s ease-in-out infinite',
 				'ring-pulse': 'ring-pulse 1.5s ease-out infinite',
 				'accept-pulse': 'accept-pulse 1s ease-in-out infinite',
 				'audio-bar': 'audio-bar 0.5s ease-in-out infinite'

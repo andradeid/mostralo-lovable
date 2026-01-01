@@ -3,7 +3,6 @@ import { Store } from 'lucide-react';
 import { DiagnosticForm } from '@/components/leads/DiagnosticForm';
 import { DiagnosticResult } from '@/components/leads/DiagnosticResult';
 import { DiagnosticAlreadyCompleted } from '@/components/leads/DiagnosticAlreadyCompleted';
-import { DiagnosticProcessingScreen } from '@/components/leads/DiagnosticProcessingScreen';
 import { SofiaAutoCall } from '@/components/leads/SofiaAutoCall';
 import { getDiagnosticResult } from '@/lib/diagnosticScoring';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,8 +26,7 @@ export default function DiagnosticoPage() {
   const [savedAudio, setSavedAudio] = useState<string | null>(null);
   const [completedAt, setCompletedAt] = useState<string>('');
   
-  // Novos estados para o fluxo invertido
-  const [showProcessing, setShowProcessing] = useState(false);
+  // Estado para abrir o modal de chamada
   const [showSofiaCall, setShowSofiaCall] = useState(false);
   
   // Perfil WhatsApp do lead
@@ -96,9 +94,9 @@ export default function DiagnosticoPage() {
         return;
       }
       
-      // Guardar resultado pendente e iniciar fluxo de processamento
+      // Guardar resultado pendente e abrir modal de chamada diretamente
       setPendingResult(diagnosticResult);
-      setShowProcessing(true);
+      setShowSofiaCall(true);
       
     } catch (err) {
       console.error('Erro no diagnóstico:', err);
@@ -106,11 +104,6 @@ export default function DiagnosticoPage() {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleProcessingComplete = () => {
-    setShowProcessing(false);
-    setShowSofiaCall(true);
   };
 
   const handleSofiaCallComplete = (audioBase64: string) => {
@@ -153,7 +146,6 @@ export default function DiagnosticoPage() {
     setSavedAudio(null);
     setAlreadyCompleted(false);
     setCompletedAt('');
-    setShowProcessing(false);
     setShowSofiaCall(false);
   };
 
@@ -194,8 +186,6 @@ export default function DiagnosticoPage() {
             completedAt={completedAt}
             onRestart={handleRestart}
           />
-        ) : showProcessing ? (
-          <DiagnosticProcessingScreen onComplete={handleProcessingComplete} />
         ) : result ? (
           <DiagnosticResult 
             result={result} 

@@ -385,6 +385,8 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
                   <div className="relative flex-1">
                     <Input
                       id="phone"
+                      type="tel"
+                      inputMode="numeric"
                       placeholder={countryCode === '+55' ? '(11) 99999-9999' : '999 999 9999'}
                       value={contact.phone}
                       onChange={(e) => handlePhoneChange(e.target.value)}

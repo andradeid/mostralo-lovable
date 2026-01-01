@@ -66,6 +66,12 @@ export function SofiaAutoCall({
   const [audioPlaying, setAudioPlaying] = useState(false);
   const [generatedAudioBase64, setGeneratedAudioBase64] = useState<string | null>(null);
   const [callSteps, setCallSteps] = useState<CallStep[]>(INITIAL_CALL_STEPS);
+  
+  // Estados para reveal progressivo
+  const [showNumber, setShowNumber] = useState(false);
+  const [showPhoto, setShowPhoto] = useState(false);
+  const [showName, setShowName] = useState(false);
+  
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasStartedRef = useRef(false);
@@ -137,6 +143,7 @@ export function SofiaAutoCall({
     updateCallStep('validate', 'loading');
     await delay(STEP_DURATION);
     updateCallStep('validate', 'success', 'Número válido!');
+    setShowNumber(true); // REVELA O NÚMERO
     
     // Etapa 2: Buscando foto (3s)
     updateCallStep('photo', 'loading');
@@ -146,6 +153,7 @@ export function SofiaAutoCall({
     } else {
       updateCallStep('photo', 'warning', 'Foto privada');
     }
+    setShowPhoto(true); // REVELA A FOTO
     
     // Etapa 3: Buscando nome (3s)
     updateCallStep('name', 'loading');
@@ -155,6 +163,7 @@ export function SofiaAutoCall({
     } else {
       updateCallStep('name', 'warning', 'Nome não disponível');
     }
+    setShowName(true); // REVELA O NOME
     
     // Etapa 4: Gerando script (3s) - inicia geração real em paralelo se não tiver áudio salvo
     updateCallStep('script', 'loading');
@@ -307,29 +316,38 @@ export function SofiaAutoCall({
           <div className="relative">
             {/* Avatar */}
             <div className={cn(
-              "relative w-36 h-36 rounded-full overflow-hidden border-4",
+              "relative w-36 h-36 rounded-full overflow-hidden border-4 transition-all duration-500",
               callState === 'connected' ? "border-[#25D366]" : "border-white/20"
             )}>
-              {whatsappProfile?.pictureUrl ? (
-                <img 
-                  src={whatsappProfile.pictureUrl} 
-                  alt={displayName}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    // Fallback se imagem falhar - esconde e mostra ícone
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-              ) : null}
-              {/* Fallback sempre presente (fica atrás da imagem) */}
-              <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-[#25D366] to-[#128C7E] flex items-center justify-center -z-10">
-                <User className="w-16 h-16 text-white" />
-              </div>
+              {showPhoto ? (
+                // Foto revelada com animação
+                <div className="animate-scale-in w-full h-full">
+                  {whatsappProfile?.pictureUrl ? (
+                    <img 
+                      src={whatsappProfile.pictureUrl} 
+                      alt={displayName}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  ) : null}
+                  {/* Fallback (fica atrás da imagem) */}
+                  <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-[#25D366] to-[#128C7E] flex items-center justify-center -z-10">
+                    <User className="w-16 h-16 text-white" />
+                  </div>
+                </div>
+              ) : (
+                // Placeholder enquanto carrega
+                <div className="w-full h-full bg-white/5 flex items-center justify-center">
+                  <span className="text-5xl text-white/20 font-light">?</span>
+                </div>
+              )}
             </div>
 
             {/* Indicador de status */}
             {callState === 'connected' && (
-              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-[#25D366] text-white text-sm font-medium">
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-[#25D366] text-white text-sm font-medium animate-fade-in">
                 Conectado
               </div>
             )}
@@ -338,12 +356,27 @@ export function SofiaAutoCall({
 
         {/* Info do Lead */}
         <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold text-white mb-1">{displayName}</h2>
-          {whatsappProfile?.formattedNumber && (
-            <p className="text-white/50 text-lg mb-2">
-              {formatPhoneDisplay(whatsappProfile.formattedNumber)}
-            </p>
-          )}
+          {/* Nome - Oculto até ser revelado */}
+          <h2 className="text-3xl font-bold text-white mb-1">
+            {showName ? (
+              <span className="animate-fade-in">{displayName}</span>
+            ) : (
+              <span className="text-white/20">• • • • •</span>
+            )}
+          </h2>
+          
+          {/* Número - Oculto até ser revelado */}
+          <p className="text-white/50 text-lg mb-2">
+            {showNumber ? (
+              <span className="animate-fade-in">
+                {whatsappProfile?.formattedNumber 
+                  ? formatPhoneDisplay(whatsappProfile.formattedNumber)
+                  : '+55 ** *****-****'}
+              </span>
+            ) : (
+              <span className="text-white/20">+•• •• •••••-••••</span>
+            )}
+          </p>
           
           {callState === 'connecting' && (
             <div className="mt-6">

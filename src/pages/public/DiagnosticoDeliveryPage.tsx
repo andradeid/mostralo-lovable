@@ -214,6 +214,7 @@ export default function DiagnosticoDeliveryPage() {
           leadData={getSofiaLeadData()!}
           whatsappProfile={whatsappProfile}
           savedAudioBase64={savedAudio}
+          customScript={customScript}
           onAudioComplete={handleSofiaCallComplete}
         />
       )}

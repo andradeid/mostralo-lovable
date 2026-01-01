@@ -4,6 +4,7 @@ import { DiagnosticForm } from '@/components/leads/DiagnosticForm';
 import { DiagnosticResult } from '@/components/leads/DiagnosticResult';
 import { getDiagnosticResult } from '@/lib/diagnosticScoring';
 import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
 import type { DiagnosticAnswers, ContactData, DiagnosticResult as DiagnosticResultType } from '@/lib/diagnosticScoring';
 
@@ -27,16 +28,16 @@ export default function DiagnosticoPage() {
           email: `lead_${Date.now()}@diagnostico.mostralo.me`,
           city: 'Não informado',
           company_name: contact.company,
-          contact_name: contact.name,
+          name: contact.name,
+          phone: phoneNumbers,
           company_phone: phoneNumbers,
           source: 'diagnostico',
           landing_page: '/diagnostico',
           qualification_level: diagnosticResult.level,
           qualification_score: diagnosticResult.score,
-          diagnostic_answers: answers as unknown as Record<string, unknown>,
+          diagnostic_answers: answers as unknown as Json,
           status: 'new'
-        }]
-        });
+        }]);
       
       if (error) {
         console.error('Erro ao salvar lead:', error);

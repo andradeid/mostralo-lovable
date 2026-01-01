@@ -50,6 +50,13 @@ interface DiagnosticAnswers {
   q4?: string;
 }
 
+interface DeliveryDiagnosticAnswers {
+  nicho?: string;
+  dependencia?: string;
+  volume?: string;
+  desafio?: string;
+}
+
 interface Lead {
   id: string;
   name: string;
@@ -83,12 +90,50 @@ const STATUS_OPTIONS = [
   { value: 'lost', label: 'Perdido', color: 'bg-red-500' }
 ];
 
-// Labels das perguntas do diagnóstico
+// Labels das perguntas do diagnóstico ORIGINAL
 const QUESTION_LABELS: Record<string, string> = {
   q1: 'Visibilidade no Google',
   q2: 'Conversão WhatsApp/IA',
   q3: 'Upsell no Balcão',
   q4: 'Maior Desafio'
+};
+
+// Labels das perguntas do diagnóstico DELIVERY
+const QUESTION_LABELS_DELIVERY: Record<string, string> = {
+  nicho: 'Tipo de Negócio',
+  dependencia: 'Dependência de Apps',
+  volume: 'Volume de Pedidos',
+  desafio: 'Maior Desafio'
+};
+
+// Labels das respostas de DELIVERY
+const ANSWER_LABELS_DELIVERY: Record<string, Record<string, string>> = {
+  nicho: {
+    restaurante: 'Restaurante/Pizzaria/Hamburgueria',
+    farmacia: 'Farmácia/Drogaria',
+    mercado: 'Supermercado/Mercearia',
+    petshop: 'Pet Shop',
+    acougue: 'Açougue/Casa de Carnes',
+    padaria: 'Padaria/Confeitaria',
+    outro: 'Outro tipo de delivery'
+  },
+  dependencia: {
+    a: 'Mais de 70% - muito dependente',
+    b: 'Entre 30% e 70%',
+    c: 'Menos de 30%'
+  },
+  volume: {
+    a: 'Mais de 500 pedidos/mês',
+    b: '200 a 500 pedidos/mês',
+    c: '50 a 200 pedidos/mês',
+    d: 'Menos de 50 pedidos/mês'
+  },
+  desafio: {
+    a: 'Reduzir comissões',
+    b: 'Ter dados dos clientes',
+    c: 'Criar canal próprio',
+    d: 'Já está satisfeito'
+  }
 };
 
 export default function LeadsManagementPage() {
@@ -153,6 +198,7 @@ export default function LeadsManagementPage() {
       const convertedLeads = allLeads.filter(l => l.status === 'converted').length;
       const eliteLeads = allLeads.filter(l => l.qualification_level === 'elite').length;
       const diagnosticLeads = allLeads.filter(l => l.source === 'diagnostico').length;
+      const deliveryLeads = allLeads.filter(l => l.source === 'diagnostico-delivery').length;
       
       setStats({
         total: allLeads.length,
@@ -160,7 +206,7 @@ export default function LeadsManagementPage() {
         converted: convertedLeads,
         conversionRate: allLeads.length > 0 ? Math.round((convertedLeads / allLeads.length) * 100) : 0,
         elite: eliteLeads,
-        diagnostic: diagnosticLeads
+        diagnostic: diagnosticLeads + deliveryLeads
       });
     } catch (error) {
       console.error('Erro ao buscar leads:', error);
@@ -345,29 +391,35 @@ export default function LeadsManagementPage() {
   };
 
   // Renderizar respostas do diagnóstico
-  const renderDiagnosticAnswers = (answers: DiagnosticAnswers | null, score: number | null) => {
+  const renderDiagnosticAnswers = (answers: DiagnosticAnswers | DeliveryDiagnosticAnswers | null, score: number | null, source?: string) => {
     if (!answers) return null;
+
+    const isDelivery = source === 'diagnostico-delivery';
+    const questionLabels = isDelivery ? QUESTION_LABELS_DELIVERY : QUESTION_LABELS;
+    const answerLabelsMap = isDelivery ? ANSWER_LABELS_DELIVERY : ANSWER_LABELS;
+    const maxScore = isDelivery ? 10 : 12;
 
     return (
       <div className="space-y-3 mt-4 pt-4 border-t">
         <div className="flex items-center gap-2">
           <ClipboardCheck className="w-4 h-4 text-primary" />
-          <span className="font-medium text-sm">Diagnóstico de Maturidade</span>
+          <span className="font-medium text-sm">
+            {isDelivery ? 'Diagnóstico de Delivery' : 'Diagnóstico de Maturidade'}
+          </span>
           {score !== null && (
             <Badge variant="outline" className="ml-auto">
-              {score}/12 pontos
+              {score}/{maxScore} pontos
             </Badge>
           )}
         </div>
         <div className="space-y-2 text-sm">
           {Object.entries(answers).map(([key, value]) => {
             if (!value) return null;
-            const questionKey = key as keyof typeof ANSWER_LABELS;
-            const answerLabel = ANSWER_LABELS[questionKey]?.[value] || value;
+            const answerLabel = answerLabelsMap[key]?.[value] || value;
             return (
               <div key={key} className="flex flex-col gap-0.5">
                 <span className="text-xs text-muted-foreground">
-                  {QUESTION_LABELS[key] || key}:
+                  {questionLabels[key] || key}:
                 </span>
                 <span className="text-foreground">{answerLabel}</span>
               </div>
@@ -723,7 +775,7 @@ export default function LeadsManagementPage() {
                           </div>
                           
                           {/* Respostas do diagnóstico */}
-                          {renderDiagnosticAnswers(selectedLead.diagnostic_answers, selectedLead.qualification_score)}
+                          {renderDiagnosticAnswers(selectedLead.diagnostic_answers, selectedLead.qualification_score, selectedLead.source)}
                           
                           <div>
                             <Label className="text-sm">Notas</Label>
@@ -889,7 +941,7 @@ export default function LeadsManagementPage() {
                                   </div>
                                   
                                   {/* Respostas do diagnóstico */}
-                                  {renderDiagnosticAnswers(selectedLead.diagnostic_answers, selectedLead.qualification_score)}
+                                  {renderDiagnosticAnswers(selectedLead.diagnostic_answers, selectedLead.qualification_score, selectedLead.source)}
                                   
                                   <div>
                                     <Label>Notas</Label>

@@ -6,6 +6,16 @@ import { playNewOrderSound, stopOrderAlertLoop } from '@/utils/soundPlayer';
 import { supabase } from '@/integrations/supabase/client';
 import type { DiagnosticAnswers, QualificationLevel } from '@/lib/diagnosticScoring';
 import { generateSofiaScript } from '@/lib/callScriptGenerator';
+
+// Mensagens rotativas durante conexão
+const CONNECTING_MESSAGES = [
+  { main: "Conectando...", sub: "Aguarde só um instante" },
+  { main: "Validando informações...", sub: "Preparando tudo pra você" },
+  { main: "Preparando consultoria...", sub: "Quase lá" },
+  { main: "Conectando com a Sofia...", sub: "Só mais um momento" },
+  { main: "Finalizando conexão...", sub: "Já já você será atendido" }
+];
+
 interface LeadData {
   name: string;
   company: string;
@@ -47,6 +57,7 @@ export function WhatsAppCallMockup({
   const [audioPlaying, setAudioPlaying] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isReplaying, setIsReplaying] = useState(false);
+  const [connectingMessageIndex, setConnectingMessageIndex] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const vibrationRef = useRef<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -115,6 +126,21 @@ export function WhatsAppCallMockup({
         clearInterval(timerRef.current);
       }
     };
+  }, [callState]);
+
+  // Rotação das mensagens de conexão
+  useEffect(() => {
+    if (callState === 'connecting') {
+      const interval = setInterval(() => {
+        setConnectingMessageIndex(prev => 
+          (prev + 1) % CONNECTING_MESSAGES.length
+        );
+      }, 2500);
+      
+      return () => clearInterval(interval);
+    } else {
+      setConnectingMessageIndex(0);
+    }
   }, [callState]);
 
   const cleanup = useCallback(() => {
@@ -349,12 +375,12 @@ export function WhatsAppCallMockup({
           {callState === 'connecting' && (
             <div className="mt-6 flex flex-col items-center gap-3">
               <Loader2 className="w-8 h-8 animate-spin text-[#25D366]" />
-              <p className="text-[#25D366] font-medium text-lg">
-                Conectando...
+              <p className="text-[#25D366] font-medium text-lg transition-all duration-300">
+                {CONNECTING_MESSAGES[connectingMessageIndex].main}
               </p>
-                <p className="text-white/50 text-base">
-                  Aguarde um momento
-                </p>
+              <p className="text-white/50 text-base transition-all duration-300">
+                {CONNECTING_MESSAGES[connectingMessageIndex].sub}
+              </p>
             </div>
           )}
           
@@ -415,10 +441,29 @@ export function WhatsAppCallMockup({
         )}
 
         {callState === 'connecting' && (
-          <div className="flex justify-center">
-            <div className="text-white/50 text-base">
-              Por favor, aguarde...
+          <div className="flex flex-col items-center gap-6">
+            <div className="flex items-center justify-center gap-1 h-6">
+              {[...Array(5)].map((_, i) => (
+                <div
+                  key={i}
+                  className="w-1 bg-[#25D366]/60 rounded-full animate-audio-bar"
+                  style={{ 
+                    animationDelay: `${i * 0.15}s`,
+                    height: '6px'
+                  }}
+                />
+              ))}
             </div>
+            <button
+              onClick={handleDecline}
+              className="flex flex-col items-center gap-2"
+            >
+              <div className="rounded-full bg-[#FF5252] flex items-center justify-center" 
+                   style={{ width: '64px', height: '64px' }}>
+                <PhoneOff className="w-7 h-7 text-white" />
+              </div>
+              <span className="text-white/70 text-sm">Encerrar</span>
+            </button>
           </div>
         )}
 

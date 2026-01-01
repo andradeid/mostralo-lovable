@@ -143,7 +143,7 @@ export function WhatsAppCallMockup({
         const { data, error } = await supabase.functions.invoke('text-to-speech', {
           body: {
             text: script,
-            voiceId: 'EXAVITQu4vr4xnSDxMaL' // Sarah - voz feminina brasileira
+            voiceId: 'ORgG8rwdAiMYRug8RJwR' // Ana Alice - voz feminina brasileira
           }
         });
 

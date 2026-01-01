@@ -68,7 +68,7 @@ serve(async (req) => {
       throw new Error("ELEVENLABS_API_KEY não configurada. Configure nas secrets do Supabase.");
     }
 
-    const selectedVoiceId = voiceId || "onwK4e9ZLuTAKqWW03F9"; // Daniel como padrão (recomendado para pt-BR)
+    const selectedVoiceId = voiceId || "ORgG8rwdAiMYRug8RJwR"; // Ana Alice como padrão (voz feminina brasileira)
     
     console.log(`[TTS] Gerando áudio para: "${text.substring(0, 50)}..." com voz: ${selectedVoiceId} (key: ${usingStoreKey ? 'lojista' : 'global'})`);
 

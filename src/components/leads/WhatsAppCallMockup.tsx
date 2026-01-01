@@ -212,195 +212,186 @@ export function WhatsAppCallMockup({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center">
-      {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/90"
-        onClick={callState === 'ended' ? handleDecline : undefined}
-      />
-
-      {/* Container da Chamada */}
-      <div 
-        className={cn(
-          "relative w-full max-w-sm mx-4 rounded-3xl overflow-hidden",
-          "bg-gradient-to-b from-[#1F2C34] to-[#0B141A]",
-          callState === 'incoming' && "animate-phone-vibrate"
+    <div 
+      className={cn(
+        "fixed inset-0 z-[100] flex flex-col",
+        "bg-gradient-to-b from-[#1F2C34] to-[#0B141A]",
+        callState === 'incoming' && "animate-phone-vibrate"
+      )}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 pt-4 pb-2 safe-area-top">
+        <div className="flex items-center gap-2 text-white/80 text-sm">
+          <div className="w-2 h-2 rounded-full bg-[#25D366]" />
+          <span>Chamada de voz do WhatsApp</span>
+        </div>
+        {callState !== 'incoming' && (
+          <button 
+            onClick={handleDecline}
+            className="p-2 rounded-full hover:bg-white/10 transition-colors"
+          >
+            <X className="w-5 h-5 text-white/60" />
+          </button>
         )}
-      >
-        {/* Header */}
-        <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
-          <div className="flex items-center gap-2 text-white/80 text-sm">
-            <div className="w-2 h-2 rounded-full bg-[#25D366]" />
-            <span>Chamada de voz do WhatsApp</span>
-          </div>
-          {callState !== 'incoming' && (
-            <button 
-              onClick={handleDecline}
-              className="p-2 rounded-full hover:bg-white/10 transition-colors"
-            >
-              <X className="w-5 h-5 text-white/60" />
-            </button>
-          )}
-        </div>
+      </div>
 
-        {/* Conteúdo Principal */}
-        <div className="pt-20 pb-8 px-6">
-          {/* Avatar com Anéis */}
-          <div className="flex justify-center mb-6">
-            <div className="relative">
-              {/* Anéis pulsantes */}
-              {callState === 'incoming' && (
-                <>
-                  <div className="absolute inset-0 rounded-full bg-[#25D366]/30 animate-ring-pulse" />
-                  <div className="absolute inset-0 rounded-full bg-[#25D366]/20 animate-ring-pulse" style={{ animationDelay: '0.5s' }} />
-                  <div className="absolute inset-0 rounded-full bg-[#25D366]/10 animate-ring-pulse" style={{ animationDelay: '1s' }} />
-                </>
-              )}
-              
-              {/* Avatar */}
-              <div className={cn(
-                "relative w-28 h-28 rounded-full overflow-hidden border-4",
-                callState === 'connected' ? "border-[#25D366]" : "border-white/20"
-              )}>
-                {callerAvatar ? (
-                  <img src={callerAvatar} alt={callerName} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-[#25D366] to-[#128C7E] flex items-center justify-center">
-                    <User className="w-14 h-14 text-white" />
-                  </div>
-                )}
-              </div>
-
-              {/* Indicador de status */}
-              {callState === 'connected' && (
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-[#25D366] text-white text-xs font-medium">
-                  Conectado
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Info do Chamador */}
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-white mb-1">{callerName}</h2>
-            <p className="text-white/60">{callerRole}</p>
-            
+      {/* Conteúdo Principal - Centralizado */}
+      <div className="flex-1 flex flex-col justify-center px-6 pb-8">
+        {/* Avatar com Anéis */}
+        <div className="flex justify-center mb-8">
+          <div className="relative">
+            {/* Anéis pulsantes */}
             {callState === 'incoming' && (
-              <p className="text-[#25D366] mt-3 animate-pulse font-medium">
-                📞 Chamando...
-              </p>
+              <>
+                <div className="absolute inset-0 rounded-full bg-[#25D366]/30 animate-ring-pulse" />
+                <div className="absolute inset-0 rounded-full bg-[#25D366]/20 animate-ring-pulse" style={{ animationDelay: '0.5s' }} />
+                <div className="absolute inset-0 rounded-full bg-[#25D366]/10 animate-ring-pulse" style={{ animationDelay: '1s' }} />
+              </>
             )}
             
-            {callState === 'connecting' && (
-              <div className="mt-4 flex flex-col items-center gap-2">
-                <Loader2 className="w-6 h-6 animate-spin text-[#25D366]" />
-                <p className="text-[#25D366] font-medium">
-                  Conectando...
-                </p>
-                <p className="text-white/50 text-sm">
-                  Preparando sua mensagem personalizada
-                </p>
-              </div>
-            )}
-            
+            {/* Avatar - Maior para fullscreen */}
+            <div className={cn(
+              "relative w-36 h-36 rounded-full overflow-hidden border-4",
+              callState === 'connected' ? "border-[#25D366]" : "border-white/20"
+            )}>
+              {callerAvatar ? (
+                <img src={callerAvatar} alt={callerName} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-[#25D366] to-[#128C7E] flex items-center justify-center">
+                  <User className="w-16 h-16 text-white" />
+                </div>
+              )}
+            </div>
+
+            {/* Indicador de status */}
             {callState === 'connected' && (
-              <p className="text-white/80 mt-3 text-xl font-mono">
-                {formatTime(callDuration)}
-              </p>
-            )}
-            
-            {callState === 'ended' && (
-              <p className="text-white/60 mt-3">
-                Chamada encerrada • {formatTime(callDuration)}
-              </p>
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-[#25D366] text-white text-sm font-medium">
+                Conectado
+              </div>
             )}
           </div>
+        </div>
 
-          {/* Waveform de Áudio */}
-          {callState === 'connected' && audioPlaying && (
-            <div className="flex items-center justify-center gap-1 h-8 mb-8">
-              {[...Array(20)].map((_, i) => (
-                <div
-                  key={i}
-                  className="w-1 bg-[#25D366] rounded-full animate-audio-bar"
-                  style={{ 
-                    animationDelay: `${i * 0.05}s`,
-                    height: '4px'
-                  }}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Botões de Ação */}
+        {/* Info do Chamador */}
+        <div className="text-center mb-10">
+          <h2 className="text-3xl font-bold text-white mb-2">{callerName}</h2>
+          <p className="text-white/60 text-lg">{callerRole}</p>
+          
           {callState === 'incoming' && (
-            <div className="flex items-center justify-center gap-8">
-              {/* Recusar */}
-              <button
-                onClick={handleDecline}
-                className="flex flex-col items-center gap-2"
-              >
-                <div className="w-16 h-16 rounded-full bg-[#FF5252] flex items-center justify-center shadow-lg shadow-[#FF5252]/30 hover:scale-105 transition-transform">
-                  <PhoneOff className="w-7 h-7 text-white" />
-                </div>
-                <span className="text-white/70 text-sm">Recusar</span>
-              </button>
-
-              {/* Aceitar */}
-              <button
-                onClick={handleAccept}
-                className="flex flex-col items-center gap-2"
-              >
-                <div className="w-16 h-16 rounded-full bg-[#25D366] flex items-center justify-center shadow-lg shadow-[#25D366]/30 hover:scale-105 transition-transform animate-accept-pulse">
-                  <Phone className="w-7 h-7 text-white" />
-                </div>
-                <span className="text-white/70 text-sm">Aceitar</span>
-              </button>
-            </div>
+            <p className="text-[#25D366] mt-4 animate-pulse font-medium text-lg">
+              📞 Chamando...
+            </p>
           )}
-
+          
           {callState === 'connecting' && (
-            <div className="flex justify-center">
-              <div className="text-white/50 text-sm">
-                Por favor, aguarde...
-              </div>
+            <div className="mt-6 flex flex-col items-center gap-3">
+              <Loader2 className="w-8 h-8 animate-spin text-[#25D366]" />
+              <p className="text-[#25D366] font-medium text-lg">
+                Conectando...
+              </p>
+              <p className="text-white/50 text-base">
+                Preparando sua mensagem personalizada
+              </p>
             </div>
           )}
-
+          
           {callState === 'connected' && (
-            <div className="flex justify-center">
-              <button
-                onClick={handleEndCall}
-                className="flex flex-col items-center gap-2"
-              >
-                <div className="w-16 h-16 rounded-full bg-[#FF5252] flex items-center justify-center shadow-lg shadow-[#FF5252]/30 hover:scale-105 transition-transform">
-                  <PhoneOff className="w-7 h-7 text-white" />
-                </div>
-                <span className="text-white/70 text-sm">Encerrar</span>
-              </button>
-            </div>
+            <p className="text-white/80 mt-4 text-2xl font-mono">
+              {formatTime(callDuration)}
+            </p>
           )}
-
+          
           {callState === 'ended' && (
-            <div className="space-y-4">
-              <Button
-                onClick={handleSchedule}
-                className="w-full h-14 bg-[#25D366] hover:bg-[#128C7E] text-white font-bold text-base"
-              >
-                <Calendar className="w-5 h-5 mr-2" />
-                AGENDAR CONSULTORIA
-              </Button>
-              
-              <Button
-                onClick={handleDecline}
-                variant="ghost"
-                className="w-full text-white/60 hover:text-white hover:bg-white/10"
-              >
-                Fechar
-              </Button>
-            </div>
+            <p className="text-white/60 mt-4 text-lg">
+              Chamada encerrada • {formatTime(callDuration)}
+            </p>
           )}
         </div>
+
+        {/* Waveform de Áudio */}
+        {callState === 'connected' && audioPlaying && (
+          <div className="flex items-center justify-center gap-1 h-10 mb-10">
+            {[...Array(24)].map((_, i) => (
+              <div
+                key={i}
+                className="w-1.5 bg-[#25D366] rounded-full animate-audio-bar"
+                style={{ 
+                  animationDelay: `${i * 0.05}s`,
+                  height: '4px'
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Botões de Ação */}
+        {callState === 'incoming' && (
+          <div className="flex items-center justify-center gap-12">
+            {/* Recusar */}
+            <button
+              onClick={handleDecline}
+              className="flex flex-col items-center gap-3"
+            >
+              <div className="w-18 h-18 rounded-full bg-[#FF5252] flex items-center justify-center shadow-lg shadow-[#FF5252]/30 hover:scale-105 transition-transform" style={{ width: '72px', height: '72px' }}>
+                <PhoneOff className="w-8 h-8 text-white" />
+              </div>
+              <span className="text-white/70 text-base">Recusar</span>
+            </button>
+
+            {/* Aceitar */}
+            <button
+              onClick={handleAccept}
+              className="flex flex-col items-center gap-3"
+            >
+              <div className="w-18 h-18 rounded-full bg-[#25D366] flex items-center justify-center shadow-lg shadow-[#25D366]/30 hover:scale-105 transition-transform animate-accept-pulse" style={{ width: '72px', height: '72px' }}>
+                <Phone className="w-8 h-8 text-white" />
+              </div>
+              <span className="text-white/70 text-base">Aceitar</span>
+            </button>
+          </div>
+        )}
+
+        {callState === 'connecting' && (
+          <div className="flex justify-center">
+            <div className="text-white/50 text-base">
+              Por favor, aguarde...
+            </div>
+          </div>
+        )}
+
+        {callState === 'connected' && (
+          <div className="flex justify-center">
+            <button
+              onClick={handleEndCall}
+              className="flex flex-col items-center gap-3"
+            >
+              <div className="rounded-full bg-[#FF5252] flex items-center justify-center shadow-lg shadow-[#FF5252]/30 hover:scale-105 transition-transform" style={{ width: '72px', height: '72px' }}>
+                <PhoneOff className="w-8 h-8 text-white" />
+              </div>
+              <span className="text-white/70 text-base">Encerrar</span>
+            </button>
+          </div>
+        )}
+
+        {callState === 'ended' && (
+          <div className="space-y-4 max-w-sm mx-auto w-full">
+            <Button
+              onClick={handleSchedule}
+              className="w-full h-16 bg-[#25D366] hover:bg-[#128C7E] text-white font-bold text-lg"
+            >
+              <Calendar className="w-6 h-6 mr-2" />
+              AGENDAR CONSULTORIA
+            </Button>
+            
+            <Button
+              onClick={handleDecline}
+              variant="ghost"
+              className="w-full h-14 text-white/60 hover:text-white hover:bg-white/10 text-base"
+            >
+              Fechar
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

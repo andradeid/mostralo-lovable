@@ -83,10 +83,15 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
   const [countryCode, setCountryCode] = useState('+55');
   const [whatsappStatus, setWhatsappStatus] = useState<'idle' | 'validating' | 'valid' | 'invalid'>('idle');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isWhatsappValidated, setIsWhatsappValidated] = useState(false);
   
   const totalSteps = QUESTIONS.length + 1;
   const progress = ((currentStep + 1) / totalSteps) * 100;
   const isContactStep = currentStep === QUESTIONS.length;
+  
+  // Validação automática quando completar o número
+  const cleanPhone = contact.phone.replace(/\D/g, '');
+  const canValidateWhatsapp = cleanPhone.length >= 10 && contact.name.trim().length >= 3;
   
   const handleAnswer = (questionId: keyof DiagnosticAnswers, value: string) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
@@ -125,8 +130,18 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
       : formatInternationalPhone(value);
     setContact(prev => ({ ...prev, phone: formatted }));
     
+    // Reset validation status when phone changes
     if (whatsappStatus !== 'idle') {
       setWhatsappStatus('idle');
+      setIsWhatsappValidated(false);
+    }
+  };
+
+  // Validar WhatsApp quando perder foco ou completar número
+  const handlePhoneBlur = async () => {
+    if (canValidateWhatsapp && whatsappStatus === 'idle') {
+      const isValid = await validateWhatsApp();
+      setIsWhatsappValidated(true);
     }
   };
 
@@ -160,20 +175,19 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
   };
 
   const handleSubmit = async () => {
-    if (contact.name && contact.phone && contact.company && !isSubmitting) {
+    if (contact.name && contact.phone && contact.company && !isSubmitting && isWhatsappValidated) {
       setIsSubmitting(true);
-      
-      await validateWhatsApp();
       
       setTimeout(() => {
         onComplete(answers as DiagnosticAnswers, contact);
-      }, 2000);
+      }, 1000);
     }
   };
   
   const isContactValid = contact.name.trim().length >= 3 && 
                          contact.phone.replace(/\D/g, '').length >= 10 && 
-                         contact.company.trim().length >= 2;
+                         contact.company.trim().length >= 2 &&
+                         isWhatsappValidated;
 
   // Renderizar tela de loading se estiver processando
   if (isProcessing && processingQuestionId) {
@@ -307,6 +321,7 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
                       placeholder={countryCode === '+55' ? '(11) 99999-9999' : '999 999 9999'}
                       value={contact.phone}
                       onChange={(e) => handlePhoneChange(e.target.value)}
+                      onBlur={handlePhoneBlur}
                       disabled={isSubmitting}
                       className={cn(
                         "h-12 pr-10",
@@ -342,17 +357,29 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="company" className="flex items-center gap-2">
+                <Label htmlFor="company" className={cn(
+                  "flex items-center gap-2",
+                  !isWhatsappValidated && "text-muted-foreground"
+                )}>
                   <Building2 className="w-4 h-4" />
                   Nome da sua loja/empresa
                 </Label>
                 <Input
                   id="company"
-                  placeholder="Nome da empresa"
+                  placeholder={isWhatsappValidated ? "Nome da empresa" : "Valide seu WhatsApp primeiro"}
                   value={contact.company}
                   onChange={(e) => setContact(prev => ({ ...prev, company: e.target.value }))}
-                  className="h-12"
+                  className={cn(
+                    "h-12",
+                    !isWhatsappValidated && "opacity-50 cursor-not-allowed"
+                  )}
+                  disabled={!isWhatsappValidated || isSubmitting}
                 />
+                {!isWhatsappValidated && canValidateWhatsapp && whatsappStatus === 'idle' && (
+                  <p className="text-xs text-muted-foreground">
+                    Clique fora do campo WhatsApp para validar
+                  </p>
+                )}
               </div>
               
               <Button

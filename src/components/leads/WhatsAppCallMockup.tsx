@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Phone, PhoneOff, X, User, Calendar, Loader2 } from 'lucide-react';
+import { Phone, PhoneOff, X, User, Calendar, Loader2, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { playNewOrderSound, stopOrderAlertLoop } from '@/utils/soundPlayer';
@@ -41,6 +41,8 @@ export function WhatsAppCallMockup({
   const [callState, setCallState] = useState<CallState>('idle');
   const [callDuration, setCallDuration] = useState(0);
   const [audioPlaying, setAudioPlaying] = useState(false);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [isReplaying, setIsReplaying] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const vibrationRef = useRef<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -174,8 +176,9 @@ export function WhatsAppCallMockup({
           setCallState('connected');
           setAudioPlaying(true);
           
-          const audioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
-          audioRef.current = new Audio(audioUrl);
+          const generatedAudioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
+          setAudioUrl(generatedAudioUrl); // Salvar para replay
+          audioRef.current = new Audio(generatedAudioUrl);
           
           audioRef.current.onended = () => {
             console.log('Audio playback finished');
@@ -221,6 +224,30 @@ export function WhatsAppCallMockup({
     cleanup();
     onClose();
     onScheduleConsultation();
+  };
+
+  const handleReplay = () => {
+    if (audioUrl && !isReplaying) {
+      setIsReplaying(true);
+      
+      // Parar áudio anterior se houver
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      
+      const replayAudio = new Audio(audioUrl);
+      audioRef.current = replayAudio;
+      
+      replayAudio.onended = () => {
+        setIsReplaying(false);
+      };
+      
+      replayAudio.onerror = () => {
+        setIsReplaying(false);
+      };
+      
+      replayAudio.play();
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -401,6 +428,18 @@ export function WhatsAppCallMockup({
               <Calendar className="w-6 h-6 mr-2" />
               AGENDAR CONSULTORIA
             </Button>
+            
+            {audioUrl && (
+              <Button
+                onClick={handleReplay}
+                disabled={isReplaying}
+                variant="outline"
+                className="w-full h-14 border-white/20 text-white hover:bg-white/10 text-base bg-transparent"
+              >
+                <Volume2 className={cn("w-5 h-5 mr-2", isReplaying && "animate-pulse")} />
+                {isReplaying ? 'Reproduzindo...' : 'Ouvir novamente'}
+              </Button>
+            )}
             
             <Button
               onClick={handleDecline}

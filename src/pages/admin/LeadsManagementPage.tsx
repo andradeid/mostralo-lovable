@@ -10,12 +10,16 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Textarea } from '@/components/ui/textarea';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { LeadQualificationGuide } from '@/components/leads/LeadQualificationGuide';
 import { LeadRemindersAlert } from '@/components/leads/LeadRemindersAlert';
 import { StaleLeadBadge, getRowClassName } from '@/components/leads/StaleLeadBadge';
 import { LeadCard } from '@/components/leads/LeadCard';
+import { QualificationBadge, QUALIFICATION_OPTIONS, getQualificationLabel } from '@/components/leads/QualificationBadge';
+import type { QualificationLevel } from '@/components/leads/QualificationBadge';
+import { ANSWER_LABELS } from '@/lib/diagnosticScoring';
 import { 
   Users, 
   TrendingUp, 
@@ -32,10 +36,19 @@ import {
   RefreshCw,
   Download,
   Settings,
-  ChevronDown
+  ChevronDown,
+  Star,
+  ClipboardCheck
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+
+interface DiagnosticAnswers {
+  q1?: string;
+  q2?: string;
+  q3?: string;
+  q4?: string;
+}
 
 interface Lead {
   id: string;
@@ -56,6 +69,10 @@ interface Lead {
   contacted_at: string | null;
   converted_at: string | null;
   salespeople?: { full_name: string } | null;
+  // Campos do diagnóstico
+  qualification_level: QualificationLevel;
+  qualification_score: number | null;
+  diagnostic_answers: DiagnosticAnswers | null;
 }
 
 const STATUS_OPTIONS = [
@@ -66,11 +83,20 @@ const STATUS_OPTIONS = [
   { value: 'lost', label: 'Perdido', color: 'bg-red-500' }
 ];
 
+// Labels das perguntas do diagnóstico
+const QUESTION_LABELS: Record<string, string> = {
+  q1: 'Visibilidade no Google',
+  q2: 'Conversão WhatsApp/IA',
+  q3: 'Upsell no Balcão',
+  q4: 'Maior Desafio'
+};
+
 export default function LeadsManagementPage() {
   const { toast } = useToast();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [qualificationFilter, setQualificationFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [supportWhatsapp, setSupportWhatsapp] = useState('');
   const [whatsappMessage, setWhatsappMessage] = useState('Olá! Sou {nome} e gostaria de saber mais sobre o Mostralo!');
@@ -85,13 +111,15 @@ export default function LeadsManagementPage() {
     total: 0,
     new: 0,
     converted: 0,
-    conversionRate: 0
+    conversionRate: 0,
+    elite: 0,
+    diagnostic: 0
   });
 
   useEffect(() => {
     fetchLeads();
     fetchWhatsappConfig();
-  }, [statusFilter]);
+  }, [statusFilter, qualificationFilter]);
 
   const fetchLeads = async () => {
     setLoading(true);
@@ -108,22 +136,31 @@ export default function LeadsManagementPage() {
         query = query.eq('status', statusFilter);
       }
 
+      if (qualificationFilter !== 'all') {
+        query = query.eq('qualification_level', qualificationFilter);
+      }
+
       const { data, error } = await query;
 
       if (error) throw error;
 
-      setLeads(data || []);
+      // Cast necessário pois Supabase retorna string genérico para enums
+      setLeads((data || []) as Lead[]);
 
       // Calcular estatísticas
       const allLeads = data || [];
       const newLeads = allLeads.filter(l => l.status === 'new').length;
       const convertedLeads = allLeads.filter(l => l.status === 'converted').length;
+      const eliteLeads = allLeads.filter(l => l.qualification_level === 'elite').length;
+      const diagnosticLeads = allLeads.filter(l => l.source === 'diagnostico').length;
       
       setStats({
         total: allLeads.length,
         new: newLeads,
         converted: convertedLeads,
-        conversionRate: allLeads.length > 0 ? Math.round((convertedLeads / allLeads.length) * 100) : 0
+        conversionRate: allLeads.length > 0 ? Math.round((convertedLeads / allLeads.length) * 100) : 0,
+        elite: eliteLeads,
+        diagnostic: diagnosticLeads
       });
     } catch (error) {
       console.error('Erro ao buscar leads:', error);
@@ -276,7 +313,7 @@ export default function LeadsManagementPage() {
   };
 
   const exportToCSV = () => {
-    const headers = ['Nome', 'Email', 'Telefone', 'Empresa', 'Cidade', 'Status', 'Vendedor', 'Data'];
+    const headers = ['Nome', 'Email', 'Telefone', 'Empresa', 'Cidade', 'Status', 'Vendedor', 'Data', 'Qualificação', 'Pontuação', 'Origem'];
     const rows = filteredLeads.map(lead => [
       lead.name,
       lead.email,
@@ -285,7 +322,10 @@ export default function LeadsManagementPage() {
       lead.city,
       STATUS_OPTIONS.find(s => s.value === lead.status)?.label || lead.status,
       lead.salespeople?.full_name || '-',
-      format(new Date(lead.created_at), 'dd/MM/yyyy HH:mm')
+      format(new Date(lead.created_at), 'dd/MM/yyyy HH:mm'),
+      getQualificationLabel(lead.qualification_level),
+      lead.qualification_score ?? '-',
+      lead.source || 'landing-page'
     ]);
 
     const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
@@ -302,6 +342,40 @@ export default function LeadsManagementPage() {
       setSelectedLead(lead);
       setLeadNotes(lead.notes || '');
     }
+  };
+
+  // Renderizar respostas do diagnóstico
+  const renderDiagnosticAnswers = (answers: DiagnosticAnswers | null, score: number | null) => {
+    if (!answers) return null;
+
+    return (
+      <div className="space-y-3 mt-4 pt-4 border-t">
+        <div className="flex items-center gap-2">
+          <ClipboardCheck className="w-4 h-4 text-primary" />
+          <span className="font-medium text-sm">Diagnóstico de Maturidade</span>
+          {score !== null && (
+            <Badge variant="outline" className="ml-auto">
+              {score}/12 pontos
+            </Badge>
+          )}
+        </div>
+        <div className="space-y-2 text-sm">
+          {Object.entries(answers).map(([key, value]) => {
+            if (!value) return null;
+            const questionKey = key as keyof typeof ANSWER_LABELS;
+            const answerLabel = ANSWER_LABELS[questionKey]?.[value] || value;
+            return (
+              <div key={key} className="flex flex-col gap-0.5">
+                <span className="text-xs text-muted-foreground">
+                  {QUESTION_LABELS[key] || key}:
+                </span>
+                <span className="text-foreground">{answerLabel}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -431,7 +505,7 @@ export default function LeadsManagementPage() {
       </Card>
 
       {/* Estatísticas - Compactas */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-2 md:gap-4">
         <Card>
           <CardContent className="p-3 md:pt-6 md:p-6">
             <div className="flex items-center gap-2 md:gap-3">
@@ -496,6 +570,41 @@ export default function LeadsManagementPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Novos cards de diagnóstico */}
+        <Card className="border-amber-500/20 bg-amber-500/5">
+          <CardContent className="p-3 md:pt-6 md:p-6">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="p-1.5 md:p-2 bg-amber-500/20 rounded-lg shrink-0">
+                <Star className="w-4 h-4 md:w-5 md:h-5 text-amber-500" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-lg md:text-2xl font-bold">{stats.elite}</p>
+                <p className="text-[10px] md:text-sm text-muted-foreground truncate">
+                  <span className="md:hidden">Elite</span>
+                  <span className="hidden md:inline">Leads Elite</span>
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-emerald-500/20 bg-emerald-500/5">
+          <CardContent className="p-3 md:pt-6 md:p-6">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="p-1.5 md:p-2 bg-emerald-500/20 rounded-lg shrink-0">
+                <ClipboardCheck className="w-4 h-4 md:w-5 md:h-5 text-emerald-500" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-lg md:text-2xl font-bold">{stats.diagnostic}</p>
+                <p className="text-[10px] md:text-sm text-muted-foreground truncate">
+                  <span className="md:hidden">Diagnóstico</span>
+                  <span className="hidden md:inline">Via Diagnóstico</span>
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filtros e Lista */}
@@ -510,9 +619,9 @@ export default function LeadsManagementPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full sm:w-40 md:w-48 h-9 text-sm"
               />
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="flex-1 sm:w-32 md:w-40 h-9 text-sm">
+                  <SelectTrigger className="flex-1 sm:w-28 md:w-32 h-9 text-sm">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -520,6 +629,18 @@ export default function LeadsManagementPage() {
                     {STATUS_OPTIONS.map(status => (
                       <SelectItem key={status.value} value={status.value}>
                         {status.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={qualificationFilter} onValueChange={setQualificationFilter}>
+                  <SelectTrigger className="flex-1 sm:w-28 md:w-32 h-9 text-sm">
+                    <SelectValue placeholder="Qualificação" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {QUALIFICATION_OPTIONS.map(opt => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -559,7 +680,7 @@ export default function LeadsManagementPage() {
                         setLeadNotes(lead.notes || '');
                       }}
                     />
-                    <DialogContent>
+                    <DialogContent className="max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>Detalhes do Lead</DialogTitle>
                         <DialogDescription>
@@ -590,12 +711,20 @@ export default function LeadsManagementPage() {
                               <p className="font-medium text-sm">{selectedLead.city}</p>
                             </div>
                             <div>
-                              <Label className="text-xs text-muted-foreground">Usa iFood?</Label>
-                              <p className="font-medium text-sm">
-                                {selectedLead.uses_ifood === true ? 'Sim' : selectedLead.uses_ifood === false ? 'Não' : '—'}
-                              </p>
+                              <Label className="text-xs text-muted-foreground">Qualificação</Label>
+                              <div className="mt-1">
+                                <QualificationBadge 
+                                  level={selectedLead.qualification_level} 
+                                  score={selectedLead.qualification_score}
+                                  showScore
+                                />
+                              </div>
                             </div>
                           </div>
+                          
+                          {/* Respostas do diagnóstico */}
+                          {renderDiagnosticAnswers(selectedLead.diagnostic_answers, selectedLead.qualification_score)}
+                          
                           <div>
                             <Label className="text-sm">Notas</Label>
                             <Textarea
@@ -633,7 +762,7 @@ export default function LeadsManagementPage() {
                       <TableHead>Nome</TableHead>
                       <TableHead>Empresa</TableHead>
                       <TableHead>Contato</TableHead>
-                      <TableHead>Vendedor</TableHead>
+                      <TableHead>Qualificação</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Data</TableHead>
                       <TableHead>Ações</TableHead>
@@ -644,7 +773,7 @@ export default function LeadsManagementPage() {
                       <TableRow key={lead.id} className={getRowClassName(lead.updated_at, lead.status)}>
                         <TableCell>
                           <div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <p className="font-medium">{lead.name}</p>
                               <StaleLeadBadge updatedAt={lead.updated_at} status={lead.status} />
                             </div>
@@ -673,9 +802,11 @@ export default function LeadsManagementPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {lead.salespeople?.full_name || (
-                            <span className="text-muted-foreground">—</span>
-                          )}
+                          <QualificationBadge 
+                            level={lead.qualification_level} 
+                            score={lead.qualification_score}
+                            showScore
+                          />
                         </TableCell>
                         <TableCell>
                           <Select
@@ -714,7 +845,7 @@ export default function LeadsManagementPage() {
                                 <Eye className="w-4 h-4" />
                               </Button>
                             </DialogTrigger>
-                            <DialogContent>
+                            <DialogContent className="max-h-[90vh] overflow-y-auto">
                               <DialogHeader>
                                 <DialogTitle>Detalhes do Lead</DialogTitle>
                                 <DialogDescription>
@@ -745,12 +876,21 @@ export default function LeadsManagementPage() {
                                       <p className="font-medium">{selectedLead.city}</p>
                                     </div>
                                     <div>
-                                      <Label className="text-muted-foreground">Usa iFood?</Label>
-                                      <p className="font-medium">
-                                        {selectedLead.uses_ifood === true ? 'Sim' : selectedLead.uses_ifood === false ? 'Não' : '—'}
-                                      </p>
+                                      <Label className="text-muted-foreground">Qualificação</Label>
+                                      <div className="mt-1">
+                                        <QualificationBadge 
+                                          level={selectedLead.qualification_level} 
+                                          score={selectedLead.qualification_score}
+                                          showScore
+                                          size="md"
+                                        />
+                                      </div>
                                     </div>
                                   </div>
+                                  
+                                  {/* Respostas do diagnóstico */}
+                                  {renderDiagnosticAnswers(selectedLead.diagnostic_answers, selectedLead.qualification_score)}
+                                  
                                   <div>
                                     <Label>Notas</Label>
                                     <Textarea

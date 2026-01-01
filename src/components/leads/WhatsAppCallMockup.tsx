@@ -3,6 +3,16 @@ import { Phone, PhoneOff, X, User, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { playNewOrderSound, stopOrderAlertLoop } from '@/utils/soundPlayer';
+import { supabase } from '@/integrations/supabase/client';
+import type { DiagnosticAnswers, QualificationLevel } from '@/lib/diagnosticScoring';
+
+interface LeadData {
+  name: string;
+  company: string;
+  answers: DiagnosticAnswers;
+  score: number;
+  level: QualificationLevel;
+}
 
 interface WhatsAppCallMockupProps {
   isOpen: boolean;
@@ -10,8 +20,8 @@ interface WhatsAppCallMockupProps {
   callerName: string;
   callerRole: string;
   callerAvatar?: string;
-  audioMessage?: string;
   onScheduleConsultation: () => void;
+  leadData?: LeadData;
 }
 
 type CallState = 'idle' | 'incoming' | 'connected' | 'ended';
@@ -25,11 +35,13 @@ export function WhatsAppCallMockup({
   callerName,
   callerRole,
   callerAvatar,
-  onScheduleConsultation
+  onScheduleConsultation,
+  leadData
 }: WhatsAppCallMockupProps) {
   const [callState, setCallState] = useState<CallState>('idle');
   const [callDuration, setCallDuration] = useState(0);
   const [audioPlaying, setAudioPlaying] = useState(false);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const vibrationRef = useRef<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -111,14 +123,61 @@ export function WhatsAppCallMockup({
     stopOrderAlertLoop();
   }, []);
 
-  const handleAccept = () => {
+  const handleAccept = async () => {
     setCallState('connected');
     setAudioPlaying(true);
     
-    // Simular duração do áudio (35 segundos)
-    setTimeout(() => {
-      setAudioPlaying(false);
-    }, 35000);
+    // Se temos dados do lead, gerar áudio personalizado
+    if (leadData) {
+      setIsLoadingAudio(true);
+      try {
+        console.log('Generating personalized audio for:', leadData.name);
+        
+        const { data, error } = await supabase.functions.invoke('diagnostic-call', {
+          body: {
+            leadName: leadData.name,
+            companyName: leadData.company,
+            answers: leadData.answers,
+            score: leadData.score,
+            level: leadData.level
+          }
+        });
+
+        if (error) {
+          console.error('Error generating audio:', error);
+          throw error;
+        }
+
+        if (data?.audioContent) {
+          console.log('Audio received, playing...');
+          const audioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
+          audioRef.current = new Audio(audioUrl);
+          
+          audioRef.current.onended = () => {
+            console.log('Audio playback finished');
+            setAudioPlaying(false);
+          };
+          
+          audioRef.current.onerror = (e) => {
+            console.error('Audio playback error:', e);
+            setAudioPlaying(false);
+          };
+          
+          await audioRef.current.play();
+        } else {
+          throw new Error('No audio content received');
+        }
+      } catch (err) {
+        console.error('Failed to generate/play audio:', err);
+        // Fallback: simular duração do áudio
+        setTimeout(() => setAudioPlaying(false), 35000);
+      } finally {
+        setIsLoadingAudio(false);
+      }
+    } else {
+      // Sem dados do lead, simular duração
+      setTimeout(() => setAudioPlaying(false), 35000);
+    }
   };
 
   const handleDecline = () => {

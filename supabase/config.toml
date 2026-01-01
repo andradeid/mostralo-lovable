@@ -293,3 +293,6 @@ verify_jwt = false
 
 [functions.update-professional-password]
 verify_jwt = false
+
+[functions.diagnostic-call]
+verify_jwt = false

@@ -73,6 +73,7 @@ const NichoNailDesignersPage = lazy(() => import("@/pages/public/NichoNailDesign
 const NichoPetShopsPage = lazy(() => import("@/pages/public/NichoPetShopsPage"));
 const NichoArenasEsportivasPage = lazy(() => import("@/pages/public/NichoArenasEsportivasPage"));
 const AllInOnePage = lazy(() => import("@/pages/public/AllInOnePage"));
+const DiagnosticoPage = lazy(() => import("@/pages/public/DiagnosticoPage"));
 
 export const publicRoutes = (
   <>
@@ -110,6 +111,7 @@ export const publicRoutes = (
       <Route path="/nicho-pet-shop" element={<LazyRoute><NichoPetShopsPage /></LazyRoute>} />
       <Route path="/nicho-arenas" element={<LazyRoute><NichoArenasEsportivasPage /></LazyRoute>} />
       <Route path="/all-in-one" element={<LazyRoute><AllInOnePage /></LazyRoute>} />
+      <Route path="/diagnostico" element={<LazyRoute><DiagnosticoPage /></LazyRoute>} />
     <Route path="/sitemap.xml" element={<LazyRoute><Sitemap /></LazyRoute>} />
     <Route path="/navegar" element={<LazyRoute><NavigatePage /></LazyRoute>} />
     

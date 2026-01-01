@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { playNewOrderSound, stopOrderAlertLoop } from '@/utils/soundPlayer';
 import { supabase } from '@/integrations/supabase/client';
 import type { DiagnosticAnswers, QualificationLevel } from '@/lib/diagnosticScoring';
-
+import { generatePersonalizedScript } from '@/lib/callScriptGenerator';
 interface LeadData {
   name: string;
   company: string;
@@ -124,37 +124,19 @@ export function WhatsAppCallMockup({
     stopOrderAlertLoop();
   }, []);
 
-  // Gerar script personalizado baseado nos dados do lead
-  const generateCallScript = (data: LeadData): string => {
-    const firstName = data.name.split(' ')[0];
-    
-    let script = `Olá ${firstName}! Aqui é o Marcos Andrade, da Mostralo. `;
-    script += `Acabei de ver seu diagnóstico e achei muito interessante o perfil da ${data.company}. `;
-    
-    if (data.level === 'elite') {
-      script += `Você tem um perfil excelente para escalar suas vendas com tecnologia! `;
-      script += `Com sua pontuação de ${data.score} pontos, você está no grupo de elite dos lojistas que mais crescem. `;
-    } else if (data.level === 'potential') {
-      script += `Vi que você tem grande potencial de crescimento! `;
-      script += `Com algumas otimizações, sua loja pode aumentar muito as vendas. `;
-    } else {
-      script += `Quero te mostrar como a tecnologia pode transformar seu negócio. `;
-    }
-    
-    script += `Gostaria de agendar uma consultoria gratuita para conversarmos sobre as melhores estratégias para sua loja? `;
-    script += `Ao final desta ligação, vai aparecer um botão para você agendar o melhor horário para nossa conversa. `;
-    script += `Até já!`;
-    
-    return script;
-  };
-
   const handleAccept = async () => {
     setCallState('connecting');
     
     if (leadData) {
       try {
-        // Gerar script personalizado no frontend
-        const script = generateCallScript(leadData);
+        // Gerar script persuasivo com framework PAS
+        const script = generatePersonalizedScript({
+          leadName: leadData.name,
+          companyName: leadData.company,
+          answers: leadData.answers,
+          score: leadData.score,
+          level: leadData.level
+        });
         console.log('Generated script:', script);
         
         // Usar função text-to-speech existente

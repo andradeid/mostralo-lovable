@@ -53,10 +53,17 @@ export function generateDeliverySofiaScript(data: DeliveryScriptData): string {
   const qualification = getDeliveryQualificationMessage(firstName, data.level, data.nicho);
   parts.push(qualification);
 
-  // 5. ESCASSEZ + CTA suave
+  // 5. ESCASSEZ FORTE - Vagas limitadas por segmento + Inversão de poder
+  const nicheLabel = getNicheSimpleLabel(data.nicho);
   parts.push(
-    `A agenda dele está bem concorrida essa semana, mas ele reservou um horário especial ` +
-    `pra conversar com você sobre como fazer essa migração. Fica de olho aqui no WhatsApp que ele vai te chamar. Até já!`
+    `Só pra você saber: essa semana o Marcos vai atender apenas 3 empresas do segmento de ${nicheLabel}. ` +
+    `Se por algum motivo você não tiver interesse, só me avisa que a gente passa a vaga pro próximo da lista.`
+  );
+
+  // 6. CTA + ENCERRAMENTO POSITIVO
+  parts.push(
+    `Mas acredito que você vai querer aproveitar essa oportunidade. ` +
+    `Fica de olho aqui no WhatsApp que ele vai te chamar em breve. Até já!`
   );
 
   return parts.join(' ');

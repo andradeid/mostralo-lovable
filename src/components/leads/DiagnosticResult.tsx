@@ -81,8 +81,8 @@ export function DiagnosticResult({ result }: DiagnosticResultProps) {
     <WhatsAppCallMockup
       isOpen={showCallMockup}
       onClose={() => setShowCallMockup(false)}
-      callerName="Marcos Andrade"
-      callerRole="Consultor Mostralo"
+      callerName="Sofia"
+      callerRole="Assistente de IA do Marcos Andrade"
       onScheduleConsultation={handleWhatsAppClick}
       leadData={{
         name: result.contact.name,

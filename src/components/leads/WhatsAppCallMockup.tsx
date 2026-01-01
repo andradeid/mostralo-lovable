@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { playNewOrderSound, stopOrderAlertLoop } from '@/utils/soundPlayer';
 import { supabase } from '@/integrations/supabase/client';
 import type { DiagnosticAnswers, QualificationLevel } from '@/lib/diagnosticScoring';
-import { generatePersonalizedScript } from '@/lib/callScriptGenerator';
+import { generateSofiaScript } from '@/lib/callScriptGenerator';
 interface LeadData {
   name: string;
   company: string;
@@ -129,21 +129,21 @@ export function WhatsAppCallMockup({
     
     if (leadData) {
       try {
-        // Gerar script persuasivo com framework PAS
-        const script = generatePersonalizedScript({
+        // Gerar script Sofia com técnica Flávio Augusto (Pedestal + Escassez)
+        const script = generateSofiaScript({
           leadName: leadData.name,
           companyName: leadData.company,
           answers: leadData.answers,
           score: leadData.score,
           level: leadData.level
         });
-        console.log('Generated script:', script);
+        console.log('Generated Sofia script:', script);
         
-        // Usar função text-to-speech existente
+        // Usar função text-to-speech com voz feminina (Sarah)
         const { data, error } = await supabase.functions.invoke('text-to-speech', {
           body: {
             text: script,
-            voiceId: 'onwK4e9ZLuTAKqWW03F9' // Daniel - voz brasileira
+            voiceId: 'EXAVITQu4vr4xnSDxMaL' // Sarah - voz feminina brasileira
           }
         });
 
@@ -165,6 +165,7 @@ export function WhatsAppCallMockup({
           audioRef.current.onended = () => {
             console.log('Audio playback finished');
             setAudioPlaying(false);
+            setCallState('ended'); // Mostrar botões automaticamente ao terminar
           };
           
           audioRef.current.onerror = (e) => {

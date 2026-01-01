@@ -9,139 +9,90 @@ interface ScriptData {
 }
 
 /**
- * Gera script persuasivo personalizado usando Framework PAS
- * (Problem - Agitate - Solve)
+ * Gera script persuasivo personalizado usando abordagem "Sofia"
+ * Técnica Flávio Augusto: Pedestal + Escassez + Inversão de Poder
  * 
- * Técnicas utilizadas:
- * - Pattern interrupt + suspense na abertura
- * - Espelhamento + empatia na validação
- * - Gatilhos de perda + urgência na agitação
- * - Contraste + benefício quantificado na solução
- * - Prova social com resultado específico
- * - CTA com escassez e exclusividade
+ * Framework PAS implícito:
+ * - Problem: Diagnóstico processado, potencial identificado
+ * - Agitate: Insight factual sobre a dor (sutil)
+ * - Solve: Marcos analisou e qualificou pessoalmente
  */
-export function generatePersonalizedScript(data: ScriptData): string {
+export function generateSofiaScript(data: ScriptData): string {
   const firstName = data.leadName.split(' ')[0];
   const parts: string[] = [];
 
-  // 1. ABERTURA COM GANCHO (Pattern interrupt + suspense)
+  // 1. ABERTURA - Apresentação da Sofia (Assistente de IA)
   parts.push(
-    `${firstName}! Aqui é o Marcos Andrade, da Mostralo. ` +
-    `Acabei de analisar pessoalmente o diagnóstico da ${data.companyName} e preciso te contar uma coisa...`
+    `Olá, ${firstName}! Aqui é a Sofia, assistente de inteligência do Marcos Andrade, da Mostralo.`
   );
 
-  // 2. VALIDAÇÃO DO MAIOR DESAFIO - Q4 (Espelhamento + empatia)
-  const q4Response = data.answers.q4;
-  const painValidation = getPainValidation(q4Response);
-  if (painValidation) {
-    parts.push(painValidation);
-  }
-
-  // 3. AGITAR A DOR - Q1, Q2, Q3 (Gatilho de perda + urgência)
-  const painAgitation = getPainAgitation(data.answers, data.companyName);
-  if (painAgitation) {
-    parts.push(painAgitation);
-  }
-
-  // 4. VIRADA - APRESENTAR A SOLUÇÃO (Contraste + benefício quantificado)
-  const solution = getSolutionPresentation(data.answers);
-  parts.push(solution);
-
-  // 5. PROVA SOCIAL (Resultado específico + timeframe)
+  // 2. PROBLEM (implícito) - Diagnóstico processado
   parts.push(
-    `Lojistas como você já aumentaram o faturamento em até 40% nos primeiros 90 dias usando essas mesmas estratégias.`
+    `O sistema de diagnóstico acabou de processar os dados da ${data.companyName} ` +
+    `e identificou um potencial significativo de crescimento para o seu negócio.`
   );
 
-  // 6. CTA COM URGÊNCIA E ESCASSEZ
-  const cta = getCTA(firstName, data.level);
-  parts.push(cta);
+  // 3. AGITATE (sutil) - Insight factual baseado nas respostas
+  const insight = getInsight(data.answers, data.companyName);
+  parts.push(insight);
 
-  return parts.filter(Boolean).join(' ');
+  // 4. SOLVE - Marcos analisou e qualificou
+  const qualification = getQualificationMessage(firstName, data.level);
+  parts.push(qualification);
+
+  // 5. ESCASSEZ + CTA suave - Aguardar contato
+  parts.push(
+    `A agenda dele está bem concorrida essa semana, mas ele reservou um horário especial ` +
+    `pra conversar com você. Fica de olho aqui no WhatsApp que ele vai te chamar. Até já!`
+  );
+
+  return parts.join(' ');
 }
 
-function getPainValidation(q4: string): string {
-  const painMap: Record<string, string> = {
-    'a': `Você disse que seu maior desafio é reduzir custos com funcionários e erros. ` +
-         `Eu te entendo perfeitamente. Folha de pagamento que só cresce, funcionário que falta, pedido errado... ` +
-         `é dinheiro escorrendo pelo ralo todo dia.`,
-    
-    'b': `Você disse que precisa atrair mais clientes qualificados. ` +
-         `E olha, esse é o desafio número um de 80% dos lojistas que chegam até mim. ` +
-         `Você investe em divulgação mas parece que o retorno nunca vem, não é?`,
-    
-    'c': `Você quer escalar sua operação e abrir novas unidades. ` +
-         `Isso me mostra que você pensa grande! Mas deixa eu te perguntar: ` +
-         `como você vai replicar o que funciona se cada atendente faz de um jeito diferente?`,
-    
-    'd': `Você quer mais tempo livre para viver e curtir a família. ` +
-         `E isso é totalmente possível quando você tem os processos certos automatizados. ` +
-         `Hoje você trabalha demais porque o negócio depende 100% de você.`
-  };
-
-  return painMap[q4] || painMap['b'];
-}
-
-function getPainAgitation(answers: DiagnosticAnswers, companyName: string): string {
-  const agitations: string[] = [];
-
+/**
+ * Insight factual baseado nas dores identificadas
+ * PAS: Agitate de forma sutil e profissional
+ */
+function getInsight(answers: DiagnosticAnswers, companyName: string): string {
   // Q1 - Visibilidade online
   if (answers.q1 === 'b' || answers.q1 === 'c') {
-    agitations.push(
-      `E tem mais: enquanto a gente conversa, dezenas de pessoas estão pesquisando exatamente o que você vende no Google. ` +
-      `Só que elas não encontram a ${companyName}. Estão comprando do seu concorrente. Todo. Santo. Dia.`
-    );
+    return `Atualmente, seus produtos não aparecem nas buscas do Google na sua região, ` +
+           `o que significa que clientes prontos pra comprar estão encontrando seus concorrentes primeiro.`;
   }
-
+  
   // Q2 - Tempo de resposta
   if (answers.q2 === 'a' || answers.q2 === 'b') {
-    agitations.push(
-      `Além disso, cada mensagem no WhatsApp que demora mais de 5 minutos pra responder é uma venda que você perdeu. ` +
-      `O cliente já foi pro próximo. E isso está acontecendo agora mesmo.`
-    );
+    return `O diagnóstico mostrou que o tempo de resposta no WhatsApp pode estar ` +
+           `custando vendas importantes, já que clientes geralmente compram de quem responde primeiro.`;
   }
-
+  
   // Q3 - Upsell
   if (answers.q3 === 'a' || answers.q3 === 'b') {
-    agitations.push(
-      `E quando o cliente compra, você depende da boa vontade do atendente pra oferecer mais. ` +
-      `Resultado? Ticket médio baixo e dinheiro que poderia ser seu ficando na mesa.`
-    );
+    return `Identificamos uma oportunidade de aumentar o ticket médio da ${companyName} ` +
+           `com estratégias de venda complementar que poucos lojistas da sua região usam.`;
   }
 
-  // Retornar no máximo 2 agitações para não ficar muito longo
-  return agitations.slice(0, 2).join(' ');
+  // Fallback genérico
+  return `O Marcos identificou oportunidades específicas pra ${companyName} ` +
+         `que podem acelerar bastante o crescimento do seu negócio.`;
 }
 
-function getSolutionPresentation(answers: DiagnosticAnswers): string {
-  let mainBenefit = '';
-
-  // Priorizar baseado na maior dor identificada
-  if (answers.q1 === 'b' || answers.q1 === 'c') {
-    mainBenefit = `Seus produtos aparecem automaticamente no Google Shopping, na frente de quem está pronto pra comprar.`;
-  } else if (answers.q2 === 'a' || answers.q2 === 'b') {
-    mainBenefit = `Uma inteligência artificial atende seus clientes no WhatsApp 24 horas, 7 dias por semana, sem você pagar um centavo de hora extra.`;
-  } else if (answers.q3 === 'a' || answers.q3 === 'b') {
-    mainBenefit = `O sistema sugere automaticamente produtos complementares em cada venda, aumentando seu ticket médio em até 25%.`;
-  } else {
-    mainBenefit = `Você automatiza todo o atendimento e gestão da loja, ganhando tempo e vendendo mais.`;
-  }
-
-  return `Mas a boa notícia é que isso tem solução. E é exatamente isso que o Mostralo faz. ${mainBenefit}`;
-}
-
-function getCTA(firstName: string, level: QualificationLevel): string {
+/**
+ * Mensagem de qualificação por nível
+ * Técnica Flávio Augusto: Posicionar Marcos no pedestal
+ */
+function getQualificationMessage(firstName: string, level: QualificationLevel): string {
   if (level === 'elite') {
-    return (
-      `${firstName}, pela sua pontuação no diagnóstico, você foi qualificado para o Programa de Aceleração Elite. ` +
-      `Isso significa mentoria direta comigo e isenção da taxa de implementação. ` +
-      `Mas atenção: só tenho 5 vagas por semana. ` +
-      `Clica agora no botão Agendar Consultoria que aparece na tela e garante a sua. Te vejo do outro lado!`
-    );
+    return `${firstName}, o Marcos analisou pessoalmente o seu perfil e você foi qualificado ` +
+           `para o Programa de Aceleração Elite. Isso significa mentoria direta com ele e ` +
+           `isenção da taxa de implementação. Ele pediu prioridade pro seu caso.`;
   }
+  
+  return `${firstName}, o Marcos analisou pessoalmente o seu perfil e você foi qualificado ` +
+         `para o Programa de Aceleração Mostralo. Ele pediu prioridade pro seu caso.`;
+}
 
-  return (
-    `${firstName}, você foi qualificado para o Programa de Aceleração Mostralo. ` +
-    `Tenho um horário especial reservado pra você essa semana. ` +
-    `Clica no botão Agendar Consultoria e vamos desenhar juntos o plano de crescimento da sua loja. Te espero!`
-  );
+// Manter função antiga para compatibilidade (deprecated)
+export function generatePersonalizedScript(data: ScriptData): string {
+  return generateSofiaScript(data);
 }

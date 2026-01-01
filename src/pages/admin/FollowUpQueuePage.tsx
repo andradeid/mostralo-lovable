@@ -15,13 +15,17 @@ import {
   Users,
   Phone,
   Building2,
-  TrendingUp
+  TrendingUp,
+  TrendingDown,
+  Store
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { generateMarcosFollowUp } from "@/lib/callScriptGenerator";
+import { generateDeliveryMarcosFollowUp } from "@/lib/callScriptGeneratorDelivery";
 import type { DiagnosticAnswers, QualificationLevel } from "@/lib/diagnosticScoring";
 import { ANSWER_LABELS, MARCOS_WHATSAPP } from "@/lib/diagnosticScoring";
+import { NICHE_CONFIG, type BusinessNiche, type DeliveryDiagnosticAnswers } from "@/lib/diagnosticScoringDelivery";
 
 interface Lead {
   id: string;
@@ -36,6 +40,8 @@ interface Lead {
   diagnostic_answers: Record<string, string> | null;
   created_at: string;
   contacted_at: string | null;
+  business_type?: string;
+  notes?: string | null;
 }
 
 export default function FollowUpQueuePage() {
@@ -43,14 +49,14 @@ export default function FollowUpQueuePage() {
   const queryClient = useQueryClient();
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // Buscar leads qualificados aguardando follow-up
+  // Buscar leads qualificados aguardando follow-up (ambos diagnósticos)
   const { data: leads, isLoading, refetch } = useQuery({
     queryKey: ['follow-up-queue'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('leads')
         .select('*')
-        .eq('source', 'diagnostico')
+        .in('source', ['diagnostico', 'diagnostico-delivery'])
         .eq('status', 'new')
         .in('qualification_level', ['elite', 'potential'])
         .order('qualification_level', { ascending: true }) // Elite primeiro
@@ -90,16 +96,55 @@ export default function FollowUpQueuePage() {
     }
   });
 
-  // Gerar mensagem personalizada e copiar
-  const handleCopyMessage = async (lead: Lead) => {
+  // Extrair economia das notas do lead
+  const extractSavings = (notes: string | null): { monthly: number; annual: number } | null => {
+    if (!notes) return null;
+    
+    const monthlyMatch = notes.match(/R\$ ([\d.,]+)\/mês/);
+    const annualMatch = notes.match(/R\$ ([\d.,]+)\/ano/);
+    
+    if (monthlyMatch && annualMatch) {
+      return {
+        monthly: parseFloat(monthlyMatch[1].replace('.', '').replace(',', '.')),
+        annual: parseFloat(annualMatch[1].replace('.', '').replace(',', '.'))
+      };
+    }
+    return null;
+  };
+
+  // Gerar mensagem baseada no tipo de diagnóstico
+  const generateMessage = (lead: Lead): string => {
+    if (lead.source === 'diagnostico-delivery') {
+      const savings = extractSavings(lead.notes || null);
+      const deliveryAnswers = lead.diagnostic_answers as unknown as DeliveryDiagnosticAnswers | null;
+      
+      return generateDeliveryMarcosFollowUp({
+        leadName: lead.name,
+        companyName: lead.company_name,
+        nicho: (lead.business_type as BusinessNiche) || 'restaurante',
+        answers: deliveryAnswers || { nicho: 'restaurante', dependencia: 'b', volume: 'b', desafio: 'a' },
+        score: lead.qualification_score || 0,
+        level: (lead.qualification_level as QualificationLevel) || 'potential',
+        monthlySavings: savings?.monthly || 0,
+        annualSavings: savings?.annual || 0,
+        currentCommission: 0.25
+      });
+    }
+    
+    // Diagnóstico original
     const answers = lead.diagnostic_answers as unknown as DiagnosticAnswers | null;
-    const message = generateMarcosFollowUp({
+    return generateMarcosFollowUp({
       leadName: lead.name,
       companyName: lead.company_name,
       answers: answers || { q1: 'a', q2: 'a', q3: 'a', q4: 'a' },
       score: lead.qualification_score || 0,
       level: (lead.qualification_level as QualificationLevel) || 'potential'
     });
+  };
+
+  // Gerar mensagem personalizada e copiar
+  const handleCopyMessage = async (lead: Lead) => {
+    const message = generateMessage(lead);
 
     await navigator.clipboard.writeText(message);
     setCopiedId(lead.id);
@@ -113,14 +158,7 @@ export default function FollowUpQueuePage() {
 
   // Abrir WhatsApp com mensagem
   const handleOpenWhatsApp = (lead: Lead) => {
-    const answers = lead.diagnostic_answers as unknown as DiagnosticAnswers | null;
-    const message = generateMarcosFollowUp({
-      leadName: lead.name,
-      companyName: lead.company_name,
-      answers: answers || { q1: 'a', q2: 'a', q3: 'a', q4: 'a' },
-      score: lead.qualification_score || 0,
-      level: (lead.qualification_level as QualificationLevel) || 'potential'
-    });
+    const message = generateMessage(lead);
 
     // Formatar telefone (remover caracteres não numéricos)
     const phone = lead.company_phone.replace(/\D/g, '');
@@ -131,8 +169,32 @@ export default function FollowUpQueuePage() {
   };
 
   // Identificar dores do lead baseado nas respostas
-  const getLeadPains = (answersRaw: Record<string, string> | null): string[] => {
+  const getLeadPains = (lead: Lead): string[] => {
+    const answersRaw = lead.diagnostic_answers;
     if (!answersRaw) return [];
+    
+    // Diagnóstico de delivery
+    if (lead.source === 'diagnostico-delivery') {
+      const answers = answersRaw as unknown as DeliveryDiagnosticAnswers;
+      const pains: string[] = [];
+      
+      if (answers.dependencia === 'a') {
+        pains.push('Alta dependência de apps (>70%)');
+      }
+      if (answers.desafio === 'a') {
+        pains.push('Quer reduzir comissões');
+      }
+      if (answers.desafio === 'b') {
+        pains.push('Sem acesso a dados de clientes');
+      }
+      if (answers.desafio === 'c') {
+        pains.push('Quer canal próprio de vendas');
+      }
+      
+      return pains;
+    }
+    
+    // Diagnóstico original
     const answers = answersRaw as unknown as DiagnosticAnswers;
     const pains: string[] = [];
 
@@ -304,17 +366,33 @@ export default function FollowUpQueuePage() {
                   </div>
                 </div>
 
+                {/* Badge de nicho para delivery */}
+                {lead.source === 'diagnostico-delivery' && lead.business_type && (
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-xs bg-orange-500/10 text-orange-600 border-orange-500/20">
+                      <Store className="h-3 w-3 mr-1" />
+                      {NICHE_CONFIG[lead.business_type as BusinessNiche]?.label || lead.business_type}
+                    </Badge>
+                    {extractSavings(lead.notes || null) && (
+                      <Badge variant="outline" className="text-xs bg-green-500/10 text-green-600 border-green-500/20">
+                        <TrendingDown className="h-3 w-3 mr-1" />
+                        Economia: R$ {extractSavings(lead.notes || null)?.monthly.toLocaleString('pt-BR')}/mês
+                      </Badge>
+                    )}
+                  </div>
+                )}
+
                 {/* Dores Identificadas */}
                 {lead.diagnostic_answers && (
                   <div>
                     <p className="text-sm font-medium mb-2">Dores identificadas:</p>
                     <div className="flex flex-wrap gap-2">
-                      {getLeadPains(lead.diagnostic_answers).map((pain, idx) => (
+                      {getLeadPains(lead).map((pain, idx) => (
                         <Badge key={idx} variant="outline" className="text-xs">
                           {pain}
                         </Badge>
                       ))}
-                      {getLeadPains(lead.diagnostic_answers).length === 0 && (
+                      {getLeadPains(lead).length === 0 && (
                         <span className="text-sm text-muted-foreground">
                           Lead bem estruturado - focar em escala
                         </span>

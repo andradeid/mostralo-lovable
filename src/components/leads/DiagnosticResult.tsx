@@ -1,11 +1,10 @@
-import { useState } from 'react';
-import { CheckCircle2, Zap, Bot, TrendingUp, Star, Award, Clock, Phone } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { CheckCircle2, Zap, Bot, TrendingUp, Star, Award, Clock, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { DiagnosticResult as DiagnosticResultType, QualificationLevel } from '@/lib/diagnosticScoring';
 import { generateWhatsAppMessage, MARCOS_WHATSAPP } from '@/lib/diagnosticScoring';
-import { WhatsAppCallMockup } from './WhatsAppCallMockup';
 
 interface DiagnosticResultProps {
   result: DiagnosticResultType;
@@ -69,8 +68,9 @@ const BENEFITS = [
   'Prioridade na Fila de integração do Agente de IA'
 ];
 
-export function DiagnosticResult({ result, savedAudioBase64, onAudioGenerated }: DiagnosticResultProps) {
-  const [showCallMockup, setShowCallMockup] = useState(false);
+export function DiagnosticResult({ result, savedAudioBase64 }: DiagnosticResultProps) {
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const config = LEVEL_CONFIG[result.level];
   
   const handleWhatsAppClick = () => {
@@ -78,24 +78,30 @@ export function DiagnosticResult({ result, savedAudioBase64, onAudioGenerated }:
     window.open(`https://wa.me/${MARCOS_WHATSAPP}?text=${message}`, '_blank');
   };
 
+  const handleReplayAudio = () => {
+    if (savedAudioBase64 && !isPlayingAudio) {
+      setIsPlayingAudio(true);
+      
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      
+      const audioUrl = `data:audio/mpeg;base64,${savedAudioBase64}`;
+      audioRef.current = new Audio(audioUrl);
+      
+      audioRef.current.onended = () => {
+        setIsPlayingAudio(false);
+      };
+      
+      audioRef.current.onerror = () => {
+        setIsPlayingAudio(false);
+      };
+      
+      audioRef.current.play();
+    }
+  };
+
   return (
-    <>
-    <WhatsAppCallMockup
-      isOpen={showCallMockup}
-      onClose={() => setShowCallMockup(false)}
-      callerName="Sofia"
-      callerRole="Assistente de IA do Marcos Andrade"
-      onScheduleConsultation={handleWhatsAppClick}
-      leadData={{
-        name: result.contact.name,
-        company: result.contact.company,
-        answers: result.answers,
-        score: result.score,
-        level: result.level
-      }}
-      savedAudioBase64={savedAudioBase64}
-      onAudioGenerated={onAudioGenerated}
-    />
     <div className="w-full max-w-3xl mx-auto space-y-8">
       {/* Header com animação de check */}
       <div className="text-center animate-fade-in">
@@ -184,47 +190,42 @@ export function DiagnosticResult({ result, savedAudioBase64, onAudioGenerated }:
         </div>
       )}
 
-      {/* Botão de Ligação WhatsApp */}
-      {result.level !== 'disqualified' && (
-        <div className="text-center animate-fade-in" style={{ animationDelay: '500ms' }}>
+      {/* Botão Ouvir Áudio Novamente */}
+      {savedAudioBase64 && (
+        <div className="text-center animate-fade-in" style={{ animationDelay: '450ms' }}>
           <Button
-            onClick={() => setShowCallMockup(true)}
+            onClick={handleReplayAudio}
+            disabled={isPlayingAudio}
+            variant="outline"
             size="lg"
-            className={cn(
-              "w-full md:w-auto h-14 md:h-16 px-8 text-base md:text-lg font-bold",
-              "bg-[#25D366] hover:bg-[#128C7E] text-white",
-              "shadow-lg shadow-[#25D366]/30 hover:shadow-xl hover:shadow-[#25D366]/40",
-              "transition-all duration-300 animate-accept-pulse"
-            )}
+            className="h-12 px-6"
           >
-            <Phone className="w-5 h-5 mr-2" />
-            RECEBER LIGAÇÃO DE WHATSAPP
+            <Volume2 className={cn("w-5 h-5 mr-2", isPlayingAudio && "animate-pulse")} />
+            {isPlayingAudio ? 'Reproduzindo áudio da Sofia...' : 'Ouvir áudio da Sofia novamente'}
           </Button>
-          <p className="text-sm text-muted-foreground mt-2">
-            Marcos vai ligar agora para você!
-          </p>
         </div>
       )}
 
       {/* CTA Principal */}
-      <div className="text-center animate-fade-in" style={{ animationDelay: '600ms' }}>
+      <div className="text-center animate-fade-in" style={{ animationDelay: '500ms' }}>
         <Button
           onClick={handleWhatsAppClick}
           size="lg"
-          variant={result.level !== 'disqualified' ? 'outline' : 'default'}
           className={cn(
             "w-full md:w-auto h-14 md:h-16 px-8 text-base md:text-lg font-bold",
-            result.level === 'disqualified' && "bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90 shadow-lg shadow-primary/25"
+            "bg-[#25D366] hover:bg-[#128C7E] text-white",
+            "shadow-lg shadow-[#25D366]/30 hover:shadow-xl hover:shadow-[#25D366]/40",
+            "transition-all duration-300"
           )}
         >
           {result.level === 'disqualified' 
             ? 'FALAR COM MARCOS ANDRADE'
-            : 'Ou enviar mensagem de texto'
+            : 'AGENDAR CONSULTORIA COM MARCOS'
           }
         </Button>
         
         {result.level !== 'disqualified' && (
-          <p className="flex items-center justify-center gap-2 text-sm text-muted-foreground mt-3 animate-fade-in" style={{ animationDelay: '700ms' }}>
+          <p className="flex items-center justify-center gap-2 text-sm text-muted-foreground mt-3 animate-fade-in" style={{ animationDelay: '600ms' }}>
             <Clock className="w-4 h-4" />
             Vagas limitadas para esta semana
           </p>
@@ -232,7 +233,7 @@ export function DiagnosticResult({ result, savedAudioBase64, onAudioGenerated }:
       </div>
 
       {/* Rodapé de Autoridade */}
-      <div className="text-center pt-8 border-t border-border animate-fade-in" style={{ animationDelay: '800ms' }}>
+      <div className="text-center pt-8 border-t border-border animate-fade-in" style={{ animationDelay: '700ms' }}>
         <p className="font-semibold text-foreground">Marcos Andrade</p>
         <p className="text-sm text-muted-foreground">
           30 anos de experiência em tecnologia e processos
@@ -243,6 +244,5 @@ export function DiagnosticResult({ result, savedAudioBase64, onAudioGenerated }:
         <p className="text-sm text-primary mt-1">Mostralo.com.br</p>
       </div>
     </div>
-    </>
   );
 }

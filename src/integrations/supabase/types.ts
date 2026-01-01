@@ -2755,6 +2755,7 @@ export type Database = {
           contacted_at: string | null
           converted_at: string | null
           created_at: string | null
+          diagnostic_answers: Json | null
           email: string
           id: string
           ip_address: string | null
@@ -2764,6 +2765,8 @@ export type Database = {
           name: string
           notes: string | null
           phone: string
+          qualification_level: string | null
+          qualification_score: number | null
           referral_code: string | null
           salesperson_id: string | null
           source: string | null
@@ -2785,6 +2788,7 @@ export type Database = {
           contacted_at?: string | null
           converted_at?: string | null
           created_at?: string | null
+          diagnostic_answers?: Json | null
           email: string
           id?: string
           ip_address?: string | null
@@ -2794,6 +2798,8 @@ export type Database = {
           name: string
           notes?: string | null
           phone: string
+          qualification_level?: string | null
+          qualification_score?: number | null
           referral_code?: string | null
           salesperson_id?: string | null
           source?: string | null
@@ -2815,6 +2821,7 @@ export type Database = {
           contacted_at?: string | null
           converted_at?: string | null
           created_at?: string | null
+          diagnostic_answers?: Json | null
           email?: string
           id?: string
           ip_address?: string | null
@@ -2824,6 +2831,8 @@ export type Database = {
           name?: string
           notes?: string | null
           phone?: string
+          qualification_level?: string | null
+          qualification_score?: number | null
           referral_code?: string | null
           salesperson_id?: string | null
           source?: string | null

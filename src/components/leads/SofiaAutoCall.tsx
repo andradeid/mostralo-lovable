@@ -39,8 +39,6 @@ const CALL_STEPS_CONFIG: Omit<CallStep, 'status'>[] = [
   { id: 'validate', label: 'Validando número...', icon: 'phone' },
   { id: 'photo', label: 'Buscando foto do perfil...', icon: 'camera' },
   { id: 'name', label: 'Buscando nome do contato...', icon: 'user' },
-  { id: 'script', label: 'Gerando script personalizado...', icon: 'file' },
-  { id: 'voice', label: 'Preparando voz da Sofia...', icon: 'mic' },
 ];
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -176,30 +174,14 @@ export function SofiaAutoCall({
   const startCall = async () => {
     setCallState('connecting');
     
-    // Se já tem áudio salvo, usar ele diretamente mas mostrar animação
+    // Iniciar geração do áudio IMEDIATAMENTE em background
+    let audioGenerationPromise: Promise<string | null> | null = null;
+    
     if (savedAudioBase64) {
       console.log('Using saved audio from localStorage');
       audioReadyRef.current = savedAudioBase64;
-    }
-    
-    // Etapa 1: Validando número
-    await processStep(0, 'Número válido!', () => setShowNumber(true));
-    setCurrentStepIndex(1);
-    
-    // Etapa 2: Buscando foto
-    const photoMessage = whatsappProfile?.pictureUrl ? 'Foto encontrada!' : 'Foto privada';
-    await processStep(1, photoMessage, () => setShowPhoto(true));
-    setCurrentStepIndex(2);
-    
-    // Etapa 3: Buscando nome
-    const nameMessage = whatsappProfile?.pushName || 'Nome não disponível';
-    await processStep(2, nameMessage, () => setShowName(true));
-    setCurrentStepIndex(3);
-    
-    // Etapa 4: Gerando script - inicia geração real em paralelo se não tiver áudio salvo
-    let audioGenerationPromise: Promise<string | null> | null = null;
-    
-    if (!savedAudioBase64) {
+    } else {
+      // Gerar áudio em paralelo com as etapas visuais
       audioGenerationPromise = (async () => {
         try {
           const script = generateSofiaScript({
@@ -227,16 +209,24 @@ export function SofiaAutoCall({
       })();
     }
     
-    await processStep(3, 'Script pronto!');
-    setCurrentStepIndex(4);
+    // Etapa 1: Validando número
+    await processStep(0, 'Número válido!', () => setShowNumber(true));
+    setCurrentStepIndex(1);
     
-    // Etapa 5: Preparando voz - aguarda áudio se necessário
-    const stepConfig = CALL_STEPS_CONFIG[4];
-    setCurrentStep({ ...stepConfig, status: 'loading' });
-    setIsCardExiting(false);
+    // Etapa 2: Buscando foto
+    const photoMessage = whatsappProfile?.pictureUrl ? 'Foto encontrada!' : 'Foto privada';
+    await processStep(1, photoMessage, () => setShowPhoto(true));
+    setCurrentStepIndex(2);
     
-    const startTime = Date.now();
+    // Etapa 3: Buscando nome
+    const nameMessage = whatsappProfile?.pushName || 'Nome não disponível';
+    await processStep(2, nameMessage, () => setShowName(true));
     
+    // Todas as etapas visuais completas - mostrar estado "Conectando..."
+    setAllStepsComplete(true);
+    setIsCardExiting(true);
+    
+    // Aguardar áudio se ainda não estiver pronto
     if (audioGenerationPromise) {
       const audioResult = await audioGenerationPromise;
       if (audioResult) {
@@ -244,19 +234,6 @@ export function SofiaAutoCall({
         setGeneratedAudioBase64(audioResult);
       }
     }
-    
-    // Garantir que a etapa 5 dure pelo menos 3 segundos
-    const elapsed = Date.now() - startTime;
-    if (elapsed < STEP_DURATION) {
-      await delay(STEP_DURATION - elapsed);
-    }
-    
-    // Mostrar sucesso da última etapa
-    setCurrentStep({ ...stepConfig, status: 'success', message: 'Voz preparada!' });
-    setShowConfetti(true);
-    await delay(CELEBRATION_DURATION);
-    setShowConfetti(false);
-    setAllStepsComplete(true);
     
     // Pequena pausa antes de conectar
     await delay(500);
@@ -428,6 +405,26 @@ export function SofiaAutoCall({
               <p className="text-white/40 text-sm mt-4">
                 Etapa {currentStepIndex + 1} de {CALL_STEPS_CONFIG.length}
               </p>
+            </div>
+          )}
+          
+          {/* Estado "Conectando..." após as 3 etapas */}
+          {callState === 'connecting' && allStepsComplete && (
+            <div className="mt-6 flex flex-col items-center gap-4 animate-fade-in">
+              <div className="flex items-center gap-1.5">
+                {[...Array(5)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="w-1.5 rounded-full bg-[#25D366]"
+                    style={{
+                      height: [16, 24, 32, 24, 16][i],
+                      animation: 'pulse 1s ease-in-out infinite',
+                      animationDelay: `${i * 0.1}s`
+                    }}
+                  />
+                ))}
+              </div>
+              <span className="text-white/70 text-base">Conectando...</span>
             </div>
           )}
           

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Phone, PhoneOff, X, User, Calendar } from 'lucide-react';
+import { Phone, PhoneOff, X, User, Calendar, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { playNewOrderSound, stopOrderAlertLoop } from '@/utils/soundPlayer';
@@ -24,7 +24,7 @@ interface WhatsAppCallMockupProps {
   leadData?: LeadData;
 }
 
-type CallState = 'idle' | 'incoming' | 'connected' | 'ended';
+type CallState = 'idle' | 'incoming' | 'connecting' | 'connected' | 'ended';
 
 // Padrão de vibração estilo WhatsApp real
 const VIBRATION_PATTERN = [200, 100, 200, 100, 200, 500];
@@ -41,7 +41,6 @@ export function WhatsAppCallMockup({
   const [callState, setCallState] = useState<CallState>('idle');
   const [callDuration, setCallDuration] = useState(0);
   const [audioPlaying, setAudioPlaying] = useState(false);
-  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const vibrationRef = useRef<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -124,12 +123,11 @@ export function WhatsAppCallMockup({
   }, []);
 
   const handleAccept = async () => {
-    setCallState('connected');
-    setAudioPlaying(true);
+    // Mostrar estado de conexão enquanto gera o áudio
+    setCallState('connecting');
     
     // Se temos dados do lead, gerar áudio personalizado
     if (leadData) {
-      setIsLoadingAudio(true);
       try {
         console.log('Generating personalized audio for:', leadData.name);
         
@@ -150,6 +148,11 @@ export function WhatsAppCallMockup({
 
         if (data?.audioContent) {
           console.log('Audio received, playing...');
+          
+          // Agora sim, conectar e tocar
+          setCallState('connected');
+          setAudioPlaying(true);
+          
           const audioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
           audioRef.current = new Audio(audioUrl);
           
@@ -169,14 +172,18 @@ export function WhatsAppCallMockup({
         }
       } catch (err) {
         console.error('Failed to generate/play audio:', err);
-        // Fallback: simular duração do áudio
+        // Fallback: ir para conectado e simular áudio
+        setCallState('connected');
+        setAudioPlaying(true);
         setTimeout(() => setAudioPlaying(false), 35000);
-      } finally {
-        setIsLoadingAudio(false);
       }
     } else {
-      // Sem dados do lead, simular duração
-      setTimeout(() => setAudioPlaying(false), 35000);
+      // Sem dados do lead, simular conexão rápida
+      setTimeout(() => {
+        setCallState('connected');
+        setAudioPlaying(true);
+        setTimeout(() => setAudioPlaying(false), 35000);
+      }, 1500);
     }
   };
 
@@ -284,6 +291,18 @@ export function WhatsAppCallMockup({
               </p>
             )}
             
+            {callState === 'connecting' && (
+              <div className="mt-4 flex flex-col items-center gap-2">
+                <Loader2 className="w-6 h-6 animate-spin text-[#25D366]" />
+                <p className="text-[#25D366] font-medium">
+                  Conectando...
+                </p>
+                <p className="text-white/50 text-sm">
+                  Preparando sua mensagem personalizada
+                </p>
+              </div>
+            )}
+            
             {callState === 'connected' && (
               <p className="text-white/80 mt-3 text-xl font-mono">
                 {formatTime(callDuration)}
@@ -337,6 +356,14 @@ export function WhatsAppCallMockup({
                 </div>
                 <span className="text-white/70 text-sm">Aceitar</span>
               </button>
+            </div>
+          )}
+
+          {callState === 'connecting' && (
+            <div className="flex justify-center">
+              <div className="text-white/50 text-sm">
+                Por favor, aguarde...
+              </div>
             </div>
           )}
 

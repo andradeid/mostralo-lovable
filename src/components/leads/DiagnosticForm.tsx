@@ -85,6 +85,11 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isWhatsappValidated, setIsWhatsappValidated] = useState(false);
   
+  // Dados do perfil WhatsApp
+  const [whatsappProfilePic, setWhatsappProfilePic] = useState<string | null>(null);
+  const [whatsappPushName, setWhatsappPushName] = useState<string | null>(null);
+  const [whatsappFormattedNumber, setWhatsappFormattedNumber] = useState<string | null>(null);
+  
   const totalSteps = QUESTIONS.length + 1;
   const progress = ((currentStep + 1) / totalSteps) * 100;
   const isContactStep = currentStep === QUESTIONS.length;
@@ -166,6 +171,20 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
       
       const isValid = data?.valid || false;
       setWhatsappStatus(isValid ? 'valid' : 'invalid');
+      
+      // Guardar dados do perfil WhatsApp se válido
+      if (isValid) {
+        if (data?.profilePictureUrl) {
+          setWhatsappProfilePic(data.profilePictureUrl);
+        }
+        if (data?.pushName) {
+          setWhatsappPushName(data.pushName);
+        }
+        if (data?.formattedNumber) {
+          setWhatsappFormattedNumber(data.formattedNumber);
+        }
+      }
+      
       return isValid;
     } catch (err) {
       console.error('Erro ao validar WhatsApp:', err);
@@ -179,7 +198,12 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
       setIsSubmitting(true);
       
       setTimeout(() => {
-        onComplete(answers as DiagnosticAnswers, contact);
+        onComplete(answers as DiagnosticAnswers, {
+          ...contact,
+          whatsappProfilePicture: whatsappProfilePic,
+          whatsappPushName: whatsappPushName,
+          whatsappFormattedNumber: whatsappFormattedNumber
+        });
       }, 1000);
     }
   };

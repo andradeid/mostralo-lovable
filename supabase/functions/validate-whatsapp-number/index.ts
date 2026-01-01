@@ -109,6 +109,64 @@ serve(async (req) => {
 
     console.log('[validate-whatsapp] Número válido:', isValid);
 
+    // Dados do perfil WhatsApp
+    let profileData = {
+      pictureUrl: null as string | null,
+      pushName: null as string | null,
+      formattedNumber: normalizedPhone
+    };
+
+    // Se válido, buscar foto e nome do perfil
+    if (isValid) {
+      try {
+        // Buscar foto de perfil
+        console.log('[validate-whatsapp] Buscando foto de perfil...');
+        const profilePicResponse = await fetch(
+          `${evolutionConfig.api_url}/chat/fetchProfilePictureUrl/${masterConfig.instance_name}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': evolutionConfig.api_key,
+            },
+            body: JSON.stringify({ number: normalizedPhone }),
+          }
+        );
+
+        if (profilePicResponse.ok) {
+          const picData = await profilePicResponse.json();
+          profileData.pictureUrl = picData.profilePictureUrl || picData.pictureUrl || null;
+          console.log('[validate-whatsapp] Foto obtida:', profileData.pictureUrl ? 'Sim' : 'Não');
+        }
+      } catch (picError) {
+        console.log('[validate-whatsapp] Erro ao buscar foto (continuando):', picError);
+      }
+
+      try {
+        // Buscar nome do perfil (PushName)
+        console.log('[validate-whatsapp] Buscando perfil...');
+        const profileResponse = await fetch(
+          `${evolutionConfig.api_url}/chat/fetchProfile/${masterConfig.instance_name}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': evolutionConfig.api_key,
+            },
+            body: JSON.stringify({ number: normalizedPhone }),
+          }
+        );
+
+        if (profileResponse.ok) {
+          const profileInfo = await profileResponse.json();
+          profileData.pushName = profileInfo.pushName || profileInfo.name || null;
+          console.log('[validate-whatsapp] PushName obtido:', profileData.pushName);
+        }
+      } catch (profileError) {
+        console.log('[validate-whatsapp] Erro ao buscar perfil (continuando):', profileError);
+      }
+    }
+
     // Se válido e sendWelcome=true, enviar mensagem de boas-vindas
     let welcomeSent = false;
     if (isValid && sendWelcome && leadName) {
@@ -154,6 +212,9 @@ Enquanto isso, pode mandar qualquer dúvida aqui! 😊`;
       JSON.stringify({ 
         valid: isValid,
         jid: isValid ? result[0]?.jid : null,
+        profilePictureUrl: profileData.pictureUrl,
+        pushName: profileData.pushName,
+        formattedNumber: profileData.formattedNumber,
         welcomeSent
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

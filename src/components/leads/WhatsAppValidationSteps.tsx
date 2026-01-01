@@ -124,6 +124,4 @@ export function WhatsAppValidationSteps({ steps, className }: WhatsAppValidation
 
 export const INITIAL_VALIDATION_STEPS: ValidationStep[] = [
   { id: 'validate', label: 'Validando número...', status: 'pending' },
-  { id: 'photo', label: 'Buscando foto do perfil...', status: 'pending' },
-  { id: 'name', label: 'Buscando nome do contato...', status: 'pending' },
 ];

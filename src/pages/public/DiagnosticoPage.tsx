@@ -3,6 +3,8 @@ import { Store } from 'lucide-react';
 import { DiagnosticForm } from '@/components/leads/DiagnosticForm';
 import { DiagnosticResult } from '@/components/leads/DiagnosticResult';
 import { DiagnosticAlreadyCompleted } from '@/components/leads/DiagnosticAlreadyCompleted';
+import { DiagnosticProcessingScreen } from '@/components/leads/DiagnosticProcessingScreen';
+import { SofiaAutoCall } from '@/components/leads/SofiaAutoCall';
 import { getDiagnosticResult } from '@/lib/diagnosticScoring';
 import { supabase } from '@/integrations/supabase/client';
 import type { Json } from '@/integrations/supabase/types';
@@ -19,10 +21,15 @@ interface StoredDiagnostic {
 
 export default function DiagnosticoPage() {
   const [result, setResult] = useState<DiagnosticResultType | null>(null);
+  const [pendingResult, setPendingResult] = useState<DiagnosticResultType | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [alreadyCompleted, setAlreadyCompleted] = useState(false);
   const [savedAudio, setSavedAudio] = useState<string | null>(null);
   const [completedAt, setCompletedAt] = useState<string>('');
+  
+  // Novos estados para o fluxo invertido
+  const [showProcessing, setShowProcessing] = useState(false);
+  const [showSofiaCall, setShowSofiaCall] = useState(false);
 
   // Verificar localStorage ao carregar
   useEffect(() => {
@@ -75,22 +82,40 @@ export default function DiagnosticoPage() {
         return;
       }
       
-      // Salvar no localStorage (sem áudio ainda)
-      const storedData: StoredDiagnostic = {
-        result: diagnosticResult,
-        audioBase64: null,
-        completedAt: new Date().toISOString()
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(storedData));
+      // Guardar resultado pendente e iniciar fluxo de processamento
+      setPendingResult(diagnosticResult);
+      setShowProcessing(true);
       
-      setResult(diagnosticResult);
-      setCompletedAt(storedData.completedAt);
     } catch (err) {
       console.error('Erro no diagnóstico:', err);
       toast.error('Ocorreu um erro. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleProcessingComplete = () => {
+    setShowProcessing(false);
+    setShowSofiaCall(true);
+  };
+
+  const handleSofiaCallComplete = (audioBase64: string) => {
+    // Salvar no localStorage
+    if (pendingResult) {
+      const storedData: StoredDiagnostic = {
+        result: pendingResult,
+        audioBase64: audioBase64 || null,
+        completedAt: new Date().toISOString()
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(storedData));
+      
+      setSavedAudio(audioBase64 || null);
+      setCompletedAt(storedData.completedAt);
+    }
+    
+    // Fechar chamada e mostrar resultado
+    setShowSofiaCall(false);
+    setResult(pendingResult);
   };
 
   const handleAudioGenerated = (audioBase64: string) => {
@@ -110,9 +135,12 @@ export default function DiagnosticoPage() {
   const handleRestart = () => {
     localStorage.removeItem(STORAGE_KEY);
     setResult(null);
+    setPendingResult(null);
     setSavedAudio(null);
     setAlreadyCompleted(false);
     setCompletedAt('');
+    setShowProcessing(false);
+    setShowSofiaCall(false);
   };
 
   return (
@@ -136,6 +164,22 @@ export default function DiagnosticoPage() {
         </div>
       </header>
 
+      {/* SofiaAutoCall - Ligação automática */}
+      {showSofiaCall && pendingResult && (
+        <SofiaAutoCall
+          isOpen={showSofiaCall}
+          leadData={{
+            name: pendingResult.contact.name,
+            company: pendingResult.contact.company,
+            answers: pendingResult.answers,
+            score: pendingResult.score,
+            level: pendingResult.level
+          }}
+          savedAudioBase64={savedAudio}
+          onAudioComplete={handleSofiaCallComplete}
+        />
+      )}
+
       <main className="container mx-auto px-4 py-8 md:py-12">
         {alreadyCompleted && result ? (
           <DiagnosticAlreadyCompleted
@@ -144,7 +188,15 @@ export default function DiagnosticoPage() {
             completedAt={completedAt}
             onRestart={handleRestart}
           />
-        ) : !result ? (
+        ) : showProcessing ? (
+          <DiagnosticProcessingScreen onComplete={handleProcessingComplete} />
+        ) : result ? (
+          <DiagnosticResult 
+            result={result} 
+            savedAudioBase64={savedAudio}
+            onAudioGenerated={handleAudioGenerated}
+          />
+        ) : (
           <>
             {/* Hero */}
             <div className="text-center mb-10 md:mb-12 animate-fade-in">
@@ -161,12 +213,6 @@ export default function DiagnosticoPage() {
               <DiagnosticForm onComplete={handleFormComplete} />
             </div>
           </>
-        ) : (
-          <DiagnosticResult 
-            result={result} 
-            savedAudioBase64={savedAudio}
-            onAudioGenerated={handleAudioGenerated}
-          />
         )}
       </main>
 

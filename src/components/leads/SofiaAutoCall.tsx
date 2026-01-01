@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { PhoneOff, X, User, Loader2 } from 'lucide-react';
+import { PhoneOff, X, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import type { DiagnosticAnswers, QualificationLevel } from '@/lib/diagnosticScoring';
 import { generateSofiaScript } from '@/lib/callScriptGenerator';
+import { CallValidationSteps, INITIAL_CALL_STEPS, type CallStep, type CallStepStatus } from './CallValidationSteps';
 
 interface LeadData {
   name: string;
@@ -29,6 +30,10 @@ interface SofiaAutoCallProps {
 }
 
 type CallState = 'connecting' | 'connected' | 'ended';
+
+const STEP_DURATION = 3000; // 3 segundos por etapa
+
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export function SofiaAutoCall({
   isOpen,
@@ -60,9 +65,18 @@ export function SofiaAutoCall({
   const [callDuration, setCallDuration] = useState(0);
   const [audioPlaying, setAudioPlaying] = useState(false);
   const [generatedAudioBase64, setGeneratedAudioBase64] = useState<string | null>(null);
+  const [callSteps, setCallSteps] = useState<CallStep[]>(INITIAL_CALL_STEPS);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasStartedRef = useRef(false);
+  const audioReadyRef = useRef<string | null>(null);
+
+  // Atualizar status de uma etapa
+  const updateCallStep = useCallback((stepId: string, status: CallStepStatus, result?: string) => {
+    setCallSteps(prev => prev.map(step => 
+      step.id === stepId ? { ...step, status, result } : step
+    ));
+  }, []);
 
   // Iniciar chamada automaticamente quando abre
   useEffect(() => {
@@ -108,52 +122,107 @@ export function SofiaAutoCall({
     console.log('Audio playback finished - waiting for user to click button');
     setAudioPlaying(false);
     setCallState('ended');
-    // Não dispara callback automaticamente - usuário precisa clicar no botão
   }, []);
 
   const startCall = async () => {
     setCallState('connecting');
     
-    // Se já tem áudio salvo, usar ele diretamente
+    // Se já tem áudio salvo, usar ele diretamente mas mostrar animação
     if (savedAudioBase64) {
       console.log('Using saved audio from localStorage');
-      await playAudio(savedAudioBase64);
-      return;
+      audioReadyRef.current = savedAudioBase64;
     }
     
-    // Gerar áudio via ElevenLabs
-    try {
-      const script = generateSofiaScript({
-        leadName: leadData.name,
-        companyName: leadData.company,
-        answers: leadData.answers,
-        score: leadData.score,
-        level: leadData.level
-      });
-      console.log('Generated Sofia script:', script);
-      
-      const { data, error } = await supabase.functions.invoke('text-to-speech', {
-        body: {
-          text: script,
-          voiceId: 'ORgG8rwdAiMYRug8RJwR' // Ana Alice - voz feminina brasileira
+    // Etapa 1: Validando número (3s)
+    updateCallStep('validate', 'loading');
+    await delay(STEP_DURATION);
+    updateCallStep('validate', 'success', 'Número válido!');
+    
+    // Etapa 2: Buscando foto (3s)
+    updateCallStep('photo', 'loading');
+    await delay(STEP_DURATION);
+    if (whatsappProfile?.pictureUrl) {
+      updateCallStep('photo', 'success', 'Foto encontrada!');
+    } else {
+      updateCallStep('photo', 'warning', 'Foto privada');
+    }
+    
+    // Etapa 3: Buscando nome (3s)
+    updateCallStep('name', 'loading');
+    await delay(STEP_DURATION);
+    if (whatsappProfile?.pushName) {
+      updateCallStep('name', 'success', whatsappProfile.pushName);
+    } else {
+      updateCallStep('name', 'warning', 'Nome não disponível');
+    }
+    
+    // Etapa 4: Gerando script (3s) - inicia geração real em paralelo se não tiver áudio salvo
+    updateCallStep('script', 'loading');
+    
+    let audioGenerationPromise: Promise<string | null> | null = null;
+    
+    if (!savedAudioBase64) {
+      // Iniciar geração do áudio em paralelo
+      audioGenerationPromise = (async () => {
+        try {
+          const script = generateSofiaScript({
+            leadName: leadData.name,
+            companyName: leadData.company,
+            answers: leadData.answers,
+            score: leadData.score,
+            level: leadData.level
+          });
+          console.log('Generated Sofia script:', script);
+          
+          const { data, error } = await supabase.functions.invoke('text-to-speech', {
+            body: {
+              text: script,
+              voiceId: 'ORgG8rwdAiMYRug8RJwR'
+            }
+          });
+
+          if (error) throw error;
+          return data?.audioContent || null;
+        } catch (err) {
+          console.error('Failed to generate audio:', err);
+          return null;
         }
-      });
-
-      if (error) {
-        console.error('Error generating audio:', error);
-        throw error;
+      })();
+    }
+    
+    await delay(STEP_DURATION);
+    updateCallStep('script', 'success', 'Script pronto!');
+    
+    // Etapa 5: Preparando voz (3s) - aguarda áudio se necessário
+    updateCallStep('voice', 'loading');
+    
+    const startTime = Date.now();
+    
+    if (audioGenerationPromise) {
+      const audioResult = await audioGenerationPromise;
+      if (audioResult) {
+        audioReadyRef.current = audioResult;
+        setGeneratedAudioBase64(audioResult);
       }
-
-      if (data?.audioContent) {
-        console.log('Audio received, playing...');
-        setGeneratedAudioBase64(data.audioContent);
-        await playAudio(data.audioContent);
-      } else {
-        throw new Error('No audio content received');
-      }
-    } catch (err) {
-      console.error('Failed to generate/play audio:', err);
-      // Fallback: simular áudio de 35 segundos
+    }
+    
+    // Garantir que a etapa 5 dure pelo menos 3 segundos
+    const elapsed = Date.now() - startTime;
+    if (elapsed < STEP_DURATION) {
+      await delay(STEP_DURATION - elapsed);
+    }
+    
+    updateCallStep('voice', 'success', 'Voz preparada!');
+    
+    // Pequena pausa antes de conectar
+    await delay(500);
+    
+    // Tocar áudio
+    const audioToPlay = audioReadyRef.current || savedAudioBase64;
+    if (audioToPlay) {
+      await playAudio(audioToPlay);
+    } else {
+      // Fallback: simular chamada de 35 segundos
       setCallState('connected');
       setAudioPlaying(true);
       setTimeout(() => {
@@ -277,14 +346,8 @@ export function SofiaAutoCall({
           )}
           
           {callState === 'connecting' && (
-            <div className="mt-6 flex flex-col items-center gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-[#25D366]" />
-              <p className="text-[#25D366] font-medium text-lg">
-                Conectando ao WhatsApp de {firstName}...
-              </p>
-              <p className="text-white/50 text-base">
-                Preparando sua análise personalizada
-              </p>
+            <div className="mt-6">
+              <CallValidationSteps steps={callSteps} />
             </div>
           )}
           

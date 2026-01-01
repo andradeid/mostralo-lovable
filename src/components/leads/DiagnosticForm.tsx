@@ -8,7 +8,6 @@ import { cn, formatBrazilianPhone, formatInternationalPhone } from '@/lib/utils'
 import { DiagnosticLoadingScreen } from './DiagnosticLoadingScreen';
 import { CountryCodeSelect } from '@/components/ui/country-code-select';
 import { WhatsAppValidationSteps, INITIAL_VALIDATION_STEPS, type ValidationStep, type StepStatus } from './WhatsAppValidationSteps';
-import { WhatsAppProfilePreview } from './WhatsAppProfilePreview';
 import { supabase } from '@/integrations/supabase/client';
 import type { DiagnosticAnswers, ContactData } from '@/lib/diagnosticScoring';
 
@@ -99,7 +98,6 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
   // Estados para validação progressiva
   const [validationSteps, setValidationSteps] = useState<ValidationStep[]>(INITIAL_VALIDATION_STEPS);
   const [showValidationSteps, setShowValidationSteps] = useState(false);
-  const [showProfilePreview, setShowProfilePreview] = useState(false);
   
   const totalSteps = QUESTIONS.length + 1;
   const progress = ((currentStep + 1) / totalSteps) * 100;
@@ -158,7 +156,6 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
       setWhatsappStatus('idle');
       setIsWhatsappValidated(false);
       setShowValidationSteps(false);
-      setShowProfilePreview(false);
       setValidationSteps(INITIAL_VALIDATION_STEPS);
       setWhatsappProfilePic(null);
       setWhatsappPushName(null);
@@ -180,7 +177,6 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
     
     setWhatsappStatus('validating');
     setShowValidationSteps(true);
-    setShowProfilePreview(false);
     setValidationSteps(INITIAL_VALIDATION_STEPS);
     
     const fullPhone = countryCode.replace('+', '') + cleanPhone;
@@ -229,10 +225,6 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
       
       setWhatsappStatus('valid');
       setIsWhatsappValidated(true);
-      
-      // Mostrar preview após pequeno delay
-      await delay(400);
-      setShowProfilePreview(true);
       
       return true;
     } catch (err) {
@@ -411,17 +403,6 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
                   />
                 )}
                 
-                {/* Preview do perfil WhatsApp */}
-                {showProfilePreview && whatsappStatus === 'valid' && (
-                  <WhatsAppProfilePreview
-                    profilePicture={whatsappProfilePic}
-                    pushName={whatsappPushName}
-                    formattedNumber={whatsappFormattedNumber}
-                    formName={contact.name}
-                    isPrivatePhoto={whatsappPhotoPrivate}
-                    className="mt-4"
-                  />
-                )}
                 
                 {!showValidationSteps && canValidateWhatsapp && whatsappStatus === 'idle' && (
                   <p className="text-xs text-muted-foreground">

@@ -122,22 +122,43 @@ export function WhatsAppCallMockup({
     stopOrderAlertLoop();
   }, []);
 
+  // Gerar script personalizado baseado nos dados do lead
+  const generateCallScript = (data: LeadData): string => {
+    const firstName = data.name.split(' ')[0];
+    
+    let script = `Olá ${firstName}! Aqui é o Marcos Andrade, da Mostralo. `;
+    script += `Acabei de ver seu diagnóstico e achei muito interessante o perfil da ${data.company}. `;
+    
+    if (data.level === 'elite') {
+      script += `Você tem um perfil excelente para escalar suas vendas com tecnologia! `;
+      script += `Com sua pontuação de ${data.score} pontos, você está no grupo de elite dos lojistas que mais crescem. `;
+    } else if (data.level === 'potential') {
+      script += `Vi que você tem grande potencial de crescimento! `;
+      script += `Com algumas otimizações, sua loja pode aumentar muito as vendas. `;
+    } else {
+      script += `Quero te mostrar como a tecnologia pode transformar seu negócio. `;
+    }
+    
+    script += `Gostaria de agendar uma consultoria gratuita para conversarmos sobre as melhores estratégias para sua loja? `;
+    script += `Clique no botão abaixo para agendar o melhor horário. Até já!`;
+    
+    return script;
+  };
+
   const handleAccept = async () => {
-    // Mostrar estado de conexão enquanto gera o áudio
     setCallState('connecting');
     
-    // Se temos dados do lead, gerar áudio personalizado
     if (leadData) {
       try {
-        console.log('Generating personalized audio for:', leadData.name);
+        // Gerar script personalizado no frontend
+        const script = generateCallScript(leadData);
+        console.log('Generated script:', script);
         
-        const { data, error } = await supabase.functions.invoke('diagnostic-call', {
+        // Usar função text-to-speech existente
+        const { data, error } = await supabase.functions.invoke('text-to-speech', {
           body: {
-            leadName: leadData.name,
-            companyName: leadData.company,
-            answers: leadData.answers,
-            score: leadData.score,
-            level: leadData.level
+            text: script,
+            voiceId: 'onwK4e9ZLuTAKqWW03F9' // Daniel - voz brasileira
           }
         });
 
@@ -149,7 +170,6 @@ export function WhatsAppCallMockup({
         if (data?.audioContent) {
           console.log('Audio received, playing...');
           
-          // Agora sim, conectar e tocar
           setCallState('connected');
           setAudioPlaying(true);
           
@@ -172,13 +192,12 @@ export function WhatsAppCallMockup({
         }
       } catch (err) {
         console.error('Failed to generate/play audio:', err);
-        // Fallback: ir para conectado e simular áudio
+        // Fallback: simular áudio
         setCallState('connected');
         setAudioPlaying(true);
         setTimeout(() => setAudioPlaying(false), 35000);
       }
     } else {
-      // Sem dados do lead, simular conexão rápida
       setTimeout(() => {
         setCallState('connected');
         setAudioPlaying(true);

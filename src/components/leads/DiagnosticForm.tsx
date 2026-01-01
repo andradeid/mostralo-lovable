@@ -186,7 +186,7 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
     const fullPhone = countryCode.replace('+', '') + cleanPhone;
     
     try {
-      // Etapa 1: Validando número
+      // Único card visual: Validando número
       updateStepStatus('validate', 'loading');
       await delay(600);
       
@@ -204,8 +204,6 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
       
       if (!isValid) {
         updateStepStatus('validate', 'error', 'Número não encontrado no WhatsApp');
-        updateStepStatus('photo', 'pending');
-        updateStepStatus('name', 'pending');
         setWhatsappStatus('invalid');
         setIsWhatsappValidated(true);
         return false;
@@ -213,31 +211,18 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
       
       updateStepStatus('validate', 'success', 'Número válido!');
       
-      // Etapa 2: Foto do perfil
-      updateStepStatus('photo', 'loading');
-      await delay(500);
-      
+      // Buscar foto e nome em background (sem cards visuais)
       if (data?.profilePictureUrl) {
         setWhatsappProfilePic(data.profilePictureUrl);
         setWhatsappPhotoPrivate(false);
-        updateStepStatus('photo', 'success', 'Foto encontrada!');
       } else {
         setWhatsappPhotoPrivate(true);
-        updateStepStatus('photo', 'warning', 'Foto privada ou não disponível');
       }
-      
-      // Etapa 3: Nome do contato
-      updateStepStatus('name', 'loading');
-      await delay(400);
       
       if (data?.pushName) {
         setWhatsappPushName(data.pushName);
-        updateStepStatus('name', 'success', data.pushName);
-      } else {
-        updateStepStatus('name', 'warning', 'Nome não disponível');
       }
       
-      // Guardar número formatado
       if (data?.formattedNumber) {
         setWhatsappFormattedNumber(data.formattedNumber);
       }
@@ -246,7 +231,7 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
       setIsWhatsappValidated(true);
       
       // Mostrar preview após pequeno delay
-      await delay(300);
+      await delay(400);
       setShowProfilePreview(true);
       
       return true;

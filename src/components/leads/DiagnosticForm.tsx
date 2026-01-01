@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
+import { DiagnosticLoadingScreen } from './DiagnosticLoadingScreen';
 import type { DiagnosticAnswers, ContactData } from '@/lib/diagnosticScoring';
 
 interface DiagnosticFormProps {
@@ -62,11 +63,21 @@ const QUESTIONS: Question[] = [
   }
 ];
 
+// Duração do loading em ms: 4s para Q1-Q3, 6s para Q4
+const LOADING_DURATIONS: Record<string, number> = {
+  q1: 4000,
+  q2: 4000,
+  q3: 4000,
+  q4: 6000
+};
+
 export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Partial<DiagnosticAnswers>>({});
   const [contact, setContact] = useState<ContactData>({ name: '', phone: '', company: '' });
   const [animating, setAnimating] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [processingQuestionId, setProcessingQuestionId] = useState<string | null>(null);
   
   const totalSteps = QUESTIONS.length + 1;
   const progress = ((currentStep + 1) / totalSteps) * 100;
@@ -75,19 +86,26 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
   const handleAnswer = (questionId: keyof DiagnosticAnswers, value: string) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
     
+    // Iniciar animação de loading
     setTimeout(() => {
-      if (currentStep < QUESTIONS.length) {
-        setAnimating(true);
-        setTimeout(() => {
-          setCurrentStep(prev => prev + 1);
-          setAnimating(false);
-        }, 150);
-      }
+      setProcessingQuestionId(questionId);
+      setIsProcessing(true);
     }, 200);
   };
   
+  const handleLoadingComplete = () => {
+    setIsProcessing(false);
+    setProcessingQuestionId(null);
+    setAnimating(true);
+    
+    setTimeout(() => {
+      setCurrentStep(prev => prev + 1);
+      setAnimating(false);
+    }, 150);
+  };
+  
   const handleBack = () => {
-    if (currentStep > 0) {
+    if (currentStep > 0 && !isProcessing) {
       setAnimating(true);
       setTimeout(() => {
         setCurrentStep(prev => prev - 1);
@@ -113,6 +131,17 @@ export function DiagnosticForm({ onComplete }: DiagnosticFormProps) {
   const isContactValid = contact.name.trim().length >= 3 && 
                          contact.phone.replace(/\D/g, '').length >= 10 && 
                          contact.company.trim().length >= 2;
+
+  // Renderizar tela de loading se estiver processando
+  if (isProcessing && processingQuestionId) {
+    return (
+      <DiagnosticLoadingScreen
+        questionId={processingQuestionId}
+        duration={LOADING_DURATIONS[processingQuestionId] || 4000}
+        onComplete={handleLoadingComplete}
+      />
+    );
+  }
 
   return (
     <div className="w-full max-w-2xl mx-auto">

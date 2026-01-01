@@ -2,6 +2,8 @@ import { Building2, Calendar, Eye, Mail, MapPin, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { StaleLeadBadge, getRowClassName } from '@/components/leads/StaleLeadBadge';
+import { QualificationBadge } from '@/components/leads/QualificationBadge';
+import type { QualificationLevel } from '@/components/leads/QualificationBadge';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -16,6 +18,8 @@ interface Lead {
   created_at: string;
   updated_at: string;
   salespeople?: { full_name: string } | null;
+  qualification_level?: QualificationLevel;
+  qualification_score?: number | null;
 }
 
 interface LeadCardProps {
@@ -34,6 +38,9 @@ export function LeadCard({ lead, statusOptions, onStatusChange, onViewDetails }:
           <div className="flex items-center gap-2 flex-wrap">
             <p className="font-medium text-sm truncate">{lead.name}</p>
             <StaleLeadBadge updatedAt={lead.updated_at} status={lead.status} />
+            {lead.qualification_level && (
+              <QualificationBadge level={lead.qualification_level} />
+            )}
           </div>
           <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
             <Building2 className="w-3 h-3 shrink-0" />

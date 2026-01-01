@@ -1,16 +1,45 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Store } from 'lucide-react';
 import { DiagnosticForm } from '@/components/leads/DiagnosticForm';
 import { DiagnosticResult } from '@/components/leads/DiagnosticResult';
+import { DiagnosticAlreadyCompleted } from '@/components/leads/DiagnosticAlreadyCompleted';
 import { getDiagnosticResult } from '@/lib/diagnosticScoring';
 import { supabase } from '@/integrations/supabase/client';
 import type { Json } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
 import type { DiagnosticAnswers, ContactData, DiagnosticResult as DiagnosticResultType } from '@/lib/diagnosticScoring';
 
+const STORAGE_KEY = 'mostralo_diagnostic_data';
+
+interface StoredDiagnostic {
+  result: DiagnosticResultType;
+  audioBase64: string | null;
+  completedAt: string;
+}
+
 export default function DiagnosticoPage() {
   const [result, setResult] = useState<DiagnosticResultType | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [alreadyCompleted, setAlreadyCompleted] = useState(false);
+  const [savedAudio, setSavedAudio] = useState<string | null>(null);
+  const [completedAt, setCompletedAt] = useState<string>('');
+
+  // Verificar localStorage ao carregar
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const data: StoredDiagnostic = JSON.parse(stored);
+        setResult(data.result);
+        setSavedAudio(data.audioBase64);
+        setCompletedAt(data.completedAt);
+        setAlreadyCompleted(true);
+      }
+    } catch (err) {
+      console.error('Error loading stored diagnostic:', err);
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  }, []);
 
   const handleFormComplete = async (answers: DiagnosticAnswers, contact: ContactData) => {
     setIsSubmitting(true);
@@ -46,13 +75,44 @@ export default function DiagnosticoPage() {
         return;
       }
       
+      // Salvar no localStorage (sem áudio ainda)
+      const storedData: StoredDiagnostic = {
+        result: diagnosticResult,
+        audioBase64: null,
+        completedAt: new Date().toISOString()
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(storedData));
+      
       setResult(diagnosticResult);
+      setCompletedAt(storedData.completedAt);
     } catch (err) {
       console.error('Erro no diagnóstico:', err);
       toast.error('Ocorreu um erro. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleAudioGenerated = (audioBase64: string) => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const data: StoredDiagnostic = JSON.parse(stored);
+        data.audioBase64 = audioBase64;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        setSavedAudio(audioBase64);
+      }
+    } catch (err) {
+      console.error('Error saving audio to localStorage:', err);
+    }
+  };
+
+  const handleRestart = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    setResult(null);
+    setSavedAudio(null);
+    setAlreadyCompleted(false);
+    setCompletedAt('');
   };
 
   return (
@@ -77,7 +137,14 @@ export default function DiagnosticoPage() {
       </header>
 
       <main className="container mx-auto px-4 py-8 md:py-12">
-        {!result ? (
+        {alreadyCompleted && result ? (
+          <DiagnosticAlreadyCompleted
+            result={result}
+            audioBase64={savedAudio}
+            completedAt={completedAt}
+            onRestart={handleRestart}
+          />
+        ) : !result ? (
           <>
             {/* Hero */}
             <div className="text-center mb-10 md:mb-12 animate-fade-in">
@@ -95,7 +162,11 @@ export default function DiagnosticoPage() {
             </div>
           </>
         ) : (
-          <DiagnosticResult result={result} />
+          <DiagnosticResult 
+            result={result} 
+            savedAudioBase64={savedAudio}
+            onAudioGenerated={handleAudioGenerated}
+          />
         )}
       </main>
 

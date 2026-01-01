@@ -1,9 +1,11 @@
-import { CheckCircle2, Zap, Bot, TrendingUp, Star, Award, Clock } from 'lucide-react';
+import { useState } from 'react';
+import { CheckCircle2, Zap, Bot, TrendingUp, Star, Award, Clock, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { DiagnosticResult as DiagnosticResultType, QualificationLevel } from '@/lib/diagnosticScoring';
 import { generateWhatsAppMessage, MARCOS_WHATSAPP } from '@/lib/diagnosticScoring';
+import { WhatsAppCallMockup } from './WhatsAppCallMockup';
 
 interface DiagnosticResultProps {
   result: DiagnosticResultType;
@@ -66,6 +68,7 @@ const BENEFITS = [
 ];
 
 export function DiagnosticResult({ result }: DiagnosticResultProps) {
+  const [showCallMockup, setShowCallMockup] = useState(false);
   const config = LEVEL_CONFIG[result.level];
   
   const handleWhatsAppClick = () => {
@@ -74,6 +77,14 @@ export function DiagnosticResult({ result }: DiagnosticResultProps) {
   };
 
   return (
+    <>
+    <WhatsAppCallMockup
+      isOpen={showCallMockup}
+      onClose={() => setShowCallMockup(false)}
+      callerName="Marcos Andrade"
+      callerRole="Consultor Mostralo"
+      onScheduleConsultation={handleWhatsAppClick}
+    />
     <div className="w-full max-w-3xl mx-auto space-y-8">
       {/* Header com animação de check */}
       <div className="text-center animate-fade-in">
@@ -162,21 +173,42 @@ export function DiagnosticResult({ result }: DiagnosticResultProps) {
         </div>
       )}
 
+      {/* Botão de Ligação WhatsApp */}
+      {result.level !== 'disqualified' && (
+        <div className="text-center animate-fade-in" style={{ animationDelay: '500ms' }}>
+          <Button
+            onClick={() => setShowCallMockup(true)}
+            size="lg"
+            className={cn(
+              "w-full md:w-auto h-14 md:h-16 px-8 text-base md:text-lg font-bold",
+              "bg-[#25D366] hover:bg-[#128C7E] text-white",
+              "shadow-lg shadow-[#25D366]/30 hover:shadow-xl hover:shadow-[#25D366]/40",
+              "transition-all duration-300 animate-accept-pulse"
+            )}
+          >
+            <Phone className="w-5 h-5 mr-2" />
+            RECEBER LIGAÇÃO DE WHATSAPP
+          </Button>
+          <p className="text-sm text-muted-foreground mt-2">
+            Marcos vai ligar agora para você!
+          </p>
+        </div>
+      )}
+
       {/* CTA Principal */}
       <div className="text-center animate-fade-in" style={{ animationDelay: '600ms' }}>
         <Button
           onClick={handleWhatsAppClick}
           size="lg"
+          variant={result.level !== 'disqualified' ? 'outline' : 'default'}
           className={cn(
             "w-full md:w-auto h-14 md:h-16 px-8 text-base md:text-lg font-bold",
-            "bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90",
-            "shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30",
-            "transition-all duration-300"
+            result.level === 'disqualified' && "bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90 shadow-lg shadow-primary/25"
           )}
         >
           {result.level === 'disqualified' 
             ? 'FALAR COM MARCOS ANDRADE'
-            : 'QUERO AGENDAR MINHA CONSULTORIA COM MARCOS ANDRADE'
+            : 'Ou enviar mensagem de texto'
           }
         </Button>
         
@@ -200,5 +232,6 @@ export function DiagnosticResult({ result }: DiagnosticResultProps) {
         <p className="text-sm text-primary mt-1">Mostralo.com.br</p>
       </div>
     </div>
+    </>
   );
 }

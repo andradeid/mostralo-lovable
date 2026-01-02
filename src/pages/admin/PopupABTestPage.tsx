@@ -9,6 +9,7 @@ import { VariationChart } from '@/components/admin/popup-analytics/VariationChar
 import { VariationTable } from '@/components/admin/popup-analytics/VariationTable';
 import { UTMBreakdownTable } from '@/components/admin/popup-analytics/UTMBreakdownTable';
 import { DeviceBreakdown } from '@/components/admin/popup-analytics/DeviceBreakdown';
+import { PopupPreviewSection } from '@/components/admin/popup-analytics/PopupPreviewSection';
 import { POPUP_VARIATIONS } from '@/components/landing/diagnosticPopupVariations';
 
 interface AnalyticsData {
@@ -166,6 +167,9 @@ const PopupABTestPage = () => {
           </Button>
         </div>
       </div>
+
+      {/* Ferramentas de Teste */}
+      <PopupPreviewSection />
 
       {/* KPIs */}
       <PopupKPICards

@@ -18,9 +18,24 @@ const VARIATION_KEY = 'diagnostic_popup_variation';
 export const DiagnosticPopup = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [variation, setVariation] = useState<'A' | 'B' | 'C' | 'D'>('A');
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Verificar se popup está desativado (toggle do admin)
+    if (localStorage.getItem('popup_ab_enabled') === 'false') return;
+
+    // Verificar modo preview via URL
+    const params = new URLSearchParams(window.location.search);
+    const previewVariation = params.get('popup_preview') as 'A' | 'B' | 'C' | 'D' | null;
+    
+    if (previewVariation && ['A', 'B', 'C', 'D'].includes(previewVariation)) {
+      setVariation(previewVariation);
+      setIsPreviewMode(true);
+      setIsOpen(true);
+      return;
+    }
+
     // Se já foi mostrado nesta sessão, não mostrar novamente
     if (sessionStorage.getItem(POPUP_KEY)) return;
 
@@ -43,19 +58,25 @@ export const DiagnosticPopup = () => {
   }, []);
 
   const handleCTA = () => {
-    trackPopupEvent(variation, 'clicked_cta');
+    if (!isPreviewMode) {
+      trackPopupEvent(variation, 'clicked_cta');
+    }
     setIsOpen(false);
     navigate('/diagnostico-delivery');
   };
 
   const handleClose = () => {
-    trackPopupEvent(variation, 'closed');
+    if (!isPreviewMode) {
+      trackPopupEvent(variation, 'closed');
+    }
     setIsOpen(false);
   };
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
-      trackPopupEvent(variation, 'clicked_outside');
+      if (!isPreviewMode) {
+        trackPopupEvent(variation, 'clicked_outside');
+      }
       setIsOpen(false);
     }
   };

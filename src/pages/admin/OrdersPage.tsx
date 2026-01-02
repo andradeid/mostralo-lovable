@@ -11,6 +11,8 @@ import { OrderCard } from "@/components/admin/orders/OrderCard";
 import { OrderDetailDialog } from "@/components/admin/orders/OrderDetailDialog";
 import { OrderFilters } from "@/components/admin/orders/OrderFilters";
 import { CreateOrderDialog } from "@/components/admin/orders/CreateOrderDialog";
+import { MobileOrdersList } from "@/components/admin/orders/MobileOrdersList";
+import { MobileOrdersStatusBar } from "@/components/admin/orders/MobileOrdersStatusBar";
 import { toast } from "sonner";
 import { Inbox, ChefHat, Package, Truck, DollarSign, ShoppingBag, TrendingUp, Bell, Volume2, VolumeX, Plus, AlertCircle, CheckCircle2, Printer, Loader2, Settings, ChevronDown, ChevronUp, Maximize2, Minimize2, HelpCircle } from "lucide-react";
 import { OrdersPageTutorial } from "@/components/admin/orders/OrdersPageTutorial";
@@ -30,6 +32,8 @@ import { useStoreAccess } from "@/hooks/useStoreAccess";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { usePasswordCallConfig } from "@/hooks/usePasswordCallConfig";
 import { FloatingPasswordKeypad } from "@/components/signage/FloatingPasswordKeypad";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useOrderStatusAdvance } from "@/hooks/useOrderStatusAdvance";
 
 type Order = Database['public']['Tables']['orders']['Row'];
 type OrderStatus = Database['public']['Enums']['order_status'];
@@ -100,8 +104,16 @@ const OrdersPage = () => {
   // Hook do sidebar para controlar colapso
   const { setOpen: setSidebarOpen } = useSidebar();
 
-  // Hook para detectar tela grande (lg+)
+  // Hook para detectar tela grande (lg+) e mobile
   const isLargeScreen = useMediaQuery('(min-width: 1024px)');
+  const isMobile = useIsMobile();
+  
+  // Estado para status ativo no mobile
+  const [mobileActiveStatus, setMobileActiveStatus] = useState<OrderStatus>('entrada');
+  const [isRefreshingMobile, setIsRefreshingMobile] = useState(false);
+  
+  // Hook para avanço de status
+  const { advanceStatus, cancelOrder } = useOrderStatusAdvance();
 
   // Hook para browser notifications
   const { 
@@ -819,6 +831,144 @@ const OrdersPage = () => {
   );
   const todayRevenue = todayOrders.reduce((sum, order) => sum + Number(order.total), 0);
   const averageTicket = todayOrders.length > 0 ? todayRevenue / todayOrders.length : 0;
+
+  // Calcular contagem por status para mobile
+  const statusCounts: Record<OrderStatus, number> = {
+    'entrada': getOrdersByStatus('entrada').length,
+    'em_preparo': getOrdersByStatus('em_preparo').length,
+    'aguarda_retirada': getOrdersByStatus('aguarda_retirada').length,
+    'aguardando_pagamento': getOrdersByStatus('aguardando_pagamento' as OrderStatus).length,
+    'em_transito': getOrdersByStatus('em_transito').length,
+    'concluido': getOrdersByStatus('concluido').length,
+    'cancelado': 0,
+  };
+
+  // Handlers para ações mobile
+  const handleMobileRefresh = async () => {
+    setIsRefreshingMobile(true);
+    await fetchOrders();
+    setIsRefreshingMobile(false);
+  };
+
+  const handleMobileAdvanceStatus = async (order: Order) => {
+    const success = await advanceStatus(order);
+    if (success) {
+      fetchOrders();
+    }
+  };
+
+  const handleMobilePrint = async (order: Order) => {
+    try {
+      const { data: storeData } = await supabase
+        .from('stores')
+        .select('name')
+        .eq('id', order.store_id)
+        .single();
+
+      await printOrder(order as any, storeData?.name || 'Loja');
+      toast.success('Impressão iniciada!');
+    } catch (error) {
+      console.error('Erro ao imprimir:', error);
+      toast.error('Erro ao imprimir pedido');
+    }
+  };
+
+  const handleMobileCancel = async (order: Order) => {
+    await cancelOrder(order);
+    fetchOrders();
+  };
+
+  const handleMobileAssignDriver = (order: Order) => {
+    // Abrir modal de detalhes para atribuir entregador
+    setSelectedOrder(order);
+    setDetailDialogOpen(true);
+    toast.info('Atribua um entregador para continuar');
+  };
+
+  // Renderização Mobile
+  if (isMobile && orders.length > 0) {
+    return (
+      <div className="flex flex-col h-[100dvh] bg-background">
+        {/* Header Mobile Compacto */}
+        <div className="flex items-center justify-between px-3 py-2 border-b bg-background sticky top-0 z-40">
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg font-bold">Pedidos</h1>
+            {pendingOrders.length > 0 && (
+              <Badge variant="destructive" className="animate-pulse text-xs px-1.5 py-0.5">
+                <AlertCircle className="h-3 w-3 mr-0.5" />
+                {pendingOrders.length}
+              </Badge>
+            )}
+          </div>
+          <div className="flex items-center gap-1">
+            <Button
+              variant={soundEnabled ? "default" : "ghost"}
+              size="sm"
+              onClick={() => handleToggleSound(!soundEnabled)}
+              className="h-8 w-8 p-0"
+            >
+              {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => setCreateOrderDialogOpen(true)}
+              className="h-8 w-8 p-0"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        
+        {/* Lista de Pedidos */}
+        <div className="flex-1 overflow-hidden pb-16">
+          <MobileOrdersList
+            orders={filteredOrders}
+            activeStatus={mobileActiveStatus}
+            onOrderClick={(order) => {
+              setSelectedOrder(order);
+              setDetailDialogOpen(true);
+              setViewedOrderIds(prev => new Set(prev).add(order.id));
+              setPendingOrders(prev => prev.filter(o => o.id !== order.id));
+            }}
+            onAdvanceStatus={handleMobileAdvanceStatus}
+            onPrint={handleMobilePrint}
+            onCancel={handleMobileCancel}
+            onAssignDriver={handleMobileAssignDriver}
+            onRefresh={handleMobileRefresh}
+            isRefreshing={isRefreshingMobile}
+            viewedOrderIds={viewedOrderIds}
+            hasMore={mobileActiveStatus === 'concluido' && getOrdersByStatus('concluido').length > finishedOrdersVisible}
+            onLoadMore={loadMoreFinishedOrders}
+            isLoadingMore={isLoadingMoreFinished}
+          />
+        </div>
+        
+        {/* Barra de Status no Rodapé */}
+        <MobileOrdersStatusBar
+          activeStatus={mobileActiveStatus}
+          onStatusChange={setMobileActiveStatus}
+          counts={statusCounts}
+          pendingCount={pendingOrders.length}
+        />
+        
+        {/* Order Detail Dialog */}
+        <OrderDetailDialog
+          order={selectedOrder}
+          open={detailDialogOpen}
+          onOpenChange={setDetailDialogOpen}
+          onStatusChange={fetchOrders}
+        />
+        
+        {/* Create Order Dialog */}
+        <CreateOrderDialog
+          open={createOrderDialogOpen}
+          onOpenChange={setCreateOrderDialogOpen}
+          onSuccess={fetchOrders}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={`p-2 sm:p-3 lg:p-4 space-y-2 sm:space-y-3 ${pendingOrders.length > 0 ? 'animate-screen-flash' : ''}`}>

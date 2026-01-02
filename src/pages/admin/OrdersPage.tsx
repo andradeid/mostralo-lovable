@@ -889,7 +889,7 @@ const OrdersPage = () => {
   // Renderização Mobile
   if (isMobile && orders.length > 0) {
     return (
-      <div className="flex flex-col h-[100dvh] bg-background">
+      <div className="fixed inset-0 flex flex-col bg-background z-50">
         {/* Header Mobile Compacto */}
         <div className="flex items-center justify-between px-3 py-2 border-b bg-background sticky top-0 z-40">
           <div className="flex items-center gap-2">

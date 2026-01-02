@@ -415,6 +415,7 @@ export function AdminSidebar() {
         { title: 'Gerenciar Novidades', url: '/dashboard/system-updates', icon: Megaphone, group: 'Sistema' },
         { title: 'Banners do Sistema', url: '/dashboard/system-banners', icon: Image, group: 'Sistema' },
         { title: 'Diagnósticos', url: '/dashboard/diagnostics', icon: Activity, group: 'Sistema' },
+        { title: 'Teste A/B Popup', url: '/dashboard/popup-ab-test', icon: BarChart3, group: 'Sistema' },
         { title: 'Monitor Webhooks', url: '/dashboard/webhooks-monitor', icon: Rss, group: 'Sistema' },
         { title: 'Guia Cloudflare', url: '/dashboard/cloudflare-guide', icon: Cloud, group: 'Sistema' },
         { title: 'Homologação iFood', url: '/dashboard/ifood-homologation', icon: ClipboardCheck, group: 'Sistema' },

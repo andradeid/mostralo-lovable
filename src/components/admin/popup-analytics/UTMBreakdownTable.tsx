@@ -24,33 +24,37 @@ interface UTMBreakdownTableProps {
 export const UTMBreakdownTable = ({ data, title, emptyMessage = 'Sem dados' }: UTMBreakdownTableProps) => {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-base">{title}</CardTitle>
+      <CardHeader className="pb-2 md:pb-4">
+        <CardTitle className="text-sm md:text-base">{title}</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-0 md:p-6 pt-0">
         {data.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">{emptyMessage}</p>
+          <p className="text-xs md:text-sm text-muted-foreground text-center py-4 px-3">{emptyMessage}</p>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Origem</TableHead>
-                <TableHead className="text-right">Views</TableHead>
-                <TableHead className="text-right">Cliques</TableHead>
-                <TableHead className="text-right">Conversão</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.slice(0, 10).map((item) => (
-                <TableRow key={item.source}>
-                  <TableCell className="font-medium">{item.source || '(direto)'}</TableCell>
-                  <TableCell className="text-right">{item.views.toLocaleString('pt-BR')}</TableCell>
-                  <TableCell className="text-right text-green-600">{item.clicks.toLocaleString('pt-BR')}</TableCell>
-                  <TableCell className="text-right font-semibold">{item.conversionRate.toFixed(1)}%</TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs md:text-sm whitespace-nowrap">Origem</TableHead>
+                  <TableHead className="text-xs md:text-sm text-right whitespace-nowrap">Views</TableHead>
+                  <TableHead className="text-xs md:text-sm text-right whitespace-nowrap hidden sm:table-cell">Cliques</TableHead>
+                  <TableHead className="text-xs md:text-sm text-right whitespace-nowrap">%</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {data.slice(0, 5).map((item) => (
+                  <TableRow key={item.source}>
+                    <TableCell className="text-xs md:text-sm font-medium truncate max-w-[80px] md:max-w-[120px]">
+                      {item.source || '(direto)'}
+                    </TableCell>
+                    <TableCell className="text-xs md:text-sm text-right">{item.views.toLocaleString('pt-BR')}</TableCell>
+                    <TableCell className="text-xs md:text-sm text-right text-green-600 hidden sm:table-cell">{item.clicks.toLocaleString('pt-BR')}</TableCell>
+                    <TableCell className="text-xs md:text-sm text-right font-semibold">{item.conversionRate.toFixed(0)}%</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </CardContent>
     </Card>

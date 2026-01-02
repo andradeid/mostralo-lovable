@@ -41,6 +41,7 @@ const Auth = () => {
     password: ''
   });
   const [rateLimitSeconds, setRateLimitSeconds] = useState(0);
+  const [isCleaningSession, setIsCleaningSession] = useState(false);
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
   
   const { signIn, user, session, userRole, profile, loading: authLoading } = useAuth();
@@ -83,13 +84,35 @@ const Auth = () => {
     const resolvedRole = userRole || profile?.user_type;
     if (!resolvedRole) return;
 
+    // Se for cliente tentando acessar /auth, fazer logout automático para permitir login como admin
     if (userRole === 'customer' && session) {
-      toast({
-        title: 'Acesso Incorreto',
-        description: 'Como cliente, acesse o painel da loja específica',
-        variant: 'default',
-      });
-      navigate('/');
+      console.log('🧹 Sessão de cliente detectada em /auth, limpando automaticamente...');
+      setIsCleaningSession(true);
+      
+      (async () => {
+        try {
+          await supabase.auth.signOut();
+          
+          // Limpar localStorage de dados de cliente
+          const keysToRemove: string[] = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && (key.startsWith('customer_') || key.startsWith('sb-'))) {
+              keysToRemove.push(key);
+            }
+          }
+          keysToRemove.forEach(key => localStorage.removeItem(key));
+          
+          toast({
+            title: 'Sessão anterior encerrada',
+            description: 'Agora você pode fazer login como administrador.',
+          });
+        } catch (error) {
+          console.error('Erro ao limpar sessão:', error);
+        } finally {
+          setIsCleaningSession(false);
+        }
+      })();
       return;
     }
 
@@ -265,6 +288,18 @@ const Auth = () => {
       setRecoverySent(false);
     }
   };
+
+  // Tela de loading enquanto limpa sessão anterior
+  if (isCleaningSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/20 via-background to-secondary/20">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Preparando login...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/20 via-background to-secondary/20 px-4">

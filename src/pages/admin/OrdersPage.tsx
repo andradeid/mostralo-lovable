@@ -13,6 +13,7 @@ import { OrderFilters } from "@/components/admin/orders/OrderFilters";
 import { CreateOrderDialog } from "@/components/admin/orders/CreateOrderDialog";
 import { MobileOrdersList } from "@/components/admin/orders/MobileOrdersList";
 import { MobileOrdersStatusBar } from "@/components/admin/orders/MobileOrdersStatusBar";
+import { MobileAdminNav } from "@/components/admin/orders/MobileAdminNav";
 import { toast } from "sonner";
 import { Inbox, ChefHat, Package, Truck, DollarSign, ShoppingBag, TrendingUp, Bell, Volume2, VolumeX, Plus, AlertCircle, CheckCircle2, Printer, Loader2, Settings, ChevronDown, ChevronUp, Maximize2, Minimize2, HelpCircle } from "lucide-react";
 import { OrdersPageTutorial } from "@/components/admin/orders/OrdersPageTutorial";
@@ -892,6 +893,7 @@ const OrdersPage = () => {
         {/* Header Mobile Compacto */}
         <div className="flex items-center justify-between px-3 py-2 border-b bg-background sticky top-0 z-40">
           <div className="flex items-center gap-2">
+            <MobileAdminNav />
             <h1 className="text-lg font-bold">Pedidos</h1>
             {pendingOrders.length > 0 && (
               <Badge variant="destructive" className="animate-pulse text-xs px-1.5 py-0.5">

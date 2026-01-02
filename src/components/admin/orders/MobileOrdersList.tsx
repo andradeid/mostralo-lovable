@@ -1,10 +1,11 @@
 import { Database } from "@/integrations/supabase/types";
 import { SwipeableOrderCard } from "./SwipeableOrderCard";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { PullToRefreshIndicator } from "./PullToRefreshIndicator";
 import { Button } from "@/components/ui/button";
 import { Inbox, ChefHat, Package, Truck, CheckCircle2, RefreshCw, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getStatusLabel } from "@/hooks/useOrderStatusAdvance";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 
 type Order = Database['public']['Tables']['orders']['Row'];
 type OrderStatus = Database['public']['Enums']['order_status'];
@@ -62,6 +63,18 @@ export const MobileOrdersList = ({
 }: MobileOrdersListProps) => {
   const StatusIcon = STATUS_ICONS[activeStatus];
   
+  // Pull to refresh hook
+  const { containerRef, pullDistance, isPulling, isRefreshing: isPullRefreshing } = usePullToRefresh({
+    onRefresh: async () => {
+      await new Promise<void>((resolve) => {
+        onRefresh();
+        setTimeout(resolve, 500);
+      });
+    },
+    threshold: 80,
+    maxPull: 120
+  });
+  
   // Filtrar pedidos do status ativo
   // Para "concluido", incluir também pedidos "cancelado"
   const filteredOrders = orders.filter(order => {
@@ -70,6 +83,8 @@ export const MobileOrdersList = ({
     }
     return order.status === activeStatus;
   });
+  
+  const actuallyRefreshing = isRefreshing || isPullRefreshing;
   
   return (
     <div className="flex flex-col h-full">
@@ -86,63 +101,86 @@ export const MobileOrdersList = ({
           variant="ghost"
           size="sm"
           onClick={onRefresh}
-          disabled={isRefreshing}
+          disabled={actuallyRefreshing}
           className="h-8 w-8 p-0"
         >
-          <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
+          <RefreshCw className={cn("h-4 w-4", actuallyRefreshing && "animate-spin")} />
         </Button>
       </div>
       
-      {/* Lista de pedidos */}
-      <ScrollArea className="flex-1 px-3 py-2">
-        {filteredOrders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <StatusIcon className={cn("h-12 w-12 mb-4 opacity-20", STATUS_COLORS[activeStatus])} />
-            <p className="text-muted-foreground font-medium">
-              Nenhum pedido em {getStatusLabel(activeStatus).toLowerCase()}
-            </p>
-            <p className="text-sm text-muted-foreground/70 mt-1">
-              Os pedidos aparecerão aqui quando mudarem de status
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-2 pb-20">
-            {filteredOrders.map((order) => (
-              <SwipeableOrderCard
-                key={order.id}
-                order={order}
-                onClick={() => onOrderClick(order)}
-                onAdvanceStatus={onAdvanceStatus}
-                onPrint={onPrint}
-                onCancel={onCancel}
-                onAssignDriver={onAssignDriver}
-                isViewed={viewedOrderIds.has(order.id)}
-              />
-            ))}
-            
-            {/* Botão carregar mais (para finalizados) */}
-            {hasMore && onLoadMore && (
-              <div className="flex justify-center py-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onLoadMore}
-                  disabled={isLoadingMore}
-                >
-                  {isLoadingMore ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Carregando...
-                    </>
-                  ) : (
-                    'Carregar mais'
-                  )}
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
-      </ScrollArea>
+      {/* Lista de pedidos com pull-to-refresh */}
+      <div 
+        ref={containerRef}
+        className="flex-1 overflow-y-auto relative"
+        style={{
+          touchAction: pullDistance > 0 ? 'none' : 'auto'
+        }}
+      >
+        {/* Pull to refresh indicator */}
+        <PullToRefreshIndicator
+          pullDistance={pullDistance}
+          isPulling={isPulling}
+          isRefreshing={isPullRefreshing}
+          threshold={80}
+        />
+        
+        {/* Content with transform for pull effect */}
+        <div 
+          className="px-3 py-2"
+          style={{
+            transform: `translateY(${pullDistance}px)`,
+            transition: !isPulling && !isPullRefreshing ? 'transform 0.2s ease-out' : 'none'
+          }}
+        >
+          {filteredOrders.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <StatusIcon className={cn("h-12 w-12 mb-4 opacity-20", STATUS_COLORS[activeStatus])} />
+              <p className="text-muted-foreground font-medium">
+                Nenhum pedido em {getStatusLabel(activeStatus).toLowerCase()}
+              </p>
+              <p className="text-sm text-muted-foreground/70 mt-1">
+                Os pedidos aparecerão aqui quando mudarem de status
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2 pb-20">
+              {filteredOrders.map((order) => (
+                <SwipeableOrderCard
+                  key={order.id}
+                  order={order}
+                  onClick={() => onOrderClick(order)}
+                  onAdvanceStatus={onAdvanceStatus}
+                  onPrint={onPrint}
+                  onCancel={onCancel}
+                  onAssignDriver={onAssignDriver}
+                  isViewed={viewedOrderIds.has(order.id)}
+                />
+              ))}
+              
+              {/* Botão carregar mais (para finalizados) */}
+              {hasMore && onLoadMore && (
+                <div className="flex justify-center py-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onLoadMore}
+                    disabled={isLoadingMore}
+                  >
+                    {isLoadingMore ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Carregando...
+                      </>
+                    ) : (
+                      'Carregar mais'
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

@@ -6,6 +6,7 @@ import { CookieBanner } from '@/components/CookieBanner';
 import { PrivacyConsent } from '@/components/PrivacyConsent';
 import { DashboardFooter } from '@/components/admin/DashboardFooter';
 import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
+import { DiagnosticPopup } from '@/components/landing/DiagnosticPopup';
 
 // Landing page sections
 import { LandingHeader } from '@/components/landing/LandingHeader';
@@ -89,6 +90,7 @@ const Index = () => {
       <CookieBanner />
       <PrivacyConsent />
       <WhatsAppLeadButton />
+      <DiagnosticPopup />
     </div>
   );
 };

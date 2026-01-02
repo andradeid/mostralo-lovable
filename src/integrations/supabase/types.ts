@@ -4139,6 +4139,57 @@ export type Database = {
         }
         Relationships: []
       }
+      popup_analytics: {
+        Row: {
+          action: string
+          created_at: string | null
+          device_type: string | null
+          id: string
+          page_url: string | null
+          referrer: string | null
+          session_id: string
+          user_agent: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+          variation: string
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          device_type?: string | null
+          id?: string
+          page_url?: string | null
+          referrer?: string | null
+          session_id: string
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          variation: string
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          device_type?: string | null
+          id?: string
+          page_url?: string | null
+          referrer?: string | null
+          session_id?: string
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          variation?: string
+        }
+        Relationships: []
+      }
       print_configurations: {
         Row: {
           auto_print_on_accept: boolean | null

@@ -50,6 +50,7 @@ const ContractTemplateEditPage = lazy(() => import("@/pages/admin/ContractTempla
 const SystemUpdatesManagementPage = lazy(() => import("@/pages/admin/SystemUpdatesManagementPage"));
 const SystemBannersPage = lazy(() => import("@/pages/admin/SystemBannersPage"));
 const TechnicalDocsPage = lazy(() => import("@/pages/admin/TechnicalDocsPage"));
+const PopupABTestPage = lazy(() => import("@/pages/admin/PopupABTestPage"));
 
 export const masterRoutes = (
   <>
@@ -370,6 +371,13 @@ export const masterRoutes = (
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Documentação Técnica">
           <LazyRoute><TechnicalDocsPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/popup-ab-test" element={
+      <ProtectedRoute allowedRoles={['master_admin']}>
+        <AdminLayout pageTitle="Teste A/B - Popup Diagnóstico">
+          <LazyRoute><PopupABTestPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

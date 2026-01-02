@@ -169,11 +169,39 @@ const SignUp = () => {
     };
   }, []);
 
-  // 🎯 Validar código de referência
+  // Estado para origem do diagnóstico
+  const [diagnosticOrigin, setDiagnosticOrigin] = useState<{
+    from: string | null;
+    type: string | null;
+    level: string | null;
+  }>({ from: null, type: null, level: null });
+
+  // 🎯 Validar código de referência e cupom da URL
   useEffect(() => {
-    const validateReferral = async () => {
-      // Prioridade: URL > localStorage
+    const validateReferralAndCoupon = async () => {
       const params = new URLSearchParams(window.location.search);
+      
+      // Verificar origem do diagnóstico
+      const fromDiagnostic = params.get('from');
+      const diagnosticType = params.get('type');
+      const diagnosticLevel = params.get('level');
+      
+      if (fromDiagnostic === 'diagnostic') {
+        setDiagnosticOrigin({
+          from: fromDiagnostic,
+          type: diagnosticType,
+          level: diagnosticLevel,
+        });
+      }
+      
+      // Verificar cupom da URL
+      const urlCoupon = params.get('coupon');
+      if (urlCoupon) {
+        setCouponCode(urlCoupon);
+        console.log('🎟️ Cupom do diagnóstico:', urlCoupon);
+      }
+      
+      // Validar código de referência
       let code = params.get('ref');
       
       if (!code) {
@@ -204,12 +232,22 @@ const SignUp = () => {
       }
     };
     
-    validateReferral();
+    validateReferralAndCoupon();
   }, []);
 
   useEffect(() => {
     fetchPlans();
   }, []);
+  
+  // Aplicar cupom automaticamente quando planos estiverem carregados e houver cupom na URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlCoupon = params.get('coupon');
+    
+    if (urlCoupon && plans.length > 0 && !appliedCoupon && formData.planId) {
+      handleApplyCoupon();
+    }
+  }, [plans, formData.planId]);
 
   // Função para formatar telefone
   const formatPhone = (value: string) => {
@@ -1028,6 +1066,22 @@ const SignUp = () => {
       case 1:
         return (
           <div className="space-y-4 relative">
+            {/* Alerta de origem do diagnóstico */}
+            {diagnosticOrigin.from === 'diagnostic' && (
+              <Alert className="bg-green-50 border-green-300 dark:bg-green-950/30 dark:border-green-800">
+                <Gift className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <AlertDescription className="text-green-800 dark:text-green-300">
+                  <p className="font-semibold">🎉 Você veio do diagnóstico!</p>
+                  <p className="text-sm">
+                    {diagnosticOrigin.level === 'elite' 
+                      ? 'Parabéns! Seu perfil Elite lhe garante 20% de desconto no primeiro mês.'
+                      : 'Seu cupom de 15% será aplicado automaticamente no passo de escolha do plano.'
+                    }
+                  </p>
+                </AlertDescription>
+              </Alert>
+            )}
+            
             {/* Alerta de Rate Limit */}
             {rateLimitSeconds > 0 && (
               <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">

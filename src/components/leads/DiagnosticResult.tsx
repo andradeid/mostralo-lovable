@@ -1,10 +1,11 @@
 import { useState, useRef } from 'react';
-import { CheckCircle2, Zap, Bot, TrendingUp, Star, Award, Clock, Volume2 } from 'lucide-react';
+import { CheckCircle2, Zap, Bot, TrendingUp, Star, Award, Clock, Volume2, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { DiagnosticResult as DiagnosticResultType, QualificationLevel } from '@/lib/diagnosticScoring';
 import { generateWhatsAppMessage, MARCOS_WHATSAPP } from '@/lib/diagnosticScoring';
+import { DiagnosticOfferCard } from './DiagnosticOfferCard';
 
 interface DiagnosticResultProps {
   result: DiagnosticResultType;
@@ -190,6 +191,13 @@ export function DiagnosticResult({ result, savedAudioBase64 }: DiagnosticResultP
         </div>
       )}
 
+      {/* Card de Oferta Exclusiva com Cupom */}
+      {result.level !== 'disqualified' && (
+        <div className="animate-fade-in" style={{ animationDelay: '400ms' }}>
+          <DiagnosticOfferCard level={result.level} diagnosticType="general" />
+        </div>
+      )}
+
       {/* Botão Ouvir Áudio Novamente */}
       {savedAudioBase64 && (
         <div className="text-center animate-fade-in" style={{ animationDelay: '450ms' }}>
@@ -206,21 +214,25 @@ export function DiagnosticResult({ result, savedAudioBase64 }: DiagnosticResultP
         </div>
       )}
 
-      {/* CTA Principal */}
+      {/* CTA Secundário - WhatsApp */}
       <div className="text-center animate-fade-in" style={{ animationDelay: '500ms' }}>
+        <p className="text-sm text-muted-foreground mb-3">
+          Prefere falar com um especialista?
+        </p>
         <Button
           onClick={handleWhatsAppClick}
+          variant="outline"
           size="lg"
           className={cn(
-            "w-full md:w-auto h-14 md:h-16 px-8 text-base md:text-lg font-bold",
-            "bg-[#25D366] hover:bg-[#128C7E] text-white",
-            "shadow-lg shadow-[#25D366]/30 hover:shadow-xl hover:shadow-[#25D366]/40",
+            "h-12 md:h-14 px-6 text-base font-semibold",
+            "border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white",
             "transition-all duration-300"
           )}
         >
+          <MessageCircle className="w-5 h-5 mr-2" />
           {result.level === 'disqualified' 
             ? 'FALAR COM MARCOS ANDRADE'
-            : 'AGENDAR CONSULTORIA COM MARCOS'
+            : 'Falar com Marcos no WhatsApp'
           }
         </Button>
         

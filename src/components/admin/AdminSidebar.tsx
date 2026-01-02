@@ -78,7 +78,7 @@ import { useStoreModules } from "@/hooks/useStoreModules";
 import { useUnreadUpdates } from "@/hooks/useUnreadUpdates";
 import { useAttendantPermissions, PermissionKey } from "@/hooks/useAttendantPermissions";
 export function AdminSidebar() {
-  const { state } = useSidebar();
+  const { state, isMobile } = useSidebar();
   const location = useLocation();
   const { signOut, profile, userRole } = useAuth();
   const { storeId: validatedStoreId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
@@ -697,7 +697,7 @@ export function AdminSidebar() {
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <Crown className="w-5 h-5 text-primary-foreground" />
             </div>
-            {!collapsed && (
+            {(!collapsed || isMobile) && (
               <div>
                 <h2 className="text-lg font-bold text-primary">Mostralo</h2>
                 <p className="text-xs text-muted-foreground">Admin Panel</p>
@@ -710,7 +710,7 @@ export function AdminSidebar() {
         {/* Navigation Groups */}
         {Object.entries(groupedItems).map(([groupName, items]) => (
           <SidebarGroup key={groupName}>
-            {!collapsed && (
+            {(!collapsed || isMobile) && (
               <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground px-4 py-2">
                 {groupName}
               </SidebarGroupLabel>
@@ -726,7 +726,7 @@ export function AdminSidebar() {
                         className={getNavClassName(item.url)}
                       >
                         <item.icon className="w-4 h-4" />
-                        {!collapsed && (
+                        {(!collapsed || isMobile) && (
                           <span className="ml-3 flex items-center gap-2 flex-1">
                             {item.title}
                             {/* Badge de novos pedidos */}
@@ -766,7 +766,7 @@ export function AdminSidebar() {
             className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-muted"
           >
             <LogOut className="w-4 h-4" />
-            {!collapsed && <span className="ml-3">Sair</span>}
+            {(!collapsed || isMobile) && <span className="ml-3">Sair</span>}
           </Button>
         </div>
       </SidebarContent>

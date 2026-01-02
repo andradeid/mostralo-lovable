@@ -93,12 +93,14 @@ export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
       <SidebarProvider>
         <div className="min-h-screen flex w-full">
           {isImpersonating && <ImpersonationBanner />}
-          <AdminSidebar />
+          <div className="hidden lg:block">
+            <AdminSidebar />
+          </div>
           
           <div className="flex-1 min-w-0 flex flex-col">
-            {/* Header - oculto em modo tela cheia */}
+            {/* Header - oculto em modo tela cheia e no mobile */}
             {!isKanbanFullscreen && (
-              <header className={`h-16 border-b bg-background flex items-center px-6 ${isImpersonating ? 'mt-12' : ''}`}>
+              <header className={`hidden lg:flex h-16 border-b bg-background items-center px-6 ${isImpersonating ? 'mt-12' : ''}`}>
                 <SidebarTrigger className="mr-4" />
                 <div className="flex items-center justify-between w-full">
                   <h1 className="text-xl font-semibold">
@@ -115,7 +117,7 @@ export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
               </header>
             )}
             
-            <main className="flex-1 min-w-0 p-6 bg-muted/30">
+            <main className="flex-1 min-w-0 p-0 lg:p-6 bg-muted/30">
               {children}
             </main>
             

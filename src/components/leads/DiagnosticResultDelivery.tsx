@@ -1,10 +1,11 @@
 import { useState, useRef } from 'react';
-import { CheckCircle2, TrendingDown, Wallet, Star, Award, Clock, Volume2, Calculator } from 'lucide-react';
+import { CheckCircle2, TrendingDown, Wallet, Star, Award, Clock, Volume2, Calculator, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { DeliveryDiagnosticResult, QualificationLevel } from '@/lib/diagnosticScoringDelivery';
 import { generateDeliveryWhatsAppMessage, MARCOS_WHATSAPP, NICHE_CONFIG } from '@/lib/diagnosticScoringDelivery';
+import { DiagnosticOfferCard } from './DiagnosticOfferCard';
 
 interface DiagnosticResultDeliveryProps {
   result: DeliveryDiagnosticResult;
@@ -151,6 +152,13 @@ export function DiagnosticResultDelivery({ result, savedAudioBase64 }: Diagnosti
         </Card>
       )}
 
+      {/* Card de Oferta Exclusiva com Cupom */}
+      {result.level !== 'disqualified' && (
+        <div className="animate-fade-in">
+          <DiagnosticOfferCard level={result.level} diagnosticType="delivery" />
+        </div>
+      )}
+
       {/* Botão Ouvir Áudio */}
       {savedAudioBase64 && (
         <div className="text-center">
@@ -161,14 +169,23 @@ export function DiagnosticResultDelivery({ result, savedAudioBase64 }: Diagnosti
         </div>
       )}
 
-      {/* CTA Principal */}
+      {/* CTA Secundário - WhatsApp */}
       <div className="text-center">
+        <p className="text-sm text-muted-foreground mb-3">
+          Prefere falar com um especialista?
+        </p>
         <Button
           onClick={handleWhatsAppClick}
+          variant="outline"
           size="lg"
-          className="w-full md:w-auto h-14 md:h-16 px-8 text-base md:text-lg font-bold bg-[#25D366] hover:bg-[#128C7E] text-white shadow-lg"
+          className={cn(
+            "h-12 md:h-14 px-6 text-base font-semibold",
+            "border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white",
+            "transition-all duration-300"
+          )}
         >
-          {result.level === 'disqualified' ? 'FALAR COM MARCOS ANDRADE' : 'AGENDAR MIGRAÇÃO COM MARCOS'}
+          <MessageCircle className="w-5 h-5 mr-2" />
+          {result.level === 'disqualified' ? 'FALAR COM MARCOS ANDRADE' : 'Falar com Marcos no WhatsApp'}
         </Button>
         {result.level !== 'disqualified' && (
           <p className="flex items-center justify-center gap-2 text-sm text-muted-foreground mt-3">

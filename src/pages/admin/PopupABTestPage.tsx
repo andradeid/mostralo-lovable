@@ -137,31 +137,31 @@ const PopupABTestPage = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-6 w-6 md:h-8 md:w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 md:gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Teste A/B - Popup Diagnóstico</h1>
-          <p className="text-muted-foreground">Análise de conversão das variações do popup</p>
+          <h1 className="text-xl md:text-2xl font-bold">Teste A/B - Popup</h1>
+          <p className="text-xs md:text-sm text-muted-foreground">Análise de conversão das variações</p>
         </div>
         <div className="flex items-center gap-2">
           <Select value={period} onValueChange={setPeriod}>
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="w-[120px] md:w-[140px] h-9">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="7">Últimos 7 dias</SelectItem>
-              <SelectItem value="30">Últimos 30 dias</SelectItem>
-              <SelectItem value="90">Últimos 90 dias</SelectItem>
+              <SelectItem value="7">7 dias</SelectItem>
+              <SelectItem value="30">30 dias</SelectItem>
+              <SelectItem value="90">90 dias</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" size="icon" onClick={fetchData}>
+          <Button variant="outline" size="icon" className="h-9 w-9" onClick={fetchData}>
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
@@ -177,7 +177,7 @@ const PopupABTestPage = () => {
       />
 
       {/* Gráfico e Tabela de Variações */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         <VariationChart 
           data={variationStats} 
           bestVariation={totalViews > 0 ? bestVariation.variation : null} 
@@ -190,21 +190,25 @@ const PopupABTestPage = () => {
 
       {/* Variações de texto */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Textos das Variações</CardTitle>
+        <CardHeader className="pb-2 md:pb-4">
+          <CardTitle className="text-sm md:text-base">Textos das Variações</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-2 gap-4">
+        <CardContent className="p-3 md:p-6 pt-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
             {(['A', 'B', 'C', 'D'] as const).map((v) => (
-              <div key={v} className="p-4 border rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="font-bold text-primary">Variação {v}</span>
+              <div key={v} className="p-3 md:p-4 border rounded-lg">
+                <div className="flex items-center gap-1.5 md:gap-2 mb-1.5 md:mb-2">
+                  <span className="font-bold text-sm md:text-base text-primary">Var. {v}</span>
                   {v === bestVariation.variation && totalViews > 0 && (
-                    <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">Melhor</span>
+                    <span className="text-[10px] md:text-xs bg-yellow-100 text-yellow-800 px-1.5 md:px-2 py-0.5 rounded">
+                      Melhor
+                    </span>
                   )}
                 </div>
-                <p className="font-medium text-sm">{POPUP_VARIATIONS[v].title}</p>
-                <p className="text-sm text-muted-foreground mt-1">{POPUP_VARIATIONS[v].subtitle}</p>
+                <p className="font-medium text-xs md:text-sm line-clamp-2">{POPUP_VARIATIONS[v].title}</p>
+                <p className="text-[10px] md:text-xs text-muted-foreground mt-1 line-clamp-2">
+                  {POPUP_VARIATIONS[v].subtitle}
+                </p>
               </div>
             ))}
           </div>
@@ -212,7 +216,7 @@ const PopupABTestPage = () => {
       </Card>
 
       {/* UTM e Device Breakdown */}
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         <UTMBreakdownTable 
           data={utmSourceStats} 
           title="Por Fonte (utm_source)"
@@ -220,7 +224,7 @@ const PopupABTestPage = () => {
         />
         <UTMBreakdownTable 
           data={utmCampaignStats} 
-          title="Por Campanha (utm_campaign)"
+          title="Por Campanha"
           emptyMessage="Nenhum dado de campanha ainda"
         />
         <DeviceBreakdown data={deviceStats} />

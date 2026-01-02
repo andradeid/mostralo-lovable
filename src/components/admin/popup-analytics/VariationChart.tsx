@@ -22,7 +22,7 @@ const COLORS = {
 
 export const VariationChart = ({ data, bestVariation }: VariationChartProps) => {
   const chartData = data.map(item => ({
-    name: `Variação ${item.variation}`,
+    name: `Var. ${item.variation}`,
     variation: item.variation,
     taxa: item.conversionRate,
     views: item.views,
@@ -31,23 +31,34 @@ export const VariationChart = ({ data, bestVariation }: VariationChartProps) => 
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-base">Conversão por Variação</CardTitle>
+      <CardHeader className="pb-2 md:pb-4">
+        <CardTitle className="text-sm md:text-base">Conversão por Variação</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="h-[300px]">
+      <CardContent className="p-2 md:p-6 pt-0">
+        <div className="h-[180px] md:h-[260px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} layout="vertical" margin={{ left: 20, right: 20 }}>
+            <BarChart data={chartData} layout="vertical" margin={{ left: 5, right: 10, top: 5, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-              <XAxis type="number" domain={[0, 'auto']} tickFormatter={(v) => `${v}%`} />
-              <YAxis type="category" dataKey="name" width={100} />
+              <XAxis 
+                type="number" 
+                domain={[0, 'auto']} 
+                tickFormatter={(v) => `${v}%`}
+                tick={{ fontSize: 10 }}
+              />
+              <YAxis 
+                type="category" 
+                dataKey="name" 
+                width={55}
+                tick={{ fontSize: 11 }}
+              />
               <Tooltip
-                formatter={(value: number) => [`${value.toFixed(1)}%`, 'Taxa de Conversão']}
+                formatter={(value: number) => [`${value.toFixed(1)}%`, 'Taxa']}
                 labelFormatter={(label) => label}
                 contentStyle={{
                   backgroundColor: 'hsl(var(--background))',
                   border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px'
+                  borderRadius: '8px',
+                  fontSize: '12px'
                 }}
               />
               <Bar dataKey="taxa" radius={[0, 4, 4, 0]}>

@@ -4460,5 +4460,276 @@ Potencial de mercado:
       '□ Documentar fluxo para lojistas',
       '□ Criar vídeo tutorial de uso'
     ]
+  },
+
+  // ==================== IDEIA 31 ====================
+  {
+    id: 31,
+    title: '📱 Scanner de Código de Barras Multi-Dispositivo (USB, Bluetooth e Câmera)',
+    status: 'idea',
+    priority: 'medium',
+    createdAt: '2026-01-03',
+    description: 'Documentação técnica e implementação de suporte a múltiplos dispositivos de leitura de código de barras: leitores USB, Bluetooth e câmera do celular/tablet. Complementa a Ideia 30 (Frente de Caixa Profissional).',
+
+    context: `A Ideia 30 define a Frente de Caixa Profissional mas não detalha os tipos de leitores compatíveis. Lojistas têm diferentes níveis de investimento e infraestrutura:
+• Alguns já possuem leitores USB de mesa
+• Outros precisam de solução mobile sem custo adicional de hardware
+• O PWA do Mostralo já permite acesso à câmera do dispositivo
+• Garçons e atendentes podem usar o próprio celular para escanear produtos`,
+
+    problem: `Problemas que esta documentação resolve:
+• Lojistas sem leitor dedicado precisam de alternativa (câmera do celular)
+• Falta de documentação sobre modelos compatíveis gera dúvidas e suporte desnecessário
+• Atendentes no salão precisam escanear produtos sem ir até o caixa
+• Diferentes cenários de uso requerem diferentes soluções de hardware`,
+
+    technicalDetails: {
+      title: '📖 Detalhes Técnicos',
+      items: [
+        '**LEITORES USB (Plug and Play)**',
+        '→ Funcionam como teclado (HID - Human Interface Device)',
+        '→ Sem driver necessário, compatível com qualquer sistema operacional',
+        '→ Leitura é enviada como digitação seguida de Enter',
+        '→ Modelos Recomendados:',
+        '  • Elgin BR-400 (~R$150) - Melhor custo-benefício, LED vermelho',
+        '  • Bematech S-100 (~R$180) - Alta durabilidade, uso comercial',
+        '  • Honeywell Eclipse MS5145 (~R$350) - Ergonômico, profissional',
+        '  • Zebra DS2208 (~R$400) - Industrial, lê códigos danificados',
+        '→ Configuração: Input com auto-focus captura leitura automaticamente',
+        '',
+        '**LEITORES BLUETOOTH**',
+        '→ Pareamento único via configurações do dispositivo',
+        '→ Após pareamento, funcionam idêntico ao USB',
+        '→ Ideal para tablets, smartphones e mobilidade no salão',
+        '→ Modelos Recomendados:',
+        '  • Netum C750 (~R$100) - Portátil econômico, 8h bateria',
+        '  • Symcode MJ-2877 (~R$120) - Boa autonomia, carrega via USB',
+        '  • Socket Mobile S700 (~R$800) - Profissional, Apple-compatible',
+        '  • Eyoyo EY-002 (~R$80) - Compacto, tipo anel para dedo',
+        '',
+        '**SCANNER POR CÂMERA (Sem Hardware Adicional)**',
+        '→ Biblioteca Recomendada: html5-qrcode (gratuita, MIT license)',
+        '→ Formatos Suportados: EAN-13, EAN-8, UPC-A, UPC-E, Code 128, Code 39, QR Code',
+        '→ Funciona em: celular, tablet, notebook com webcam',
+        '→ Interface: Botão abre câmera → leitura automática ao detectar código',
+        '→ Vantagens: Sem custo de hardware, usa dispositivos existentes',
+        '→ Limitações: Mais lento que leitor dedicado (~1-2s), depende de iluminação',
+        '',
+        '**COMPARATIVO DE BIBLIOTECAS JAVASCRIPT**',
+        '',
+        '→ html5-qrcode (⭐ RECOMENDADA)',
+        '  • Prós: Fácil integração React, interface pronta, todos os formatos',
+        '  • Contras: Bundle ~150KB',
+        '  • Licença: MIT (gratuita, uso comercial liberado)',
+        '  • NPM: npm install html5-qrcode',
+        '',
+        '→ @zxing/browser',
+        '  • Prós: Leve (~50KB), bem mantida, TypeScript nativo',
+        '  • Contras: Interface precisa ser construída manualmente',
+        '  • Licença: Apache 2.0',
+        '',
+        '→ quagga2',
+        '  • Prós: Focada em códigos de barras 1D, muito performante',
+        '  • Contras: Não suporta QR Code nativamente',
+        '  • Licença: MIT',
+        '',
+        '→ Dynamsoft Barcode Reader',
+        '  • Prós: Melhor precisão do mercado, suporte profissional',
+        '  • Contras: PAGO (~$500/ano), overkill para nosso caso',
+        '  • Licença: Comercial'
+      ]
+    },
+
+    phases: [
+      {
+        name: 'Fase 1 - Input para Leitores USB/Bluetooth',
+        description: 'Campo dedicado que captura leitura de qualquer leitor físico',
+        items: [
+          'Criar componente BarcodeInput.tsx com auto-focus',
+          'Input invisível ou destacado no topo do PDVPage.tsx',
+          'Evento onKeyDown detecta Enter do leitor',
+          'Ao detectar código: busca no catálogo por barcode ou SKU',
+          'Se encontrar: adiciona ao carrinho automaticamente',
+          'Se não encontrar: abre modal de cadastro rápido',
+          'Som de confirmação (beep) ao adicionar produto',
+          'Som de erro ao não encontrar produto',
+          'Funciona com qualquer leitor USB ou Bluetooth pareado',
+          'Tempo de implementação: ~2-3 dias'
+        ]
+      },
+      {
+        name: 'Fase 2 - Scanner por Câmera',
+        description: 'Alternativa para quem não tem leitor físico',
+        items: [
+          'Instalar: npm install html5-qrcode',
+          'Criar componente BarcodeScannerCamera.tsx',
+          'Botão de câmera (📷) ao lado do input de código',
+          'Modal fullscreen com preview da câmera',
+          'Detecção automática ao enquadrar código de barras',
+          'Callback ao detectar: fecha modal e processa código',
+          'Opção de usar câmera frontal ou traseira',
+          'Lanterna (flash) para ambientes escuros',
+          'Funciona em PWA e navegador normal',
+          'Tempo de implementação: ~3-4 dias'
+        ]
+      },
+      {
+        name: 'Fase 3 - Integração Unificada',
+        description: 'Unificar fluxo de leitura independente do dispositivo',
+        items: [
+          'Criar hook useBarcodeScan() para centralizar lógica',
+          'Hook retorna: { code, scan, isScanning, error }',
+          'Detecta automaticamente se veio de input ou câmera',
+          'Histórico de últimos 10 códigos escaneados (localStorage)',
+          'Repetir último código com atalho (Ctrl+Enter)',
+          'Adicionar no ProductForm.tsx para cadastro de produtos',
+          'Adicionar no PDVPage.tsx para vendas',
+          'Adicionar no InventoryPage.tsx para conferência de estoque',
+          'Tempo de implementação: ~2 dias'
+        ]
+      },
+      {
+        name: 'Fase 4 - UX Avançada',
+        description: 'Melhorias de experiência do usuário',
+        items: [
+          'Modo contínuo: não fecha câmera após leitura, permite múltiplas leituras',
+          'Contador de produtos escaneados na sessão',
+          'Vibração do celular ao escanear (navigator.vibrate)',
+          'Preview do produto escaneado antes de adicionar',
+          'Sugestão de quantidade baseada em histórico',
+          'Atalho de teclado para abrir câmera (Ctrl+B)',
+          'Indicador de qualidade da leitura (barra de sinal)',
+          'Tempo de implementação: ~3 dias'
+        ]
+      }
+    ],
+
+    riskAnalysis: {
+      title: '⚠️ Análise de Riscos',
+      sections: [
+        {
+          level: 'low',
+          title: 'Riscos Baixos',
+          items: [
+            'Leitores USB funcionam nativamente sem configuração adicional',
+            'html5-qrcode é biblioteca estável com 3000+ stars no GitHub',
+            'PWA já tem permissão de câmera configurada no manifest',
+            'Funcionalidade é 100% client-side, não afeta backend',
+            'Fallback manual sempre disponível (digitar código)'
+          ]
+        },
+        {
+          level: 'medium',
+          title: 'Riscos Médios',
+          items: [
+            'Câmera pode não funcionar em navegadores antigos (Safari < 14)',
+            'Iluminação ruim prejudica leitura por câmera',
+            'Bluetooth pode ter latência em alguns dispositivos Android',
+            'Alguns celulares focam devagar em códigos pequenos',
+            'iOS Safari requer interação do usuário para acessar câmera'
+          ]
+        },
+        {
+          level: 'high',
+          title: 'Riscos Altos',
+          items: [
+            'Nenhum risco alto identificado para esta funcionalidade',
+            'Todas as tecnologias são maduras e bem testadas',
+            'Não há dependência de APIs externas instáveis',
+            'Não há custo recorrente ou limite de uso'
+          ]
+        }
+      ]
+    },
+
+    legalConsiderations: [
+      '✅ Leitores de código de barras não têm restrições legais',
+      '✅ html5-qrcode é licença MIT - uso comercial liberado',
+      '✅ Acesso à câmera requer permissão do usuário (privacy-compliant)',
+      '✅ Nenhum dado de câmera é enviado para servidores',
+      '📋 Códigos de barras são padrão aberto (GS1) sem royalties'
+    ],
+
+    options: [
+      {
+        name: 'Apenas Input USB/Bluetooth (Fase 1)',
+        description: 'Implementar só o suporte a leitores físicos',
+        pros: [
+          'Implementação mais simples (~2-3 dias)',
+          'Sem dependência de biblioteca externa',
+          'Funciona em 100% dos navegadores',
+          'Atende lojistas que já têm leitor'
+        ],
+        cons: [
+          'Não atende quem não tem leitor',
+          'Garçons precisam ir até o caixa para escanear',
+          'Menos flexibilidade de uso'
+        ]
+      },
+      {
+        name: 'Input + Câmera (Fases 1-2)',
+        description: 'Suporte completo a leitores físicos e câmera do celular',
+        pros: [
+          'Atende 100% dos cenários de uso',
+          'Garçons podem usar próprio celular',
+          'Sem custo de hardware para novos lojistas',
+          'Diferencial competitivo vs concorrentes'
+        ],
+        cons: [
+          'Implementação maior (~5-7 dias)',
+          'Dependência da biblioteca html5-qrcode',
+          'Bundle size aumenta ~150KB'
+        ]
+      },
+      {
+        name: 'Implementação Completa (Fases 1-4)',
+        description: 'Todas as fases incluindo UX avançada',
+        pros: [
+          'Experiência profissional completa',
+          'Modo contínuo para conferência de estoque',
+          'Histórico e atalhos de produtividade',
+          'Feature completa desde o lançamento'
+        ],
+        cons: [
+          'Tempo de implementação: ~10-12 dias',
+          'Mais código para manter',
+          'Features avançadas podem não ser usadas'
+        ]
+      }
+    ],
+
+    recommendation: `**Recomendação: Input + Câmera (Fases 1-2)**
+
+Motivos:
+1. **Custo-benefício**: 5-7 dias de desenvolvimento para atender 100% dos cenários
+2. **Sem hardware**: Lojistas novos não precisam comprar leitor
+3. **Mobilidade**: Garçons e atendentes usam próprio celular
+4. **PWA**: Já temos infraestrutura de PWA que permite acesso à câmera
+
+Ordem de implementação:
+1. **Fase 1 primeiro** → Input funciona imediatamente com leitores existentes
+2. **Fase 2 logo depois** → Câmera como alternativa para quem não tem leitor
+3. **Fases 3-4 opcionais** → Só se houver demanda por features avançadas
+
+**html5-qrcode é a melhor escolha** porque:
+• Interface React-ready pronta para usar
+• Suporta todos os formatos de código de barras
+• Licença MIT permite uso comercial
+• 150KB é aceitável para a funcionalidade oferecida`,
+
+    nextSteps: [
+      '□ Criar componente BarcodeInput.tsx com auto-focus',
+      '□ Adicionar BarcodeInput no PDVPage.tsx',
+      '□ Implementar busca por barcode/SKU no catálogo',
+      '□ Adicionar sons de confirmação/erro',
+      '□ Instalar html5-qrcode: npm install html5-qrcode',
+      '□ Criar componente BarcodeScannerCamera.tsx',
+      '□ Adicionar botão de câmera no PDVPage.tsx',
+      '□ Testar em dispositivos iOS e Android',
+      '□ Adicionar no ProductForm.tsx para cadastro',
+      '□ Criar hook useBarcodeScan() para unificar lógica',
+      '□ Documentar modelos de leitores compatíveis para lojistas',
+      '□ Criar guia de configuração de leitores Bluetooth'
+    ]
   }
 ];

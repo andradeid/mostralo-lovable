@@ -408,8 +408,9 @@ const ProfessionalsPage = () => {
     }
   };
 
-  const openEditDialog = (professional: Professional) => {
+  const openEditDialog = async (professional: Professional) => {
     setSelectedProfessional(professional);
+    
     // Parse phone if exists (format: 5561999999999 -> countryCode: +55, phone: formatted)
     let countryCode = '+55';
     let phone = '';
@@ -422,9 +423,24 @@ const ProfessionalsPage = () => {
         phone = professional.phone;
       }
     }
+
+    // Buscar email do profissional na tabela profiles
+    let professionalEmail = '';
+    if (professional.user_id) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('id', professional.user_id)
+        .single();
+      
+      if (profile?.email) {
+        professionalEmail = profile.email;
+      }
+    }
+
     setFormData({
       name: professional.name,
-      email: '', // Email não editável depois de criado
+      email: professionalEmail,
       password: '',
       confirmPassword: '',
       specialty: professional.specialty || '',
@@ -1055,6 +1071,26 @@ const ProfessionalsPage = () => {
                   placeholder="Nome do profissional"
                 />
               </div>
+
+              {/* Email de Acesso (somente leitura) */}
+              {formData.email && (
+                <div>
+                  <Label htmlFor="edit-email" className="flex items-center gap-2">
+                    <Mail className="h-3.5 w-3.5" />
+                    Email de Acesso
+                  </Label>
+                  <Input
+                    id="edit-email"
+                    value={formData.email}
+                    disabled
+                    className="bg-muted"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    O email de acesso não pode ser alterado após o cadastro
+                  </p>
+                </div>
+              )}
+
               <div>
                 <Label htmlFor="edit-specialty">Especialidade</Label>
                 <Input

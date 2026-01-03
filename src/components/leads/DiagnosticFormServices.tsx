@@ -450,6 +450,15 @@ export function DiagnosticFormServices({ onComplete }: DiagnosticFormServicesPro
                   </>
                 )}
               </Button>
+              
+              {/* Citação de Autoridade */}
+              <div className="text-center pt-6 border-t border-border mt-6">
+                <p className="font-semibold text-foreground">Marcos Andrade</p>
+                <p className="text-sm text-muted-foreground">
+                  Especialista em Gestão de Agendamentos
+                </p>
+                <p className="text-sm text-primary mt-1">Mostralo.com.br</p>
+              </div>
             </div>
           </div>
         )}

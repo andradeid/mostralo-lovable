@@ -3,6 +3,7 @@ import { LandingHeader } from "@/components/landing/LandingHeader";
 import { DashboardFooter } from "@/components/admin/DashboardFooter";
 import { AboutHero } from "@/components/about/AboutHero";
 import { AboutMission } from "@/components/about/AboutMission";
+import { AboutFounder } from "@/components/about/AboutFounder";
 import { AboutModules } from "@/components/about/AboutModules";
 import { AboutNiches } from "@/components/about/AboutNiches";
 import { AboutComparison } from "@/components/about/AboutComparison";
@@ -21,6 +22,7 @@ const AboutPage = () => {
       <main>
         <AboutHero />
         <AboutMission />
+        <AboutFounder />
         <AboutModules />
         <AboutNiches />
         <AboutComparison />

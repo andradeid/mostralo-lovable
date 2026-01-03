@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,7 +23,9 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { z } from 'zod';
-import { 
+import { supabase } from '@/integrations/supabase/client';
+import { ProfessionalWhatsAppValidator, WhatsAppValidationStatus } from './ProfessionalWhatsAppValidator';
+import {
   useBooking, 
   Professional, 
   BookingService, 
@@ -73,6 +75,8 @@ export function NewBookingDialog({
   const [notes, setNotes] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
+  const [countryCode, setCountryCode] = useState('+55');
+  const [whatsappStatus, setWhatsappStatus] = useState<WhatsAppValidationStatus>('idle');
 
   // Reset form when dialog opens
   useEffect(() => {
@@ -86,8 +90,42 @@ export function NewBookingDialog({
       setCustomerEmail('');
       setNotes('');
       setErrors({});
+      setCountryCode('+55');
+      setWhatsappStatus('idle');
     }
   }, [open, defaultDate, defaultProfessionalId]);
+
+  // Validate WhatsApp when phone is complete
+  const validateWhatsApp = useCallback(async () => {
+    const cleanPhone = customerPhone.replace(/\D/g, '');
+    if (!cleanPhone || cleanPhone.length < 10) return;
+    
+    setWhatsappStatus('validating');
+    
+    const fullPhone = `${countryCode.replace('+', '')}${cleanPhone}`;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('validate-whatsapp-number', {
+        body: { phone: fullPhone }
+      });
+      
+      if (error) throw error;
+      
+      setWhatsappStatus(data?.valid || data?.exists ? 'valid' : 'invalid');
+    } catch (error) {
+      console.error('Erro ao validar WhatsApp:', error);
+      setWhatsappStatus('invalid');
+    }
+  }, [customerPhone, countryCode]);
+
+  // Debounce validation
+  useEffect(() => {
+    const cleanPhone = customerPhone.replace(/\D/g, '');
+    if (cleanPhone.length >= 10 && whatsappStatus === 'idle') {
+      const timer = setTimeout(validateWhatsApp, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [customerPhone, validateWhatsApp, whatsappStatus]);
 
   // Get selected service details
   const service = useMemo(() => 
@@ -285,14 +323,13 @@ export function NewBookingDialog({
               </div>
 
               <div>
-                <Label htmlFor="phone">Telefone/WhatsApp *</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  placeholder="(00) 00000-0000"
-                  className={errors.customerPhone ? 'border-destructive' : ''}
+                <ProfessionalWhatsAppValidator
+                  phone={customerPhone}
+                  countryCode={countryCode}
+                  onPhoneChange={setCustomerPhone}
+                  onCountryCodeChange={setCountryCode}
+                  onStatusChange={setWhatsappStatus}
+                  status={whatsappStatus}
                 />
                 {errors.customerPhone && (
                   <p className="text-destructive text-xs mt-1">{errors.customerPhone}</p>

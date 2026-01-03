@@ -567,6 +567,74 @@ const ProfessionalsPage = () => {
                   </div>
                 </div>
               </CardContent>
+        </CollapsibleContent>
+          </Card>
+        </Collapsible>
+
+        {/* Card: Como o profissional acessa sua agenda */}
+        <Collapsible>
+          <Card className="border-blue-500/20 bg-blue-500/5">
+            <CardHeader className="pb-2 px-4">
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between p-0 h-auto hover:bg-transparent group">
+                  <div className="flex items-center gap-2">
+                    <Key className="h-4 w-4 text-blue-600" />
+                    <CardTitle className="text-sm">Como o profissional acessa sua agenda?</CardTitle>
+                  </div>
+                  <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
+                </Button>
+              </CollapsibleTrigger>
+            </CardHeader>
+            <CollapsibleContent>
+              <CardContent className="pt-0 px-4 space-y-4">
+                <div className="grid gap-3 text-sm text-muted-foreground">
+                  <div className="flex items-start gap-2">
+                    <span className="flex items-center justify-center h-5 w-5 rounded-full bg-blue-600 text-white text-xs font-bold shrink-0">1</span>
+                    <div className="text-xs sm:text-sm">
+                      <span className="font-medium text-foreground">Ao cadastrar o profissional</span>, você define email e senha. Essas são as credenciais de acesso dele.
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="flex items-center justify-center h-5 w-5 rounded-full bg-blue-600 text-white text-xs font-bold shrink-0">2</span>
+                    <div className="text-xs sm:text-sm">
+                      <span className="font-medium text-foreground">O profissional acessa a página de login</span> e entra com o email e senha que você cadastrou.
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="flex items-center justify-center h-5 w-5 rounded-full bg-blue-600 text-white text-xs font-bold shrink-0">3</span>
+                    <div className="text-xs sm:text-sm">
+                      <span className="font-medium text-foreground">Após o login</span>, ele é redirecionado automaticamente para seu painel onde pode ver agenda, comissões, horários e bloqueios.
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="gap-2"
+                    onClick={() => {
+                      const loginUrl = `${window.location.origin}/auth`;
+                      navigator.clipboard.writeText(loginUrl);
+                      toast.success('Link de login copiado!', { description: loginUrl });
+                    }}
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                    Copiar Link de Login
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="gap-2 text-muted-foreground"
+                    asChild
+                  >
+                    <a href="/auth" target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      Abrir Página de Login
+                    </a>
+                  </Button>
+                </div>
+              </CardContent>
             </CollapsibleContent>
           </Card>
         </Collapsible>

@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { CardFormData, CardTheme } from '@/types/digitalCard';
+import { SaveContactButton } from './SaveContactButton';
 
 interface DigitalCardPreviewProps {
   data: Partial<CardFormData>;
@@ -140,6 +141,31 @@ export function DigitalCardPreview({
             {data.cta_text}
             <ExternalLink className="w-4 h-4 ml-2" />
           </Button>
+        )}
+
+        {/* Botão Salvar Contato - apenas na página pública */}
+        {isInteractive && (
+          <SaveContactButton
+            data={{
+              name: data.name || '',
+              title: data.title,
+              company: data.company,
+              whatsapp: data.whatsapp,
+              phone: data.phone,
+              email: data.email,
+              website: data.website,
+              instagram: data.instagram,
+              linkedin: data.linkedin,
+              facebook: data.facebook,
+              youtube: data.youtube,
+              tiktok: data.tiktok,
+              bio: data.bio,
+            }}
+            photoUrl={photoUrl}
+            theme={theme}
+            accentColor={accentColor}
+            onSave={() => onClickAction?.('save_contact')}
+          />
         )}
 
         {/* Botões de Contato */}

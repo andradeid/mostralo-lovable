@@ -23,8 +23,9 @@ import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay }
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import { NewBookingDialog } from '@/components/admin/booking/NewBookingDialog';
 
 interface ProfessionalSchedule {
   professional_id: string;
@@ -55,9 +56,18 @@ interface BookingSlot {
 const ProfessionalAvailabilityPage = () => {
   const { storeId } = useStoreAccess();
   const { professionals, loadingProfessionals } = useBooking(storeId);
+  const queryClient = useQueryClient();
   
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedProfessionalId, setSelectedProfessionalId] = useState<string>('all');
+  
+  // States for booking modal
+  const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
+  const [selectedBookingData, setSelectedBookingData] = useState<{
+    date: Date;
+    time: string;
+    professionalId: string;
+  } | null>(null);
 
   usePageSEO({
     title: 'Disponibilidade - Profissionais',
@@ -213,7 +223,24 @@ const ProfessionalAvailabilityPage = () => {
 
   const isLoading = loadingProfessionals || loadingSchedules || loadingBlocks || loadingBookings;
 
-  // Calculate availability stats
+  // Handle slot click to open booking modal
+  const handleSlotClick = (professional: Professional, day: Date, time: string, status: string) => {
+    if (status !== 'available') return;
+    
+    setSelectedBookingData({
+      date: day,
+      time: time,
+      professionalId: professional.id
+    });
+    setBookingDialogOpen(true);
+  };
+
+  // Handle booking success
+  const handleBookingSuccess = () => {
+    setBookingDialogOpen(false);
+    setSelectedBookingData(null);
+    queryClient.invalidateQueries({ queryKey: ['bookings-week'] });
+  };
   const stats = useMemo(() => {
     let totalSlots = 0;
     let availableSlots = 0;
@@ -426,20 +453,24 @@ const ProfessionalAvailabilityPage = () => {
                           {weekDays.map(day => {
                             const status = getSlotStatus(professional, day, time);
                             return (
-                              <div 
+                              <button 
                                 key={day.toISOString()}
+                                onClick={() => handleSlotClick(professional, day, time, status)}
+                                disabled={status !== 'available'}
                                 className={cn(
-                                  "h-6 rounded border text-[10px] flex items-center justify-center",
-                                  getSlotColor(status)
+                                  "h-6 rounded border text-[10px] flex items-center justify-center transition-all",
+                                  getSlotColor(status),
+                                  status === 'available' && "hover:bg-green-500/40 hover:scale-105 cursor-pointer",
+                                  status !== 'available' && "cursor-default"
                                 )}
                                 title={`${format(day, 'dd/MM')} ${time} - ${
-                                  status === 'available' ? 'Disponível' :
+                                  status === 'available' ? 'Clique para agendar' :
                                   status === 'busy' ? 'Ocupado' :
                                   status === 'blocked' ? 'Bloqueado' : 'Não atende'
                                 }`}
                               >
                                 {status === 'busy' && <MinusCircle className="h-3 w-3 text-red-500" />}
-                              </div>
+                              </button>
                             );
                           })}
                         </div>
@@ -452,6 +483,17 @@ const ProfessionalAvailabilityPage = () => {
           </div>
         )}
       </div>
+
+      {/* Booking Dialog */}
+      <NewBookingDialog
+        open={bookingDialogOpen}
+        onOpenChange={setBookingDialogOpen}
+        storeId={storeId}
+        defaultDate={selectedBookingData?.date}
+        defaultProfessionalId={selectedBookingData?.professionalId}
+        defaultTime={selectedBookingData?.time}
+        onSuccess={handleBookingSuccess}
+      />
     </ModuleGate>
   );
 };

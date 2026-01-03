@@ -84,28 +84,15 @@ export default function DigitalCardPublicPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-background flex items-center justify-center md:p-4">
+      <div className="w-full md:max-w-md">
         <DigitalCardPreview
           data={formData}
           photoUrl={card.photo_url}
           isInteractive
           onClickAction={trackClick}
+          qrCodeUrl={card.show_qr_code ? qrCodeUrl : undefined}
         />
-
-        {/* QR Code */}
-        {card.show_qr_code && qrCodeUrl && (
-          <div className="mt-6 text-center">
-            <img 
-              src={qrCodeUrl} 
-              alt="QR Code" 
-              className="w-28 h-28 mx-auto rounded-lg bg-white p-2"
-            />
-            <p className="text-xs text-muted-foreground mt-2">
-              Escaneie para salvar
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );

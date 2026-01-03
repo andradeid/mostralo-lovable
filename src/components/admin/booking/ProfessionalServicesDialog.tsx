@@ -30,7 +30,7 @@ interface ProfessionalService {
   professional_id: string;
   service_id: string;
   custom_price: number | null;
-  custom_duration_minutes: number | null;
+  custom_duration: number | null;
   is_active: boolean;
 }
 
@@ -96,7 +96,7 @@ export function ProfessionalServicesDialog({
 
   const getCustomDuration = (serviceId: string) => {
     const ps = professionalServices.find(ps => ps.service_id === serviceId);
-    return ps?.custom_duration_minutes ?? null;
+    return ps?.custom_duration ?? null;
   };
 
   const toggleService = (serviceId: string, checked: boolean) => {
@@ -111,7 +111,7 @@ export function ProfessionalServicesDialog({
           professional_id: professionalId,
           service_id: serviceId,
           custom_price: null,
-          custom_duration_minutes: null,
+          custom_duration: null,
           is_active: checked
         }];
       }
@@ -130,7 +130,7 @@ export function ProfessionalServicesDialog({
           professional_id: professionalId,
           service_id: serviceId,
           custom_price: price,
-          custom_duration_minutes: null,
+          custom_duration: null,
           is_active: true
         }];
       }
@@ -142,14 +142,14 @@ export function ProfessionalServicesDialog({
       const existing = prev.find(ps => ps.service_id === serviceId);
       if (existing) {
         return prev.map(ps => 
-          ps.service_id === serviceId ? { ...ps, custom_duration_minutes: duration } : ps
+          ps.service_id === serviceId ? { ...ps, custom_duration: duration } : ps
         );
       } else {
         return [...prev, {
           professional_id: professionalId,
           service_id: serviceId,
           custom_price: null,
-          custom_duration_minutes: duration,
+          custom_duration: duration,
           is_active: true
         }];
       }
@@ -179,7 +179,7 @@ export function ProfessionalServicesDialog({
           professional_id: ps.professional_id,
           service_id: ps.service_id,
           custom_price: ps.custom_price,
-          custom_duration_minutes: ps.custom_duration_minutes,
+          custom_duration: ps.custom_duration,
           is_active: true
         };
 

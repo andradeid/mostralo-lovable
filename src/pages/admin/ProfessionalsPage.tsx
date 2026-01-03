@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -67,6 +67,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ProfessionalScheduleDialog } from '@/components/admin/booking/ProfessionalScheduleDialog';
 import { ProfessionalBlocksDialog } from '@/components/admin/booking/ProfessionalBlocksDialog';
 import { ProfessionalServicesDialog } from '@/components/admin/booking/ProfessionalServicesDialog';
+import { ProfessionalAgendaDialog } from '@/components/admin/booking/ProfessionalAgendaDialog';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import {
   Collapsible,
@@ -103,6 +104,7 @@ const ProfessionalsPage = () => {
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
   const [isBlocksDialogOpen, setIsBlocksDialogOpen] = useState(false);
   const [isServicesDialogOpen, setIsServicesDialogOpen] = useState(false);
+  const [isAgendaDialogOpen, setIsAgendaDialogOpen] = useState(false);
   const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [showValidationOverlay, setShowValidationOverlay] = useState(false);
@@ -129,6 +131,44 @@ const ProfessionalsPage = () => {
     confirmNewPassword: ''
   });
   const [updatingPassword, setUpdatingPassword] = useState(false);
+  const [professionalServices, setProfessionalServices] = useState<Record<string, { id: string; name: string }[]>>({});
+
+  // Buscar serviços vinculados a cada profissional
+  useEffect(() => {
+    const fetchProfessionalServices = async () => {
+      if (!professionals.length || !storeId) return;
+
+      const professionalIds = professionals.map(p => p.id);
+      
+      const { data, error } = await supabase
+        .from('professional_services')
+        .select(`
+          professional_id,
+          service:booking_services(id, name)
+        `)
+        .in('professional_id', professionalIds);
+
+      if (error) {
+        console.error('Error fetching professional services:', error);
+        return;
+      }
+
+      // Agrupar serviços por profissional
+      const servicesMap: Record<string, { id: string; name: string }[]> = {};
+      (data || []).forEach((ps: any) => {
+        if (ps.service) {
+          if (!servicesMap[ps.professional_id]) {
+            servicesMap[ps.professional_id] = [];
+          }
+          servicesMap[ps.professional_id].push(ps.service);
+        }
+      });
+
+      setProfessionalServices(servicesMap);
+    };
+
+    fetchProfessionalServices();
+  }, [professionals, storeId]);
 
   usePageSEO({
     title: 'Profissionais - Agendamento',
@@ -649,6 +689,13 @@ const ProfessionalsPage = () => {
                           <Scissors className="h-4 w-4 mr-2" />
                           Serviços
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => {
+                          setSelectedProfessional(professional);
+                          setIsAgendaDialogOpen(true);
+                        }}>
+                          <Calendar className="h-4 w-4 mr-2" />
+                          Ver Agenda Completa
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem 
                           onClick={() => handleToggleActive(professional)}
@@ -689,6 +736,24 @@ const ProfessionalsPage = () => {
                         </Badge>
                       )}
                     </div>
+                    
+                    {/* Serviços vinculados */}
+                    {professionalServices[professional.id]?.length > 0 && (
+                      <div className="flex items-center gap-1 flex-wrap">
+                        <Scissors className="h-3 w-3 text-muted-foreground" />
+                        {professionalServices[professional.id].slice(0, 2).map((service) => (
+                          <Badge key={service.id} variant="outline" className="text-xs">
+                            {service.name}
+                          </Badge>
+                        ))}
+                        {professionalServices[professional.id].length > 2 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{professionalServices[professional.id].length - 2}
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+                    
                     <Badge variant={professional.is_active ? 'default' : 'secondary'}>
                       {professional.is_active ? 'Ativo' : 'Inativo'}
                     </Badge>
@@ -1056,6 +1121,16 @@ const ProfessionalsPage = () => {
             professionalId={selectedProfessional.id}
             professionalName={selectedProfessional.name}
             storeId={storeId}
+          />
+        )}
+
+        {/* Agenda Dialog */}
+        {selectedProfessional && (
+          <ProfessionalAgendaDialog
+            open={isAgendaDialogOpen}
+            onOpenChange={setIsAgendaDialogOpen}
+            professionalId={selectedProfessional.id}
+            professionalName={selectedProfessional.name}
           />
         )}
 

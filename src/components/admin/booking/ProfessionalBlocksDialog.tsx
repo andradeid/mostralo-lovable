@@ -25,7 +25,7 @@ interface Block {
   block_date: string;
   start_time: string | null;
   end_time: string | null;
-  all_day: boolean;
+  is_all_day: boolean;
   reason: string | null;
 }
 
@@ -45,7 +45,7 @@ export function ProfessionalBlocksDialog({
     block_date: format(new Date(), 'yyyy-MM-dd'),
     start_time: '09:00',
     end_time: '18:00',
-    all_day: true,
+    is_all_day: true,
     reason: ''
   });
 
@@ -87,9 +87,9 @@ export function ProfessionalBlocksDialog({
       const blockData = {
         professional_id: professionalId,
         block_date: newBlock.block_date,
-        start_time: newBlock.all_day ? null : newBlock.start_time,
-        end_time: newBlock.all_day ? null : newBlock.end_time,
-        all_day: newBlock.all_day,
+        start_time: newBlock.is_all_day ? null : newBlock.start_time,
+        end_time: newBlock.is_all_day ? null : newBlock.end_time,
+        is_all_day: newBlock.is_all_day,
         reason: newBlock.reason || null
       };
 
@@ -110,7 +110,7 @@ export function ProfessionalBlocksDialog({
         block_date: format(new Date(), 'yyyy-MM-dd'),
         start_time: '09:00',
         end_time: '18:00',
-        all_day: true,
+        is_all_day: true,
         reason: ''
       });
 
@@ -184,13 +184,13 @@ export function ProfessionalBlocksDialog({
                 
                 <div className="col-span-2 flex items-center gap-2">
                   <Switch
-                    checked={newBlock.all_day}
-                    onCheckedChange={(checked) => setNewBlock(prev => ({ ...prev, all_day: checked }))}
+                    checked={newBlock.is_all_day}
+                    onCheckedChange={(checked) => setNewBlock(prev => ({ ...prev, is_all_day: checked }))}
                   />
                   <Label>Dia inteiro</Label>
                 </div>
 
-                {!newBlock.all_day && (
+                {!newBlock.is_all_day && (
                   <>
                     <div>
                       <Label>Início</Label>
@@ -249,7 +249,7 @@ export function ProfessionalBlocksDialog({
                           {formatBlockDate(block.block_date)}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {block.all_day 
+                          {block.is_all_day 
                             ? 'Dia inteiro' 
                             : `${block.start_time?.slice(0, 5)} - ${block.end_time?.slice(0, 5)}`
                           }

@@ -11,6 +11,7 @@ import { SaveContactButton } from './SaveContactButton';
 interface DigitalCardPreviewProps {
   data: Partial<CardFormData>;
   photoUrl?: string | null;
+  qrCodeUrl?: string;
   isInteractive?: boolean;
   onClickAction?: (type: string, label?: string) => void;
   className?: string;
@@ -46,6 +47,7 @@ const themeStyles: Record<CardTheme, { bg: string; text: string; accent: string;
 export function DigitalCardPreview({ 
   data, 
   photoUrl,
+  qrCodeUrl,
   isInteractive = false,
   onClickAction,
   className 
@@ -78,11 +80,12 @@ export function DigitalCardPreview({
 
   return (
     <div className={cn(
-      'w-full max-w-md mx-auto rounded-2xl overflow-hidden shadow-2xl',
+      'w-full mx-auto overflow-hidden shadow-2xl',
+      'min-h-screen md:min-h-0 md:max-w-md md:rounded-2xl',
       styles.bg,
       className
     )}>
-      <div className="p-6 pb-8 space-y-6">
+      <div className="p-6 pb-8 space-y-6 flex flex-col justify-center min-h-screen md:min-h-0">
         {/* Header com foto e informações */}
         <div className="text-center space-y-4">
           <Avatar className="w-28 h-28 mx-auto border-4 shadow-xl" style={{ borderColor: accentColor }}>
@@ -244,6 +247,20 @@ export function DigitalCardPreview({
                 <Icon className="w-5 h-5" style={{ color: accentColor }} />
               </button>
             ))}
+          </div>
+        )}
+
+        {/* QR Code */}
+        {qrCodeUrl && (
+          <div className="flex flex-col items-center gap-2 pt-4">
+            <img 
+              src={qrCodeUrl} 
+              alt="QR Code" 
+              className="w-24 h-24 rounded-lg bg-white p-2"
+            />
+            <p className={cn('text-xs opacity-50', styles.text)}>
+              Escaneie para salvar
+            </p>
           </div>
         )}
 

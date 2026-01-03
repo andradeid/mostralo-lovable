@@ -16,16 +16,18 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { 
   CalendarIcon, 
   Clock, 
-  Loader2 
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { format, startOfDay, isBefore } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { ProfessionalWhatsAppValidator, WhatsAppValidationStatus } from './ProfessionalWhatsAppValidator';
 import { WhatsAppProfilePreview } from '@/components/leads/WhatsAppProfilePreview';
+import { useQuery } from '@tanstack/react-query';
 import {
   useBooking, 
   Professional, 
@@ -152,15 +154,57 @@ export function NewBookingDialog({
     [bookingServices, selectedService]
   );
 
-  // Generate time slots - filter past times if date is today
+  // Fetch existing bookings for the selected professional and date
+  const { data: existingBookings = [], isLoading: loadingBookings } = useQuery({
+    queryKey: ['bookings-for-slot', storeId, selectedProfessional, selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null],
+    queryFn: async () => {
+      if (!storeId || !selectedProfessional || !selectedDate) return [];
+      
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('start_time, end_time, status')
+        .eq('store_id', storeId)
+        .eq('professional_id', selectedProfessional)
+        .eq('booking_date', format(selectedDate, 'yyyy-MM-dd'))
+        .neq('status', 'cancelled');
+      
+      if (error) {
+        console.error('Error fetching bookings:', error);
+        return [];
+      }
+      return data || [];
+    },
+    enabled: !!storeId && !!selectedProfessional && !!selectedDate
+  });
+
+  // Helper to convert time string (HH:MM:SS or HH:MM) to minutes
+  const timeToMinutes = useCallback((time: string): number => {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
+  }, []);
+
+  // Generate time slots - filter past times and occupied slots
   const timeSlots = useMemo(() => {
     const slots: string[] = [];
     const now = new Date();
     const isToday = selectedDate && 
       selectedDate.toDateString() === now.toDateString();
     
+    // Convert existing bookings to occupied intervals
+    const occupiedIntervals = existingBookings.map(booking => ({
+      start: timeToMinutes(booking.start_time),
+      end: timeToMinutes(booking.end_time)
+    }));
+
+    // Service duration for conflict check
+    const serviceDuration = service?.duration_minutes || 30;
+    const serviceBuffer = service?.buffer_minutes || 0;
+    const totalServiceTime = serviceDuration + serviceBuffer;
+    
     for (let hour = 7; hour <= 21; hour++) {
       for (const minutes of [0, 30]) {
+        const slotMinutes = hour * 60 + minutes;
+        
         // Se for hoje, só mostrar horários futuros (com margem de 15 min)
         if (isToday) {
           const slotTime = new Date();
@@ -173,11 +217,22 @@ export function NewBookingDialog({
           }
         }
         
+        // Check if slot conflicts with any existing booking
+        const slotEnd = slotMinutes + totalServiceTime;
+        const hasConflict = occupiedIntervals.some(interval => {
+          // Conflict exists if: slotStart < bookingEnd AND slotEnd > bookingStart
+          return slotMinutes < interval.end && slotEnd > interval.start;
+        });
+        
+        if (hasConflict) {
+          continue;
+        }
+        
         slots.push(`${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`);
       }
     }
     return slots;
-  }, [selectedDate]);
+  }, [selectedDate, existingBookings, service, timeToMinutes]);
 
   // Clear selected time if it becomes invalid
   useEffect(() => {
@@ -185,6 +240,9 @@ export function NewBookingDialog({
       setSelectedTime('');
     }
   }, [timeSlots, selectedTime]);
+
+  // Check if no slots are available
+  const noSlotsAvailable = selectedDate && selectedProfessional && !loadingBookings && timeSlots.length === 0;
 
   const calculateEndTime = (startTime: string, durationMinutes: number) => {
     const [hours, minutes] = startTime.split(':').map(Number);
@@ -319,11 +377,16 @@ export function NewBookingDialog({
                     mode="single"
                     selected={selectedDate}
                     onSelect={(date) => {
+                      // Ignore past dates
+                      if (date && isBefore(date, startOfDay(new Date()))) {
+                        return;
+                      }
                       setSelectedDate(date);
                       setDatePopoverOpen(false);
                     }}
                     locale={ptBR}
                     className="pointer-events-auto"
+                    disabled={(date) => isBefore(date, startOfDay(new Date()))}
                     initialFocus
                   />
                 </PopoverContent>
@@ -332,9 +395,13 @@ export function NewBookingDialog({
 
             <div>
               <Label>Horário *</Label>
-              <Select value={selectedTime} onValueChange={setSelectedTime}>
+              <Select 
+                value={selectedTime} 
+                onValueChange={setSelectedTime}
+                disabled={!selectedDate || !selectedProfessional || loadingBookings || noSlotsAvailable}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
+                  <SelectValue placeholder={loadingBookings ? "Carregando..." : "Selecione"} />
                 </SelectTrigger>
                 <SelectContent>
                   {timeSlots.map(time => (
@@ -344,6 +411,18 @@ export function NewBookingDialog({
                   ))}
                 </SelectContent>
               </Select>
+              
+              {/* No slots available indicator */}
+              {noSlotsAvailable && (
+                <div className="flex items-center gap-2 mt-2 text-sm text-amber-600 dark:text-amber-500">
+                  <AlertCircle className="h-4 w-4" />
+                  <span>
+                    {selectedDate?.toDateString() === new Date().toDateString()
+                      ? 'Nenhum horário disponível para hoje'
+                      : 'Nenhum horário disponível para esta data'}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 

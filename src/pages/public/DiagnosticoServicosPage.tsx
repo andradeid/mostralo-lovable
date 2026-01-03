@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Store, Moon, Sun } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useTheme } from 'next-themes';
+import { Store } from 'lucide-react';
 import { DiagnosticFormServices } from '@/components/leads/DiagnosticFormServices';
 import { DiagnosticResultServices } from '@/components/leads/DiagnosticResultServices';
 import { DiagnosticAlreadyCompleted } from '@/components/leads/DiagnosticAlreadyCompleted';
@@ -39,8 +37,6 @@ function convertToLegacyResult(serviceResult: ServiceDiagnosticResult): Diagnost
 }
 
 export default function DiagnosticoServicosPage() {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
   const [result, setResult] = useState<ServiceDiagnosticResult | null>(null);
   const [pendingResult, setPendingResult] = useState<ServiceDiagnosticResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,10 +57,6 @@ export default function DiagnosticoServicosPage() {
   // Script personalizado para a Sofia
   const [customScript, setCustomScript] = useState<string>('');
 
-  // Montar para evitar hydration mismatch
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Verificar localStorage ao carregar
   useEffect(() => {
@@ -206,31 +198,14 @@ export default function DiagnosticoServicosPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="dark min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-center">
           <a href="/" className="flex items-center gap-2">
             <Store className="w-8 h-8 text-primary" />
             <span className="font-bold text-xl text-foreground">Mostralo</span>
           </a>
-          
-          {/* Theme Toggle */}
-          {mounted && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="rounded-full"
-            >
-              {theme === 'dark' ? (
-                <Sun className="h-5 w-5" />
-              ) : (
-                <Moon className="h-5 w-5" />
-              )}
-              <span className="sr-only">Alternar tema</span>
-            </Button>
-          )}
         </div>
       </header>
 

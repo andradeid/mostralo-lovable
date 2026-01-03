@@ -76,6 +76,7 @@ const AllInOnePage = lazy(() => import("@/pages/public/AllInOnePage"));
 const DiagnosticoPage = lazy(() => import("@/pages/public/DiagnosticoPage"));
 const DiagnosticoDeliveryPage = lazy(() => import("@/pages/public/DiagnosticoDeliveryPage"));
 const DiagnosticoServicosPage = lazy(() => import("@/pages/public/DiagnosticoServicosPage"));
+const AboutPage = lazy(() => import("@/pages/public/AboutPage"));
 
 export const publicRoutes = (
   <>
@@ -116,6 +117,7 @@ export const publicRoutes = (
       <Route path="/diagnostico" element={<LazyRoute><DiagnosticoPage /></LazyRoute>} />
       <Route path="/diagnostico-delivery" element={<LazyRoute><DiagnosticoDeliveryPage /></LazyRoute>} />
       <Route path="/diagnostico-servicos" element={<LazyRoute><DiagnosticoServicosPage /></LazyRoute>} />
+      <Route path="/sobre" element={<LazyRoute><AboutPage /></LazyRoute>} />
     <Route path="/sitemap.xml" element={<LazyRoute><Sitemap /></LazyRoute>} />
     <Route path="/navegar" element={<LazyRoute><NavigatePage /></LazyRoute>} />
     

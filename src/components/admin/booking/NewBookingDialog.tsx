@@ -46,6 +46,7 @@ interface NewBookingDialogProps {
   storeId: string | null;
   defaultDate?: Date;
   defaultProfessionalId?: string;
+  defaultTime?: string;
   onSuccess?: () => void;
 }
 
@@ -63,6 +64,7 @@ export function NewBookingDialog({
   storeId,
   defaultDate,
   defaultProfessionalId,
+  defaultTime,
   onSuccess
 }: NewBookingDialogProps) {
   const queryClient = useQueryClient();
@@ -98,7 +100,7 @@ export function NewBookingDialog({
       setSelectedDate(defaultDate);
       setSelectedProfessional(defaultProfessionalId || '');
       setSelectedService('');
-      setSelectedTime('');
+      setSelectedTime(defaultTime || '');
       setCustomerName('');
       setCustomerPhone('');
       setCustomerEmail('');
@@ -108,7 +110,7 @@ export function NewBookingDialog({
       setWhatsappStatus('idle');
       setWhatsappProfile(null);
     }
-  }, [open, defaultDate, defaultProfessionalId]);
+  }, [open, defaultDate, defaultProfessionalId, defaultTime]);
 
   // Validate WhatsApp when phone is complete
   const validateWhatsApp = useCallback(async () => {

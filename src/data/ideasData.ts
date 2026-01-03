@@ -4180,5 +4180,285 @@ Infraestrutura existente:
       '□ Testar fluxo completo',
       '□ Monitorar logs e ajustar conforme necessário'
     ]
+  },
+  {
+    id: 30,
+    title: '🏪 Frente de Caixa Profissional (PDV com Leitor)',
+    status: 'idea',
+    priority: 'high',
+    createdAt: '2026-01-03',
+    description: 'Sistema completo de Frente de Caixa (PDV) com suporte a leitores de código de barras, cadastro automatizado de produtos via API, controle de estoque integrado e funcionamento offline.',
+    
+    context: `O sistema atual possui:
+• PDVPage.tsx com funcionalidades básicas (grid de produtos, carrinho, pagamentos)
+• Tabela products com campos show_in_menu e is_available
+• Ideia 27 (Modo Offline) documenta infraestrutura offline
+• Ideia 12 (Gestão de Estoque) menciona controle básico
+• 91 Edge Functions existentes que podem ser reaproveitadas
+
+Potencial de mercado:
+• Supermercados, conveniências, lojas de varejo, farmácias, pet shops
+• Negócios que vendem produtos físicos com código de barras
+• Estabelecimentos em áreas com internet instável
+• Franquias que precisam de sistema padronizado`,
+    
+    problem: `Problemas identificados no mercado:
+
+1. CADASTRO DE PRODUTOS
+   • Cadastro manual é demorado e propenso a erros
+   • Digitação de nomes, preços e categorias leva horas
+   • Sem padronização entre lojas do mesmo segmento
+
+2. CONTROLE DE ESTOQUE
+   • Produtos esgotados continuam visíveis no cardápio/delivery
+   • Sem alertas de estoque baixo
+   • Vendas perdidas ou clientes frustrados
+
+3. OPERAÇÃO DE CAIXA
+   • Busca manual de produtos no grid é lenta
+   • Não há modo dedicado para operador de caixa
+   • Sem suporte a leitores de código de barras
+
+4. DEPENDÊNCIA DE INTERNET
+   • Vendas param quando internet cai
+   • Dados perdidos em queda de energia
+   • Sincronização manual é trabalhosa
+
+5. CONCORRÊNCIA
+   • Stone/Ton, Bling, Nex, vhsys dominam o mercado
+   • Poucos sistemas unificam PDV + Delivery + Comandas
+   • Mostralo pode ser diferencial com integração completa`,
+
+    marketAnalysis: {
+      title: '📊 Análise de Mercado e Concorrência',
+      items: [
+        'Stone/Ton: Máquinas próprias + software, foco em pagamentos',
+        'Bling: ERP completo mas complexo, melhor para médias empresas',
+        'Nex: PDV simples e acessível, sem delivery integrado',
+        'vhsys: Completo mas caro, curva de aprendizado alta',
+        'ConnectPlug: Bom custo-benefício mas sem modo offline robusto',
+        'Diferencial Mostralo: PDV + Delivery + Comandas + App Garçom em um só sistema',
+        'Modo offline é RARO na concorrência (vantagem competitiva)',
+        'Cadastro automático por código de barras economiza horas de trabalho'
+      ]
+    },
+
+    technicalDetails: {
+      title: '🔧 Implementação Técnica',
+      items: [
+        'BANCO DE DADOS (tabela products):',
+        '• barcode (text, nullable) - Código de barras EAN-13/EAN-8/UPC',
+        '• sku (text, nullable) - Código interno da loja',
+        '• brand (text, nullable) - Marca do produto',
+        '• track_stock (boolean, default false) - Se controla estoque',
+        '• stock_quantity (integer, nullable) - Quantidade em estoque',
+        '• low_stock_alert (integer, nullable) - Limite para alerta',
+        '',
+        'NOVA EDGE FUNCTION:',
+        '• lookup-barcode: Consulta Open Food Facts API (gratuita, foco em alimentos)',
+        '• Fallback futuro: Cosmos API (brasileira, paga, mais produtos)',
+        '• Retorna: nome, marca, foto, categoria, informações nutricionais',
+        '',
+        'FRONTEND:',
+        '• ProductForm.tsx: Novos campos opcionais + botão de scanner',
+        '• PDVPage.tsx: Input dedicado para scanner com auto-focus',
+        '• Componente BarcodeInput com som de confirmação',
+        '• Modo fullscreen "Frente de Caixa" para operadores',
+        '• Indicador visual de modo online/offline',
+        '',
+        'OFFLINE (integração com Ideia 27):',
+        '• IndexedDB para cache de produtos',
+        '• Fila de sincronização para vendas offline',
+        '• Background Sync quando reconectar',
+        '• Recuperação automática após queda de energia'
+      ]
+    },
+
+    phases: [
+      {
+        name: 'Fase 1 - Base do PDV com Leitor',
+        description: 'Adicionar campos e criar busca por código de barras',
+        items: [
+          'Migração SQL: barcode, sku, brand, track_stock, stock_quantity, low_stock_alert',
+          'Atualizar ProductForm.tsx com campos opcionais (não quebra fluxo existente)',
+          'Criar Edge Function lookup-barcode (Open Food Facts)',
+          'Adicionar input de leitura no PDVPage.tsx (funciona com qualquer leitor USB)',
+          'Implementar busca por código: encontrou → adiciona ao carrinho',
+          'Som de confirmação ao escanear produto válido',
+          'Exibir foto e nome do produto escaneado'
+        ]
+      },
+      {
+        name: 'Fase 2 - Controle de Estoque',
+        description: 'Redução automática e alertas de estoque',
+        items: [
+          'Trigger SQL: reduzir stock_quantity ao finalizar venda (PDV ou Delivery)',
+          'Marcar is_available = false quando stock_quantity = 0',
+          'Restaurar is_available quando estoque for reposto',
+          'Alertas de estoque baixo via notificação e email',
+          'Relatório de produtos próximos do fim',
+          'Opção de não vender com estoque zerado (bloqueia venda)',
+          'Dashboard de movimentação de estoque'
+        ]
+      },
+      {
+        name: 'Fase 3 - Modo Frente de Caixa Dedicado',
+        description: 'Tela otimizada para operador de caixa',
+        items: [
+          'Rota /pdv/caixa com layout fullscreen',
+          'Atalhos de teclado: F1-F12 para ações rápidas',
+          'F1: Finalizar venda | F2: Desconto | F3: Cliente | F4: Pagamento',
+          'F5: Cancelar item | F6: Cancelar venda | F7: Gaveta | F8: Sangria',
+          'Som de confirmação configurável (beep, cash register, custom)',
+          'Exibição grande do total e troco',
+          'Suporte a balança (peso variável) via integração serial',
+          'Modo treinamento para novos operadores'
+        ]
+      },
+      {
+        name: 'Fase 4 - Integração Offline',
+        description: 'Funcionamento sem internet (depende da Ideia 27)',
+        items: [
+          'Reutilizar infraestrutura useOfflineStorage da Ideia 27',
+          'Cache de produtos no IndexedDB (sincronizado periodicamente)',
+          'Vendas offline salvas localmente com UUID único',
+          'Fila de sincronização processada ao reconectar',
+          'Indicador visual: 🟢 Online | 🟡 Sincronizando | 🔴 Offline',
+          'Proteção contra duplicatas na sincronização',
+          'Backup em localStorage como fallback adicional',
+          'Auto-save do carrinho a cada item adicionado'
+        ]
+      },
+      {
+        name: 'Fase 5 - Cadastro Automático por Código',
+        description: 'Escanear produto novo abre formulário pré-preenchido',
+        items: [
+          'Detectar código de barras não cadastrado',
+          'Consultar lookup-barcode e abrir modal de cadastro',
+          'Pré-preencher: nome, marca, foto, categoria sugerida',
+          'Lojista ajusta preço e confirma cadastro',
+          'Produto disponível imediatamente para venda',
+          'Sugestão de preço baseada em histórico (ML futuro)',
+          'Importação em lote via planilha com códigos de barras',
+          'Sincronização com catálogo de fornecedores (futuro)'
+        ]
+      }
+    ],
+
+    riskAnalysis: {
+      title: '⚠️ Análise de Riscos',
+      sections: [
+        {
+          level: 'low',
+          title: 'Riscos Baixos',
+          items: [
+            'Leitores USB funcionam como teclado (plug and play, sem driver)',
+            'Open Food Facts é gratuita e estável (milhões de produtos)',
+            'Campos opcionais não quebram fluxo existente de restaurantes',
+            'IndexedDB é suportado em todos os navegadores modernos',
+            'PWA já está configurado no projeto (Service Worker ativo)'
+          ]
+        },
+        {
+          level: 'medium',
+          title: 'Riscos Médios',
+          items: [
+            'Nem todos os produtos estão na Open Food Facts (fallback manual)',
+            'Produtos brasileiros podem ter cobertura menor na API',
+            'Conflitos de estoque em vendas simultâneas (usar transações SQL)',
+            'Sincronização offline pode gerar duplicatas (resolver por UUID)',
+            'Treinamento de operadores para atalhos de teclado'
+          ]
+        },
+        {
+          level: 'high',
+          title: 'Riscos Altos',
+          items: [
+            'Modo offline robusto requer implementação complexa (depende Ideia 27)',
+            'Balança/peso variável requer hardware específico e integração serial',
+            'NFC-e (cupom fiscal) requer certificado digital e integração SEFAZ',
+            'Concorrência estabelecida com anos de mercado'
+          ]
+        }
+      ]
+    },
+
+    legalConsiderations: [
+      '✅ Leitores de código de barras não têm restrições legais',
+      '✅ Open Food Facts é API pública e gratuita (licença Open Database)',
+      '⚠️ Emissão de NFC-e requer credenciamento na SEFAZ do estado',
+      '⚠️ Balança homologada pelo INMETRO para venda por peso',
+      '📋 LGPD: dados de clientes devem ser protegidos mesmo offline'
+    ],
+
+    options: [
+      {
+        name: 'Implementação Gradual (Recomendado)',
+        description: 'Fases 1-2 primeiro, depois 3-5 conforme demanda',
+        pros: [
+          'Menor risco de quebrar funcionalidades existentes',
+          'Validação de demanda real antes de investir em features avançadas',
+          'Tempo de implementação Fase 1: ~1-2 semanas',
+          'Lojistas podem começar a usar imediatamente',
+          'Feedback real guia próximas fases'
+        ],
+        cons: [
+          'Modo offline completo demora mais para ficar pronto',
+          'Concorrentes podem ter features que ainda não temos',
+          'Lojistas ansiosos por feature completa podem migrar'
+        ]
+      },
+      {
+        name: 'Implementação Completa',
+        description: 'Todas as 5 fases de uma vez',
+        pros: [
+          'Feature completa desde o lançamento',
+          'Marketing mais impactante (sistema completo)',
+          'Lojistas não precisam esperar por updates'
+        ],
+        cons: [
+          'Tempo de implementação: ~2-3 meses',
+          'Maior risco de bugs e instabilidade',
+          'Sem validação de demanda antes do investimento',
+          'Complexidade de manutenção maior'
+        ]
+      }
+    ],
+
+    recommendation: `**Recomendação: Implementação Gradual em 5 Fases**
+
+1. **COMEÇAR com Fase 1** (1-2 semanas)
+   → Adicionar campos no banco + Edge Function lookup-barcode
+   → Input de scanner no PDVPage.tsx
+   → Valor imediato para lojistas com leitor de código de barras
+
+2. **Fase 2 logo em seguida** (1 semana)
+   → Controle de estoque é o pedido mais comum de lojistas
+   → Evita vender produtos esgotados no delivery
+   → Alertas de estoque baixo
+
+3. **Fases 3-5 conforme demanda**
+   → Modo Frente de Caixa dedicado para supermercados/conveniências
+   → Offline para áreas com internet instável
+   → Cadastro automático para lojas com muito SKU
+
+**Prioridade**: Fase 1 é a base para tudo. Sem ela, as outras fases não funcionam.`,
+
+    nextSteps: [
+      '□ Criar migração SQL: barcode, sku, brand, track_stock, stock_quantity, low_stock_alert',
+      '□ Atualizar ProductForm.tsx com campos opcionais',
+      '□ Criar Edge Function lookup-barcode (Open Food Facts)',
+      '□ Adicionar BarcodeInput no PDVPage.tsx',
+      '□ Implementar busca por código no carrinho',
+      '□ Testar com leitor USB real',
+      '□ Implementar redução automática de estoque',
+      '□ Criar alertas de estoque baixo',
+      '□ Criar modo Frente de Caixa (/pdv/caixa)',
+      '□ Implementar atalhos de teclado F1-F12',
+      '□ Integrar com infraestrutura offline (Ideia 27)',
+      '□ Cadastro automático por código de barras',
+      '□ Documentar fluxo para lojistas',
+      '□ Criar vídeo tutorial de uso'
+    ]
   }
 ];

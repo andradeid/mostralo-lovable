@@ -58,6 +58,7 @@ const TotemConfigPage = lazy(() => import("@/pages/admin/TotemConfigPage"));
 const BookingCalendarPage = lazy(() => import("@/pages/admin/BookingCalendarPage"));
 const ProfessionalsPage = lazy(() => import("@/pages/admin/ProfessionalsPage"));
 const BookingServicesPage = lazy(() => import("@/pages/admin/BookingServicesPage"));
+const ProfessionalAvailabilityPage = lazy(() => import("@/pages/admin/ProfessionalAvailabilityPage"));
 const CrossSellRulesPage = lazy(() => import("@/pages/admin/CrossSellRulesPage"));
 const UpsellCrossSellStatsPage = lazy(() => import("@/pages/admin/UpsellCrossSellStatsPage"));
 const StoreDigitalCardsPage = lazy(() => import("@/pages/store-admin/StoreDigitalCardsPage"));
@@ -516,6 +517,13 @@ export const storeAdminRoutes = (
       <ProtectedRoute allowedRoles={['store_admin', 'attendant']}>
         <AdminLayout pageTitle="Serviços de Agendamento">
           <LazyRoute><BookingServicesPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/booking/disponibilidade" element={
+      <ProtectedRoute allowedRoles={['store_admin', 'attendant']}>
+        <AdminLayout pageTitle="Disponibilidade">
+          <LazyRoute><ProfessionalAvailabilityPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

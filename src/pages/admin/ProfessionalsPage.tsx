@@ -27,7 +27,9 @@ import {
   UserX,
   Mail,
   CheckCircle2,
-  Key
+  Key,
+  Link2,
+  Copy
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/use-auth';
@@ -132,6 +134,21 @@ const ProfessionalsPage = () => {
   });
   const [updatingPassword, setUpdatingPassword] = useState(false);
   const [professionalServices, setProfessionalServices] = useState<Record<string, { id: string; name: string }[]>>({});
+  const [storeSlug, setStoreSlug] = useState<string | null>(null);
+
+  // Fetch store slug for booking link
+  useEffect(() => {
+    const fetchStoreSlug = async () => {
+      if (!storeId) return;
+      const { data } = await supabase
+        .from('stores')
+        .select('slug')
+        .eq('id', storeId)
+        .single();
+      if (data) setStoreSlug(data.slug);
+    };
+    fetchStoreSlug();
+  }, [storeId]);
 
   // Buscar serviços vinculados a cada profissional
   useEffect(() => {
@@ -693,9 +710,21 @@ const ProfessionalsPage = () => {
                           setSelectedProfessional(professional);
                           setIsAgendaDialogOpen(true);
                         }}>
-                          <Calendar className="h-4 w-4 mr-2" />
+                         <Calendar className="h-4 w-4 mr-2" />
                           Ver Agenda Completa
                         </DropdownMenuItem>
+                        {storeSlug && (
+                          <DropdownMenuItem onClick={() => {
+                            const url = `${window.location.origin}/agendar/${storeSlug}?profissional=${professional.id}`;
+                            navigator.clipboard.writeText(url);
+                            toast.success('Link copiado!', { 
+                              description: 'Cole e compartilhe com o cliente' 
+                            });
+                          }}>
+                            <Link2 className="h-4 w-4 mr-2" />
+                            Copiar Link de Agendamento
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem 
                           onClick={() => handleToggleActive(professional)}
@@ -754,9 +783,28 @@ const ProfessionalsPage = () => {
                       </div>
                     )}
                     
-                    <Badge variant={professional.is_active ? 'default' : 'secondary'}>
-                      {professional.is_active ? 'Ativo' : 'Inativo'}
-                    </Badge>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge variant={professional.is_active ? 'default' : 'secondary'}>
+                        {professional.is_active ? 'Ativo' : 'Inativo'}
+                      </Badge>
+                      {storeSlug && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs gap-1"
+                          onClick={() => {
+                            const url = `${window.location.origin}/agendar/${storeSlug}?profissional=${professional.id}`;
+                            navigator.clipboard.writeText(url);
+                            toast.success('Link copiado!', { 
+                              description: 'Cole e compartilhe com o cliente' 
+                            });
+                          }}
+                        >
+                          <Copy className="h-3 w-3" />
+                          Copiar Link
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>

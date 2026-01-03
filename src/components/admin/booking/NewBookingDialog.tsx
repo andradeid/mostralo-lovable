@@ -152,15 +152,39 @@ export function NewBookingDialog({
     [bookingServices, selectedService]
   );
 
-  // Generate time slots
+  // Generate time slots - filter past times if date is today
   const timeSlots = useMemo(() => {
     const slots: string[] = [];
+    const now = new Date();
+    const isToday = selectedDate && 
+      selectedDate.toDateString() === now.toDateString();
+    
     for (let hour = 7; hour <= 21; hour++) {
-      slots.push(`${hour.toString().padStart(2, '0')}:00`);
-      slots.push(`${hour.toString().padStart(2, '0')}:30`);
+      for (const minutes of [0, 30]) {
+        // Se for hoje, só mostrar horários futuros (com margem de 15 min)
+        if (isToday) {
+          const slotTime = new Date();
+          slotTime.setHours(hour, minutes, 0, 0);
+          
+          const minTime = new Date(now.getTime() + 15 * 60 * 1000);
+          
+          if (slotTime <= minTime) {
+            continue;
+          }
+        }
+        
+        slots.push(`${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`);
+      }
     }
     return slots;
-  }, []);
+  }, [selectedDate]);
+
+  // Clear selected time if it becomes invalid
+  useEffect(() => {
+    if (selectedTime && !timeSlots.includes(selectedTime)) {
+      setSelectedTime('');
+    }
+  }, [timeSlots, selectedTime]);
 
   const calculateEndTime = (startTime: string, durationMinutes: number) => {
     const [hours, minutes] = startTime.split(':').map(Number);

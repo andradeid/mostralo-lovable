@@ -349,13 +349,15 @@ export function NewBookingDialog({
     for (let minutes = workStart; minutes <= workEnd - serviceDuration; minutes += slotInterval) {
       const slotEnd = minutes + totalServiceTime;
       
-      // 1. If today, filter past times (with 15min margin)
-      if (isToday) {
-        const slotTime = new Date();
-        slotTime.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
-        const minTime = new Date(now.getTime() + 15 * 60 * 1000);
-        if (slotTime <= minTime) continue;
-      }
+      // 1. Apply min_advance_hours filter (works for today and near future)
+      const minAdvanceHours = bookingSettings?.min_advance_hours ?? 2;
+      const minAdvanceMs = minAdvanceHours * 60 * 60 * 1000;
+      
+      const slotDateTime = new Date(selectedDate);
+      slotDateTime.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
+      
+      const minAllowedDateTime = new Date(now.getTime() + minAdvanceMs);
+      if (slotDateTime <= minAllowedDateTime) continue;
       
       // 2. Check if falls within break time
       if (breakStart !== null && breakEnd !== null) {
@@ -381,7 +383,7 @@ export function NewBookingDialog({
     }
     
     return slots;
-  }, [selectedDate, professionalSchedule, professionalBlocks, existingBookings, service, bookingSettings?.slot_interval_minutes, timeToMinutes]);
+  }, [selectedDate, professionalSchedule, professionalBlocks, existingBookings, service, bookingSettings?.slot_interval_minutes, bookingSettings?.min_advance_hours, timeToMinutes]);
 
   // Clear selected time if it becomes invalid
   useEffect(() => {

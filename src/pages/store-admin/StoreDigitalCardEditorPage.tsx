@@ -141,20 +141,30 @@ export default function StoreDigitalCardEditorPage() {
     }
   };
 
+  // Gerar URL de agendamento
+  const bookingUrl = useMemo(() => {
+    if (!storeData?.slug || !card?.professional_id) return undefined;
+    return `/agendar/${storeData.slug}?profissional=${card.professional_id}`;
+  }, [storeData?.slug, card?.professional_id]);
+
   // Dados para preview (mescla dados herdados)
   const previewData: Partial<CardFormData> = useMemo(() => {
-    if (!formData.inherit_store_data || !storeData) {
-      return formData;
-    }
+    const baseData = formData.inherit_store_data && storeData
+      ? {
+          ...formData,
+          company: formData.company || storeData.name,
+          whatsapp: formData.whatsapp || storeData.whatsapp || '',
+          phone: formData.phone || storeData.phone || '',
+          website: formData.website || storeData.website || '',
+          instagram: formData.instagram || storeData.instagram || '',
+          facebook: formData.facebook || storeData.facebook || '',
+        }
+      : formData;
 
     return {
-      ...formData,
-      company: formData.company || storeData.name,
-      whatsapp: formData.whatsapp || storeData.whatsapp || '',
-      phone: formData.phone || storeData.phone || '',
-      website: formData.website || storeData.website || '',
-      instagram: formData.instagram || storeData.instagram || '',
-      facebook: formData.facebook || storeData.facebook || '',
+      ...baseData,
+      booking_enabled: formData.booking_enabled,
+      booking_button_text: formData.booking_button_text,
     };
   }, [formData, storeData]);
 
@@ -571,6 +581,7 @@ export default function StoreDigitalCardEditorPage() {
                 <DigitalCardPreview
                   data={previewData}
                   photoUrl={photoPreview}
+                  bookingUrl={formData.booking_enabled ? bookingUrl : undefined}
                   className="scale-90 origin-top"
                 />
               </div>

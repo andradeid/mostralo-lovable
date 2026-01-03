@@ -82,6 +82,7 @@ const BookingPage = () => {
   
   // Selection state
   const [currentStep, setCurrentStep] = useState<Step>('service');
+  const [isProfessionalPreselected, setIsProfessionalPreselected] = useState(false);
   const [selectedService, setSelectedService] = useState<BookingService | null>(null);
   const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -172,7 +173,8 @@ const BookingPage = () => {
       const professional = professionals.find(p => p.id === preselectedProfessionalId);
       if (professional) {
         setSelectedProfessional(professional);
-        // Avançar para seleção de serviço
+        setIsProfessionalPreselected(true);
+        // Manter no step de serviço
         if (!selectedService) {
           setCurrentStep('service');
         }
@@ -375,7 +377,14 @@ const BookingPage = () => {
     const steps: Step[] = ['service', 'professional', 'datetime', 'confirm'];
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex < steps.length - 1) {
-      setCurrentStep(steps[currentIndex + 1]);
+      let nextStepIndex = currentIndex + 1;
+      
+      // Se profissional foi pré-selecionado, pular o step de profissional
+      if (steps[nextStepIndex] === 'professional' && isProfessionalPreselected) {
+        nextStepIndex++;
+      }
+      
+      setCurrentStep(steps[nextStepIndex]);
     }
   };
 
@@ -383,7 +392,16 @@ const BookingPage = () => {
     const steps: Step[] = ['service', 'professional', 'datetime', 'confirm'];
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex > 0) {
-      setCurrentStep(steps[currentIndex - 1]);
+      let prevStepIndex = currentIndex - 1;
+      
+      // Se profissional foi pré-selecionado, pular o step de profissional ao voltar
+      if (steps[prevStepIndex] === 'professional' && isProfessionalPreselected) {
+        prevStepIndex--;
+      }
+      
+      if (prevStepIndex >= 0) {
+        setCurrentStep(steps[prevStepIndex]);
+      }
     }
   };
 

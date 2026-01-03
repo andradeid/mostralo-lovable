@@ -60,6 +60,8 @@ const ProfessionalsPage = lazy(() => import("@/pages/admin/ProfessionalsPage"));
 const BookingServicesPage = lazy(() => import("@/pages/admin/BookingServicesPage"));
 const CrossSellRulesPage = lazy(() => import("@/pages/admin/CrossSellRulesPage"));
 const UpsellCrossSellStatsPage = lazy(() => import("@/pages/admin/UpsellCrossSellStatsPage"));
+const StoreDigitalCardsPage = lazy(() => import("@/pages/store-admin/StoreDigitalCardsPage"));
+const StoreDigitalCardEditorPage = lazy(() => import("@/pages/store-admin/StoreDigitalCardEditorPage"));
 
 export const storeAdminRoutes = (
   <>
@@ -530,6 +532,22 @@ export const storeAdminRoutes = (
       <ProtectedRoute allowedRoles={['store_admin']}>
         <AdminLayout pageTitle="Regras de Cross-sell">
           <LazyRoute><CrossSellRulesPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+
+    {/* Cartões Digitais da Equipe */}
+    <Route path="/dashboard/cartoes-equipe" element={
+      <ProtectedRoute allowedRoles={['store_admin']}>
+        <AdminLayout pageTitle="Cartões Digitais da Equipe">
+          <LazyRoute><StoreDigitalCardsPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/cartoes-equipe/:cardId" element={
+      <ProtectedRoute allowedRoles={['store_admin']}>
+        <AdminLayout pageTitle="Editar Cartão Digital">
+          <LazyRoute><StoreDigitalCardEditorPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

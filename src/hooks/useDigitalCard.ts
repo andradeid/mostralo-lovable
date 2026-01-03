@@ -32,9 +32,12 @@ export function useDigitalCard() {
       if (data) {
         setCard({
           ...data,
-          owner_type: data.owner_type as 'salesperson' | 'admin',
+          owner_type: data.owner_type as 'salesperson' | 'admin' | 'store',
           theme: data.theme as CardTheme,
-          custom_links: parseCustomLinks(data.custom_links)
+          custom_links: parseCustomLinks(data.custom_links),
+          inherit_store_data: data.inherit_store_data ?? true,
+          booking_enabled: data.booking_enabled ?? false,
+          booking_button_text: data.booking_button_text,
         });
       }
     } catch (error) {
@@ -244,9 +247,12 @@ export function usePublicCard(slug: string) {
 
         setCard({
           ...data,
-          owner_type: data.owner_type as 'salesperson' | 'admin',
+          owner_type: data.owner_type as 'salesperson' | 'admin' | 'store',
           theme: data.theme as CardTheme,
-          custom_links: parseCustomLinks(data.custom_links)
+          custom_links: parseCustomLinks(data.custom_links),
+          inherit_store_data: data.inherit_store_data ?? true,
+          booking_enabled: data.booking_enabled ?? false,
+          booking_button_text: data.booking_button_text,
         });
 
         // Incrementar views

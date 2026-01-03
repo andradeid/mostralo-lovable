@@ -7,10 +7,14 @@ export interface CustomLink {
 
 export type CardTheme = 'dark' | 'light' | 'orange' | 'gradient';
 
+export type CardOwnerType = 'salesperson' | 'admin' | 'store';
+
 export interface DigitalCard {
   id: string;
   owner_id: string;
-  owner_type: 'salesperson' | 'admin';
+  owner_type: CardOwnerType;
+  store_id: string | null;
+  professional_id: string | null;
   slug: string;
   photo_url: string | null;
   name: string;
@@ -38,6 +42,9 @@ export interface DigitalCard {
   referral_code: string | null;
   views_count: number;
   is_active: boolean;
+  inherit_store_data: boolean;
+  booking_enabled: boolean;
+  booking_button_text: string | null;
   created_at: string;
   updated_at: string;
 }

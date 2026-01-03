@@ -154,7 +154,27 @@ export default function DiagnosticoServicosPage() {
         audioBase64: audioBase64 || null,
         completedAt: new Date().toISOString()
       };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(storedData));
+      
+      // Tentar salvar com áudio, se falhar por cota, salvar sem
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(storedData));
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+          console.warn('localStorage cheio, salvando sem áudio');
+          const storedDataWithoutAudio: StoredDiagnostic = {
+            result: pendingResult,
+            audioBase64: null,
+            completedAt: new Date().toISOString()
+          };
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(storedDataWithoutAudio));
+          } catch (innerError) {
+            console.error('Erro ao salvar no localStorage:', innerError);
+          }
+        } else {
+          console.error('Erro ao salvar no localStorage:', error);
+        }
+      }
       
       setSavedAudio(audioBase64 || null);
       setCompletedAt(storedData.completedAt);

@@ -151,7 +151,27 @@ const ProfessionalAvailabilityPage = () => {
     return active.filter(p => p.id === selectedProfessionalId);
   }, [professionals, selectedProfessionalId]);
 
-  const getSlotStatus = (professional: Professional, day: Date, time: string): 'available' | 'busy' | 'blocked' | 'off' => {
+  const getSlotStatus = (professional: Professional, day: Date, time: string): 'available' | 'busy' | 'blocked' | 'off' | 'past' => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const slotDate = new Date(day.getFullYear(), day.getMonth(), day.getDate());
+    
+    // Check if date is in the past
+    if (slotDate < today) {
+      return 'past';
+    }
+    
+    // Check if it's today and time has passed
+    if (slotDate.getTime() === today.getTime()) {
+      const [hours, minutes] = time.split(':').map(Number);
+      const slotDateTime = new Date(day);
+      slotDateTime.setHours(hours, minutes, 0, 0);
+      
+      if (slotDateTime <= now) {
+        return 'past';
+      }
+    }
+    
     const dayOfWeek = day.getDay();
     const dateStr = format(day, 'yyyy-MM-dd');
     
@@ -204,12 +224,13 @@ const ProfessionalAvailabilityPage = () => {
     return 'available';
   };
 
-  const getSlotColor = (status: 'available' | 'busy' | 'blocked' | 'off') => {
+  const getSlotColor = (status: 'available' | 'busy' | 'blocked' | 'off' | 'past') => {
     switch (status) {
       case 'available': return 'bg-green-500/20 border-green-500/40';
       case 'busy': return 'bg-red-500/20 border-red-500/40';
       case 'blocked': return 'bg-orange-500/20 border-orange-500/40';
       case 'off': return 'bg-muted/50 border-muted';
+      case 'past': return 'bg-muted/30 border-muted/40 opacity-50';
     }
   };
 
@@ -391,6 +412,10 @@ const ProfessionalAvailabilityPage = () => {
             <div className="h-3 w-3 rounded bg-muted/50 border border-muted" />
             <span>Não atende</span>
           </div>
+          <div className="flex items-center gap-1.5">
+            <div className="h-3 w-3 rounded bg-muted/30 border border-muted/40 opacity-50" />
+            <span>Passado</span>
+          </div>
         </div>
 
         {/* Availability Grid */}
@@ -466,7 +491,8 @@ const ProfessionalAvailabilityPage = () => {
                                 title={`${format(day, 'dd/MM')} ${time} - ${
                                   status === 'available' ? 'Clique para agendar' :
                                   status === 'busy' ? 'Ocupado' :
-                                  status === 'blocked' ? 'Bloqueado' : 'Não atende'
+                                  status === 'blocked' ? 'Bloqueado' : 
+                                  status === 'past' ? 'Horário passado' : 'Não atende'
                                 }`}
                               >
                                 {status === 'busy' && <MinusCircle className="h-3 w-3 text-red-500" />}

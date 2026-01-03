@@ -637,19 +637,34 @@ const BookingCalendarPage = () => {
               
               {/* Filters Row - Stack on mobile */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                <Select value={selectedProfessionalId} onValueChange={setSelectedProfessionalId}>
-                  <SelectTrigger className="w-full sm:w-[180px] h-9 text-sm">
-                    <SelectValue placeholder="Todos profissionais" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos profissionais</SelectItem>
-                    {professionals.filter(p => p.is_active).map(prof => (
-                      <SelectItem key={prof.id} value={prof.id}>
-                        {prof.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-2">
+                  <Select value={selectedProfessionalId} onValueChange={setSelectedProfessionalId}>
+                    <SelectTrigger className={cn(
+                      "w-full sm:w-[180px] h-9 text-sm",
+                      selectedProfessionalId !== 'all' && "border-primary bg-primary/5"
+                    )}>
+                      <SelectValue placeholder="Todos profissionais" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos profissionais</SelectItem>
+                      {professionals.filter(p => p.is_active).map(prof => (
+                        <SelectItem key={prof.id} value={prof.id}>
+                          {prof.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedProfessionalId !== 'all' && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-9 px-2 text-xs"
+                      onClick={() => setSelectedProfessionalId('all')}
+                    >
+                      Limpar
+                    </Button>
+                  )}
+                </div>
                 
                 {/* View Mode Toggle */}
                 <div className="flex rounded-md border w-full sm:w-auto">

@@ -63,6 +63,13 @@ const routeSections: RouteSection[] = [
       { path: "/termos-lojista", name: "Termos do Lojista", component: "MerchantTerms.tsx", roles: ["public"] },
       { path: "/verificar-contrato", name: "Verificar Contrato", component: "ContractVerificationPage.tsx", roles: ["public"] },
       { path: "/contato", name: "Contato", component: "Contact.tsx", roles: ["public"] },
+      // Páginas Públicas Faltantes
+      { path: "/sobre", name: "Sobre o Mostralo", component: "AboutPage.tsx", roles: ["public"] },
+      { path: "/all-in-one", name: "All-in-One", component: "AllInOnePage.tsx", roles: ["public"] },
+      { path: "/diagnostico", name: "Diagnóstico de Negócio", component: "DiagnosticoPage.tsx", roles: ["public"] },
+      { path: "/diagnostico-delivery", name: "Diagnóstico Delivery", component: "DiagnosticoDeliveryPage.tsx", roles: ["public"] },
+      { path: "/diagnostico-servicos", name: "Diagnóstico Serviços", component: "DiagnosticoServicosPage.tsx", roles: ["public"] },
+      { path: "/conversao", name: "Página de Conversão", component: "ConversaoLandingPage.tsx", roles: ["public"] },
     ]
   },
   {
@@ -169,6 +176,26 @@ const routeSections: RouteSection[] = [
       { path: "/dashboard/material-divulgacao", name: "Material de Divulgação", component: "MarketingMaterialPage.tsx", roles: ["master_admin"] },
       { path: "/dashboard/salespeople/activity-rules", name: "Regras de Atividade", component: "SalespersonActivityRulesPage.tsx", roles: ["master_admin"] },
       { path: "/dashboard/salespeople/contract", name: "Editar Contrato PJ", component: "ContractTemplateEditPage.tsx", roles: ["master_admin"] },
+      // Páginas Master Admin Faltantes
+      { path: "/dashboard/diagnostics", name: "Diagnóstico de Performance", component: "DiagnosticsPage.tsx", roles: ["master_admin"] },
+      { path: "/dashboard/webhooks-monitor", name: "Monitor de Webhooks", component: "WebhooksMonitorPage.tsx", roles: ["master_admin"] },
+      { path: "/dashboard/cloudflare-guide", name: "Guia Cloudflare", component: "CloudflareGuidePage.tsx", roles: ["master_admin"] },
+      { path: "/dashboard/ifood-homologation", name: "Homologação iFood", component: "IFoodHomologationPage.tsx", roles: ["master_admin"] },
+      { path: "/dashboard/master-whatsapp", name: "WhatsApp Master", component: "MasterWhatsAppPage.tsx", roles: ["master_admin"] },
+      { path: "/dashboard/store-notifications", name: "Notificações das Lojas", component: "StoreNotificationsManagementPage.tsx", roles: ["master_admin"] },
+      { path: "/dashboard/external-billing", name: "Faturamento Externo", component: "ExternalBillingPage.tsx", roles: ["master_admin"] },
+      { path: "/dashboard/contract-acceptances", name: "Aceites de Contratos", component: "AllContractsAcceptancePage.tsx", roles: ["master_admin"] },
+      { path: "/dashboard/modulos/gerenciar-acesso", name: "Gerenciar Acesso a Módulos", component: "ModuleAccessManagementPage.tsx", roles: ["master_admin"] },
+      { path: "/dashboard/gateway-config", name: "Gateway de Pagamento", component: "GatewayConfigPage.tsx", roles: ["master_admin"] },
+      { path: "/dashboard/efi-accounts", name: "Contas EFI Lojistas", component: "EfiAccountsPage.tsx", roles: ["master_admin"] },
+      { path: "/dashboard/follow-up-queue", name: "Fila de Follow-up", component: "FollowUpQueuePage.tsx", roles: ["master_admin"] },
+      { path: "/dashboard/sales-media", name: "Biblioteca de Mídias", component: "SalesMediaManagementPage.tsx", roles: ["master_admin"] },
+      { path: "/dashboard/system-updates", name: "Gerenciar Novidades", component: "SystemUpdatesManagementPage.tsx", roles: ["master_admin"] },
+      { path: "/dashboard/system-banners", name: "Banners do Sistema", component: "SystemBannersPage.tsx", roles: ["master_admin"] },
+      { path: "/dashboard/documentacao-tecnica", name: "Documentação Técnica", component: "TechnicalDocsPage.tsx", roles: ["master_admin"] },
+      { path: "/dashboard/popup-ab-test", name: "Teste A/B Popup", component: "PopupABTestPage.tsx", roles: ["master_admin"] },
+      { path: "/dashboard/test-environment", name: "Ambiente de Testes", component: "TestEnvironmentPage.tsx", roles: ["master_admin"] },
+      { path: "/dashboard/ideias", name: "Ideias e Funcionalidades", component: "IdeasPage.tsx", roles: ["master_admin"] },
     ]
   },
   {

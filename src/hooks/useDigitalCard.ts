@@ -231,29 +231,40 @@ export function usePublicCard(slug: string) {
       
       setLoading(true);
       try {
-        const { data, error: fetchError } = await supabase
-          .from('digital_cards')
-          .select('*')
-          .eq('slug', slug)
-          .eq('is_active', true)
-          .maybeSingle();
+      const { data, error: fetchError } = await supabase
+        .from('digital_cards')
+        .select(`
+          *,
+          professional:professionals!professional_id (
+            id,
+            name,
+            photo_url
+          )
+        `)
+        .eq('slug', slug)
+        .eq('is_active', true)
+        .maybeSingle();
 
-        if (fetchError) throw fetchError;
-        
-        if (!data) {
-          setError('Cartão não encontrado');
-          return;
-        }
+      if (fetchError) throw fetchError;
+      
+      if (!data) {
+        setError('Cartão não encontrado');
+        return;
+      }
 
-        setCard({
-          ...data,
-          owner_type: data.owner_type as 'salesperson' | 'admin' | 'store',
-          theme: data.theme as CardTheme,
-          custom_links: parseCustomLinks(data.custom_links),
-          inherit_store_data: data.inherit_store_data ?? true,
-          booking_enabled: data.booking_enabled ?? false,
-          booking_button_text: data.booking_button_text,
-        });
+      // Fallback: usa foto do profissional se o cartão não tiver foto própria
+      const professionalPhotoUrl = data.professional?.photo_url || null;
+
+      setCard({
+        ...data,
+        photo_url: data.photo_url || professionalPhotoUrl,
+        owner_type: data.owner_type as 'salesperson' | 'admin' | 'store',
+        theme: data.theme as CardTheme,
+        custom_links: parseCustomLinks(data.custom_links),
+        inherit_store_data: data.inherit_store_data ?? true,
+        booking_enabled: data.booking_enabled ?? false,
+        booking_button_text: data.booking_button_text,
+      });
 
         // Incrementar views
         await supabase.rpc('increment_card_views', { card_slug: slug });

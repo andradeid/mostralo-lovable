@@ -9419,6 +9419,10 @@ export type Database = {
         Args: { attendant_user_id: string }
         Returns: boolean
       }
+      is_store_admin_of_professional: {
+        Args: { profile_id: string }
+        Returns: boolean
+      }
       is_store_owner_direct: {
         Args: { check_store_id: string; check_user_id: string }
         Returns: boolean

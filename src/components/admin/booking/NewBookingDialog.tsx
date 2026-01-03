@@ -17,8 +17,13 @@ import {
   CalendarIcon, 
   Clock, 
   Loader2,
-  AlertCircle
+  AlertCircle,
+  User,
+  Scissors,
+  Phone,
+  CheckCircle2
 } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { format, startOfDay, isBefore, addDays, isAfter } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -154,6 +159,23 @@ export function NewBookingDialog({
     bookingServices.find(s => s.id === selectedService),
     [bookingServices, selectedService]
   );
+
+  // Check if all fields are filled to show summary
+  const canShowSummary = useMemo(() => {
+    return (
+      selectedService &&
+      selectedProfessional &&
+      selectedDate &&
+      selectedTime &&
+      customerName.trim().length >= 2 &&
+      customerPhone.replace(/\D/g, '').length >= 10
+    );
+  }, [selectedService, selectedProfessional, selectedDate, selectedTime, customerName, customerPhone]);
+
+  // Get selected professional name
+  const selectedProfessionalName = useMemo(() => {
+    return professionals.find(p => p.id === selectedProfessional)?.name || '';
+  }, [professionals, selectedProfessional]);
 
   // Fetch booking settings for the store
   const { data: bookingSettings } = useQuery({
@@ -678,6 +700,71 @@ export function NewBookingDialog({
               </div>
             </div>
           </div>
+
+          {/* Visual Summary Card */}
+          {canShowSummary && (
+            <Card className="bg-primary/5 border-primary/20">
+              <CardContent className="pt-4 pb-3">
+                <div className="flex items-center gap-2 mb-3">
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                  <span className="font-medium text-sm">Resumo do Agendamento</span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  {/* Service */}
+                  <div className="flex items-start gap-2">
+                    <Scissors className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p className="text-muted-foreground text-xs">Serviço</p>
+                      <p className="font-medium">{service?.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatPrice(service?.price || 0)} • {service?.duration_minutes}min
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Professional */}
+                  <div className="flex items-start gap-2">
+                    <User className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p className="text-muted-foreground text-xs">Profissional</p>
+                      <p className="font-medium">{selectedProfessionalName}</p>
+                    </div>
+                  </div>
+                  
+                  {/* Date */}
+                  <div className="flex items-start gap-2">
+                    <CalendarIcon className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p className="text-muted-foreground text-xs">Data</p>
+                      <p className="font-medium">
+                        {format(selectedDate!, "EEEE, dd 'de' MMMM", { locale: ptBR })}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Time */}
+                  <div className="flex items-start gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p className="text-muted-foreground text-xs">Horário</p>
+                      <p className="font-medium">{selectedTime}</p>
+                    </div>
+                  </div>
+                  
+                  {/* Client */}
+                  <div className="col-span-2 flex items-start gap-2 pt-2 border-t">
+                    <Phone className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p className="text-muted-foreground text-xs">Cliente</p>
+                      <p className="font-medium">{customerName}</p>
+                      <p className="text-xs text-muted-foreground">{countryCode} {customerPhone}</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         <DialogFooter>

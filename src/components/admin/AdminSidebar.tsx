@@ -20,6 +20,7 @@ import {
   Image,
   UserCircle,
   Calendar,
+  Clock,
   Loader2,
   Bike,
   DollarSign,
@@ -612,6 +613,7 @@ export function AdminSidebar() {
       if (hasModule('booking')) {
         menuItems.push(
           { title: 'Agenda', url: '/dashboard/booking', icon: Calendar, group: 'Agendamento' },
+          { title: 'Disponibilidade', url: '/dashboard/booking/disponibilidade', icon: Clock, group: 'Agendamento' },
           { title: 'Profissionais', url: '/dashboard/booking/professionals', icon: Users, group: 'Agendamento' },
           { title: 'Serviços', url: '/dashboard/booking/services', icon: Tag, group: 'Agendamento' },
           { title: 'Cartões da Equipe', url: '/dashboard/cartoes-equipe', icon: CreditCard, group: 'Agendamento' }

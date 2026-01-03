@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { ProfessionalWhatsAppValidator, WhatsAppValidationStatus } from './ProfessionalWhatsAppValidator';
+import { WhatsAppProfilePreview } from '@/components/leads/WhatsAppProfilePreview';
 import {
   useBooking, 
   Professional, 
@@ -77,6 +78,11 @@ export function NewBookingDialog({
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const [countryCode, setCountryCode] = useState('+55');
   const [whatsappStatus, setWhatsappStatus] = useState<WhatsAppValidationStatus>('idle');
+  const [whatsappProfile, setWhatsappProfile] = useState<{
+    pictureUrl: string | null;
+    pushName: string | null;
+    formattedNumber: string | null;
+  } | null>(null);
 
   // Reset form when dialog opens
   useEffect(() => {
@@ -92,6 +98,7 @@ export function NewBookingDialog({
       setErrors({});
       setCountryCode('+55');
       setWhatsappStatus('idle');
+      setWhatsappProfile(null);
     }
   }, [open, defaultDate, defaultProfessionalId]);
 
@@ -101,6 +108,7 @@ export function NewBookingDialog({
     if (!cleanPhone || cleanPhone.length < 10) return;
     
     setWhatsappStatus('validating');
+    setWhatsappProfile(null);
     
     const fullPhone = `${countryCode.replace('+', '')}${cleanPhone}`;
     
@@ -111,10 +119,21 @@ export function NewBookingDialog({
       
       if (error) throw error;
       
-      setWhatsappStatus(data?.valid || data?.exists ? 'valid' : 'invalid');
+      if (data?.valid || data?.exists) {
+        setWhatsappStatus('valid');
+        setWhatsappProfile({
+          pictureUrl: data.profilePictureUrl || null,
+          pushName: data.pushName || null,
+          formattedNumber: data.formattedNumber || fullPhone
+        });
+      } else {
+        setWhatsappStatus('invalid');
+        setWhatsappProfile(null);
+      }
     } catch (error) {
       console.error('Erro ao validar WhatsApp:', error);
       setWhatsappStatus('invalid');
+      setWhatsappProfile(null);
     }
   }, [customerPhone, countryCode]);
 
@@ -333,6 +352,17 @@ export function NewBookingDialog({
                 />
                 {errors.customerPhone && (
                   <p className="text-destructive text-xs mt-1">{errors.customerPhone}</p>
+                )}
+                
+                {whatsappStatus === 'valid' && whatsappProfile && (
+                  <WhatsAppProfilePreview
+                    profilePicture={whatsappProfile.pictureUrl}
+                    pushName={whatsappProfile.pushName}
+                    formattedNumber={whatsappProfile.formattedNumber}
+                    formName={customerName}
+                    isPrivatePhoto={!whatsappProfile.pictureUrl}
+                    className="mt-3"
+                  />
                 )}
               </div>
 

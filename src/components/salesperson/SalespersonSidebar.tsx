@@ -1,4 +1,4 @@
-import { Home, Link2, FileText, User, LogOut, MessageSquare, Target, ClipboardList, Users, Printer, History, Wallet, BookOpen, Film, DollarSign, UserCheck, Megaphone } from "lucide-react";
+import { Home, Link2, FileText, User, LogOut, MessageSquare, Target, ClipboardList, Users, Printer, History, Wallet, BookOpen, Film, DollarSign, UserCheck, Megaphone, CreditCard } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { PreloadLink } from "@/components/PreloadLink";
 import {
@@ -27,6 +27,7 @@ export function SalespersonSidebar({ onSignOut }: SalespersonSidebarProps) {
     { icon: Home, title: "Dashboard", path: "/vendedor" },
     { icon: BookOpen, title: "📚 Guia Completo", path: "/vendedor/guia" },
     { icon: Megaphone, title: "Novidades", path: "/vendedor/novidades", badge: unreadCount },
+    { icon: CreditCard, title: "Cartão Digital", path: "/vendedor/cartao-digital" },
     { icon: Link2, title: "Meu Link", path: "/vendedor/link" },
     { icon: UserCheck, title: "Meus Clientes", path: "/vendedor/clientes" },
     { icon: DollarSign, title: "Minhas Comissões", path: "/vendedor/comissoes" },

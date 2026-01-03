@@ -23,6 +23,7 @@ const OnboardingGuidePage = lazy(() => import("@/pages/salesperson/OnboardingGui
 const SalesPromptsPage = lazy(() => import("@/pages/admin/SalesPromptsPage"));
 const ProspectingGuidePage = lazy(() => import("@/pages/admin/ProspectingGuidePage"));
 const SystemUpdatesPage = lazy(() => import("@/pages/SystemUpdatesPage"));
+const SalespersonDigitalCardPage = lazy(() => import("@/pages/salesperson/SalespersonDigitalCardPage"));
 
 export const salespersonRoutes = (
   <>
@@ -145,6 +146,13 @@ export const salespersonRoutes = (
       <ProtectedRoute allowedRoles={['salesperson']}>
         <SalespersonLayout>
           <LazyRoute><SystemUpdatesPage /></LazyRoute>
+        </SalespersonLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/vendedor/cartao-digital" element={
+      <ProtectedRoute allowedRoles={['salesperson']}>
+        <SalespersonLayout>
+          <LazyRoute><SalespersonDigitalCardPage /></LazyRoute>
         </SalespersonLayout>
       </ProtectedRoute>
     } />

@@ -1751,6 +1751,152 @@ export type Database = {
           },
         ]
       }
+      digital_card_clicks: {
+        Row: {
+          card_id: string
+          click_type: string
+          created_at: string | null
+          id: string
+          ip_hash: string | null
+          link_label: string | null
+          referrer: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          card_id: string
+          click_type: string
+          created_at?: string | null
+          id?: string
+          ip_hash?: string | null
+          link_label?: string | null
+          referrer?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          card_id?: string
+          click_type?: string
+          created_at?: string | null
+          id?: string
+          ip_hash?: string | null
+          link_label?: string | null
+          referrer?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "digital_card_clicks_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "digital_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      digital_cards: {
+        Row: {
+          accent_color: string | null
+          bio: string | null
+          company: string | null
+          created_at: string | null
+          cta_text: string | null
+          cta_url: string | null
+          custom_links: Json | null
+          email: string | null
+          facebook: string | null
+          headline: string | null
+          id: string
+          instagram: string | null
+          is_active: boolean | null
+          linkedin: string | null
+          name: string
+          owner_id: string
+          owner_type: string
+          phone: string | null
+          photo_url: string | null
+          referral_code: string | null
+          show_mostralo_badge: boolean | null
+          show_qr_code: boolean | null
+          slug: string
+          stats_text: string | null
+          theme: string | null
+          tiktok: string | null
+          title: string | null
+          updated_at: string | null
+          views_count: number | null
+          website: string | null
+          whatsapp: string | null
+          youtube: string | null
+        }
+        Insert: {
+          accent_color?: string | null
+          bio?: string | null
+          company?: string | null
+          created_at?: string | null
+          cta_text?: string | null
+          cta_url?: string | null
+          custom_links?: Json | null
+          email?: string | null
+          facebook?: string | null
+          headline?: string | null
+          id?: string
+          instagram?: string | null
+          is_active?: boolean | null
+          linkedin?: string | null
+          name: string
+          owner_id: string
+          owner_type?: string
+          phone?: string | null
+          photo_url?: string | null
+          referral_code?: string | null
+          show_mostralo_badge?: boolean | null
+          show_qr_code?: boolean | null
+          slug: string
+          stats_text?: string | null
+          theme?: string | null
+          tiktok?: string | null
+          title?: string | null
+          updated_at?: string | null
+          views_count?: number | null
+          website?: string | null
+          whatsapp?: string | null
+          youtube?: string | null
+        }
+        Update: {
+          accent_color?: string | null
+          bio?: string | null
+          company?: string | null
+          created_at?: string | null
+          cta_text?: string | null
+          cta_url?: string | null
+          custom_links?: Json | null
+          email?: string | null
+          facebook?: string | null
+          headline?: string | null
+          id?: string
+          instagram?: string | null
+          is_active?: boolean | null
+          linkedin?: string | null
+          name?: string
+          owner_id?: string
+          owner_type?: string
+          phone?: string | null
+          photo_url?: string | null
+          referral_code?: string | null
+          show_mostralo_badge?: boolean | null
+          show_qr_code?: boolean | null
+          slug?: string
+          stats_text?: string | null
+          theme?: string | null
+          tiktok?: string | null
+          title?: string | null
+          updated_at?: string | null
+          views_count?: number | null
+          website?: string | null
+          whatsapp?: string | null
+          youtube?: string | null
+        }
+        Relationships: []
+      }
       discount_coupons: {
         Row: {
           applicable_plans: string[] | null
@@ -9189,6 +9335,7 @@ export type Database = {
         Args: { p_campaign_id: string; p_counter_name: string }
         Returns: undefined
       }
+      increment_card_views: { Args: { card_slug: string }; Returns: undefined }
       increment_promotion_usage: {
         Args: { promotion_id_param: string }
         Returns: undefined

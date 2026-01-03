@@ -20,14 +20,14 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { format, startOfDay, isBefore } from 'date-fns';
+import { format, startOfDay, isBefore, addDays, isAfter } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { ProfessionalWhatsAppValidator, WhatsAppValidationStatus } from './ProfessionalWhatsAppValidator';
 import { WhatsAppProfilePreview } from '@/components/leads/WhatsAppProfilePreview';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   useBooking, 
   Professional, 
@@ -60,6 +60,7 @@ export function NewBookingDialog({
   defaultProfessionalId,
   onSuccess
 }: NewBookingDialogProps) {
+  const queryClient = useQueryClient();
   const { 
     professionals, 
     bookingServices, 
@@ -154,6 +155,71 @@ export function NewBookingDialog({
     [bookingServices, selectedService]
   );
 
+  // Fetch booking settings for the store
+  const { data: bookingSettings } = useQuery({
+    queryKey: ['booking-settings', storeId],
+    queryFn: async () => {
+      if (!storeId) return null;
+      
+      const { data, error } = await supabase
+        .from('booking_settings')
+        .select('*')
+        .eq('store_id', storeId)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error fetching booking settings:', error);
+        return null;
+      }
+      return data;
+    },
+    enabled: !!storeId
+  });
+
+  // Fetch professional schedule for the selected day
+  const { data: professionalSchedule, isLoading: loadingSchedule } = useQuery({
+    queryKey: ['professional-schedule', selectedProfessional, selectedDate?.getDay()],
+    queryFn: async () => {
+      if (!selectedProfessional || selectedDate === undefined) return null;
+      const dayOfWeek = selectedDate.getDay();
+      
+      const { data, error } = await supabase
+        .from('professional_schedules')
+        .select('*')
+        .eq('professional_id', selectedProfessional)
+        .eq('day_of_week', dayOfWeek)
+        .maybeSingle();
+      
+      if (error) {
+        console.error('Error fetching professional schedule:', error);
+        return null;
+      }
+      return data;
+    },
+    enabled: !!selectedProfessional && !!selectedDate
+  });
+
+  // Fetch professional blocks for the selected date
+  const { data: professionalBlocks = [] } = useQuery({
+    queryKey: ['professional-blocks', selectedProfessional, selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null],
+    queryFn: async () => {
+      if (!selectedProfessional || !selectedDate) return [];
+      
+      const { data, error } = await supabase
+        .from('professional_blocks')
+        .select('*')
+        .eq('professional_id', selectedProfessional)
+        .eq('block_date', format(selectedDate, 'yyyy-MM-dd'));
+      
+      if (error) {
+        console.error('Error fetching professional blocks:', error);
+        return [];
+      }
+      return data || [];
+    },
+    enabled: !!selectedProfessional && !!selectedDate
+  });
+
   // Fetch existing bookings for the selected professional and date
   const { data: existingBookings = [], isLoading: loadingBookings } = useQuery({
     queryKey: ['bookings-for-slot', storeId, selectedProfessional, selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null],
@@ -183,12 +249,90 @@ export function NewBookingDialog({
     return hours * 60 + minutes;
   }, []);
 
-  // Generate time slots - filter past times and occupied slots
+  // Calculate max date based on booking settings
+  const maxDate = useMemo(() => {
+    if (bookingSettings?.max_advance_days) {
+      return addDays(new Date(), bookingSettings.max_advance_days);
+    }
+    return undefined;
+  }, [bookingSettings?.max_advance_days]);
+
+  // Determine no slots reason
+  const noSlotsReason = useMemo(() => {
+    if (!selectedProfessional || !selectedDate) return null;
+    
+    // Check if professional doesn't work this day
+    if (professionalSchedule === null) {
+      return 'schedule_not_configured';
+    }
+    if (professionalSchedule && !professionalSchedule.is_available) {
+      return 'not_working';
+    }
+    
+    // Check if there's an all-day block
+    if (professionalBlocks.some(b => b.is_all_day)) {
+      return 'blocked';
+    }
+    
+    // Check if it's today and all times passed
+    if (selectedDate.toDateString() === new Date().toDateString()) {
+      return 'today_passed';
+    }
+    
+    return 'fully_booked';
+  }, [selectedProfessional, selectedDate, professionalSchedule, professionalBlocks]);
+
+  // Get no slots message
+  const getNoSlotsMessage = () => {
+    switch (noSlotsReason) {
+      case 'not_working':
+        return 'Profissional não trabalha neste dia da semana';
+      case 'schedule_not_configured':
+        return 'Horários não configurados para este profissional';
+      case 'blocked':
+        return 'Profissional indisponível nesta data';
+      case 'today_passed':
+        return 'Nenhum horário disponível para hoje';
+      default:
+        return 'Nenhum horário disponível para esta data';
+    }
+  };
+
+  // Generate time slots based on professional schedule
   const timeSlots = useMemo(() => {
+    // If professional doesn't work this day or has all-day block
+    if (!professionalSchedule || !professionalSchedule.is_available) {
+      return [];
+    }
+    
+    if (professionalBlocks.some(b => b.is_all_day)) {
+      return [];
+    }
+
     const slots: string[] = [];
     const now = new Date();
-    const isToday = selectedDate && 
-      selectedDate.toDateString() === now.toDateString();
+    const isToday = selectedDate && selectedDate.toDateString() === now.toDateString();
+    
+    // Use slot interval from settings or default to 30
+    const slotInterval = bookingSettings?.slot_interval_minutes || 30;
+    
+    // Work hours from professional schedule
+    const workStart = timeToMinutes(professionalSchedule.start_time);
+    const workEnd = timeToMinutes(professionalSchedule.end_time);
+    
+    // Break time (if exists)
+    const breakStart = professionalSchedule.break_start 
+      ? timeToMinutes(professionalSchedule.break_start) : null;
+    const breakEnd = professionalSchedule.break_end 
+      ? timeToMinutes(professionalSchedule.break_end) : null;
+    
+    // Convert professional blocks to intervals
+    const blockedIntervals = professionalBlocks
+      .filter(b => !b.is_all_day && b.start_time && b.end_time)
+      .map(b => ({
+        start: timeToMinutes(b.start_time!),
+        end: timeToMinutes(b.end_time!)
+      }));
     
     // Convert existing bookings to occupied intervals
     const occupiedIntervals = existingBookings.map(booking => ({
@@ -201,38 +345,43 @@ export function NewBookingDialog({
     const serviceBuffer = service?.buffer_minutes || 0;
     const totalServiceTime = serviceDuration + serviceBuffer;
     
-    for (let hour = 7; hour <= 21; hour++) {
-      for (const minutes of [0, 30]) {
-        const slotMinutes = hour * 60 + minutes;
-        
-        // Se for hoje, só mostrar horários futuros (com margem de 15 min)
-        if (isToday) {
-          const slotTime = new Date();
-          slotTime.setHours(hour, minutes, 0, 0);
-          
-          const minTime = new Date(now.getTime() + 15 * 60 * 1000);
-          
-          if (slotTime <= minTime) {
-            continue;
-          }
-        }
-        
-        // Check if slot conflicts with any existing booking
-        const slotEnd = slotMinutes + totalServiceTime;
-        const hasConflict = occupiedIntervals.some(interval => {
-          // Conflict exists if: slotStart < bookingEnd AND slotEnd > bookingStart
-          return slotMinutes < interval.end && slotEnd > interval.start;
-        });
-        
-        if (hasConflict) {
-          continue;
-        }
-        
-        slots.push(`${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`);
+    // Generate slots within work hours
+    for (let minutes = workStart; minutes <= workEnd - serviceDuration; minutes += slotInterval) {
+      const slotEnd = minutes + totalServiceTime;
+      
+      // 1. If today, filter past times (with 15min margin)
+      if (isToday) {
+        const slotTime = new Date();
+        slotTime.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
+        const minTime = new Date(now.getTime() + 15 * 60 * 1000);
+        if (slotTime <= minTime) continue;
       }
+      
+      // 2. Check if falls within break time
+      if (breakStart !== null && breakEnd !== null) {
+        if (minutes < breakEnd && slotEnd > breakStart) continue;
+      }
+      
+      // 3. Check professional blocks
+      const hasBlockConflict = blockedIntervals.some(
+        block => minutes < block.end && slotEnd > block.start
+      );
+      if (hasBlockConflict) continue;
+      
+      // 4. Check existing bookings
+      const hasBookingConflict = occupiedIntervals.some(
+        interval => minutes < interval.end && slotEnd > interval.start
+      );
+      if (hasBookingConflict) continue;
+      
+      // Valid slot!
+      const hour = Math.floor(minutes / 60);
+      const min = minutes % 60;
+      slots.push(`${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`);
     }
+    
     return slots;
-  }, [selectedDate, existingBookings, service, timeToMinutes]);
+  }, [selectedDate, professionalSchedule, professionalBlocks, existingBookings, service, bookingSettings?.slot_interval_minutes, timeToMinutes]);
 
   // Clear selected time if it becomes invalid
   useEffect(() => {
@@ -242,7 +391,8 @@ export function NewBookingDialog({
   }, [timeSlots, selectedTime]);
 
   // Check if no slots are available
-  const noSlotsAvailable = selectedDate && selectedProfessional && !loadingBookings && timeSlots.length === 0;
+  const isLoadingAvailability = loadingBookings || loadingSchedule;
+  const noSlotsAvailable = selectedDate && selectedProfessional && !isLoadingAvailability && timeSlots.length === 0;
 
   const calculateEndTime = (startTime: string, durationMinutes: number) => {
     const [hours, minutes] = startTime.split(':').map(Number);
@@ -288,6 +438,30 @@ export function NewBookingDialog({
 
     try {
       const endTime = calculateEndTime(selectedTime, service?.duration_minutes || 30);
+      const bookingDate = format(selectedDate, 'yyyy-MM-dd');
+      const startTimeFormatted = selectedTime + ':00';
+      const endTimeFormatted = endTime + ':00';
+
+      // Basic conflict verification before saving
+      const { data: conflictCheck, error: conflictError } = await supabase
+        .from('bookings')
+        .select('id')
+        .eq('store_id', storeId)
+        .eq('professional_id', selectedProfessional)
+        .eq('booking_date', bookingDate)
+        .neq('status', 'cancelled')
+        .or(`and(start_time.lt.${endTimeFormatted},end_time.gt.${startTimeFormatted})`)
+        .limit(1);
+
+      if (conflictError) {
+        console.error('Error checking conflict:', conflictError);
+      } else if (conflictCheck && conflictCheck.length > 0) {
+        toast.error('Este horário acabou de ser reservado. Por favor, escolha outro.');
+        // Reload available slots
+        queryClient.invalidateQueries({ queryKey: ['bookings-for-slot'] });
+        setSelectedTime('');
+        return;
+      }
 
       await createBooking({
         store_id: storeId,
@@ -296,9 +470,9 @@ export function NewBookingDialog({
         customer_name: customerName.trim(),
         customer_phone: customerPhone.trim(),
         customer_email: customerEmail.trim() || undefined,
-        booking_date: format(selectedDate, 'yyyy-MM-dd'),
-        start_time: selectedTime + ':00',
-        end_time: endTime + ':00',
+        booking_date: bookingDate,
+        start_time: startTimeFormatted,
+        end_time: endTimeFormatted,
         price: service?.price || 0,
         notes: notes.trim() || undefined
       });
@@ -381,12 +555,22 @@ export function NewBookingDialog({
                       if (date && isBefore(date, startOfDay(new Date()))) {
                         return;
                       }
+                      // Ignore dates beyond max advance days
+                      if (date && maxDate && isAfter(date, maxDate)) {
+                        return;
+                      }
                       setSelectedDate(date);
                       setDatePopoverOpen(false);
                     }}
                     locale={ptBR}
                     className="pointer-events-auto"
-                    disabled={(date) => isBefore(date, startOfDay(new Date()))}
+                    disabled={(date) => {
+                      // Disable past dates
+                      if (isBefore(date, startOfDay(new Date()))) return true;
+                      // Disable dates beyond max advance days
+                      if (maxDate && isAfter(date, maxDate)) return true;
+                      return false;
+                    }}
                     initialFocus
                   />
                 </PopoverContent>
@@ -398,10 +582,10 @@ export function NewBookingDialog({
               <Select 
                 value={selectedTime} 
                 onValueChange={setSelectedTime}
-                disabled={!selectedDate || !selectedProfessional || loadingBookings || noSlotsAvailable}
+                disabled={!selectedDate || !selectedProfessional || isLoadingAvailability || noSlotsAvailable}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={loadingBookings ? "Carregando..." : "Selecione"} />
+                  <SelectValue placeholder={isLoadingAvailability ? "Carregando..." : "Selecione"} />
                 </SelectTrigger>
                 <SelectContent>
                   {timeSlots.map(time => (
@@ -416,11 +600,7 @@ export function NewBookingDialog({
               {noSlotsAvailable && (
                 <div className="flex items-center gap-2 mt-2 text-sm text-amber-600 dark:text-amber-500">
                   <AlertCircle className="h-4 w-4" />
-                  <span>
-                    {selectedDate?.toDateString() === new Date().toDateString()
-                      ? 'Nenhum horário disponível para hoje'
-                      : 'Nenhum horário disponível para esta data'}
-                  </span>
+                  <span>{getNoSlotsMessage()}</span>
                 </div>
               )}
             </div>

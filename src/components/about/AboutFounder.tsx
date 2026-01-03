@@ -1,4 +1,5 @@
 import { User, Globe, Calendar, Award } from "lucide-react";
+import marcosAndrade from "@/assets/marcos-andrade.png";
 
 const founderStats = [
   {
@@ -39,12 +40,12 @@ export const AboutFounder = () => {
             <div className="grid md:grid-cols-[300px_1fr] lg:grid-cols-[350px_1fr]">
               {/* Photo Section */}
               <div className="bg-gradient-to-br from-primary/10 to-primary/5 p-8 flex flex-col items-center justify-center">
-                {/* Avatar Placeholder */}
-                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-xl ring-4 ring-primary/20 mb-4">
-                  <span className="text-4xl md:text-5xl font-display font-bold text-primary-foreground">
-                    MA
-                  </span>
-                </div>
+              {/* Foto do Fundador */}
+              <img 
+                src={marcosAndrade} 
+                alt="Marcos Andrade - Fundador do Mostralo"
+                className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover shadow-xl ring-4 ring-primary/20 mb-4"
+              />
                 <h3 className="text-xl md:text-2xl font-display font-bold text-foreground text-center">
                   Marcos Andrade
                 </h3>

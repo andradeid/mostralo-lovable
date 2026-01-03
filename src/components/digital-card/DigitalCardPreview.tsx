@@ -1,6 +1,6 @@
 import { 
   Phone, Mail, Globe, Instagram, Linkedin, Facebook, 
-  ExternalLink, MessageCircle, Youtube
+  ExternalLink, MessageCircle, Youtube, Calendar
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -9,11 +9,15 @@ import type { CardFormData, CardTheme } from '@/types/digitalCard';
 import { SaveContactButton } from './SaveContactButton';
 
 interface DigitalCardPreviewProps {
-  data: Partial<CardFormData>;
+  data: Partial<CardFormData> & {
+    booking_enabled?: boolean;
+    booking_button_text?: string;
+  };
   photoUrl?: string | null;
   qrCodeUrl?: string;
   isInteractive?: boolean;
   onClickAction?: (type: string, label?: string) => void;
+  bookingUrl?: string;
   className?: string;
 }
 
@@ -50,6 +54,7 @@ export function DigitalCardPreview({
   qrCodeUrl,
   isInteractive = false,
   onClickAction,
+  bookingUrl,
   className 
 }: DigitalCardPreviewProps) {
   const theme = data.theme || 'dark';
@@ -143,6 +148,17 @@ export function DigitalCardPreview({
           >
             {data.cta_text}
             <ExternalLink className="w-4 h-4 ml-2" />
+          </Button>
+        )}
+
+        {/* Botão de Agendamento */}
+        {data.booking_enabled && bookingUrl && (
+          <Button
+            className="w-full h-12 text-base font-semibold shadow-lg transition-transform hover:scale-[1.02] bg-primary text-primary-foreground"
+            onClick={() => handleClick('booking', bookingUrl, data.booking_button_text || 'Agendar Horário')}
+          >
+            <Calendar className="w-4 h-4 mr-2" />
+            {data.booking_button_text || 'Agendar Horário'}
           </Button>
         )}
 

@@ -1796,6 +1796,8 @@ export type Database = {
         Row: {
           accent_color: string | null
           bio: string | null
+          booking_button_text: string | null
+          booking_enabled: boolean | null
           company: string | null
           created_at: string | null
           cta_text: string | null
@@ -1805,6 +1807,7 @@ export type Database = {
           facebook: string | null
           headline: string | null
           id: string
+          inherit_store_data: boolean | null
           instagram: string | null
           is_active: boolean | null
           linkedin: string | null
@@ -1813,11 +1816,13 @@ export type Database = {
           owner_type: string
           phone: string | null
           photo_url: string | null
+          professional_id: string | null
           referral_code: string | null
           show_mostralo_badge: boolean | null
           show_qr_code: boolean | null
           slug: string
           stats_text: string | null
+          store_id: string | null
           theme: string | null
           tiktok: string | null
           title: string | null
@@ -1830,6 +1835,8 @@ export type Database = {
         Insert: {
           accent_color?: string | null
           bio?: string | null
+          booking_button_text?: string | null
+          booking_enabled?: boolean | null
           company?: string | null
           created_at?: string | null
           cta_text?: string | null
@@ -1839,6 +1846,7 @@ export type Database = {
           facebook?: string | null
           headline?: string | null
           id?: string
+          inherit_store_data?: boolean | null
           instagram?: string | null
           is_active?: boolean | null
           linkedin?: string | null
@@ -1847,11 +1855,13 @@ export type Database = {
           owner_type?: string
           phone?: string | null
           photo_url?: string | null
+          professional_id?: string | null
           referral_code?: string | null
           show_mostralo_badge?: boolean | null
           show_qr_code?: boolean | null
           slug: string
           stats_text?: string | null
+          store_id?: string | null
           theme?: string | null
           tiktok?: string | null
           title?: string | null
@@ -1864,6 +1874,8 @@ export type Database = {
         Update: {
           accent_color?: string | null
           bio?: string | null
+          booking_button_text?: string | null
+          booking_enabled?: boolean | null
           company?: string | null
           created_at?: string | null
           cta_text?: string | null
@@ -1873,6 +1885,7 @@ export type Database = {
           facebook?: string | null
           headline?: string | null
           id?: string
+          inherit_store_data?: boolean | null
           instagram?: string | null
           is_active?: boolean | null
           linkedin?: string | null
@@ -1881,11 +1894,13 @@ export type Database = {
           owner_type?: string
           phone?: string | null
           photo_url?: string | null
+          professional_id?: string | null
           referral_code?: string | null
           show_mostralo_badge?: boolean | null
           show_qr_code?: boolean | null
           slug?: string
           stats_text?: string | null
+          store_id?: string | null
           theme?: string | null
           tiktok?: string | null
           title?: string | null
@@ -1895,7 +1910,29 @@ export type Database = {
           whatsapp?: string | null
           youtube?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "digital_cards_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "digital_cards_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "digital_cards_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       discount_coupons: {
         Row: {

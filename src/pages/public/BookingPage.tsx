@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -69,6 +69,8 @@ type Step = 'service' | 'professional' | 'datetime' | 'confirm';
 
 const BookingPage = () => {
   const { storeSlug } = useParams<{ storeSlug: string }>();
+  const [searchParams] = useSearchParams();
+  const preselectedProfessionalId = searchParams.get('profissional');
   
   // Store data
   const [store, setStore] = useState<StoreInfo | null>(null);
@@ -163,6 +165,20 @@ const BookingPage = () => {
     
     fetchData();
   }, [storeSlug]);
+
+  // Pre-selecionar profissional se vier da URL
+  useEffect(() => {
+    if (preselectedProfessionalId && professionals.length > 0 && !selectedProfessional) {
+      const professional = professionals.find(p => p.id === preselectedProfessionalId);
+      if (professional) {
+        setSelectedProfessional(professional);
+        // Avançar para seleção de serviço
+        if (!selectedService) {
+          setCurrentStep('service');
+        }
+      }
+    }
+  }, [preselectedProfessionalId, professionals, selectedProfessional, selectedService]);
 
   // Generate time slots for selected date
   useEffect(() => {

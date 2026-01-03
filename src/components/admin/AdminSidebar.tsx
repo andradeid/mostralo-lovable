@@ -613,7 +613,8 @@ export function AdminSidebar() {
         menuItems.push(
           { title: 'Agenda', url: '/dashboard/booking', icon: Calendar, group: 'Agendamento' },
           { title: 'Profissionais', url: '/dashboard/booking/professionals', icon: Users, group: 'Agendamento' },
-          { title: 'Serviços', url: '/dashboard/booking/services', icon: Tag, group: 'Agendamento' }
+          { title: 'Serviços', url: '/dashboard/booking/services', icon: Tag, group: 'Agendamento' },
+          { title: 'Cartões da Equipe', url: '/dashboard/cartoes-equipe', icon: CreditCard, group: 'Agendamento' }
         );
       }
 

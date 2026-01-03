@@ -1,15 +1,35 @@
 import { useParams } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { usePublicCard } from '@/hooks/useDigitalCard';
 import { DigitalCardPreview } from '@/components/digital-card/DigitalCardPreview';
 import { useQRCode } from '@/hooks/useQRCode';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function DigitalCardPublicPage() {
   const { slug } = useParams<{ slug: string }>();
   const { card, loading, error, trackClick } = usePublicCard(slug || '');
   const cardUrl = typeof window !== 'undefined' ? window.location.href : '';
   const qrCodeUrl = useQRCode(cardUrl, 120);
+  const [storeSlug, setStoreSlug] = useState<string | null>(null);
+
+  // Buscar slug da loja se o cartão tiver store_id e professional_id
+  useEffect(() => {
+    async function fetchStoreSlug() {
+      if (card?.store_id && card?.professional_id) {
+        const { data: store } = await supabase
+          .from('stores')
+          .select('slug')
+          .eq('id', card.store_id)
+          .single();
+        
+        if (store?.slug) {
+          setStoreSlug(store.slug);
+        }
+      }
+    }
+    fetchStoreSlug();
+  }, [card?.store_id, card?.professional_id]);
 
   // Update page title and meta
   useEffect(() => {
@@ -81,7 +101,14 @@ export default function DigitalCardPublicPage() {
     show_qr_code: card.show_qr_code,
     show_mostralo_badge: card.show_mostralo_badge,
     slug: card.slug,
+    booking_enabled: card.booking_enabled,
+    booking_button_text: card.booking_button_text,
   };
+
+  // Gerar URL de agendamento se aplicável
+  const bookingUrl = card.booking_enabled && storeSlug && card.professional_id
+    ? `/agendar/${storeSlug}?profissional=${card.professional_id}`
+    : undefined;
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center md:p-4">
@@ -92,6 +119,7 @@ export default function DigitalCardPublicPage() {
           isInteractive
           onClickAction={trackClick}
           qrCodeUrl={card.show_qr_code ? qrCodeUrl : undefined}
+          bookingUrl={bookingUrl}
         />
       </div>
     </div>

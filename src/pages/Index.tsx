@@ -61,9 +61,9 @@ const Index = () => {
   }, [user, userRole, authLoading, navigate]);
 
   usePageSEO({
-    title: 'Mostralo - Pare de Financiar o iFood com Seus Clientes | Sistema de Delivery Próprio',
-    description: 'Cada pedido no marketplace constrói o negócio deles, não o seu. Economize até R$ 90.000/ano e tenha 100% dos seus clientes e dados.',
-    keywords: 'alternativa ifood, sistema delivery próprio, economizar taxas delivery, cardápio digital sem taxa, delivery sem comissão, parar de pagar ifood',
+    title: 'Mostralo - Plataforma Completa para Negócios Locais | Delivery, Marketing e Automação',
+    description: 'Pare de depender de marketplaces. Gerencie seu delivery, automatize WhatsApp, fidelize clientes e economize até R$ 90.000/ano. Tudo em uma só plataforma para restaurantes, farmácias, pet shops e mais.',
+    keywords: 'plataforma negócios locais, delivery próprio, automação whatsapp, cardápio digital, pdv restaurante, agendamentos online, marketing delivery, alternativa ifood, sistema gestão restaurante, gestão farmácia, gestão pet shop',
     image: '/favicon.png'
   });
 

@@ -1,6 +1,12 @@
-import { Target, Eye, Blocks, Building2, PiggyBank, Percent } from "lucide-react";
+import { Target, Eye, Blocks, Building2, PiggyBank, Percent, Calendar } from "lucide-react";
 
 const stats = [
+  {
+    icon: Calendar,
+    value: "8+",
+    label: "Anos de Experiência",
+    description: "Desde 2016 no mercado",
+  },
   {
     icon: Blocks,
     value: "28+",

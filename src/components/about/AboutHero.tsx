@@ -1,10 +1,17 @@
-import { Store, Rocket, TrendingUp, Zap, Layers } from "lucide-react";
+import { Store, Rocket, TrendingUp, Zap, Layers, Sparkles } from "lucide-react";
 
 const timelineItems = [
   {
+    year: "2016",
+    title: "Nascimento - linkcardmenu",
+    description: "Criado por Marcos Andrade com a visão de dar autonomia aos pequenos negócios através de um cardápio digital simples",
+    icon: Sparkles,
+    isOrigin: true,
+  },
+  {
     year: "2023",
-    title: "Cardápio Digital",
-    description: "Início como sistema de cardápio digital para delivery",
+    title: "Evolução Mostralo",
+    description: "Rebranding e expansão do cardápio digital para delivery completo",
     icon: Store,
   },
   {
@@ -51,8 +58,8 @@ export const AboutHero = () => {
             <span className="text-primary">Plataforma Completa</span>
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground">
-            Conheça a evolução do Mostralo e como nos tornamos a solução all-in-one 
-            para negócios locais em todo o Brasil.
+            Desde 2016, quando nascemos como <strong className="text-primary">linkcardmenu</strong>, 
+            evoluímos de um cardápio digital simples para a plataforma all-in-one que somos hoje.
           </p>
         </div>
 
@@ -78,11 +85,22 @@ export const AboutHero = () => {
                     <div
                       className={`inline-block bg-card border rounded-xl p-4 md:p-6 shadow-sm hover:shadow-md transition-shadow ${
                         isEven ? "md:mr-8" : "md:ml-8"
-                      }`}
+                      } ${(item as any).isOrigin ? "ring-2 ring-amber-500/30 border-amber-500/50" : ""}`}
                     >
-                      <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-bold mb-2">
-                        {item.year}
-                      </span>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${
+                          (item as any).isOrigin 
+                            ? "bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-500" 
+                            : "bg-primary/10 text-primary"
+                        }`}>
+                          {item.year}
+                        </span>
+                        {(item as any).isOrigin && (
+                          <span className="px-2 py-0.5 rounded text-xs font-semibold bg-amber-500/20 text-amber-500 border border-amber-500/30">
+                            Origem
+                          </span>
+                        )}
+                      </div>
                       <h3 className="text-lg md:text-xl font-semibold text-foreground mb-1">
                         {item.title}
                       </h3>
@@ -93,8 +111,14 @@ export const AboutHero = () => {
                   </div>
 
                   {/* Icon */}
-                  <div className="absolute left-0 md:left-1/2 md:-translate-x-1/2 w-8 h-8 md:w-12 md:h-12 rounded-full bg-primary flex items-center justify-center shadow-lg z-10">
-                    <Icon className="w-4 h-4 md:w-6 md:h-6 text-primary-foreground" />
+                  <div className={`absolute left-0 md:left-1/2 md:-translate-x-1/2 rounded-full flex items-center justify-center shadow-lg z-10 ${
+                    (item as any).isOrigin 
+                      ? "w-10 h-10 md:w-14 md:h-14 bg-gradient-to-br from-amber-500 to-orange-600 ring-2 ring-amber-400/50" 
+                      : "w-8 h-8 md:w-12 md:h-12 bg-primary"
+                  }`}>
+                    <Icon className={`text-primary-foreground ${
+                      (item as any).isOrigin ? "w-5 h-5 md:w-7 md:h-7" : "w-4 h-4 md:w-6 md:h-6"
+                    }`} />
                   </div>
 
                   {/* Spacer for desktop */}

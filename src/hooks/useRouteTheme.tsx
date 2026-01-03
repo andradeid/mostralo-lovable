@@ -9,6 +9,7 @@ export function useRouteTheme() {
   useEffect(() => {
     // Landing page (/) e páginas de vendedores públicas = tema escuro
     if (location.pathname === '/' || 
+        location.pathname === '/sobre' ||
         location.pathname === '/seja-vendedor' ||
         location.pathname === '/cadastro-vendedor' ||
         location.pathname === '/cadastro-vendedor-sucesso' ||

@@ -61,21 +61,24 @@ export function Hero360() {
         </p>
 
         {/* Stats */}
-        <div className="flex flex-wrap justify-center gap-8 mb-10">
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-2 text-orange-400">
-              <TrendingUp className="w-5 h-5" />
-              <span className="text-3xl font-bold">+47%</span>
+        <div className="flex flex-col items-center mb-10">
+          <div className="flex flex-wrap justify-center gap-8 mb-3">
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2 text-orange-400">
+                <TrendingUp className="w-5 h-5" />
+                <span className="text-3xl font-bold">+47%*</span>
+              </div>
+              <p className="text-sm text-slate-400">Aumento médio no lucro</p>
             </div>
-            <p className="text-sm text-slate-400">Aumento médio no lucro</p>
-          </div>
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-2 text-green-400">
-              <Sparkles className="w-5 h-5" />
-              <span className="text-3xl font-bold">-8h</span>
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2 text-green-400">
+                <Sparkles className="w-5 h-5" />
+                <span className="text-3xl font-bold">-8h</span>
+              </div>
+              <p className="text-sm text-slate-400">Redução semanal em gestão</p>
             </div>
-            <p className="text-sm text-slate-400">Redução semanal em gestão</p>
           </div>
+          <p className="text-xs text-slate-500 italic">*Baseado em implementações do Ecossistema Elite</p>
         </div>
 
         {/* CTAs */}
@@ -93,8 +96,7 @@ export function Hero360() {
           <Button
             asChild
             size="lg"
-            variant="outline"
-            className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white px-8 py-6 text-lg rounded-xl"
+            className="bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white font-semibold px-8 py-6 text-lg rounded-xl shadow-lg shadow-emerald-500/25 animate-pulse sm:animate-none"
           >
             <Link to="/diagnostico">
               Diagnóstico Grátis

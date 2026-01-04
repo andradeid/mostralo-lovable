@@ -92,27 +92,30 @@ export function DigitalCardPreview({
       className
     )}>
       <div className="p-6 pb-8 space-y-6 flex flex-col justify-center min-h-screen md:min-h-0">
-        {/* Botão de Compartilhamento */}
-        {isInteractive && (
-          <div className="flex justify-end -mb-2">
-            <ShareCardButton
-              cardUrl={typeof window !== 'undefined' ? window.location.href : ''}
-              cardName={data.name || 'Cartão Digital'}
-              theme={theme}
-              accentColor={accentColor}
-              onShare={(method) => onClickAction?.('share', method)}
-            />
-          </div>
-        )}
-
         {/* Header com foto e informações */}
         <div className="text-center space-y-4">
-          <Avatar className="w-28 h-28 mx-auto border-4 shadow-xl" style={{ borderColor: accentColor }}>
-            <AvatarImage src={photoUrl || ''} alt={data.name} />
-            <AvatarFallback className="text-3xl bg-zinc-700 text-white">
-              {data.name?.charAt(0)?.toUpperCase() || '?'}
-            </AvatarFallback>
-          </Avatar>
+          {/* Container do Avatar com botão de compartilhamento */}
+          <div className="relative inline-flex items-center justify-center w-full">
+            <Avatar className="w-28 h-28 border-4 shadow-xl" style={{ borderColor: accentColor }}>
+              <AvatarImage src={photoUrl || ''} alt={data.name} />
+              <AvatarFallback className="text-3xl bg-zinc-700 text-white">
+                {data.name?.charAt(0)?.toUpperCase() || '?'}
+              </AvatarFallback>
+            </Avatar>
+            
+            {/* Botão de compartilhamento posicionado ao lado da foto */}
+            {isInteractive && (
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 md:right-8">
+                <ShareCardButton
+                  cardUrl={typeof window !== 'undefined' ? window.location.href : ''}
+                  cardName={data.name || 'Cartão Digital'}
+                  theme={theme}
+                  accentColor={accentColor}
+                  onShare={(method) => onClickAction?.('share', method)}
+                />
+              </div>
+            )}
+          </div>
 
           <div className="space-y-1">
             <h1 className={cn('text-2xl font-bold', styles.text)}>

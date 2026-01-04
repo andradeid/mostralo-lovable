@@ -179,3 +179,30 @@ export function useDuplicateTutorial() {
     }
   });
 }
+
+export function useReorderTutorials() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (orderedIds: string[]) => {
+      const updates = orderedIds.map((id, index) => 
+        supabase
+          .from('tutorials')
+          .update({ display_order: index + 1 })
+          .eq('id', id)
+      );
+
+      const results = await Promise.all(updates);
+      const error = results.find(r => r.error)?.error;
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tutorials'] });
+      toast.success('Ordem atualizada!');
+    },
+    onError: (error) => {
+      console.error('Erro ao reordenar tutoriais:', error);
+      toast.error('Erro ao reordenar tutoriais');
+    }
+  });
+}

@@ -30,8 +30,8 @@ const diferenciais = [
     icone: Building2,
     iconeSecundario: Network,
     titulo: "Escalabilidade para Franquias",
-    descricao: "Do MEI à rede com múltiplas unidades. Cresça sem trocar de sistema. Multi-loja, multi-CNPJ, multi-região.",
-    destaque: "Cresce com Você"
+    descricao: "Do MEI à rede com múltiplas unidades. Dashboard Consolidado de Unidades para o franqueador ter visão macro em tempo real. Multi-loja, multi-CNPJ, multi-região.",
+    destaque: "Visão 360° do Franqueador"
   }
 ];
 

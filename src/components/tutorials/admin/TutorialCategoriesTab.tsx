@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Plus, Pencil, Trash2, GripVertical, Eye, EyeOff } from "lucide-react";
-import { useTutorialCategories, useCreateTutorialCategory, useUpdateTutorialCategory, useDeleteTutorialCategory, TutorialCategory, TutorialCategoryInput } from "@/hooks/useTutorialCategories";
+import { Plus, Pencil, Trash2, GripVertical, Eye, EyeOff, Copy } from "lucide-react";
+import { useTutorialCategories, useCreateTutorialCategory, useUpdateTutorialCategory, useDeleteTutorialCategory, useDuplicateCategory, TutorialCategory, TutorialCategoryInput } from "@/hooks/useTutorialCategories";
 import { useTutorials } from "@/hooks/useTutorials";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,11 +20,14 @@ export function TutorialCategoriesTab() {
   const createCategory = useCreateTutorialCategory();
   const updateCategory = useUpdateTutorialCategory();
   const deleteCategory = useDeleteTutorialCategory();
+  const duplicateCategory = useDuplicateCategory();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<TutorialCategory | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<TutorialCategory | null>(null);
+  const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
+  const [categoryToDuplicate, setCategoryToDuplicate] = useState<TutorialCategory | null>(null);
 
   const [formData, setFormData] = useState<TutorialCategoryInput>({
     name: "",
@@ -76,6 +79,13 @@ export function TutorialCategoriesTab() {
     await deleteCategory.mutateAsync(categoryToDelete.id);
     setDeleteDialogOpen(false);
     setCategoryToDelete(null);
+  };
+
+  const handleDuplicate = async () => {
+    if (!categoryToDuplicate) return;
+    await duplicateCategory.mutateAsync(categoryToDuplicate);
+    setDuplicateDialogOpen(false);
+    setCategoryToDuplicate(null);
   };
 
   const getTutorialCount = (categoryId: string) => {
@@ -152,7 +162,20 @@ export function TutorialCategoriesTab() {
                     <Button
                       variant="ghost"
                       size="icon"
+                      onClick={() => {
+                        setCategoryToDuplicate(category);
+                        setDuplicateDialogOpen(true);
+                      }}
+                      disabled={duplicateCategory.isPending}
+                      title="Duplicar categoria com tutoriais"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       onClick={() => handleOpenModal(category)}
+                      title="Editar categoria"
                     >
                       <Pencil className="w-4 h-4" />
                     </Button>
@@ -265,6 +288,35 @@ export function TutorialCategoriesTab() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog de confirmação de duplicação */}
+      <AlertDialog open={duplicateDialogOpen} onOpenChange={setDuplicateDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Duplicar categoria?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Será criada uma cópia da categoria "{categoryToDuplicate?.name}" 
+              {categoryToDuplicate && getTutorialCount(categoryToDuplicate.id) > 0 && (
+                <> com {getTutorialCount(categoryToDuplicate.id)} {getTutorialCount(categoryToDuplicate.id) === 1 ? 'tutorial' : 'tutoriais'}</>
+              )}.
+              <br /><br />
+              A nova categoria e seus tutoriais serão criados como <strong>inativos</strong> para você editar antes de publicar.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDuplicate}
+              disabled={duplicateCategory.isPending}
+            >
+              {duplicateCategory.isPending && (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              )}
+              Duplicar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Dialog de confirmação de exclusão */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

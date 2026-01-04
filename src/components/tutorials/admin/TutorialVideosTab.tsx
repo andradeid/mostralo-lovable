@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { Plus, Pencil, Trash2, Star, StarOff, Eye, EyeOff, Copy } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Plus, Pencil, Trash2, Star, StarOff, Eye, EyeOff, Copy, Search, X, GripVertical } from "lucide-react";
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { useTutorialCategories } from "@/hooks/useTutorialCategories";
-import { useTutorials, useCreateTutorial, useUpdateTutorial, useDeleteTutorial, useDuplicateTutorial, Tutorial, TutorialInput } from "@/hooks/useTutorials";
+import { useTutorials, useCreateTutorial, useUpdateTutorial, useDeleteTutorial, useDuplicateTutorial, useReorderTutorials, Tutorial, TutorialInput } from "@/hooks/useTutorials";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -22,12 +23,18 @@ export function TutorialVideosTab() {
   const updateTutorial = useUpdateTutorial();
   const deleteTutorial = useDeleteTutorial();
   const duplicateTutorial = useDuplicateTutorial();
+  const reorderTutorials = useReorderTutorials();
 
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTutorial, setEditingTutorial] = useState<Tutorial | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [tutorialToDelete, setTutorialToDelete] = useState<Tutorial | null>(null);
+
+  // Filtros avançados
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "hidden">("all");
+  const [featuredFilter, setFeaturedFilter] = useState<"all" | "featured" | "not-featured">("all");
 
   const [formData, setFormData] = useState<TutorialInput>({
     category_id: "",
@@ -40,9 +47,46 @@ export function TutorialVideosTab() {
     is_active: true
   });
 
-  const filteredTutorials = tutorials?.filter(t => 
-    selectedCategory === "all" || t.category_id === selectedCategory
-  );
+  // Lógica de filtro avançada
+  const filteredTutorials = useMemo(() => {
+    return tutorials?.filter(t => {
+      // Filtro por categoria
+      if (selectedCategory !== "all" && t.category_id !== selectedCategory) return false;
+      
+      // Busca por título
+      if (searchTerm && !t.title.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+      
+      // Filtro por status
+      if (statusFilter === "active" && !t.is_active) return false;
+      if (statusFilter === "hidden" && t.is_active) return false;
+      
+      // Filtro por destaque
+      if (featuredFilter === "featured" && !t.is_featured) return false;
+      if (featuredFilter === "not-featured" && t.is_featured) return false;
+      
+      return true;
+    }) || [];
+  }, [tutorials, selectedCategory, searchTerm, statusFilter, featuredFilter]);
+
+  const hasActiveFilters = searchTerm || statusFilter !== "all" || featuredFilter !== "all";
+  const canReorder = selectedCategory !== "all" && !hasActiveFilters;
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    setFeaturedFilter("all");
+  };
+
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination || !filteredTutorials) return;
+    
+    const items = Array.from(filteredTutorials);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+    
+    const orderedIds = items.map(item => item.id);
+    reorderTutorials.mutate(orderedIds);
+  };
 
   const handleOpenModal = (tutorial?: Tutorial) => {
     if (tutorial) {
@@ -123,9 +167,10 @@ export function TutorialVideosTab() {
 
   return (
     <div className="space-y-4">
+      {/* Filtro por categoria e botão */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-2">
-          <Label>Filtrar por categoria:</Label>
+          <Label>Categoria:</Label>
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Todas" />
@@ -144,126 +189,222 @@ export function TutorialVideosTab() {
         </Button>
       </div>
 
-      <p className="text-sm text-muted-foreground">
-        {filteredTutorials?.length || 0} tutoriais
-      </p>
-
-      <div className="grid gap-4">
-        {filteredTutorials?.map((tutorial) => {
-          const thumbnailUrl = tutorial.thumbnail_url || getYouTubeThumbnail(tutorial.youtube_url, 'medium');
-
-          return (
-            <Card key={tutorial.id} className="overflow-hidden">
-              <div className="flex flex-col sm:flex-row">
-                {/* Thumbnail */}
-                <div className="w-full sm:w-48 h-32 flex-shrink-0 bg-muted relative">
-                  <img 
-                    src={thumbnailUrl} 
-                    alt={tutorial.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/80 rounded text-xs text-white flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {formatDuration(tutorial.duration_minutes)}
-                  </div>
-                </div>
-
-                {/* Conteúdo */}
-                <div className="flex-1 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex flex-wrap items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-foreground">{tutorial.title}</h3>
-                      {tutorial.is_featured && (
-                        <Badge variant="default" className="text-xs bg-yellow-500">
-                          <Star className="w-3 h-3 mr-1 fill-current" />
-                          Destaque
-                        </Badge>
-                      )}
-                      {!tutorial.is_active && (
-                        <Badge variant="secondary" className="text-xs">
-                          <EyeOff className="w-3 h-3 mr-1" />
-                          Oculto
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground mb-1">
-                      {getCategoryName(tutorial.category_id)}
-                    </p>
-                    {tutorial.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {tutorial.description}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => toggleFeatured(tutorial)}
-                      title={tutorial.is_featured ? "Remover destaque" : "Destacar"}
-                    >
-                      {tutorial.is_featured ? (
-                        <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
-                      ) : (
-                        <StarOff className="w-4 h-4" />
-                      )}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => toggleActive(tutorial)}
-                      title={tutorial.is_active ? "Ocultar" : "Mostrar"}
-                    >
-                      {tutorial.is_active ? (
-                        <Eye className="w-4 h-4" />
-                      ) : (
-                        <EyeOff className="w-4 h-4" />
-                      )}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => duplicateTutorial.mutate(tutorial)}
-                      disabled={duplicateTutorial.isPending}
-                      title="Duplicar tutorial"
-                    >
-                      <Copy className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleOpenModal(tutorial)}
-                      title="Editar tutorial"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => {
-                        setTutorialToDelete(tutorial);
-                        setDeleteDialogOpen(true);
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          );
-        })}
-
-        {(!filteredTutorials || filteredTutorials.length === 0) && (
-          <Card className="p-8 text-center">
-            <p className="text-muted-foreground">Nenhum tutorial encontrado</p>
-            <Button onClick={() => handleOpenModal()} className="mt-4">
-              Adicionar primeiro tutorial
-            </Button>
-          </Card>
+      {/* Busca e filtros avançados */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por título..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="active">Ativos</SelectItem>
+            <SelectItem value="hidden">Ocultos</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={featuredFilter} onValueChange={(v) => setFeaturedFilter(v as typeof featuredFilter)}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="Destaque" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="featured">Em destaque</SelectItem>
+            <SelectItem value="not-featured">Sem destaque</SelectItem>
+          </SelectContent>
+        </Select>
+        {hasActiveFilters && (
+          <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1">
+            <X className="w-4 h-4" />
+            Limpar
+          </Button>
         )}
       </div>
+
+      {/* Contador e info de reordenação */}
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {filteredTutorials.length} de {tutorials?.length || 0} tutoriais
+        </p>
+        {canReorder && (
+          <p className="text-xs text-muted-foreground">
+            <GripVertical className="w-3 h-3 inline mr-1" />
+            Arraste para reordenar
+          </p>
+        )}
+        {selectedCategory === "all" && !hasActiveFilters && (
+          <p className="text-xs text-muted-foreground">
+            Selecione uma categoria para reordenar
+          </p>
+        )}
+      </div>
+
+      {/* Lista de tutoriais com drag-and-drop */}
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="tutorials" isDropDisabled={!canReorder}>
+          {(provided) => (
+            <div 
+              className="grid gap-4"
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+            >
+              {filteredTutorials.map((tutorial, index) => {
+                const thumbnailUrl = tutorial.thumbnail_url || getYouTubeThumbnail(tutorial.youtube_url, 'medium');
+
+                return (
+                  <Draggable 
+                    key={tutorial.id} 
+                    draggableId={tutorial.id} 
+                    index={index}
+                    isDragDisabled={!canReorder}
+                  >
+                    {(provided, snapshot) => (
+                      <Card 
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        className={`overflow-hidden transition-shadow ${snapshot.isDragging ? 'shadow-lg ring-2 ring-primary' : ''}`}
+                      >
+                        <div className="flex flex-col sm:flex-row">
+                          {/* Handle de arraste */}
+                          {canReorder && (
+                            <div 
+                              {...provided.dragHandleProps}
+                              className="hidden sm:flex items-center justify-center w-8 bg-muted/50 cursor-grab active:cursor-grabbing"
+                            >
+                              <GripVertical className="w-4 h-4 text-muted-foreground" />
+                            </div>
+                          )}
+
+                          {/* Thumbnail */}
+                          <div className="w-full sm:w-48 h-32 flex-shrink-0 bg-muted relative">
+                            <img 
+                              src={thumbnailUrl} 
+                              alt={tutorial.title}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/80 rounded text-xs text-white flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {formatDuration(tutorial.duration_minutes)}
+                            </div>
+                          </div>
+
+                          {/* Conteúdo */}
+                          <div className="flex-1 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div className="flex-1">
+                              <div className="flex flex-wrap items-center gap-2 mb-1">
+                                <h3 className="font-semibold text-foreground">{tutorial.title}</h3>
+                                {tutorial.is_featured && (
+                                  <Badge variant="default" className="text-xs bg-yellow-500">
+                                    <Star className="w-3 h-3 mr-1 fill-current" />
+                                    Destaque
+                                  </Badge>
+                                )}
+                                {!tutorial.is_active && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    <EyeOff className="w-3 h-3 mr-1" />
+                                    Oculto
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-xs text-muted-foreground mb-1">
+                                {getCategoryName(tutorial.category_id)}
+                              </p>
+                              {tutorial.description && (
+                                <p className="text-sm text-muted-foreground line-clamp-2">
+                                  {tutorial.description}
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => toggleFeatured(tutorial)}
+                                title={tutorial.is_featured ? "Remover destaque" : "Destacar"}
+                              >
+                                {tutorial.is_featured ? (
+                                  <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
+                                ) : (
+                                  <StarOff className="w-4 h-4" />
+                                )}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => toggleActive(tutorial)}
+                                title={tutorial.is_active ? "Ocultar" : "Mostrar"}
+                              >
+                                {tutorial.is_active ? (
+                                  <Eye className="w-4 h-4" />
+                                ) : (
+                                  <EyeOff className="w-4 h-4" />
+                                )}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => duplicateTutorial.mutate(tutorial)}
+                                disabled={duplicateTutorial.isPending}
+                                title="Duplicar tutorial"
+                              >
+                                <Copy className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleOpenModal(tutorial)}
+                                title="Editar tutorial"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  setTutorialToDelete(tutorial);
+                                  setDeleteDialogOpen(true);
+                                }}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    )}
+                  </Draggable>
+                );
+              })}
+              {provided.placeholder}
+
+              {filteredTutorials.length === 0 && (
+                <Card className="p-8 text-center">
+                  <p className="text-muted-foreground">
+                    {hasActiveFilters ? "Nenhum tutorial encontrado com os filtros aplicados" : "Nenhum tutorial encontrado"}
+                  </p>
+                  {hasActiveFilters ? (
+                    <Button variant="outline" onClick={clearFilters} className="mt-4">
+                      Limpar filtros
+                    </Button>
+                  ) : (
+                    <Button onClick={() => handleOpenModal()} className="mt-4">
+                      Adicionar primeiro tutorial
+                    </Button>
+                  )}
+                </Card>
+              )}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
 
       {/* Modal de criação/edição */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

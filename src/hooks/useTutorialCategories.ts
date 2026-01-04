@@ -117,3 +117,69 @@ export function useDeleteTutorialCategory() {
     }
   });
 }
+
+export function useDuplicateCategory() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (category: TutorialCategory) => {
+      // 1. Criar cópia da categoria
+      const { data: newCategory, error: catError } = await supabase
+        .from('tutorial_categories')
+        .insert({
+          name: `${category.name} (Cópia)`,
+          description: category.description,
+          cover_image_url: category.cover_image_url,
+          featured_video_url: category.featured_video_url,
+          display_order: 999,
+          is_active: false
+        })
+        .select()
+        .single();
+      
+      if (catError) throw catError;
+
+      // 2. Buscar tutoriais da categoria original
+      const { data: tutorials, error: tutError } = await supabase
+        .from('tutorials')
+        .select('*')
+        .eq('category_id', category.id);
+      
+      if (tutError) throw tutError;
+
+      // 3. Duplicar cada tutorial para a nova categoria
+      let tutorialsCount = 0;
+      if (tutorials && tutorials.length > 0) {
+        const tutorialsCopy = tutorials.map(t => ({
+          category_id: newCategory.id,
+          title: t.title,
+          description: t.description,
+          youtube_url: t.youtube_url,
+          thumbnail_url: t.thumbnail_url,
+          duration_minutes: t.duration_minutes,
+          display_order: t.display_order,
+          is_featured: false,
+          is_active: false
+        }));
+
+        const { error: insertError } = await supabase
+          .from('tutorials')
+          .insert(tutorialsCopy);
+        
+        if (insertError) throw insertError;
+        tutorialsCount = tutorials.length;
+      }
+
+      return { newCategory, tutorialsCount };
+    },
+    onSuccess: (result, original) => {
+      queryClient.invalidateQueries({ queryKey: ['tutorial-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['tutorials'] });
+      toast.success(`Categoria "${original.name}" duplicada com ${result.tutorialsCount} tutoriais!`);
+    },
+    onError: (error) => {
+      console.error('Erro ao duplicar categoria:', error);
+      toast.error('Erro ao duplicar categoria');
+    }
+  });
+}

@@ -34,7 +34,8 @@ import {
   eachDayOfInterval, 
   isSameDay, 
   isSameMonth,
-  isToday 
+  isToday,
+  parseISO
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -139,7 +140,11 @@ const BookingCalendarPage = () => {
 
   // Get bookings for a specific day
   const getBookingsForDay = (date: Date) => {
-    return filteredBookings.filter(b => isSameDay(new Date(b.booking_date), date));
+    return filteredBookings.filter(b => {
+      // parseISO treats the date as local time, not UTC
+      const bookingDate = parseISO(b.booking_date);
+      return isSameDay(bookingDate, date);
+    });
   };
 
   // Generate time slots for the day view

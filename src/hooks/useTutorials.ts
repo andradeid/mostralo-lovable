@@ -144,3 +144,38 @@ export function useDeleteTutorial() {
     }
   });
 }
+
+export function useDuplicateTutorial() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (tutorial: Tutorial) => {
+      const { data, error } = await supabase
+        .from('tutorials')
+        .insert({
+          category_id: tutorial.category_id,
+          title: `${tutorial.title} (Cópia)`,
+          description: tutorial.description,
+          youtube_url: tutorial.youtube_url,
+          thumbnail_url: tutorial.thumbnail_url,
+          duration_minutes: tutorial.duration_minutes,
+          display_order: 999,
+          is_featured: false,
+          is_active: false
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tutorials'] });
+      toast.success('Tutorial duplicado! Edite e ative quando pronto.');
+    },
+    onError: (error) => {
+      console.error('Erro ao duplicar tutorial:', error);
+      toast.error('Erro ao duplicar tutorial');
+    }
+  });
+}

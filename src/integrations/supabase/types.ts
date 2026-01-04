@@ -644,6 +644,7 @@ export type Database = {
           confirmation_message_template: string | null
           created_at: string | null
           default_deposit_percentage: number | null
+          enable_professional_reviews: boolean | null
           id: string
           max_advance_days: number | null
           min_advance_hours: number | null
@@ -664,6 +665,7 @@ export type Database = {
           confirmation_message_template?: string | null
           created_at?: string | null
           default_deposit_percentage?: number | null
+          enable_professional_reviews?: boolean | null
           id?: string
           max_advance_days?: number | null
           min_advance_hours?: number | null
@@ -684,6 +686,7 @@ export type Database = {
           confirmation_message_template?: string | null
           created_at?: string | null
           default_deposit_percentage?: number | null
+          enable_professional_reviews?: boolean | null
           id?: string
           max_advance_days?: number | null
           min_advance_hours?: number | null

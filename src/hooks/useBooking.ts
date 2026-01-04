@@ -120,6 +120,7 @@ export interface BookingSettings {
   require_deposit: boolean;
   default_deposit_percentage: number;
   cancellation_hours_limit: number;
+  enable_professional_reviews: boolean;
   created_at: string;
   updated_at: string;
 }

@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Plus, Pencil, Trash2, Star, StarOff, Eye, EyeOff } from "lucide-react";
+import { Plus, Pencil, Trash2, Star, StarOff, Eye, EyeOff, Copy } from "lucide-react";
 import { useTutorialCategories } from "@/hooks/useTutorialCategories";
-import { useTutorials, useCreateTutorial, useUpdateTutorial, useDeleteTutorial, Tutorial, TutorialInput } from "@/hooks/useTutorials";
+import { useTutorials, useCreateTutorial, useUpdateTutorial, useDeleteTutorial, useDuplicateTutorial, Tutorial, TutorialInput } from "@/hooks/useTutorials";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -21,6 +21,7 @@ export function TutorialVideosTab() {
   const createTutorial = useCreateTutorial();
   const updateTutorial = useUpdateTutorial();
   const deleteTutorial = useDeleteTutorial();
+  const duplicateTutorial = useDuplicateTutorial();
 
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -223,7 +224,17 @@ export function TutorialVideosTab() {
                     <Button
                       variant="ghost"
                       size="icon"
+                      onClick={() => duplicateTutorial.mutate(tutorial)}
+                      disabled={duplicateTutorial.isPending}
+                      title="Duplicar tutorial"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       onClick={() => handleOpenModal(tutorial)}
+                      title="Editar tutorial"
                     >
                       <Pencil className="w-4 h-4" />
                     </Button>

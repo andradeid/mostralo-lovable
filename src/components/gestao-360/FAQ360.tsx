@@ -296,21 +296,21 @@ export function FAQ360() {
 
             {/* Checklist de Benefícios */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4 rounded-xl bg-slate-900/30 border border-slate-700/30">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
-                <span className="text-xs md:text-sm text-slate-300">Criptografia ponta a ponta</span>
+              <div className="group flex items-center gap-2 p-2 -m-2 rounded-lg hover:bg-green-500/10 hover:scale-105 transition-all duration-200 ease-out cursor-default">
+                <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0 group-hover:text-green-300 group-hover:scale-110 transition-all duration-200" />
+                <span className="text-xs md:text-sm text-slate-300 group-hover:text-green-200 transition-colors duration-200">Criptografia ponta a ponta</span>
               </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
-                <span className="text-xs md:text-sm text-slate-300">Backup automático diário</span>
+              <div className="group flex items-center gap-2 p-2 -m-2 rounded-lg hover:bg-green-500/10 hover:scale-105 transition-all duration-200 ease-out cursor-default">
+                <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0 group-hover:text-green-300 group-hover:scale-110 transition-all duration-200" />
+                <span className="text-xs md:text-sm text-slate-300 group-hover:text-green-200 transition-colors duration-200">Backup automático diário</span>
               </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
-                <span className="text-xs md:text-sm text-slate-300">Uptime 99,9%</span>
+              <div className="group flex items-center gap-2 p-2 -m-2 rounded-lg hover:bg-green-500/10 hover:scale-105 transition-all duration-200 ease-out cursor-default">
+                <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0 group-hover:text-green-300 group-hover:scale-110 transition-all duration-200" />
+                <span className="text-xs md:text-sm text-slate-300 group-hover:text-green-200 transition-colors duration-200">Uptime 99,9%</span>
               </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
-                <span className="text-xs md:text-sm text-slate-300">Servidores redundantes</span>
+              <div className="group flex items-center gap-2 p-2 -m-2 rounded-lg hover:bg-green-500/10 hover:scale-105 transition-all duration-200 ease-out cursor-default">
+                <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0 group-hover:text-green-300 group-hover:scale-110 transition-all duration-200" />
+                <span className="text-xs md:text-sm text-slate-300 group-hover:text-green-200 transition-colors duration-200">Servidores redundantes</span>
               </div>
             </div>
           </div>

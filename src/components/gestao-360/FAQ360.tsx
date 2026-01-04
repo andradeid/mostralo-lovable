@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useEffect, useRef, useState } from "react";
 import {
   Accordion,
   AccordionContent,
@@ -130,6 +131,27 @@ const faqCategories: FAQCategory[] = [
 ];
 
 export function FAQ360() {
+  const selosRef = useRef<HTMLDivElement>(null);
+  const [selosVisible, setSelosVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setSelosVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.2 }
+    );
+
+    if (selosRef.current) {
+      observer.observe(selosRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section className="py-20 px-4 bg-gradient-to-b from-slate-950 to-slate-900">
       <div className="container mx-auto max-w-4xl">
@@ -219,9 +241,17 @@ export function FAQ360() {
             </div>
 
             {/* Grid de Selos */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
+            <div ref={selosRef} className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
               {/* Selo LGPD */}
-              <div className="p-5 rounded-xl bg-slate-900/50 border border-slate-700/50 text-center hover:border-purple-500/30 transition-colors">
+              <div 
+                className="p-5 rounded-xl bg-slate-900/50 border border-slate-700/50 text-center hover:border-purple-500/30 transition-all"
+                style={{
+                  opacity: selosVisible ? 1 : 0,
+                  transform: selosVisible ? 'translateY(0)' : 'translateY(20px)',
+                  transition: 'opacity 0.6s ease-out, transform 0.6s ease-out',
+                  transitionDelay: '0ms'
+                }}
+              >
                 <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-500/20 to-purple-600/20 flex items-center justify-center">
                   <Lock className="w-7 h-7 text-purple-400" />
                 </div>
@@ -230,7 +260,15 @@ export function FAQ360() {
               </div>
 
               {/* Selo ISO 27001 */}
-              <div className="p-5 rounded-xl bg-slate-900/50 border border-slate-700/50 text-center hover:border-purple-500/30 transition-colors">
+              <div 
+                className="p-5 rounded-xl bg-slate-900/50 border border-slate-700/50 text-center hover:border-purple-500/30 transition-all"
+                style={{
+                  opacity: selosVisible ? 1 : 0,
+                  transform: selosVisible ? 'translateY(0)' : 'translateY(20px)',
+                  transition: 'opacity 0.6s ease-out, transform 0.6s ease-out',
+                  transitionDelay: '150ms'
+                }}
+              >
                 <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-500/20 to-purple-600/20 flex items-center justify-center">
                   <ShieldCheck className="w-7 h-7 text-purple-400" />
                 </div>
@@ -239,7 +277,15 @@ export function FAQ360() {
               </div>
 
               {/* Selo AWS Partner */}
-              <div className="p-5 rounded-xl bg-slate-900/50 border border-slate-700/50 text-center hover:border-purple-500/30 transition-colors">
+              <div 
+                className="p-5 rounded-xl bg-slate-900/50 border border-slate-700/50 text-center hover:border-purple-500/30 transition-all"
+                style={{
+                  opacity: selosVisible ? 1 : 0,
+                  transform: selosVisible ? 'translateY(0)' : 'translateY(20px)',
+                  transition: 'opacity 0.6s ease-out, transform 0.6s ease-out',
+                  transitionDelay: '300ms'
+                }}
+              >
                 <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-500/20 to-purple-600/20 flex items-center justify-center">
                   <Cloud className="w-7 h-7 text-purple-400" />
                 </div>

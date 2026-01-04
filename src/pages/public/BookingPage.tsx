@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,16 +16,18 @@ import {
   Check,
   Phone,
   Mail,
-  Store
+  Store,
+  AlertCircle
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { format, addDays, isBefore, startOfDay } from 'date-fns';
+import { format, addDays, isBefore, startOfDay, isAfter } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { z } from 'zod';
 import { useCheckSalesChannel } from '@/hooks/useCheckSalesChannel';
 import { SalesChannelPausedBanner } from '@/components/shared/SalesChannelPausedBanner';
+import { useQuery } from '@tanstack/react-query';
 
 // Types
 interface Professional {
@@ -40,6 +42,7 @@ interface BookingService {
   name: string;
   description: string | null;
   duration_minutes: number;
+  buffer_minutes?: number;
   price: number;
   price_type: 'fixed' | 'from';
 }
@@ -51,10 +54,7 @@ interface StoreInfo {
   slug: string;
 }
 
-interface TimeSlot {
-  time: string;
-  available: boolean;
-}
+// TimeSlot interface removed - now using string[] for availableSlots
 
 // Validation schema
 const bookingSchema = z.object({
@@ -87,8 +87,6 @@ const BookingPage = () => {
   const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
-  const [loadingSlots, setLoadingSlots] = useState(false);
   
   // Customer data
   const [customerName, setCustomerName] = useState('');
@@ -182,50 +180,210 @@ const BookingPage = () => {
     }
   }, [preselectedProfessionalId, professionals, selectedProfessional, selectedService]);
 
-  // Generate time slots for selected date
-  useEffect(() => {
-    const generateSlots = async () => {
-      if (!selectedDate || !selectedProfessional || !selectedService) return;
-      
-      setLoadingSlots(true);
-      try {
-        // For now, generate default slots (9am - 6pm)
-        // TODO: Fetch professional schedule and existing bookings
-        const slots: TimeSlot[] = [];
-        const duration = selectedService.duration_minutes;
-        
-        // Check if selected date is today
-        const now = new Date();
-        const isToday = startOfDay(selectedDate).getTime() === startOfDay(now).getTime();
-        const currentHour = now.getHours();
-        const currentMinute = now.getMinutes();
-        
-        // Safety margin: 30 minutes from now
-        const marginMinutes = 30;
-        const minAvailableTime = currentHour * 60 + currentMinute + marginMinutes;
-        
-        for (let hour = 9; hour < 18; hour++) {
-          for (let minute = 0; minute < 60; minute += 30) {
-            const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-            const slotMinutes = hour * 60 + minute;
-            
-            // If today, check if slot has passed
-            const isPastSlot = isToday && slotMinutes < minAvailableTime;
-            
-            slots.push({ time, available: !isPastSlot });
-          }
-        }
-        
-        setAvailableSlots(slots);
-      } catch (error) {
-        console.error('Error generating slots:', error);
-      } finally {
-        setLoadingSlots(false);
+  // Fetch booking settings for the store
+  const { data: bookingSettings } = useQuery({
+    queryKey: ['booking-settings-public', store?.id],
+    queryFn: async () => {
+      if (!store?.id) return null;
+      const { data, error } = await supabase
+        .from('booking_settings')
+        .select('*')
+        .eq('store_id', store.id)
+        .maybeSingle();
+      if (error) {
+        console.error('Error fetching booking settings:', error);
+        return null;
       }
-    };
+      return data;
+    },
+    enabled: !!store?.id
+  });
+
+  // Fetch professional schedule for the selected day
+  const { data: professionalSchedule, isLoading: loadingSchedule } = useQuery({
+    queryKey: ['professional-schedule-public', selectedProfessional?.id, selectedDate?.getDay()],
+    queryFn: async () => {
+      if (!selectedProfessional || selectedDate === undefined) return null;
+      const dayOfWeek = selectedDate.getDay();
+      const { data, error } = await supabase
+        .from('professional_schedules')
+        .select('*')
+        .eq('professional_id', selectedProfessional.id)
+        .eq('day_of_week', dayOfWeek)
+        .maybeSingle();
+      if (error) {
+        console.error('Error fetching professional schedule:', error);
+        return null;
+      }
+      return data;
+    },
+    enabled: !!selectedProfessional && !!selectedDate
+  });
+
+  // Fetch professional blocks for the selected date
+  const { data: professionalBlocks = [] } = useQuery({
+    queryKey: ['professional-blocks-public', selectedProfessional?.id, selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null],
+    queryFn: async () => {
+      if (!selectedProfessional || !selectedDate) return [];
+      const { data, error } = await supabase
+        .from('professional_blocks')
+        .select('*')
+        .eq('professional_id', selectedProfessional.id)
+        .eq('block_date', format(selectedDate, 'yyyy-MM-dd'));
+      if (error) {
+        console.error('Error fetching professional blocks:', error);
+        return [];
+      }
+      return data || [];
+    },
+    enabled: !!selectedProfessional && !!selectedDate
+  });
+
+  // Fetch existing bookings for the selected professional and date
+  const { data: existingBookings = [], isLoading: loadingBookings } = useQuery({
+    queryKey: ['bookings-public', store?.id, selectedProfessional?.id, selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null],
+    queryFn: async () => {
+      if (!store?.id || !selectedProfessional || !selectedDate) return [];
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('start_time, end_time, status')
+        .eq('store_id', store.id)
+        .eq('professional_id', selectedProfessional.id)
+        .eq('booking_date', format(selectedDate, 'yyyy-MM-dd'))
+        .neq('status', 'cancelled');
+      if (error) {
+        console.error('Error fetching bookings:', error);
+        return [];
+      }
+      return data || [];
+    },
+    enabled: !!store?.id && !!selectedProfessional && !!selectedDate
+  });
+
+  // Helper to convert time string (HH:MM:SS or HH:MM) to minutes
+  const timeToMinutes = useCallback((time: string): number => {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
+  }, []);
+
+  // Calculate max date based on booking settings
+  const maxDate = useMemo(() => {
+    if (bookingSettings?.max_advance_days) {
+      return addDays(new Date(), bookingSettings.max_advance_days);
+    }
+    return undefined;
+  }, [bookingSettings?.max_advance_days]);
+
+  // Determine no slots reason
+  const noSlotsReason = useMemo(() => {
+    if (!selectedProfessional || !selectedDate) return null;
+    if (professionalSchedule === null) return 'schedule_not_configured';
+    if (professionalSchedule && !professionalSchedule.is_available) return 'not_working';
+    if (professionalBlocks.some((b: { is_all_day?: boolean }) => b.is_all_day)) return 'blocked';
+    if (selectedDate.toDateString() === new Date().toDateString()) return 'today_passed';
+    return 'fully_booked';
+  }, [selectedProfessional, selectedDate, professionalSchedule, professionalBlocks]);
+
+  // Get no slots message
+  const getNoSlotsMessage = () => {
+    switch (noSlotsReason) {
+      case 'not_working': return 'Profissional não trabalha neste dia da semana';
+      case 'schedule_not_configured': return 'Horários não configurados para este profissional';
+      case 'blocked': return 'Profissional indisponível nesta data';
+      case 'today_passed': return 'Nenhum horário disponível para hoje';
+      default: return 'Nenhum horário disponível para esta data';
+    }
+  };
+
+  // Generate time slots based on professional schedule (same logic as admin)
+  const availableSlots = useMemo(() => {
+    // If professional doesn't work this day or has all-day block
+    if (!professionalSchedule || !professionalSchedule.is_available) {
+      return [];
+    }
+    if (professionalBlocks.some((b: { is_all_day?: boolean }) => b.is_all_day)) {
+      return [];
+    }
+    if (!selectedDate || !selectedService) return [];
+
+    const slots: string[] = [];
+    const now = new Date();
     
-    generateSlots();
-  }, [selectedDate, selectedProfessional, selectedService]);
+    // Use slot interval from settings or default to 30
+    const slotInterval = bookingSettings?.slot_interval_minutes || 30;
+    
+    // Work hours from professional schedule
+    const workStart = timeToMinutes(professionalSchedule.start_time);
+    const workEnd = timeToMinutes(professionalSchedule.end_time);
+    
+    // Break time (if exists)
+    const breakStart = professionalSchedule.break_start 
+      ? timeToMinutes(professionalSchedule.break_start) : null;
+    const breakEnd = professionalSchedule.break_end 
+      ? timeToMinutes(professionalSchedule.break_end) : null;
+    
+    // Convert professional blocks to intervals
+    const blockedIntervals = professionalBlocks
+      .filter((b: { is_all_day?: boolean; start_time?: string; end_time?: string }) => 
+        !b.is_all_day && b.start_time && b.end_time)
+      .map((b: { start_time: string; end_time: string }) => ({
+        start: timeToMinutes(b.start_time),
+        end: timeToMinutes(b.end_time)
+      }));
+    
+    // Convert existing bookings to occupied intervals
+    const occupiedIntervals = existingBookings.map((booking: { start_time: string; end_time: string }) => ({
+      start: timeToMinutes(booking.start_time),
+      end: timeToMinutes(booking.end_time)
+    }));
+
+    // Service duration for conflict check
+    const serviceDuration = selectedService.duration_minutes || 30;
+    const serviceBuffer = selectedService.buffer_minutes || 0;
+    const totalServiceTime = serviceDuration + serviceBuffer;
+    
+    // Generate slots within work hours
+    for (let minutes = workStart; minutes <= workEnd - serviceDuration; minutes += slotInterval) {
+      const slotEnd = minutes + totalServiceTime;
+      
+      // 1. Apply min_advance_hours filter
+      const minAdvanceHours = bookingSettings?.min_advance_hours ?? 2;
+      const minAdvanceMs = minAdvanceHours * 60 * 60 * 1000;
+      
+      const slotDateTime = new Date(selectedDate);
+      slotDateTime.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
+      
+      const minAllowedDateTime = new Date(now.getTime() + minAdvanceMs);
+      if (slotDateTime <= minAllowedDateTime) continue;
+      
+      // 2. Check if falls within break time
+      if (breakStart !== null && breakEnd !== null) {
+        if (minutes < breakEnd && slotEnd > breakStart) continue;
+      }
+      
+      // 3. Check professional blocks
+      const hasBlockConflict = blockedIntervals.some(
+        (block: { start: number; end: number }) => minutes < block.end && slotEnd > block.start
+      );
+      if (hasBlockConflict) continue;
+      
+      // 4. Check existing bookings
+      const hasBookingConflict = occupiedIntervals.some(
+        (interval: { start: number; end: number }) => minutes < interval.end && slotEnd > interval.start
+      );
+      if (hasBookingConflict) continue;
+      
+      // Valid slot!
+      const hour = Math.floor(minutes / 60);
+      const min = minutes % 60;
+      slots.push(`${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`);
+    }
+    
+    return slots;
+  }, [selectedDate, selectedService, professionalSchedule, professionalBlocks, existingBookings, bookingSettings?.slot_interval_minutes, bookingSettings?.min_advance_hours, timeToMinutes]);
+
+  // Loading state for slots
+  const loadingSlots = loadingSchedule || loadingBookings;
 
   const formatPrice = (price: number, priceType: 'fixed' | 'from') => {
     const formatted = new Intl.NumberFormat('pt-BR', {
@@ -673,7 +831,10 @@ const BookingPage = () => {
                     setSelectedDate(date);
                     setSelectedTime(null);
                   }}
-                  disabled={(date) => isBefore(date, startOfDay(new Date())) || isBefore(date, addDays(new Date(), -1))}
+                  disabled={(date) => 
+                    isBefore(date, startOfDay(new Date())) || 
+                    (maxDate ? isAfter(date, maxDate) : false)
+                  }
                   locale={ptBR}
                   className="rounded-md border pointer-events-auto"
                 />
@@ -699,17 +860,20 @@ const BookingPage = () => {
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
                   </div>
                 ) : availableSlots.length === 0 ? (
-                  <p className="text-muted-foreground text-sm">Nenhum horário disponível</p>
+                  <div className="flex items-start gap-2 text-muted-foreground text-sm bg-muted/50 p-3 rounded-lg">
+                    <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                    <span>{getNoSlotsMessage()}</span>
+                  </div>
                 ) : (
                   <div className="grid grid-cols-4 gap-2">
-                    {availableSlots.filter(s => s.available).map(slot => (
+                    {availableSlots.map(time => (
                       <Button
-                        key={slot.time}
-                        variant={selectedTime === slot.time ? "default" : "outline"}
+                        key={time}
+                        variant={selectedTime === time ? "default" : "outline"}
                         size="sm"
-                        onClick={() => setSelectedTime(slot.time)}
+                        onClick={() => setSelectedTime(time)}
                       >
-                        {slot.time}
+                        {time}
                       </Button>
                     ))}
                   </div>

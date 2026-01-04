@@ -52,27 +52,48 @@ export function useTutorialViewsStats() {
   return useQuery({
     queryKey: ['tutorial-views', 'stats'],
     queryFn: async () => {
-      // Buscar visualizações com detalhes
+      // Buscar visualizações com detalhes do tutorial (sem JOIN em profiles)
       const { data: views, error } = await supabase
         .from('tutorial_views')
         .select(`
           *,
-          tutorials:tutorial_id (title, category_id),
-          profiles:user_id (full_name, email)
+          tutorials:tutorial_id (title, category_id)
         `)
         .order('viewed_at', { ascending: false });
       
       if (error) throw error;
       
+      // Buscar perfis separadamente para evitar problemas de RLS
+      const userIds = [...new Set(views?.map(v => v.user_id) || [])];
+      let profileMap: Record<string, { full_name: string | null; email: string | null }> = {};
+      
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .in('id', userIds);
+        
+        profileMap = (profiles || []).reduce((acc, p) => {
+          acc[p.id] = { full_name: p.full_name, email: p.email };
+          return acc;
+        }, {} as Record<string, { full_name: string | null; email: string | null }>);
+      }
+      
+      // Enriquecer views com dados de perfis
+      const enrichedViews = views?.map(v => ({
+        ...v,
+        profiles: profileMap[v.user_id] || null
+      })) || [];
+      
       // Calcular estatísticas
-      const totalViews = views?.length || 0;
-      const uniqueUsers = new Set(views?.map(v => v.user_id)).size;
-      const completedViews = views?.filter(v => v.completed).length || 0;
+      const totalViews = enrichedViews.length;
+      const uniqueUsers = new Set(enrichedViews.map(v => v.user_id)).size;
+      const completedViews = enrichedViews.filter(v => v.completed).length;
       const completionRate = totalViews > 0 ? Math.round((completedViews / totalViews) * 100) : 0;
       
       // Agrupar por tutorial
       const viewsByTutorial: Record<string, { count: number; completed: number; title: string }> = {};
-      views?.forEach(view => {
+      enrichedViews.forEach(view => {
         const tutorialId = view.tutorial_id;
         if (!viewsByTutorial[tutorialId]) {
           viewsByTutorial[tutorialId] = {
@@ -93,7 +114,7 @@ export function useTutorialViewsStats() {
         completedViews,
         completionRate,
         viewsByTutorial,
-        recentViews: views?.slice(0, 50) || []
+        recentViews: enrichedViews.slice(0, 50)
       };
     }
   });

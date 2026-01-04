@@ -1,24 +1,31 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Função para converter ArrayBuffer para base64 de forma segura
-function arrayBufferToBase64(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer);
-  let binary = '';
-  const chunkSize = 32768; // Processa em chunks para evitar stack overflow
-  
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
-    binary += String.fromCharCode.apply(null, Array.from(chunk));
-  }
-  
-  return btoa(binary);
-}
+// Mapeamento de vozes ElevenLabs antigas para OpenAI (compatibilidade)
+const voiceMapping: Record<string, string> = {
+  'onwK4e9ZLuTAKqWW03F9': 'echo',     // Daniel → Echo
+  'pFZP5JQG7iQjIQuC4Bku': 'nova',     // Lily → Nova
+  'CwhRBWXzGAHq8TQ4Fs17': 'onyx',     // Roger → Onyx
+  'EXAVITQu4vr4xnSDxMaL': 'shimmer',  // Sarah → Shimmer
+  'JBFqnCBsd6RMkjVDRZzb': 'onyx',     // George → Onyx
+  'FGY2WhTYpPnrIDTdsKH5': 'nova',     // Laura → Nova
+  'IKne3meq5aSn9XLyUdCD': 'echo',     // Charlie → Echo
+  'nPczCjzI2devNBz1zQrb': 'onyx',     // Brian → Onyx
+  'XrExE9yKIg1WjnnlVkGX': 'shimmer',  // Matilda → Shimmer
+  'cgSgspJ2msm6clMCkdW9': 'nova',     // Jessica → Nova
+  'cjVigY5qzO86Huf0OWal': 'echo',     // Eric → Echo
+  'iP95p4xoKVk53GoZ742B': 'echo',     // Chris → Echo
+  'ORgG8rwdAiMYRug8RJwR': 'nova',     // Ana Alice → Nova
+};
+
+// Vozes OpenAI válidas
+const validOpenAIVoices = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'];
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -34,7 +41,7 @@ serve(async (req) => {
     }
 
     // Determinar qual API key usar
-    let apiKey = Deno.env.get('ELEVENLABS_API_KEY'); // Fallback global
+    let apiKey = Deno.env.get('OPENAI_API_KEY'); // Fallback global
     let usingStoreKey = false;
 
     // Se storeId foi fornecido, tentar buscar API key própria do lojista
@@ -46,64 +53,72 @@ serve(async (req) => {
         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
       );
 
-      const { data: configData, error: configError } = await supabaseAdmin
-        .from('password_call_config')
-        .select('elevenlabs_api_key')
-        .eq('store_id', storeId)
+      // Primeiro tentar buscar da tabela stores (openai_api_key)
+      const { data: storeData, error: storeError } = await supabaseAdmin
+        .from('stores')
+        .select('openai_api_key')
+        .eq('id', storeId)
         .maybeSingle();
 
-      if (configError) {
-        console.error('[TTS] Erro ao buscar config do lojista:', configError);
-      } else if (configData?.elevenlabs_api_key) {
-        apiKey = configData.elevenlabs_api_key;
+      if (storeError) {
+        console.error('[TTS] Erro ao buscar store:', storeError);
+      } else if (storeData?.openai_api_key) {
+        apiKey = storeData.openai_api_key;
         usingStoreKey = true;
-        console.log(`[TTS] Usando API key própria do lojista`);
+        console.log(`[TTS] Usando API key própria do lojista (stores)`);
       } else {
         console.log(`[TTS] Lojista não tem API key própria, usando global`);
       }
     }
     
     if (!apiKey) {
-      console.error("ELEVENLABS_API_KEY não configurada no servidor");
-      throw new Error("ELEVENLABS_API_KEY não configurada. Configure nas secrets do Supabase.");
+      console.error("OPENAI_API_KEY não configurada no servidor");
+      throw new Error("OPENAI_API_KEY não configurada. Configure nas secrets do Supabase.");
     }
 
-    const selectedVoiceId = voiceId || "ORgG8rwdAiMYRug8RJwR"; // Ana Alice como padrão (voz feminina brasileira)
+    // Mapear voz: se for ID do ElevenLabs, converte para OpenAI
+    let selectedVoice = 'alloy'; // Voz padrão OpenAI
     
-    console.log(`[TTS] Gerando áudio para: "${text.substring(0, 50)}..." com voz: ${selectedVoiceId} (key: ${usingStoreKey ? 'lojista' : 'global'})`);
+    if (voiceId) {
+      if (validOpenAIVoices.includes(voiceId)) {
+        // Já é uma voz OpenAI válida
+        selectedVoice = voiceId;
+      } else if (voiceMapping[voiceId]) {
+        // É um ID do ElevenLabs, converter
+        selectedVoice = voiceMapping[voiceId];
+        console.log(`[TTS] Convertendo voz ElevenLabs ${voiceId} para OpenAI ${selectedVoice}`);
+      }
+    }
+    
+    console.log(`[TTS] Gerando áudio para: "${text.substring(0, 50)}..." com voz: ${selectedVoice} (key: ${usingStoreKey ? 'lojista' : 'global'})`);
 
     const response = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}`,
+      'https://api.openai.com/v1/audio/speech',
       {
         method: "POST",
         headers: {
-          "xi-api-key": apiKey,
+          "Authorization": `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          text,
-          model_id: "eleven_multilingual_v2",
-          output_format: "mp3_44100_128",
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.75,
-            style: 0.5,
-            use_speaker_boost: true,
-          },
+          model: "tts-1",
+          input: text,
+          voice: selectedVoice,
+          response_format: "mp3",
         }),
       }
     );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("ElevenLabs API error:", response.status, errorText);
+      console.error("OpenAI API error:", response.status, errorText);
       
       // Retornar código específico para rate limit (429)
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ 
             error: "rate_limit", 
-            message: "ElevenLabs está ocupado. Use Web Speech como alternativa.",
+            message: "OpenAI TTS está ocupado. Use Web Speech como alternativa.",
             fallback: "web_speech"
           }),
           {
@@ -113,12 +128,12 @@ serve(async (req) => {
         );
       }
       
-      throw new Error(`ElevenLabs API error: ${response.status} - ${errorText}`);
+      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
     }
 
     // Converter buffer para base64 de forma segura
     const audioBuffer = await response.arrayBuffer();
-    const base64Audio = arrayBufferToBase64(audioBuffer);
+    const base64Audio = base64Encode(audioBuffer);
 
     console.log(`[TTS] Áudio gerado com sucesso. Tamanho: ${audioBuffer.byteLength} bytes`);
 

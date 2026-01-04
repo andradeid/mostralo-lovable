@@ -60,6 +60,7 @@ const ProfessionalsPage = lazy(() => import("@/pages/admin/ProfessionalsPage"));
 const BookingServicesPage = lazy(() => import("@/pages/admin/BookingServicesPage"));
 const ProfessionalAvailabilityPage = lazy(() => import("@/pages/admin/ProfessionalAvailabilityPage"));
 const BookingSettingsPage = lazy(() => import("@/pages/admin/BookingSettingsPage"));
+const BookingReportsPage = lazy(() => import("@/pages/admin/BookingReportsPage"));
 const CrossSellRulesPage = lazy(() => import("@/pages/admin/CrossSellRulesPage"));
 const UpsellCrossSellStatsPage = lazy(() => import("@/pages/admin/UpsellCrossSellStatsPage"));
 const StoreDigitalCardsPage = lazy(() => import("@/pages/store-admin/StoreDigitalCardsPage"));
@@ -532,6 +533,13 @@ export const storeAdminRoutes = (
       <ProtectedRoute allowedRoles={['store_admin']}>
         <AdminLayout pageTitle="Configurações de Agendamento">
           <LazyRoute><BookingSettingsPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/booking/relatorios" element={
+      <ProtectedRoute allowedRoles={['store_admin']}>
+        <AdminLayout pageTitle="Relatórios de Agendamentos">
+          <LazyRoute><BookingReportsPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

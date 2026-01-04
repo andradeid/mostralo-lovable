@@ -8024,6 +8024,150 @@ export type Database = {
           },
         ]
       }
+      tutorial_categories: {
+        Row: {
+          cover_image_url: string | null
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          featured_video_url: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          cover_image_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          featured_video_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          cover_image_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          featured_video_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      tutorial_views: {
+        Row: {
+          completed: boolean | null
+          id: string
+          store_id: string | null
+          tutorial_id: string
+          updated_at: string | null
+          user_id: string
+          viewed_at: string | null
+          watch_time_seconds: number | null
+        }
+        Insert: {
+          completed?: boolean | null
+          id?: string
+          store_id?: string | null
+          tutorial_id: string
+          updated_at?: string | null
+          user_id: string
+          viewed_at?: string | null
+          watch_time_seconds?: number | null
+        }
+        Update: {
+          completed?: boolean | null
+          id?: string
+          store_id?: string | null
+          tutorial_id?: string
+          updated_at?: string | null
+          user_id?: string
+          viewed_at?: string | null
+          watch_time_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tutorial_views_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tutorial_views_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tutorial_views_tutorial_id_fkey"
+            columns: ["tutorial_id"]
+            isOneToOne: false
+            referencedRelation: "tutorials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tutorials: {
+        Row: {
+          category_id: string | null
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          duration_minutes: number | null
+          id: string
+          is_active: boolean | null
+          is_featured: boolean | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string | null
+          youtube_url: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string | null
+          youtube_url: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string | null
+          youtube_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tutorials_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "tutorial_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       upsell_statistics: {
         Row: {
           accepted_count: number | null

@@ -195,9 +195,8 @@ export const speakWithWebSpeech = (text: string): Promise<void> => {
  * Reproduz áudio usando OpenAI TTS via Edge Function
  * A API key é gerenciada de forma segura no servidor (Supabase Secrets)
  * Se o lojista tiver API key própria, ela será usada pelo servidor
- * Nota: Mantém compatibilidade com voiceId do ElevenLabs (converte automaticamente no servidor)
  */
-export const speakWithElevenLabs = async (
+export const speakWithOpenAI = async (
   text: string,
   voiceId?: string | null,
   storeId?: string | null
@@ -292,27 +291,13 @@ export const speakWithElevenLabs = async (
 };
 
 /**
- * Retorna mensagem legível para códigos de erro de mídia
- */
-const getMediaErrorMessage = (code: number): string => {
-  switch (code) {
-    case 1: return 'Reprodução abortada pelo usuário';
-    case 2: return 'Erro de rede ao carregar áudio';
-    case 3: return 'Erro ao decodificar áudio';
-    case 4: return 'Formato de áudio não suportado';
-    default: return 'Erro desconhecido';
-  }
-};
-
-/**
  * Função principal para reproduzir áudio de chamada
- * Nota: ElevenLabs agora usa API key segura no servidor
  * Se storeId fornecido, usa API key do lojista se existir
  */
 export const playPasswordCallAudio = async (
   audioType: AudioType,
   text: string,
-  elevenLabsVoiceId?: string | null,
+  voiceId?: string | null,
   storeId?: string | null
 ): Promise<void> => {
   console.log('[Audio] Reproduzindo tipo:', audioType, 'StoreId:', storeId || 'N/A');
@@ -325,7 +310,8 @@ export const playPasswordCallAudio = async (
       await speakWithWebSpeech(text);
       break;
     case 'elevenlabs':
-      await speakWithElevenLabs(text, elevenLabsVoiceId, storeId);
+    case 'openai':
+      await speakWithOpenAI(text, voiceId, storeId);
       break;
   }
 };
@@ -343,4 +329,5 @@ export const openAIVoices = [
 ];
 
 // Alias para compatibilidade com código antigo
+export const speakWithElevenLabs = speakWithOpenAI;
 export const elevenLabsVoices = openAIVoices;

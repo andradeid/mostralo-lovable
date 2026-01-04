@@ -80,6 +80,7 @@ const DiagnosticoDeliveryPage = lazy(() => import("@/pages/public/DiagnosticoDel
 const DiagnosticoServicosPage = lazy(() => import("@/pages/public/DiagnosticoServicosPage"));
 const AboutPage = lazy(() => import("@/pages/public/AboutPage"));
 const GestaoTotalPage = lazy(() => import("@/pages/public/GestaoTotalPage"));
+const Gestao360Page = lazy(() => import("@/pages/public/Gestao360Page"));
 
 export const publicRoutes = (
   <>
@@ -128,6 +129,7 @@ export const publicRoutes = (
       <Route path="/diagnostico-servicos" element={<LazyRoute><DiagnosticoServicosPage /></LazyRoute>} />
       <Route path="/sobre" element={<LazyRoute><AboutPage /></LazyRoute>} />
       <Route path="/gestao-total" element={<LazyRoute><GestaoTotalPage /></LazyRoute>} />
+      <Route path="/gestao-360" element={<LazyRoute><Gestao360Page /></LazyRoute>} />
     <Route path="/sitemap.xml" element={<LazyRoute><Sitemap /></LazyRoute>} />
     <Route path="/navegar" element={<LazyRoute><NavigatePage /></LazyRoute>} />
     

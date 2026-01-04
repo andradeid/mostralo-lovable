@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type AudioType = 'beep' | 'web_speech' | 'elevenlabs';
+export type AudioType = 'beep' | 'web_speech' | 'elevenlabs' | 'openai';
 export type VoiceTextTemplate = 'simple' | 'counter' | 'pickup';
 
 const callTypeLabels: Record<string, string> = {
@@ -192,32 +192,33 @@ export const speakWithWebSpeech = (text: string): Promise<void> => {
 };
 
 /**
- * Reproduz áudio usando ElevenLabs via Edge Function
+ * Reproduz áudio usando OpenAI TTS via Edge Function
  * A API key é gerenciada de forma segura no servidor (Supabase Secrets)
  * Se o lojista tiver API key própria, ela será usada pelo servidor
+ * Nota: Mantém compatibilidade com voiceId do ElevenLabs (converte automaticamente no servidor)
  */
 export const speakWithElevenLabs = async (
   text: string,
   voiceId?: string | null,
   storeId?: string | null
 ): Promise<void> => {
-  console.log('[ElevenLabs] Iniciando síntese:', text, 'Voice:', voiceId || 'padrão', 'StoreId:', storeId || 'N/A');
+  console.log('[OpenAI TTS] Iniciando síntese:', text, 'Voice:', voiceId || 'alloy', 'StoreId:', storeId || 'N/A');
   
   const { data, error } = await supabase.functions.invoke('text-to-speech', {
-    body: { text, voiceId: voiceId || 'onwK4e9ZLuTAKqWW03F9', storeId }
+    body: { text, voiceId: voiceId || 'alloy', storeId }
   });
 
   // Verificar se é erro de rate limit - usar fallback Web Speech
   if (error || data?.error === 'rate_limit' || data?.fallback === 'web_speech') {
-    console.warn('[ElevenLabs] Rate limit ou erro, usando Web Speech como fallback');
+    console.warn('[OpenAI TTS] Rate limit ou erro, usando Web Speech como fallback');
     await speakWithWebSpeech(text);
     return;
   }
 
   if (data?.error) {
-    console.error('[ElevenLabs] Erro da API:', data.error);
+    console.error('[OpenAI TTS] Erro da API:', data.error);
     // Fallback para Web Speech em caso de erro
-    console.warn('[ElevenLabs] Usando Web Speech como fallback');
+    console.warn('[OpenAI TTS] Usando Web Speech como fallback');
     await speakWithWebSpeech(text);
     return;
   }
@@ -225,23 +226,23 @@ export const speakWithElevenLabs = async (
   const { audioContent } = data;
 
   if (!audioContent) {
-    console.warn('[ElevenLabs] Sem áudio retornado, usando Web Speech');
+    console.warn('[OpenAI TTS] Sem áudio retornado, usando Web Speech');
     await speakWithWebSpeech(text);
     return;
   }
 
   // Validar tamanho do áudio
   const audioSize = audioContent.length;
-  console.log('[ElevenLabs] Áudio recebido. Tamanho base64:', audioSize, 'caracteres');
+  console.log('[OpenAI TTS] Áudio recebido. Tamanho base64:', audioSize, 'caracteres');
   
   if (audioSize < 100) {
-    console.warn('[ElevenLabs] Áudio muito pequeno, usando Web Speech');
+    console.warn('[OpenAI TTS] Áudio muito pequeno, usando Web Speech');
     await speakWithWebSpeech(text);
     return;
   }
 
   // Converter base64 para ArrayBuffer usando AudioContext (mais compatível)
-  console.log('[ElevenLabs] Decodificando base64 para ArrayBuffer...');
+  console.log('[OpenAI TTS] Decodificando base64 para ArrayBuffer...');
   const binaryString = atob(audioContent);
   const bytes = new Uint8Array(binaryString.length);
   for (let i = 0; i < binaryString.length; i++) {
@@ -251,17 +252,17 @@ export const speakWithElevenLabs = async (
   // Usar AudioContext para reprodução (evita restrições de URL)
   const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
   if (!AudioContextClass) {
-    console.warn('[ElevenLabs] AudioContext não suportado, usando Web Speech');
+    console.warn('[OpenAI TTS] AudioContext não suportado, usando Web Speech');
     await speakWithWebSpeech(text);
     return;
   }
   
   const audioContext = new AudioContextClass();
-  console.log('[ElevenLabs] AudioContext criado, decodificando áudio...');
+  console.log('[OpenAI TTS] AudioContext criado, decodificando áudio...');
   
   try {
     const audioBuffer = await audioContext.decodeAudioData(bytes.buffer);
-    console.log('[ElevenLabs] Áudio decodificado. Duração:', audioBuffer.duration.toFixed(2), 'segundos');
+    console.log('[OpenAI TTS] Áudio decodificado. Duração:', audioBuffer.duration.toFixed(2), 'segundos');
     
     const source = audioContext.createBufferSource();
     source.buffer = audioBuffer;
@@ -269,22 +270,22 @@ export const speakWithElevenLabs = async (
     
     return new Promise<void>((resolve, reject) => {
       source.onended = () => {
-        console.log('[ElevenLabs] Reprodução finalizada com sucesso');
+        console.log('[OpenAI TTS] Reprodução finalizada com sucesso');
         audioContext.close();
         resolve();
       };
       
       try {
         source.start(0);
-        console.log('[ElevenLabs] Reprodução iniciada via AudioContext');
+        console.log('[OpenAI TTS] Reprodução iniciada via AudioContext');
       } catch (playError: any) {
-        console.error('[ElevenLabs] Erro ao iniciar reprodução:', playError);
+        console.error('[OpenAI TTS] Erro ao iniciar reprodução:', playError);
         audioContext.close();
         reject(new Error(`Falha ao reproduzir: ${playError.message || 'Erro desconhecido'}`));
       }
     });
   } catch (decodeError: any) {
-    console.error('[ElevenLabs] Erro ao decodificar áudio, usando Web Speech:', decodeError);
+    console.error('[OpenAI TTS] Erro ao decodificar áudio, usando Web Speech:', decodeError);
     audioContext.close();
     await speakWithWebSpeech(text);
   }
@@ -329,23 +330,17 @@ export const playPasswordCallAudio = async (
   }
 };
 
-// Vozes ElevenLabs organizadas por tipo
-// Modelo multilingual_v2 detecta português automaticamente
-export const elevenLabsVoices = [
-  // === VOZES RECOMENDADAS PARA PT-BR ===
-  // Estas vozes funcionam bem com português brasileiro usando o modelo multilingual_v2
-  { id: 'onwK4e9ZLuTAKqWW03F9', name: 'Daniel', description: '🇧🇷 Masculina clara (recomendada)', category: 'recomendada' },
-  { id: 'pFZP5JQG7iQjIQuC4Bku', name: 'Lily', description: '🇧🇷 Feminina suave (recomendada)', category: 'recomendada' },
-  { id: 'CwhRBWXzGAHq8TQ4Fs17', name: 'Roger', description: '🇧🇷 Masculina profunda (recomendada)', category: 'recomendada' },
-  { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah', description: '🇧🇷 Feminina profissional (recomendada)', category: 'recomendada' },
-  
-  // === OUTRAS VOZES MULTILÍNGUES ===
-  { id: 'JBFqnCBsd6RMkjVDRZzb', name: 'George', description: 'Masculina madura', category: 'multilingual' },
-  { id: 'FGY2WhTYpPnrIDTdsKH5', name: 'Laura', description: 'Feminina jovem', category: 'multilingual' },
-  { id: 'IKne3meq5aSn9XLyUdCD', name: 'Charlie', description: 'Masculina casual', category: 'multilingual' },
-  { id: 'nPczCjzI2devNBz1zQrb', name: 'Brian', description: 'Masculina narradora', category: 'multilingual' },
-  { id: 'XrExE9yKIg1WjnnlVkGX', name: 'Matilda', description: 'Feminina calorosa', category: 'multilingual' },
-  { id: 'cgSgspJ2msm6clMCkdW9', name: 'Jessica', description: 'Feminina expressiva', category: 'multilingual' },
-  { id: 'cjVigY5qzO86Huf0OWal', name: 'Eric', description: 'Masculina amigável', category: 'multilingual' },
-  { id: 'iP95p4xoKVk53GoZ742B', name: 'Chris', description: 'Masculina casual', category: 'multilingual' },
+// Vozes OpenAI TTS
+// Todas funcionam bem com português brasileiro
+export const openAIVoices = [
+  // === VOZES RECOMENDADAS ===
+  { id: 'alloy', name: 'Alloy', description: '🎯 Neutra e versátil (recomendada)', category: 'recomendada' },
+  { id: 'nova', name: 'Nova', description: '🇧🇷 Feminina suave (recomendada)', category: 'recomendada' },
+  { id: 'onyx', name: 'Onyx', description: '🎙️ Masculina profunda', category: 'masculina' },
+  { id: 'echo', name: 'Echo', description: '🎧 Masculina clara', category: 'masculina' },
+  { id: 'fable', name: 'Fable', description: '📖 Narradora expressiva', category: 'feminina' },
+  { id: 'shimmer', name: 'Shimmer', description: '✨ Feminina calorosa', category: 'feminina' },
 ];
+
+// Alias para compatibilidade com código antigo
+export const elevenLabsVoices = openAIVoices;

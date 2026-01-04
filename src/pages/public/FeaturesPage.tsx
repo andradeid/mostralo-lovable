@@ -6,7 +6,7 @@ import {
   Link2, Image, AlertTriangle, Check, ArrowRight, Star, Shield, Database,
   Heart, Clock, Target, Zap, TrendingUp, Bell, MapPin, CreditCard, Copy, FileText,
   Wallet, PieChart, ArrowUpDown, Filter, RefreshCw, Monitor, QrCode, Code, Volume2,
-  ShoppingCart, ClipboardList, UtensilsCrossed
+  ShoppingCart, ClipboardList, UtensilsCrossed, PlayCircle, GraduationCap
 } from 'lucide-react';
 import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
 import { toast } from 'sonner';
@@ -43,6 +43,7 @@ const sections = [
   { id: 'banners', title: 'Banners Promocionais', icon: Image },
   { id: 'material-marketing', title: 'Material de Marketing', icon: QrCode },
   { id: 'scripts', title: 'Scripts Personalizados', icon: Code },
+  { id: 'tutoriais', title: '🎓 Academia de Tutoriais', icon: PlayCircle },
 ];
 
 const whatsappTexts: Record<string, string> = {
@@ -387,6 +388,23 @@ const whatsappTexts: Record<string, string> = {
 • Zero erros de anotação
 • Visual moderno de grandes redes
 • Ideal para fast-food, padarias, lanchonetes`,
+
+  'tutoriais': `🎓 *ACADEMIA DE TUTORIAIS - CAPACITAÇÃO PREMIUM*
+
+✅ Biblioteca de vídeos organizados por módulos
+✅ Interface estilo Netflix - moderna e intuitiva
+✅ Aprenda no seu ritmo, quando quiser
+✅ Novos conteúdos adicionados constantemente
+✅ Sistema de favoritos para acesso rápido
+✅ Notificações quando novos tutoriais são lançados
+✅ Pesquisa e filtros por categoria
+
+📊 *Benefícios:*
+• Onboarding acelerado - domine o sistema em dias
+• Suporte 24/7 em formato de vídeo
+• Atualizações explicadas em tutoriais dedicados
+• Acesso ilimitado a todo o conteúdo
+• Acompanhamento de progresso`,
 
   'pdv': `🛒 *PDV - PONTO DE VENDA* ⭐ PRESENCIAL
 

@@ -616,6 +616,7 @@ export function AdminSidebar() {
           { title: 'Disponibilidade', url: '/dashboard/booking/disponibilidade', icon: Clock, group: 'Agendamento' },
           { title: 'Profissionais', url: '/dashboard/booking/professionals', icon: Users, group: 'Agendamento' },
           { title: 'Serviços', url: '/dashboard/booking/services', icon: Tag, group: 'Agendamento' },
+          { title: 'Avaliações', url: '/dashboard/booking/avaliacoes', icon: Crown, group: 'Agendamento' },
           { title: 'Relatórios', url: '/dashboard/booking/relatorios', icon: BarChart3, group: 'Agendamento' },
           { title: 'Configurações', url: '/dashboard/booking/configuracoes', icon: Settings, group: 'Agendamento' },
           { title: 'Cartões da Equipe', url: '/dashboard/cartoes-equipe', icon: CreditCard, group: 'Agendamento' }

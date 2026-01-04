@@ -10,6 +10,7 @@ const ProfessionalCommissions = lazy(() => import("@/pages/professional/Professi
 const ProfessionalSchedule = lazy(() => import("@/pages/professional/ProfessionalSchedule"));
 const ProfessionalBlocks = lazy(() => import("@/pages/professional/ProfessionalBlocks"));
 const ProfessionalProfile = lazy(() => import("@/pages/professional/ProfessionalProfile"));
+const ProfessionalPerformance = lazy(() => import("@/pages/professional/ProfessionalPerformance"));
 
 export const professionalRoutes = (
   <>
@@ -41,6 +42,11 @@ export const professionalRoutes = (
     <Route path="/profissional/perfil" element={
       <ProtectedRoute allowedRoles={["professional"]}>
         <ProfessionalLayout><LazyRoute><ProfessionalProfile /></LazyRoute></ProfessionalLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/profissional/performance" element={
+      <ProtectedRoute allowedRoles={["professional"]}>
+        <ProfessionalLayout><LazyRoute><ProfessionalPerformance /></LazyRoute></ProfessionalLayout>
       </ProtectedRoute>
     } />
   </>

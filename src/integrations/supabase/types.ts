@@ -481,6 +481,87 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_reviews: {
+        Row: {
+          booking_id: string
+          created_at: string | null
+          customer_id: string | null
+          expires_at: string | null
+          feedback: string | null
+          id: string
+          is_public: boolean | null
+          professional_id: string
+          rating: number | null
+          reviewed_at: string | null
+          store_id: string
+          token: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string | null
+          customer_id?: string | null
+          expires_at?: string | null
+          feedback?: string | null
+          id?: string
+          is_public?: boolean | null
+          professional_id: string
+          rating?: number | null
+          reviewed_at?: string | null
+          store_id: string
+          token: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string | null
+          customer_id?: string | null
+          expires_at?: string | null
+          feedback?: string | null
+          id?: string
+          is_public?: boolean | null
+          professional_id?: string
+          rating?: number | null
+          reviewed_at?: string | null
+          store_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_reviews_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_reviews_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_reviews_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_reviews_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_services: {
         Row: {
           buffer_minutes: number | null

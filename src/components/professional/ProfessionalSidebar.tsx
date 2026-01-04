@@ -5,7 +5,8 @@ import {
   Clock, 
   CalendarX, 
   User, 
-  LogOut 
+  LogOut,
+  BarChart3
 } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { PreloadLink } from "@/components/PreloadLink";
@@ -39,6 +40,7 @@ export function ProfessionalSidebar({
   const menuItems = [
     { icon: Home, title: "Dashboard", path: "/profissional" },
     { icon: Calendar, title: "Minha Agenda", path: "/profissional/agenda" },
+    { icon: BarChart3, title: "Performance", path: "/profissional/performance" },
     { icon: DollarSign, title: "Minhas Comissões", path: "/profissional/comissoes" },
     { icon: Clock, title: "Meus Horários", path: "/profissional/horarios" },
     { icon: CalendarX, title: "Bloqueios", path: "/profissional/bloqueios" },

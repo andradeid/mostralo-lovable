@@ -244,52 +244,52 @@ export function FAQ360() {
             <div ref={selosRef} className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
               {/* Selo LGPD */}
               <div 
-                className="p-5 rounded-xl bg-slate-900/50 border border-slate-700/50 text-center hover:border-purple-500/30 transition-all"
+                className="group p-5 rounded-xl bg-slate-900/50 border border-slate-700/50 text-center hover:border-purple-500/50 hover:bg-slate-800/70 hover:scale-105 hover:shadow-[0_0_25px_rgba(168,85,247,0.3)] transition-all duration-300 ease-out cursor-pointer"
                 style={{
                   opacity: selosVisible ? 1 : 0,
-                  transform: selosVisible ? 'translateY(0)' : 'translateY(20px)',
+                  transform: selosVisible ? (undefined) : 'translateY(20px)',
                   transition: 'opacity 0.6s ease-out, transform 0.6s ease-out',
                   transitionDelay: '0ms'
                 }}
               >
-                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-500/20 to-purple-600/20 flex items-center justify-center">
-                  <Lock className="w-7 h-7 text-purple-400" />
+                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-500/20 to-purple-600/20 flex items-center justify-center group-hover:from-purple-500/40 group-hover:to-purple-600/40 group-hover:scale-110 transition-all duration-300">
+                  <Lock className="w-7 h-7 text-purple-400 group-hover:text-purple-300 transition-colors duration-300" />
                 </div>
-                <h4 className="font-bold text-white mb-2">LGPD Compliance</h4>
+                <h4 className="font-bold text-white mb-2 group-hover:text-purple-100 transition-colors duration-300">LGPD Compliance</h4>
                 <p className="text-sm text-slate-400">Dados dos seus clientes protegidos conforme a lei brasileira</p>
               </div>
 
               {/* Selo ISO 27001 */}
               <div 
-                className="p-5 rounded-xl bg-slate-900/50 border border-slate-700/50 text-center hover:border-purple-500/30 transition-all"
+                className="group p-5 rounded-xl bg-slate-900/50 border border-slate-700/50 text-center hover:border-purple-500/50 hover:bg-slate-800/70 hover:scale-105 hover:shadow-[0_0_25px_rgba(168,85,247,0.3)] transition-all duration-300 ease-out cursor-pointer"
                 style={{
                   opacity: selosVisible ? 1 : 0,
-                  transform: selosVisible ? 'translateY(0)' : 'translateY(20px)',
+                  transform: selosVisible ? (undefined) : 'translateY(20px)',
                   transition: 'opacity 0.6s ease-out, transform 0.6s ease-out',
                   transitionDelay: '150ms'
                 }}
               >
-                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-500/20 to-purple-600/20 flex items-center justify-center">
-                  <ShieldCheck className="w-7 h-7 text-purple-400" />
+                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-500/20 to-purple-600/20 flex items-center justify-center group-hover:from-purple-500/40 group-hover:to-purple-600/40 group-hover:scale-110 transition-all duration-300">
+                  <ShieldCheck className="w-7 h-7 text-purple-400 group-hover:text-purple-300 transition-colors duration-300" />
                 </div>
-                <h4 className="font-bold text-white mb-2">ISO 27001 Ready</h4>
+                <h4 className="font-bold text-white mb-2 group-hover:text-purple-100 transition-colors duration-300">ISO 27001 Ready</h4>
                 <p className="text-sm text-slate-400">Arquitetura pronta para certificação internacional de segurança</p>
               </div>
 
               {/* Selo AWS Partner */}
               <div 
-                className="p-5 rounded-xl bg-slate-900/50 border border-slate-700/50 text-center hover:border-purple-500/30 transition-all"
+                className="group p-5 rounded-xl bg-slate-900/50 border border-slate-700/50 text-center hover:border-purple-500/50 hover:bg-slate-800/70 hover:scale-105 hover:shadow-[0_0_25px_rgba(168,85,247,0.3)] transition-all duration-300 ease-out cursor-pointer"
                 style={{
                   opacity: selosVisible ? 1 : 0,
-                  transform: selosVisible ? 'translateY(0)' : 'translateY(20px)',
+                  transform: selosVisible ? (undefined) : 'translateY(20px)',
                   transition: 'opacity 0.6s ease-out, transform 0.6s ease-out',
                   transitionDelay: '300ms'
                 }}
               >
-                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-500/20 to-purple-600/20 flex items-center justify-center">
-                  <Cloud className="w-7 h-7 text-purple-400" />
+                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-500/20 to-purple-600/20 flex items-center justify-center group-hover:from-purple-500/40 group-hover:to-purple-600/40 group-hover:scale-110 transition-all duration-300">
+                  <Cloud className="w-7 h-7 text-purple-400 group-hover:text-purple-300 transition-colors duration-300" />
                 </div>
-                <h4 className="font-bold text-white mb-2">AWS Partner</h4>
+                <h4 className="font-bold text-white mb-2 group-hover:text-purple-100 transition-colors duration-300">AWS Partner</h4>
                 <p className="text-sm text-slate-400">Infraestrutura de nível global com alta disponibilidade</p>
               </div>
             </div>

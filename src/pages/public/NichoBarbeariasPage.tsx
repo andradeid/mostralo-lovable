@@ -28,7 +28,11 @@ import {
   ChevronDown,
   ChevronUp,
   ChevronLeft,
-  RotateCcw
+  RotateCcw,
+  Settings,
+  BarChart3,
+  CalendarCheck,
+  ClipboardList
 } from 'lucide-react';
 import { useState } from 'react';
 import { format, isBefore, startOfDay, addDays } from 'date-fns';
@@ -184,10 +188,12 @@ const pillars = [
     title: 'Agenda Inteligente 24h',
     subtitle: 'Zero No-Show',
     features: [
-      'Cliente agenda sozinho pelo seu link exclusivo',
-      'Lembretes automáticos via WhatsApp',
+      'Cliente agenda sozinho pelo seu link exclusivo 24/7',
+      'Escolha de serviço, barbeiro, data e horário',
+      'Lembretes automáticos via WhatsApp (X horas antes)',
       'Cobrança de sinal (PIX) para garantir a vaga',
-      'Política de cancelamento configurável'
+      'Bloqueio de agenda (férias, feriados, consultas)',
+      'Intervalos configuráveis (15, 30, 45, 60 min)'
     ],
     color: 'from-orange-500 to-amber-500',
     bgColor: 'bg-orange-500/10'
@@ -714,6 +720,110 @@ const FlowSimulatorSection = () => {
   );
 };
 
+// ============ Booking Features Section (Central de Agendamentos) ============
+const bookingFeatures = [
+  {
+    icon: Calendar,
+    title: 'Calendário Visual',
+    description: 'Visualize todos os agendamentos por dia, semana ou mês. Filtre por barbeiro e veja tudo organizado em um só lugar.',
+    color: 'text-orange-500'
+  },
+  {
+    icon: Clock,
+    title: 'Grade de Disponibilidade',
+    description: 'Veja slots livres (verde), ocupados (vermelho) e bloqueados (laranja) em uma grade visual semanal.',
+    color: 'text-green-500'
+  },
+  {
+    icon: BarChart3,
+    title: 'Relatórios Inteligentes',
+    description: 'Taxa de comparecimento, horários de pico, serviços populares, ranking de barbeiros e tendências.',
+    color: 'text-purple-500'
+  },
+  {
+    icon: Star,
+    title: 'Avaliações Automáticas',
+    description: 'Link de avaliação enviado automaticamente após atendimento. Dashboard com notas e feedbacks.',
+    color: 'text-yellow-500'
+  },
+  {
+    icon: Settings,
+    title: 'Configurações Flexíveis',
+    description: 'Intervalos de 15 a 60 min, antecedência mínima, limite de cancelamento, múltiplos barbeiros.',
+    color: 'text-blue-500'
+  },
+  {
+    icon: MessageSquare,
+    title: 'WhatsApp Automático',
+    description: 'Confirmação, lembrete (X horas antes), pesquisa de satisfação. Templates personalizáveis.',
+    color: 'text-emerald-500'
+  }
+];
+
+const BookingFeaturesSection = () => (
+  <section className="py-20 bg-zinc-900">
+    <div className="container mx-auto px-4">
+      <div className="max-w-4xl mx-auto text-center mb-12">
+        <Badge className="mb-4 bg-pink-500/20 text-pink-400 border-pink-500/30">
+          <CalendarCheck className="w-4 h-4 mr-2" />
+          Central de Agendamentos
+        </Badge>
+        <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+          Muito Mais que uma <span className="text-orange-500">Agenda Online</span>
+        </h2>
+        <p className="text-zinc-400">
+          Um sistema completo de gestão de agendamentos com recursos profissionais para barbearias modernas
+        </p>
+      </div>
+
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        {bookingFeatures.map((feature, index) => (
+          <Card 
+            key={index} 
+            className="bg-zinc-950 border-zinc-800 hover:border-orange-500/50 transition-all duration-300 hover:-translate-y-1"
+          >
+            <CardContent className="p-6">
+              <feature.icon className={`w-10 h-10 ${feature.color} mb-4`} />
+              <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
+              <p className="text-zinc-400 text-sm">{feature.description}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Benefícios destacados */}
+      <div className="mt-12 max-w-4xl mx-auto">
+        <Card className="bg-gradient-to-r from-orange-500/10 to-pink-500/10 border-orange-500/30">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                <ClipboardList className="w-6 h-6 text-orange-500" />
+              </div>
+              <div>
+                <h4 className="text-lg font-semibold text-white mb-2">💡 Benefícios para sua Barbearia</h4>
+                <div className="grid md:grid-cols-3 gap-4 text-sm">
+                  <div className="flex items-center gap-2 text-zinc-300">
+                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <span>Cliente agenda 24/7 sem ligar</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-zinc-300">
+                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <span>Fim dos conflitos de horário</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-zinc-300">
+                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <span>Automação total do processo</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  </section>
+);
+
 // ============ Social Proof & ROI Section ============
 const comparisonData = [
   { feature: 'No-shows por semana', manual: '3 a 5 faltas', mostralo: 'Quase zero (sinal PIX)' },
@@ -721,7 +831,10 @@ const comparisonData = [
   { feature: 'Cálculo de comissões', manual: '3+ horas/semana', mostralo: '1 clique' },
   { feature: 'Vendas esquecidas no bar', manual: 'R$ 200-500/mês', mostralo: 'Tudo registrado' },
   { feature: 'Recuperação de clientes', manual: 'Inexistente', mostralo: 'Automático via WhatsApp' },
-  { feature: 'Relatórios financeiros', manual: 'Planilha confusa', mostralo: 'Tempo real, visual' }
+  { feature: 'Relatórios financeiros', manual: 'Planilha confusa', mostralo: 'Tempo real, visual' },
+  { feature: 'Avaliações de clientes', manual: 'Não existe', mostralo: 'Automático pós-atendimento' },
+  { feature: 'Bloqueio de férias/feriados', manual: 'Esquece e marca cliente', mostralo: 'Agenda bloqueada automaticamente' },
+  { feature: 'Relatórios de ocupação', manual: 'Não existe', mostralo: 'Grade visual em tempo real' }
 ];
 
 const SocialProofSection = () => (
@@ -1012,6 +1125,18 @@ const faqItems = [
   {
     question: 'Posso testar antes de pagar?',
     answer: 'Sim! Oferecemos 7 dias grátis em todos os planos para você testar todas as funcionalidades sem compromisso e sem precisar colocar cartão de crédito.'
+  },
+  {
+    question: 'Posso configurar intervalos diferentes entre agendamentos?',
+    answer: 'Sim! Você pode definir intervalos de 15, 30, 45 ou 60 minutos entre cada agendamento, de acordo com a duração média dos seus serviços. Também pode definir antecedência mínima e limite de dias para agendar.'
+  },
+  {
+    question: 'Como funciona o sistema de avaliações?',
+    answer: 'Após cada atendimento, o cliente recebe automaticamente um link no WhatsApp para avaliar o serviço com estrelas (1-5) e comentário. Você vê tudo em um dashboard com filtros por barbeiro e período.'
+  },
+  {
+    question: 'Consigo ver relatórios de performance dos agendamentos?',
+    answer: 'Sim! O sistema mostra taxa de comparecimento, horários de pico, serviços mais populares, ranking de barbeiros por atendimentos e receita, além de tendência de agendamentos ao longo do tempo.'
   }
 ];
 
@@ -1108,6 +1233,7 @@ const NichoBarbeariasPage = () => {
       <ProblemsSection />
       <FourPillarsSection />
       <FlowSimulatorSection />
+      <BookingFeaturesSection />
       <SocialProofSection />
       <TestimonialsSection />
       <PlansSection />

@@ -6,7 +6,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Rocket, Coins, Headphones, MessageCircle, Shield, Quote } from "lucide-react";
+import { Rocket, Coins, Headphones, MessageCircle, Shield, Quote, ShieldCheck, Lock, Cloud, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface FAQItem {
@@ -201,6 +201,70 @@ export function FAQ360() {
                   <p className="font-semibold text-white">Marcos Andrade</p>
                   <p className="text-sm text-slate-400">Fundador • 30 anos em Tecnologia para Varejo</p>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card Garantia Marcos Andrade com Selos */}
+          <div className="mt-8 p-6 md:p-8 rounded-2xl bg-slate-800/50 border border-purple-500/30">
+            {/* Header do Card */}
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/20 border border-purple-500/30 mb-4">
+                <ShieldCheck className="w-5 h-5 text-purple-400" />
+                <span className="text-sm font-semibold text-purple-300 uppercase tracking-wider">Garantia Marcos Andrade</span>
+              </div>
+              <p className="text-slate-300 text-lg">
+                Seu negócio protegido com certificações de nível enterprise
+              </p>
+            </div>
+
+            {/* Grid de Selos */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
+              {/* Selo LGPD */}
+              <div className="p-5 rounded-xl bg-slate-900/50 border border-slate-700/50 text-center hover:border-purple-500/30 transition-colors">
+                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-500/20 to-purple-600/20 flex items-center justify-center">
+                  <Lock className="w-7 h-7 text-purple-400" />
+                </div>
+                <h4 className="font-bold text-white mb-2">LGPD Compliance</h4>
+                <p className="text-sm text-slate-400">Dados dos seus clientes protegidos conforme a lei brasileira</p>
+              </div>
+
+              {/* Selo ISO 27001 */}
+              <div className="p-5 rounded-xl bg-slate-900/50 border border-slate-700/50 text-center hover:border-purple-500/30 transition-colors">
+                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-500/20 to-purple-600/20 flex items-center justify-center">
+                  <ShieldCheck className="w-7 h-7 text-purple-400" />
+                </div>
+                <h4 className="font-bold text-white mb-2">ISO 27001 Ready</h4>
+                <p className="text-sm text-slate-400">Arquitetura pronta para certificação internacional de segurança</p>
+              </div>
+
+              {/* Selo AWS Partner */}
+              <div className="p-5 rounded-xl bg-slate-900/50 border border-slate-700/50 text-center hover:border-purple-500/30 transition-colors">
+                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-500/20 to-purple-600/20 flex items-center justify-center">
+                  <Cloud className="w-7 h-7 text-purple-400" />
+                </div>
+                <h4 className="font-bold text-white mb-2">AWS Partner</h4>
+                <p className="text-sm text-slate-400">Infraestrutura de nível global com alta disponibilidade</p>
+              </div>
+            </div>
+
+            {/* Checklist de Benefícios */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4 rounded-xl bg-slate-900/30 border border-slate-700/30">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
+                <span className="text-xs md:text-sm text-slate-300">Criptografia ponta a ponta</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
+                <span className="text-xs md:text-sm text-slate-300">Backup automático diário</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
+                <span className="text-xs md:text-sm text-slate-300">Uptime 99,9%</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
+                <span className="text-xs md:text-sm text-slate-300">Servidores redundantes</span>
               </div>
             </div>
           </div>

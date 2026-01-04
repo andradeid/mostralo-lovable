@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { subDays } from "date-fns";
 import { useTutorialViewsStats } from "@/hooks/useTutorialViews";
 import { useTutorials } from "@/hooks/useTutorials";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,10 +9,23 @@ import { Progress } from "@/components/ui/progress";
 import { Loader2, Eye, Users, CheckCircle, TrendingUp } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { TutorialViewsChart } from "./TutorialViewsChart";
+import { TutorialStatsFilters } from "./TutorialStatsFilters";
 
 export function TutorialStatsTab() {
-  const { data: stats, isLoading, isError, error } = useTutorialViewsStats();
+  const [selectedDays, setSelectedDays] = useState(30);
+  const [dateRange, setDateRange] = useState({
+    startDate: subDays(new Date(), 30) as Date | null,
+    endDate: new Date()
+  });
+
+  const { data: stats, isLoading, isError, error } = useTutorialViewsStats(dateRange);
   const { data: tutorials } = useTutorials(undefined, true);
+
+  const handleRangeChange = (range: { startDate: Date | null; endDate: Date }, days: number) => {
+    setDateRange(range);
+    setSelectedDays(days);
+  };
 
   if (isLoading) {
     return (
@@ -43,6 +58,12 @@ export function TutorialStatsTab() {
 
   return (
     <div className="space-y-6">
+      {/* Filtros de período */}
+      <TutorialStatsFilters 
+        selectedDays={selectedDays}
+        onRangeChange={handleRangeChange}
+      />
+
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
@@ -101,6 +122,11 @@ export function TutorialStatsTab() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Gráfico de evolução */}
+      {stats.viewsByDate && stats.viewsByDate.length > 0 && (
+        <TutorialViewsChart data={stats.viewsByDate} />
+      )}
 
       {/* Ranking de tutoriais */}
       <Card>

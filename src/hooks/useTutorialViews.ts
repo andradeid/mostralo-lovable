@@ -48,18 +48,33 @@ export function useMyTutorialViews() {
   });
 }
 
-export function useTutorialViewsStats() {
+interface StatsParams {
+  startDate?: Date | null;
+  endDate?: Date;
+}
+
+export function useTutorialViewsStats(params?: StatsParams) {
   return useQuery({
-    queryKey: ['tutorial-views', 'stats'],
+    queryKey: ['tutorial-views', 'stats', params?.startDate?.toISOString(), params?.endDate?.toISOString()],
     queryFn: async () => {
-      // Buscar visualizações com detalhes do tutorial (sem JOIN em profiles)
-      const { data: views, error } = await supabase
+      // Construir query com filtros de data
+      let query = supabase
         .from('tutorial_views')
         .select(`
           *,
           tutorials:tutorial_id (title, category_id)
         `)
         .order('viewed_at', { ascending: false });
+      
+      // Aplicar filtros de data se fornecidos
+      if (params?.startDate) {
+        query = query.gte('viewed_at', params.startDate.toISOString());
+      }
+      if (params?.endDate) {
+        query = query.lte('viewed_at', params.endDate.toISOString());
+      }
+      
+      const { data: views, error } = await query;
       
       if (error) throw error;
       
@@ -108,12 +123,30 @@ export function useTutorialViewsStats() {
         }
       });
       
+      // Agrupar por data para o gráfico
+      const viewsByDateMap: Record<string, { date: string; views: number; completed: number }> = {};
+      enrichedViews.forEach(view => {
+        const date = view.viewed_at.split('T')[0]; // yyyy-MM-dd
+        if (!viewsByDateMap[date]) {
+          viewsByDateMap[date] = { date, views: 0, completed: 0 };
+        }
+        viewsByDateMap[date].views++;
+        if (view.completed) {
+          viewsByDateMap[date].completed++;
+        }
+      });
+      
+      const viewsByDate = Object.values(viewsByDateMap).sort((a, b) => 
+        a.date.localeCompare(b.date)
+      );
+      
       return {
         totalViews,
         uniqueUsers,
         completedViews,
         completionRate,
         viewsByTutorial,
+        viewsByDate,
         recentViews: enrichedViews.slice(0, 50)
       };
     }

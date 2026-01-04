@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { PlayCircle, Search } from "lucide-react";
+import { PlayCircle, Search, Layers } from "lucide-react";
 import { useTutorialCategories } from "@/hooks/useTutorialCategories";
 import { useTutorials } from "@/hooks/useTutorials";
 import { useMyTutorialViews } from "@/hooks/useTutorialViews";
@@ -11,10 +11,19 @@ import { ContinueWatchingSection } from "@/components/tutorials/ContinueWatching
 import { TutorialPlayerModal } from "@/components/tutorials/TutorialPlayerModal";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function TutorialsPage() {
   const [selectedTutorial, setSelectedTutorial] = useState<Tutorial | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("all");
+  
   
   const { storeId } = useStoreAccess();
   const { data: categories, isLoading: loadingCategories } = useTutorialCategories();
@@ -36,22 +45,36 @@ export default function TutorialsPage() {
     return map;
   }, [allTutorials, categories]);
 
-  // Filtrar por pesquisa
+  // Filtrar por categoria selecionada e pesquisa
   const filteredCategories = useMemo(() => {
-    if (!categories || !searchQuery.trim()) return categories || [];
+    if (!categories) return [];
     
-    const query = searchQuery.toLowerCase();
-    return categories.filter(cat => {
-      const categoryTutorials = tutorialsByCategory.get(cat.id) || [];
-      return (
-        cat.name.toLowerCase().includes(query) ||
-        categoryTutorials.some(t => 
-          t.title.toLowerCase().includes(query) ||
-          t.description?.toLowerCase().includes(query)
-        )
-      );
-    });
-  }, [categories, searchQuery, tutorialsByCategory]);
+    let filtered = categories;
+    
+    // Filtro por categoria selecionada
+    if (selectedCategoryId !== "all") {
+      filtered = filtered.filter(cat => cat.id === selectedCategoryId);
+    }
+    
+    // Filtro por busca textual
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(cat => {
+        const categoryTutorials = tutorialsByCategory.get(cat.id) || [];
+        return (
+          cat.name.toLowerCase().includes(query) ||
+          categoryTutorials.some(t => 
+            t.title.toLowerCase().includes(query) ||
+            t.description?.toLowerCase().includes(query)
+          )
+        );
+      });
+    }
+    
+    return filtered;
+  }, [categories, selectedCategoryId, searchQuery, tutorialsByCategory]);
+
+  const hasActiveFilter = selectedCategoryId !== "all" || searchQuery.trim() !== "";
 
   const handlePlay = (tutorial: Tutorial) => {
     setSelectedTutorial(tutorial);
@@ -72,22 +95,38 @@ export default function TutorialsPage() {
   const hasContent = categories && categories.length > 0 && allTutorials && allTutorials.length > 0;
 
   return (
-    <div className="min-h-screen bg-background -m-6 md:-m-8">
-      {/* Header com busca */}
+    <div className="min-h-screen bg-background">
+      {/* Header com busca e filtro de categoria */}
       <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-border px-4 md:px-8 py-4">
-        <div className="flex items-center justify-between gap-4 max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 max-w-7xl mx-auto">
           <div className="flex items-center gap-3">
             <PlayCircle className="w-8 h-8 text-primary" />
             <h1 className="text-xl md:text-2xl font-bold text-foreground">Tutoriais</h1>
           </div>
-          <div className="relative w-full max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Pesquisar tutoriais..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+            <Select value={selectedCategoryId} onValueChange={setSelectedCategoryId}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <Layers className="w-4 h-4 mr-2 text-muted-foreground" />
+                <SelectValue placeholder="Categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as categorias</SelectItem>
+                {categories?.map(cat => (
+                  <SelectItem key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Pesquisar tutoriais..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -102,8 +141,8 @@ export default function TutorialsPage() {
         </div>
       ) : (
         <>
-          {/* Hero com tutoriais em destaque */}
-          {featuredTutorials && featuredTutorials.length > 0 && !searchQuery && (
+          {/* Hero com tutoriais em destaque - oculto quando há filtro ativo */}
+          {featuredTutorials && featuredTutorials.length > 0 && !hasActiveFilter && (
             <TutorialHeroSection
               tutorials={featuredTutorials}
               onPlay={handlePlay}
@@ -111,8 +150,8 @@ export default function TutorialsPage() {
             />
           )}
 
-          {/* Continuar assistindo */}
-          {myViews && allTutorials && !searchQuery && (
+          {/* Continuar assistindo - oculto quando há filtro ativo */}
+          {myViews && allTutorials && !hasActiveFilter && (
             <ContinueWatchingSection
               tutorials={allTutorials}
               views={myViews}

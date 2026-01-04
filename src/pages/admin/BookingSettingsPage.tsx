@@ -9,7 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Clock, Settings, DollarSign, MessageSquare, HelpCircle, Save, Loader2 } from 'lucide-react';
+import { Clock, Settings, DollarSign, MessageSquare, HelpCircle, Save, Loader2, Star } from 'lucide-react';
 
 // Valores padrão
 const DEFAULT_SETTINGS: Omit<BookingSettings, 'id' | 'store_id' | 'created_at' | 'updated_at'> = {
@@ -26,7 +26,8 @@ const DEFAULT_SETTINGS: Omit<BookingSettings, 'id' | 'store_id' | 'created_at' |
   reminder_hours_before: 2,
   reminder_message_template: 'Olá {cliente}! Lembrando do seu agendamento hoje às {horario} com {profissional}. Te esperamos! 🙂',
   send_satisfaction_survey: false,
-  satisfaction_message_template: 'Olá {cliente}! Como foi seu atendimento com {profissional}? Avalie de 1 a 5 ⭐'
+  satisfaction_message_template: 'Olá {cliente}! Como foi seu atendimento com {profissional}? Avalie de 1 a 5 ⭐',
+  enable_professional_reviews: false
 };
 
 export default function BookingSettingsPage() {
@@ -53,7 +54,8 @@ export default function BookingSettingsPage() {
         reminder_hours_before: bookingSettings.reminder_hours_before ?? DEFAULT_SETTINGS.reminder_hours_before,
         reminder_message_template: bookingSettings.reminder_message_template ?? DEFAULT_SETTINGS.reminder_message_template,
         send_satisfaction_survey: bookingSettings.send_satisfaction_survey ?? DEFAULT_SETTINGS.send_satisfaction_survey,
-        satisfaction_message_template: bookingSettings.satisfaction_message_template ?? DEFAULT_SETTINGS.satisfaction_message_template
+        satisfaction_message_template: bookingSettings.satisfaction_message_template ?? DEFAULT_SETTINGS.satisfaction_message_template,
+        enable_professional_reviews: bookingSettings.enable_professional_reviews ?? DEFAULT_SETTINGS.enable_professional_reviews
       });
     }
   }, [bookingSettings]);
@@ -210,6 +212,20 @@ export default function BookingSettingsPage() {
                 id="allow_any_professional"
                 checked={formData.allow_any_professional}
                 onCheckedChange={(checked) => updateField('allow_any_professional', checked)}
+              />
+            </div>
+
+            {/* Habilitar avaliações de profissionais */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Star className="h-4 w-4 text-amber-500" />
+                <Label htmlFor="enable_professional_reviews">Habilitar avaliações de profissionais</Label>
+                <FieldTooltip content="Quando ativado, clientes recebem um link para avaliar o atendimento após o serviço ser concluído" />
+              </div>
+              <Switch
+                id="enable_professional_reviews"
+                checked={formData.enable_professional_reviews}
+                onCheckedChange={(checked) => updateField('enable_professional_reviews', checked)}
               />
             </div>
 

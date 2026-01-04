@@ -6,7 +6,9 @@ import { DashboardFooter } from "@/components/admin/DashboardFooter";
 import { Hero360 } from "@/components/gestao-360/Hero360";
 import { PilaresValor } from "@/components/gestao-360/PilaresValor";
 import { OrigemSection } from "@/components/gestao-360/OrigemSection";
+import { TestimonialsNichos } from "@/components/gestao-360/TestimonialsNichos";
 import { TecnologiaSection } from "@/components/gestao-360/TecnologiaSection";
+import { FAQ360 } from "@/components/gestao-360/FAQ360";
 import { CTA360Section } from "@/components/gestao-360/CTA360Section";
 import { CookieBanner } from "@/components/CookieBanner";
 import { WhatsAppLeadButton } from "@/components/leads/WhatsAppLeadButton";
@@ -38,8 +40,14 @@ export default function Gestao360Page() {
         {/* ORIGEM - Nascida no Varejo */}
         <OrigemSection />
 
+        {/* DEPOIMENTOS POR NICHOS */}
+        <TestimonialsNichos />
+
         {/* DIFERENCIAL TÉCNICO - Tecnologia Marcos Andrade */}
         <TecnologiaSection />
+
+        {/* FAQ - Implementação, Custos e Suporte */}
+        <FAQ360 />
 
         {/* CTA FINAL */}
         <CTA360Section />

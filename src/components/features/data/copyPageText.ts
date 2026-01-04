@@ -103,6 +103,72 @@ Funcionalidades:
 - Calendário visual de pedidos
 - Controle de capacidade por horário
 
+## SISTEMA DE AGENDAMENTO DE SERVIÇOS (NOVO!)
+⭐ IDEAL PARA: Barbearias, Salões de Beleza, Clínicas, Consultórios, Estúdios
+
+### Agendamento Online 24/7
+- Página pública para clientes agendarem a qualquer hora
+- Escolha de serviço, profissional, data e horário
+- Validação de WhatsApp com foto do perfil do cliente
+- Card de resumo visual antes da confirmação
+- Detecção automática de conflitos (sem double booking)
+
+### Gestão de Profissionais
+- Cadastro com foto, especialidade e descrição
+- Horários de trabalho configuráveis por dia da semana
+- Intervalo de almoço/pausa configurável
+- Bloqueios de agenda (férias, feriados, consultas médicas)
+- Sistema de comissões (percentual ou valor fixo)
+- Serviços e preços personalizados por profissional
+
+### Configurações Avançadas
+- Intervalos configuráveis: 15, 20, 30, 45 ou 60 minutos
+- Limite de dias para agendar no futuro
+- Antecedência mínima para agendamento
+- Prazo limite para cancelamento
+- Opção "qualquer profissional disponível"
+- Sistema de sinal/depósito opcional
+
+### Mensagens Automáticas WhatsApp
+- Confirmação de agendamento com todos os detalhes
+- Lembrete X horas antes do atendimento
+- Pesquisa de satisfação após o serviço
+- Templates personalizáveis com variáveis: {cliente}, {profissional}, {servico}, {data}, {horario}, {valor}
+
+### Calendário de Agendamentos
+- Visualização diária, semanal e mensal
+- Filtro por profissional
+- Cores por status (pendente, confirmado, em andamento, concluído, cancelado, não compareceu)
+- Criação de agendamento direto no calendário
+- Link público compartilhável para agendamento
+
+### Relatório de Disponibilidade
+- Grade visual semanal de disponibilidade por profissional
+- Cores: verde (livre), vermelho (ocupado), laranja (bloqueado), cinza (não atende)
+- Estatísticas de slots disponíveis, ocupados e taxa de ocupação
+- Agendamento direto clicando em slot livre
+
+### Relatórios de Agendamentos
+- KPIs: total de agendamentos, taxa de comparecimento, cancelamentos, receita
+- Gráficos de horários de pico
+- Serviços mais populares
+- Ranking de profissionais
+- Análise por dia da semana
+- Tendência de agendamentos
+
+### Sistema de Avaliações
+- Link de avaliação enviado automaticamente após atendimento
+- Avaliação de 1 a 5 estrelas com feedback textual
+- Dashboard de avaliações com filtros por profissional, período e rating
+- Opção de avaliação pública ou privada
+
+### Benefícios
+- Cliente agenda 24/7 sem precisar ligar
+- Fim dos conflitos de horário
+- Lembretes reduzem faltas em até 40%
+- Avaliações melhoram sua reputação online
+- Automação total do processo de agendamento
+
 ## IMPRESSÃO AUTOMÁTICA
 - Integração com impressoras térmicas
 - Impressão automática ao aceitar pedido

@@ -26,6 +26,7 @@ const sections = [
   { id: 'financeiro', title: 'Gestão Financeira', icon: Wallet },
   { id: 'promocoes', title: 'Promoções e Cupons', icon: Tag },
   { id: 'agendados', title: 'Pedidos Agendados', icon: Calendar },
+  { id: 'agendamento-servicos', title: '🆕 Agendamento de Serviços', icon: Calendar },
   { id: 'impressao', title: 'Impressão Automática', icon: Printer },
   { id: 'pdv', title: 'PDV (Ponto de Venda)', icon: ShoppingCart },
   { id: 'comandas', title: 'Comandas Digitais', icon: ClipboardList },
@@ -164,6 +165,52 @@ const whatsappTexts: Record<string, string> = {
 📊 *Benefícios:*
 • Ideal para festas e eventos
 • Planeje a produção com antecedência`,
+
+  'agendamento-servicos': `📅 *SISTEMA DE AGENDAMENTO DE SERVIÇOS* 🆕 COMPLETO!
+
+⭐ *IDEAL PARA:* Barbearias, salões, clínicas, consultórios, estúdios
+
+✅ *AGENDAMENTO ONLINE 24/7*
+• Página pública para clientes agendarem
+• Escolha de serviço, profissional, data e hora
+• Validação de WhatsApp com foto do perfil
+• Detecção automática de conflitos (sem double booking)
+
+✅ *GESTÃO DE PROFISSIONAIS*
+• Cadastro com foto, especialidade e descrição
+• Horários de trabalho por dia da semana
+• Bloqueios de agenda (férias, feriados)
+• Sistema de comissões (% ou fixo)
+• Preços personalizados por profissional
+
+✅ *CONFIGURAÇÕES AVANÇADAS*
+• Intervalos de 15, 30, 45 ou 60 minutos
+• Limite de dias para agendar no futuro
+• Antecedência mínima para agendamento
+• Sistema de sinal/depósito opcional
+
+✅ *WHATSAPP AUTOMÁTICO*
+• Confirmação de agendamento
+• Lembrete X horas antes do atendimento
+• Pesquisa de satisfação após o serviço
+• Templates personalizáveis com variáveis
+
+✅ *CALENDÁRIO E RELATÓRIOS*
+• Visualização diária, semanal e mensal
+• Grade de disponibilidade por profissional
+• KPIs: agendamentos, taxa de comparecimento, receita
+• Ranking de profissionais e serviços populares
+
+✅ *AVALIAÇÕES DOS CLIENTES*
+• Link de avaliação pós-atendimento
+• Estrelas + feedback
+• Dashboard de reputação
+
+📊 *Benefícios:*
+• Cliente agenda 24/7 sem ligar
+• Fim dos conflitos de horário
+• Automação total do processo
+• Redução de faltas com lembretes`,
 
   'impressao': `🖨️ *IMPRESSÃO AUTOMÁTICA*
 
@@ -492,6 +539,39 @@ Funcionalidades:
 - Alertas automáticos antes do preparo
 - Calendário visual de pedidos
 - Controle de capacidade por horário
+
+## SISTEMA DE AGENDAMENTO DE SERVIÇOS (NOVO!)
+⭐ IDEAL PARA: Barbearias, Salões de Beleza, Clínicas, Consultórios, Estúdios
+
+### Agendamento Online 24/7
+- Página pública para clientes agendarem a qualquer hora
+- Escolha de serviço, profissional, data e horário
+- Validação de WhatsApp com foto do perfil
+- Detecção automática de conflitos (sem double booking)
+
+### Gestão de Profissionais
+- Cadastro com foto, especialidade e descrição
+- Horários de trabalho por dia da semana
+- Bloqueios de agenda (férias, feriados)
+- Sistema de comissões (% ou fixo)
+- Preços personalizados por profissional
+
+### Mensagens Automáticas WhatsApp
+- Confirmação de agendamento
+- Lembrete X horas antes do atendimento
+- Pesquisa de satisfação após o serviço
+- Templates personalizáveis com variáveis
+
+### Calendário e Relatórios
+- Visualização diária, semanal e mensal
+- Grade de disponibilidade por profissional
+- KPIs: agendamentos, taxa de comparecimento, receita
+- Ranking de profissionais e serviços populares
+
+### Sistema de Avaliações
+- Link de avaliação pós-atendimento
+- Estrelas + feedback
+- Dashboard de reputação
 
 ## IMPRESSÃO AUTOMÁTICA
 - Integração com impressoras térmicas
@@ -1472,6 +1552,177 @@ Site: mostralo.com.br`;
               <p className="text-sm text-muted-foreground">
                 Planeje a produção com antecedência. Nunca perca uma encomenda importante.
               </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Section: Sistema de Agendamento de Serviços */}
+        <section id="agendamento-servicos" className="py-16 bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-950/20 dark:to-rose-950/20">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-12 h-12 bg-pink-500/10 rounded-xl flex items-center justify-center">
+                <Calendar className="h-6 w-6 text-pink-500" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">Sistema de Agendamento de Serviços</h2>
+                  <span className="bg-pink-500 text-white text-xs font-bold px-2 py-1 rounded">🆕 NOVO!</span>
+                  <button
+                    onClick={() => copyWhatsAppText('agendamento-servicos')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
+                <p className="text-muted-foreground">Ideal para barbearias, salões, clínicas, consultórios e estúdios</p>
+              </div>
+            </div>
+
+            {/* Agendamento Online */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <div className="w-8 h-8 bg-pink-500/20 rounded-lg flex items-center justify-center">
+                  <Smartphone className="h-4 w-4 text-pink-500" />
+                </div>
+                Agendamento Online 24/7
+              </h3>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                  { title: 'Página Pública', desc: 'Cliente agenda direto pelo celular, 24 horas', icon: Smartphone },
+                  { title: 'Escolha Completa', desc: 'Serviço, profissional, data e horário', icon: Calendar },
+                  { title: 'Validação WhatsApp', desc: 'Confirma telefone com foto do perfil', icon: MessageCircle },
+                  { title: 'Sem Conflitos', desc: 'Sistema detecta automaticamente double booking', icon: Shield },
+                ].map((item, i) => (
+                  <Card key={i} className="bg-card hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <item.icon className="h-6 w-6 text-pink-500 mb-2" />
+                      <h4 className="font-semibold text-foreground text-sm mb-1">{item.title}</h4>
+                      <p className="text-xs text-muted-foreground">{item.desc}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* Gestão de Profissionais */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <div className="w-8 h-8 bg-pink-500/20 rounded-lg flex items-center justify-center">
+                  <Users className="h-4 w-4 text-pink-500" />
+                </div>
+                Gestão de Profissionais
+              </h3>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                  { title: 'Cadastro Completo', desc: 'Foto, especialidade e descrição', icon: Users },
+                  { title: 'Horários Flexíveis', desc: 'Configuração por dia da semana', icon: Clock },
+                  { title: 'Bloqueios de Agenda', desc: 'Férias, feriados, consultas médicas', icon: AlertTriangle },
+                  { title: 'Comissões', desc: 'Percentual ou valor fixo por atendimento', icon: Wallet },
+                ].map((item, i) => (
+                  <Card key={i} className="bg-card hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <item.icon className="h-6 w-6 text-pink-500 mb-2" />
+                      <h4 className="font-semibold text-foreground text-sm mb-1">{item.title}</h4>
+                      <p className="text-xs text-muted-foreground">{item.desc}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* WhatsApp Automático */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+                  <MessageCircle className="h-4 w-4 text-green-500" />
+                </div>
+                Mensagens Automáticas WhatsApp
+              </h3>
+              <div className="grid md:grid-cols-3 gap-4">
+                {[
+                  { title: 'Confirmação', desc: 'Mensagem automática ao agendar com todos os detalhes', icon: Check },
+                  { title: 'Lembrete', desc: 'Aviso X horas antes do atendimento para reduzir faltas', icon: Bell },
+                  { title: 'Satisfação', desc: 'Pesquisa pós-atendimento com link de avaliação', icon: Star },
+                ].map((item, i) => (
+                  <Card key={i} className="bg-card hover:shadow-md transition-shadow border-green-500/20">
+                    <CardContent className="p-4">
+                      <item.icon className="h-6 w-6 text-green-500 mb-2" />
+                      <h4 className="font-semibold text-foreground text-sm mb-1">{item.title}</h4>
+                      <p className="text-xs text-muted-foreground">{item.desc}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* Calendário e Relatórios */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <div className="w-8 h-8 bg-pink-500/20 rounded-lg flex items-center justify-center">
+                  <BarChart3 className="h-4 w-4 text-pink-500" />
+                </div>
+                Calendário e Relatórios
+              </h3>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                  { title: 'Calendário Visual', desc: 'Visualização diária, semanal e mensal', icon: Calendar },
+                  { title: 'Grade de Disponibilidade', desc: 'Veja slots livres e ocupados por profissional', icon: BarChart3 },
+                  { title: 'KPIs Completos', desc: 'Agendamentos, comparecimento, receita', icon: TrendingUp },
+                  { title: 'Ranking', desc: 'Profissionais e serviços mais populares', icon: Star },
+                ].map((item, i) => (
+                  <Card key={i} className="bg-card hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <item.icon className="h-6 w-6 text-pink-500 mb-2" />
+                      <h4 className="font-semibold text-foreground text-sm mb-1">{item.title}</h4>
+                      <p className="text-xs text-muted-foreground">{item.desc}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* Avaliações */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <div className="w-8 h-8 bg-yellow-500/20 rounded-lg flex items-center justify-center">
+                  <Star className="h-4 w-4 text-yellow-500" />
+                </div>
+                Sistema de Avaliações
+              </h3>
+              <div className="grid md:grid-cols-3 gap-4">
+                {[
+                  { title: 'Link de Avaliação', desc: 'Enviado automaticamente após o atendimento', icon: Link2 },
+                  { title: 'Estrelas + Feedback', desc: 'Avaliação de 1 a 5 estrelas com comentário', icon: Star },
+                  { title: 'Dashboard', desc: 'Acompanhe sua reputação e filtre por profissional', icon: BarChart3 },
+                ].map((item, i) => (
+                  <Card key={i} className="bg-card hover:shadow-md transition-shadow border-yellow-500/20">
+                    <CardContent className="p-4">
+                      <item.icon className="h-6 w-6 text-yellow-500 mb-2" />
+                      <h4 className="font-semibold text-foreground text-sm mb-1">{item.title}</h4>
+                      <p className="text-xs text-muted-foreground">{item.desc}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* Benefícios */}
+            <div className="bg-pink-500/10 border border-pink-500/20 rounded-xl p-6">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-pink-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Zap className="h-6 w-6 text-pink-500" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-foreground mb-2">Automatize seu negócio de serviços!</h4>
+                  <div className="grid md:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                    <p>✅ Cliente agenda 24/7 sem precisar ligar</p>
+                    <p>✅ Fim dos conflitos de horário</p>
+                    <p>✅ Lembretes reduzem faltas em até 40%</p>
+                    <p>✅ Avaliações melhoram sua reputação</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>

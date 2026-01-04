@@ -28,7 +28,7 @@ export function FavoritesSection({ tutorials, onTutorialClick }: FavoritesSectio
 
   return (
     <section className="mb-8">
-      <div className="flex items-center gap-2 mb-4 px-2">
+      <div className="flex items-center gap-2 mb-4 px-4 md:px-8">
         <Heart className="w-5 h-5 text-red-500 fill-red-500" />
         <h2 className="text-lg font-semibold">Meus Favoritos</h2>
         <span className="text-sm text-muted-foreground">
@@ -36,7 +36,7 @@ export function FavoritesSection({ tutorials, onTutorialClick }: FavoritesSectio
         </span>
       </div>
       
-      <div className="flex gap-4 overflow-x-auto pb-4 px-2 scrollbar-hide">
+      <div className="flex gap-4 overflow-x-auto pb-4 px-4 md:px-8 scrollbar-hide">
         {favoriteTutorials.map((tutorial) => (
           <TutorialCard
             key={tutorial.id}

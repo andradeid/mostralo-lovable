@@ -53,13 +53,15 @@ import {
   MessageCircle,
   Link2,
   Eye,
-  Pencil
+  Pencil,
+  Repeat
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useExternalInvoices, type ExternalInvoice } from "@/hooks/useExternalInvoices";
 import { useExternalClients } from "@/hooks/useExternalClients";
 import { ExternalInvoiceForm } from "./ExternalInvoiceForm";
+import { ProcessRecurringInvoicesButton } from "./ProcessRecurringInvoicesButton";
 import { toast } from "sonner";
 import { getPublicInvoiceUrl } from "@/lib/publicUrl";
 import { SendExternalReceiptWhatsAppModal } from "./SendExternalReceiptWhatsAppModal";
@@ -232,17 +234,20 @@ export function ExternalInvoicesList() {
 
   return (
     <div className="space-y-6">
-      {/* Header with Action Button */}
+      {/* Header with Action Buttons */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <p className="text-muted-foreground">
             {filteredInvoices.length} fatura(s) encontrada(s)
           </p>
         </div>
-        <Button onClick={() => setIsFormOpen(true)} className="flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Nova Fatura
-        </Button>
+        <div className="flex items-center gap-2">
+          <ProcessRecurringInvoicesButton />
+          <Button onClick={() => setIsFormOpen(true)} className="flex items-center gap-2">
+            <Plus className="w-4 h-4" />
+            Nova Fatura
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}

@@ -296,3 +296,6 @@ verify_jwt = false
 
 [functions.diagnostic-call]
 verify_jwt = false
+
+[functions.process-recurring-external-invoices]
+verify_jwt = false

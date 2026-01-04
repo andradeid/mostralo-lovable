@@ -2455,6 +2455,7 @@ export type Database = {
           address_state: string | null
           address_street: string | null
           address_zipcode: string | null
+          auto_send_invoices: boolean | null
           created_at: string | null
           created_by: string | null
           document: string | null
@@ -2476,6 +2477,7 @@ export type Database = {
           address_state?: string | null
           address_street?: string | null
           address_zipcode?: string | null
+          auto_send_invoices?: boolean | null
           created_at?: string | null
           created_by?: string | null
           document?: string | null
@@ -2497,6 +2499,7 @@ export type Database = {
           address_state?: string | null
           address_street?: string | null
           address_zipcode?: string | null
+          auto_send_invoices?: boolean | null
           created_at?: string | null
           created_by?: string | null
           document?: string | null
@@ -2514,6 +2517,7 @@ export type Database = {
       external_invoices: {
         Row: {
           amount: number
+          auto_send_whatsapp: boolean | null
           boleto_charge_id: string | null
           boleto_codigo_barras: string | null
           boleto_expires_at: string | null
@@ -2546,6 +2550,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          auto_send_whatsapp?: boolean | null
           boleto_charge_id?: string | null
           boleto_codigo_barras?: string | null
           boleto_expires_at?: string | null
@@ -2578,6 +2583,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          auto_send_whatsapp?: boolean | null
           boleto_charge_id?: string | null
           boleto_codigo_barras?: string | null
           boleto_expires_at?: string | null

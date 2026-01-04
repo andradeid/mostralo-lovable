@@ -363,6 +363,7 @@ export function AdminSidebar() {
         { title: 'Categorias', url: '/dashboard/categories', icon: Grid, group: 'Loja', permissionKey: 'produtos' },
         { title: 'Adicionais', url: '/dashboard/addons', icon: Plus, group: 'Loja', permissionKey: 'produtos' },
         { title: 'Categorias de Adicionais', url: '/dashboard/addon-categories', icon: Grid3X3, group: 'Loja', permissionKey: 'produtos' },
+        { title: 'Tutoriais', url: '/dashboard/tutoriais', icon: PlayCircle, group: 'Ajuda', permissionKey: null }, // Sempre visível
         { title: 'Perfil', url: '/dashboard/profile', icon: User, group: 'Conta', permissionKey: null } // Sempre visível
       ];
 

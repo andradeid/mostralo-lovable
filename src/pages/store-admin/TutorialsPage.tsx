@@ -9,6 +9,8 @@ import { TutorialHeroSection } from "@/components/tutorials/TutorialHeroSection"
 import { TutorialCategoryCarousel } from "@/components/tutorials/TutorialCategoryCarousel";
 import { ContinueWatchingSection } from "@/components/tutorials/ContinueWatchingSection";
 import { TutorialPlayerModal } from "@/components/tutorials/TutorialPlayerModal";
+import { TutorialNotificationsBell } from "@/components/tutorials/TutorialNotificationsBell";
+import { FavoritesSection } from "@/components/tutorials/FavoritesSection";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import {
@@ -103,7 +105,7 @@ export default function TutorialsPage() {
             <PlayCircle className="w-8 h-8 text-primary" />
             <h1 className="text-xl md:text-2xl font-bold text-foreground">Tutoriais</h1>
           </div>
-          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
             <Select value={selectedCategoryId} onValueChange={setSelectedCategoryId}>
               <SelectTrigger className="w-full sm:w-[180px]">
                 <Layers className="w-4 h-4 mr-2 text-muted-foreground" />
@@ -127,6 +129,12 @@ export default function TutorialsPage() {
                 className="pl-10"
               />
             </div>
+            <TutorialNotificationsBell 
+              onNotificationClick={(tutorialId) => {
+                const tutorial = allTutorials?.find(t => t.id === tutorialId);
+                if (tutorial) setSelectedTutorial(tutorial);
+              }}
+            />
           </div>
         </div>
       </div>
@@ -147,6 +155,14 @@ export default function TutorialsPage() {
               tutorials={featuredTutorials}
               onPlay={handlePlay}
               onInfo={handleInfo}
+            />
+          )}
+
+          {/* Seção de favoritos - oculto quando há filtro ativo */}
+          {allTutorials && !hasActiveFilter && (
+            <FavoritesSection
+              tutorials={allTutorials}
+              onTutorialClick={handlePlay}
             />
           )}
 

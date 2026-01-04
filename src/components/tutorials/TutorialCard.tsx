@@ -1,8 +1,9 @@
-import { Play, Check, Clock } from "lucide-react";
+import { Play, Check, Clock, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getYouTubeThumbnail, formatDuration } from "@/lib/youtube-utils";
 import { Tutorial } from "@/hooks/useTutorials";
 import { TutorialView } from "@/hooks/useTutorialViews";
+import { useMyFavorites, useToggleFavorite } from "@/hooks/useTutorialFavorites";
 
 interface TutorialCardProps {
   tutorial: Tutorial;
@@ -12,6 +13,10 @@ interface TutorialCardProps {
 }
 
 export function TutorialCard({ tutorial, view, onClick, isNew }: TutorialCardProps) {
+  const { data: favorites } = useMyFavorites();
+  const { mutate: toggleFavorite, isPending } = useToggleFavorite();
+  
+  const isFavorite = favorites?.some(f => f.tutorial_id === tutorial.id) || false;
   const thumbnailUrl = tutorial.thumbnail_url || getYouTubeThumbnail(tutorial.youtube_url, 'high');
   const isWatched = view?.completed;
   const hasProgress = view && view.watch_time_seconds > 0 && !view.completed;
@@ -20,6 +25,13 @@ export function TutorialCard({ tutorial, view, onClick, isNew }: TutorialCardPro
   const progressPercent = hasProgress && tutorial.duration_minutes > 0
     ? Math.min(100, Math.round((view.watch_time_seconds / (tutorial.duration_minutes * 60)) * 100))
     : 0;
+
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isPending) {
+      toggleFavorite({ tutorialId: tutorial.id, isFavorite });
+    }
+  };
 
   return (
     <div
@@ -56,6 +68,23 @@ export function TutorialCard({ tutorial, view, onClick, isNew }: TutorialCardPro
           <Clock className="w-3 h-3" />
           {formatDuration(tutorial.duration_minutes)}
         </div>
+        
+        {/* Botão de favorito */}
+        <button
+          onClick={handleFavoriteClick}
+          className={cn(
+            "absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all z-10",
+            "bg-black/50 hover:bg-black/70",
+            isPending && "opacity-50 cursor-not-allowed"
+          )}
+        >
+          <Heart 
+            className={cn(
+              "w-4 h-4 transition-colors",
+              isFavorite ? "fill-red-500 text-red-500" : "text-white"
+            )} 
+          />
+        </button>
         
         {/* Badge NOVO */}
         {isNew && !isWatched && (

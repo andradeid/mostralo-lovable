@@ -70,6 +70,10 @@ const routeSections: RouteSection[] = [
       { path: "/diagnostico-delivery", name: "Diagnóstico Delivery", component: "DiagnosticoDeliveryPage.tsx", roles: ["public"] },
       { path: "/diagnostico-servicos", name: "Diagnóstico Serviços", component: "DiagnosticoServicosPage.tsx", roles: ["public"] },
       { path: "/conversao", name: "Página de Conversão", component: "ConversaoLandingPage.tsx", roles: ["public"] },
+      { path: "/gestao-total", name: "Gestão Total", component: "GestaoTotalPage.tsx", roles: ["public"] },
+      { path: "/gestao-360", name: "Gestão 360°", component: "Gestao360Page.tsx", roles: ["public"] },
+      { path: "/suplementos", name: "Suplementos (Landing)", component: "SuplementosLandingPage.tsx", roles: ["public"] },
+      { path: "/navegar", name: "Navegação Pública", component: "NavigatePage.tsx", roles: ["public"] },
     ]
   },
   {
@@ -99,7 +103,7 @@ const routeSections: RouteSection[] = [
       { path: "/nicho-churrasquinhos", name: "Nicho: Churrasquinhos", component: "NichoChurrasquinhosPage.tsx", roles: ["public"] },
       { path: "/nicho-distribuidoras", name: "Nicho: Distribuidoras", component: "NichoDistribuidorasPage.tsx", roles: ["public"] },
       { path: "/nicho-farmacias", name: "Nicho: Farmácias", component: "NichoFarmaciasPage.tsx", roles: ["public"] },
-      { path: "/nicho-food-truck", name: "Nicho: Food Trucks", component: "NichoFoodTruckPage.tsx", roles: ["public"] },
+      { path: "/nicho-foodtruck", name: "Nicho: Food Trucks", component: "NichoFoodTruckPage.tsx", roles: ["public"] },
       { path: "/nicho-hamburguerias", name: "Nicho: Hamburguerias", component: "NichoHamburgueriasPage.tsx", roles: ["public"] },
       { path: "/nicho-nail-designers", name: "Nicho: Nail Designers", component: "NichoNailDesignersPage.tsx", roles: ["public"] },
       { path: "/nicho-padarias", name: "Nicho: Padarias", component: "NichoPadariasPage.tsx", roles: ["public"] },
@@ -138,6 +142,40 @@ const routeSections: RouteSection[] = [
       { path: "/cliente", name: "Área do Cliente", component: "CustomerAreaPage.tsx", roles: ["customer"] },
       { path: "/cliente/pedidos", name: "Meus Pedidos", component: "CustomerOrdersPage.tsx", roles: ["customer"] },
       { path: "/cliente/perfil", name: "Perfil do Cliente", component: "CustomerProfilePage.tsx", roles: ["customer"] },
+    ]
+  },
+  {
+    id: "totem-tables",
+    title: "Totem e Mesas",
+    icon: <ShoppingCart className="h-4 w-4 md:h-5 md:w-5" />,
+    badgeColor: "bg-teal-500",
+    routes: [
+      { path: "/totem/:storeSlug", name: "Totem Autoatendimento", component: "TotemPage.tsx", roles: ["public"] },
+      { path: "/mesa/:storeSlug/:tableNumber", name: "Acesso Mesa", component: "TableAccessPage.tsx", roles: ["public"] },
+      { path: "/mesa/:storeSlug/:tableNumber/cardapio", name: "Cardápio Mesa", component: "TableMenuPage.tsx", roles: ["public"] },
+      { path: "/c/:slug", name: "Cartão Digital Público", component: "DigitalCardPublicPage.tsx", roles: ["public"] },
+    ]
+  },
+  {
+    id: "booking",
+    title: "Agendamentos",
+    icon: <FileText className="h-4 w-4 md:h-5 md:w-5" />,
+    badgeColor: "bg-pink-500",
+    routes: [
+      { path: "/agendar/:storeSlug", name: "Agendamento Online", component: "BookingPage.tsx", roles: ["public"] },
+      { path: "/avaliar/:token", name: "Avaliação de Agendamento", component: "BookingReviewPage.tsx", roles: ["public"] },
+    ]
+  },
+  {
+    id: "public-invoices",
+    title: "Faturas e Pagamentos",
+    icon: <FileText className="h-4 w-4 md:h-5 md:w-5" />,
+    badgeColor: "bg-indigo-500",
+    routes: [
+      { path: "/invoice-payment/:invoiceId", name: "Pagamento de Fatura", component: "InvoicePayment.tsx", roles: ["public"] },
+      { path: "/receipt/:invoiceId", name: "Recibo de Fatura", component: "InvoiceReceipt.tsx", roles: ["public"] },
+      { path: "/external-invoice/:invoiceId", name: "Fatura Externa", component: "ExternalInvoicePage.tsx", roles: ["public"] },
+      { path: "/external-receipt/:invoiceId", name: "Recibo Fatura Externa", component: "ExternalInvoiceReceipt.tsx", roles: ["public"] },
     ]
   },
   {
@@ -275,6 +313,9 @@ const routeSections: RouteSection[] = [
     badgeColor: "bg-red-500",
     routes: [
       { path: "/404", name: "Página Não Encontrada", component: "NotFound.tsx", roles: ["public"] },
+      { path: "/500", name: "Erro do Servidor", component: "ServerError.tsx", roles: ["public"] },
+      { path: "/503", name: "Em Manutenção", component: "Maintenance.tsx", roles: ["public"] },
+      { path: "/offline", name: "Sem Conexão", component: "Offline.tsx", roles: ["public"] },
       { path: "/loja-indisponivel", name: "Loja Indisponível", component: "StoreUnavailable.tsx", roles: ["public"] },
       { path: "*", name: "Fallback 404", component: "NotFound.tsx", roles: ["public"] },
     ]

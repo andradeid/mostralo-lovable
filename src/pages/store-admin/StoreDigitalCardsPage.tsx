@@ -44,6 +44,7 @@ import {
 import { useStoreDigitalCards, type Professional } from '@/hooks/useStoreDigitalCards';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ShareCardButton } from '@/components/digital-card/ShareCardButton';
 
 export default function StoreDigitalCardsPage() {
   const { 
@@ -171,12 +172,18 @@ export default function StoreDigitalCardsPage() {
                       </CardDescription>
                     </div>
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
+                  <div className="flex items-center gap-1">
+                    <ShareCardButton
+                      cardUrl={`${window.location.origin}/c/${card.slug}`}
+                      cardName={card.name}
+                      variant="admin"
+                    />
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem asChild>
                         <Link to={`/dashboard/cartoes-equipe/${card.id}`}>
@@ -216,8 +223,9 @@ export default function StoreDigitalCardsPage() {
                         <Trash2 className="h-4 w-4 mr-2" />
                         Excluir
                       </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>

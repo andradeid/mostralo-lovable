@@ -13,8 +13,9 @@ import { toast } from '@/hooks/use-toast';
 interface ShareCardButtonProps {
   cardUrl: string;
   cardName: string;
-  theme: CardTheme;
-  accentColor: string;
+  theme?: CardTheme;
+  accentColor?: string;
+  variant?: 'card' | 'admin';
   onShare?: (method: string) => void;
 }
 
@@ -28,13 +29,14 @@ const themeStyles: Record<CardTheme, { card: string; text: string }> = {
 export function ShareCardButton({ 
   cardUrl, 
   cardName, 
-  theme, 
-  accentColor,
+  theme = 'light', 
+  accentColor = '#f97316',
+  variant = 'card',
   onShare 
 }: ShareCardButtonProps) {
   const [copied, setCopied] = useState(false);
   const [open, setOpen] = useState(false);
-  const styles = themeStyles[theme];
+  const styles = variant === 'admin' ? null : themeStyles[theme];
 
   const shareText = `Confira o cartão digital de ${cardName}`;
   const canUseNativeShare = typeof navigator !== 'undefined' && !!navigator.share;
@@ -99,11 +101,19 @@ export function ShareCardButton({
       <Button
         variant="ghost"
         size="icon"
-        className={cn('rounded-full', styles.card, styles.text)}
+        className={cn(
+          'rounded-full',
+          variant === 'admin' 
+            ? 'h-8 w-8 hover:bg-muted text-muted-foreground hover:text-foreground' 
+            : cn(styles?.card, styles?.text)
+        )}
         onClick={handleNativeShare}
         aria-label="Compartilhar"
       >
-        <Share2 className="w-5 h-5" style={{ color: accentColor }} />
+        <Share2 
+          className={variant === 'admin' ? 'w-4 h-4' : 'w-5 h-5'} 
+          style={variant === 'card' ? { color: accentColor } : undefined} 
+        />
       </Button>
     );
   }
@@ -115,10 +125,18 @@ export function ShareCardButton({
         <Button
           variant="ghost"
           size="icon"
-          className={cn('rounded-full', styles.card, styles.text)}
+          className={cn(
+            'rounded-full',
+            variant === 'admin' 
+              ? 'h-8 w-8 hover:bg-muted text-muted-foreground hover:text-foreground' 
+              : cn(styles?.card, styles?.text)
+          )}
           aria-label="Compartilhar"
         >
-          <Share2 className="w-5 h-5" style={{ color: accentColor }} />
+          <Share2 
+            className={variant === 'admin' ? 'w-4 h-4' : 'w-5 h-5'} 
+            style={variant === 'card' ? { color: accentColor } : undefined} 
+          />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-56 p-2" align="end">

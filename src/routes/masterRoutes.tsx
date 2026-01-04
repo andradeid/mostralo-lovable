@@ -52,6 +52,7 @@ const SystemBannersPage = lazy(() => import("@/pages/admin/SystemBannersPage"));
 const TechnicalDocsPage = lazy(() => import("@/pages/admin/TechnicalDocsPage"));
 const PopupABTestPage = lazy(() => import("@/pages/admin/PopupABTestPage"));
 const AdminDigitalCardPage = lazy(() => import("@/pages/admin/AdminDigitalCardPage"));
+const TutorialsManagementPage = lazy(() => import("@/pages/admin/TutorialsManagementPage"));
 
 export const masterRoutes = (
   <>
@@ -386,6 +387,13 @@ export const masterRoutes = (
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Meu Cartão Digital">
           <LazyRoute><AdminDigitalCardPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/tutorials-management" element={
+      <ProtectedRoute allowedRoles={['master_admin']}>
+        <AdminLayout pageTitle="Gerenciar Tutoriais">
+          <LazyRoute><TutorialsManagementPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

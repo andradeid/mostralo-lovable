@@ -54,7 +54,8 @@ import {
   ClipboardCheck,
   Bell,
   UtensilsCrossed,
-  Phone
+  Phone,
+  PlayCircle
 } from "lucide-react";
 
 import {
@@ -414,6 +415,7 @@ export function AdminSidebar() {
         { title: 'Cupons', url: '/dashboard/coupons', icon: Ticket, group: 'Sistema' },
         { title: 'Aceites de Contratos', url: '/dashboard/contract-acceptances', icon: FileText, group: 'Sistema' },
         { title: 'Gerenciar Novidades', url: '/dashboard/system-updates', icon: Megaphone, group: 'Sistema' },
+        { title: 'Gerenciar Tutoriais', url: '/dashboard/tutorials-management', icon: PlayCircle, group: 'Sistema' },
         { title: 'Banners do Sistema', url: '/dashboard/system-banners', icon: Image, group: 'Sistema' },
         { title: 'Diagnósticos', url: '/dashboard/diagnostics', icon: Activity, group: 'Sistema' },
         { title: 'Teste A/B Popup', url: '/dashboard/popup-ab-test', icon: BarChart3, group: 'Sistema' },
@@ -556,7 +558,8 @@ export function AdminSidebar() {
         { title: 'Minha Assinatura', url: '/dashboard/subscription', icon: CreditCard, group: 'Conta' },
         { title: 'Pagamento Online', url: '/dashboard/online-payment', icon: Smartphone, group: 'Conta' },
         { title: 'Meus Contratos', url: '/dashboard/contracts', icon: FileText, group: 'Conta' },
-        { title: 'Novidades', url: '/novidades', icon: Megaphone, group: 'Conta' },
+        { title: 'Tutoriais', url: '/dashboard/tutoriais', icon: PlayCircle, group: 'Ajuda' },
+        { title: 'Novidades', url: '/novidades', icon: Megaphone, group: 'Ajuda' },
         { title: 'Perfil', url: '/dashboard/profile', icon: User, group: 'Conta' }
       );
 

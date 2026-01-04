@@ -194,11 +194,11 @@ export function WhatsAppCallMockup({
         });
         console.log('Generated Sofia script:', script);
         
-        // Usar função text-to-speech com voz feminina (Sarah)
+        // Usar função text-to-speech com voz feminina OpenAI
         const { data, error } = await supabase.functions.invoke('text-to-speech', {
           body: {
             text: script,
-            voiceId: 'ORgG8rwdAiMYRug8RJwR' // Ana Alice - voz feminina brasileira
+            voiceId: 'nova' // Voz feminina OpenAI
           }
         });
 

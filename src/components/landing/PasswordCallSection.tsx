@@ -18,12 +18,12 @@ const features = [
   {
     icon: Mic,
     title: 'Vozes Naturais IA',
-    description: 'Integração ElevenLabs com vozes realistas em português brasileiro'
+    description: 'Vozes OpenAI TTS realistas em português brasileiro'
   },
   {
     icon: Volume2,
     title: '3 Opções de Áudio',
-    description: 'Beep simples, Web Speech nativo ou ElevenLabs premium'
+    description: 'Beep simples, Web Speech nativo ou OpenAI TTS premium'
   },
   {
     icon: Palette,
@@ -57,11 +57,11 @@ const features = [
   }
 ];
 
-const elevenLabsVoices = [
-  { name: 'Daniel', type: 'Masculina clara', flag: '🇧🇷' },
-  { name: 'Lily', type: 'Feminina suave', flag: '🇧🇷' },
-  { name: 'Roger', type: 'Masculina profunda', flag: '🇧🇷' },
-  { name: 'Sarah', type: 'Feminina profissional', flag: '🇧🇷' }
+const openAIVoices = [
+  { name: 'Nova', type: 'Feminina suave', flag: '🌐' },
+  { name: 'Alloy', type: 'Neutra versátil', flag: '🌐' },
+  { name: 'Onyx', type: 'Masculina profunda', flag: '🌐' },
+  { name: 'Shimmer', type: 'Feminina calorosa', flag: '🌐' }
 ];
 
 const voiceFeatures = [
@@ -88,7 +88,7 @@ export function PasswordCallSection() {
             </span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Sistema profissional de chamada de senhas com integração <strong>ElevenLabs</strong>{' '}
+            Sistema profissional de chamada de senhas com <strong>OpenAI TTS</strong>{' '}
             para vozes naturais em português brasileiro.
           </p>
         </div>
@@ -114,25 +114,25 @@ export function PasswordCallSection() {
           })}
         </div>
 
-        {/* Card Destaque ElevenLabs */}
+        {/* Card Destaque OpenAI TTS */}
         <Card className="max-w-4xl mx-auto mt-12 overflow-hidden border-2 border-amber-300/50 dark:border-amber-700/50 shadow-xl">
           <div className="bg-gradient-to-r from-amber-600 to-yellow-600 p-4">
             <div className="flex items-center justify-center gap-3 text-white">
               <Mic className="h-7 w-7" />
-              <span className="text-xl md:text-2xl font-bold">Integração ElevenLabs</span>
+              <span className="text-xl md:text-2xl font-bold">OpenAI TTS</span>
             </div>
           </div>
           
           <div className="p-6 md:p-8">
             <div className="grid md:grid-cols-2 gap-8">
-              {/* Vozes Recomendadas */}
+              {/* Vozes Disponíveis */}
               <div>
                 <h4 className="font-semibold mb-4 flex items-center gap-2 text-lg">
                   <span className="text-2xl">🎙️</span>
-                  Vozes Recomendadas PT-BR
+                  Vozes Disponíveis
                 </h4>
                 <div className="space-y-3">
-                  {elevenLabsVoices.map((voice, index) => (
+                  {openAIVoices.map((voice, index) => (
                     <div 
                       key={index} 
                       className="flex items-center gap-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800"

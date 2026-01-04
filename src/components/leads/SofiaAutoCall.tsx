@@ -199,7 +199,7 @@ export function SofiaAutoCall({
           const { data, error } = await supabase.functions.invoke('text-to-speech', {
             body: {
               text: script,
-              voiceId: 'ORgG8rwdAiMYRug8RJwR'
+              voiceId: 'nova' // Voz feminina OpenAI
             }
           });
 

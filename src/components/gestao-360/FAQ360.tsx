@@ -6,7 +6,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Rocket, Coins, Headphones, MessageCircle, Shield } from "lucide-react";
+import { Rocket, Coins, Headphones, MessageCircle, Shield, Quote } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface FAQItem {
@@ -178,6 +178,32 @@ export function FAQ360() {
               </div>
             );
           })}
+
+          {/* Quote Marcos Andrade - Garantia de Segurança */}
+          <div className="mt-8 relative p-6 md:p-8 rounded-2xl bg-slate-800/30 border border-purple-500/20 overflow-hidden">
+            {/* Borda gradiente esquerda */}
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-purple-500 via-purple-400 to-purple-600" />
+            
+            {/* Ícone de aspas */}
+            <Quote className="absolute top-4 right-4 w-10 h-10 text-purple-400/20" />
+            
+            {/* Conteúdo */}
+            <div className="relative">
+              <p className="text-lg md:text-xl text-slate-200 italic leading-relaxed mb-6">
+                "Dono(a), eu não colocaria o meu nome e a minha bagagem internacional num sistema que pudesse te deixar na mão. O que estamos a implementar aqui é tecnologia de escala global. Se os servidores que usamos aguentam o volume do Instagram, eles vão gerir a sua loja com total folga e segurança."
+              </p>
+              
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center">
+                  <span className="text-white font-bold text-lg">MA</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-white">Marcos Andrade</p>
+                  <p className="text-sm text-slate-400">Fundador • 30 anos em Tecnologia para Varejo</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* CTA Final */}

@@ -197,16 +197,20 @@ export default {
 					'60%': { transform: 'rotate(0deg)' },
 					'100%': { transform: 'rotate(0deg)' }
 				},
-				'fade-in': {
-					'0%': {
-						opacity: '0',
-						transform: 'translateY(10px)'
-					},
-					'100%': {
-						opacity: '1',
-						transform: 'translateY(0)'
-					}
+			'fade-in': {
+				'0%': {
+					opacity: '0',
+					transform: 'translateY(15px) scale(0.98)'
 				},
+				'50%': {
+					opacity: '0.6',
+					transform: 'translateY(5px) scale(0.99)'
+				},
+				'100%': {
+					opacity: '1',
+					transform: 'translateY(0) scale(1)'
+				}
+			},
 				'ping-slow': {
 					'0%': {
 						transform: 'scale(1)',
@@ -241,7 +245,7 @@ export default {
 				'radar-ping': 'radar-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite',
 				'shield-glow': 'shield-glow 2s ease-in-out infinite',
 				'wave': 'wave 1s ease-in-out',
-				'fade-in': 'fade-in 0.3s ease-out forwards',
+				'fade-in': 'fade-in 0.8s ease-out forwards',
 				'ping-slow': 'ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite',
 				'pulse-gentle': 'pulse-gentle 2s ease-in-out infinite',
 				'phone-vibrate': 'phone-vibrate 0.8s ease-in-out infinite',

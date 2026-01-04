@@ -158,7 +158,7 @@ export function TutorialCategoryCarousel({
             <div
               key={tutorial.id}
               className="animate-fade-in"
-              style={{ animationDelay: `${index * 50}ms`, opacity: 0 }}
+              style={{ animationDelay: `${index * 100}ms`, opacity: 0 }}
             >
               <TutorialCard
                 tutorial={tutorial}

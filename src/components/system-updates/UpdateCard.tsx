@@ -76,7 +76,7 @@ function MarkdownRenderer({ content }: { content: string }) {
 }
 
 export function UpdateCard({ update, isRead = true, onMarkAsRead, showActions = true }: UpdateCardProps) {
-  const [expanded, setExpanded] = useState(!isRead);
+  const [expanded, setExpanded] = useState(true);
   const category = categoryConfig[update.category];
   const importance = importanceConfig[update.importance];
   const CategoryIcon = category.icon;

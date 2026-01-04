@@ -100,7 +100,7 @@ export default function TutorialsPage() {
     <div className="-m-6 min-h-screen bg-background">
       {/* Header com busca e filtro de categoria */}
       <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-md border-b border-border/50 shadow-sm px-4 md:px-8 py-4 transition-all duration-300">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
           <div className="flex items-center gap-3">
             <PlayCircle className="w-8 h-8 text-primary" />
             <h1 className="text-xl md:text-2xl font-bold text-foreground">Tutoriais</h1>

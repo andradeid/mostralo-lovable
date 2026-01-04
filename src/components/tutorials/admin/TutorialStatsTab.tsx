@@ -9,13 +9,21 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export function TutorialStatsTab() {
-  const { data: stats, isLoading } = useTutorialViewsStats();
+  const { data: stats, isLoading, isError, error } = useTutorialViewsStats();
   const { data: tutorials } = useTutorials(undefined, true);
 
   if (isLoading) {
     return (
       <div className="flex justify-center py-8">
         <Loader2 className="w-6 h-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="text-center py-8 text-destructive">
+        Erro ao carregar estatísticas: {error?.message || 'Erro desconhecido'}
       </div>
     );
   }

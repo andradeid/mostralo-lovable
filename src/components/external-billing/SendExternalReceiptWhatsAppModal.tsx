@@ -11,11 +11,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { MessageCircle, Send, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { MessageCircle, Send, CheckCircle, XCircle, Loader2, Copy, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { copyMessageToClipboard, openWhatsAppWeb } from '@/lib/whatsappUtils';
 
 interface ExternalInvoice {
   id: string;
@@ -112,6 +113,20 @@ Pagamento confirmado! 🎉
 ${receiptLink}
 
 Obrigado pela confiança!`;
+  };
+
+  const handleCopyMessage = () => {
+    const message = getMessagePreview();
+    copyMessageToClipboard(message);
+  };
+
+  const handleOpenWhatsAppWeb = () => {
+    if (!phone) {
+      toast.error('Número de telefone é obrigatório');
+      return;
+    }
+    const message = getMessagePreview();
+    openWhatsAppWeb(phone, message);
   };
 
   const handleSend = async () => {
@@ -222,32 +237,54 @@ Obrigado pela confiança!`;
           </div>
 
           {/* Botões */}
-          <div className="flex gap-2 pt-2">
-            <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              className="flex-1"
-              disabled={isSending}
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleSend}
-              className="flex-1 bg-green-600 hover:bg-green-700"
-              disabled={isSending || whatsAppStatus !== 'connected' || !phone}
-            >
-              {isSending ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Enviando...
-                </>
-              ) : (
-                <>
-                  <Send className="h-4 w-4 mr-2" />
-                  Enviar Recibo
-                </>
-              )}
-            </Button>
+          <div className="flex flex-col gap-2 pt-2">
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={handleCopyMessage}
+                className="flex-1"
+                disabled={isSending}
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Copiar
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleOpenWhatsAppWeb}
+                className="flex-1 text-green-600 border-green-600 hover:bg-green-50"
+                disabled={isSending || !phone}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                WhatsApp Web
+              </Button>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                className="flex-1"
+                disabled={isSending}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleSend}
+                className="flex-1 bg-green-600 hover:bg-green-700"
+                disabled={isSending || whatsAppStatus !== 'connected' || !phone}
+              >
+                {isSending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-2" />
+                    Enviar Recibo
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>

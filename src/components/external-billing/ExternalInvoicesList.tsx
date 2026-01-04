@@ -64,8 +64,62 @@ import { ExternalInvoiceForm } from "./ExternalInvoiceForm";
 import { ProcessRecurringInvoicesButton } from "./ProcessRecurringInvoicesButton";
 import { toast } from "sonner";
 import { getPublicInvoiceUrl } from "@/lib/publicUrl";
+import { copyMessageToClipboard, openWhatsAppWeb } from "@/lib/whatsappUtils";
 import { SendExternalReceiptWhatsAppModal } from "./SendExternalReceiptWhatsAppModal";
 import { SendExternalInvoiceWhatsAppModal } from "./SendExternalInvoiceWhatsAppModal";
+
+// Função para gerar mensagem de fatura
+function generateInvoiceMessage(invoice: ExternalInvoice, formatCurrency: (value: number) => string): string {
+  const clientName = invoice.client?.name || 'Cliente';
+  const serviceName = invoice.service?.name || invoice.description || 'Serviço';
+  const amount = formatCurrency(invoice.amount);
+  const dueDate = format(new Date(invoice.due_date), "dd/MM/yyyy", { locale: ptBR });
+  const invoiceNumber = invoice.invoice_number || invoice.id.slice(0, 8).toUpperCase();
+  const invoiceLink = getPublicInvoiceUrl(invoice.id);
+
+  return `📄 *Fatura - Mostralo*
+
+Olá ${clientName}!
+
+Segue sua fatura para pagamento:
+
+📋 *Fatura:* #${invoiceNumber}
+📝 *Serviço:* ${serviceName}
+💰 *Valor:* ${amount}
+📅 *Vencimento:* ${dueDate}
+
+💳 *Pagar agora:*
+${invoiceLink}
+
+Qualquer dúvida, estamos à disposição!`;
+}
+
+// Função para gerar mensagem de recibo
+function generateReceiptMessage(invoice: ExternalInvoice, formatCurrency: (value: number) => string): string {
+  const clientName = invoice.client?.name || 'Cliente';
+  const serviceName = invoice.service?.name || invoice.description || 'Serviço';
+  const amount = formatCurrency(invoice.amount);
+  const paidDate = invoice.paid_at 
+    ? format(new Date(invoice.paid_at), "dd/MM/yyyy", { locale: ptBR })
+    : 'N/A';
+  const invoiceNumber = invoice.invoice_number || invoice.id.slice(0, 8).toUpperCase();
+  const receiptLink = `${window.location.origin}/external-receipt/${invoice.id}`;
+
+  return `✅ *Recibo de Pagamento - Mostralo*
+
+Pagamento confirmado! 🎉
+
+📄 *Recibo:* #${invoiceNumber}
+👤 *Cliente:* ${clientName}
+📋 *Serviço:* ${serviceName}
+💰 *Valor:* ${amount}
+📅 *Pago em:* ${paidDate}
+
+📄 *Ver recibo completo:*
+${receiptLink}
+
+Obrigado pela confiança!`;
+}
 
 const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   pending: { label: "Pendente", variant: "outline" },
@@ -770,10 +824,28 @@ function InvoiceCard({ invoice, onMarkAsPaid, onCancel, onDelete, onCopyLink, on
                 </a>
               </DropdownMenuItem>
               {(invoice.payment_status === "pending" || invoice.payment_status === "overdue") && (
-                <DropdownMenuItem onClick={() => onSendInvoiceWhatsApp(invoice)}>
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  Enviar Fatura por WhatsApp
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem onClick={() => onSendInvoiceWhatsApp(invoice)}>
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    Enviar Fatura por WhatsApp
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => {
+                    const message = generateInvoiceMessage(invoice, formatCurrency);
+                    copyMessageToClipboard(message);
+                  }}>
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copiar Mensagem WhatsApp
+                  </DropdownMenuItem>
+                  {invoice.client?.phone && (
+                    <DropdownMenuItem onClick={() => {
+                      const message = generateInvoiceMessage(invoice, formatCurrency);
+                      openWhatsAppWeb(invoice.client!.phone!, message);
+                    }}>
+                      <ExternalLink className="h-4 w-4 mr-2 text-green-600" />
+                      Abrir WhatsApp Web
+                    </DropdownMenuItem>
+                  )}
+                </>
               )}
               {invoice.payment_status === "paid" && (
                 <>
@@ -785,6 +857,22 @@ function InvoiceCard({ invoice, onMarkAsPaid, onCancel, onDelete, onCopyLink, on
                     <MessageCircle className="h-4 w-4 mr-2" />
                     Enviar Recibo por WhatsApp
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => {
+                    const message = generateReceiptMessage(invoice, formatCurrency);
+                    copyMessageToClipboard(message);
+                  }}>
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copiar Mensagem Recibo
+                  </DropdownMenuItem>
+                  {invoice.client?.phone && (
+                    <DropdownMenuItem onClick={() => {
+                      const message = generateReceiptMessage(invoice, formatCurrency);
+                      openWhatsAppWeb(invoice.client!.phone!, message);
+                    }}>
+                      <ExternalLink className="h-4 w-4 mr-2 text-green-600" />
+                      Abrir WhatsApp Web
+                    </DropdownMenuItem>
+                  )}
                 </>
               )}
               <DropdownMenuSeparator />

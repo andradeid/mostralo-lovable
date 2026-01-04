@@ -134,8 +134,10 @@ export function TutorialCategoryCarousel({
             className={cn(
               "absolute left-0 top-1/2 -translate-y-1/2 z-10",
               "w-10 h-10 md:w-12 md:h-12 rounded-full",
-              "bg-background/90 hover:bg-background shadow-lg",
-              "opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-300"
+              "bg-background/90 hover:bg-background shadow-lg hover:shadow-xl",
+              "opacity-0 group-hover/carousel:opacity-100",
+              "transition-all duration-300 ease-out",
+              "hover:scale-110 active:scale-95"
             )}
           >
             <ChevronLeft className="w-6 h-6" />
@@ -152,14 +154,19 @@ export function TutorialCategoryCarousel({
           )}
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {tutorials.map((tutorial) => (
-            <TutorialCard
+          {tutorials.map((tutorial, index) => (
+            <div
               key={tutorial.id}
-              tutorial={tutorial}
-              view={getViewForTutorial(tutorial.id)}
-              onClick={() => onTutorialClick(tutorial)}
-              isNew={isNewTutorial(tutorial.created_at)}
-            />
+              className="animate-fade-in"
+              style={{ animationDelay: `${index * 50}ms`, opacity: 0 }}
+            >
+              <TutorialCard
+                tutorial={tutorial}
+                view={getViewForTutorial(tutorial.id)}
+                onClick={() => onTutorialClick(tutorial)}
+                isNew={isNewTutorial(tutorial.created_at)}
+              />
+            </div>
           ))}
         </div>
         
@@ -172,8 +179,10 @@ export function TutorialCategoryCarousel({
             className={cn(
               "absolute right-0 top-1/2 -translate-y-1/2 z-10",
               "w-10 h-10 md:w-12 md:h-12 rounded-full",
-              "bg-background/90 hover:bg-background shadow-lg",
-              "opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-300"
+              "bg-background/90 hover:bg-background shadow-lg hover:shadow-xl",
+              "opacity-0 group-hover/carousel:opacity-100",
+              "transition-all duration-300 ease-out",
+              "hover:scale-110 active:scale-95"
             )}
           >
             <ChevronRight className="w-6 h-6" />
@@ -181,12 +190,16 @@ export function TutorialCategoryCarousel({
         )}
         
         {/* Gradientes laterais para indicar scroll */}
-        {canScrollLeft && (
-          <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background to-transparent pointer-events-none" />
-        )}
-        {canScrollRight && (
-          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background to-transparent pointer-events-none" />
-        )}
+        <div className={cn(
+          "absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-background via-background/50 to-transparent pointer-events-none",
+          "transition-opacity duration-300",
+          canScrollLeft ? "opacity-100" : "opacity-0"
+        )} />
+        <div className={cn(
+          "absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-background via-background/50 to-transparent pointer-events-none",
+          "transition-opacity duration-300",
+          canScrollRight ? "opacity-100" : "opacity-0"
+        )} />
       </div>
     </div>
   );

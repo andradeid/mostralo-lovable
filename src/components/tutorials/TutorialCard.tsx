@@ -39,7 +39,8 @@ export function TutorialCard({ tutorial, view, onClick, isNew }: TutorialCardPro
       className={cn(
         "group relative flex-shrink-0 w-[200px] sm:w-[240px] md:w-[280px] cursor-pointer",
         "transition-all duration-300 ease-out",
-        "hover:scale-105 hover:z-10"
+        "hover:scale-105 hover:z-10",
+        "hover:-translate-y-1"
       )}
     >
       {/* Thumbnail Container */}
@@ -57,8 +58,8 @@ export function TutorialCard({ tutorial, view, onClick, isNew }: TutorialCardPro
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300" />
         
         {/* Botão de play no hover */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center shadow-xl">
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+          <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center shadow-xl transform scale-75 group-hover:scale-100 transition-transform duration-300">
             <Play className="w-7 h-7 text-primary-foreground fill-current ml-1" />
           </div>
         </div>
@@ -73,15 +74,19 @@ export function TutorialCard({ tutorial, view, onClick, isNew }: TutorialCardPro
         <button
           onClick={handleFavoriteClick}
           className={cn(
-            "absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all z-10",
+            "absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center z-10",
             "bg-black/50 hover:bg-black/70",
+            "transition-all duration-300 ease-out",
+            "hover:scale-110 active:scale-95",
             isPending && "opacity-50 cursor-not-allowed"
           )}
         >
           <Heart 
             className={cn(
-              "w-4 h-4 transition-colors",
-              isFavorite ? "fill-red-500 text-red-500" : "text-white"
+              "w-4 h-4 transition-all duration-300",
+              isFavorite 
+                ? "fill-red-500 text-red-500 scale-110" 
+                : "text-white hover:scale-125"
             )} 
           />
         </button>

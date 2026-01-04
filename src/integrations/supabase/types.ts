@@ -8060,6 +8060,115 @@ export type Database = {
         }
         Relationships: []
       }
+      tutorial_category_subscriptions: {
+        Row: {
+          category_id: string
+          created_at: string | null
+          id: string
+          notify_in_app: boolean | null
+          user_id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string | null
+          id?: string
+          notify_in_app?: boolean | null
+          user_id: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string | null
+          id?: string
+          notify_in_app?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tutorial_category_subscriptions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "tutorial_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tutorial_favorites: {
+        Row: {
+          created_at: string | null
+          id: string
+          tutorial_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          tutorial_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          tutorial_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tutorial_favorites_tutorial_id_fkey"
+            columns: ["tutorial_id"]
+            isOneToOne: false
+            referencedRelation: "tutorials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tutorial_notifications: {
+        Row: {
+          category_id: string | null
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string | null
+          title: string
+          tutorial_id: string
+          user_id: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string | null
+          title: string
+          tutorial_id: string
+          user_id: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string | null
+          title?: string
+          tutorial_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tutorial_notifications_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "tutorial_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tutorial_notifications_tutorial_id_fkey"
+            columns: ["tutorial_id"]
+            isOneToOne: false
+            referencedRelation: "tutorials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tutorial_views: {
         Row: {
           completed: boolean | null

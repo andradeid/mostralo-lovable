@@ -1,11 +1,13 @@
 import { useRef, useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Bell, BellOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TutorialCard } from "./TutorialCard";
 import { Tutorial } from "@/hooks/useTutorials";
 import { TutorialView } from "@/hooks/useTutorialViews";
 import { TutorialCategory } from "@/hooks/useTutorialCategories";
 import { Button } from "@/components/ui/button";
+import { useMySubscriptions, useToggleSubscription } from "@/hooks/useCategorySubscriptions";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface TutorialCategoryCarouselProps {
   category: TutorialCategory;
@@ -23,6 +25,17 @@ export function TutorialCategoryCarousel({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  
+  const { data: subscriptions } = useMySubscriptions();
+  const { mutate: toggleSubscription, isPending } = useToggleSubscription();
+  
+  const isSubscribed = subscriptions?.some(s => s.category_id === category.id) || false;
+
+  const handleToggleSubscription = () => {
+    if (!isPending) {
+      toggleSubscription({ categoryId: category.id, isSubscribed });
+    }
+  };
 
   const checkScroll = () => {
     if (!scrollRef.current) return;
@@ -71,10 +84,44 @@ export function TutorialCategoryCarousel({
 
   return (
     <div className="relative group/carousel mb-8">
-      {/* Título da categoria */}
-      <h2 className="text-xl md:text-2xl font-bold text-foreground mb-4 px-4 md:px-8">
-        {category.name}
-      </h2>
+      {/* Título da categoria com botão seguir */}
+      <div className="flex items-center gap-3 mb-4 px-4 md:px-8">
+        <h2 className="text-xl md:text-2xl font-bold text-foreground">
+          {category.name}
+        </h2>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant={isSubscribed ? "secondary" : "ghost"}
+              size="sm"
+              onClick={handleToggleSubscription}
+              disabled={isPending}
+              className={cn(
+                "h-8 gap-1.5 text-xs",
+                isSubscribed && "bg-primary/10 text-primary hover:bg-primary/20"
+              )}
+            >
+              {isSubscribed ? (
+                <>
+                  <Bell className="w-3.5 h-3.5 fill-current" />
+                  <span className="hidden sm:inline">Seguindo</span>
+                </>
+              ) : (
+                <>
+                  <BellOff className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Seguir</span>
+                </>
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            {isSubscribed 
+              ? "Clique para parar de receber notificações" 
+              : "Receba notificações de novos tutoriais"
+            }
+          </TooltipContent>
+        </Tooltip>
+      </div>
       
       {/* Container do carrossel */}
       <div className="relative">

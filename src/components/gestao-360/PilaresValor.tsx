@@ -88,7 +88,8 @@ const pilares: Pilar[] = [
     features: [
       "Cartões Digitais individuais para profissionais",
       "Agendamento Online com gestão de escalas",
-      "Ranking de Avaliações e Performance individual"
+      "Ranking de Avaliações e Performance individual",
+      "Academia de Tutoriais para capacitação contínua"
     ],
     resultado: "Sua equipe performando no máximo potencial"
   }

@@ -234,6 +234,7 @@ const routeSections: RouteSection[] = [
       { path: "/dashboard/popup-ab-test", name: "Teste A/B Popup", component: "PopupABTestPage.tsx", roles: ["master_admin"] },
       { path: "/dashboard/test-environment", name: "Ambiente de Testes", component: "TestEnvironmentPage.tsx", roles: ["master_admin"] },
       { path: "/dashboard/ideias", name: "Ideias e Funcionalidades", component: "IdeasPage.tsx", roles: ["master_admin"] },
+      { path: "/dashboard/tutorials-management", name: "Gerenciar Tutoriais", component: "TutorialsManagementPage.tsx", roles: ["master_admin"] },
     ]
   },
   {
@@ -270,6 +271,7 @@ const routeSections: RouteSection[] = [
       { path: "/dashboard/contract-history", name: "Histórico de Contratos", component: "MerchantContractHistory.tsx", roles: ["store_admin"] },
       { path: "/dashboard/settings", name: "Configurações da Loja", component: "StoreSettingsPage.tsx", roles: ["store_admin"] },
       { path: "/dashboard/profile", name: "Perfil", component: "ProfilePage.tsx", roles: ["store_admin", "attendant"] },
+      { path: "/dashboard/tutoriais", name: "Central de Tutoriais", component: "TutorialsPage.tsx", roles: ["store_admin"] },
     ]
   },
   {

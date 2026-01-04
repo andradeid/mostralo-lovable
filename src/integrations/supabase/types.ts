@@ -5506,6 +5506,42 @@ export type Database = {
         }
         Relationships: []
       }
+      recurring_invoice_logs: {
+        Row: {
+          created_at: string
+          errors_count: number
+          executed_at: string
+          execution_details: Json | null
+          execution_source: string
+          id: string
+          invoices_created: number
+          total_processed: number
+          whatsapp_sent: number
+        }
+        Insert: {
+          created_at?: string
+          errors_count?: number
+          executed_at?: string
+          execution_details?: Json | null
+          execution_source?: string
+          id?: string
+          invoices_created?: number
+          total_processed?: number
+          whatsapp_sent?: number
+        }
+        Update: {
+          created_at?: string
+          errors_count?: number
+          executed_at?: string
+          execution_details?: Json | null
+          execution_source?: string
+          id?: string
+          invoices_created?: number
+          total_processed?: number
+          whatsapp_sent?: number
+        }
+        Relationships: []
+      }
       sales_media: {
         Row: {
           category: string

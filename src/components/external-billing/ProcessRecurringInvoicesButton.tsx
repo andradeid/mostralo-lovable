@@ -38,7 +38,8 @@ export function ProcessRecurringInvoicesButton() {
     setIsProcessing(true);
     try {
       const { data, error } = await supabase.functions.invoke(
-        "process-recurring-external-invoices"
+        "process-recurring-external-invoices",
+        { body: { source: "manual" } }
       );
 
       if (error) {
@@ -53,6 +54,8 @@ export function ProcessRecurringInvoicesButton() {
         
         // Invalidate queries to refresh the list
         queryClient.invalidateQueries({ queryKey: ["external-invoices"] });
+        queryClient.invalidateQueries({ queryKey: ["recurring-invoice-logs"] });
+        queryClient.invalidateQueries({ queryKey: ["recurring-invoice-stats"] });
         
         if (data.result.total_processed > 0) {
           toast.success(`${data.result.total_processed} fatura(s) gerada(s)!`);

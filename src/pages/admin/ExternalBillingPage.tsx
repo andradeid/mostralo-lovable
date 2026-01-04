@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Briefcase, FileText } from "lucide-react";
+import { Users, Briefcase, FileText, BarChart3 } from "lucide-react";
 import { ExternalClientsList } from "@/components/external-billing/ExternalClientsList";
 import { ExternalServicesList } from "@/components/external-billing/ExternalServicesList";
 import { ExternalInvoicesList } from "@/components/external-billing/ExternalInvoicesList";
+import { RecurringInvoicesReport } from "@/components/external-billing/RecurringInvoicesReport";
 
 export default function ExternalBillingPage() {
   const [activeTab, setActiveTab] = useState("invoices");
@@ -19,7 +20,7 @@ export default function ExternalBillingPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-grid">
+        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
           <TabsTrigger value="invoices" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             <span className="hidden sm:inline">Faturas</span>
@@ -31,6 +32,10 @@ export default function ExternalBillingPage() {
           <TabsTrigger value="services" className="flex items-center gap-2">
             <Briefcase className="h-4 w-4" />
             <span className="hidden sm:inline">Serviços</span>
+          </TabsTrigger>
+          <TabsTrigger value="report" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            <span className="hidden sm:inline">Relatório</span>
           </TabsTrigger>
         </TabsList>
 
@@ -72,6 +77,20 @@ export default function ExternalBillingPage() {
             </CardHeader>
             <CardContent>
               <ExternalServicesList />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="report">
+          <Card>
+            <CardHeader>
+              <CardTitle>Relatório de Recorrências</CardTitle>
+              <CardDescription>
+                Histórico de execuções automáticas e faturas geradas
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <RecurringInvoicesReport />
             </CardContent>
           </Card>
         </TabsContent>

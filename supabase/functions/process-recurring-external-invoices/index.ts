@@ -45,6 +45,15 @@ serve(async (req) => {
   }
 
   try {
+    // Parse request body first (before any other operations)
+    let requestBody: { source?: string } = {};
+    try {
+      requestBody = await req.json();
+    } catch {
+      // No body or invalid JSON - use defaults
+    }
+    const executionSource = requestBody?.source === "manual" ? "manual" : "cron";
+
     // Initialize Supabase client with service role
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -52,7 +61,7 @@ serve(async (req) => {
 
     const today = new Date().toISOString().split("T")[0];
     
-    console.log(`[process-recurring] Starting processing for date: ${today}`);
+    console.log(`[process-recurring] Starting processing for date: ${today}, source: ${executionSource}`);
 
     // Find eligible recurring invoices
     // Criteria:
@@ -87,6 +96,17 @@ serve(async (req) => {
     };
 
     if (!eligibleInvoices || eligibleInvoices.length === 0) {
+      // Save log even when no invoices to process
+      await supabase.from("recurring_invoice_logs").insert({
+        executed_at: new Date().toISOString(),
+        total_processed: 0,
+        invoices_created: 0,
+        whatsapp_sent: 0,
+        errors_count: 0,
+        execution_details: { invoices: [], errors: [] },
+        execution_source: executionSource,
+      });
+
       return new Response(JSON.stringify({
         success: true,
         message: "Nenhuma fatura recorrente pendente de processamento",
@@ -202,6 +222,28 @@ serve(async (req) => {
     }
 
     console.log(`[process-recurring] Completed. Created: ${result.total_processed}, WhatsApp: ${result.whatsapp_sent_count}, Errors: ${result.errors.length}`);
+
+    // Save execution log to recurring_invoice_logs table
+    const { error: logError } = await supabase
+      .from("recurring_invoice_logs")
+      .insert({
+        executed_at: new Date().toISOString(),
+        total_processed: result.total_processed,
+        invoices_created: result.invoices_created.length,
+        whatsapp_sent: result.whatsapp_sent_count,
+        errors_count: result.errors.length,
+        execution_details: {
+          invoices: result.invoices_created,
+          errors: result.errors,
+        },
+        execution_source: executionSource,
+      });
+
+    if (logError) {
+      console.error("[process-recurring] Failed to save execution log:", logError);
+    } else {
+      console.log("[process-recurring] Execution log saved successfully");
+    }
 
     return new Response(JSON.stringify({
       success: true,

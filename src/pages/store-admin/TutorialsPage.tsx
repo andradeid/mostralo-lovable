@@ -98,8 +98,8 @@ export default function TutorialsPage() {
 
   return (
     <div className="-m-6 min-h-screen bg-background">
-      {/* Header com busca e filtro de categoria */}
-      <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-md border-b border-border/50 shadow-sm px-4 md:px-8 py-4 transition-all duration-300">
+      {/* Header com busca e filtro de categoria - glassmorphism fixo */}
+      <div className="fixed top-14 left-0 md:left-64 right-0 z-30 bg-background/60 backdrop-blur-xl border-b border-white/10 shadow-lg px-4 md:px-8 py-4 transition-all duration-300">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 max-w-7xl mx-auto">
           <div className="flex items-center gap-3">
             <PlayCircle className="w-8 h-8 text-primary" />
@@ -138,6 +138,9 @@ export default function TutorialsPage() {
           </div>
         </div>
       </div>
+
+      {/* Espaçador para compensar o header fixo */}
+      <div className="h-[72px]" />
 
       {!hasContent ? (
         <div className="flex flex-col items-center justify-center min-h-[50vh] text-center px-4">

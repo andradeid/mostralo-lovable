@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { CardFormData, CardTheme } from '@/types/digitalCard';
 import { SaveContactButton } from './SaveContactButton';
+import { ShareCardButton } from './ShareCardButton';
 
 interface DigitalCardPreviewProps {
   data: Partial<CardFormData> & {
@@ -91,6 +92,19 @@ export function DigitalCardPreview({
       className
     )}>
       <div className="p-6 pb-8 space-y-6 flex flex-col justify-center min-h-screen md:min-h-0">
+        {/* Botão de Compartilhamento */}
+        {isInteractive && (
+          <div className="flex justify-end -mb-2">
+            <ShareCardButton
+              cardUrl={typeof window !== 'undefined' ? window.location.href : ''}
+              cardName={data.name || 'Cartão Digital'}
+              theme={theme}
+              accentColor={accentColor}
+              onShare={(method) => onClickAction?.('share', method)}
+            />
+          </div>
+        )}
+
         {/* Header com foto e informações */}
         <div className="text-center space-y-4">
           <Avatar className="w-28 h-28 mx-auto border-4 shadow-xl" style={{ borderColor: accentColor }}>

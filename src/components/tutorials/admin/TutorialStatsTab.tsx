@@ -187,6 +187,7 @@ export function TutorialStatsTab() {
                   <TableRow>
                     <TableHead>Tutorial</TableHead>
                     <TableHead>Usuário</TableHead>
+                    <TableHead>Loja</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Data</TableHead>
                   </TableRow>
@@ -199,6 +200,9 @@ export function TutorialStatsTab() {
                       </TableCell>
                       <TableCell>
                         {view.profiles?.full_name || view.profiles?.email || 'Anônimo'}
+                      </TableCell>
+                      <TableCell>
+                        {view.stores?.name || '-'}
                       </TableCell>
                       <TableCell>
                         {view.completed ? (

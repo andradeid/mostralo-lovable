@@ -94,10 +94,27 @@ export function useTutorialViewsStats(params?: StatsParams) {
         }, {} as Record<string, { full_name: string | null; email: string | null }>);
       }
       
-      // Enriquecer views com dados de perfis
+      // Buscar lojas separadamente
+      const storeIds = [...new Set(views?.filter(v => v.store_id).map(v => v.store_id) || [])] as string[];
+      let storeMap: Record<string, { name: string | null }> = {};
+      
+      if (storeIds.length > 0) {
+        const { data: stores } = await supabase
+          .from('stores')
+          .select('id, name')
+          .in('id', storeIds);
+        
+        storeMap = (stores || []).reduce((acc, s) => {
+          acc[s.id] = { name: s.name };
+          return acc;
+        }, {} as Record<string, { name: string | null }>);
+      }
+      
+      // Enriquecer views com dados de perfis e lojas
       const enrichedViews = views?.map(v => ({
         ...v,
-        profiles: profileMap[v.user_id] || null
+        profiles: profileMap[v.user_id] || null,
+        stores: v.store_id ? storeMap[v.store_id] || null : null
       })) || [];
       
       // Calcular estatísticas

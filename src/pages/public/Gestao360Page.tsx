@@ -12,6 +12,7 @@ import { FAQ360 } from "@/components/gestao-360/FAQ360";
 import { CTA360Section } from "@/components/gestao-360/CTA360Section";
 import { CookieBanner } from "@/components/CookieBanner";
 import { WhatsAppLeadButton } from "@/components/leads/WhatsAppLeadButton";
+import { DiagnosticPopup } from "@/components/landing/DiagnosticPopup";
 
 export default function Gestao360Page() {
   const { setTheme } = useTheme();
@@ -57,6 +58,7 @@ export default function Gestao360Page() {
       
       <CookieBanner />
       <WhatsAppLeadButton />
+      <DiagnosticPopup />
     </div>
   );
 }

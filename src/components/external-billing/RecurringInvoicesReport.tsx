@@ -36,7 +36,12 @@ import {
   CheckCircle2,
   XCircle,
   Loader2,
+  Copy,
+  ExternalLink,
+  MessageCircle,
 } from "lucide-react";
+import { copyMessageToClipboard, openWhatsAppWeb } from "@/lib/whatsappUtils";
+import { getPublicInvoiceUrl } from "@/lib/publicUrl";
 import {
   useRecurringInvoiceLogs,
   useRecurringInvoiceStats,
@@ -58,6 +63,32 @@ function formatDate(date: string): string {
 
 function formatShortDate(date: string): string {
   return format(new Date(date), "dd/MM/yyyy", { locale: ptBR });
+}
+
+// Função para gerar mensagem de fatura
+function generateInvoiceMessage(invoice: any): string {
+  const clientName = invoice.client?.name || 'Cliente';
+  const serviceName = invoice.service?.name || invoice.description || 'Serviço';
+  const amount = formatCurrency(invoice.amount);
+  const dueDate = formatShortDate(invoice.due_date);
+  const invoiceNumber = invoice.invoice_number || invoice.id.slice(0, 8).toUpperCase();
+  const invoiceLink = getPublicInvoiceUrl(invoice.id);
+
+  return `📄 *Fatura - Mostralo*
+
+Olá ${clientName}!
+
+Segue sua fatura para pagamento:
+
+📋 *Fatura:* #${invoiceNumber}
+📝 *Serviço:* ${serviceName}
+💰 *Valor:* ${amount}
+📅 *Vencimento:* ${dueDate}
+
+💳 *Pagar agora:*
+${invoiceLink}
+
+Qualquer dúvida, estamos à disposição!`;
 }
 
 export function RecurringInvoicesReport() {
@@ -334,8 +365,8 @@ export function RecurringInvoicesReport() {
                         <TableHead>Cliente</TableHead>
                         <TableHead>Valor</TableHead>
                         <TableHead>Vencimento</TableHead>
-                        <TableHead>Origem</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -347,9 +378,6 @@ export function RecurringInvoicesReport() {
                           <TableCell>{invoice.client?.name || "N/A"}</TableCell>
                           <TableCell>{formatCurrency(invoice.amount)}</TableCell>
                           <TableCell>{formatShortDate(invoice.due_date)}</TableCell>
-                          <TableCell className="text-muted-foreground text-sm">
-                            {invoice.parent?.invoice_number || "N/A"}
-                          </TableCell>
                           <TableCell>
                             <Badge
                               variant={
@@ -374,6 +402,45 @@ export function RecurringInvoicesReport() {
                                 ? "Vencido"
                                 : "Cancelado"}
                             </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => {
+                                  const message = generateInvoiceMessage(invoice);
+                                  copyMessageToClipboard(message);
+                                }}
+                                title="Copiar mensagem"
+                              >
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                              {invoice.client?.phone && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-green-600 hover:text-green-700"
+                                  onClick={() => {
+                                    const message = generateInvoiceMessage(invoice);
+                                    openWhatsAppWeb(invoice.client.phone, message);
+                                  }}
+                                  title="Abrir WhatsApp Web"
+                                >
+                                  <MessageCircle className="h-4 w-4" />
+                                </Button>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => window.open(getPublicInvoiceUrl(invoice.id), '_blank')}
+                                title="Ver fatura"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}

@@ -97,7 +97,7 @@ export default function TutorialsPage() {
   const hasContent = categories && categories.length > 0 && allTutorials && allTutorials.length > 0;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="-m-6 min-h-screen bg-background">
       {/* Header com busca e filtro de categoria */}
       <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-sm border-b border-border px-4 md:px-8 py-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 max-w-7xl mx-auto">

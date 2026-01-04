@@ -1,5 +1,8 @@
+import { useEffect } from "react";
+import { useTheme } from "next-themes";
 import { usePageSEO } from "@/hooks/useSEO";
 import { LandingHeader } from "@/components/landing/LandingHeader";
+import { DashboardFooter } from "@/components/admin/DashboardFooter";
 import { GestaoHero } from "@/components/gestao-total/GestaoHero";
 import { PilaresSection } from "@/components/gestao-total/PilaresSection";
 import { NichesSection } from "@/components/gestao-total/NichesSection";
@@ -7,8 +10,16 @@ import { ProofSection } from "@/components/gestao-total/ProofSection";
 import { ComparisonSection } from "@/components/gestao-total/ComparisonSection";
 import { FinalCTASection } from "@/components/gestao-total/FinalCTASection";
 import { CookieBanner } from "@/components/CookieBanner";
+import { WhatsAppLeadButton } from "@/components/leads/WhatsAppLeadButton";
 
 export default function GestaoTotalPage() {
+  const { setTheme } = useTheme();
+
+  // Forçar tema dark ao abrir a página
+  useEffect(() => {
+    setTheme('dark');
+  }, [setTheme]);
+
   usePageSEO({
     title: 'Gestão Total | Mostralo - Sistema Completo para Negócios Locais',
     description: 'Vendas, Operações, Marketing e Financeiro em uma só plataforma. 28+ módulos integrados para restaurantes, salões, farmácias, pet shops e mais.',
@@ -16,7 +27,7 @@ export default function GestaoTotalPage() {
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background font-sans w-full overflow-x-hidden">
       <LandingHeader />
       
       <main>
@@ -38,9 +49,12 @@ export default function GestaoTotalPage() {
         {/* AÇÃO - CTAs Finais */}
         <FinalCTASection />
       </main>
+
+      <DashboardFooter />
       
       {/* Utilities */}
       <CookieBanner />
+      <WhatsAppLeadButton />
     </div>
   );
 }

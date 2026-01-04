@@ -24,6 +24,7 @@ const SalesPromptsPage = lazy(() => import("@/pages/admin/SalesPromptsPage"));
 const ProspectingGuidePage = lazy(() => import("@/pages/admin/ProspectingGuidePage"));
 const SystemUpdatesPage = lazy(() => import("@/pages/SystemUpdatesPage"));
 const SalespersonDigitalCardPage = lazy(() => import("@/pages/salesperson/SalespersonDigitalCardPage"));
+const TutorialsPage = lazy(() => import("@/pages/store-admin/TutorialsPage"));
 
 export const salespersonRoutes = (
   <>
@@ -153,6 +154,13 @@ export const salespersonRoutes = (
       <ProtectedRoute allowedRoles={['salesperson']}>
         <SalespersonLayout>
           <LazyRoute><SalespersonDigitalCardPage /></LazyRoute>
+        </SalespersonLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/vendedor/tutoriais" element={
+      <ProtectedRoute allowedRoles={['salesperson']}>
+        <SalespersonLayout>
+          <LazyRoute><TutorialsPage /></LazyRoute>
         </SalespersonLayout>
       </ProtectedRoute>
     } />

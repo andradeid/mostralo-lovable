@@ -6,7 +6,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Rocket, Coins, Headphones, MessageCircle } from "lucide-react";
+import { Rocket, Coins, Headphones, MessageCircle, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface FAQItem {
@@ -96,6 +96,34 @@ const faqCategories: FAQCategory[] = [
       {
         pergunta: "E se eu precisar de uma funcionalidade específica?",
         resposta: "Nosso roadmap é construído com feedback de clientes. Funcionalidades personalizadas podem ser desenvolvidas para planos Enterprise. Seu feedback molda o produto."
+      }
+    ]
+  },
+  {
+    id: "seguranca",
+    titulo: "Segurança e Performance",
+    icon: Shield,
+    cor: "text-purple-400",
+    perguntas: [
+      {
+        pergunta: "Onde os meus dados ficam armazenados?",
+        resposta: "Os seus dados estão salvos na Cloud Stack de alta disponibilidade (mesma infraestrutura de servidores da AWS/Google utilizada por gigantes como Airbnb e Netflix). Isso garante que a sua loja nunca pare, com uma taxa de disponibilidade de 99,9%."
+      },
+      {
+        pergunta: "O que acontece se a internet da loja cair?",
+        resposta: "A nossa arquitetura foi desenhada para a realidade do varejo brasileiro. O sistema possui módulos de contingência que permitem a continuidade de certas operações críticas, sincronizando tudo com a nuvem assim que a conexão é restabelecida."
+      },
+      {
+        pergunta: "Como é garantida a segurança das informações dos meus clientes?",
+        resposta: "Seguimos rigorosamente os protocolos da LGPD (Lei Geral de Proteção de Dados) e possuímos arquitetura ISO 27001 Ready. Utilizamos criptografia de ponta a ponta (a mesma do WhatsApp) em todas as transações de pagamento e dados sensíveis."
+      },
+      {
+        pergunta: "O sistema aguenta grandes picos de movimento?",
+        resposta: "Sim. Por utilizarmos a tecnologia de microserviços (a mesma do Instagram e Uber), o sistema escala automaticamente. Quanto mais pedidos entram, mais poder de processamento é alocado instantaneamente, garantindo que o seu Totem e o seu KDS não travem."
+      },
+      {
+        pergunta: "Como são feitas as atualizações?",
+        resposta: "As atualizações são feitas de forma invisível via nuvem (Over-the-Air), sem necessidade de técnicos no local. A sua loja terá sempre a versão mais recente e segura do ecossistema, sem custos adicionais de manutenção de hardware."
       }
     ]
   }

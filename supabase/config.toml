@@ -129,10 +129,6 @@ verify_jwt = true
 [functions.openai-bot-toggle]
 verify_jwt = true
 
-# ARQUIVADA: master-test-instance - Ver src/data/archivedEdgeFunctions.ts
-
-# ARQUIVADA: master-test-bot-sync - Ver src/data/archivedEdgeFunctions.ts
-
 [functions.update-bots-greeting]
 verify_jwt = false
 
@@ -174,8 +170,6 @@ verify_jwt = true
 
 [functions.confirm-pix-payment]
 verify_jwt = false
-
-# ARQUIVADA: performance-diagnostics - Ver src/data/archivedEdgeFunctions.ts
 
 [functions.ifood-auth]
 verify_jwt = true
@@ -301,4 +295,13 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.sentinela-manual-trigger]
+verify_jwt = true
+
+[functions.booking-confirmation]
+verify_jwt = true
+
+[functions.booking-reminder]
+verify_jwt = false
+
+[functions.booking-review-request]
 verify_jwt = true

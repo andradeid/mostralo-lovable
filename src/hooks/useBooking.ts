@@ -121,6 +121,11 @@ export interface BookingSettings {
   default_deposit_percentage: number;
   cancellation_hours_limit: number;
   enable_professional_reviews: boolean;
+  // Novas configurações de avaliação
+  review_message_template: string;
+  review_delay_minutes: number;
+  review_expiry_days: number;
+  show_public_reviews: boolean;
   created_at: string;
   updated_at: string;
 }

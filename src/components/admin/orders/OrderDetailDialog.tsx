@@ -398,6 +398,9 @@ export const OrderDetailDialog = ({ order, open, onOpenChange, onStatusChange }:
     
     setSelectedStatus(newStatus);
     onStatusChange();
+    
+    // Fechar o modal após atualizar o status
+    onOpenChange(false);
   };
 
   const handleTimeConfirm = async (minutes: number) => {

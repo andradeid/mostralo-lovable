@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useStoreAccess } from "@/hooks/useStoreAccess";
 import { useSentinela } from "@/hooks/useSentinela";
 import { useStoreModules } from "@/hooks/useStoreModules";
@@ -16,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { AlertCircle, Bell, BellOff, Calendar, CheckCircle2, Clock, Eye, FileText, HelpCircle, Loader2, MessageSquare, Package, Phone, Play, Plus, RefreshCw, Send, Settings, Target, Trash2, TrendingUp, XCircle, Zap } from "lucide-react";
+import { AlertCircle, Bell, BellOff, Calendar, CheckCircle2, Clock, Eye, FileText, HelpCircle, ImageIcon, Loader2, MessageSquare, Package, Phone, Play, Plus, RefreshCw, Send, Settings, Target, Trash2, TrendingUp, Upload, XCircle, Zap } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
@@ -132,8 +132,75 @@ export default function Sentinela() {
     category_id: '',
     recurrence_days: 30,
     reminder_days_before: 3,
-    message_template: ''
+    message_template: '',
+    template_id: '',
+    image_url: ''
   });
+  
+  // Estados para upload de imagem
+  const [uploadingImage, setUploadingImage] = useState(false);
+  
+  // Preview da mensagem em tempo real
+  const [previewMessage, setPreviewMessage] = useState('');
+  
+  // Atualizar preview quando template ou mensagem mudar
+  useEffect(() => {
+    let message = '';
+    
+    if (newRule.template_id && templates) {
+      const selectedTemplate = templates.find(t => t.id === newRule.template_id);
+      message = selectedTemplate?.content || '';
+    } else if (newRule.message_template) {
+      message = newRule.message_template;
+    } else {
+      message = storeConfig?.sentinela_default_template || DEFAULT_TEMPLATE;
+    }
+    
+    // Obter nome do produto/categoria selecionado
+    const selectedProductName = newRule.type === 'product' 
+      ? products?.find(p => p.id === newRule.product_id)?.name || 'Produto Exemplo'
+      : categories?.find(c => c.id === newRule.category_id)?.name || 'Categoria Exemplo';
+    
+    // Substituir variáveis com dados de exemplo
+    const preview = message
+      .replace(/{nome}/gi, 'Cliente Exemplo')
+      .replace(/{primeiro_nome}/gi, 'Cliente')
+      .replace(/{produto}/gi, selectedProductName)
+      .replace(/{loja}/gi, storeInfo?.name || 'Minha Loja')
+      .replace(/{link_loja}/gi, `https://mostralo.com.br/loja/${storeInfo?.slug || 'minha-loja'}`);
+    
+    setPreviewMessage(preview);
+  }, [newRule.template_id, newRule.message_template, newRule.product_id, newRule.category_id, newRule.type, templates, products, categories, storeInfo, storeConfig]);
+  
+  // Função para upload de imagem
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !storeId) return;
+    
+    setUploadingImage(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${storeId}/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('sentinela-images')
+        .upload(fileName, file);
+      
+      if (uploadError) throw uploadError;
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('sentinela-images')
+        .getPublicUrl(fileName);
+      
+      setNewRule(prev => ({ ...prev, image_url: publicUrl }));
+      toast.success('Imagem enviada com sucesso!');
+    } catch (error: any) {
+      console.error('Erro ao enviar imagem:', error);
+      toast.error('Erro ao enviar imagem');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const handleToggleEnabled = () => {
     updateConfig.mutate({ 
@@ -165,7 +232,9 @@ export default function Sentinela() {
           category_id: '',
           recurrence_days: 30,
           reminder_days_before: 3,
-          message_template: ''
+          message_template: '',
+          template_id: '',
+          image_url: ''
         });
       }
     });
@@ -240,7 +309,7 @@ export default function Sentinela() {
         .replace(/{primeiro_nome}/gi, 'Cliente')
         .replace(/{produto}/gi, 'Produto Exemplo')
         .replace(/{loja}/gi, storeInfo?.name || 'Minha Loja')
-        .replace(/{link_loja}/gi, storeInfo?.slug ? `https://${storeInfo.slug}.mostralo.com` : 'https://mostralo.com');
+        .replace(/{link_loja}/gi, storeInfo?.slug ? `https://mostralo.com.br/loja/${storeInfo.slug}` : 'https://mostralo.com.br');
 
       // Combinar código do país com número normalizado
       const phoneNumbers = normalizePhone(testPhone);
@@ -577,124 +646,230 @@ export default function Sentinela() {
                   Nova Regra
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Nova Regra de Recompra</DialogTitle>
                   <DialogDescription>
                     Configure quando enviar lembretes para reposição de produtos
                   </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label>Tipo</Label>
-                    <Select
-                      value={newRule.type}
-                      onValueChange={(v) => setNewRule(prev => ({ ...prev, type: v as 'product' | 'category' }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="product">Produto específico</SelectItem>
-                        <SelectItem value="category">Categoria inteira</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {newRule.type === 'product' ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 py-4">
+                  {/* Coluna esquerda - Formulário */}
+                  <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label>Produto</Label>
+                      <Label>Tipo</Label>
                       <Select
-                        value={newRule.product_id}
-                        onValueChange={(v) => setNewRule(prev => ({ ...prev, product_id: v }))}
+                        value={newRule.type}
+                        onValueChange={(v) => setNewRule(prev => ({ ...prev, type: v as 'product' | 'category' }))}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione um produto" />
+                          <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {products?.map(product => (
-                            <SelectItem key={product.id} value={product.id}>
-                              {product.name}
-                            </SelectItem>
-                          ))}
+                          <SelectItem value="product">Produto específico</SelectItem>
+                          <SelectItem value="category">Categoria inteira</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <Label>Categoria</Label>
-                      <Select
-                        value={newRule.category_id}
-                        onValueChange={(v) => setNewRule(prev => ({ ...prev, category_id: v }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione uma categoria" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories?.map(category => (
-                            <SelectItem key={category.id} value={category.id}>
-                              {category.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
 
-                  <div className="space-y-2">
-                    <Label>Ciclo de recompra (dias)</Label>
-                    <Input
-                      type="number"
-                      min={1}
-                      max={365}
-                      value={newRule.recurrence_days}
-                      onChange={(e) => {
-                        const value = parseInt(e.target.value) || 1;
-                        const clamped = Math.min(365, Math.max(1, value));
-                        setNewRule(prev => ({ ...prev, recurrence_days: clamped }));
-                      }}
-                      placeholder="Ex: 30"
-                    />
-                    <div className="flex gap-2 flex-wrap">
-                      {RECURRENCE_SHORTCUTS.map(days => (
-                        <Button
-                          key={days}
-                          type="button"
-                          variant={newRule.recurrence_days === days ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setNewRule(prev => ({ ...prev, recurrence_days: days }))}
+                    {newRule.type === 'product' ? (
+                      <div className="space-y-2">
+                        <Label>Produto</Label>
+                        <Select
+                          value={newRule.product_id}
+                          onValueChange={(v) => setNewRule(prev => ({ ...prev, product_id: v }))}
                         >
-                          {days}d
-                        </Button>
-                      ))}
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um produto" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {products?.map(product => (
+                              <SelectItem key={product.id} value={product.id}>
+                                {product.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Label>Categoria</Label>
+                        <Select
+                          value={newRule.category_id}
+                          onValueChange={(v) => setNewRule(prev => ({ ...prev, category_id: v }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione uma categoria" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories?.map(category => (
+                              <SelectItem key={category.id} value={category.id}>
+                                {category.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Ciclo de recompra (dias)</Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={365}
+                          value={newRule.recurrence_days}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value) || 1;
+                            const clamped = Math.min(365, Math.max(1, value));
+                            setNewRule(prev => ({ ...prev, recurrence_days: clamped }));
+                          }}
+                          placeholder="Ex: 30"
+                        />
+                        <div className="flex gap-1 flex-wrap">
+                          {RECURRENCE_SHORTCUTS.slice(0, 4).map(days => (
+                            <Button
+                              key={days}
+                              type="button"
+                              variant={newRule.recurrence_days === days ? "default" : "outline"}
+                              size="sm"
+                              className="h-7 px-2 text-xs"
+                              onClick={() => setNewRule(prev => ({ ...prev, recurrence_days: days }))}
+                            >
+                              {days}d
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Lembrar X dias antes</Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={30}
+                          value={newRule.reminder_days_before}
+                          onChange={(e) => setNewRule(prev => ({ ...prev, reminder_days_before: parseInt(e.target.value) || 3 }))}
+                        />
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Digite qualquer valor entre 1 e 365 dias
-                    </p>
+
+                    {/* Seleção de Template */}
+                    <div className="space-y-2">
+                      <Label>Template de Mensagem</Label>
+                      <Select
+                        value={newRule.template_id}
+                        onValueChange={(v) => {
+                          if (v === 'custom') {
+                            setNewRule(prev => ({ ...prev, template_id: '', message_template: prev.message_template || '' }));
+                          } else if (v === 'default') {
+                            setNewRule(prev => ({ ...prev, template_id: '', message_template: '' }));
+                          } else {
+                            setNewRule(prev => ({ ...prev, template_id: v, message_template: '' }));
+                          }
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Usar template padrão" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="default">📋 Usar template padrão</SelectItem>
+                          <SelectItem value="custom">✏️ Escrever personalizado</SelectItem>
+                          {templates?.map(t => (
+                            <SelectItem key={t.id} value={t.id}>
+                              {t.is_default ? '⭐ ' : ''}{t.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Campo de mensagem personalizada */}
+                    {!newRule.template_id && (
+                      <div className="space-y-2">
+                        <Label>Mensagem {newRule.message_template ? 'Personalizada' : '(opcional)'}</Label>
+                        <Textarea
+                          placeholder="Deixe em branco para usar o template padrão da loja"
+                          value={newRule.message_template}
+                          onChange={(e) => setNewRule(prev => ({ ...prev, message_template: e.target.value }))}
+                          rows={4}
+                        />
+                      </div>
+                    )}
+
+                    {/* Upload de Imagem */}
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <ImageIcon className="w-4 h-4" />
+                        Imagem do Produto (opcional)
+                      </Label>
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1">
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            disabled={uploadingImage}
+                            className="cursor-pointer"
+                          />
+                        </div>
+                        {uploadingImage && <Loader2 className="w-5 h-5 animate-spin" />}
+                      </div>
+                      {newRule.image_url && (
+                        <div className="relative inline-block">
+                          <img 
+                            src={newRule.image_url} 
+                            alt="Preview" 
+                            className="w-20 h-20 object-cover rounded-lg border"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute -top-2 -right-2 w-6 h-6"
+                            onClick={() => setNewRule(prev => ({ ...prev, image_url: '' }))}
+                          >
+                            <XCircle className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        A imagem será enviada junto com a mensagem no WhatsApp
+                      </p>
+                    </div>
+
+                    {/* Variáveis disponíveis */}
+                    <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
+                      <AlertCircle className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                      <div className="text-sm text-muted-foreground">
+                        <p className="font-medium mb-1">Variáveis disponíveis:</p>
+                        <div className="flex flex-wrap gap-1">
+                          <code className="bg-background px-1.5 py-0.5 rounded text-xs">{'{nome}'}</code>
+                          <code className="bg-background px-1.5 py-0.5 rounded text-xs">{'{primeiro_nome}'}</code>
+                          <code className="bg-background px-1.5 py-0.5 rounded text-xs">{'{produto}'}</code>
+                          <code className="bg-background px-1.5 py-0.5 rounded text-xs">{'{loja}'}</code>
+                          <code className="bg-background px-1.5 py-0.5 rounded text-xs">{'{link_loja}'}</code>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label>Lembrar X dias antes de acabar</Label>
-                    <Input
-                      type="number"
-                      min={1}
-                      max={30}
-                      value={newRule.reminder_days_before}
-                      onChange={(e) => setNewRule(prev => ({ ...prev, reminder_days_before: parseInt(e.target.value) || 3 }))}
+                  {/* Coluna direita - Preview WhatsApp */}
+                  <div className="flex flex-col items-center justify-start">
+                    <Label className="mb-3 flex items-center gap-2">
+                      <Eye className="w-4 h-4" />
+                      Preview da Mensagem
+                    </Label>
+                    <WhatsAppPhonePreview
+                      storeName={storeInfo?.name || "Minha Loja"}
+                      message={previewMessage}
+                      mediaUrl={newRule.image_url || undefined}
+                      mediaType={newRule.image_url ? 'image' : undefined}
+                      showTypingAnimation={false}
+                      playNotificationSound={false}
+                      allowThemeToggle={true}
                     />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Template personalizado (opcional)</Label>
-                    <Textarea
-                      placeholder="Deixe em branco para usar o template padrão"
-                      value={newRule.message_template}
-                      onChange={(e) => setNewRule(prev => ({ ...prev, message_template: e.target.value }))}
-                      rows={4}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Variáveis: {'{nome}'}, {'{primeiro_nome}'}, {'{produto}'}, {'{loja}'}, {'{link_loja}'}
-                    </p>
                   </div>
                 </div>
                 <DialogFooter>
@@ -949,7 +1124,7 @@ export default function Sentinela() {
                   .replace(/{primeiro_nome}/gi, 'Cliente')
                   .replace(/{produto}/gi, 'Produto Exemplo')
                   .replace(/{loja}/gi, storeInfo?.name || 'Minha Loja')
-                  .replace(/{link_loja}/gi, storeInfo?.slug ? `https://${storeInfo.slug}.mostralo.com` : 'https://mostralo.com');
+                  .replace(/{link_loja}/gi, storeInfo?.slug ? `https://mostralo.com.br/loja/${storeInfo.slug}` : 'https://mostralo.com.br');
                 
                 return (
                   <div className="flex justify-center py-4">

@@ -10,6 +10,8 @@ export interface SentinelaRule {
   recurrence_days: number;
   reminder_days_before: number;
   message_template: string | null;
+  template_id: string | null;
+  image_url: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -42,6 +44,7 @@ export interface SentinelaTemplate {
   category: string;
   name: string;
   content: string;
+  image_url: string | null;
   is_active: boolean;
   is_default: boolean;
   created_at: string;
@@ -55,6 +58,8 @@ export interface CreateRuleParams {
   recurrence_days: number;
   reminder_days_before?: number;
   message_template?: string | null;
+  template_id?: string | null;
+  image_url?: string | null;
   is_active?: boolean;
 }
 
@@ -195,6 +200,8 @@ export function useSentinela(storeId: string | null) {
           recurrence_days: params.recurrence_days,
           reminder_days_before: params.reminder_days_before || 3,
           message_template: params.message_template || null,
+          template_id: params.template_id || null,
+          image_url: params.image_url || null,
           is_active: params.is_active ?? true
         })
         .select()

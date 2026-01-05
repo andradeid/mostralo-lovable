@@ -7,13 +7,12 @@ import { supabase } from '@/integrations/supabase/client';
 import type { DiagnosticAnswers, QualificationLevel } from '@/lib/diagnosticScoring';
 import { generateSofiaScript } from '@/lib/callScriptGenerator';
 
-// Mensagens rotativas durante conexão
+// Mensagens rotativas durante conexão - Mais claras e engajantes
 const CONNECTING_MESSAGES = [
-  { main: "Conectando...", sub: "Aguarde só um instante" },
-  { main: "Validando informações...", sub: "Preparando tudo pra você" },
-  { main: "Preparando consultoria...", sub: "Quase lá" },
-  { main: "Conectando com a Sofia...", sub: "Só mais um momento" },
-  { main: "Finalizando conexão...", sub: "Já já você será atendido" }
+  { main: "Preparando sua consultoria...", sub: "Isso leva apenas alguns segundos" },
+  { main: "Analisando seu diagnóstico...", sub: "Nossa IA está personalizando seu resultado" },
+  { main: "Gerando áudio exclusivo...", sub: "Quase pronto, aguarde só mais um pouco" },
+  { main: "Finalizando preparação...", sub: "Já já você será atendido" }
 ];
 
 interface LeadData {
@@ -454,15 +453,12 @@ export function WhatsAppCallMockup({
                 />
               ))}
             </div>
+            {/* Botão discreto - apenas texto */}
             <button
               onClick={handleDecline}
-              className="flex flex-col items-center gap-2"
+              className="text-white/40 text-sm hover:text-white/60 transition-colors underline"
             >
-              <div className="rounded-full bg-[#FF5252] flex items-center justify-center" 
-                   style={{ width: '64px', height: '64px' }}>
-                <PhoneOff className="w-7 h-7 text-white" />
-              </div>
-              <span className="text-white/70 text-sm">Encerrar</span>
+              Pular para o resultado
             </button>
           </div>
         )}

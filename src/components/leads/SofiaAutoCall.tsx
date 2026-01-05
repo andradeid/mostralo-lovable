@@ -411,7 +411,7 @@ export function SofiaAutoCall({
             </div>
           )}
           
-          {/* Estado "Conectando..." após as 3 etapas */}
+          {/* Estado "Preparando..." após as 3 etapas */}
           {callState === 'connecting' && allStepsComplete && (
             <div className="mt-6 flex flex-col items-center gap-4 animate-fade-in">
               <div className="flex items-center gap-1.5">
@@ -427,7 +427,8 @@ export function SofiaAutoCall({
                   />
                 ))}
               </div>
-              <span className="text-white/70 text-base">Conectando...</span>
+              <span className="text-[#25D366] font-medium text-lg">Preparando seu diagnóstico personalizado...</span>
+              <span className="text-white/50 text-sm">Aguarde alguns segundos</span>
             </div>
           )}
           
@@ -482,17 +483,67 @@ export function SofiaAutoCall({
           </div>
         )}
 
-        {/* Botão Encerrar */}
-        {(callState === 'connecting' || callState === 'connected') && (
+        {/* Botão discreto durante conexão - Pular para resultado */}
+        {callState === 'connecting' && (
           <div className="flex justify-center">
+            <button
+              onClick={handleEndCall}
+              className="text-white/40 text-sm hover:text-white/60 transition-colors underline"
+            >
+              Pular para o resultado
+            </button>
+          </div>
+        )}
+        
+        {/* Botão Pausar durante reprodução */}
+        {callState === 'connected' && audioPlaying && (
+          <div className="flex justify-center">
+            <button
+              onClick={() => {
+                if (audioRef.current) {
+                  audioRef.current.pause();
+                  setAudioPlaying(false);
+                }
+              }}
+              className="flex flex-col items-center gap-3"
+            >
+              <div className="rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors" style={{ width: '64px', height: '64px' }}>
+                <div className="flex gap-1">
+                  <div className="w-2 h-6 bg-white rounded-sm" />
+                  <div className="w-2 h-6 bg-white rounded-sm" />
+                </div>
+              </div>
+              <span className="text-white/70 text-sm">Pausar</span>
+            </button>
+          </div>
+        )}
+        
+        {/* Botão Retomar quando pausado */}
+        {callState === 'connected' && !audioPlaying && (
+          <div className="flex justify-center gap-6">
+            <button
+              onClick={() => {
+                if (audioRef.current) {
+                  audioRef.current.play();
+                  setAudioPlaying(true);
+                }
+              }}
+              className="flex flex-col items-center gap-3"
+            >
+              <div className="rounded-full bg-[#25D366] flex items-center justify-center hover:bg-[#1ebe5a] transition-colors" style={{ width: '64px', height: '64px' }}>
+                <div className="w-0 h-0 border-t-[10px] border-t-transparent border-l-[16px] border-l-white border-b-[10px] border-b-transparent ml-1" />
+              </div>
+              <span className="text-white/70 text-sm">Retomar</span>
+            </button>
+            
             <button
               onClick={handleEndCall}
               className="flex flex-col items-center gap-3"
             >
-              <div className="rounded-full bg-[#FF5252] flex items-center justify-center shadow-lg shadow-[#FF5252]/30 hover:scale-105 transition-transform" style={{ width: '72px', height: '72px' }}>
-                <PhoneOff className="w-8 h-8 text-white" />
+              <div className="rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors" style={{ width: '64px', height: '64px' }}>
+                <PhoneOff className="w-6 h-6 text-white" />
               </div>
-              <span className="text-white/70 text-base">Encerrar</span>
+              <span className="text-white/70 text-sm">Ver resultado</span>
             </button>
           </div>
         )}

@@ -26,14 +26,17 @@ const COLORS = ['hsl(var(--primary))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3
 export function SentinelaAnalytics({ storeId }: SentinelaAnalyticsProps) {
   const [period, setPeriod] = useState('30');
 
-  // Buscar estatísticas gerais
+  // Buscar estatísticas gerais incluindo ROI
   const { data: stats, isLoading: loadingStats } = useQuery({
-    queryKey: ['sentinela-analytics-stats', storeId],
+    queryKey: ['sentinela-analytics-stats', storeId, period],
     queryFn: async () => {
+      const startDate = subDays(new Date(), parseInt(period)).toISOString();
+      
       const { data, error } = await supabase
         .from('sentinela_reminders')
-        .select('status, converted_at')
-        .eq('store_id', storeId);
+        .select('status, converted_at, converted_order_value')
+        .eq('store_id', storeId)
+        .gte('created_at', startDate);
       
       if (error) throw error;
       
@@ -43,12 +46,24 @@ export function SentinelaAnalytics({ storeId }: SentinelaAnalyticsProps) {
       const converted = data?.filter(r => r.status === 'converted' || r.converted_at).length || 0;
       const pending = data?.filter(r => r.status === 'pending').length || 0;
       
+      // Calcular receita gerada
+      const receitaTotal = data?.reduce((acc, r) => {
+        if ((r.status === 'converted' || r.converted_at) && r.converted_order_value) {
+          return acc + Number(r.converted_order_value);
+        }
+        return acc;
+      }, 0) || 0;
+      
+      const ticketMedio = converted > 0 ? receitaTotal / converted : 0;
+      
       return {
         total,
         sent,
         failed,
         converted,
         pending,
+        receitaTotal,
+        ticketMedio,
         successRate: total > 0 ? Math.round(((sent + converted) / (sent + converted + failed)) * 100) || 0 : 0,
         conversionRate: sent > 0 ? Math.round((converted / sent) * 100) || 0 : 0
       };
@@ -220,7 +235,7 @@ export function SentinelaAnalytics({ storeId }: SentinelaAnalyticsProps) {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
@@ -258,6 +273,39 @@ export function SentinelaAnalytics({ storeId }: SentinelaAnalyticsProps) {
               <div>
                 <p className="text-2xl font-bold">{stats?.conversionRate || 0}%</p>
                 <p className="text-sm text-muted-foreground">Taxa de Conversão</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Novos cards de ROI */}
+        <Card className="border-green-500/30 bg-green-500/5">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-500/20 rounded-lg">
+                <DollarSign className="w-5 h-5 text-green-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-green-600">
+                  R$ {(stats?.receitaTotal || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+                <p className="text-sm text-muted-foreground">Receita Gerada</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-500/10 rounded-lg">
+                <TrendingUp className="w-5 h-5 text-purple-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">
+                  R$ {(stats?.ticketMedio || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+                <p className="text-sm text-muted-foreground">Ticket Médio</p>
               </div>
             </div>
           </CardContent>

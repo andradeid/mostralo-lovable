@@ -64,6 +64,15 @@ export interface StoreConfig {
   sentinela_send_hour: number;
   sentinela_send_days: string[];
   sentinela_timezone: string;
+  // Pausa
+  sentinela_paused: boolean;
+  sentinela_pause_start: string | null;
+  sentinela_pause_end: string | null;
+  sentinela_pause_reason: string | null;
+  // Anti-banimento
+  sentinela_interval_seconds: number;
+  sentinela_pause_after_messages: number;
+  sentinela_pause_duration_seconds: number;
 }
 
 export function useSentinela(storeId: string | null) {
@@ -77,7 +86,12 @@ export function useSentinela(storeId: string | null) {
       
       const { data, error } = await supabase
         .from('stores')
-        .select('sentinela_enabled, sentinela_default_template, sentinela_send_hour, sentinela_send_days, sentinela_timezone')
+        .select(`
+          sentinela_enabled, sentinela_default_template, 
+          sentinela_send_hour, sentinela_send_days, sentinela_timezone,
+          sentinela_paused, sentinela_pause_start, sentinela_pause_end, sentinela_pause_reason,
+          sentinela_interval_seconds, sentinela_pause_after_messages, sentinela_pause_duration_seconds
+        `)
         .eq('id', storeId)
         .single();
 
@@ -87,7 +101,16 @@ export function useSentinela(storeId: string | null) {
         sentinela_default_template: data.sentinela_default_template,
         sentinela_send_hour: data.sentinela_send_hour ?? 10,
         sentinela_send_days: data.sentinela_send_days ?? ['mon', 'tue', 'wed', 'thu', 'fri'],
-        sentinela_timezone: data.sentinela_timezone ?? 'America/Sao_Paulo'
+        sentinela_timezone: data.sentinela_timezone ?? 'America/Sao_Paulo',
+        // Pausa
+        sentinela_paused: data.sentinela_paused ?? false,
+        sentinela_pause_start: data.sentinela_pause_start,
+        sentinela_pause_end: data.sentinela_pause_end,
+        sentinela_pause_reason: data.sentinela_pause_reason,
+        // Anti-banimento
+        sentinela_interval_seconds: data.sentinela_interval_seconds ?? 60,
+        sentinela_pause_after_messages: data.sentinela_pause_after_messages ?? 10,
+        sentinela_pause_duration_seconds: data.sentinela_pause_duration_seconds ?? 120
       } as StoreConfig;
     },
     enabled: !!storeId

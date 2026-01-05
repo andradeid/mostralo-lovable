@@ -16,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { AlertCircle, BarChart3, Bell, BellOff, Calendar, CheckCircle2, Clock, Eye, FileText, HelpCircle, ImageIcon, Loader2, MessageSquare, Package, Phone, Play, Plus, RefreshCw, Send, Settings, Target, Trash2, TrendingUp, Upload, XCircle, Zap } from "lucide-react";
+import { AlertCircle, BarChart3, Bell, BellOff, Calendar, CheckCircle2, Clock, Eye, FileText, HelpCircle, ImageIcon, Loader2, MessageSquare, Package, Pause, Phone, Play, Plus, RefreshCw, Send, Settings, Shield, Target, Trash2, TrendingUp, Upload, XCircle, Zap } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
@@ -1297,6 +1297,73 @@ export default function Sentinela() {
 
         {/* Agendamento */}
         <TabsContent value="schedule" className="space-y-4">
+          {/* Card de Pausa */}
+          <Card className={storeConfig?.sentinela_paused ? 'border-yellow-500/50 bg-yellow-500/5' : ''}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Pause className="w-5 h-5" />
+                Pausar Envios
+                {storeConfig?.sentinela_paused && (
+                  <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 border-yellow-500/30 ml-2">
+                    PAUSADO
+                  </Badge>
+                )}
+              </CardTitle>
+              <CardDescription>
+                Pause temporariamente os envios do SENTINELA durante férias, feriados ou manutenção
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  {storeConfig?.sentinela_paused ? (
+                    <div className="p-2 bg-yellow-500/20 rounded-full">
+                      <Pause className="w-5 h-5 text-yellow-600" />
+                    </div>
+                  ) : (
+                    <div className="p-2 bg-green-500/20 rounded-full">
+                      <Play className="w-5 h-5 text-green-600" />
+                    </div>
+                  )}
+                  <div>
+                    <p className="font-medium">
+                      {storeConfig?.sentinela_paused ? 'Envios Pausados' : 'Envios Ativos'}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {storeConfig?.sentinela_paused 
+                        ? 'Nenhum lembrete será enviado enquanto pausado'
+                        : 'Os lembretes estão sendo enviados normalmente'
+                      }
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={storeConfig?.sentinela_paused || false}
+                  onCheckedChange={(checked) => {
+                    updateConfig.mutate({ 
+                      sentinela_paused: checked,
+                      sentinela_pause_reason: checked ? 'Pausa manual' : null
+                    } as any);
+                  }}
+                />
+              </div>
+
+              {storeConfig?.sentinela_paused && (
+                <div className="flex items-start gap-2 p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/30">
+                  <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5 shrink-0" />
+                  <div className="text-sm text-yellow-700 dark:text-yellow-400">
+                    <p className="font-medium">Os envios estão pausados</p>
+                    <p>Os lembretes acumulados serão enviados quando você retomar os envios.</p>
+                    {storeConfig?.sentinela_pause_reason && (
+                      <p className="mt-1 text-xs opacity-80">Motivo: {storeConfig.sentinela_pause_reason}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Card de Agendamento */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -1364,15 +1431,113 @@ export default function Sentinela() {
                   })}
                 </div>
               </div>
+            </CardContent>
+          </Card>
 
-              {/* Info */}
-              <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
-                <AlertCircle className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-                <div className="text-sm text-muted-foreground">
-                  <p>As mensagens de recompra serão enviadas automaticamente nos dias e horário configurados acima.</p>
-                  <p className="mt-1">O sistema verifica os lembretes pendentes e envia apenas se corresponder ao agendamento da loja.</p>
-                </div>
+          {/* Card de Anti-Banimento */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="w-5 h-5" />
+                Proteção Anti-Banimento
+              </CardTitle>
+              <CardDescription>
+                Configure intervalos entre mensagens para evitar bloqueio do número de WhatsApp
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Intervalo entre mensagens */}
+              <div className="space-y-2">
+                <Label>Intervalo entre mensagens (segundos)</Label>
+                <Select
+                  value={String(storeConfig?.sentinela_interval_seconds ?? 60)}
+                  onValueChange={(v) => {
+                    updateConfig.mutate({ sentinela_interval_seconds: parseInt(v) } as any);
+                  }}
+                >
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="30">30 segundos</SelectItem>
+                    <SelectItem value="45">45 segundos</SelectItem>
+                    <SelectItem value="60">60 segundos (recomendado)</SelectItem>
+                    <SelectItem value="90">90 segundos</SelectItem>
+                    <SelectItem value="120">120 segundos</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">Intervalo mínimo recomendado: 45 segundos</p>
               </div>
+
+              {/* Pausar após X mensagens */}
+              <div className="space-y-2">
+                <Label>Pausar após quantas mensagens</Label>
+                <Select
+                  value={String(storeConfig?.sentinela_pause_after_messages ?? 10)}
+                  onValueChange={(v) => {
+                    updateConfig.mutate({ sentinela_pause_after_messages: parseInt(v) } as any);
+                  }}
+                >
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5 mensagens</SelectItem>
+                    <SelectItem value="10">10 mensagens (recomendado)</SelectItem>
+                    <SelectItem value="15">15 mensagens</SelectItem>
+                    <SelectItem value="20">20 mensagens</SelectItem>
+                    <SelectItem value="0">Não pausar</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Duração da pausa */}
+              <div className="space-y-2">
+                <Label>Duração da pausa (segundos)</Label>
+                <Select
+                  value={String(storeConfig?.sentinela_pause_duration_seconds ?? 120)}
+                  onValueChange={(v) => {
+                    updateConfig.mutate({ sentinela_pause_duration_seconds: parseInt(v) } as any);
+                  }}
+                >
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="60">1 minuto</SelectItem>
+                    <SelectItem value="120">2 minutos (recomendado)</SelectItem>
+                    <SelectItem value="180">3 minutos</SelectItem>
+                    <SelectItem value="300">5 minutos</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Estimativa de tempo */}
+              {(() => {
+                const interval = storeConfig?.sentinela_interval_seconds ?? 60;
+                const pauseAfter = storeConfig?.sentinela_pause_after_messages ?? 10;
+                const pauseDuration = storeConfig?.sentinela_pause_duration_seconds ?? 120;
+                
+                // Calcular tempo para 100 mensagens
+                const numPauses = pauseAfter > 0 ? Math.floor(100 / pauseAfter) : 0;
+                const totalSeconds = (100 * interval) + (numPauses * pauseDuration);
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                
+                return (
+                  <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
+                    <AlertCircle className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                    <div className="text-sm text-muted-foreground">
+                      <p className="font-medium">Estimativa de tempo</p>
+                      <p>
+                        Com essas configurações, <strong>100 mensagens</strong> levarão aproximadamente{' '}
+                        <strong>{hours > 0 ? `${hours}h ` : ''}{minutes} minutos</strong> para serem enviadas.
+                      </p>
+                      <p className="mt-1 text-xs">Isso reduz significativamente o risco de bloqueio do número.</p>
+                    </div>
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
         </TabsContent>

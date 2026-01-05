@@ -6536,6 +6536,7 @@ export type Database = {
           conversion_order_id: string | null
           converted_at: string | null
           converted_order_id: string | null
+          converted_order_value: number | null
           created_at: string | null
           customer_id: string
           error_message: string | null
@@ -6554,6 +6555,7 @@ export type Database = {
           conversion_order_id?: string | null
           converted_at?: string | null
           converted_order_id?: string | null
+          converted_order_value?: number | null
           created_at?: string | null
           customer_id: string
           error_message?: string | null
@@ -6572,6 +6574,7 @@ export type Database = {
           conversion_order_id?: string | null
           converted_at?: string | null
           converted_order_id?: string | null
+          converted_order_value?: number | null
           created_at?: string | null
           customer_id?: string
           error_message?: string | null
@@ -7562,6 +7565,13 @@ export type Database = {
           segment: string | null
           sentinela_default_template: string | null
           sentinela_enabled: boolean | null
+          sentinela_interval_seconds: number | null
+          sentinela_pause_after_messages: number | null
+          sentinela_pause_duration_seconds: number | null
+          sentinela_pause_end: string | null
+          sentinela_pause_reason: string | null
+          sentinela_pause_start: string | null
+          sentinela_paused: boolean | null
           sentinela_send_days: string[] | null
           sentinela_send_hour: number | null
           sentinela_timezone: string | null
@@ -7636,6 +7646,13 @@ export type Database = {
           segment?: string | null
           sentinela_default_template?: string | null
           sentinela_enabled?: boolean | null
+          sentinela_interval_seconds?: number | null
+          sentinela_pause_after_messages?: number | null
+          sentinela_pause_duration_seconds?: number | null
+          sentinela_pause_end?: string | null
+          sentinela_pause_reason?: string | null
+          sentinela_pause_start?: string | null
+          sentinela_paused?: boolean | null
           sentinela_send_days?: string[] | null
           sentinela_send_hour?: number | null
           sentinela_timezone?: string | null
@@ -7710,6 +7727,13 @@ export type Database = {
           segment?: string | null
           sentinela_default_template?: string | null
           sentinela_enabled?: boolean | null
+          sentinela_interval_seconds?: number | null
+          sentinela_pause_after_messages?: number | null
+          sentinela_pause_duration_seconds?: number | null
+          sentinela_pause_end?: string | null
+          sentinela_pause_reason?: string | null
+          sentinela_pause_start?: string | null
+          sentinela_paused?: boolean | null
           sentinela_send_days?: string[] | null
           sentinela_send_hour?: number | null
           sentinela_timezone?: string | null

@@ -421,7 +421,7 @@ async function sendReminder(supabase: any, reminder: any, storeId: string): Prom
 
   // Processar template
   const firstName = customer.name.split(' ')[0];
-  const storeLink = `https://mostralo.com.br/${store.slug}`;
+  const storeLink = `https://mostralo.com.br/loja/${store.slug}`;
 
   const message = messageTemplate
     .replace(/{nome}/g, customer.name)

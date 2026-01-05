@@ -6489,10 +6489,53 @@ export type Database = {
         }
         Relationships: []
       }
+      sentinela_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          result: Json | null
+          store_id: string
+          triggered_by: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          result?: Json | null
+          store_id: string
+          triggered_by?: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          result?: Json | null
+          store_id?: string
+          triggered_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sentinela_logs_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sentinela_logs_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sentinela_reminders: {
         Row: {
           conversion_order_id: string | null
           converted_at: string | null
+          converted_order_id: string | null
           created_at: string | null
           customer_id: string
           error_message: string | null
@@ -6510,6 +6553,7 @@ export type Database = {
         Insert: {
           conversion_order_id?: string | null
           converted_at?: string | null
+          converted_order_id?: string | null
           created_at?: string | null
           customer_id: string
           error_message?: string | null
@@ -6527,6 +6571,7 @@ export type Database = {
         Update: {
           conversion_order_id?: string | null
           converted_at?: string | null
+          converted_order_id?: string | null
           created_at?: string | null
           customer_id?: string
           error_message?: string | null
@@ -6545,6 +6590,13 @@ export type Database = {
           {
             foreignKeyName: "sentinela_reminders_conversion_order_id_fkey"
             columns: ["conversion_order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sentinela_reminders_converted_order_id_fkey"
+            columns: ["converted_order_id"]
             isOneToOne: false
             referencedRelation: "orders"
             referencedColumns: ["id"]

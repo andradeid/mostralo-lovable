@@ -299,3 +299,6 @@ verify_jwt = false
 
 [functions.process-recurring-external-invoices]
 verify_jwt = false
+
+[functions.sentinela-manual-trigger]
+verify_jwt = true

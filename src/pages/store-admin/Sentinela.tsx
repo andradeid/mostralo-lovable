@@ -16,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { AlertCircle, Bell, BellOff, Calendar, CheckCircle2, Clock, Eye, FileText, HelpCircle, Loader2, MessageSquare, Package, Phone, Plus, RefreshCw, Send, Settings, Target, Trash2, TrendingUp, XCircle } from "lucide-react";
+import { AlertCircle, Bell, BellOff, Calendar, CheckCircle2, Clock, Eye, FileText, HelpCircle, Loader2, MessageSquare, Package, Phone, Play, Plus, RefreshCw, Send, Settings, Target, Trash2, TrendingUp, XCircle, Zap } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
@@ -69,6 +69,11 @@ export default function Sentinela() {
   const [phoneJid, setPhoneJid] = useState<string | null>(null);
   const [sendingTest, setSendingTest] = useState(false);
   const [selectedTestTemplate, setSelectedTestTemplate] = useState<string>('');
+  
+  // Estados para execução manual
+  const [runningCheck, setRunningCheck] = useState(false);
+  const [runningSend, setRunningSend] = useState(false);
+  const [lastExecution, setLastExecution] = useState<{ action: string; result: any; time: Date } | null>(null);
 
   // Buscar informações da loja
   const { data: storeInfo } = useQuery({
@@ -267,6 +272,62 @@ export default function Sentinela() {
     }
   };
 
+  // Função para executar verificação manual
+  const handleManualCheck = async () => {
+    if (!storeId) return;
+    
+    setRunningCheck(true);
+    try {
+      const response = await supabase.functions.invoke('sentinela-manual-trigger', {
+        body: { action: 'check', storeId }
+      });
+
+      if (response.error) throw response.error;
+
+      const result = response.data;
+      setLastExecution({ action: 'check', result, time: new Date() });
+      
+      if (result.success) {
+        toast.success(result.message || `${result.reminders_created} lembrete(s) criado(s)`);
+      } else {
+        toast.error(result.error || 'Erro ao verificar lembretes');
+      }
+    } catch (error: any) {
+      console.error('Erro ao executar verificação:', error);
+      toast.error(error.message || 'Erro ao verificar lembretes');
+    } finally {
+      setRunningCheck(false);
+    }
+  };
+
+  // Função para enviar lembretes manualmente
+  const handleManualSend = async () => {
+    if (!storeId) return;
+    
+    setRunningSend(true);
+    try {
+      const response = await supabase.functions.invoke('sentinela-manual-trigger', {
+        body: { action: 'send', storeId }
+      });
+
+      if (response.error) throw response.error;
+
+      const result = response.data;
+      setLastExecution({ action: 'send', result, time: new Date() });
+      
+      if (result.success) {
+        toast.success(result.message || `${result.sent} enviado(s), ${result.failed} falha(s)`);
+      } else {
+        toast.error(result.error || 'Erro ao enviar lembretes');
+      }
+    } catch (error: any) {
+      console.error('Erro ao enviar lembretes:', error);
+      toast.error(error.message || 'Erro ao enviar lembretes');
+    } finally {
+      setRunningSend(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
@@ -341,8 +402,51 @@ export default function Sentinela() {
             Lembretes inteligentes de recompra
           </p>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Botões de ação manual */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleManualCheck}
+                disabled={runningCheck || !storeConfig?.sentinela_enabled}
+              >
+                {runningCheck ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                )}
+                Verificar Agora
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Procura por clientes que precisam de lembretes</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleManualSend}
+                disabled={runningSend || !storeConfig?.sentinela_enabled || stats.pendingReminders === 0}
+              >
+                {runningSend ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4 mr-2" />
+                )}
+                Enviar Pendentes
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Envia os {stats.pendingReminders} lembretes pendentes agora</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <div className="flex items-center gap-2 ml-2 border-l pl-4">
             <Label htmlFor="sentinela-enabled">Ativar SENTINELA</Label>
             <Switch
               id="sentinela-enabled"
@@ -352,6 +456,32 @@ export default function Sentinela() {
           </div>
         </div>
       </div>
+
+      {/* Última execução */}
+      {lastExecution && (
+        <Card className="bg-muted/50 border-dashed">
+          <CardContent className="py-3">
+            <div className="flex items-center gap-3 text-sm">
+              <Zap className="w-4 h-4 text-primary" />
+              <span className="text-muted-foreground">Última execução:</span>
+              <Badge variant="outline">
+                {lastExecution.action === 'check' ? 'Verificação' : 'Envio'}
+              </Badge>
+              <span>
+                {lastExecution.result?.message || 
+                  (lastExecution.action === 'check' 
+                    ? `${lastExecution.result?.reminders_created || 0} lembrete(s) criado(s)` 
+                    : `${lastExecution.result?.sent || 0} enviado(s)`
+                  )
+                }
+              </span>
+              <span className="text-muted-foreground">
+                às {format(lastExecution.time, "HH:mm", { locale: ptBR })}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

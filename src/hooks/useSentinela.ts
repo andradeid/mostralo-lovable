@@ -61,6 +61,9 @@ export interface CreateRuleParams {
 export interface StoreConfig {
   sentinela_enabled: boolean;
   sentinela_default_template: string | null;
+  sentinela_send_hour: number;
+  sentinela_send_days: string[];
+  sentinela_timezone: string;
 }
 
 export function useSentinela(storeId: string | null) {
@@ -74,12 +77,18 @@ export function useSentinela(storeId: string | null) {
       
       const { data, error } = await supabase
         .from('stores')
-        .select('sentinela_enabled, sentinela_default_template')
+        .select('sentinela_enabled, sentinela_default_template, sentinela_send_hour, sentinela_send_days, sentinela_timezone')
         .eq('id', storeId)
         .single();
 
       if (error) throw error;
-      return data as StoreConfig;
+      return {
+        sentinela_enabled: data.sentinela_enabled,
+        sentinela_default_template: data.sentinela_default_template,
+        sentinela_send_hour: data.sentinela_send_hour ?? 10,
+        sentinela_send_days: data.sentinela_send_days ?? ['mon', 'tue', 'wed', 'thu', 'fri'],
+        sentinela_timezone: data.sentinela_timezone ?? 'America/Sao_Paulo'
+      } as StoreConfig;
     },
     enabled: !!storeId
   });

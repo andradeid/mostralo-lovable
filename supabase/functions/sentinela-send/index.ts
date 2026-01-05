@@ -22,6 +22,9 @@ interface Store {
   name: string;
   slug: string;
   sentinela_default_template: string;
+  sentinela_send_hour: number | null;
+  sentinela_send_days: string[] | null;
+  sentinela_timezone: string | null;
 }
 
 interface Customer {
@@ -79,12 +82,59 @@ serve(async (req) => {
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    console.log(`[SENTINELA-SEND] ${reminders.length} lembretes para processar`);
+    // Agrupar lembretes por loja para verificar agendamento
+    const remindersByStore: Record<string, Reminder[]> = {};
+    for (const reminder of reminders as Reminder[]) {
+      if (!remindersByStore[reminder.store_id]) {
+        remindersByStore[reminder.store_id] = [];
+      }
+      remindersByStore[reminder.store_id].push(reminder);
+    }
+
+    // Verificar agendamento de cada loja
+    const storeSchedules: Record<string, boolean> = {};
+    for (const storeId of Object.keys(remindersByStore)) {
+      const { data: storeData } = await supabase
+        .from('stores')
+        .select('sentinela_send_hour, sentinela_send_days, sentinela_timezone')
+        .eq('id', storeId)
+        .single();
+
+      if (storeData) {
+        const timezone = storeData.sentinela_timezone || 'America/Sao_Paulo';
+        const sendHour = storeData.sentinela_send_hour ?? 10;
+        const sendDays = storeData.sentinela_send_days ?? ['mon', 'tue', 'wed', 'thu', 'fri'];
+
+        // Obter hora atual no timezone da loja
+        const now = new Date();
+        const formatter = new Intl.DateTimeFormat('en-US', {
+          timeZone: timezone,
+          hour: 'numeric',
+          hour12: false,
+          weekday: 'short'
+        });
+        const parts = formatter.formatToParts(now);
+        const currentHour = parseInt(parts.find(p => p.type === 'hour')?.value || '0');
+        const currentDay = parts.find(p => p.type === 'weekday')?.value?.toLowerCase().slice(0, 3) || '';
+
+        const shouldSend = sendDays.includes(currentDay) && currentHour === sendHour;
+        storeSchedules[storeId] = shouldSend;
+
+        console.log(`[SENTINELA-SEND] Loja ${storeId}: Dia=${currentDay}, Hora=${currentHour}, Configurado=${sendHour}h nos dias [${sendDays.join(',')}], Enviar=${shouldSend}`);
+      } else {
+        storeSchedules[storeId] = true; // Se não tiver config, envia
+      }
+    }
+
+    // Filtrar lembretes apenas das lojas que devem enviar agora
+    const remindersToSend = (reminders as Reminder[]).filter(r => storeSchedules[r.store_id] !== false);
+
+    console.log(`[SENTINELA-SEND] ${remindersToSend.length} lembretes para processar (de ${reminders.length} total)`);
 
     let sent = 0;
     let failed = 0;
 
-    for (const reminder of reminders as Reminder[]) {
+    for (const reminder of remindersToSend) {
       try {
         const result = await sendReminder(supabase, reminder);
         if (result) {

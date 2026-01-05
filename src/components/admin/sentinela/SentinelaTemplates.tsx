@@ -10,9 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertCircle, Copy, Edit2, Eye, FileText, ImageIcon, Loader2, Plus, RefreshCw, Sparkles, Trash2, XCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2, Copy, Edit2, Eye, FileText, ImageIcon, Loader2, Phone, Plus, RefreshCw, Send, Sparkles, Trash2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { WhatsAppPhonePreview } from "@/components/admin/whatsapp/WhatsAppPhonePreview";
+import { CountryCodeSelect } from "@/components/ui/country-code-select";
+import { formatBrazilianPhone, normalizePhone } from "@/lib/utils";
 
 interface SentinelaTemplate {
   id: string;
@@ -60,12 +62,106 @@ export function SentinelaTemplates({ storeId, storeName, storeSlug }: SentinelaT
   const [editingTemplate, setEditingTemplate] = useState<SentinelaTemplate | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   
+  // Estados para teste no modal de criar template
+  const [createTestPhone, setCreateTestPhone] = useState('');
+  const [createTestCountryCode, setCreateTestCountryCode] = useState('+55');
+  const [createTestValidating, setCreateTestValidating] = useState(false);
+  const [createTestPhoneValid, setCreateTestPhoneValid] = useState<boolean | null>(null);
+  const [createTestPhoneJid, setCreateTestPhoneJid] = useState<string | null>(null);
+  const [createTestSending, setCreateTestSending] = useState(false);
+  
   const [newTemplate, setNewTemplate] = useState({
     name: '',
     category: 'recompra',
     content: '',
     image_url: ''
   });
+
+  // Função para validar número de WhatsApp no modal de criar
+  const handleCreateTestValidate = async () => {
+    const phoneNumbers = normalizePhone(createTestPhone);
+    
+    if (phoneNumbers.length < 10) {
+      toast.error('Digite um número de telefone válido (mínimo 10 dígitos)');
+      return;
+    }
+
+    setCreateTestValidating(true);
+    setCreateTestPhoneValid(null);
+    setCreateTestPhoneJid(null);
+
+    try {
+      const countryNumbers = createTestCountryCode.replace('+', '');
+      const fullPhone = countryNumbers + phoneNumbers;
+
+      const response = await supabase.functions.invoke('validate-whatsapp-number', {
+        body: { phone: fullPhone, sendWelcome: false }
+      });
+
+      if (response.error) throw response.error;
+
+      if (response.data?.valid) {
+        setCreateTestPhoneValid(true);
+        setCreateTestPhoneJid(response.data.jid);
+        toast.success('Número válido no WhatsApp!');
+      } else {
+        setCreateTestPhoneValid(false);
+        toast.error('Número não encontrado no WhatsApp');
+      }
+    } catch (error: any) {
+      console.error('Erro ao validar WhatsApp:', error);
+      toast.error(error.message || 'Erro ao validar número');
+      setCreateTestPhoneValid(false);
+    } finally {
+      setCreateTestValidating(false);
+    }
+  };
+
+  // Função para enviar teste do template
+  const handleCreateTestSend = async () => {
+    if (!createTestPhoneValid || !createTestPhoneJid) {
+      toast.error('Valide o número primeiro');
+      return;
+    }
+
+    if (!newTemplate.content) {
+      toast.error('Digite a mensagem do template primeiro');
+      return;
+    }
+
+    setCreateTestSending(true);
+
+    try {
+      const phoneNumbers = normalizePhone(createTestPhone);
+      const countryNumbers = createTestCountryCode.replace('+', '');
+      const fullPhone = countryNumbers + phoneNumbers;
+      
+      const message = replaceVariables(newTemplate.content);
+
+      const response = await supabase.functions.invoke('whatsapp-send', {
+        body: { 
+          storeId: storeId,
+          phoneNumber: fullPhone,
+          messageType: newTemplate.image_url ? 'image' : 'text',
+          content: message,
+          mediaUrl: newTemplate.image_url || undefined
+        }
+      });
+
+      if (response.error) throw response.error;
+
+      if (response.data?.success) {
+        toast.success('Mensagem de teste enviada com sucesso!');
+      } else {
+        toast.error(response.data?.error || 'Não foi possível enviar a mensagem');
+      }
+    } catch (error: any) {
+      console.error('Erro ao enviar teste:', error);
+      toast.error(error.message || 'Erro ao enviar mensagem de teste');
+    } finally {
+      setCreateTestSending(false);
+    }
+  };
 
   // Buscar templates (globais + da loja)
   const { data: templates, isLoading, refetch } = useQuery({
@@ -158,7 +254,8 @@ export function SentinelaTemplates({ storeId, storeName, storeSlug }: SentinelaT
         .update({
           name: template.name,
           category: template.category,
-          content: template.content
+          content: template.content,
+          image_url: template.image_url
         })
         .eq('id', template.id);
 
@@ -272,124 +369,229 @@ export function SentinelaTemplates({ storeId, storeName, storeSlug }: SentinelaT
             </Button>
           ))}
         </div>
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <Dialog open={isCreateOpen} onOpenChange={(open) => {
+          setIsCreateOpen(open);
+          if (!open) {
+            setCreateTestPhone('');
+            setCreateTestPhoneValid(null);
+            setCreateTestPhoneJid(null);
+          }
+        }}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
               Novo Template
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Criar Novo Template</DialogTitle>
               <DialogDescription>
                 Crie um template personalizado para sua loja
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 py-4">
+              {/* Coluna esquerda - Formulário */}
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Nome do Template</Label>
+                    <Input
+                      value={newTemplate.name}
+                      onChange={(e) => setNewTemplate(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="Ex: Lembrete Especial"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Categoria</Label>
+                    <Select
+                      value={newTemplate.category}
+                      onValueChange={(v) => setNewTemplate(prev => ({ ...prev, category: v }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CATEGORIES.map(cat => (
+                          <SelectItem key={cat.value} value={cat.value}>
+                            {cat.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
                 <div className="space-y-2">
-                  <Label>Nome do Template</Label>
-                  <Input
-                    value={newTemplate.name}
-                    onChange={(e) => setNewTemplate(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Ex: Lembrete Especial"
+                  <Label>Mensagem</Label>
+                  <Textarea
+                    value={newTemplate.content}
+                    onChange={(e) => setNewTemplate(prev => ({ ...prev, content: e.target.value }))}
+                    placeholder="Digite sua mensagem aqui..."
+                    rows={6}
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label>Categoria</Label>
-                  <Select
-                    value={newTemplate.category}
-                    onValueChange={(v) => setNewTemplate(prev => ({ ...prev, category: v }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CATEGORIES.map(cat => (
-                        <SelectItem key={cat.value} value={cat.value}>
-                          {cat.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Mensagem</Label>
-                <Textarea
-                  value={newTemplate.content}
-                  onChange={(e) => setNewTemplate(prev => ({ ...prev, content: e.target.value }))}
-                  placeholder="Digite sua mensagem aqui..."
-                  rows={6}
-                />
-                <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
-                  <AlertCircle className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-                  <div className="text-sm text-muted-foreground">
-                    <p className="font-medium mb-1">Variáveis disponíveis:</p>
-                    <div className="flex flex-wrap gap-2">
-                      <code className="bg-background px-1.5 py-0.5 rounded text-xs">{'{nome}'}</code>
-                      <code className="bg-background px-1.5 py-0.5 rounded text-xs">{'{primeiro_nome}'}</code>
-                      <code className="bg-background px-1.5 py-0.5 rounded text-xs">{'{produto}'}</code>
-                      <code className="bg-background px-1.5 py-0.5 rounded text-xs">{'{loja}'}</code>
-                      <code className="bg-background px-1.5 py-0.5 rounded text-xs">{'{link_loja}'}</code>
+                  <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
+                    <AlertCircle className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                    <div className="text-sm text-muted-foreground">
+                      <p className="font-medium mb-1">Variáveis disponíveis:</p>
+                      <div className="flex flex-wrap gap-1">
+                        <code className="bg-background px-1.5 py-0.5 rounded text-xs">{'{nome}'}</code>
+                        <code className="bg-background px-1.5 py-0.5 rounded text-xs">{'{primeiro_nome}'}</code>
+                        <code className="bg-background px-1.5 py-0.5 rounded text-xs">{'{produto}'}</code>
+                        <code className="bg-background px-1.5 py-0.5 rounded text-xs">{'{loja}'}</code>
+                        <code className="bg-background px-1.5 py-0.5 rounded text-xs">{'{link_loja}'}</code>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              
-              {/* Upload de Imagem */}
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <ImageIcon className="w-4 h-4" />
-                  Imagem (opcional)
-                </Label>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1">
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleImageUpload(e, false)}
-                      disabled={uploadingImage}
-                      className="cursor-pointer"
-                    />
-                  </div>
-                  {uploadingImage && <Loader2 className="w-5 h-5 animate-spin" />}
-                </div>
-                {newTemplate.image_url && (
-                  <div className="relative inline-block">
-                    <img 
-                      src={newTemplate.image_url} 
-                      alt="Preview" 
-                      className="w-20 h-20 object-cover rounded-lg border"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute -top-2 -right-2 w-6 h-6"
-                      onClick={() => setNewTemplate(prev => ({ ...prev, image_url: '' }))}
-                    >
-                      <XCircle className="w-4 h-4" />
-                    </Button>
-                  </div>
-                )}
-                <p className="text-xs text-muted-foreground">
-                  A imagem será enviada junto com a mensagem no WhatsApp
-                </p>
-              </div>
-              
-              {newTemplate.content && (
+                
+                {/* Upload de Imagem */}
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
-                    <Eye className="w-4 h-4" />
-                    Preview
+                    <ImageIcon className="w-4 h-4" />
+                    Imagem (opcional)
                   </Label>
-                  <div className="p-4 bg-muted/30 rounded-lg whitespace-pre-wrap text-sm">
-                    {replaceVariables(newTemplate.content)}
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(e, false)}
+                        disabled={uploadingImage}
+                        className="cursor-pointer"
+                      />
+                    </div>
+                    {uploadingImage && <Loader2 className="w-5 h-5 animate-spin" />}
                   </div>
+                  {newTemplate.image_url && (
+                    <div className="relative inline-block">
+                      <img 
+                        src={newTemplate.image_url} 
+                        alt="Preview" 
+                        className="w-20 h-20 object-cover rounded-lg border"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute -top-2 -right-2 w-6 h-6"
+                        onClick={() => setNewTemplate(prev => ({ ...prev, image_url: '' }))}
+                      >
+                        <XCircle className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    A imagem será enviada junto com a mensagem no WhatsApp
+                  </p>
                 </div>
-              )}
+              </div>
+
+              {/* Coluna direita - Preview WhatsApp + Teste */}
+              <div className="flex flex-col items-center justify-start space-y-4">
+                <div>
+                  <Label className="mb-3 flex items-center gap-2 justify-center">
+                    <Eye className="w-4 h-4" />
+                    Preview da Mensagem
+                  </Label>
+                  <WhatsAppPhonePreview
+                    storeName={storeName || "Minha Loja"}
+                    message={newTemplate.content ? replaceVariables(newTemplate.content) : 'Digite sua mensagem...'}
+                    mediaUrl={newTemplate.image_url || undefined}
+                    mediaType={newTemplate.image_url ? 'image' : undefined}
+                    showTypingAnimation={false}
+                    playNotificationSound={false}
+                    allowThemeToggle={true}
+                  />
+                </div>
+
+                {/* Seção de Teste de Envio */}
+                <div className="w-full border-t pt-4 space-y-3">
+                  <Label className="flex items-center gap-2 text-sm font-medium">
+                    <Send className="w-4 h-4" />
+                    Testar Envio
+                  </Label>
+                  <div className="flex gap-2">
+                    <CountryCodeSelect 
+                      value={createTestCountryCode} 
+                      onChange={(value) => {
+                        setCreateTestCountryCode(value);
+                        setCreateTestPhoneValid(null);
+                        setCreateTestPhoneJid(null);
+                      }} 
+                    />
+                    <div className="flex-1 relative">
+                      <Input
+                        type="tel"
+                        placeholder="(61) 99400-9368"
+                        value={createTestPhone}
+                        onChange={(e) => {
+                          const formatted = formatBrazilianPhone(e.target.value);
+                          setCreateTestPhone(formatted);
+                          setCreateTestPhoneValid(null);
+                          setCreateTestPhoneJid(null);
+                        }}
+                        maxLength={16}
+                        className={createTestPhoneValid === true ? 'border-green-500 pr-10' : createTestPhoneValid === false ? 'border-red-500 pr-10' : ''}
+                      />
+                      {createTestPhoneValid === true && (
+                        <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" />
+                      )}
+                      {createTestPhoneValid === false && (
+                        <XCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-500" />
+                      )}
+                    </div>
+                    <Button 
+                      onClick={handleCreateTestValidate} 
+                      disabled={createTestValidating || normalizePhone(createTestPhone).length < 10}
+                      variant="outline"
+                      size="sm"
+                    >
+                      {createTestValidating ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        'Validar'
+                      )}
+                    </Button>
+                  </div>
+
+                  {createTestPhoneValid === true && (
+                    <div className="p-2 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900">
+                      <p className="text-xs text-green-700 dark:text-green-400 flex items-center gap-2">
+                        <CheckCircle2 className="w-3 h-3" />
+                        Número válido no WhatsApp
+                      </p>
+                    </div>
+                  )}
+
+                  {createTestPhoneValid === false && (
+                    <div className="p-2 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900">
+                      <p className="text-xs text-red-700 dark:text-red-400 flex items-center gap-2">
+                        <XCircle className="w-3 h-3" />
+                        Número não encontrado no WhatsApp
+                      </p>
+                    </div>
+                  )}
+
+                  <Button 
+                    onClick={handleCreateTestSend} 
+                    disabled={!createTestPhoneValid || !newTemplate.content || createTestSending}
+                    className="w-full"
+                    size="sm"
+                  >
+                    {createTestSending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Enviando...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 mr-2" />
+                        Enviar Teste
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
@@ -556,6 +758,48 @@ export function SentinelaTemplates({ storeId, storeName, storeSlug }: SentinelaT
                   rows={8}
                 />
               </div>
+              
+              {/* Upload de Imagem */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4" />
+                  Imagem (opcional)
+                </Label>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, true)}
+                      disabled={uploadingImage}
+                      className="cursor-pointer"
+                    />
+                  </div>
+                  {uploadingImage && <Loader2 className="w-5 h-5 animate-spin" />}
+                </div>
+                {editingTemplate.image_url && (
+                  <div className="relative inline-block">
+                    <img 
+                      src={editingTemplate.image_url} 
+                      alt="Preview" 
+                      className="w-20 h-20 object-cover rounded-lg border"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute -top-2 -right-2 w-6 h-6"
+                      onClick={() => setEditingTemplate(prev => prev ? { ...prev, image_url: null } : null)}
+                    >
+                      <XCircle className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  A imagem será enviada junto com a mensagem no WhatsApp
+                </p>
+              </div>
+              
               {editingTemplate.content && (
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">

@@ -16,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { AlertCircle, BarChart3, Bell, BellOff, Calendar, CheckCircle2, Clock, Eye, FileText, HelpCircle, ImageIcon, Loader2, MessageSquare, Package, Pause, Phone, Play, Plus, RefreshCw, Send, Settings, Shield, Target, Trash2, TrendingUp, Upload, XCircle, Zap } from "lucide-react";
+import { AlertCircle, BarChart3, Bell, BellOff, Calendar, CheckCircle2, Clock, Edit2, Eye, FileText, HelpCircle, ImageIcon, Loader2, MessageSquare, Package, Pause, Phone, Play, Plus, RefreshCw, Send, Settings, Shield, Target, Trash2, TrendingUp, Upload, XCircle, Zap } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
@@ -155,14 +155,34 @@ export default function Sentinela() {
   
   // Preview da mensagem em tempo real
   const [previewMessage, setPreviewMessage] = useState('');
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+  
+  // Estados para edição de regras
+  const [isEditRuleOpen, setIsEditRuleOpen] = useState(false);
+  const [editingRule, setEditingRule] = useState<{
+    id: string;
+    type: 'product' | 'category';
+    product_id: string;
+    category_id: string;
+    recurrence_days: number;
+    reminder_days_before: number;
+    message_template: string;
+    template_id: string;
+    image_url: string;
+  } | null>(null);
   
   // Atualizar preview quando template ou mensagem mudar
   useEffect(() => {
     let message = '';
+    let imageUrl: string | null = newRule.image_url || null;
     
     if (newRule.template_id && templates) {
       const selectedTemplate = templates.find(t => t.id === newRule.template_id);
       message = selectedTemplate?.content || '';
+      // Se não tiver imagem manual, usar do template
+      if (!newRule.image_url && selectedTemplate?.image_url) {
+        imageUrl = selectedTemplate.image_url;
+      }
     } else if (newRule.message_template) {
       message = newRule.message_template;
     } else {
@@ -183,7 +203,8 @@ export default function Sentinela() {
       .replace(/{link_loja}/gi, `https://mostralo.com.br/loja/${storeInfo?.slug || 'minha-loja'}`);
     
     setPreviewMessage(preview);
-  }, [newRule.template_id, newRule.message_template, newRule.product_id, newRule.category_id, newRule.type, templates, products, categories, storeInfo, storeConfig]);
+    setPreviewImageUrl(imageUrl);
+  }, [newRule.template_id, newRule.message_template, newRule.product_id, newRule.category_id, newRule.type, newRule.image_url, templates, products, categories, storeInfo, storeConfig]);
   
   // Função para upload de imagem
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -229,13 +250,22 @@ export default function Sentinela() {
   const handleCreateRule = () => {
     if (!storeId) return;
 
+    // Determinar a imagem: usar a do template se não tiver imagem manual
+    let finalImageUrl = newRule.image_url || null;
+    if (!finalImageUrl && newRule.template_id && templates) {
+      const selectedTemplate = templates.find(t => t.id === newRule.template_id);
+      finalImageUrl = selectedTemplate?.image_url || null;
+    }
+
     createRule.mutate({
       store_id: storeId,
       product_id: newRule.type === 'product' ? newRule.product_id : null,
       category_id: newRule.type === 'category' ? newRule.category_id : null,
       recurrence_days: newRule.recurrence_days,
       reminder_days_before: newRule.reminder_days_before,
-      message_template: newRule.message_template || null
+      message_template: newRule.message_template || null,
+      template_id: newRule.template_id || null,
+      image_url: finalImageUrl
     }, {
       onSuccess: () => {
         setIsNewRuleOpen(false);
@@ -249,6 +279,42 @@ export default function Sentinela() {
           template_id: '',
           image_url: ''
         });
+      }
+    });
+  };
+
+  // Função para editar regra
+  const handleEditRule = (rule: any) => {
+    setEditingRule({
+      id: rule.id,
+      type: rule.product_id ? 'product' : 'category',
+      product_id: rule.product_id || '',
+      category_id: rule.category_id || '',
+      recurrence_days: rule.recurrence_days,
+      reminder_days_before: rule.reminder_days_before,
+      message_template: rule.message_template || '',
+      template_id: rule.template_id || '',
+      image_url: rule.image_url || ''
+    });
+    setIsEditRuleOpen(true);
+  };
+
+  const handleSaveEditRule = () => {
+    if (!editingRule) return;
+
+    updateRule.mutate({
+      id: editingRule.id,
+      product_id: editingRule.type === 'product' ? editingRule.product_id : null,
+      category_id: editingRule.type === 'category' ? editingRule.category_id : null,
+      recurrence_days: editingRule.recurrence_days,
+      reminder_days_before: editingRule.reminder_days_before,
+      message_template: editingRule.message_template || null,
+      template_id: editingRule.template_id || null,
+      image_url: editingRule.image_url || null
+    } as any, {
+      onSuccess: () => {
+        setIsEditRuleOpen(false);
+        setEditingRule(null);
       }
     });
   };
@@ -329,13 +395,14 @@ export default function Sentinela() {
       const countryNumbers = countryCode.replace('+', '');
       const fullPhone = countryNumbers + phoneNumbers;
 
-      // Enviar usando whatsapp-send
+      // Enviar usando whatsapp-send com suporte a imagem
       const response = await supabase.functions.invoke('whatsapp-send', {
         body: { 
           storeId: storeId,
           phoneNumber: fullPhone,
-          messageType: 'text',
-          content: message
+          messageType: selectedTemplate.image_url ? 'image' : 'text',
+          content: message,
+          mediaUrl: selectedTemplate.image_url || undefined
         }
       });
 
@@ -989,8 +1056,8 @@ export default function Sentinela() {
                       <WhatsAppPhonePreview
                         storeName={storeInfo?.name || "Minha Loja"}
                         message={previewMessage}
-                        mediaUrl={newRule.image_url || undefined}
-                        mediaType={newRule.image_url ? 'image' : undefined}
+                        mediaUrl={previewImageUrl || undefined}
+                        mediaType={previewImageUrl ? 'image' : undefined}
                         showTypingAnimation={false}
                         playNotificationSound={false}
                         allowThemeToggle={true}
@@ -1134,13 +1201,22 @@ export default function Sentinela() {
                         />
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => deleteRule.mutate(rule.id)}
-                        >
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditRule(rule)}
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => deleteRule.mutate(rule.id)}
+                          >
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -1597,6 +1673,8 @@ export default function Sentinela() {
                     <WhatsAppPhonePreview
                       storeName={storeInfo?.name || "Minha Loja"}
                       message={previewMessage}
+                      mediaUrl={selectedTemplate.image_url || undefined}
+                      mediaType={selectedTemplate.image_url ? 'image' : undefined}
                       showTypingAnimation={false}
                       playNotificationSound={false}
                       allowThemeToggle={true}
@@ -1698,6 +1776,162 @@ export default function Sentinela() {
 
       {/* Guia do SENTINELA */}
       <SentinelaGuide open={showGuide} onOpenChange={setShowGuide} />
+
+      {/* Modal de Edição de Regra */}
+      <Dialog open={isEditRuleOpen} onOpenChange={(open) => {
+        setIsEditRuleOpen(open);
+        if (!open) setEditingRule(null);
+      }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar Regra de Recompra</DialogTitle>
+            <DialogDescription>
+              Atualize as configurações da regra de lembrete
+            </DialogDescription>
+          </DialogHeader>
+          {editingRule && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Tipo</Label>
+                <Select
+                  value={editingRule.type}
+                  onValueChange={(v) => setEditingRule(prev => prev ? { ...prev, type: v as 'product' | 'category' } : null)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="product">Produto específico</SelectItem>
+                    <SelectItem value="category">Categoria inteira</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {editingRule.type === 'product' ? (
+                <div className="space-y-2">
+                  <Label>Produto</Label>
+                  <Select
+                    value={editingRule.product_id}
+                    onValueChange={(v) => setEditingRule(prev => prev ? { ...prev, product_id: v } : null)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um produto" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {products?.map(product => (
+                        <SelectItem key={product.id} value={product.id}>
+                          {product.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label>Categoria</Label>
+                  <Select
+                    value={editingRule.category_id}
+                    onValueChange={(v) => setEditingRule(prev => prev ? { ...prev, category_id: v } : null)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione uma categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories?.map(category => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Ciclo de recompra (dias)</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={365}
+                    value={editingRule.recurrence_days}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 1;
+                      const clamped = Math.min(365, Math.max(1, value));
+                      setEditingRule(prev => prev ? { ...prev, recurrence_days: clamped } : null);
+                    }}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Lembrar X dias antes</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={30}
+                    value={editingRule.reminder_days_before}
+                    onChange={(e) => setEditingRule(prev => prev ? { ...prev, reminder_days_before: parseInt(e.target.value) || 3 } : null)}
+                  />
+                </div>
+              </div>
+
+              {/* Seleção de Template */}
+              <div className="space-y-2">
+                <Label>Template de Mensagem</Label>
+                <Select
+                  value={editingRule.template_id || 'default'}
+                  onValueChange={(v) => {
+                    if (v === 'custom') {
+                      setEditingRule(prev => prev ? { ...prev, template_id: '', message_template: prev.message_template || '' } : null);
+                    } else if (v === 'default') {
+                      setEditingRule(prev => prev ? { ...prev, template_id: '', message_template: '' } : null);
+                    } else {
+                      setEditingRule(prev => prev ? { ...prev, template_id: v, message_template: '' } : null);
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Usar template padrão" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="default">📋 Usar template padrão</SelectItem>
+                    <SelectItem value="custom">✏️ Escrever personalizado</SelectItem>
+                    {templates?.map(t => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.is_default ? '⭐ ' : ''}{t.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Campo de mensagem personalizada */}
+              {!editingRule.template_id && (
+                <div className="space-y-2">
+                  <Label>Mensagem {editingRule.message_template ? 'Personalizada' : '(opcional)'}</Label>
+                  <Textarea
+                    placeholder="Deixe em branco para usar o template padrão da loja"
+                    value={editingRule.message_template}
+                    onChange={(e) => setEditingRule(prev => prev ? { ...prev, message_template: e.target.value } : null)}
+                    rows={4}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditRuleOpen(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleSaveEditRule}
+              disabled={updateRule.isPending || (editingRule?.type === 'product' && !editingRule?.product_id) || (editingRule?.type === 'category' && !editingRule?.category_id)}
+            >
+              {updateRule.isPending ? 'Salvando...' : 'Salvar Alterações'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
     </TooltipProvider>
   );

@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertCircle, Copy, Edit2, Eye, FileText, Loader2, Plus, RefreshCw, Sparkles, Trash2 } from "lucide-react";
+import { AlertCircle, Copy, Edit2, Eye, FileText, ImageIcon, Loader2, Plus, RefreshCw, Sparkles, Trash2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { WhatsAppPhonePreview } from "@/components/admin/whatsapp/WhatsAppPhonePreview";
 
@@ -22,6 +22,7 @@ interface SentinelaTemplate {
   content: string;
   is_active: boolean;
   is_default: boolean;
+  image_url?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -45,7 +46,7 @@ const PREVIEW_DATA = {
   primeiro_nome: 'João',
   produto: 'Café Premium 500g',
   loja: 'Minha Loja',
-  link_loja: 'https://minha-loja.mostralo.com'
+  link_loja: 'https://mostralo.com.br/loja/minha-loja'
 };
 
 export function SentinelaTemplates({ storeId, storeName, storeSlug }: SentinelaTemplatesProps) {
@@ -54,13 +55,16 @@ export function SentinelaTemplates({ storeId, storeName, storeSlug }: SentinelaT
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewContent, setPreviewContent] = useState('');
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [editingTemplate, setEditingTemplate] = useState<SentinelaTemplate | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   
   const [newTemplate, setNewTemplate] = useState({
     name: '',
     category: 'recompra',
-    content: ''
+    content: '',
+    image_url: ''
   });
 
   // Buscar templates (globais + da loja)
@@ -81,6 +85,40 @@ export function SentinelaTemplates({ storeId, storeName, storeSlug }: SentinelaT
     enabled: !!storeId
   });
 
+  // Upload de imagem
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, isEditing: boolean = false) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setUploadingImage(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${storeId}/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('sentinela-images')
+        .upload(fileName, file);
+      
+      if (uploadError) throw uploadError;
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('sentinela-images')
+        .getPublicUrl(fileName);
+      
+      if (isEditing && editingTemplate) {
+        setEditingTemplate(prev => prev ? { ...prev, image_url: publicUrl } : null);
+      } else {
+        setNewTemplate(prev => ({ ...prev, image_url: publicUrl }));
+      }
+      toast.success('Imagem enviada com sucesso!');
+    } catch (error: any) {
+      console.error('Erro ao enviar imagem:', error);
+      toast.error('Erro ao enviar imagem');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   // Criar template
   const createMutation = useMutation({
     mutationFn: async (template: typeof newTemplate) => {
@@ -91,6 +129,7 @@ export function SentinelaTemplates({ storeId, storeName, storeSlug }: SentinelaT
           category: template.category,
           name: template.name,
           content: template.content,
+          image_url: template.image_url || null,
           is_default: false
         })
         .select()
@@ -103,7 +142,7 @@ export function SentinelaTemplates({ storeId, storeName, storeSlug }: SentinelaT
       queryClient.invalidateQueries({ queryKey: ['sentinela-templates', storeId] });
       toast.success('Template criado com sucesso');
       setIsCreateOpen(false);
-      setNewTemplate({ name: '', category: 'recompra', content: '' });
+      setNewTemplate({ name: '', category: 'recompra', content: '', image_url: '' });
     },
     onError: (error) => {
       console.error('Erro ao criar template:', error);
@@ -167,11 +206,12 @@ export function SentinelaTemplates({ storeId, storeName, storeSlug }: SentinelaT
       .replace(/{primeiro_nome}/gi, PREVIEW_DATA.primeiro_nome)
       .replace(/{produto}/gi, PREVIEW_DATA.produto)
       .replace(/{loja}/gi, storeName || PREVIEW_DATA.loja)
-      .replace(/{link_loja}/gi, storeSlug ? `https://${storeSlug}.mostralo.com` : PREVIEW_DATA.link_loja);
+      .replace(/{link_loja}/gi, storeSlug ? `https://mostralo.com.br/loja/${storeSlug}` : PREVIEW_DATA.link_loja);
   };
 
-  const handlePreview = (content: string) => {
+  const handlePreview = (content: string, imageUrl?: string | null) => {
     setPreviewContent(replaceVariables(content));
+    setPreviewImageUrl(imageUrl || null);
     setIsPreviewOpen(true);
   };
 
@@ -179,7 +219,8 @@ export function SentinelaTemplates({ storeId, storeName, storeSlug }: SentinelaT
     setNewTemplate({
       name: `${template.name} (Cópia)`,
       category: template.category,
-      content: template.content
+      content: template.content,
+      image_url: template.image_url || ''
     });
     setIsCreateOpen(true);
   };
@@ -280,7 +321,7 @@ export function SentinelaTemplates({ storeId, storeName, storeSlug }: SentinelaT
                   value={newTemplate.content}
                   onChange={(e) => setNewTemplate(prev => ({ ...prev, content: e.target.value }))}
                   placeholder="Digite sua mensagem aqui..."
-                  rows={8}
+                  rows={6}
                 />
                 <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
                   <AlertCircle className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
@@ -296,6 +337,48 @@ export function SentinelaTemplates({ storeId, storeName, storeSlug }: SentinelaT
                   </div>
                 </div>
               </div>
+              
+              {/* Upload de Imagem */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4" />
+                  Imagem (opcional)
+                </Label>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageUpload(e, false)}
+                      disabled={uploadingImage}
+                      className="cursor-pointer"
+                    />
+                  </div>
+                  {uploadingImage && <Loader2 className="w-5 h-5 animate-spin" />}
+                </div>
+                {newTemplate.image_url && (
+                  <div className="relative inline-block">
+                    <img 
+                      src={newTemplate.image_url} 
+                      alt="Preview" 
+                      className="w-20 h-20 object-cover rounded-lg border"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute -top-2 -right-2 w-6 h-6"
+                      onClick={() => setNewTemplate(prev => ({ ...prev, image_url: '' }))}
+                    >
+                      <XCircle className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  A imagem será enviada junto com a mensagem no WhatsApp
+                </p>
+              </div>
+              
               {newTemplate.content && (
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
@@ -342,7 +425,7 @@ export function SentinelaTemplates({ storeId, storeName, storeSlug }: SentinelaT
                       </Badge>
                     </div>
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="ghost" size="icon" onClick={() => handlePreview(template.content)}>
+                      <Button variant="ghost" size="icon" onClick={() => handlePreview(template.content, template.image_url)}>
                         <Eye className="w-4 h-4" />
                       </Button>
                       <Button variant="ghost" size="icon" onClick={() => handleEdit(template)}>
@@ -388,7 +471,7 @@ export function SentinelaTemplates({ storeId, storeName, storeSlug }: SentinelaT
                     </Badge>
                   </div>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button variant="ghost" size="icon" onClick={() => handlePreview(template.content)}>
+                    <Button variant="ghost" size="icon" onClick={() => handlePreview(template.content, template.image_url)}>
                       <Eye className="w-4 h-4" />
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => handleCopyTemplate(template)}>
@@ -418,6 +501,8 @@ export function SentinelaTemplates({ storeId, storeName, storeSlug }: SentinelaT
           <WhatsAppPhonePreview
             storeName={storeName || "Minha Loja"}
             message={previewContent}
+            mediaUrl={previewImageUrl || undefined}
+            mediaType={previewImageUrl ? 'image' : undefined}
             showTypingAnimation={false}
             playNotificationSound={false}
             allowThemeToggle={true}

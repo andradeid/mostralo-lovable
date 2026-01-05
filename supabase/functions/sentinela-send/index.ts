@@ -170,16 +170,38 @@ async function sendReminder(supabase: any, reminder: Reminder): Promise<boolean>
 
   // Buscar template da regra ou usar o padrão da loja
   let messageTemplate = store.sentinela_default_template;
+  let imageUrl: string | null = null;
 
   if (reminder.rule_id) {
     const { data: rule } = await supabase
       .from('sentinela_rules')
-      .select('message_template')
+      .select('message_template, image_url, template_id')
       .eq('id', reminder.rule_id)
       .single();
 
     if (rule?.message_template) {
       messageTemplate = rule.message_template;
+    }
+    
+    // Buscar imagem da regra
+    if (rule?.image_url) {
+      imageUrl = rule.image_url;
+    }
+    
+    // Se tem template_id, buscar template e usar imagem do template se regra não tiver
+    if (rule?.template_id) {
+      const { data: template } = await supabase
+        .from('sentinela_templates')
+        .select('content, image_url')
+        .eq('id', rule.template_id)
+        .single();
+      
+      if (template?.content) {
+        messageTemplate = template.content;
+      }
+      if (!imageUrl && template?.image_url) {
+        imageUrl = template.image_url;
+      }
     }
   }
 
@@ -223,7 +245,27 @@ async function sendReminder(supabase: any, reminder: Reminder): Promise<boolean>
   const phoneNumber = normalizePhone(customer.phone);
 
   // Enviar mensagem via Evolution API
-  const evolutionUrl = `${evolutionConfig.api_url}/message/sendText/${instance.instance_name}`;
+  let evolutionUrl: string;
+  let evolutionBody: any;
+
+  if (imageUrl) {
+    // Enviar como imagem com caption
+    evolutionUrl = `${evolutionConfig.api_url}/message/sendMedia/${instance.instance_name}`;
+    evolutionBody = {
+      number: phoneNumber,
+      mediatype: 'image',
+      media: imageUrl,
+      caption: message
+    };
+    console.log(`[SENTINELA-SEND] Enviando imagem para ${phoneNumber}`);
+  } else {
+    // Enviar como texto
+    evolutionUrl = `${evolutionConfig.api_url}/message/sendText/${instance.instance_name}`;
+    evolutionBody = {
+      number: phoneNumber,
+      text: message
+    };
+  }
   
   const evolutionResponse = await fetch(evolutionUrl, {
     method: 'POST',
@@ -231,10 +273,7 @@ async function sendReminder(supabase: any, reminder: Reminder): Promise<boolean>
       'Content-Type': 'application/json',
       'apikey': evolutionConfig.api_key
     },
-    body: JSON.stringify({
-      number: phoneNumber,
-      text: message
-    })
+    body: JSON.stringify(evolutionBody)
   });
 
   if (!evolutionResponse.ok) {

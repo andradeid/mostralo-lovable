@@ -6650,36 +6650,42 @@ export type Database = {
           category_id: string | null
           created_at: string | null
           id: string
+          image_url: string | null
           is_active: boolean | null
           message_template: string | null
           product_id: string | null
           recurrence_days: number
           reminder_days_before: number
           store_id: string
+          template_id: string | null
           updated_at: string | null
         }
         Insert: {
           category_id?: string | null
           created_at?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean | null
           message_template?: string | null
           product_id?: string | null
           recurrence_days?: number
           reminder_days_before?: number
           store_id: string
+          template_id?: string | null
           updated_at?: string | null
         }
         Update: {
           category_id?: string | null
           created_at?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean | null
           message_template?: string | null
           product_id?: string | null
           recurrence_days?: number
           reminder_days_before?: number
           store_id?: string
+          template_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -6711,6 +6717,13 @@ export type Database = {
             referencedRelation: "stores"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "sentinela_rules_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "sentinela_templates"
+            referencedColumns: ["id"]
+          },
         ]
       }
       sentinela_templates: {
@@ -6719,6 +6732,7 @@ export type Database = {
           content: string
           created_at: string | null
           id: string
+          image_url: string | null
           is_active: boolean | null
           is_default: boolean | null
           name: string
@@ -6730,6 +6744,7 @@ export type Database = {
           content: string
           created_at?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean | null
           is_default?: boolean | null
           name: string
@@ -6741,6 +6756,7 @@ export type Database = {
           content?: string
           created_at?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean | null
           is_default?: boolean | null
           name?: string

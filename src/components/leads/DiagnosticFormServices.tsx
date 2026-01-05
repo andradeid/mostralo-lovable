@@ -394,6 +394,22 @@ export function DiagnosticFormServices({ onComplete }: DiagnosticFormServicesPro
                       className="h-12"
                     />
                   </div>
+                  {/* Botão Validar explícito */}
+                  {canValidateWhatsapp && whatsappStatus === 'idle' && (
+                    <Button
+                      type="button"
+                      onClick={validateWhatsApp}
+                      disabled={whatsappStatus !== 'idle'}
+                      className="h-12 px-4 bg-[#25D366] hover:bg-[#1ebe5a] text-white"
+                    >
+                      Validar
+                    </Button>
+                  )}
+                  {whatsappStatus === 'validating' && (
+                    <div className="h-12 px-4 flex items-center">
+                      <Loader2 className="w-5 h-5 animate-spin text-[#25D366]" />
+                    </div>
+                  )}
                 </div>
                 
                 {/* Etapas de validação progressiva */}
@@ -402,12 +418,6 @@ export function DiagnosticFormServices({ onComplete }: DiagnosticFormServicesPro
                     steps={validationSteps} 
                     className="mt-3"
                   />
-                )}
-                
-                {!showValidationSteps && canValidateWhatsapp && whatsappStatus === 'idle' && (
-                  <p className="text-xs text-muted-foreground">
-                    Clique fora do campo WhatsApp para validar
-                  </p>
                 )}
               </div>
               

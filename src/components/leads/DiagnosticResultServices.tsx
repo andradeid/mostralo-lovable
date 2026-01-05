@@ -88,6 +88,35 @@ export function DiagnosticResultServices({ result, savedAudioBase64 }: Diagnosti
         </div>
       </div>
 
+      {/* Card de Áudio no TOPO com destaque */}
+      {savedAudioBase64 && (
+        <Card className="p-4 border-[#25D366]/30 bg-[#25D366]/5 animate-fade-in">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-full bg-[#25D366]/20">
+                <Volume2 className="w-5 h-5 text-[#25D366]" />
+              </div>
+              <div>
+                <p className="font-medium text-foreground">Áudio Personalizado</p>
+                <p className="text-sm text-muted-foreground">Sofia explicou seu diagnóstico</p>
+              </div>
+            </div>
+            <Button
+              onClick={handleReplayAudio}
+              disabled={isPlayingAudio}
+              className={cn(
+                "h-11 px-5",
+                "bg-[#25D366] hover:bg-[#1ebe5a] text-white",
+                "shadow-lg shadow-[#25D366]/30"
+              )}
+            >
+              <Volume2 className={cn("w-4 h-4 mr-2", isPlayingAudio && "animate-pulse")} />
+              {isPlayingAudio ? 'Tocando...' : 'Ouvir'}
+            </Button>
+          </div>
+        </Card>
+      )}
+
       {/* Calculadora de Economia Visual */}
       {result.level !== 'disqualified' && (
         <Card className="p-6 md:p-8 border-2 border-green-500/30 bg-gradient-to-br from-green-500/5 to-emerald-500/5 animate-fade-in">
@@ -175,16 +204,6 @@ export function DiagnosticResultServices({ result, savedAudioBase64 }: Diagnosti
       {result.level !== 'disqualified' && (
         <div className="animate-fade-in">
           <DiagnosticOfferCard level={result.level} diagnosticType="general" />
-        </div>
-      )}
-
-      {/* Botão Ouvir Áudio */}
-      {savedAudioBase64 && (
-        <div className="text-center">
-          <Button onClick={handleReplayAudio} disabled={isPlayingAudio} variant="outline" size="lg">
-            <Volume2 className={cn("w-5 h-5 mr-2", isPlayingAudio && "animate-pulse")} />
-            {isPlayingAudio ? 'Reproduzindo...' : 'Ouvir áudio da Sofia'}
-          </Button>
         </div>
       )}
 

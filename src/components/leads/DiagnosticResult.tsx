@@ -124,6 +124,35 @@ export function DiagnosticResult({ result, savedAudioBase64 }: DiagnosticResultP
         </div>
       </div>
 
+      {/* Card de Áudio no TOPO com destaque */}
+      {savedAudioBase64 && (
+        <Card className="p-4 border-[#25D366]/30 bg-[#25D366]/5 animate-fade-in">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-full bg-[#25D366]/20">
+                <Volume2 className="w-5 h-5 text-[#25D366]" />
+              </div>
+              <div>
+                <p className="font-medium text-foreground">Áudio Personalizado</p>
+                <p className="text-sm text-muted-foreground">Sofia explicou seu diagnóstico</p>
+              </div>
+            </div>
+            <Button
+              onClick={handleReplayAudio}
+              disabled={isPlayingAudio}
+              className={cn(
+                "h-11 px-5",
+                "bg-[#25D366] hover:bg-[#1ebe5a] text-white",
+                "shadow-lg shadow-[#25D366]/30"
+              )}
+            >
+              <Volume2 className={cn("w-4 h-4 mr-2", isPlayingAudio && "animate-pulse")} />
+              {isPlayingAudio ? 'Tocando...' : 'Ouvir'}
+            </Button>
+          </div>
+        </Card>
+      )}
+
       {/* Cards de Oportunidade */}
       {result.level !== 'disqualified' && (
         <div className="space-y-4">
@@ -195,22 +224,6 @@ export function DiagnosticResult({ result, savedAudioBase64 }: DiagnosticResultP
       {result.level !== 'disqualified' && (
         <div className="animate-fade-in" style={{ animationDelay: '400ms' }}>
           <DiagnosticOfferCard level={result.level} diagnosticType="general" />
-        </div>
-      )}
-
-      {/* Botão Ouvir Áudio Novamente */}
-      {savedAudioBase64 && (
-        <div className="text-center animate-fade-in" style={{ animationDelay: '450ms' }}>
-          <Button
-            onClick={handleReplayAudio}
-            disabled={isPlayingAudio}
-            variant="outline"
-            size="lg"
-            className="h-12 px-6"
-          >
-            <Volume2 className={cn("w-5 h-5 mr-2", isPlayingAudio && "animate-pulse")} />
-            {isPlayingAudio ? 'Reproduzindo áudio da Sofia...' : 'Ouvir áudio da Sofia novamente'}
-          </Button>
         </div>
       )}
 

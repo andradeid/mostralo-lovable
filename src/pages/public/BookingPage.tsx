@@ -539,7 +539,7 @@ const BookingPage = () => {
       case 'service': return !!selectedService;
       case 'professional': return !!selectedProfessional;
       case 'datetime': return !!selectedDate && !!selectedTime;
-      case 'confirm': return !!customerName && !!customerPhone;
+      case 'confirm': return !!customerName && !!customerPhone && whatsappValid === true;
       default: return false;
     }
   };

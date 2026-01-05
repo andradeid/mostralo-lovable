@@ -17,17 +17,20 @@ import {
   Phone,
   Mail,
   Store,
-  AlertCircle
+  AlertCircle,
+  CheckCircle2
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format, addDays, isBefore, startOfDay, isAfter } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { cn } from '@/lib/utils';
+import { cn, formatBrazilianPhone, formatInternationalPhone } from '@/lib/utils';
 import { z } from 'zod';
 import { useCheckSalesChannel } from '@/hooks/useCheckSalesChannel';
 import { SalesChannelPausedBanner } from '@/components/shared/SalesChannelPausedBanner';
 import { useQuery } from '@tanstack/react-query';
+import { CountryCodeSelect } from '@/components/ui/country-code-select';
+import { WhatsAppProfilePreview } from '@/components/leads/WhatsAppProfilePreview';
 
 // Types
 interface Professional {
@@ -93,6 +96,16 @@ const BookingPage = () => {
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
   const [notes, setNotes] = useState('');
+  
+  // WhatsApp validation
+  const [countryCode, setCountryCode] = useState('+55');
+  const [whatsappValidating, setWhatsappValidating] = useState(false);
+  const [whatsappValid, setWhatsappValid] = useState<boolean | null>(null);
+  const [whatsappProfile, setWhatsappProfile] = useState<{
+    pictureUrl: string | null;
+    pushName: string | null;
+    formattedNumber: string | null;
+  } | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Check if booking channel is enabled
@@ -940,18 +953,121 @@ const BookingPage = () => {
                     <p className="text-destructive text-xs mt-1">{errors.customerName}</p>
                   )}
                 </div>
-                <div>
-                  <Label htmlFor="phone">Telefone/WhatsApp *</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={customerPhone}
-                    onChange={(e) => setCustomerPhone(e.target.value)}
-                    placeholder="(00) 00000-0000"
-                    className={errors.customerPhone ? 'border-destructive' : ''}
-                  />
+                <div className="space-y-3">
+                  <Label htmlFor="phone" className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-emerald-500" />
+                    Telefone/WhatsApp *
+                  </Label>
+                  
+                  <div className="flex gap-2">
+                    <CountryCodeSelect
+                      value={countryCode}
+                      onChange={(code) => {
+                        setCountryCode(code);
+                        setWhatsappValid(null);
+                        setWhatsappProfile(null);
+                      }}
+                    />
+                    
+                    <div className="relative flex-1">
+                      <Input
+                        id="phone"
+                        type="tel"
+                        value={customerPhone}
+                        onChange={(e) => {
+                          const formatted = countryCode === '+55'
+                            ? formatBrazilianPhone(e.target.value)
+                            : formatInternationalPhone(e.target.value);
+                          setCustomerPhone(formatted);
+                          setWhatsappValid(null);
+                          setWhatsappProfile(null);
+                        }}
+                        placeholder={countryCode === '+55' ? '(00) 00000-0000' : 'Número'}
+                        maxLength={countryCode === '+55' ? 16 : 20}
+                        className={cn(
+                          'pr-10',
+                          errors.customerPhone && 'border-destructive',
+                          whatsappValid === true && 'border-emerald-500',
+                          whatsappValid === false && 'border-amber-500'
+                        )}
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        {whatsappValidating && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                        {whatsappValid === true && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
+                        {whatsappValid === false && <AlertCircle className="h-4 w-4 text-amber-500" />}
+                      </div>
+                    </div>
+                    
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        const cleanPhone = customerPhone.replace(/\D/g, '');
+                        if (cleanPhone.length < 10) {
+                          toast.error('Digite um número de telefone válido');
+                          return;
+                        }
+                        
+                        setWhatsappValidating(true);
+                        setWhatsappValid(null);
+                        setWhatsappProfile(null);
+                        
+                        const fullPhone = `${countryCode.replace('+', '')}${cleanPhone}`;
+                        
+                        try {
+                          const { data, error } = await supabase.functions.invoke('validate-whatsapp-number', {
+                            body: { phone: fullPhone }
+                          });
+                          
+                          if (error) throw error;
+                          
+                          if (data?.valid || data?.exists) {
+                            setWhatsappValid(true);
+                            setWhatsappProfile({
+                              pictureUrl: data.profilePictureUrl || null,
+                              pushName: data.pushName || null,
+                              formattedNumber: data.formattedNumber || fullPhone
+                            });
+                          } else {
+                            setWhatsappValid(false);
+                          }
+                        } catch (error) {
+                          console.error('Erro ao validar WhatsApp:', error);
+                          setWhatsappValid(false);
+                        } finally {
+                          setWhatsappValidating(false);
+                        }
+                      }}
+                      disabled={whatsappValidating || customerPhone.replace(/\D/g, '').length < 10}
+                      className="shrink-0"
+                    >
+                      {whatsappValidating ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Validar'}
+                    </Button>
+                  </div>
+                  
                   {errors.customerPhone && (
-                    <p className="text-destructive text-xs mt-1">{errors.customerPhone}</p>
+                    <p className="text-destructive text-xs">{errors.customerPhone}</p>
+                  )}
+                  
+                  {whatsappValid === true && whatsappProfile && (
+                    <WhatsAppProfilePreview
+                      profilePicture={whatsappProfile.pictureUrl}
+                      pushName={whatsappProfile.pushName}
+                      formattedNumber={whatsappProfile.formattedNumber}
+                      formName={customerName}
+                      isPrivatePhoto={!whatsappProfile.pictureUrl}
+                      className="animate-fade-in"
+                    />
+                  )}
+                  
+                  {whatsappValid === false && (
+                    <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 animate-fade-in">
+                      <p className="text-xs text-amber-700 dark:text-amber-400 flex items-center gap-2">
+                        <AlertCircle className="h-3 w-3" />
+                        Número não encontrado no WhatsApp, mas você pode continuar com o agendamento.
+                      </p>
+                    </div>
                   )}
                 </div>
                 <div>

@@ -7562,6 +7562,9 @@ export type Database = {
           segment: string | null
           sentinela_default_template: string | null
           sentinela_enabled: boolean | null
+          sentinela_send_days: string[] | null
+          sentinela_send_hour: number | null
+          sentinela_timezone: string | null
           slug: string
           state: string | null
           status: Database["public"]["Enums"]["store_status"]
@@ -7633,6 +7636,9 @@ export type Database = {
           segment?: string | null
           sentinela_default_template?: string | null
           sentinela_enabled?: boolean | null
+          sentinela_send_days?: string[] | null
+          sentinela_send_hour?: number | null
+          sentinela_timezone?: string | null
           slug: string
           state?: string | null
           status?: Database["public"]["Enums"]["store_status"]
@@ -7704,6 +7710,9 @@ export type Database = {
           segment?: string | null
           sentinela_default_template?: string | null
           sentinela_enabled?: boolean | null
+          sentinela_send_days?: string[] | null
+          sentinela_send_hour?: number | null
+          sentinela_timezone?: string | null
           slug?: string
           state?: string | null
           status?: Database["public"]["Enums"]["store_status"]

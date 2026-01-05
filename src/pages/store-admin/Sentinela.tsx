@@ -16,15 +16,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { AlertCircle, Bell, BellOff, Calendar, CheckCircle2, Clock, Eye, FileText, HelpCircle, ImageIcon, Loader2, MessageSquare, Package, Phone, Play, Plus, RefreshCw, Send, Settings, Target, Trash2, TrendingUp, Upload, XCircle, Zap } from "lucide-react";
+import { AlertCircle, BarChart3, Bell, BellOff, Calendar, CheckCircle2, Clock, Eye, FileText, HelpCircle, ImageIcon, Loader2, MessageSquare, Package, Phone, Play, Plus, RefreshCw, Send, Settings, Target, Trash2, TrendingUp, Upload, XCircle, Zap } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { SentinelaGuide } from "@/components/admin/sentinela/SentinelaGuide";
 import { SentinelaTemplates } from "@/components/admin/sentinela/SentinelaTemplates";
+import { SentinelaAnalytics } from "@/components/admin/sentinela/SentinelaAnalytics";
 import { CountryCodeSelect } from "@/components/ui/country-code-select";
 import { WhatsAppPhonePreview } from "@/components/admin/whatsapp/WhatsAppPhonePreview";
 import { formatBrazilianPhone, normalizePhone } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const DEFAULT_TEMPLATE = `Olá {primeiro_nome}! 👋
 
@@ -74,6 +76,17 @@ export default function Sentinela() {
   const [runningCheck, setRunningCheck] = useState(false);
   const [runningSend, setRunningSend] = useState(false);
   const [lastExecution, setLastExecution] = useState<{ action: string; result: any; time: Date } | null>(null);
+
+  // Estados para teste no modal de nova regra
+  const [ruleTestPhone, setRuleTestPhone] = useState('');
+  const [ruleTestCountryCode, setRuleTestCountryCode] = useState('+55');
+  const [ruleTestValidating, setRuleTestValidating] = useState(false);
+  const [ruleTestPhoneValid, setRuleTestPhoneValid] = useState<boolean | null>(null);
+  const [ruleTestPhoneJid, setRuleTestPhoneJid] = useState<string | null>(null);
+  const [ruleTestSending, setRuleTestSending] = useState(false);
+
+  // Estados para agendamento
+  const [savingSchedule, setSavingSchedule] = useState(false);
 
   // Buscar informações da loja
   const { data: storeInfo } = useQuery({
@@ -397,6 +410,109 @@ export default function Sentinela() {
     }
   };
 
+  // Função para validar número no modal de nova regra
+  const handleRuleTestValidate = async () => {
+    const phoneNumbers = normalizePhone(ruleTestPhone);
+    
+    if (phoneNumbers.length < 10) {
+      toast.error('Digite um número de telefone válido (mínimo 10 dígitos)');
+      return;
+    }
+
+    setRuleTestValidating(true);
+    setRuleTestPhoneValid(null);
+    setRuleTestPhoneJid(null);
+
+    try {
+      const countryNumbers = ruleTestCountryCode.replace('+', '');
+      const fullPhone = countryNumbers + phoneNumbers;
+
+      const response = await supabase.functions.invoke('validate-whatsapp-number', {
+        body: { phone: fullPhone, sendWelcome: false }
+      });
+
+      if (response.error) throw response.error;
+
+      if (response.data?.valid) {
+        setRuleTestPhoneValid(true);
+        setRuleTestPhoneJid(response.data.jid);
+        toast.success('Número válido no WhatsApp!');
+      } else {
+        setRuleTestPhoneValid(false);
+        toast.error('Número não encontrado no WhatsApp');
+      }
+    } catch (error: any) {
+      console.error('Erro ao validar WhatsApp:', error);
+      toast.error(error.message || 'Erro ao validar número');
+      setRuleTestPhoneValid(false);
+    } finally {
+      setRuleTestValidating(false);
+    }
+  };
+
+  // Função para enviar teste da regra
+  const handleRuleTestSend = async () => {
+    if (!ruleTestPhoneValid || !ruleTestPhoneJid) {
+      toast.error('Valide o número primeiro');
+      return;
+    }
+
+    if (!previewMessage) {
+      toast.error('Configure a mensagem da regra primeiro');
+      return;
+    }
+
+    setRuleTestSending(true);
+
+    try {
+      const phoneNumbers = normalizePhone(ruleTestPhone);
+      const countryNumbers = ruleTestCountryCode.replace('+', '');
+      const fullPhone = countryNumbers + phoneNumbers;
+
+      // Enviar usando whatsapp-send
+      const response = await supabase.functions.invoke('whatsapp-send', {
+        body: { 
+          storeId: storeId,
+          phoneNumber: fullPhone,
+          messageType: newRule.image_url ? 'image' : 'text',
+          content: previewMessage,
+          mediaUrl: newRule.image_url || undefined
+        }
+      });
+
+      if (response.error) throw response.error;
+
+      if (response.data?.success) {
+        toast.success('Mensagem de teste enviada com sucesso!');
+      } else {
+        toast.error(response.data?.error || 'Não foi possível enviar a mensagem');
+      }
+    } catch (error: any) {
+      console.error('Erro ao enviar teste:', error);
+      toast.error(error.message || 'Erro ao enviar mensagem de teste');
+    } finally {
+      setRuleTestSending(false);
+    }
+  };
+
+  // Função para salvar configurações de agendamento
+  const handleSaveSchedule = async (hour: number, days: string[]) => {
+    if (!storeId) return;
+    
+    setSavingSchedule(true);
+    try {
+      updateConfig.mutate({ 
+        sentinela_send_hour: hour,
+        sentinela_send_days: days
+      } as any);
+      toast.success('Configurações de agendamento salvas!');
+    } catch (error: any) {
+      toast.error('Erro ao salvar configurações');
+    } finally {
+      setSavingSchedule(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
@@ -627,6 +743,14 @@ export default function Sentinela() {
             <MessageSquare className="w-4 h-4" />
             Template Padrão
           </TabsTrigger>
+          <TabsTrigger value="schedule" className="gap-2">
+            <Calendar className="w-4 h-4" />
+            Agendamento
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Analytics
+          </TabsTrigger>
           <TabsTrigger value="test" className="gap-2">
             <Phone className="w-4 h-4" />
             Testar
@@ -855,21 +979,111 @@ export default function Sentinela() {
                     </div>
                   </div>
 
-                  {/* Coluna direita - Preview WhatsApp */}
-                  <div className="flex flex-col items-center justify-start">
-                    <Label className="mb-3 flex items-center gap-2">
-                      <Eye className="w-4 h-4" />
-                      Preview da Mensagem
-                    </Label>
-                    <WhatsAppPhonePreview
-                      storeName={storeInfo?.name || "Minha Loja"}
-                      message={previewMessage}
-                      mediaUrl={newRule.image_url || undefined}
-                      mediaType={newRule.image_url ? 'image' : undefined}
-                      showTypingAnimation={false}
-                      playNotificationSound={false}
-                      allowThemeToggle={true}
-                    />
+                  {/* Coluna direita - Preview WhatsApp + Teste */}
+                  <div className="flex flex-col items-center justify-start space-y-4">
+                    <div>
+                      <Label className="mb-3 flex items-center gap-2 justify-center">
+                        <Eye className="w-4 h-4" />
+                        Preview da Mensagem
+                      </Label>
+                      <WhatsAppPhonePreview
+                        storeName={storeInfo?.name || "Minha Loja"}
+                        message={previewMessage}
+                        mediaUrl={newRule.image_url || undefined}
+                        mediaType={newRule.image_url ? 'image' : undefined}
+                        showTypingAnimation={false}
+                        playNotificationSound={false}
+                        allowThemeToggle={true}
+                      />
+                    </div>
+
+                    {/* Seção de Teste de Envio */}
+                    <div className="w-full border-t pt-4 space-y-3">
+                      <Label className="flex items-center gap-2 text-sm font-medium">
+                        <Send className="w-4 h-4" />
+                        Testar Envio
+                      </Label>
+                      <div className="flex gap-2">
+                        <CountryCodeSelect 
+                          value={ruleTestCountryCode} 
+                          onChange={(value) => {
+                            setRuleTestCountryCode(value);
+                            setRuleTestPhoneValid(null);
+                            setRuleTestPhoneJid(null);
+                          }} 
+                        />
+                        <div className="flex-1 relative">
+                          <Input
+                            type="tel"
+                            placeholder="(61) 99400-9368"
+                            value={ruleTestPhone}
+                            onChange={(e) => {
+                              const formatted = formatBrazilianPhone(e.target.value);
+                              setRuleTestPhone(formatted);
+                              setRuleTestPhoneValid(null);
+                              setRuleTestPhoneJid(null);
+                            }}
+                            maxLength={16}
+                            className={ruleTestPhoneValid === true ? 'border-green-500 pr-10' : ruleTestPhoneValid === false ? 'border-red-500 pr-10' : ''}
+                          />
+                          {ruleTestPhoneValid === true && (
+                            <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" />
+                          )}
+                          {ruleTestPhoneValid === false && (
+                            <XCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-500" />
+                          )}
+                        </div>
+                        <Button 
+                          onClick={handleRuleTestValidate} 
+                          disabled={ruleTestValidating || normalizePhone(ruleTestPhone).length < 10}
+                          variant="outline"
+                          size="sm"
+                        >
+                          {ruleTestValidating ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            'Validar'
+                          )}
+                        </Button>
+                      </div>
+
+                      {ruleTestPhoneValid === true && (
+                        <div className="p-2 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900">
+                          <p className="text-xs text-green-700 dark:text-green-400 flex items-center gap-2">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Número válido no WhatsApp
+                          </p>
+                        </div>
+                      )}
+
+                      {ruleTestPhoneValid === false && (
+                        <div className="p-2 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900">
+                          <p className="text-xs text-red-700 dark:text-red-400 flex items-center gap-2">
+                            <XCircle className="w-3 h-3" />
+                            Número não encontrado no WhatsApp
+                          </p>
+                        </div>
+                      )}
+
+                      <Button 
+                        onClick={handleRuleTestSend} 
+                        disabled={!ruleTestPhoneValid || !previewMessage || ruleTestSending}
+                        className="w-full"
+                        size="sm"
+                      >
+                        {ruleTestSending ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Enviando...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-4 h-4 mr-2" />
+                            Enviar Teste
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 </div>
                 <DialogFooter>
@@ -1079,6 +1293,93 @@ export default function Sentinela() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Agendamento */}
+        <TabsContent value="schedule" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="w-5 h-5" />
+                Configurações de Envio Automático
+              </CardTitle>
+              <CardDescription>
+                Configure quando o SENTINELA deve enviar as mensagens de recompra automaticamente
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Horário */}
+              <div className="space-y-2">
+                <Label>Horário de envio</Label>
+                <Select
+                  value={String(storeConfig?.sentinela_send_hour ?? 10)}
+                  onValueChange={(v) => handleSaveSchedule(parseInt(v), storeConfig?.sentinela_send_days ?? ['mon', 'tue', 'wed', 'thu', 'fri'])}
+                >
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Selecione o horário" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 15 }, (_, i) => i + 7).map(hour => (
+                      <SelectItem key={hour} value={String(hour)}>
+                        {String(hour).padStart(2, '0')}:00
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">Horário de Brasília (America/Sao_Paulo)</p>
+              </div>
+
+              {/* Dias da semana */}
+              <div className="space-y-3">
+                <Label>Dias da semana</Label>
+                <div className="flex flex-wrap gap-3">
+                  {[
+                    { key: 'mon', label: 'Seg' },
+                    { key: 'tue', label: 'Ter' },
+                    { key: 'wed', label: 'Qua' },
+                    { key: 'thu', label: 'Qui' },
+                    { key: 'fri', label: 'Sex' },
+                    { key: 'sat', label: 'Sáb' },
+                    { key: 'sun', label: 'Dom' },
+                  ].map(day => {
+                    const days = storeConfig?.sentinela_send_days ?? ['mon', 'tue', 'wed', 'thu', 'fri'];
+                    const isChecked = days.includes(day.key);
+                    return (
+                      <div key={day.key} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`day-${day.key}`}
+                          checked={isChecked}
+                          onCheckedChange={(checked) => {
+                            const newDays = checked 
+                              ? [...days, day.key]
+                              : days.filter(d => d !== day.key);
+                            handleSaveSchedule(storeConfig?.sentinela_send_hour ?? 10, newDays);
+                          }}
+                        />
+                        <Label htmlFor={`day-${day.key}`} className="text-sm cursor-pointer">
+                          {day.label}
+                        </Label>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Info */}
+              <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
+                <AlertCircle className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                <div className="text-sm text-muted-foreground">
+                  <p>As mensagens de recompra serão enviadas automaticamente nos dias e horário configurados acima.</p>
+                  <p className="mt-1">O sistema verifica os lembretes pendentes e envia apenas se corresponder ao agendamento da loja.</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Analytics */}
+        <TabsContent value="analytics" className="space-y-4">
+          {storeId && <SentinelaAnalytics storeId={storeId} />}
         </TabsContent>
 
         {/* Teste */}

@@ -498,7 +498,7 @@ const BookingPage = () => {
       }
 
       // 3. Criar booking COM customer_id
-      const { error } = await supabase
+      const { data: bookingData, error } = await supabase
         .from('bookings')
         .insert({
           store_id: store.id,
@@ -519,6 +519,24 @@ const BookingPage = () => {
         .single();
       
       if (error) throw error;
+      
+      // 4. Enviar confirmação via WhatsApp
+      if (bookingData?.id) {
+        try {
+          console.log('[BookingPage] Enviando confirmação para agendamento:', bookingData.id);
+          const { error: confirmError } = await supabase.functions.invoke('booking-confirmation', {
+            body: { booking_id: bookingData.id }
+          });
+          
+          if (confirmError) {
+            console.error('[BookingPage] Erro ao enviar confirmação:', confirmError);
+          } else {
+            console.log('[BookingPage] Confirmação enviada com sucesso');
+          }
+        } catch (confirmErr) {
+          console.error('[BookingPage] Erro na chamada de confirmação:', confirmErr);
+        }
+      }
       
       setSuccess(true);
       toast.success('Agendamento realizado com sucesso!');

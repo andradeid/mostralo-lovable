@@ -27,7 +27,12 @@ const DEFAULT_SETTINGS: Omit<BookingSettings, 'id' | 'store_id' | 'created_at' |
   reminder_message_template: 'Olá {cliente}! Lembrando do seu agendamento hoje às {horario} com {profissional}. Te esperamos! 🙂',
   send_satisfaction_survey: false,
   satisfaction_message_template: 'Olá {cliente}! Como foi seu atendimento com {profissional}? Avalie de 1 a 5 ⭐',
-  enable_professional_reviews: false
+  enable_professional_reviews: false,
+  // Novas configurações de avaliação
+  review_message_template: 'Olá {cliente}! Como foi seu atendimento com {profissional}?\n\nGostaríamos muito de ouvir sua opinião! Avalie em apenas 1 minuto:\n\n👉 {link}\n\nSua avaliação é muito importante para nós! ⭐',
+  review_delay_minutes: 30,
+  review_expiry_days: 7,
+  show_public_reviews: true
 };
 
 export default function BookingSettingsPage() {
@@ -55,7 +60,12 @@ export default function BookingSettingsPage() {
         reminder_message_template: bookingSettings.reminder_message_template ?? DEFAULT_SETTINGS.reminder_message_template,
         send_satisfaction_survey: bookingSettings.send_satisfaction_survey ?? DEFAULT_SETTINGS.send_satisfaction_survey,
         satisfaction_message_template: bookingSettings.satisfaction_message_template ?? DEFAULT_SETTINGS.satisfaction_message_template,
-        enable_professional_reviews: bookingSettings.enable_professional_reviews ?? DEFAULT_SETTINGS.enable_professional_reviews
+        enable_professional_reviews: bookingSettings.enable_professional_reviews ?? DEFAULT_SETTINGS.enable_professional_reviews,
+        // Novas configurações de avaliação
+        review_message_template: bookingSettings.review_message_template ?? DEFAULT_SETTINGS.review_message_template,
+        review_delay_minutes: bookingSettings.review_delay_minutes ?? DEFAULT_SETTINGS.review_delay_minutes,
+        review_expiry_days: bookingSettings.review_expiry_days ?? DEFAULT_SETTINGS.review_expiry_days,
+        show_public_reviews: bookingSettings.show_public_reviews ?? DEFAULT_SETTINGS.show_public_reviews
       });
     }
   }, [bookingSettings]);
@@ -375,12 +385,12 @@ export default function BookingSettingsPage() {
               )}
             </div>
 
-            {/* Pesquisa de satisfação */}
+            {/* Pesquisa de satisfação (legado) */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="send_satisfaction_survey">Enviar pesquisa de satisfação</Label>
-                  <FieldTooltip content="Envia uma mensagem após o atendimento pedindo avaliação" />
+                  <Label htmlFor="send_satisfaction_survey">Enviar pesquisa de satisfação (simples)</Label>
+                  <FieldTooltip content="Envia uma mensagem simples após o atendimento pedindo avaliação por nota" />
                 </div>
                 <Switch
                   id="send_satisfaction_survey"
@@ -398,6 +408,109 @@ export default function BookingSettingsPage() {
                 />
               )}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Configurações de Avaliações de Profissionais */}
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Star className="h-5 w-5 text-amber-500" />
+              Avaliações de Profissionais
+            </CardTitle>
+            <CardDescription>
+              Configure o sistema de avaliações automáticas. Quando habilitado, clientes recebem um link para avaliar o atendimento após o serviço ser concluído. Variáveis: {'{cliente}'}, {'{profissional}'}, {'{servico}'}, {'{data}'}, {'{link}'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Habilitar avaliações */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="enable_professional_reviews_section">Habilitar sistema de avaliações</Label>
+                <FieldTooltip content="Quando ativado, clientes recebem um link para avaliar o profissional após o atendimento ser concluído" />
+              </div>
+              <Switch
+                id="enable_professional_reviews_section"
+                checked={formData.enable_professional_reviews}
+                onCheckedChange={(checked) => updateField('enable_professional_reviews', checked)}
+              />
+            </div>
+
+            {formData.enable_professional_reviews && (
+              <>
+                {/* Template da mensagem */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="review_message_template">Template da mensagem de avaliação</Label>
+                    <FieldTooltip content="Mensagem enviada ao cliente após o serviço ser concluído. Use {link} para incluir o link de avaliação" />
+                  </div>
+                  <Textarea
+                    id="review_message_template"
+                    placeholder="Template da mensagem de avaliação..."
+                    value={formData.review_message_template}
+                    onChange={(e) => updateField('review_message_template', e.target.value)}
+                    rows={4}
+                  />
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-3">
+                  {/* Delay para envio */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="review_delay_minutes">Enviar após conclusão</Label>
+                      <FieldTooltip content="Minutos de espera após marcar como concluído para enviar a solicitação" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="review_delay_minutes"
+                        type="number"
+                        min={0}
+                        max={1440}
+                        value={formData.review_delay_minutes}
+                        onChange={(e) => updateField('review_delay_minutes', Number(e.target.value))}
+                        className="w-20"
+                      />
+                      <span className="text-muted-foreground text-sm">minutos</span>
+                    </div>
+                  </div>
+
+                  {/* Dias de expiração */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="review_expiry_days">Link expira em</Label>
+                      <FieldTooltip content="Quantos dias o link de avaliação permanece válido" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="review_expiry_days"
+                        type="number"
+                        min={1}
+                        max={30}
+                        value={formData.review_expiry_days}
+                        onChange={(e) => updateField('review_expiry_days', Number(e.target.value))}
+                        className="w-20"
+                      />
+                      <span className="text-muted-foreground text-sm">dias</span>
+                    </div>
+                  </div>
+
+                  {/* Exibir avaliações públicas */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="show_public_reviews">Exibir publicamente</Label>
+                      <FieldTooltip content="Exibir avaliações públicas no cartão digital do profissional" />
+                    </div>
+                    <div className="flex items-center h-10">
+                      <Switch
+                        id="show_public_reviews"
+                        checked={formData.show_public_reviews}
+                        onCheckedChange={(checked) => updateField('show_public_reviews', checked)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>

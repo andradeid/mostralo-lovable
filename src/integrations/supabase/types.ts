@@ -651,10 +651,14 @@ export type Database = {
           reminder_hours_before: number | null
           reminder_message_template: string | null
           require_deposit: boolean | null
+          review_delay_minutes: number | null
+          review_expiry_days: number | null
+          review_message_template: string | null
           satisfaction_message_template: string | null
           send_confirmation_message: boolean | null
           send_reminder_message: boolean | null
           send_satisfaction_survey: boolean | null
+          show_public_reviews: boolean | null
           slot_interval_minutes: number | null
           store_id: string
           updated_at: string | null
@@ -672,10 +676,14 @@ export type Database = {
           reminder_hours_before?: number | null
           reminder_message_template?: string | null
           require_deposit?: boolean | null
+          review_delay_minutes?: number | null
+          review_expiry_days?: number | null
+          review_message_template?: string | null
           satisfaction_message_template?: string | null
           send_confirmation_message?: boolean | null
           send_reminder_message?: boolean | null
           send_satisfaction_survey?: boolean | null
+          show_public_reviews?: boolean | null
           slot_interval_minutes?: number | null
           store_id: string
           updated_at?: string | null
@@ -693,10 +701,14 @@ export type Database = {
           reminder_hours_before?: number | null
           reminder_message_template?: string | null
           require_deposit?: boolean | null
+          review_delay_minutes?: number | null
+          review_expiry_days?: number | null
+          review_message_template?: string | null
           satisfaction_message_template?: string | null
           send_confirmation_message?: boolean | null
           send_reminder_message?: boolean | null
           send_satisfaction_survey?: boolean | null
+          show_public_reviews?: boolean | null
           slot_interval_minutes?: number | null
           store_id?: string
           updated_at?: string | null
@@ -740,6 +752,7 @@ export type Database = {
           price: number
           professional_id: string
           reminder_sent: boolean | null
+          review_sent: boolean | null
           service_id: string
           start_time: string
           status: string | null
@@ -767,6 +780,7 @@ export type Database = {
           price: number
           professional_id: string
           reminder_sent?: boolean | null
+          review_sent?: boolean | null
           service_id: string
           start_time: string
           status?: string | null
@@ -794,6 +808,7 @@ export type Database = {
           price?: number
           professional_id?: string
           reminder_sent?: boolean | null
+          review_sent?: boolean | null
           service_id?: string
           start_time?: string
           status?: string | null

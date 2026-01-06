@@ -26,6 +26,7 @@ interface RequestBody {
   answers: DiagnosticAnswers;
   score: number;
   level: 'elite' | 'potential' | 'disqualified';
+  script?: string; // Script opcional - se fornecido, usa este em vez de gerar
 }
 
 function generatePersonalizedScript(data: RequestBody): string {
@@ -157,9 +158,9 @@ serve(async (req) => {
       });
     }
 
-    // Gerar script personalizado
-    const script = generatePersonalizedScript(body);
-    console.log('[send-diagnostic-audio] Script gerado, chars:', script.length);
+    // Usar script fornecido ou gerar um novo
+    const script = body.script || generatePersonalizedScript(body);
+    console.log('[send-diagnostic-audio] Script (fonte: ' + (body.script ? 'frontend' : 'gerado') + '), chars:', script.length);
 
     // Gerar áudio via OpenAI TTS
     console.log('[send-diagnostic-audio] Gerando áudio via OpenAI TTS...');

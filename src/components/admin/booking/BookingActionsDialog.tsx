@@ -4,12 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Check, X, Play, Square, AlertTriangle, User, Phone, Calendar, Clock, Scissors } from 'lucide-react';
+import { Loader2, Check, X, Play, Square, AlertTriangle, User, Phone, Calendar, Clock, Scissors, MessageCircle, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface Booking {
   id: string;
@@ -23,6 +24,18 @@ interface Booking {
   notes?: string;
   professional_name?: string;
   service_name?: string;
+  confirmation_sent?: boolean;
+  reminder_sent?: boolean;
+  review_sent?: boolean;
+}
+
+interface NotificationLog {
+  id: string;
+  notification_type: 'confirmation' | 'reminder' | 'review';
+  send_method: 'automatic' | 'manual';
+  sent_at: string;
+  status: 'sent' | 'failed' | 'delivered';
+  error_message?: string;
 }
 
 interface BookingActionsDialogProps {
@@ -43,6 +56,12 @@ const STATUS_CONFIG: Record<BookingStatus, { label: string; color: string; icon:
   no_show: { label: 'Não Compareceu', color: 'bg-orange-500', icon: AlertTriangle }
 };
 
+const NOTIFICATION_TYPE_LABELS: Record<string, string> = {
+  confirmation: 'Confirmação',
+  reminder: 'Lembrete',
+  review: 'Avaliação'
+};
+
 export function BookingActionsDialog({
   open,
   onOpenChange,
@@ -52,6 +71,28 @@ export function BookingActionsDialog({
   const [updating, setUpdating] = useState(false);
   const [cancellationReason, setCancellationReason] = useState('');
   const [showCancelForm, setShowCancelForm] = useState(false);
+  const [sendingConfirmation, setSendingConfirmation] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Buscar histórico de notificações
+  const { data: notificationLogs, isLoading: logsLoading } = useQuery({
+    queryKey: ['booking-notification-logs', booking?.id],
+    queryFn: async () => {
+      if (!booking?.id) return [];
+      const { data, error } = await supabase
+        .from('booking_notification_logs')
+        .select('*')
+        .eq('booking_id', booking.id)
+        .order('sent_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching notification logs:', error);
+        return [];
+      }
+      return (data || []) as NotificationLog[];
+    },
+    enabled: !!booking?.id && open
+  });
 
   if (!booking) return null;
 
@@ -93,9 +134,36 @@ export function BookingActionsDialog({
     }
   };
 
+  const handleSendConfirmation = async () => {
+    setSendingConfirmation(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('booking-confirmation', {
+        body: { booking_id: booking.id, manual: true }
+      });
+      
+      if (error) throw error;
+      
+      toast.success('Confirmação enviada pelo WhatsApp!');
+      queryClient.invalidateQueries({ queryKey: ['booking-notification-logs', booking.id] });
+    } catch (err) {
+      console.error('Error sending confirmation:', err);
+      toast.error('Erro ao enviar confirmação');
+    } finally {
+      setSendingConfirmation(false);
+    }
+  };
+
   const formatDate = (dateStr: string) => {
     try {
       return format(parseISO(dateStr), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const formatDateTime = (dateStr: string) => {
+    try {
+      return format(new Date(dateStr), "dd/MM HH:mm", { locale: ptBR });
     } catch {
       return dateStr;
     }
@@ -126,7 +194,7 @@ export function BookingActionsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Detalhes do Agendamento</DialogTitle>
           <DialogDescription>
@@ -185,6 +253,67 @@ export function BookingActionsDialog({
               <p className="text-sm text-muted-foreground">{booking.notes}</p>
             </div>
           )}
+
+          {/* Histórico de Notificações */}
+          <div className="border-t pt-4">
+            <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+              <MessageCircle className="h-4 w-4" />
+              Notificações WhatsApp
+            </h4>
+            
+            {/* Botão Enviar Confirmação */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSendConfirmation}
+              disabled={sendingConfirmation}
+              className="w-full mb-3 gap-2"
+            >
+              {sendingConfirmation ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4 text-green-500" />
+              )}
+              Enviar Confirmação WhatsApp
+            </Button>
+
+            {logsLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="h-4 w-4 animate-spin" />
+              </div>
+            ) : notificationLogs && notificationLogs.length > 0 ? (
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {notificationLogs.map((log) => (
+                  <div 
+                    key={log.id} 
+                    className="flex items-center justify-between text-sm bg-muted/30 rounded p-2"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Badge 
+                        variant={log.send_method === 'automatic' ? 'secondary' : 'default'}
+                        className="text-xs"
+                      >
+                        {log.send_method === 'automatic' ? 'Auto' : 'Manual'}
+                      </Badge>
+                      <span className="text-muted-foreground">
+                        {NOTIFICATION_TYPE_LABELS[log.notification_type] || log.notification_type}
+                      </span>
+                      {log.status === 'failed' && (
+                        <Badge variant="destructive" className="text-xs">Falhou</Badge>
+                      )}
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {formatDateTime(log.sent_at)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-2">
+                Nenhuma notificação enviada
+              </p>
+            )}
+          </div>
 
           {/* Cancel Form */}
           {showCancelForm && (

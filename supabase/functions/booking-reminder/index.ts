@@ -251,9 +251,29 @@ serve(async (req) => {
 
           if (!success) {
             console.error(`[booking-reminder] Erro ao enviar lembrete para ${booking.customer_phone}:`, sendError);
+            
+            // Registrar falha no log
+            await supabase.from('booking_notification_logs').insert({
+              booking_id: booking.id,
+              store_id: booking.store_id,
+              notification_type: 'reminder',
+              send_method: 'automatic',
+              status: 'failed',
+              error_message: sendError,
+            });
+            
             totalErrors++;
             continue;
           }
+
+          // Registrar sucesso no log
+          await supabase.from('booking_notification_logs').insert({
+            booking_id: booking.id,
+            store_id: booking.store_id,
+            notification_type: 'reminder',
+            send_method: 'automatic',
+            status: 'sent',
+          });
 
           // Marcar como enviado
           await supabase

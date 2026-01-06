@@ -1,5 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { BookingConfirmation } from '@/components/booking/BookingConfirmation';
+import { BookingStoreHeader } from '@/components/booking/BookingStoreHeader';
+import { BookingStoreInfo } from '@/components/booking/BookingStoreInfo';
+import { BookingSummary } from '@/components/booking/BookingSummary';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -60,8 +63,14 @@ interface StoreInfo {
   slug: string;
   address: string | null;
   city: string | null;
+  state: string | null;
   phone: string | null;
   whatsapp: string | null;
+  description: string | null;
+  cover_url: string | null;
+  instagram: string | null;
+  google_maps_link: string | null;
+  segment: string | null;
 }
 
 // TimeSlot interface removed - now using string[] for availableSlots
@@ -128,7 +137,7 @@ const BookingPage = () => {
         // Fetch store
         const { data: storeData, error: storeError } = await supabase
           .from('stores')
-          .select('id, name, logo_url, slug, address, city, phone, whatsapp')
+          .select('id, name, logo_url, slug, address, city, state, phone, whatsapp, description, cover_url, instagram, google_maps_link, segment')
           .eq('slug', storeSlug)
           .single();
         
@@ -686,27 +695,14 @@ const BookingPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-3">
-            {store.logo_url && (
-              <img 
-                src={store.logo_url} 
-                alt={store.name} 
-                className="h-10 w-10 rounded-full object-cover"
-              />
-            )}
-            <div>
-              <h1 className="text-xl font-bold">{store.name}</h1>
-              <p className="text-sm text-muted-foreground">Agendamento Online</p>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Header Rico com informações da loja */}
+      <div className="container mx-auto px-4 pt-4">
+        <BookingStoreHeader store={store} />
+        <BookingStoreInfo store={store} />
+      </div>
 
       {/* Progress Steps */}
-      <div className="border-b bg-card">
+      <div className="border-b bg-card sticky top-0 z-10">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-center gap-2">
             {(['service', 'professional', 'datetime', 'confirm'] as Step[]).map((step, index) => {
@@ -747,8 +743,11 @@ const BookingPage = () => {
         </div>
       </div>
 
-      {/* Content */}
-      <main className="container mx-auto px-4 py-6 max-w-2xl">
+      {/* Content com Layout Responsivo */}
+      <main className="container mx-auto px-4 py-6">
+        <div className="flex gap-6">
+          {/* Coluna Principal */}
+          <div className="flex-1 max-w-2xl mx-auto lg:mx-0">
         {/* Step 1: Service Selection */}
         {currentStep === 'service' && (
           <div className="space-y-4">
@@ -1153,6 +1152,18 @@ const BookingPage = () => {
               <ChevronRight className="h-4 w-4 ml-2" />
             </Button>
           )}
+        </div>
+          </div>
+
+          {/* Sidebar de Resumo - Desktop Only */}
+          <div className="hidden lg:block w-80 flex-shrink-0">
+            <BookingSummary 
+              service={selectedService}
+              professional={selectedProfessional}
+              date={selectedDate}
+              time={selectedTime}
+            />
+          </div>
         </div>
       </main>
     </div>

@@ -168,6 +168,7 @@ export default function DiagnosticoPage() {
           leadData={{
             name: pendingResult.contact.name,
             company: pendingResult.contact.company,
+            phone: pendingResult.contact.phone,
             answers: pendingResult.answers,
             score: pendingResult.score,
             level: pendingResult.level

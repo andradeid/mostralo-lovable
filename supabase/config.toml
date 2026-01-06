@@ -311,3 +311,6 @@ verify_jwt = false
 
 [functions.performance-diagnostics]
 verify_jwt = true
+
+[functions.send-diagnostic-audio]
+verify_jwt = false

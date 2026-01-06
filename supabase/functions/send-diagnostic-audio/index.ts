@@ -257,8 +257,34 @@ Acabei de preparar um áudio personalizado com a análise do diagnóstico da *${
       console.log('[send-diagnostic-audio] Mensagem de texto enviada!');
     }
 
-    // Pequena pausa antes de enviar o áudio
+    // Pequena pausa antes de simular gravação
     await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // Simular gravação de áudio por 10 segundos
+    console.log('[send-diagnostic-audio] Simulando gravação...');
+    const presenceResponse = await fetch(`${apiUrl}/chat/sendPresence/${instanceName}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': evolutionConfig.api_key
+      },
+      body: JSON.stringify({
+        number: fullLeadNumber,
+        options: {
+          delay: 10000,
+          presence: 'recording'
+        }
+      })
+    });
+
+    if (!presenceResponse.ok) {
+      console.error('[send-diagnostic-audio] Erro ao simular gravação:', await presenceResponse.text());
+    } else {
+      console.log('[send-diagnostic-audio] Gravação simulada iniciada');
+    }
+
+    // Aguardar 10 segundos para a gravação terminar
+    await new Promise(resolve => setTimeout(resolve, 10000));
 
     // 2. Enviar áudio via Evolution API
     console.log('[send-diagnostic-audio] Enviando áudio...');

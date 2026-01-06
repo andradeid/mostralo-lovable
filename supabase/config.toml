@@ -308,3 +308,6 @@ verify_jwt = false
 
 [functions.process-pending-reviews]
 verify_jwt = false
+
+[functions.performance-diagnostics]
+verify_jwt = true

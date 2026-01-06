@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Clock, Settings, DollarSign, MessageSquare, HelpCircle, Save, Loader2, Star } from 'lucide-react';
+import { BotTimezoneCard } from '@/components/admin/bot/BotTimezoneCard';
 
 // Valores padrão
 const DEFAULT_SETTINGS: Omit<BookingSettings, 'id' | 'store_id' | 'created_at' | 'updated_at'> = {
@@ -123,6 +124,11 @@ export default function BookingSettingsPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
+        {/* Fuso Horário */}
+        <div className="md:col-span-2">
+          <BotTimezoneCard storeId={storeId} context="booking" />
+        </div>
+
         {/* Horários e Intervalos */}
         <Card>
           <CardHeader>

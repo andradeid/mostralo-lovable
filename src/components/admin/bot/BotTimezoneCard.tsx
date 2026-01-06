@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 interface BotTimezoneCardProps {
   storeId: string | null;
   disabled?: boolean;
+  context?: 'bot' | 'booking';
 }
 
 const BRAZIL_TIMEZONES = [
@@ -29,7 +30,7 @@ function getGreetingFromHour(hour: number): { greeting: string; icon: React.Reac
   }
 }
 
-export function BotTimezoneCard({ storeId, disabled }: BotTimezoneCardProps) {
+export function BotTimezoneCard({ storeId, disabled, context = 'bot' }: BotTimezoneCardProps) {
   const { toast } = useToast();
   const [timezone, setTimezone] = useState('America/Sao_Paulo');
   const [currentTime, setCurrentTime] = useState('');
@@ -124,15 +125,20 @@ export function BotTimezoneCard({ storeId, disabled }: BotTimezoneCardProps) {
   const { greeting, icon } = getGreetingFromHour(currentHour);
   const selectedTz = BRAZIL_TIMEZONES.find(tz => tz.value === timezone);
 
+  const title = "Fuso Horário da Loja";
+  const description = context === 'booking' 
+    ? "Define o horário usado para lembretes e notificações de agendamento"
+    : "Define o horário usado pelo bot para saudações inteligentes";
+
   return (
     <Card>
       <CardHeader className="!p-3 !pb-2 sm:!p-6 sm:!pb-3">
         <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
           <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
-          Fuso Horário da Loja
+          {title}
         </CardTitle>
         <CardDescription className="text-xs sm:text-sm break-words">
-          Define o horário usado pelo bot para saudações inteligentes
+          {description}
         </CardDescription>
       </CardHeader>
       <CardContent className="!p-3 !pt-0 sm:!p-6 sm:!pt-0 space-y-3 sm:space-y-4">

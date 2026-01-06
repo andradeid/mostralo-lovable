@@ -481,6 +481,67 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_notification_logs: {
+        Row: {
+          booking_id: string
+          created_at: string | null
+          error_message: string | null
+          id: string
+          notification_type: string
+          send_method: string
+          sent_at: string
+          sent_by: string | null
+          status: string
+          store_id: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          notification_type: string
+          send_method: string
+          sent_at?: string
+          sent_by?: string | null
+          status?: string
+          store_id: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          notification_type?: string
+          send_method?: string
+          sent_at?: string
+          sent_by?: string | null
+          status?: string
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_notification_logs_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_notification_logs_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_notification_logs_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_reviews: {
         Row: {
           booking_id: string

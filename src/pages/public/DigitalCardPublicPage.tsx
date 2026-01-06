@@ -6,12 +6,18 @@ import { DigitalCardPreview } from '@/components/digital-card/DigitalCardPreview
 import { useQRCode } from '@/hooks/useQRCode';
 import { supabase } from '@/integrations/supabase/client';
 
+interface RatingStats {
+  avg: number;
+  count: number;
+}
+
 export default function DigitalCardPublicPage() {
   const { slug } = useParams<{ slug: string }>();
   const { card, loading, error, trackClick } = usePublicCard(slug || '');
   const cardUrl = typeof window !== 'undefined' ? window.location.href : '';
   const qrCodeUrl = useQRCode(cardUrl, 120);
   const [storeSlug, setStoreSlug] = useState<string | null>(null);
+  const [ratings, setRatings] = useState<RatingStats | null>(null);
 
   // Buscar slug da loja se o cartão tiver store_id e professional_id
   useEffect(() => {
@@ -30,6 +36,33 @@ export default function DigitalCardPublicPage() {
     }
     fetchStoreSlug();
   }, [card?.store_id, card?.professional_id]);
+
+  // Buscar avaliações do profissional
+  useEffect(() => {
+    async function fetchRatings() {
+      if (card?.professional_id) {
+        const { data } = await supabase
+          .from('booking_reviews')
+          .select('rating')
+          .eq('professional_id', card.professional_id)
+          .eq('is_public', true)
+          .not('rating', 'is', null);
+        
+        if (data && data.length > 0) {
+          const validRatings = data.filter(r => r.rating !== null);
+          if (validRatings.length > 0) {
+            const sum = validRatings.reduce((acc, r) => acc + (r.rating || 0), 0);
+            const avg = sum / validRatings.length;
+            setRatings({ 
+              avg: Math.round(avg * 10) / 10, 
+              count: validRatings.length 
+            });
+          }
+        }
+      }
+    }
+    fetchRatings();
+  }, [card?.professional_id]);
 
   // Update page title and meta
   useEffect(() => {
@@ -120,6 +153,7 @@ export default function DigitalCardPublicPage() {
           onClickAction={trackClick}
           qrCodeUrl={card.show_qr_code ? qrCodeUrl : undefined}
           bookingUrl={bookingUrl}
+          ratings={ratings}
         />
       </div>
     </div>

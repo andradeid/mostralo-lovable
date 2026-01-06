@@ -146,7 +146,7 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { booking_id } = await req.json();
+    const { booking_id, manual = false } = await req.json();
 
     if (!booking_id) {
       console.error('[booking-confirmation] booking_id não fornecido');
@@ -156,7 +156,7 @@ serve(async (req) => {
       });
     }
 
-    console.log(`[booking-confirmation] Processando agendamento: ${booking_id}`);
+    console.log(`[booking-confirmation] Processando agendamento: ${booking_id}, manual: ${manual}`);
 
     // Buscar dados do agendamento com joins
     const { data: booking, error: bookingError } = await supabase
@@ -184,8 +184,8 @@ serve(async (req) => {
       .eq('store_id', booking.store_id)
       .single();
 
-    // Verificar se deve enviar confirmação
-    if (!settings?.send_confirmation_message) {
+    // Verificar se deve enviar confirmação (apenas para automático)
+    if (!manual && !settings?.send_confirmation_message) {
       console.log('[booking-confirmation] Envio de confirmação desabilitado');
       return new Response(JSON.stringify({ 
         success: true, 
@@ -195,8 +195,8 @@ serve(async (req) => {
       });
     }
 
-    // Verificar se já foi enviada
-    if (booking.confirmation_sent) {
+    // Verificar se já foi enviada (apenas para automático)
+    if (!manual && booking.confirmation_sent) {
       console.log('[booking-confirmation] Confirmação já enviada anteriormente');
       return new Response(JSON.stringify({ 
         success: true, 
@@ -230,6 +230,16 @@ serve(async (req) => {
       message,
       booking.customer_id
     );
+
+    // Registrar no log de notificações
+    await supabase.from('booking_notification_logs').insert({
+      booking_id: booking.id,
+      store_id: booking.store_id,
+      notification_type: 'confirmation',
+      send_method: manual ? 'manual' : 'automatic',
+      status: success ? 'sent' : 'failed',
+      error_message: success ? null : sendError,
+    });
 
     if (!success) {
       console.error('[booking-confirmation] Erro ao enviar WhatsApp:', sendError);

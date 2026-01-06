@@ -1,6 +1,6 @@
 import { 
   Phone, Mail, Globe, Instagram, Linkedin, Facebook, 
-  ExternalLink, MessageCircle, Youtube, Calendar
+  ExternalLink, MessageCircle, Youtube, Calendar, Star
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,11 @@ import { cn } from '@/lib/utils';
 import type { CardFormData, CardTheme } from '@/types/digitalCard';
 import { SaveContactButton } from './SaveContactButton';
 import { ShareCardButton } from './ShareCardButton';
+
+interface RatingStats {
+  avg: number;
+  count: number;
+}
 
 interface DigitalCardPreviewProps {
   data: Partial<CardFormData> & {
@@ -20,6 +25,7 @@ interface DigitalCardPreviewProps {
   onClickAction?: (type: string, label?: string) => void;
   bookingUrl?: string;
   className?: string;
+  ratings?: RatingStats | null;
 }
 
 const themeStyles: Record<CardTheme, { bg: string; text: string; accent: string; card: string }> = {
@@ -56,7 +62,8 @@ export function DigitalCardPreview({
   isInteractive = false,
   onClickAction,
   bookingUrl,
-  className 
+  className,
+  ratings
 }: DigitalCardPreviewProps) {
   const theme = data.theme || 'dark';
   const styles = themeStyles[theme];
@@ -137,6 +144,28 @@ export function DigitalCardPreview({
             <p className={cn('text-sm opacity-80 max-w-xs mx-auto', styles.text)}>
               {data.headline}
             </p>
+          )}
+
+          {/* Avaliações */}
+          {ratings && ratings.count > 0 && (
+            <div className="flex items-center gap-2 justify-center">
+              <div className="flex">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    className={cn(
+                      'w-4 h-4',
+                      star <= Math.round(ratings.avg)
+                        ? 'fill-yellow-400 text-yellow-400'
+                        : 'text-gray-400'
+                    )}
+                  />
+                ))}
+              </div>
+              <span className={cn('text-sm opacity-70', styles.text)}>
+                {ratings.avg.toFixed(1)} ({ratings.count} {ratings.count === 1 ? 'avaliação' : 'avaliações'})
+              </span>
+            </div>
           )}
 
           {data.stats_text && (

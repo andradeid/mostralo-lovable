@@ -52,6 +52,57 @@ function normalizePhone(phone: string): string {
   return cleaned;
 }
 
+// Obter data/hora atual no timezone especificado
+function getCurrentTimeInTimezone(timezone: string): { 
+  date: string; 
+  hour: number; 
+  minute: number; 
+  dateStr: string;
+} {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('pt-BR', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
+  
+  const parts = formatter.formatToParts(now);
+  const day = parts.find(p => p.type === 'day')?.value || '01';
+  const month = parts.find(p => p.type === 'month')?.value || '01';
+  const year = parts.find(p => p.type === 'year')?.value || '2025';
+  const hour = parseInt(parts.find(p => p.type === 'hour')?.value || '0');
+  const minute = parseInt(parts.find(p => p.type === 'minute')?.value || '0');
+  
+  return {
+    date: `${year}-${month}-${day}`,
+    hour,
+    minute,
+    dateStr: `${day}/${month}/${year}`
+  };
+}
+
+// Calcular data do dia seguinte no timezone
+function getTomorrowInTimezone(timezone: string): string {
+  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  const formatter = new Intl.DateTimeFormat('pt-BR', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+  
+  const parts = formatter.formatToParts(tomorrow);
+  const day = parts.find(p => p.type === 'day')?.value || '01';
+  const month = parts.find(p => p.type === 'month')?.value || '01';
+  const year = parts.find(p => p.type === 'year')?.value || '2025';
+  
+  return `${year}-${month}-${day}`;
+}
+
 // Enviar WhatsApp diretamente via Evolution API
 async function sendWhatsAppDirect(
   supabase: any,
@@ -148,10 +199,13 @@ serve(async (req) => {
 
     console.log('[booking-reminder] Iniciando verificação de lembretes...');
 
-    // Buscar todas as lojas com configurações de lembrete ativo
+    // Buscar todas as lojas com configurações de lembrete ativo E seus timezones
     const { data: storeSettings, error: settingsError } = await supabase
       .from('booking_settings')
-      .select('*')
+      .select(`
+        *,
+        store:stores(id, timezone)
+      `)
       .eq('send_reminder_message', true);
 
     if (settingsError) {
@@ -177,23 +231,57 @@ serve(async (req) => {
 
     for (const settings of storeSettings) {
       const reminderHours = settings.reminder_hours_before || 2;
+      const timezone = settings.store?.timezone || 'America/Sao_Paulo';
       
-      // Calcular janela de tempo para lembretes
-      const now = new Date();
-      const targetTime = new Date(now.getTime() + (reminderHours * 60 * 60 * 1000));
+      // Obter hora atual no timezone da loja
+      const currentTime = getCurrentTimeInTimezone(timezone);
       
-      // Buscar data e horário alvo
-      const targetDate = targetTime.toISOString().split('T')[0];
+      console.log(`[booking-reminder] Loja ${settings.store_id} (timezone: ${timezone})`);
+      console.log(`[booking-reminder] Hora local atual: ${currentTime.hour}:${currentTime.minute.toString().padStart(2, '0')}`);
       
-      // Margem de 30 minutos (15 antes e 15 depois)
+      // Calcular horário alvo (hora atual + reminderHours)
+      let targetHour = currentTime.hour + reminderHours;
+      let targetMinute = currentTime.minute;
+      let targetDate = currentTime.date;
+      
+      // Se passar de 24h, é amanhã
+      if (targetHour >= 24) {
+        targetHour = targetHour - 24;
+        targetDate = getTomorrowInTimezone(timezone);
+      }
+      
+      // Margem de 15 minutos para cada lado
       const marginMinutes = 15;
-      const minTime = new Date(targetTime.getTime() - (marginMinutes * 60 * 1000));
-      const maxTime = new Date(targetTime.getTime() + (marginMinutes * 60 * 1000));
       
-      const minTimeStr = `${minTime.getHours().toString().padStart(2, '0')}:${minTime.getMinutes().toString().padStart(2, '0')}:00`;
-      const maxTimeStr = `${maxTime.getHours().toString().padStart(2, '0')}:${maxTime.getMinutes().toString().padStart(2, '0')}:00`;
+      // Calcular horário mínimo
+      let minHour = targetHour;
+      let minMinute = targetMinute - marginMinutes;
+      if (minMinute < 0) {
+        minHour = targetHour - 1;
+        minMinute = 60 + minMinute;
+        if (minHour < 0) {
+          minHour = 23;
+          // Neste caso seria o dia anterior, mas simplificamos
+        }
+      }
+      
+      // Calcular horário máximo
+      let maxHour = targetHour;
+      let maxMinute = targetMinute + marginMinutes;
+      if (maxMinute >= 60) {
+        maxHour = targetHour + 1;
+        maxMinute = maxMinute - 60;
+        if (maxHour >= 24) {
+          maxHour = 0;
+          // Neste caso seria o próximo dia, mas simplificamos
+        }
+      }
+      
+      const minTimeStr = `${minHour.toString().padStart(2, '0')}:${minMinute.toString().padStart(2, '0')}:00`;
+      const maxTimeStr = `${maxHour.toString().padStart(2, '0')}:${maxMinute.toString().padStart(2, '0')}:00`;
 
-      console.log(`[booking-reminder] Loja ${settings.store_id}: Buscando agendamentos para ${targetDate} entre ${minTimeStr} e ${maxTimeStr}`);
+      console.log(`[booking-reminder] Horário alvo: ${targetHour.toString().padStart(2, '0')}:${targetMinute.toString().padStart(2, '0')}`);
+      console.log(`[booking-reminder] Buscando agendamentos para ${targetDate} entre ${minTimeStr} e ${maxTimeStr}`);
 
       // Buscar agendamentos que precisam de lembrete
       const { data: bookings, error: bookingsError } = await supabase

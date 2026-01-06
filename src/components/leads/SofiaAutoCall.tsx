@@ -477,9 +477,9 @@ export function SofiaAutoCall({
               </p>
               
               {/* Mensagem sobre envio no WhatsApp */}
-              <div className="mt-4 flex items-center gap-2 text-white/70 text-sm bg-white/5 px-4 py-2 rounded-full">
+              <div className="mt-4 inline-flex items-center gap-2 text-white/70 text-xs bg-white/5 px-3 py-1.5 rounded-full">
                 <span>📱</span>
-                <span>Também enviamos o áudio no seu WhatsApp!</span>
+                <span>Áudio enviado no seu WhatsApp</span>
               </div>
               
               {/* Botão para ver diagnóstico */}

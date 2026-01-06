@@ -19,6 +19,7 @@ interface LeadData {
   answers: any;
   score: number;
   level: string;
+  diagnosticType: 'default' | 'delivery' | 'services';
 }
 
 interface StoredDiagnostic {
@@ -127,7 +128,8 @@ export default function DiagnosticoPage() {
         phone: pendingResult.contact.phone,
         answers: pendingResult.answers,
         score: pendingResult.score,
-        level: pendingResult.level
+        level: pendingResult.level,
+        diagnosticType: 'default'
       };
       
       const storedData: StoredDiagnostic = {

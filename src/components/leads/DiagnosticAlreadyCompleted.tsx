@@ -8,6 +8,10 @@ import { ptBR } from 'date-fns/locale';
 import { useMasterWhatsApp } from '@/hooks/useMasterWhatsApp';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { generateSofiaScript } from '@/lib/callScriptGenerator';
+import { generateDeliverySofiaScript } from '@/lib/callScriptGeneratorDelivery';
+import { generateServicesSofiaScript } from '@/lib/callScriptGeneratorServices';
+import type { QualificationLevel } from '@/lib/diagnosticScoring';
 
 interface LeadData {
   name: string;
@@ -16,6 +20,17 @@ interface LeadData {
   answers: any;
   score: number;
   level: string;
+  diagnosticType?: 'default' | 'delivery' | 'services';
+  // Delivery specific
+  nicho?: string;
+  monthlySavings?: number;
+  annualSavings?: number;
+  currentCommission?: number;
+  // Services specific
+  noShowSavings?: number;
+  timeSavedHours?: number;
+  inactiveRecovery?: number;
+  totalMonthlySavings?: number;
 }
 
 interface DiagnosticAlreadyCompletedProps {
@@ -87,11 +102,59 @@ export function DiagnosticAlreadyCompleted({
     }
   };
 
+  // Gerar script baseado no tipo de diagnóstico
+  const generateScriptForType = (): string => {
+    if (!leadData) return '';
+    
+    const diagnosticType = leadData.diagnosticType || 'default';
+    
+    if (diagnosticType === 'delivery') {
+      return generateDeliverySofiaScript({
+        leadName: leadData.name,
+        companyName: leadData.company,
+        nicho: leadData.nicho as any,
+        answers: leadData.answers,
+        score: leadData.score,
+        level: leadData.level as QualificationLevel,
+        monthlySavings: leadData.monthlySavings || 0,
+        annualSavings: leadData.annualSavings || 0,
+        currentCommission: leadData.currentCommission || 0
+      });
+    }
+    
+    if (diagnosticType === 'services') {
+      return generateServicesSofiaScript({
+        leadName: leadData.name,
+        companyName: leadData.company,
+        nicho: leadData.nicho as any,
+        answers: leadData.answers,
+        score: leadData.score,
+        level: leadData.level as QualificationLevel,
+        noShowSavings: leadData.noShowSavings || 0,
+        timeSavedHours: leadData.timeSavedHours || 0,
+        inactiveRecovery: leadData.inactiveRecovery || 0,
+        totalMonthlySavings: leadData.totalMonthlySavings || 0
+      });
+    }
+    
+    // Default diagnostic
+    return generateSofiaScript({
+      leadName: leadData.name,
+      companyName: leadData.company,
+      answers: leadData.answers,
+      score: leadData.score,
+      level: leadData.level as QualificationLevel
+    });
+  };
+
   const handleResendAudio = async () => {
     if (resendCooldown > 0 || !leadData) return;
     
     setIsResending(true);
     try {
+      // Gerar script correto baseado no tipo de diagnóstico
+      const script = generateScriptForType();
+      
       const { data, error } = await supabase.functions.invoke('send-diagnostic-audio', {
         body: {
           leadName: leadData.name,
@@ -99,7 +162,8 @@ export function DiagnosticAlreadyCompleted({
           phone: leadData.phone,
           answers: leadData.answers,
           score: leadData.score,
-          level: leadData.level
+          level: leadData.level,
+          script: script // Passar o script correto para a edge function
         }
       });
       

@@ -75,6 +75,7 @@ export function SofiaAutoCall({
   const [callDuration, setCallDuration] = useState(0);
   const [audioPlaying, setAudioPlaying] = useState(false);
   const [generatedAudioBase64, setGeneratedAudioBase64] = useState<string | null>(null);
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false);
   
   // Estados para cards sequenciais
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -296,20 +297,30 @@ export function SofiaAutoCall({
     audioRef.current.onerror = (e) => {
       console.error('Audio playback error:', e);
       setAudioPlaying(false);
-      // Em caso de erro, chamar callback mesmo assim
-      setTimeout(() => {
-        onAudioComplete(audioBase64);
-      }, 1000);
+      // Em vez de fechar, mostrar opção para o usuário
+      setAutoplayBlocked(true);
     };
     
     setCallState('connected');
-    setAudioPlaying(true);
     
     try {
       await audioRef.current.play();
+      setAudioPlaying(true);
     } catch (playError) {
-      console.error('Failed to play audio:', playError);
-      // Tentar novamente com interação do usuário
+      console.log('Autoplay bloqueado no mobile - mostrando alternativas');
+      setAudioPlaying(false);
+      setAutoplayBlocked(true);
+    }
+  };
+
+  const handleManualPlay = () => {
+    if (audioRef.current) {
+      audioRef.current.play().then(() => {
+        setAudioPlaying(true);
+        setAutoplayBlocked(false);
+      }).catch(err => {
+        console.error('Manual play failed:', err);
+      });
     }
   };
 
@@ -464,10 +475,53 @@ export function SofiaAutoCall({
             </div>
           )}
           
-          {callState === 'connected' && (
+          {callState === 'connected' && !autoplayBlocked && (
             <p className="text-white/80 mt-4 text-2xl font-mono">
               {formatTime(callDuration)}
             </p>
+          )}
+          
+          {/* UI quando autoplay é bloqueado (mobile) */}
+          {callState === 'connected' && autoplayBlocked && (
+            <div className="flex flex-col items-center gap-4 animate-fade-in text-center px-4 mt-6">
+              {/* Ícone de sucesso */}
+              <div className="w-16 h-16 rounded-full bg-[#25D366]/20 flex items-center justify-center">
+                <span className="text-3xl">✅</span>
+              </div>
+              
+              {/* Mensagem principal */}
+              <h3 className="text-white text-xl font-semibold">
+                Áudio enviado no seu WhatsApp!
+              </h3>
+              
+              {/* Explicação */}
+              <p className="text-white/60 text-sm max-w-[280px]">
+                Abra o WhatsApp para ouvir a análise personalizada da Sofia sobre o diagnóstico da {leadData.company}
+              </p>
+              
+              {/* Botões de ação */}
+              <div className="flex flex-col gap-3 w-full mt-4">
+                {/* Botão para ouvir aqui mesmo */}
+                <button
+                  onClick={handleManualPlay}
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors"
+                >
+                  <span>🎧</span>
+                  <span>Ouvir aqui mesmo</span>
+                </button>
+                
+                {/* Botão principal para ver diagnóstico */}
+                <button
+                  onClick={() => {
+                    const audioToReturn = generatedAudioBase64 || savedAudioBase64;
+                    onAudioComplete(audioToReturn || '');
+                  }}
+                  className="px-8 py-4 bg-[#25D366] hover:bg-[#1ebe5a] text-white font-semibold text-lg rounded-full shadow-lg shadow-[#25D366]/30 transition-all hover:scale-105"
+                >
+                  Ver Meu Diagnóstico →
+                </button>
+              </div>
+            </div>
           )}
           
           {callState === 'ended' && (
@@ -497,7 +551,7 @@ export function SofiaAutoCall({
         </div>
 
         {/* Waveform de Áudio */}
-        {callState === 'connected' && audioPlaying && (
+        {callState === 'connected' && audioPlaying && !autoplayBlocked && (
           <div className="flex items-center justify-center gap-1 h-10 mb-10">
             {[...Array(24)].map((_, i) => (
               <div
@@ -513,7 +567,7 @@ export function SofiaAutoCall({
         )}
 
         {/* Mensagem durante a chamada */}
-        {callState === 'connected' && audioPlaying && (
+        {callState === 'connected' && audioPlaying && !autoplayBlocked && (
           <div className="text-center mb-8">
             <p className="text-white/70 text-base">
               Ouça a Sofia apresentar seu diagnóstico personalizado
@@ -534,7 +588,7 @@ export function SofiaAutoCall({
         )}
         
         {/* Botão Pausar durante reprodução */}
-        {callState === 'connected' && audioPlaying && (
+        {callState === 'connected' && audioPlaying && !autoplayBlocked && (
           <div className="flex justify-center">
             <button
               onClick={() => {
@@ -557,7 +611,7 @@ export function SofiaAutoCall({
         )}
         
         {/* Botão Retomar quando pausado */}
-        {callState === 'connected' && !audioPlaying && (
+        {callState === 'connected' && !audioPlaying && !autoplayBlocked && (
           <div className="flex justify-center gap-6">
             <button
               onClick={() => {

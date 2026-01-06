@@ -18,7 +18,9 @@ import {
   Mail,
   Store,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  MapPin,
+  CalendarPlus
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -55,6 +57,10 @@ interface StoreInfo {
   name: string;
   logo_url: string | null;
   slug: string;
+  address: string | null;
+  city: string | null;
+  phone: string | null;
+  whatsapp: string | null;
 }
 
 // TimeSlot interface removed - now using string[] for availableSlots
@@ -121,7 +127,7 @@ const BookingPage = () => {
         // Fetch store
         const { data: storeData, error: storeError } = await supabase
           .from('stores')
-          .select('id, name, logo_url, slug')
+          .select('id, name, logo_url, slug, address, city, phone, whatsapp')
           .eq('slug', storeSlug)
           .single();
         
@@ -656,29 +662,141 @@ const BookingPage = () => {
   }
 
   if (success) {
+    // Gera URL para adicionar ao Google Calendar
+    const generateCalendarUrl = () => {
+      if (!selectedDate || !selectedTime || !selectedService) return '';
+      
+      const startDate = new Date(selectedDate);
+      const [hours, minutes] = selectedTime.split(':').map(Number);
+      startDate.setHours(hours, minutes, 0, 0);
+      
+      const endDate = new Date(startDate);
+      endDate.setMinutes(endDate.getMinutes() + (selectedService.duration_minutes || 60));
+      
+      const formatDate = (date: Date) => date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+      
+      const title = encodeURIComponent(`${selectedService.name} - ${store?.name || ''}`);
+      const location = store?.address ? encodeURIComponent(`${store.address}${store.city ? `, ${store.city}` : ''}`) : '';
+      const details = encodeURIComponent(`Profissional: ${selectedProfessional?.name || ''}\nValor: R$ ${selectedService.price.toFixed(2).replace('.', ',')}`);
+      
+      return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${formatDate(startDate)}/${formatDate(endDate)}&location=${location}&details=${details}`;
+    };
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="max-w-md w-full">
-          <CardContent className="pt-6 text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Check className="h-8 w-8 text-green-600" />
+          <CardContent className="pt-6">
+            {/* Header com Logo e Nome da Empresa */}
+            <div className="flex flex-col items-center mb-6">
+              {store?.logo_url ? (
+                <img 
+                  src={store.logo_url} 
+                  alt={store.name} 
+                  className="h-16 w-16 rounded-full object-cover mb-2 border-2 border-muted"
+                />
+              ) : (
+                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                  <Store className="h-8 w-8 text-primary" />
+                </div>
+              )}
+              <h1 className="text-lg font-semibold text-foreground">
+                {store?.name}
+              </h1>
             </div>
-            <h2 className="text-xl font-semibold mb-2">Agendamento Confirmado!</h2>
-            <p className="text-muted-foreground mb-4">
-              Seu agendamento foi realizado com sucesso. Você receberá uma confirmação em breve.
-            </p>
-            <div className="bg-muted rounded-lg p-4 text-left space-y-2">
-              <p><strong>Serviço:</strong> {selectedService?.name}</p>
-              <p><strong>Profissional:</strong> {selectedProfessional?.name}</p>
-              <p><strong>Data:</strong> {selectedDate && format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</p>
-              <p><strong>Horário:</strong> {selectedTime}</p>
+
+            {/* Ícone de Sucesso */}
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Check className="h-8 w-8 text-green-600 dark:text-green-400" />
+              </div>
+              <h2 className="text-xl font-semibold mb-2">Agendamento Confirmado!</h2>
+              <p className="text-muted-foreground text-sm">
+                Você receberá uma confirmação em breve.
+              </p>
             </div>
-            <Button 
-              className="mt-6 w-full" 
-              onClick={() => window.location.reload()}
-            >
-              Fazer novo agendamento
-            </Button>
+
+            {/* Detalhes do Agendamento */}
+            <div className="bg-muted rounded-lg p-4 space-y-3 mb-4">
+              {/* Profissional */}
+              <div className="flex items-center gap-3">
+                {selectedProfessional?.photo_url ? (
+                  <img 
+                    src={selectedProfessional.photo_url} 
+                    alt={selectedProfessional.name}
+                    className="h-10 w-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <User className="h-5 w-5 text-primary" />
+                  </div>
+                )}
+                <div>
+                  <p className="font-medium">{selectedProfessional?.name}</p>
+                  <p className="text-sm text-muted-foreground">{selectedService?.name}</p>
+                </div>
+              </div>
+
+              {/* Data e Hora */}
+              <div className="grid grid-cols-2 gap-2 text-sm pt-2 border-t border-border">
+                <div>
+                  <span className="text-muted-foreground">Data:</span>
+                  <p className="font-medium">
+                    {selectedDate && format(selectedDate, "dd/MM/yyyy", { locale: ptBR })}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Horário:</span>
+                  <p className="font-medium">{selectedTime}</p>
+                </div>
+              </div>
+
+              {/* Valor */}
+              {selectedService?.price !== undefined && selectedService.price > 0 && (
+                <div className="pt-2 border-t border-border">
+                  <span className="text-muted-foreground text-sm">Valor:</span>
+                  <p className="font-semibold text-lg">
+                    {selectedService.price_type === 'from' && 'A partir de '}
+                    R$ {selectedService.price.toFixed(2).replace('.', ',')}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Contato da Loja */}
+            {(store?.address || store?.phone || store?.whatsapp) && (
+              <div className="text-sm text-muted-foreground mb-4 space-y-2 px-1">
+                {store.address && (
+                  <p className="flex items-start gap-2">
+                    <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
+                    <span>{store.address}{store.city && `, ${store.city}`}</span>
+                  </p>
+                )}
+                {(store.phone || store.whatsapp) && (
+                  <p className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 shrink-0" />
+                    <span>{store.phone || store.whatsapp}</span>
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Botões de Ação */}
+            <div className="space-y-2">
+              <Button 
+                variant="outline"
+                className="w-full"
+                onClick={() => window.open(generateCalendarUrl(), '_blank')}
+              >
+                <CalendarPlus className="h-4 w-4 mr-2" />
+                Adicionar ao Calendário
+              </Button>
+              <Button 
+                className="w-full" 
+                onClick={() => window.location.reload()}
+              >
+                Fazer novo agendamento
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>

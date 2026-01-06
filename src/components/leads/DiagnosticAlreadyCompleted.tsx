@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import type { DiagnosticResult } from '@/lib/diagnosticScoring';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useMasterWhatsApp } from '@/hooks/useMasterWhatsApp';
 
 interface DiagnosticAlreadyCompletedProps {
   result: DiagnosticResult;
@@ -43,6 +44,7 @@ export function DiagnosticAlreadyCompleted({
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const levelConfig = LEVEL_CONFIG[result.level];
+  const { effectivePhone } = useMasterWhatsApp();
 
   useEffect(() => {
     if (audioBase64) {
@@ -72,9 +74,9 @@ export function DiagnosticAlreadyCompleted({
 
   const handleWhatsAppClick = () => {
     const message = encodeURIComponent(
-      `Olá Marcos! Fiz o diagnóstico de maturidade tecnológica e fui classificado como ${levelConfig.title}. Gostaria de conversar sobre como escalar minha operação.`
+      `Olá! Fiz o diagnóstico de maturidade tecnológica e fui classificado como ${levelConfig.title}. Gostaria de conversar sobre como escalar minha operação.`
     );
-    window.open(`https://wa.me/5561994009368?text=${message}`, '_blank');
+    window.open(`https://wa.me/${effectivePhone}?text=${message}`, '_blank');
   };
 
   const formattedDate = format(new Date(completedAt), "d 'de' MMMM 'às' HH:mm", { locale: ptBR });

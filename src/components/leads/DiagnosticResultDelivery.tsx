@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { DeliveryDiagnosticResult, QualificationLevel } from '@/lib/diagnosticScoringDelivery';
-import { generateDeliveryWhatsAppMessage, MARCOS_WHATSAPP, NICHE_CONFIG } from '@/lib/diagnosticScoringDelivery';
+import { generateDeliveryWhatsAppMessage, NICHE_CONFIG } from '@/lib/diagnosticScoringDelivery';
 import { DiagnosticOfferCard } from './DiagnosticOfferCard';
+import { useMasterWhatsApp } from '@/hooks/useMasterWhatsApp';
 
 interface DiagnosticResultDeliveryProps {
   result: DeliveryDiagnosticResult;
@@ -49,6 +50,7 @@ export function DiagnosticResultDelivery({ result, savedAudioBase64 }: Diagnosti
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const config = LEVEL_CONFIG[result.level];
   const nicheConfig = NICHE_CONFIG[result.nicho];
+  const { effectivePhone } = useMasterWhatsApp();
   
   const formattedMonthlySavings = result.monthlySavings.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const formattedAnnualSavings = result.annualSavings.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -57,7 +59,7 @@ export function DiagnosticResultDelivery({ result, savedAudioBase64 }: Diagnosti
   
   const handleWhatsAppClick = () => {
     const message = generateDeliveryWhatsAppMessage(result);
-    window.open(`https://wa.me/${MARCOS_WHATSAPP}?text=${message}`, '_blank');
+    window.open(`https://wa.me/${effectivePhone}?text=${message}`, '_blank');
   };
 
   const handleReplayAudio = () => {

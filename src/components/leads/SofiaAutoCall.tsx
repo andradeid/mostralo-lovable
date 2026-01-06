@@ -76,6 +76,7 @@ export function SofiaAutoCall({
   const [audioPlaying, setAudioPlaying] = useState(false);
   const [generatedAudioBase64, setGeneratedAudioBase64] = useState<string | null>(null);
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
+  const [isLoadingManualPlay, setIsLoadingManualPlay] = useState(false);
   
   // Estados para cards sequenciais
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -313,14 +314,30 @@ export function SofiaAutoCall({
     }
   };
 
-  const handleManualPlay = () => {
-    if (audioRef.current) {
-      audioRef.current.play().then(() => {
-        setAudioPlaying(true);
-        setAutoplayBlocked(false);
-      }).catch(err => {
-        console.error('Manual play failed:', err);
-      });
+  const handleManualPlay = async () => {
+    // Usar o áudio gerado ou o áudio salvo
+    const audioBase64 = generatedAudioBase64 || savedAudioBase64;
+    
+    if (!audioBase64) {
+      console.error('Nenhum áudio disponível para reprodução');
+      return;
+    }
+    
+    setIsLoadingManualPlay(true);
+    
+    try {
+      // Criar novo objeto Audio - o clique do usuário permite reprodução
+      const audioUrl = `data:audio/mpeg;base64,${audioBase64}`;
+      audioRef.current = new Audio(audioUrl);
+      audioRef.current.onended = handleAudioEnded;
+      
+      await audioRef.current.play();
+      setAudioPlaying(true);
+      setAutoplayBlocked(false);
+    } catch (err) {
+      console.error('Falha ao reproduzir:', err);
+    } finally {
+      setIsLoadingManualPlay(false);
     }
   };
 
@@ -504,10 +521,20 @@ export function SofiaAutoCall({
                 {/* Botão para ouvir aqui mesmo */}
                 <button
                   onClick={handleManualPlay}
-                  className="flex items-center justify-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors"
+                  disabled={isLoadingManualPlay}
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors disabled:opacity-50"
                 >
-                  <span>🎧</span>
-                  <span>Ouvir aqui mesmo</span>
+                  {isLoadingManualPlay ? (
+                    <>
+                      <span className="animate-spin">⏳</span>
+                      <span>Carregando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>🎧</span>
+                      <span>Ouvir aqui mesmo</span>
+                    </>
+                  )}
                 </button>
                 
                 {/* Botão principal para ver diagnóstico */}

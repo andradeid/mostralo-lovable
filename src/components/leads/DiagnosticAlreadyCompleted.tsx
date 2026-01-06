@@ -1,17 +1,29 @@
 import { useState, useRef, useEffect } from 'react';
-import { Store, CheckCircle, Play, Pause, Phone, RefreshCw, Volume2 } from 'lucide-react';
+import { Store, CheckCircle, Play, Pause, Phone, RefreshCw, Volume2, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import type { DiagnosticResult } from '@/lib/diagnosticScoring';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useMasterWhatsApp } from '@/hooks/useMasterWhatsApp';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+interface LeadData {
+  name: string;
+  company: string;
+  phone: string;
+  answers: any;
+  score: number;
+  level: string;
+}
 
 interface DiagnosticAlreadyCompletedProps {
   result: DiagnosticResult;
   audioBase64: string | null;
   completedAt: string;
   onRestart: () => void;
+  leadData?: LeadData;
 }
 
 const LEVEL_CONFIG = {
@@ -39,9 +51,12 @@ export function DiagnosticAlreadyCompleted({
   result, 
   audioBase64, 
   completedAt, 
-  onRestart 
+  onRestart,
+  leadData
 }: DiagnosticAlreadyCompletedProps) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const levelConfig = LEVEL_CONFIG[result.level];
   const { effectivePhone } = useMasterWhatsApp();
@@ -69,6 +84,44 @@ export function DiagnosticAlreadyCompleted({
     } else {
       audioRef.current.play();
       setIsPlaying(true);
+    }
+  };
+
+  const handleResendAudio = async () => {
+    if (resendCooldown > 0 || !leadData) return;
+    
+    setIsResending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-diagnostic-audio', {
+        body: {
+          leadName: leadData.name,
+          companyName: leadData.company,
+          phone: leadData.phone,
+          answers: leadData.answers,
+          score: leadData.score,
+          level: leadData.level
+        }
+      });
+      
+      if (error) throw error;
+      toast.success('Áudio reenviado para seu WhatsApp!');
+      
+      // Iniciar cooldown de 30 segundos
+      setResendCooldown(30);
+      const interval = setInterval(() => {
+        setResendCooldown(prev => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } catch (error) {
+      console.error('Erro ao reenviar áudio:', error);
+      toast.error('Erro ao reenviar áudio. Tente novamente.');
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -120,7 +173,7 @@ export function DiagnosticAlreadyCompleted({
       {audioBase64 && (
         <Card className="mb-6">
           <CardContent className="p-6">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 mb-4">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                 <Volume2 className="w-6 h-6 text-primary" />
               </div>
@@ -143,6 +196,24 @@ export function DiagnosticAlreadyCompleted({
                 )}
               </Button>
             </div>
+            
+            {/* Botão de reenviar para WhatsApp */}
+            {leadData && (
+              <Button
+                variant="outline"
+                onClick={handleResendAudio}
+                disabled={isResending || resendCooldown > 0}
+                className="w-full gap-2 border-[#25D366]/50 text-[#25D366] hover:bg-[#25D366]/10"
+              >
+                <Send className="w-4 h-4" />
+                {isResending 
+                  ? 'Enviando...' 
+                  : resendCooldown > 0 
+                    ? `Aguarde ${resendCooldown}s` 
+                    : 'Enviar áudio para meu WhatsApp'
+                }
+              </Button>
+            )}
           </CardContent>
         </Card>
       )}
@@ -155,7 +226,7 @@ export function DiagnosticAlreadyCompleted({
           size="lg"
         >
           <Phone className="w-5 h-5" />
-          Falar com Marcos Andrade
+          Falar com consultor
         </Button>
 
         <Button

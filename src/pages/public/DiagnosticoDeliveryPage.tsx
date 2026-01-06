@@ -14,10 +14,20 @@ import type { DiagnosticResult, DiagnosticAnswers } from '@/lib/diagnosticScorin
 
 const STORAGE_KEY = 'mostralo_delivery_diagnostic';
 
+interface LeadData {
+  name: string;
+  company: string;
+  phone: string;
+  answers: any;
+  score: number;
+  level: string;
+}
+
 interface StoredDiagnostic {
   result: DeliveryDiagnosticResult;
   audioBase64: string | null;
   completedAt: string;
+  leadData?: LeadData;
 }
 
 // Converter resultado de delivery para o formato esperado pelo DiagnosticAlreadyCompleted
@@ -46,6 +56,7 @@ export default function DiagnosticoDeliveryPage() {
   
   // Estado para abrir o modal de chamada
   const [showSofiaCall, setShowSofiaCall] = useState(false);
+  const [storedLeadData, setStoredLeadData] = useState<LeadData | undefined>(undefined);
   
   // Perfil WhatsApp do lead
   const [whatsappProfile, setWhatsappProfile] = useState<{
@@ -66,6 +77,7 @@ export default function DiagnosticoDeliveryPage() {
         setResult(data.result);
         setSavedAudio(data.audioBase64);
         setCompletedAt(data.completedAt);
+        setStoredLeadData(data.leadData);
         setAlreadyCompleted(true);
       }
     } catch (err) {
@@ -147,15 +159,26 @@ export default function DiagnosticoDeliveryPage() {
   const handleSofiaCallComplete = (audioBase64: string) => {
     // Salvar no localStorage
     if (pendingResult) {
+      const leadData: LeadData = {
+        name: pendingResult.contact.name,
+        company: pendingResult.contact.company,
+        phone: pendingResult.contact.phone,
+        answers: pendingResult.answers,
+        score: pendingResult.score,
+        level: pendingResult.level
+      };
+      
       const storedData: StoredDiagnostic = {
         result: pendingResult,
         audioBase64: audioBase64 || null,
-        completedAt: new Date().toISOString()
+        completedAt: new Date().toISOString(),
+        leadData
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(storedData));
       
       setSavedAudio(audioBase64 || null);
       setCompletedAt(storedData.completedAt);
+      setStoredLeadData(leadData);
     }
     
     // Fechar chamada e mostrar resultado
@@ -172,6 +195,7 @@ export default function DiagnosticoDeliveryPage() {
     setCompletedAt('');
     setShowSofiaCall(false);
     setCustomScript('');
+    setStoredLeadData(undefined);
   };
 
   // Criar leadData compatível com SofiaAutoCall
@@ -228,6 +252,7 @@ export default function DiagnosticoDeliveryPage() {
               audioBase64={savedAudio}
               completedAt={completedAt}
               onRestart={handleRestart}
+              leadData={storedLeadData}
             />
             <div className="mt-8">
               <DiagnosticResultDelivery result={result} savedAudioBase64={savedAudio} />

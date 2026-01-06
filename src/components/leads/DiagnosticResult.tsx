@@ -245,10 +245,7 @@ export function DiagnosticResult({ result, savedAudioBase64 }: DiagnosticResultP
           )}
         >
           <MessageCircle className="w-5 h-5 mr-2" />
-          {result.level === 'disqualified' 
-            ? 'FALAR COM MARCOS ANDRADE'
-            : 'Falar com Marcos no WhatsApp'
-          }
+          Falar com consultor
         </Button>
         
         {result.level !== 'disqualified' && (

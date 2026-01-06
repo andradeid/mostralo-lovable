@@ -34,7 +34,7 @@ function generatePersonalizedScript(data: RequestBody): string {
   const firstName = leadName.split(' ')[0];
   
   // FRAMEWORK PAS: PROBLEM - AGITATE - SOLVE
-  const opening = `${firstName}! Aqui é o Marcos Andrade, da Mostralo. Acabei de analisar pessoalmente o diagnóstico da ${companyName} e preciso te contar uma coisa...`;
+  const opening = `Olá ${firstName}! Aqui é a Sofia, assistente virtual da Mostralo. Acabei de analisar o diagnóstico da ${companyName} e preciso te contar uma coisa importante...`;
   
   let painValidation = '';
   switch (answers.q4) {
@@ -93,9 +93,9 @@ function generatePersonalizedScript(data: RequestBody): string {
   
   let cta = '';
   if (level === 'elite') {
-    cta = `${firstName}, pela sua pontuação no diagnóstico, você foi qualificado para o Programa de Aceleração Elite. Isso significa mentoria direta comigo e isenção da taxa de implementação. Mas atenção: só tenho 5 vagas por semana. Clica agora no botão Agendar Consultoria que aparece na tela e garante a sua. Te vejo do outro lado!`;
+    cta = `${firstName}, pela sua pontuação no diagnóstico, você foi qualificado para o Programa de Aceleração Elite. Isso significa mentoria direta com o Marcos Andrade, CEO da Mostralo, e isenção da taxa de implementação. Mas atenção: só temos 5 vagas por semana. Clica agora no botão Agendar Consultoria que aparece na tela e garante a sua. Te espero lá!`;
   } else {
-    cta = `${firstName}, você foi qualificado para o Programa de Aceleração Mostralo. Tenho um horário especial reservado pra você essa semana. Clica no botão Agendar Consultoria e vamos desenhar juntos o plano de crescimento da ${companyName}. Te espero!`;
+    cta = `${firstName}, você foi qualificado para o Programa de Aceleração Mostralo. Temos um horário especial reservado pra você essa semana. Clica no botão Agendar Consultoria e vamos desenhar juntos o plano de crescimento da ${companyName}. Te espero!`;
   }
   
   const scriptParts = [opening, painValidation, painAgitation, solutionIntro, mainBenefit, socialProof, cta].filter(Boolean);
@@ -173,7 +173,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'tts-1',
         input: script,
-        voice: 'onyx',
+        voice: 'nova',
         response_format: 'mp3',
       }),
     });
@@ -229,11 +229,11 @@ serve(async (req) => {
     const firstName = body.leadName.split(' ')[0];
     const welcomeMessage = `Olá ${firstName}! 👋
 
-Aqui é o *Marcos Andrade*, da Mostralo.
+Aqui é a *Sofia*, assistente virtual da Mostralo.
 
-Acabei de analisar pessoalmente o diagnóstico da *${body.companyName}* e gravei um áudio especial pra você!
+Acabei de preparar um áudio personalizado com a análise do diagnóstico da *${body.companyName}*!
 
-🎧 Ouça com atenção, tem informações importantes sobre como podemos aumentar o faturamento da sua loja.`;
+🎧 Ouça com atenção, tem informações importantes sobre como podemos ajudar no crescimento da sua loja.`;
 
     console.log('[send-diagnostic-audio] Enviando mensagem de texto para:', fullLeadNumber);
 

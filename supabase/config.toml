@@ -298,10 +298,13 @@ verify_jwt = false
 verify_jwt = true
 
 [functions.booking-confirmation]
-verify_jwt = true
+verify_jwt = false
 
 [functions.booking-reminder]
 verify_jwt = false
 
 [functions.booking-review-request]
-verify_jwt = true
+verify_jwt = false
+
+[functions.process-pending-reviews]
+verify_jwt = false

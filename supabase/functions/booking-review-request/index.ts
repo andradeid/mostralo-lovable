@@ -41,6 +41,99 @@ function replaceTemplateVariables(
     .replace(/{link}/gi, data.link);
 }
 
+// Normalizar telefone para WhatsApp
+function normalizePhone(phone: string): string {
+  let cleaned = phone.replace(/\D/g, '');
+  if (!cleaned.startsWith('55') && cleaned.length <= 11) {
+    cleaned = '55' + cleaned;
+  }
+  return cleaned;
+}
+
+// Enviar WhatsApp diretamente via Evolution API
+async function sendWhatsAppDirect(
+  supabase: any,
+  storeId: string,
+  phoneNumber: string,
+  message: string,
+  customerId?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Buscar configuração Evolution API
+    const { data: evolutionConfig, error: configError } = await supabase
+      .from('evolution_config')
+      .select('api_url, api_key')
+      .eq('is_active', true)
+      .single();
+
+    if (configError || !evolutionConfig) {
+      console.error('[sendWhatsAppDirect] Evolution API não configurada:', configError);
+      return { success: false, error: 'Evolution API não configurada' };
+    }
+
+    // Buscar instância da loja
+    const { data: instance, error: instanceError } = await supabase
+      .from('whatsapp_instances')
+      .select('instance_name, status')
+      .eq('store_id', storeId)
+      .single();
+
+    if (instanceError || !instance) {
+      console.error('[sendWhatsAppDirect] Instância WhatsApp não encontrada:', instanceError);
+      return { success: false, error: 'Instância WhatsApp não configurada' };
+    }
+
+    if (instance.status !== 'connected') {
+      console.error('[sendWhatsAppDirect] WhatsApp não conectado. Status:', instance.status);
+      return { success: false, error: 'WhatsApp não conectado' };
+    }
+
+    const phone = normalizePhone(phoneNumber);
+    console.log(`[sendWhatsAppDirect] Enviando para ${phone} via ${instance.instance_name}`);
+
+    // Enviar mensagem via Evolution API
+    const response = await fetch(
+      `${evolutionConfig.api_url}/message/sendText/${instance.instance_name}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': evolutionConfig.api_key,
+        },
+        body: JSON.stringify({
+          number: phone,
+          text: message,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[sendWhatsAppDirect] Erro Evolution API:', errorText);
+      return { success: false, error: errorText };
+    }
+
+    const result = await response.json();
+    console.log('[sendWhatsAppDirect] Resposta Evolution:', JSON.stringify(result));
+
+    // Registrar no log de mensagens
+    await supabase.from('whatsapp_messages').insert({
+      store_id: storeId,
+      customer_id: customerId || null,
+      phone_number: phone,
+      message_type: 'text',
+      content: message,
+      status: 'sent',
+      sent_at: new Date().toISOString(),
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error('[sendWhatsAppDirect] Erro:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' };
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -94,15 +187,11 @@ serve(async (req) => {
     }
 
     // Buscar configurações da loja
-    const { data: settings, error: settingsError } = await supabase
+    const { data: settings } = await supabase
       .from('booking_settings')
       .select('*')
       .eq('store_id', booking.store_id)
       .single();
-
-    if (settingsError || !settings) {
-      console.log('[booking-review-request] Configurações não encontradas');
-    }
 
     // Verificar se avaliações estão habilitadas
     if (!settings?.enable_professional_reviews) {
@@ -167,7 +256,6 @@ serve(async (req) => {
       .single();
 
     // Montar link de avaliação
-    // Prioridade: custom_domain > slug > fallback
     let baseUrl = 'https://mostralo.com.br';
     if (store?.custom_domain) {
       baseUrl = `https://${store.custom_domain}`;
@@ -192,23 +280,21 @@ serve(async (req) => {
 
     console.log(`[booking-review-request] Enviando solicitação de avaliação para: ${booking.customer_phone}`);
 
-    // Enviar via whatsapp-send
-    const { error: sendError } = await supabase.functions.invoke('whatsapp-send', {
-      body: {
-        storeId: booking.store_id,
-        phoneNumber: booking.customer_phone,
-        messageType: 'text',
-        content: message,
-        customerId: booking.customer_id,
-      },
-    });
+    // Enviar WhatsApp diretamente via Evolution API
+    const { success, error: sendError } = await sendWhatsAppDirect(
+      supabase,
+      booking.store_id,
+      booking.customer_phone,
+      message,
+      booking.customer_id
+    );
 
-    if (sendError) {
+    if (!success) {
       console.error('[booking-review-request] Erro ao enviar WhatsApp:', sendError);
       return new Response(JSON.stringify({ 
         success: false, 
         error: 'Erro ao enviar mensagem WhatsApp',
-        details: sendError.message,
+        details: sendError,
         reviewId: review.id,
         reviewLink: reviewLink 
       }), {

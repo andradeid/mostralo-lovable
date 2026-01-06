@@ -1,4 +1,5 @@
 import { usePageSEO } from '@/hooks/useSEO';
+import { BookingConfirmation } from '@/components/booking/BookingConfirmation';
 import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -691,15 +692,24 @@ const InteractiveBookingDemo = () => {
   return (
     <Card className="bg-zinc-900 border-zinc-800 relative overflow-hidden">
       {/* Success overlay */}
-      {showSuccess && (
-        <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-amber-600 flex flex-col items-center justify-center z-20 animate-fade-in">
-          <CheckCircle className="w-20 h-20 text-white mb-4" />
-          <p className="text-white text-2xl font-bold mb-2">Agendamento Confirmado!</p>
-          <p className="text-white/80">Você receberá um lembrete no WhatsApp 🐾</p>
-          <div className="mt-4 bg-white/20 rounded-lg p-3">
-            <p className="text-white text-sm">⚠️ A ração do Thor acaba em 5 dias. Lembrar?</p>
-          </div>
-        </div>
+      {showSuccess && service && pet && selectedDate && selectedTime && (
+        <BookingConfirmation
+          variant="overlay"
+          theme="dark"
+          store={{ name: 'Pet Shop Amigo Fiel' }}
+          service={{
+            name: service.name,
+            price: service.price,
+            duration_minutes: service.duration
+          }}
+          pet={{
+            name: pet.name,
+            avatar: pet.avatar
+          }}
+          date={selectedDate}
+          time={selectedTime}
+          customMessage="A ração do Thor acaba em 5 dias. Lembrar?"
+        />
       )}
 
       <CardHeader className="border-b border-zinc-800">

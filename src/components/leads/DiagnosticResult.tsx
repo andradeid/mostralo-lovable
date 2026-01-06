@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import type { DiagnosticResult as DiagnosticResultType, QualificationLevel } from '@/lib/diagnosticScoring';
-import { generateWhatsAppMessage, MARCOS_WHATSAPP } from '@/lib/diagnosticScoring';
+import { generateWhatsAppMessage } from '@/lib/diagnosticScoring';
 import { DiagnosticOfferCard } from './DiagnosticOfferCard';
+import { useMasterWhatsApp } from '@/hooks/useMasterWhatsApp';
 
 interface DiagnosticResultProps {
   result: DiagnosticResultType;
@@ -73,10 +74,11 @@ export function DiagnosticResult({ result, savedAudioBase64 }: DiagnosticResultP
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const config = LEVEL_CONFIG[result.level];
+  const { effectivePhone } = useMasterWhatsApp();
   
   const handleWhatsAppClick = () => {
     const message = generateWhatsAppMessage(result);
-    window.open(`https://wa.me/${MARCOS_WHATSAPP}?text=${message}`, '_blank');
+    window.open(`https://wa.me/${effectivePhone}?text=${message}`, '_blank');
   };
 
   const handleReplayAudio = () => {

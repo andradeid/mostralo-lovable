@@ -248,17 +248,12 @@ export function usePerformanceDiagnostics() {
       const bundles = await measureBundles();
       
       // Step 3: Test Edge Functions via our diagnostic function
-      // NOTA: Edge Function performance-diagnostics foi arquivada temporariamente
-      // para liberar espaço no limite do Supabase. Ver src/data/archivedEdgeFunctions.ts
-      setProgress({ step: 'Coletando métricas locais...', progress: 40 });
+      setProgress({ step: 'Testando Edge Functions...', progress: 40 });
       
       let edgeFunctions: EdgeFunctionResult[] = [];
       let databaseLatency = -1;
       let serverInfo = { region: 'local', runtime: 'browser' };
       
-      // Função arquivada - usando apenas métricas locais
-      // Quando restaurada, descomentar o bloco abaixo:
-      /*
       try {
         const { data, error: fnError } = await supabase.functions.invoke('performance-diagnostics');
         
@@ -272,7 +267,6 @@ export function usePerformanceDiagnostics() {
       } catch (err) {
         console.error('Error calling performance-diagnostics:', err);
       }
-      */
       
       // Step 4: Measure Web Vitals
       setProgress({ step: 'Coletando Web Vitals...', progress: 70 });

@@ -21,6 +21,13 @@ interface LeadData {
   answers: any;
   score: number;
   level: string;
+  diagnosticType: 'default' | 'delivery' | 'services';
+  // Services specific
+  nicho?: string;
+  noShowSavings?: number;
+  timeSavedHours?: number;
+  inactiveRecovery?: number;
+  totalMonthlySavings?: number;
 }
 
 interface StoredDiagnostic {
@@ -167,7 +174,13 @@ export default function DiagnosticoServicosPage() {
         phone: pendingResult.contact.phone,
         answers: pendingResult.answers,
         score: pendingResult.score,
-        level: pendingResult.level
+        level: pendingResult.level,
+        diagnosticType: 'services',
+        nicho: pendingResult.answers.nicho,
+        noShowSavings: pendingResult.noShowSavings,
+        timeSavedHours: pendingResult.timeSavedHours,
+        inactiveRecovery: pendingResult.inactiveRecovery,
+        totalMonthlySavings: pendingResult.totalMonthlySavings
       };
       
       const storedData: StoredDiagnostic = {

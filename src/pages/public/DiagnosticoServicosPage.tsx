@@ -211,6 +211,7 @@ export default function DiagnosticoServicosPage() {
     return {
       name: pendingResult.contact.name,
       company: pendingResult.contact.company,
+      phone: pendingResult.contact.phone,
       answers: legacyAnswers,
       score: pendingResult.score,
       level: pendingResult.level

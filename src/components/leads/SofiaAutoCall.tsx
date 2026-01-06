@@ -10,6 +10,7 @@ import { ConfettiExplosion } from './ConfettiExplosion';
 interface LeadData {
   name: string;
   company: string;
+  phone: string;
   answers: DiagnosticAnswers;
   score: number;
   level: QualificationLevel;
@@ -178,6 +179,7 @@ export function SofiaAutoCall({
     
     // Iniciar geração do áudio IMEDIATAMENTE em background
     let audioGenerationPromise: Promise<string | null> | null = null;
+    let generatedScript: string | null = null;
     
     if (savedAudioBase64) {
       console.log('Using saved audio from localStorage');
@@ -187,18 +189,18 @@ export function SofiaAutoCall({
       audioGenerationPromise = (async () => {
         try {
           // Usar script customizado se fornecido, senão gerar o padrão
-          const script = customScript || generateSofiaScript({
+          generatedScript = customScript || generateSofiaScript({
             leadName: leadData.name,
             companyName: leadData.company,
             answers: leadData.answers,
             score: leadData.score,
             level: leadData.level
           });
-          console.log('Generated Sofia script:', script);
+          console.log('Generated Sofia script:', generatedScript);
           
           const { data, error } = await supabase.functions.invoke('text-to-speech', {
             body: {
-              text: script,
+              text: generatedScript,
               voiceId: 'nova' // Voz feminina OpenAI
             }
           });
@@ -235,6 +237,36 @@ export function SofiaAutoCall({
       if (audioResult) {
         audioReadyRef.current = audioResult;
         setGeneratedAudioBase64(audioResult);
+        
+        // Enviar áudio para WhatsApp em background (não bloqueia a UI)
+        const scriptToSend = generatedScript || customScript || generateSofiaScript({
+          leadName: leadData.name,
+          companyName: leadData.company,
+          answers: leadData.answers,
+          score: leadData.score,
+          level: leadData.level
+        });
+        
+        console.log('[SofiaAutoCall] Enviando áudio para WhatsApp do lead:', leadData.phone);
+        supabase.functions.invoke('send-diagnostic-audio', {
+          body: {
+            leadName: leadData.name,
+            companyName: leadData.company,
+            phone: leadData.phone,
+            answers: leadData.answers,
+            score: leadData.score,
+            level: leadData.level,
+            script: scriptToSend
+          }
+        }).then(({ data, error }) => {
+          if (error) {
+            console.error('[SofiaAutoCall] Erro ao enviar áudio WhatsApp:', error);
+          } else {
+            console.log('[SofiaAutoCall] Áudio enviado para WhatsApp com sucesso:', data);
+          }
+        }).catch(err => {
+          console.error('[SofiaAutoCall] Erro ao chamar send-diagnostic-audio:', err);
+        });
       }
     }
     
@@ -443,6 +475,12 @@ export function SofiaAutoCall({
               <p className="text-white/60 mt-4 text-lg">
                 Chamada encerrada • {formatTime(callDuration)}
               </p>
+              
+              {/* Mensagem sobre envio no WhatsApp */}
+              <div className="mt-4 flex items-center gap-2 text-white/70 text-sm bg-white/5 px-4 py-2 rounded-full">
+                <span>📱</span>
+                <span>Também enviamos o áudio no seu WhatsApp!</span>
+              </div>
               
               {/* Botão para ver diagnóstico */}
               <button

@@ -55,7 +55,8 @@ import {
   Bell,
   UtensilsCrossed,
   Phone,
-  PlayCircle
+  PlayCircle,
+  Palette
 } from "lucide-react";
 
 import {
@@ -384,6 +385,8 @@ export function AdminSidebar() {
         { title: 'Navegação', url: '/dashboard/navegacao', icon: Map, group: 'Principal' },
         { title: 'Documentação Técnica', url: '/dashboard/documentacao-tecnica', icon: BookOpen, group: 'Principal' },
         { title: 'Material de Divulgação', url: '/dashboard/material-divulgacao', icon: QrCode, group: 'Prospecção' },
+        { title: 'Propostas Comerciais', url: '/dashboard/propostas', icon: FileText, group: 'Prospecção' },
+        { title: 'Templates por Nicho', url: '/dashboard/propostas/templates', icon: Palette, group: 'Prospecção' },
         { title: 'Vendedores', url: '/dashboard/salespeople', icon: Users, group: 'Vendedores' },
         { title: 'Pagamentos Vendedores', url: '/dashboard/salespeople/payouts', icon: DollarSign, group: 'Vendedores' },
         { title: 'Relatórios Afiliados', url: '/dashboard/salespeople/affiliate-reports', icon: BarChart3, group: 'Vendedores' },

@@ -317,3 +317,6 @@ verify_jwt = false
 
 [functions.manage-client-subscriptions]
 verify_jwt = false
+
+[functions.proposal-actions]
+verify_jwt = false

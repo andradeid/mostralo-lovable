@@ -81,6 +81,7 @@ const DiagnosticoServicosPage = lazy(() => import("@/pages/public/DiagnosticoSer
 const AboutPage = lazy(() => import("@/pages/public/AboutPage"));
 const GestaoTotalPage = lazy(() => import("@/pages/public/GestaoTotalPage"));
 const Gestao360Page = lazy(() => import("@/pages/public/Gestao360Page"));
+const PublicProposalPage = lazy(() => import("@/pages/public/PublicProposalPage"));
 
 export const publicRoutes = (
   <>
@@ -94,6 +95,9 @@ export const publicRoutes = (
     
     {/* Avaliação de Agendamento */}
     <Route path="/avaliar/:token" element={<LazyRoute><BookingReviewPage /></LazyRoute>} />
+    
+    {/* Proposta Comercial Pública */}
+    <Route path="/proposta/:slug" element={<LazyRoute><PublicProposalPage /></LazyRoute>} />
     
     {/* Landing e Páginas Institucionais */}
     <Route path="/funcionalidades" element={<LazyRoute><FeaturesPage /></LazyRoute>} />

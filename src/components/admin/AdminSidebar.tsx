@@ -625,6 +625,14 @@ export function AdminSidebar() {
           { title: 'Configurações', url: '/dashboard/booking/configuracoes', icon: Settings, group: 'Agendamento' },
           { title: 'Cartões da Equipe', url: '/dashboard/cartoes-equipe', icon: CreditCard, group: 'Agendamento' }
         );
+        
+        // Clube de Assinaturas - módulo premium dentro de booking
+        if (hasModule('client_subscriptions')) {
+          menuItems.push(
+            { title: 'Clube de Assinaturas', url: '/dashboard/booking/assinaturas', icon: CreditCard, group: 'Agendamento' },
+            { title: 'Assinantes', url: '/dashboard/booking/assinantes', icon: Users, group: 'Agendamento' }
+          );
+        }
       }
 
       // Vendas Sugeridas (Upsell/Cross-sell) - verifica módulo

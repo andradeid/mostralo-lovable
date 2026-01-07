@@ -56,6 +56,7 @@ const TutorialsManagementPage = lazy(() => import("@/pages/admin/TutorialsManage
 const ProposalsListPage = lazy(() => import("@/pages/admin/ProposalsListPage"));
 const ProposalBuilderPage = lazy(() => import("@/pages/admin/ProposalBuilderPage"));
 const NicheTemplatesPage = lazy(() => import("@/pages/admin/NicheTemplatesPage"));
+const CompanySettingsPage = lazy(() => import("@/pages/admin/CompanySettingsPage"));
 
 export const masterRoutes = (
   <>
@@ -257,6 +258,13 @@ export const masterRoutes = (
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Aceites de Contratos">
           <LazyRoute><AllContractsAcceptancePage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/company-settings" element={
+      <ProtectedRoute allowedRoles={['master_admin']}>
+        <AdminLayout pageTitle="Configurações da Empresa">
+          <LazyRoute><CompanySettingsPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

@@ -418,6 +418,7 @@ export function AdminSidebar() {
         { title: 'Contas EFI Lojistas', url: '/dashboard/efi-accounts', icon: Building2, group: 'Financeiro' },
         { title: 'Cupons', url: '/dashboard/coupons', icon: Ticket, group: 'Sistema' },
         { title: 'Aceites de Contratos', url: '/dashboard/contract-acceptances', icon: FileText, group: 'Sistema' },
+        { title: 'Config. Empresa', url: '/dashboard/company-settings', icon: Building2, group: 'Sistema' },
         { title: 'Gerenciar Novidades', url: '/dashboard/system-updates', icon: Megaphone, group: 'Sistema' },
         { title: 'Gerenciar Tutoriais', url: '/dashboard/tutorials-management', icon: PlayCircle, group: 'Sistema' },
         { title: 'Banners do Sistema', url: '/dashboard/system-banners', icon: Image, group: 'Sistema' },

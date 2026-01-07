@@ -46,7 +46,7 @@ export default function PatientDetailPage() {
       <div className="flex flex-col items-center justify-center py-12">
         <h2 className="text-xl font-semibold mb-2">Paciente não encontrado</h2>
         <p className="text-muted-foreground mb-4">O paciente solicitado não existe ou foi removido.</p>
-        <Button onClick={() => navigate("/dashboard/odontologia/pacientes")}>
+        <Button onClick={() => navigate("/dashboard/dental/pacientes")}>
           Voltar para a lista
         </Button>
       </div>
@@ -76,7 +76,7 @@ export default function PatientDetailPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard/odontologia/pacientes")}>
+        <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard/dental/pacientes")}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex-1">

@@ -16,7 +16,8 @@ interface Module {
   id: string;
   name: string;
   price: number;
-  included: boolean;
+  key?: string;
+  included?: boolean;
 }
 
 interface Proposal {
@@ -163,7 +164,8 @@ export default function PublicProposalPage() {
     );
   }
 
-  const selectedModules = (proposal.selected_modules as Module[])?.filter(m => m.included) || [];
+  // Todos os módulos no array já são módulos selecionados (não precisam de filtro)
+  const selectedModules = (proposal.selected_modules as Module[]) || [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted py-8 px-4">

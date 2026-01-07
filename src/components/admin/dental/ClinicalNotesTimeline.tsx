@@ -77,9 +77,6 @@ export function ClinicalNotesTimeline({ notes, isLoading }: ClinicalNotesTimelin
                       <Badge variant="outline" className="text-xs mb-1">
                         {config.label}
                       </Badge>
-                      {note.title && (
-                        <h4 className="font-semibold">{note.title}</h4>
-                      )}
                     </div>
                     <div className="flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
                       <Clock className="h-3 w-3" />
@@ -87,21 +84,13 @@ export function ClinicalNotesTimeline({ notes, isLoading }: ClinicalNotesTimelin
                     </div>
                   </div>
 
-                  {/* Tooth info */}
-                  {note.tooth_number && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                      <span>Dente: {note.tooth_number}</span>
-                      {note.surfaces && <span>| Faces: {note.surfaces}</span>}
-                    </div>
-                  )}
-
                   {/* Content */}
                   <p className="text-sm whitespace-pre-wrap">{note.content}</p>
 
                   {/* Professional */}
-                  {note.professional && (
+                  {note.created_by_name && (
                     <p className="text-xs text-muted-foreground mt-2">
-                      Por: {note.professional.name}
+                      Por: {note.created_by_name}
                     </p>
                   )}
                 </div>

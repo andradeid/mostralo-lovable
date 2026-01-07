@@ -62,6 +62,8 @@ const ProfessionalAvailabilityPage = lazy(() => import("@/pages/admin/Profession
 const BookingSettingsPage = lazy(() => import("@/pages/admin/BookingSettingsPage"));
 const BookingReportsPage = lazy(() => import("@/pages/admin/BookingReportsPage"));
 const BookingReviewsPage = lazy(() => import("@/pages/admin/BookingReviewsPage"));
+const ClientSubscriptionPlansPage = lazy(() => import("@/pages/admin/ClientSubscriptionPlansPage"));
+const ClientSubscribersPage = lazy(() => import("@/pages/admin/ClientSubscribersPage"));
 const CrossSellRulesPage = lazy(() => import("@/pages/admin/CrossSellRulesPage"));
 const UpsellCrossSellStatsPage = lazy(() => import("@/pages/admin/UpsellCrossSellStatsPage"));
 const StoreDigitalCardsPage = lazy(() => import("@/pages/store-admin/StoreDigitalCardsPage"));
@@ -549,6 +551,22 @@ export const storeAdminRoutes = (
       <ProtectedRoute allowedRoles={['store_admin']}>
         <AdminLayout pageTitle="Avaliações dos Profissionais">
           <LazyRoute><BookingReviewsPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+
+    {/* Assinaturas de Clientes (Clube de Assinaturas) */}
+    <Route path="/dashboard/assinaturas/planos" element={
+      <ProtectedRoute allowedRoles={['store_admin']}>
+        <AdminLayout pageTitle="Clube de Assinaturas">
+          <LazyRoute><ClientSubscriptionPlansPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/assinaturas/assinantes" element={
+      <ProtectedRoute allowedRoles={['store_admin']}>
+        <AdminLayout pageTitle="Assinantes">
+          <LazyRoute><ClientSubscribersPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

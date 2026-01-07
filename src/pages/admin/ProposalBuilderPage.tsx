@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { addDays, format } from 'date-fns';
+import { ProfessionalWhatsAppValidator, WhatsAppValidationStatus } from '@/components/admin/booking/ProfessionalWhatsAppValidator';
+import { WhatsAppProfilePreview } from '@/components/leads/WhatsAppProfilePreview';
 
 interface Module {
   id: string;
@@ -55,6 +57,14 @@ export default function ProposalBuilderPage() {
   
   const [selectedModuleIds, setSelectedModuleIds] = useState<string[]>([]);
   
+  // WhatsApp validation state
+  const [countryCode, setCountryCode] = useState('+55');
+  const [whatsappStatus, setWhatsappStatus] = useState<WhatsAppValidationStatus>('idle');
+  const [whatsappProfile, setWhatsappProfile] = useState<{
+    pictureUrl: string | null;
+    pushName: string | null;
+  } | null>(null);
+  
   const [pricingData, setPricingData] = useState({
     setup_fee: 0,
     discount_percentage: 0,
@@ -80,6 +90,49 @@ export default function ProposalBuilderPage() {
   });
 
   const createProposal = useCreateProposal();
+
+  // Validar WhatsApp com debounce
+  useEffect(() => {
+    const cleanPhone = clientData.phone.replace(/\D/g, '');
+    const expectedLength = countryCode === '+55' ? 11 : 10;
+    
+    if (cleanPhone.length >= expectedLength) {
+      setWhatsappStatus('validating');
+      const timeoutId = setTimeout(() => {
+        validateWhatsApp(cleanPhone);
+      }, 800);
+      return () => clearTimeout(timeoutId);
+    } else {
+      setWhatsappStatus('idle');
+      setWhatsappProfile(null);
+    }
+  }, [clientData.phone, countryCode]);
+
+  const validateWhatsApp = async (phone: string) => {
+    try {
+      const fullPhone = `${countryCode.replace('+', '')}${phone}`;
+      const { data, error } = await supabase.functions.invoke('validate-whatsapp-number', {
+        body: { phone: fullPhone }
+      });
+
+      if (error) throw error;
+
+      if (data?.valid || data?.exists) {
+        setWhatsappStatus('valid');
+        setWhatsappProfile({
+          pictureUrl: data.profilePictureUrl || null,
+          pushName: data.pushName || null,
+        });
+      } else {
+        setWhatsappStatus('invalid');
+        setWhatsappProfile(null);
+      }
+    } catch (error) {
+      console.error('Erro ao validar WhatsApp:', error);
+      setWhatsappStatus('invalid');
+      setWhatsappProfile(null);
+    }
+  };
 
   // Calcular valores
   const calculations = useMemo(() => {
@@ -287,15 +340,23 @@ export default function ProposalBuilderPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <Phone className="w-4 h-4" />
-                    Telefone/WhatsApp *
-                  </Label>
-                  <Input
-                    value={clientData.phone}
-                    onChange={(e) => setClientData(prev => ({ ...prev, phone: e.target.value }))}
-                    placeholder="(11) 99999-9999"
+                  <ProfessionalWhatsAppValidator
+                    phone={clientData.phone}
+                    countryCode={countryCode}
+                    onPhoneChange={(phone) => setClientData(prev => ({ ...prev, phone }))}
+                    onCountryCodeChange={setCountryCode}
+                    onStatusChange={setWhatsappStatus}
+                    status={whatsappStatus}
                   />
+                  {whatsappStatus === 'valid' && whatsappProfile && (
+                    <WhatsAppProfilePreview
+                      profilePicture={whatsappProfile.pictureUrl}
+                      pushName={whatsappProfile.pushName}
+                      formattedNumber={clientData.phone}
+                      formName={clientData.name}
+                      className="mt-3"
+                    />
+                  )}
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

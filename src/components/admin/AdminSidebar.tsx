@@ -629,7 +629,8 @@ export function AdminSidebar() {
         // Clube de Assinaturas - módulo premium dentro de booking
         if (hasModule('client_subscriptions')) {
           menuItems.push(
-            { title: 'Clube de Assinaturas', url: '/dashboard/assinaturas/planos', icon: CreditCard, group: 'Agendamento' },
+            { title: 'Clube de Assinaturas', url: '/dashboard/assinaturas', icon: CreditCard, group: 'Agendamento' },
+            { title: 'Planos', url: '/dashboard/assinaturas/planos', icon: Package, group: 'Agendamento' },
             { title: 'Assinantes', url: '/dashboard/assinaturas/assinantes', icon: Users, group: 'Agendamento' }
           );
         }

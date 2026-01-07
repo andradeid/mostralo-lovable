@@ -17,6 +17,7 @@ import { PatientRecordForm } from "@/components/admin/dental/PatientRecordForm";
 import { OdontogramViewer } from "@/components/admin/dental/OdontogramViewer";
 import { GenerateDocumentDialog } from "@/components/admin/dental/GenerateDocumentDialog";
 import { PatientDocumentsList } from "@/components/admin/dental/PatientDocumentsList";
+import { PatientFormDialog } from "@/components/admin/dental/PatientFormDialog";
 import { format, parseISO, differenceInYears } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
@@ -25,11 +26,12 @@ export default function PatientDetailPage() {
   const { patientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
   const { storeId } = useStoreAccess();
-  const { data: patient, isLoading: patientLoading } = usePatient(patientId ?? null);
+  const { data: patient, isLoading: patientLoading, refetch: refetchPatient } = usePatient(patientId ?? null);
   const { record, isLoading: recordLoading } = usePatientRecord(patientId ?? null);
   const { notes, isLoading: notesLoading, createNote } = useClinicalNotes(patientId ?? null);
   const [isNoteFormOpen, setIsNoteFormOpen] = useState(false);
   const [isDocumentDialogOpen, setIsDocumentDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   if (patientLoading) {
     return (
@@ -88,7 +90,7 @@ export default function PatientDetailPage() {
           <h1 className="text-2xl font-bold tracking-tight">{patient.name}</h1>
           <p className="text-muted-foreground">Prontuário do paciente</p>
         </div>
-        <Button variant="outline" className="gap-2">
+        <Button variant="outline" className="gap-2" onClick={() => setIsEditDialogOpen(true)}>
           <Edit className="h-4 w-4" />
           Editar
         </Button>
@@ -228,6 +230,17 @@ export default function PatientDetailPage() {
         onOpenChange={setIsDocumentDialogOpen}
         patient={{ ...patient, id: patientId ?? "" }}
         storeId={storeId ?? ""}
+      />
+
+      {/* Edit Patient Dialog */}
+      <PatientFormDialog
+        open={isEditDialogOpen}
+        onOpenChange={(open) => {
+          setIsEditDialogOpen(open);
+          if (!open) refetchPatient();
+        }}
+        patient={patient}
+        storeId={storeId}
       />
     </div>
   );

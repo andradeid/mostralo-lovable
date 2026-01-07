@@ -33,7 +33,7 @@ import { usePatients, Patient } from "@/hooks/dental/usePatients";
 import { Loader2 } from "lucide-react";
 import { PatientPhotoUpload } from "./PatientPhotoUpload";
 import { PatientWhatsAppValidator, WhatsAppValidationStatus } from "./PatientWhatsAppValidator";
-import { supabase } from "@/integrations/supabase/client";
+import { formatBrazilianPhone } from "@/lib/utils";
 
 const patientFormSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
@@ -114,10 +114,15 @@ export function PatientFormDialog({ open, onOpenChange, patient, storeId }: Pati
 
   useEffect(() => {
     if (patient) {
+      // Formatar telefone ao carregar dados do paciente
+      const formattedPhone = patient.phone 
+        ? formatBrazilianPhone(patient.phone.replace(/\D/g, ''))
+        : "";
+      
       form.reset({
         name: patient.name,
         email: patient.email ?? "",
-        phone: patient.phone ?? "",
+        phone: formattedPhone,
         phone_secondary: patient.phone_secondary ?? "",
         cpf: patient.cpf ?? "",
         rg: patient.rg ?? "",
@@ -260,38 +265,37 @@ export function PatientFormDialog({ open, onOpenChange, patient, storeId }: Pati
                     )}
                   />
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="phone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <PatientWhatsAppValidator
-                            phone={field.value || ""}
-                            countryCode={countryCode}
-                            onPhoneChange={field.onChange}
-                            onCountryCodeChange={setCountryCode}
-                            onStatusChange={setWhatsappStatus}
-                            status={whatsappStatus}
-                          />
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="phone_secondary"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Telefone Secundário</FormLabel>
-                          <FormControl>
-                            <Input placeholder="(00) 00000-0000" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <PatientWhatsAppValidator
+                          phone={field.value || ""}
+                          countryCode={countryCode}
+                          onPhoneChange={field.onChange}
+                          onCountryCodeChange={setCountryCode}
+                          onStatusChange={setWhatsappStatus}
+                          status={whatsappStatus}
+                        />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="phone_secondary"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Telefone Secundário</FormLabel>
+                        <FormControl>
+                          <Input placeholder="(00) 00000-0000" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <FormField
                     control={form.control}

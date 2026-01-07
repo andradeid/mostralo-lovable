@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,10 +7,10 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, FileText, Check, ExternalLink, Shield, Calendar, Globe, Monitor, Search, Store, User } from 'lucide-react';
+import { Loader2, FileText, Check, ExternalLink, Shield, Calendar, Globe, Monitor, Search, Store, User, Building2, Settings } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import ContractorInfoCard from '@/components/admin/ContractorInfoCard';
+import { CompanyInfoEditor } from '@/components/shared/CompanyInfoEditor';
 
 interface MerchantAcceptance {
   id: string;
@@ -172,8 +173,29 @@ const AllContractsAcceptancePage = () => {
 
   return (
     <div className="space-y-6">
-      {/* Dados da Contratada */}
-      <ContractorInfoCard />
+      {/* Dados da Contratada - versão compacta com link */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Building2 className="h-5 w-5 text-primary" />
+              <div>
+                <CardTitle className="text-base">Dados da Contratada</CardTitle>
+                <CardDescription>Mostralo Tecnologia LTDA</CardDescription>
+              </div>
+            </div>
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/dashboard/company-settings">
+                <Settings className="h-4 w-4 mr-2" />
+                Gerenciar
+              </Link>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <CompanyInfoEditor mode="readonly" />
+        </CardContent>
+      </Card>
 
       <div>
         <h1 className="text-2xl font-bold">Aceites de Contratos</h1>

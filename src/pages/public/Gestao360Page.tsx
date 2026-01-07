@@ -5,6 +5,7 @@ import { LandingHeader } from "@/components/landing/LandingHeader";
 import { DashboardFooter } from "@/components/admin/DashboardFooter";
 import { Hero360 } from "@/components/gestao-360/Hero360";
 import { PilaresValor } from "@/components/gestao-360/PilaresValor";
+import { SubscriptionClubSection } from "@/components/landing/SubscriptionClubSection";
 import { OrigemSection } from "@/components/gestao-360/OrigemSection";
 import { TestimonialsNichos } from "@/components/gestao-360/TestimonialsNichos";
 import { TecnologiaSection } from "@/components/gestao-360/TecnologiaSection";
@@ -37,6 +38,9 @@ export default function Gestao360Page() {
 
         {/* OS 4 PILARES DE VALOR */}
         <PilaresValor />
+
+        {/* NOVO! Clube de Assinaturas */}
+        <SubscriptionClubSection />
 
         {/* ORIGEM - Nascida no Varejo */}
         <OrigemSection />

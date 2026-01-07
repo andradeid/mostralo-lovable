@@ -1639,6 +1639,13 @@ const SignUp = () => {
             acceptances={contractAcceptances}
             onAcceptancesChange={setContractAcceptances}
             companyName={formData.companyName}
+            companyDocument={formData.companyDocument}
+            representanteName={formData.fullName}
+            street={formData.street}
+            number={formData.number}
+            complement={formData.complement}
+            city={formData.city}
+            state={formData.state}
           />
         );
 

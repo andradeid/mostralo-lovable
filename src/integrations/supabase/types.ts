@@ -1565,6 +1565,30 @@ export type Database = {
           },
         ]
       }
+      company_settings: {
+        Row: {
+          id: string
+          key: string
+          updated_at: string | null
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          id?: string
+          key: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          id?: string
+          key?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
       coupon_usage: {
         Row: {
           coupon_id: string
@@ -4646,6 +4670,7 @@ export type Database = {
           pix_qrcode_base64: string | null
           pix_txid: string | null
           plan_id: string | null
+          proposal_id: string | null
           referred_by_salesperson_id: string | null
           rejection_reason: string | null
           status: string
@@ -4677,6 +4702,7 @@ export type Database = {
           pix_qrcode_base64?: string | null
           pix_txid?: string | null
           plan_id?: string | null
+          proposal_id?: string | null
           referred_by_salesperson_id?: string | null
           rejection_reason?: string | null
           status?: string
@@ -4708,6 +4734,7 @@ export type Database = {
           pix_qrcode_base64?: string | null
           pix_txid?: string | null
           plan_id?: string | null
+          proposal_id?: string | null
           referred_by_salesperson_id?: string | null
           rejection_reason?: string | null
           status?: string
@@ -4728,6 +4755,13 @@ export type Database = {
             columns: ["plan_id"]
             isOneToOne: false
             referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_approvals_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_proposals"
             referencedColumns: ["id"]
           },
           {

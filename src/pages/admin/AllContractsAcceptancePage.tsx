@@ -9,6 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, FileText, Check, ExternalLink, Shield, Calendar, Globe, Monitor, Search, Store, User } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import ContractorInfoCard from '@/components/admin/ContractorInfoCard';
 
 interface MerchantAcceptance {
   id: string;
@@ -171,6 +172,9 @@ const AllContractsAcceptancePage = () => {
 
   return (
     <div className="space-y-6">
+      {/* Dados da Contratada */}
+      <ContractorInfoCard />
+
       <div>
         <h1 className="text-2xl font-bold">Aceites de Contratos</h1>
         <p className="text-muted-foreground">

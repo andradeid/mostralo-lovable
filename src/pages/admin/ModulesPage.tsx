@@ -12,7 +12,7 @@ import {
   Truck, Users, Printer, Tag, Megaphone, Calendar, ExternalLink, 
   Image, Search, Filter, CheckCircle, XCircle, Sparkles, Shield, Zap,
   Utensils, Settings2, Monitor, Wallet, Code, QrCode, MessageSquare, Target, Tablet,
-  DollarSign, TrendingUp, AlertTriangle, Link2
+  DollarSign, TrendingUp, AlertTriangle, Link2, FileText, Layers
 } from 'lucide-react';
 
 // Mapeamento de ícones string -> componente
@@ -252,16 +252,25 @@ const ModulesPage = () => {
             Visualize todos os módulos disponíveis no sistema
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <Link to="/dashboard/propostas/nova">
+            <Button>
+              <FileText className="w-4 h-4 mr-2" />
+              Criar Proposta
+            </Button>
+          </Link>
+          <Link to="/dashboard/propostas/templates">
+            <Button variant="outline">
+              <Layers className="w-4 h-4 mr-2" />
+              Templates por Nicho
+            </Button>
+          </Link>
           <Link to="/dashboard/modulos/gerenciar-acesso">
             <Button variant="outline">
               <Settings2 className="w-4 h-4 mr-2" />
-              Gerenciar Acesso por Loja
+              Gerenciar Acesso
             </Button>
           </Link>
-          <Badge variant="secondary" className="text-base px-4 py-2 w-fit">
-            {modules.length} módulos
-          </Badge>
         </div>
       </div>
 

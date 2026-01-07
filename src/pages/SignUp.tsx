@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from '@/hooks/use-toast';
 import { usePageSEO } from '@/hooks/useSEO';
-import { Loader2, Store, ArrowLeft, Check, Info, Gift, Search, Building2, MapPin, Phone, Tag, X, AlertTriangle, Shield } from 'lucide-react';
+import { Loader2, Store, ArrowLeft, Check, Info, Gift, Search, Building2, MapPin, Phone, Tag, X, AlertTriangle, Shield, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -169,6 +169,17 @@ const SignUp = () => {
     };
   }, []);
 
+  // Estado para dados da proposta (quando vindo de aceite de proposta)
+  const [proposalData, setProposalData] = useState<{
+    proposalId: string | null;
+    clientName: string | null;
+    clientPhone: string | null;
+    clientEmail: string | null;
+    clientCompany: string | null;
+    finalPrice: number | null;
+    modules: Array<{ id: string; name: string; price: number }>;
+  } | null>(null);
+
   // Estado para origem do diagnóstico
   const [diagnosticOrigin, setDiagnosticOrigin] = useState<{
     from: string | null;
@@ -176,10 +187,50 @@ const SignUp = () => {
     level: string | null;
   }>({ from: null, type: null, level: null });
 
-  // 🎯 Validar código de referência e cupom da URL
+  // 🎯 Validar código de referência, cupom e dados de proposta da URL
   useEffect(() => {
     const validateReferralAndCoupon = async () => {
       const params = new URLSearchParams(window.location.search);
+      
+      // Verificar origem da proposta
+      const fromProposal = params.get('from');
+      if (fromProposal === 'proposal') {
+        const proposalId = params.get('proposal_id');
+        const clientName = params.get('client_name');
+        const clientPhone = params.get('client_phone');
+        const clientEmail = params.get('client_email');
+        const clientCompany = params.get('client_company');
+        const finalPrice = params.get('final_price');
+        const modulesJson = params.get('modules');
+        
+        let modules: Array<{ id: string; name: string; price: number }> = [];
+        if (modulesJson) {
+          try {
+            modules = JSON.parse(decodeURIComponent(modulesJson));
+          } catch (e) {
+            console.error('Erro ao parsear módulos:', e);
+          }
+        }
+        
+        setProposalData({
+          proposalId,
+          clientName,
+          clientPhone,
+          clientEmail,
+          clientCompany,
+          finalPrice: finalPrice ? parseFloat(finalPrice) : null,
+          modules,
+        });
+        
+        // Pré-preencher formulário com dados da proposta
+        setFormData(prev => ({
+          ...prev,
+          fullName: clientName || '',
+          phone: clientPhone || '',
+          email: clientEmail || '',
+          companyName: clientCompany || '',
+        }));
+      }
       
       // Verificar origem do diagnóstico
       const fromDiagnostic = params.get('from');
@@ -1066,6 +1117,24 @@ const SignUp = () => {
       case 1:
         return (
           <div className="space-y-4 relative">
+            {/* Alerta de proposta aceita */}
+            {proposalData && (
+              <Alert className="bg-green-50 border-green-300 dark:bg-green-950/30 dark:border-green-800">
+                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <AlertDescription className="text-green-800 dark:text-green-300">
+                  <p className="font-semibold">🎉 Proposta aceita!</p>
+                  <p className="text-sm">
+                    Complete seu cadastro para ativar os {proposalData.modules.length} módulo(s) selecionado(s).
+                    {proposalData.finalPrice && (
+                      <span className="block mt-1 font-medium">
+                        Valor mensal: R$ {proposalData.finalPrice.toFixed(2).replace('.', ',')}
+                      </span>
+                    )}
+                  </p>
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* Alerta de origem do diagnóstico */}
             {diagnosticOrigin.from === 'diagnostic' && (
               <Alert className="bg-green-50 border-green-300 dark:bg-green-950/30 dark:border-green-800">

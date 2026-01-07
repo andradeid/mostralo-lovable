@@ -1,16 +1,57 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, CheckCircle, XCircle, Clock, FileText, Building2, Phone, Mail, Calendar, DollarSign, Package } from "lucide-react";
+import { 
+  Loader2, CheckCircle, XCircle, Clock, FileText, Building2, Phone, Mail, 
+  Calendar, DollarSign, Package, BarChart, Users, Truck, Settings, CreditCard, 
+  ShoppingCart, Receipt, Megaphone, Image, Menu, Wallet, Printer, Utensils,
+  ExternalLink, QrCode, Monitor, Palette, Tag, MessageSquare, Bell, MapPin,
+  Sparkles, LucideIcon
+} from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+
+// Mapa de ícones para módulos
+const moduleIconMap: Record<string, LucideIcon> = {
+  'BarChart': BarChart,
+  'MessageSquare': MessageSquare,
+  'Users': Users,
+  'Truck': Truck,
+  'Settings': Settings,
+  'CreditCard': CreditCard,
+  'ShoppingCart': ShoppingCart,
+  'Receipt': Receipt,
+  'Megaphone': Megaphone,
+  'Clock': Clock,
+  'Calendar': Calendar,
+  'FileText': FileText,
+  'Package': Package,
+  'Image': Image,
+  'Menu': Menu,
+  'Wallet': Wallet,
+  'Printer': Printer,
+  'Utensils': Utensils,
+  'ExternalLink': ExternalLink,
+  'QrCode': QrCode,
+  'Monitor': Monitor,
+  'Palette': Palette,
+  'Tag': Tag,
+  'Bell': Bell,
+  'MapPin': MapPin,
+  'Sparkles': Sparkles,
+};
+
+const getModuleIcon = (iconName: string | null): LucideIcon => {
+  if (!iconName) return Package;
+  return moduleIconMap[iconName] || Package;
+};
 
 interface Module {
   id: string;
@@ -46,6 +87,7 @@ interface Proposal {
 
 export default function PublicProposalPage() {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const [proposal, setProposal] = useState<Proposal | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,6 +98,7 @@ export default function PublicProposalPage() {
   const [contractAccepted, setContractAccepted] = useState(false);
   const [showAcceptModal, setShowAcceptModal] = useState(false);
   const [moduleDescriptions, setModuleDescriptions] = useState<Record<string, string>>({});
+  const [moduleIcons, setModuleIcons] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (slug) {
@@ -63,9 +106,9 @@ export default function PublicProposalPage() {
     }
   }, [slug]);
 
-  // Buscar descrições dos módulos quando a proposta carregar
+  // Buscar descrições e ícones dos módulos quando a proposta carregar
   useEffect(() => {
-    const fetchModuleDescriptions = async () => {
+    const fetchModuleData = async () => {
       const modules = proposal?.selected_modules as Module[];
       if (!modules || modules.length === 0) return;
 
@@ -73,20 +116,23 @@ export default function PublicProposalPage() {
       
       const { data, error } = await supabase
         .from('modules')
-        .select('id, description')
+        .select('id, description, icon')
         .in('id', moduleIds);
 
       if (data && !error) {
         const descriptions: Record<string, string> = {};
+        const icons: Record<string, string> = {};
         data.forEach(m => {
           if (m.description) descriptions[m.id] = m.description;
+          if (m.icon) icons[m.id] = m.icon;
         });
         setModuleDescriptions(descriptions);
+        setModuleIcons(icons);
       }
     };
 
     if (proposal?.selected_modules) {
-      fetchModuleDescriptions();
+      fetchModuleData();
     }
   }, [proposal]);
 
@@ -127,9 +173,32 @@ export default function PublicProposalPage() {
       if (acceptError) throw acceptError;
       if (data.error) throw new Error(data.error);
 
-      toast.success("Proposta aceita com sucesso!");
+      toast.success("Proposta aceita! Vamos criar sua conta...");
       setShowAcceptModal(false);
-      fetchProposal();
+      
+      // Preparar dados para signup
+      const selectedModulesJson = encodeURIComponent(
+        JSON.stringify(selectedModules.map(m => ({
+          id: m.id,
+          name: m.name,
+          price: m.price
+        })))
+      );
+      
+      // Redirecionar para página de cadastro com dados da proposta
+      const signupParams = new URLSearchParams({
+        from: 'proposal',
+        proposal_id: proposal?.id || '',
+        client_name: proposal?.client_name || '',
+        client_phone: proposal?.client_phone || '',
+        client_email: proposal?.client_email || '',
+        client_company: proposal?.client_company || '',
+        final_price: String(proposal?.final_monthly_price || 0),
+        modules: selectedModulesJson
+      });
+      
+      navigate(`/signup?${signupParams.toString()}`);
+      
     } catch (err: any) {
       toast.error(err.message || "Erro ao aceitar proposta");
     } finally {
@@ -299,23 +368,31 @@ export default function PublicProposalPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {selectedModules.map((module) => (
-                <div key={module.id} className="border-b last:border-0 pb-3 last:pb-0">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1 pr-3">
-                      <span className="font-medium">{module.name}</span>
-                      {moduleDescriptions[module.id] && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {moduleDescriptions[module.id]}
-                        </p>
-                      )}
+              {selectedModules.map((module) => {
+                const IconComponent = getModuleIcon(moduleIcons[module.id] || null);
+                return (
+                  <div key={module.id} className="border-b last:border-0 pb-4 last:pb-0">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+                        <IconComponent className="w-5 h-5 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start gap-2">
+                          <span className="font-medium">{module.name}</span>
+                          <Badge variant="outline" className="shrink-0">
+                            {formatCurrency(module.price)}/mês
+                          </Badge>
+                        </div>
+                        {moduleDescriptions[module.id] && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {moduleDescriptions[module.id]}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <Badge variant="outline" className="shrink-0">
-                      {formatCurrency(module.price)}/mês
-                    </Badge>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>

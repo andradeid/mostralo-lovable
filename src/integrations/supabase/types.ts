@@ -1410,6 +1410,158 @@ export type Database = {
           },
         ]
       }
+      commercial_proposals: {
+        Row: {
+          accepted_at: string | null
+          billing_cycle: string | null
+          client_company: string | null
+          client_email: string | null
+          client_name: string
+          client_phone: string
+          contract_accepted: boolean | null
+          created_at: string | null
+          created_by: string | null
+          discount_amount: number | null
+          discount_percentage: number | null
+          final_monthly_price: number
+          id: string
+          internal_notes: string | null
+          modules_total: number
+          niche_id: string | null
+          payment_approval_id: string | null
+          proposal_number: string
+          rejected_at: string | null
+          rejection_reason: string | null
+          salesperson_id: string | null
+          selected_modules: Json
+          sent_at: string | null
+          setup_fee: number | null
+          signature_data: Json | null
+          slug: string
+          status: string | null
+          store_id: string | null
+          updated_at: string | null
+          valid_until: string | null
+          viewed_at: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          billing_cycle?: string | null
+          client_company?: string | null
+          client_email?: string | null
+          client_name: string
+          client_phone: string
+          contract_accepted?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          discount_amount?: number | null
+          discount_percentage?: number | null
+          final_monthly_price?: number
+          id?: string
+          internal_notes?: string | null
+          modules_total?: number
+          niche_id?: string | null
+          payment_approval_id?: string | null
+          proposal_number: string
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          salesperson_id?: string | null
+          selected_modules?: Json
+          sent_at?: string | null
+          setup_fee?: number | null
+          signature_data?: Json | null
+          slug: string
+          status?: string | null
+          store_id?: string | null
+          updated_at?: string | null
+          valid_until?: string | null
+          viewed_at?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          billing_cycle?: string | null
+          client_company?: string | null
+          client_email?: string | null
+          client_name?: string
+          client_phone?: string
+          contract_accepted?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          discount_amount?: number | null
+          discount_percentage?: number | null
+          final_monthly_price?: number
+          id?: string
+          internal_notes?: string | null
+          modules_total?: number
+          niche_id?: string | null
+          payment_approval_id?: string | null
+          proposal_number?: string
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          salesperson_id?: string | null
+          selected_modules?: Json
+          sent_at?: string | null
+          setup_fee?: number | null
+          signature_data?: Json | null
+          slug?: string
+          status?: string | null
+          store_id?: string | null
+          updated_at?: string | null
+          valid_until?: string | null
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commercial_proposals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_proposals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "unified_users_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_proposals_niche_id_fkey"
+            columns: ["niche_id"]
+            isOneToOne: false
+            referencedRelation: "niches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_proposals_payment_approval_id_fkey"
+            columns: ["payment_approval_id"]
+            isOneToOne: false
+            referencedRelation: "payment_approvals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_proposals_salesperson_id_fkey"
+            columns: ["salesperson_id"]
+            isOneToOne: false
+            referencedRelation: "salespeople"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_proposals_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commercial_proposals_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coupon_usage: {
         Row: {
           coupon_id: string
@@ -3974,6 +4126,88 @@ export type Database = {
         }
         Relationships: []
       }
+      niche_module_templates: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_default: boolean | null
+          module_ids: string[]
+          name: string
+          niche_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_default?: boolean | null
+          module_ids?: string[]
+          name: string
+          niche_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_default?: boolean | null
+          module_ids?: string[]
+          name?: string
+          niche_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "niche_module_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "niche_module_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "unified_users_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "niche_module_templates_niche_id_fkey"
+            columns: ["niche_id"]
+            isOneToOne: false
+            referencedRelation: "niches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      niches: {
+        Row: {
+          created_at: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+        }
+        Relationships: []
+      }
       order_addons: {
         Row: {
           addon_id: string | null
@@ -5635,6 +5869,50 @@ export type Database = {
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      proposal_activity_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_type: string
+          created_at: string | null
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          proposal_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_type: string
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          proposal_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_type?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          proposal_id?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposal_activity_log_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_proposals"
             referencedColumns: ["id"]
           },
         ]
@@ -10275,6 +10553,8 @@ export type Database = {
         Args: { input_store_id: string; product_name: string }
         Returns: string
       }
+      generate_proposal_number: { Args: never; Returns: string }
+      generate_proposal_slug: { Args: never; Returns: string }
       get_current_user_type: {
         Args: never
         Returns: Database["public"]["Enums"]["user_type"]

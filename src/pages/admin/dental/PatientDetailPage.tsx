@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Edit, Phone, Mail, Calendar, MapPin, Plus } from "lucide-react";
+import { ArrowLeft, Edit, Phone, Mail, Calendar, MapPin, Plus, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,8 @@ import { ClinicalNotesTimeline } from "@/components/admin/dental/ClinicalNotesTi
 import { ClinicalNoteFormDialog } from "@/components/admin/dental/ClinicalNoteFormDialog";
 import { PatientRecordForm } from "@/components/admin/dental/PatientRecordForm";
 import { OdontogramViewer } from "@/components/admin/dental/OdontogramViewer";
+import { GenerateDocumentDialog } from "@/components/admin/dental/GenerateDocumentDialog";
+import { PatientDocumentsList } from "@/components/admin/dental/PatientDocumentsList";
 import { format, parseISO, differenceInYears } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
@@ -26,8 +28,8 @@ export default function PatientDetailPage() {
   const { data: patient, isLoading: patientLoading } = usePatient(patientId ?? null);
   const { record, isLoading: recordLoading } = usePatientRecord(patientId ?? null);
   const { notes, isLoading: notesLoading, createNote } = useClinicalNotes(patientId ?? null);
-  
   const [isNoteFormOpen, setIsNoteFormOpen] = useState(false);
+  const [isDocumentDialogOpen, setIsDocumentDialogOpen] = useState(false);
 
   if (patientLoading) {
     return (
@@ -163,13 +165,13 @@ export default function PatientDetailPage() {
           <PatientHealthCard record={record} isLoading={recordLoading} />
         </div>
 
-        {/* Main Content */}
         <div className="lg:col-span-2">
           <Tabs defaultValue="notes" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="notes">Evoluções</TabsTrigger>
               <TabsTrigger value="health">Saúde</TabsTrigger>
               <TabsTrigger value="odontogram">Odontograma</TabsTrigger>
+              <TabsTrigger value="documents">Documentos</TabsTrigger>
             </TabsList>
 
             <TabsContent value="notes" className="mt-6">
@@ -191,6 +193,18 @@ export default function PatientDetailPage() {
             <TabsContent value="odontogram" className="mt-6">
               <OdontogramViewer patientId={patientId ?? ""} storeId={storeId ?? ""} />
             </TabsContent>
+
+            <TabsContent value="documents" className="mt-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Documentos</h3>
+                <Button size="sm" className="gap-2" onClick={() => setIsDocumentDialogOpen(true)}>
+                  <FileText className="h-4 w-4" />
+                  Gerar Documento
+                </Button>
+              </div>
+              
+              <PatientDocumentsList patientId={patientId ?? ""} />
+            </TabsContent>
           </Tabs>
         </div>
       </div>
@@ -205,6 +219,14 @@ export default function PatientDetailPage() {
           setIsNoteFormOpen(false);
         }}
         isSubmitting={createNote.isPending}
+      />
+
+      {/* Generate Document Dialog */}
+      <GenerateDocumentDialog 
+        open={isDocumentDialogOpen}
+        onOpenChange={setIsDocumentDialogOpen}
+        patient={{ ...patient, id: patientId ?? "" }}
+        storeId={storeId ?? ""}
       />
     </div>
   );

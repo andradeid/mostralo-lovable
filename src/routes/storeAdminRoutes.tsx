@@ -71,6 +71,10 @@ const StoreDigitalCardsPage = lazy(() => import("@/pages/store-admin/StoreDigita
 const StoreDigitalCardEditorPage = lazy(() => import("@/pages/store-admin/StoreDigitalCardEditorPage"));
 const TutorialsPage = lazy(() => import("@/pages/store-admin/TutorialsPage"));
 
+// Dental Module Pages
+const PatientsPage = lazy(() => import("@/pages/admin/dental/PatientsPage"));
+const PatientDetailPage = lazy(() => import("@/pages/admin/dental/PatientDetailPage"));
+
 export const storeAdminRoutes = (
   <>
     {/* Dashboard Principal */}
@@ -614,6 +618,22 @@ export const storeAdminRoutes = (
       <ProtectedRoute allowedRoles={['store_admin', 'master_admin', 'attendant']}>
         <AdminLayout pageTitle="Tutoriais">
           <LazyRoute><TutorialsPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+
+    {/* Módulo Odontológico */}
+    <Route path="/dashboard/dental/pacientes" element={
+      <ProtectedRoute allowedRoles={['store_admin']}>
+        <AdminLayout pageTitle="Pacientes">
+          <LazyRoute><PatientsPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/dental/pacientes/:patientId" element={
+      <ProtectedRoute allowedRoles={['store_admin']}>
+        <AdminLayout pageTitle="Detalhes do Paciente">
+          <LazyRoute><PatientDetailPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

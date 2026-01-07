@@ -17,7 +17,8 @@ import {
   BarChart3,
   ShoppingCart,
   FileText,
-  Check
+  Check,
+  CreditCard
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -164,6 +165,16 @@ const routeSections: RouteSection[] = [
     routes: [
       { path: "/agendar/:storeSlug", name: "Agendamento Online", component: "BookingPage.tsx", roles: ["public"] },
       { path: "/avaliar/:token", name: "Avaliação de Agendamento", component: "BookingReviewPage.tsx", roles: ["public"] },
+    ]
+  },
+  {
+    id: "client-subscriptions",
+    title: "🆕 Clube de Assinaturas",
+    icon: <CreditCard className="h-4 w-4 md:h-5 md:w-5" />,
+    badgeColor: "bg-violet-500",
+    routes: [
+      { path: "/dashboard/assinaturas/planos", name: "Planos de Assinatura", component: "ClientSubscriptionPlansPage.tsx", roles: ["store_admin"] },
+      { path: "/dashboard/assinaturas/assinantes", name: "Gestão de Assinantes", component: "ClientSubscribersPage.tsx", roles: ["store_admin"] },
     ]
   },
   {

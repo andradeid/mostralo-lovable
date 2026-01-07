@@ -63,33 +63,38 @@ export function ClinicalNotesTimeline({ notes, isLoading }: ClinicalNotesTimelin
 
         return (
           <Card key={note.id} className="relative">
-            <CardContent className="p-4">
-              <div className="flex gap-4">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex gap-3 sm:gap-4">
                 {/* Icon */}
-                <div className={`flex-shrink-0 h-10 w-10 rounded-full ${config.color} flex items-center justify-center`}>
-                  <Icon className="h-5 w-5 text-white" />
+                <div className={`flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10 rounded-full ${config.color} flex items-center justify-center`}>
+                  <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2 mb-1">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-2 mb-1">
                     <div>
-                      <Badge variant="outline" className="text-xs mb-1">
+                      <Badge variant="outline" className="text-[10px] sm:text-xs mb-1">
                         {config.label}
                       </Badge>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
-                      <Clock className="h-3 w-3" />
-                      {format(parseISO(note.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                    <div className="flex items-center gap-1 text-[10px] sm:text-xs text-muted-foreground whitespace-nowrap">
+                      <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                      <span className="hidden sm:inline">
+                        {format(parseISO(note.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                      </span>
+                      <span className="sm:hidden">
+                        {format(parseISO(note.created_at), "dd/MM HH:mm", { locale: ptBR })}
+                      </span>
                     </div>
                   </div>
 
                   {/* Content */}
-                  <p className="text-sm whitespace-pre-wrap">{note.content}</p>
+                  <p className="text-xs sm:text-sm whitespace-pre-wrap">{note.content}</p>
 
                   {/* Professional */}
                   {note.created_by_name && (
-                    <p className="text-xs text-muted-foreground mt-2">
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-2">
                       Por: {note.created_by_name}
                     </p>
                   )}

@@ -67,17 +67,17 @@ export function PatientHealthCard({ record, isLoading }: PatientHealthCardProps)
 
   return (
     <Card className={hasAllergies ? "border-red-200 bg-red-50/50 dark:border-red-900 dark:bg-red-950/20" : ""}>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2">
+      <CardHeader className="pb-2 sm:pb-3">
+        <CardTitle className="text-sm sm:text-base flex items-center gap-2">
           {hasAllergies ? (
-            <AlertTriangle className="h-4 w-4 text-red-500" />
+            <AlertTriangle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-500" />
           ) : (
-            <Heart className="h-4 w-4" />
+            <Heart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           )}
           Alertas de Saúde
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 sm:space-y-4 pt-0">
         {/* Allergies */}
         {hasAllergies && (
           <div>

@@ -126,6 +126,8 @@ export interface BookingSettings {
   review_delay_minutes: number;
   review_expiry_days: number;
   show_public_reviews: boolean;
+  // Exibir planos de assinatura
+  show_subscription_plans: boolean;
   created_at: string;
   updated_at: string;
 }

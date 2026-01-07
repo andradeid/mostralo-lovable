@@ -720,6 +720,7 @@ export type Database = {
           send_reminder_message: boolean | null
           send_satisfaction_survey: boolean | null
           show_public_reviews: boolean | null
+          show_subscription_plans: boolean | null
           slot_interval_minutes: number | null
           store_id: string
           updated_at: string | null
@@ -745,6 +746,7 @@ export type Database = {
           send_reminder_message?: boolean | null
           send_satisfaction_survey?: boolean | null
           show_public_reviews?: boolean | null
+          show_subscription_plans?: boolean | null
           slot_interval_minutes?: number | null
           store_id: string
           updated_at?: string | null
@@ -770,6 +772,7 @@ export type Database = {
           send_reminder_message?: boolean | null
           send_satisfaction_survey?: boolean | null
           show_public_reviews?: boolean | null
+          show_subscription_plans?: boolean | null
           slot_interval_minutes?: number | null
           store_id?: string
           updated_at?: string | null

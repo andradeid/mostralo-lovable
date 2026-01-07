@@ -5,6 +5,7 @@ import { LandingHeader } from "@/components/landing/LandingHeader";
 import { DashboardFooter } from "@/components/admin/DashboardFooter";
 import { GestaoHero } from "@/components/gestao-total/GestaoHero";
 import { PilaresSection } from "@/components/gestao-total/PilaresSection";
+import { SubscriptionClubSection } from "@/components/landing/SubscriptionClubSection";
 import { NichesSection } from "@/components/gestao-total/NichesSection";
 import { ProofSection } from "@/components/gestao-total/ProofSection";
 import { ComparisonSection } from "@/components/gestao-total/ComparisonSection";
@@ -36,6 +37,9 @@ export default function GestaoTotalPage() {
         
         {/* INTERESSE - 4 Pilares */}
         <PilaresSection />
+        
+        {/* NOVO! Clube de Assinaturas */}
+        <SubscriptionClubSection />
         
         {/* DESEJO - Nichos */}
         <NichesSection />

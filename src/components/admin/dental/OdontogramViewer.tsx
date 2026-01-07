@@ -1,11 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToothRecords, TOOTH_CONDITIONS } from "@/hooks/dental/useToothRecords";
+import { usePeriodontalRecords } from "@/hooks/dental/usePeriodontalRecords";
 import { ToothDetailDialog } from "./ToothDetailDialog";
-import { ToothSVG, OdontogramToolbar, GingivalLine } from "./odontogram";
-import { cn } from "@/lib/utils";
+import { ToothSVG, OdontogramToolbar, InteractiveGingivalLine, OdontogramLegend } from "./odontogram";
 import { useToast } from "@/hooks/use-toast";
 
 interface OdontogramViewerProps {
@@ -24,21 +23,33 @@ const FULL_TOOTH_CONDITIONS = ["extraction", "missing", "implant", "crown", "pro
 
 export function OdontogramViewer({ patientId, storeId }: OdontogramViewerProps) {
   const { records, recordsByTooth, isLoading, createRecord, updateRecord, deleteRecord } = useToothRecords(patientId, storeId);
+  const {
+    recordsByToothAndPosition: periodontalRecords,
+    isLoading: periodontalLoading,
+    createOrUpdateRecord: savePeriodontalRecord,
+    deleteRecord: deletePeriodontalRecord,
+  } = usePeriodontalRecords(patientId, storeId);
+  
   const [selectedTooth, setSelectedTooth] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
+  const [periodontalMode, setPeriodontalMode] = useState(false);
   const { toast } = useToast();
 
-  // Atalho ESC para cancelar ferramenta selecionada
+  // Atalho ESC para cancelar ferramenta selecionada ou modo periodontal
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && selectedTool) {
-        setSelectedTool(null);
+      if (e.key === "Escape") {
+        if (periodontalMode) {
+          setPeriodontalMode(false);
+        } else if (selectedTool) {
+          setSelectedTool(null);
+        }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedTool]);
+  }, [selectedTool, periodontalMode]);
 
   // Obter condições por face para um dente específico
   const getFaceConditions = useCallback((toothNumber: number): Record<string, string> => {
@@ -69,7 +80,7 @@ export function OdontogramViewer({ patientId, storeId }: OdontogramViewerProps) 
 
   // Handler para clique em uma face do dente
   const handleFaceClick = async (toothNumber: number, face: string) => {
-    if (!selectedTool) return;
+    if (!selectedTool || periodontalMode) return;
 
     const existingRecord = (recordsByTooth[toothNumber] || []).find(
       (r) => r.face === face
@@ -113,11 +124,63 @@ export function OdontogramViewer({ patientId, storeId }: OdontogramViewerProps) 
 
   // Handler para clique no dente (abre dialog de detalhes)
   const handleToothClick = (toothNumber: number) => {
+    if (periodontalMode) return;
     setSelectedTooth(toothNumber);
     setIsDialogOpen(true);
   };
 
-  if (isLoading) {
+  // Handler para salvar registro periodontal
+  const handleSavePeriodontalRecord = async (
+    toothNumber: number,
+    position: string,
+    data: { pocketDepth: number; recession: number; bleeding: boolean }
+  ) => {
+    try {
+      await savePeriodontalRecord.mutateAsync({
+        patient_id: patientId,
+        store_id: storeId,
+        tooth_number: toothNumber,
+        position,
+        pocket_depth: data.pocketDepth,
+        gingival_recession: data.recession,
+        bleeding: data.bleeding,
+      });
+      toast({
+        title: "Registro periodontal salvo",
+        description: `Dente ${toothNumber} - ${position}: ${data.pocketDepth}mm`,
+      });
+    } catch (error) {
+      console.error("Erro ao salvar registro periodontal:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar o registro periodontal.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handler para deletar registro periodontal
+  const handleDeletePeriodontalRecord = async (recordId: string) => {
+    try {
+      await deletePeriodontalRecord.mutateAsync(recordId);
+      toast({
+        title: "Registro removido",
+        description: "Registro periodontal excluído.",
+      });
+    } catch (error) {
+      console.error("Erro ao deletar registro periodontal:", error);
+    }
+  };
+
+  // Toggle modo periodontal
+  const handleTogglePeriodontalMode = () => {
+    setPeriodontalMode(!periodontalMode);
+    if (!periodontalMode) {
+      setSelectedTool(null); // Limpar ferramenta ao entrar no modo periodontal
+    }
+  };
+
+  if (isLoading || periodontalLoading) {
     return (
       <Card>
         <CardHeader>
@@ -136,9 +199,11 @@ export function OdontogramViewer({ patientId, storeId }: OdontogramViewerProps) 
       <CardHeader className="pb-2">
         <CardTitle className="text-lg">Odontograma</CardTitle>
         <CardDescription className="text-xs">
-          {selectedTool 
-            ? `Clique nas faces dos dentes para aplicar: ${TOOTH_CONDITIONS[selectedTool as keyof typeof TOOTH_CONDITIONS]?.label || selectedTool}`
-            : "Selecione uma ferramenta ou clique em um dente para ver detalhes"
+          {periodontalMode
+            ? "Modo Periodontal: Clique nos pontos da linha gengival para registrar medidas"
+            : selectedTool 
+              ? `Clique nas faces dos dentes para aplicar: ${TOOTH_CONDITIONS[selectedTool as keyof typeof TOOTH_CONDITIONS]?.label || selectedTool}`
+              : "Selecione uma ferramenta ou clique em um dente para ver detalhes"
           }
         </CardDescription>
       </CardHeader>
@@ -147,25 +212,15 @@ export function OdontogramViewer({ patientId, storeId }: OdontogramViewerProps) 
         <OdontogramToolbar
           selectedTool={selectedTool}
           onSelectTool={setSelectedTool}
+          periodontalMode={periodontalMode}
+          onTogglePeriodontalMode={handleTogglePeriodontalMode}
         />
 
-        {/* Legenda compacta */}
-        <div className="flex flex-wrap gap-1">
-          {Object.entries(TOOTH_CONDITIONS).slice(0, 6).map(([key, { label, color }]) => (
-            <Badge
-              key={key}
-              variant="outline"
-              className="gap-1 text-[9px] px-1.5 py-0"
-              style={{ borderColor: color }}
-            >
-              <span
-                className="h-1.5 w-1.5 rounded-full"
-                style={{ backgroundColor: color }}
-              />
-              {label}
-            </Badge>
-          ))}
-        </div>
+        {/* Legenda completa */}
+        <OdontogramLegend
+          showPeriodontal={periodontalMode}
+          defaultOpen={false}
+        />
 
         {/* Odontograma com vista frontal + oclusal */}
         <div className="space-y-2 overflow-x-auto pb-2">
@@ -187,7 +242,7 @@ export function OdontogramViewer({ patientId, storeId }: OdontogramViewerProps) 
                     isUpper={true}
                     faceConditions={getFaceConditions(toothNumber)}
                     fullToothCondition={getFullToothCondition(toothNumber)}
-                    selectedTool={selectedTool}
+                    selectedTool={periodontalMode ? null : selectedTool}
                     onFaceClick={(face) => handleFaceClick(toothNumber, face)}
                     onToothClick={() => handleToothClick(toothNumber)}
                     hasRecords={toothRecords.length > 0}
@@ -197,9 +252,17 @@ export function OdontogramViewer({ patientId, storeId }: OdontogramViewerProps) 
               })}
             </div>
 
-            {/* Linha gengival superior */}
+            {/* Linha gengival superior - interativa */}
             <div className="flex justify-center">
-              <GingivalLine width={ADULT_TEETH.upper.length * 36} className="opacity-60" />
+              <InteractiveGingivalLine
+                teeth={ADULT_TEETH.upper}
+                isUpper={true}
+                isInteractive={periodontalMode}
+                periodontalRecords={periodontalRecords}
+                onSaveRecord={handleSavePeriodontalRecord}
+                onDeleteRecord={handleDeletePeriodontalRecord}
+                className="opacity-70"
+              />
             </div>
           </div>
 
@@ -212,9 +275,17 @@ export function OdontogramViewer({ patientId, storeId }: OdontogramViewerProps) 
 
           {/* ARCADA INFERIOR */}
           <div className="space-y-0">
-            {/* Linha gengival inferior */}
+            {/* Linha gengival inferior - interativa */}
             <div className="flex justify-center">
-              <GingivalLine width={ADULT_TEETH.lower.length * 36} className="opacity-60 rotate-180" />
+              <InteractiveGingivalLine
+                teeth={ADULT_TEETH.lower}
+                isUpper={false}
+                isInteractive={periodontalMode}
+                periodontalRecords={periodontalRecords}
+                onSaveRecord={handleSavePeriodontalRecord}
+                onDeleteRecord={handleDeletePeriodontalRecord}
+                className="opacity-70"
+              />
             </div>
 
             {/* Dentes inferiores: Oclusal + número + vista frontal (raízes baixo) */}
@@ -229,7 +300,7 @@ export function OdontogramViewer({ patientId, storeId }: OdontogramViewerProps) 
                     isUpper={false}
                     faceConditions={getFaceConditions(toothNumber)}
                     fullToothCondition={getFullToothCondition(toothNumber)}
-                    selectedTool={selectedTool}
+                    selectedTool={periodontalMode ? null : selectedTool}
                     onFaceClick={(face) => handleFaceClick(toothNumber, face)}
                     onToothClick={() => handleToothClick(toothNumber)}
                     hasRecords={toothRecords.length > 0}
@@ -246,7 +317,7 @@ export function OdontogramViewer({ patientId, storeId }: OdontogramViewerProps) 
         </div>
 
         {/* Instrução */}
-        {selectedTool && (
+        {(selectedTool || periodontalMode) && (
           <p className="text-[10px] text-muted-foreground text-center">
             Pressione <kbd className="px-1 py-0.5 bg-muted rounded text-[9px] font-mono border">ESC</kbd> para cancelar
           </p>

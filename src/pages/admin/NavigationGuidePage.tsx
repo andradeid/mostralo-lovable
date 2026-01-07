@@ -283,6 +283,8 @@ const routeSections: RouteSection[] = [
       { path: "/dashboard/settings", name: "Configurações da Loja", component: "StoreSettingsPage.tsx", roles: ["store_admin"] },
       { path: "/dashboard/profile", name: "Perfil", component: "ProfilePage.tsx", roles: ["store_admin", "attendant"] },
       { path: "/dashboard/tutoriais", name: "Central de Tutoriais", component: "TutorialsPage.tsx", roles: ["store_admin"] },
+      { path: "/dashboard/assinaturas/planos", name: "🆕 Planos de Assinatura", component: "ClientSubscriptionPlansPage.tsx", roles: ["store_admin"] },
+      { path: "/dashboard/assinaturas/assinantes", name: "🆕 Gestão de Assinantes", component: "ClientSubscribersPage.tsx", roles: ["store_admin"] },
     ]
   },
   {

@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   FileText, Plus, Search, Eye, Copy, Trash2, Send,
-  Clock, CheckCircle, XCircle, AlertCircle, Filter
+  Clock, CheckCircle, XCircle, AlertCircle, Filter, HelpCircle
 } from 'lucide-react';
 import { useCommercialProposals, useDeleteProposal } from '@/hooks/useCommercialProposals';
 import { format } from 'date-fns';
@@ -23,6 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { ProposalsTutorial, useProposalsTutorial } from '@/components/proposals/ProposalsTutorial';
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
   draft: { label: 'Rascunho', color: 'bg-gray-500/10 text-gray-600 border-gray-500/20', icon: Clock },
@@ -41,6 +42,8 @@ export default function ProposalsListPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const { showTutorial, completeTutorial, openTutorial } = useProposalsTutorial();
 
   const { data: proposals = [], isLoading } = useCommercialProposals({ 
     status: statusFilter !== 'all' ? statusFilter : undefined 
@@ -91,16 +94,30 @@ export default function ProposalsListPage() {
 
   return (
     <div className="space-y-6">
+      {/* Tutorial */}
+      <ProposalsTutorial open={showTutorial} onComplete={completeTutorial} />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <FileText className="w-7 h-7 text-primary" />
-            Propostas Comerciais
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Gerencie suas propostas personalizadas
-          </p>
+        <div className="flex items-center gap-3">
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <FileText className="w-7 h-7 text-primary" />
+              Propostas Comerciais
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Gerencie suas propostas personalizadas
+            </p>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={openTutorial}
+            className="text-muted-foreground hover:text-primary"
+            title="Ver instruções"
+          >
+            <HelpCircle className="w-5 h-5" />
+          </Button>
         </div>
         <Link to="/dashboard/propostas/nova">
           <Button>

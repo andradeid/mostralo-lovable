@@ -138,6 +138,8 @@ export function GenerateDocumentDialog({
   const handleSave = async () => {
     setIsSubmitting(true);
     try {
+      const { data: { user } } = await (await import("@/integrations/supabase/client")).supabase.auth.getUser();
+      
       await createDocument.mutateAsync({
         patient_id: patient.id,
         store_id: storeId,
@@ -145,6 +147,7 @@ export function GenerateDocumentDialog({
         type: selectedType,
         title: documentTitle,
         content: previewContent,
+        generated_by: user?.id || null,
         professional_name: professional?.name || null,
         professional_registration: professional?.registration || null,
       });

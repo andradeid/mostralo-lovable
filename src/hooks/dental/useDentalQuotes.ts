@@ -75,7 +75,6 @@ export type DentalQuoteItemFormData = {
   notes?: string;
   sort_order?: number;
 };
-
 // Status do orçamento
 export const QUOTE_STATUS = {
   draft: { label: "Rascunho", color: "secondary" },
@@ -173,6 +172,119 @@ export function useDentalQuotes(patientId: string | null) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dental-quotes', patientId] });
+      toast({
+        title: "Orçamento removido",
+        description: "O orçamento foi removido com sucesso.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao remover orçamento",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  return {
+    quotes: quotesQuery.data || [],
+    isLoading: quotesQuery.isLoading,
+    error: quotesQuery.error,
+    createQuote,
+    updateQuote,
+    deleteQuote,
+    refetch: quotesQuery.refetch,
+  };
+}
+
+// Hook para listar orçamentos por loja (usado na página de orçamentos)
+export function useDentalQuotesByStore(storeId: string | null) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const quotesQuery = useQuery({
+    queryKey: ['dental-quotes-by-store', storeId],
+    queryFn: async () => {
+      if (!storeId) return [];
+      
+      const { data, error } = await (supabase as any)
+        .from('dental_quotes')
+        .select('*')
+        .eq('store_id', storeId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as DentalQuote[];
+    },
+    enabled: !!storeId,
+  });
+
+  const createQuote = useMutation({
+    mutationFn: async (quoteData: DentalQuoteFormData) => {
+      const { data, error } = await (supabase as any)
+        .from('dental_quotes')
+        .insert(quoteData)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as DentalQuote;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dental-quotes-by-store', storeId] });
+      toast({
+        title: "Orçamento criado",
+        description: "O orçamento foi criado com sucesso.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao criar orçamento",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateQuote = useMutation({
+    mutationFn: async ({ id, ...quoteData }: Partial<DentalQuote> & { id: string }) => {
+      const { data, error } = await (supabase as any)
+        .from('dental_quotes')
+        .update(quoteData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as DentalQuote;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dental-quotes-by-store', storeId] });
+      toast({
+        title: "Orçamento atualizado",
+        description: "O orçamento foi atualizado com sucesso.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao atualizar orçamento",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteQuote = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await (supabase as any)
+        .from('dental_quotes')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dental-quotes-by-store', storeId] });
       toast({
         title: "Orçamento removido",
         description: "O orçamento foi removido com sucesso.",

@@ -229,7 +229,7 @@ export default function PatientsPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => navigate(`/dashboard/odontologia/pacientes/${patient.id}`)}>
+                      <DropdownMenuItem onClick={() => navigate(`/dashboard/dental/pacientes/${patient.id}`)}>
                         <Eye className="h-4 w-4 mr-2" />
                         Ver Detalhes
                       </DropdownMenuItem>

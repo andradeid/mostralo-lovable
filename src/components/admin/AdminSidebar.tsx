@@ -56,7 +56,8 @@ import {
   UtensilsCrossed,
   Phone,
   PlayCircle,
-  Palette
+  Palette,
+  Stethoscope
 } from "lucide-react";
 
 import {
@@ -651,7 +652,11 @@ export function AdminSidebar() {
       // Gestão Odontológica - verifica módulo
       if (hasModule('dental')) {
         menuItems.push(
-          { title: 'Pacientes', url: '/dashboard/dental/pacientes', icon: Users, group: 'Odontologia' }
+          { title: 'Pacientes', url: '/dashboard/dental/pacientes', icon: Users, group: 'Odontologia' },
+          { title: 'Tratamentos', url: '/dashboard/dental/tratamentos', icon: FileText, group: 'Odontologia' },
+          { title: 'Orçamentos', url: '/dashboard/dental/orcamentos', icon: Receipt, group: 'Odontologia' },
+          { title: 'Procedimentos', url: '/dashboard/dental/procedimentos', icon: Stethoscope, group: 'Odontologia' },
+          { title: 'Documentos', url: '/dashboard/dental/documentos', icon: FileText, group: 'Odontologia' }
         );
       }
 

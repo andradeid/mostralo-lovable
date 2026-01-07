@@ -74,6 +74,10 @@ const TutorialsPage = lazy(() => import("@/pages/store-admin/TutorialsPage"));
 // Dental Module Pages
 const PatientsPage = lazy(() => import("@/pages/admin/dental/PatientsPage"));
 const PatientDetailPage = lazy(() => import("@/pages/admin/dental/PatientDetailPage"));
+const TreatmentPlansPage = lazy(() => import("@/pages/admin/dental/TreatmentPlansPage"));
+const DentalQuotesPage = lazy(() => import("@/pages/admin/dental/DentalQuotesPage"));
+const DentalProceduresPage = lazy(() => import("@/pages/admin/dental/DentalProceduresPage"));
+const DentalDocumentsPage = lazy(() => import("@/pages/admin/dental/DentalDocumentsPage"));
 
 export const storeAdminRoutes = (
   <>
@@ -634,6 +638,34 @@ export const storeAdminRoutes = (
       <ProtectedRoute allowedRoles={['store_admin']}>
         <AdminLayout pageTitle="Detalhes do Paciente">
           <LazyRoute><PatientDetailPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/dental/tratamentos" element={
+      <ProtectedRoute allowedRoles={['store_admin']}>
+        <AdminLayout pageTitle="Planos de Tratamento">
+          <LazyRoute><TreatmentPlansPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/dental/orcamentos" element={
+      <ProtectedRoute allowedRoles={['store_admin']}>
+        <AdminLayout pageTitle="Orçamentos">
+          <LazyRoute><DentalQuotesPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/dental/procedimentos" element={
+      <ProtectedRoute allowedRoles={['store_admin']}>
+        <AdminLayout pageTitle="Procedimentos">
+          <LazyRoute><DentalProceduresPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/dental/documentos" element={
+      <ProtectedRoute allowedRoles={['store_admin']}>
+        <AdminLayout pageTitle="Documentos">
+          <LazyRoute><DentalDocumentsPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

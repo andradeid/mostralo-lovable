@@ -461,25 +461,40 @@ export default function PublicProposalPage() {
 
         {/* Action Buttons */}
         {canRespond && !isExpired && (
-          <div className="flex flex-col sm:flex-row gap-3 pt-4">
-            <Button 
-              size="lg" 
-              className="flex-1"
-              onClick={() => setShowAcceptModal(true)}
-            >
-              <CheckCircle className="h-5 w-5 mr-2" />
-              Aceitar Proposta
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline"
-              className="flex-1"
-              onClick={() => setShowRejectModal(true)}
-            >
-              <XCircle className="h-5 w-5 mr-2" />
-              Recusar
-            </Button>
-          </div>
+          <Card className="border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
+            <CardContent className="p-6">
+              <h3 className="text-center text-lg font-semibold mb-4">
+                O que deseja fazer?
+              </h3>
+              <div className="flex flex-col gap-4">
+                {/* Botão Aceitar - Grande e em destaque */}
+                <Button 
+                  size="lg" 
+                  className="w-full h-14 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
+                  onClick={() => setShowAcceptModal(true)}
+                >
+                  <CheckCircle className="h-6 w-6 mr-3" />
+                  Aceitar Proposta
+                </Button>
+                
+                {/* Botão Recusar - Secundário mas visível */}
+                <Button 
+                  size="lg" 
+                  variant="outline"
+                  className="w-full h-12 text-base border-2 hover:bg-destructive/10 hover:border-destructive hover:text-destructive transition-all"
+                  onClick={() => setShowRejectModal(true)}
+                >
+                  <XCircle className="h-5 w-5 mr-2" />
+                  Recusar Proposta
+                </Button>
+              </div>
+              
+              {/* Texto de ajuda */}
+              <p className="text-center text-sm text-muted-foreground mt-4">
+                Ao aceitar, você será direcionado para criar sua conta
+              </p>
+            </CardContent>
+          </Card>
         )}
 
         {/* Accept Modal */}

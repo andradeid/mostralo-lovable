@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   FileText, Plus, Search, Eye, Copy, Trash2, Send,
-  Clock, CheckCircle, XCircle, AlertCircle, Filter, HelpCircle
+  Clock, CheckCircle, XCircle, AlertCircle, Filter, HelpCircle, BarChart3, List
 } from 'lucide-react';
 import { useCommercialProposals, useDeleteProposal } from '@/hooks/useCommercialProposals';
 import { format } from 'date-fns';
@@ -24,6 +25,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ProposalsTutorial, useProposalsTutorial } from '@/components/proposals/ProposalsTutorial';
+import { ProposalsDashboard } from '@/components/proposals/ProposalsDashboard';
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
   draft: { label: 'Rascunho', color: 'bg-gray-500/10 text-gray-600 border-gray-500/20', icon: Clock },
@@ -39,6 +41,7 @@ const formatCurrency = (value: number) => {
 };
 
 export default function ProposalsListPage() {
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -127,36 +130,28 @@ export default function ProposalsListPage() {
         </Link>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-primary">{stats.total}</div>
-            <div className="text-xs text-muted-foreground">Total</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-blue-500/5 border-blue-500/20">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600">{stats.sent}</div>
-            <div className="text-xs text-muted-foreground">Enviadas</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-amber-500/5 border-amber-500/20">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-amber-600">{stats.viewed}</div>
-            <div className="text-xs text-muted-foreground">Visualizadas</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-green-500/5 border-green-500/20">
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">{stats.accepted}</div>
-            <div className="text-xs text-muted-foreground">Aceitas</div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="dashboard" className="gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Dashboard
+          </TabsTrigger>
+          <TabsTrigger value="list" className="gap-2">
+            <List className="w-4 h-4" />
+            Propostas
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Filters */}
-      <Card>
+        {/* Dashboard Tab */}
+        <TabsContent value="dashboard" className="mt-6">
+          <ProposalsDashboard showSalespersonRanking={true} />
+        </TabsContent>
+
+        {/* List Tab */}
+        <TabsContent value="list" className="mt-6 space-y-6">
+          {/* Filters */}
+          <Card>
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
@@ -273,6 +268,8 @@ export default function ProposalsListPage() {
           </Card>
         )}
       </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Delete Dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>

@@ -53,6 +53,9 @@ const TechnicalDocsPage = lazy(() => import("@/pages/admin/TechnicalDocsPage"));
 const PopupABTestPage = lazy(() => import("@/pages/admin/PopupABTestPage"));
 const AdminDigitalCardPage = lazy(() => import("@/pages/admin/AdminDigitalCardPage"));
 const TutorialsManagementPage = lazy(() => import("@/pages/admin/TutorialsManagementPage"));
+const ProposalsListPage = lazy(() => import("@/pages/admin/ProposalsListPage"));
+const ProposalBuilderPage = lazy(() => import("@/pages/admin/ProposalBuilderPage"));
+const NicheTemplatesPage = lazy(() => import("@/pages/admin/NicheTemplatesPage"));
 
 export const masterRoutes = (
   <>
@@ -394,6 +397,29 @@ export const masterRoutes = (
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Gerenciar Tutoriais">
           <LazyRoute><TutorialsManagementPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    
+    {/* Propostas Comerciais */}
+    <Route path="/dashboard/propostas" element={
+      <ProtectedRoute allowedRoles={['master_admin']}>
+        <AdminLayout pageTitle="Propostas Comerciais">
+          <LazyRoute><ProposalsListPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/propostas/nova" element={
+      <ProtectedRoute allowedRoles={['master_admin']}>
+        <AdminLayout pageTitle="Nova Proposta">
+          <LazyRoute><ProposalBuilderPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/propostas/templates" element={
+      <ProtectedRoute allowedRoles={['master_admin']}>
+        <AdminLayout pageTitle="Templates por Nicho">
+          <LazyRoute><NicheTemplatesPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

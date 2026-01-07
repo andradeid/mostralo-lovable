@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Edit, Phone, Mail, Calendar, MapPin, Heart, AlertTriangle, FileText, Plus } from "lucide-react";
+import { ArrowLeft, Edit, Phone, Mail, Calendar, MapPin, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,10 +9,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { usePatient } from "@/hooks/dental/usePatients";
 import { usePatientRecord } from "@/hooks/dental/usePatientRecord";
 import { useClinicalNotes } from "@/hooks/dental/useClinicalNotes";
+import { useStoreAccess } from "@/hooks/useStoreAccess";
 import { PatientHealthCard } from "@/components/admin/dental/PatientHealthCard";
 import { ClinicalNotesTimeline } from "@/components/admin/dental/ClinicalNotesTimeline";
 import { ClinicalNoteFormDialog } from "@/components/admin/dental/ClinicalNoteFormDialog";
 import { PatientRecordForm } from "@/components/admin/dental/PatientRecordForm";
+import { OdontogramViewer } from "@/components/admin/dental/OdontogramViewer";
 import { format, parseISO, differenceInYears } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
@@ -20,6 +22,7 @@ import { useState } from "react";
 export default function PatientDetailPage() {
   const { patientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
+  const { storeId } = useStoreAccess();
   const { data: patient, isLoading: patientLoading } = usePatient(patientId ?? null);
   const { record, isLoading: recordLoading } = usePatientRecord(patientId ?? null);
   const { notes, isLoading: notesLoading, createNote } = useClinicalNotes(patientId ?? null);
@@ -186,20 +189,7 @@ export default function PatientDetailPage() {
             </TabsContent>
 
             <TabsContent value="odontogram" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Odontograma</CardTitle>
-                  <CardDescription>
-                    Visualização e edição do odontograma do paciente
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                    <FileText className="h-12 w-12 mb-4" />
-                    <p>Odontograma será implementado na Fase 2</p>
-                  </div>
-                </CardContent>
-              </Card>
+              <OdontogramViewer patientId={patientId ?? ""} storeId={storeId ?? ""} />
             </TabsContent>
           </Tabs>
         </div>

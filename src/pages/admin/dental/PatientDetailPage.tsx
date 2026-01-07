@@ -214,6 +214,7 @@ export default function PatientDetailPage() {
         open={isNoteFormOpen} 
         onOpenChange={setIsNoteFormOpen}
         patientId={patientId ?? ""}
+        storeId={storeId ?? ""}
         onSubmit={async (data) => {
           await createNote.mutateAsync(data);
           setIsNoteFormOpen(false);

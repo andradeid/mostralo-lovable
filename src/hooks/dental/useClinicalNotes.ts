@@ -5,25 +5,17 @@ import { useToast } from "@/hooks/use-toast";
 export interface ClinicalNote {
   id: string;
   patient_id: string;
-  professional_id: string | null;
-  note_type: string;
-  title: string | null;
+  store_id: string;
+  note_type: string | null;
   content: string;
-  tooth_number: string | null;
-  surfaces: string | null;
-  dental_appointment_id: string | null;
-  signed_at: string | null;
-  signature_hash: string | null;
-  signed_by: string | null;
+  created_by: string | null;
+  created_by_name: string | null;
   attachments: string[] | null;
   created_at: string;
   updated_at: string;
-  professional?: {
-    name: string;
-  };
 }
 
-export type ClinicalNoteFormData = Pick<ClinicalNote, 'patient_id' | 'note_type' | 'title' | 'content' | 'tooth_number' | 'surfaces' | 'professional_id'>;
+export type ClinicalNoteFormData = Pick<ClinicalNote, 'patient_id' | 'note_type' | 'content'> & { store_id: string };
 
 export function useClinicalNotes(patientId: string | null) {
   const { toast } = useToast();
@@ -34,12 +26,9 @@ export function useClinicalNotes(patientId: string | null) {
     queryFn: async () => {
       if (!patientId) return [];
       
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('clinical_notes')
-        .select(`
-          *,
-          professional:professionals(name)
-        `)
+        .select('*')
         .eq('patient_id', patientId)
         .order('created_at', { ascending: false });
 

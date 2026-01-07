@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -31,6 +31,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePatients, Patient } from "@/hooks/dental/usePatients";
 import { Loader2 } from "lucide-react";
+import { PatientPhotoUpload } from "./PatientPhotoUpload";
+import { PatientWhatsAppValidator, WhatsAppValidationStatus } from "./PatientWhatsAppValidator";
+import { supabase } from "@/integrations/supabase/client";
 
 const patientFormSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
@@ -72,6 +75,11 @@ interface PatientFormDialogProps {
 export function PatientFormDialog({ open, onOpenChange, patient, storeId }: PatientFormDialogProps) {
   const { createPatient, updatePatient } = usePatients(storeId);
   const isEditing = !!patient;
+  
+  // State for photo and WhatsApp validation
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [countryCode, setCountryCode] = useState("+55");
+  const [whatsappStatus, setWhatsappStatus] = useState<WhatsAppValidationStatus>("idle");
 
   const form = useForm<PatientFormData>({
     resolver: zodResolver(patientFormSchema),
@@ -133,6 +141,7 @@ export function PatientFormDialog({ open, onOpenChange, patient, storeId }: Pati
         notes: patient.notes ?? "",
         is_active: patient.is_active,
       });
+      setPhotoUrl(patient.photo_url ?? null);
     } else {
       form.reset({
         name: "",
@@ -161,6 +170,7 @@ export function PatientFormDialog({ open, onOpenChange, patient, storeId }: Pati
         notes: "",
         is_active: true,
       });
+      setPhotoUrl(null);
     }
   }, [patient, form]);
 
@@ -193,7 +203,7 @@ export function PatientFormDialog({ open, onOpenChange, patient, storeId }: Pati
       health_insurance_number: data.health_insurance_number || null,
       health_insurance_validity: data.health_insurance_validity || null,
       notes: data.notes || null,
-      photo_url: patient?.photo_url ?? null,
+      photo_url: photoUrl,
     };
 
     if (isEditing && patient) {
@@ -229,6 +239,13 @@ export function PatientFormDialog({ open, onOpenChange, patient, storeId }: Pati
                 </TabsList>
 
                 <TabsContent value="personal" className="space-y-4 mt-4">
+                  {/* Photo Upload */}
+                  <PatientPhotoUpload
+                    currentPhotoUrl={photoUrl}
+                    patientName={form.watch("name")}
+                    onPhotoChange={setPhotoUrl}
+                  />
+
                   <FormField
                     control={form.control}
                     name="name"

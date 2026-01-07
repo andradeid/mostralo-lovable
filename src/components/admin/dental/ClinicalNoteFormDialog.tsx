@@ -31,10 +31,7 @@ import { ClinicalNoteFormData } from "@/hooks/dental/useClinicalNotes";
 
 const noteFormSchema = z.object({
   note_type: z.string().min(1, "Selecione o tipo da nota"),
-  title: z.string().optional(),
   content: z.string().min(1, "O conteúdo é obrigatório"),
-  tooth_number: z.string().optional(),
-  surfaces: z.string().optional(),
 });
 
 type NoteFormData = z.infer<typeof noteFormSchema>;
@@ -43,6 +40,7 @@ interface ClinicalNoteFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   patientId: string;
+  storeId: string;
   onSubmit: (data: ClinicalNoteFormData) => Promise<void>;
   isSubmitting: boolean;
 }
@@ -50,7 +48,8 @@ interface ClinicalNoteFormDialogProps {
 export function ClinicalNoteFormDialog({ 
   open, 
   onOpenChange, 
-  patientId, 
+  patientId,
+  storeId,
   onSubmit, 
   isSubmitting 
 }: ClinicalNoteFormDialogProps) {
@@ -58,22 +57,16 @@ export function ClinicalNoteFormDialog({
     resolver: zodResolver(noteFormSchema),
     defaultValues: {
       note_type: "evolution",
-      title: "",
       content: "",
-      tooth_number: "",
-      surfaces: "",
     },
   });
 
   const handleSubmit = async (data: NoteFormData) => {
     await onSubmit({
       patient_id: patientId,
+      store_id: storeId,
       note_type: data.note_type,
-      title: data.title || null,
       content: data.content,
-      tooth_number: data.tooth_number || null,
-      surfaces: data.surfaces || null,
-      professional_id: null, // TODO: Get from context/auth
     });
     form.reset();
   };
@@ -114,49 +107,6 @@ export function ClinicalNoteFormDialog({
                 </FormItem>
               )}
             />
-
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Título (opcional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Título da nota" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="tooth_number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Dente (opcional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: 11, 21, 36..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="surfaces"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Faces (opcional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: MOD, OV..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
 
             <FormField
               control={form.control}

@@ -72,9 +72,9 @@ export function ToothDetailDialog({
         store_id: storeId,
         tooth_number: toothNumber,
         condition,
-        face: face || undefined,
+        face: face && face !== 'none' ? face : undefined,
         notes: notes || undefined,
-        material: material || undefined,
+        material: material && material !== 'none' ? material : undefined,
       });
       resetForm();
       setActiveTab("history");
@@ -214,7 +214,7 @@ export function ToothDetailDialog({
                   <SelectValue placeholder="Selecione a face" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhuma</SelectItem>
+                  <SelectItem value="none">Nenhuma</SelectItem>
                   {Object.entries(TOOTH_FACES).map(([key, label]) => (
                     <SelectItem key={key} value={key}>
                       {key} - {label}
@@ -231,7 +231,7 @@ export function ToothDetailDialog({
                   <SelectValue placeholder="Selecione o material" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhum</SelectItem>
+                  <SelectItem value="none">Nenhum</SelectItem>
                   <SelectItem value="resina">Resina Composta</SelectItem>
                   <SelectItem value="amalgama">Amálgama</SelectItem>
                   <SelectItem value="porcelana">Porcelana</SelectItem>

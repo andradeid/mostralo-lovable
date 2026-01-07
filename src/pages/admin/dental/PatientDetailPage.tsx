@@ -80,39 +80,41 @@ export default function PatientDetailPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard/dental/pacientes")}>
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold tracking-tight">{patient.name}</h1>
-          <p className="text-muted-foreground">Prontuário do paciente</p>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" className="shrink-0" onClick={() => navigate("/dashboard/dental/pacientes")}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight truncate">{patient.name}</h1>
+            <p className="text-sm text-muted-foreground">Prontuário do paciente</p>
+          </div>
         </div>
-        <Button variant="outline" className="gap-2" onClick={() => setIsEditDialogOpen(true)}>
+        <Button variant="outline" className="gap-2 w-full sm:w-auto" onClick={() => setIsEditDialogOpen(true)}>
           <Edit className="h-4 w-4" />
           Editar
         </Button>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
         {/* Sidebar - Patient Info */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Patient Card */}
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="p-4 sm:pt-6">
               <div className="flex flex-col items-center text-center">
-                <Avatar className="h-24 w-24 mb-4">
+                <Avatar className="h-16 w-16 sm:h-24 sm:w-24 mb-3 sm:mb-4">
                   <AvatarImage src={patient.photo_url ?? undefined} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-2xl font-medium">
+                  <AvatarFallback className="bg-primary/10 text-primary text-xl sm:text-2xl font-medium">
                     {getInitials(patient.name)}
                   </AvatarFallback>
                 </Avatar>
-                <h2 className="text-xl font-semibold">{patient.name}</h2>
+                <h2 className="text-lg sm:text-xl font-semibold break-words max-w-full">{patient.name}</h2>
                 <div className="flex items-center gap-2 mt-1">
                   {patient.birth_date && (
-                    <span className="text-muted-foreground">
+                    <span className="text-sm text-muted-foreground">
                       {calculateAge(patient.birth_date)} anos
                     </span>
                   )}
@@ -122,29 +124,29 @@ export default function PatientDetailPage() {
                 </div>
               </div>
 
-              <div className="mt-6 space-y-3">
+              <div className="mt-4 sm:mt-6 space-y-2 sm:space-y-3">
                 {patient.phone && (
-                  <div className="flex items-center gap-3 text-sm">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span>{patient.phone}</span>
+                  <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm">
+                    <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
+                    <span className="truncate">{patient.phone}</span>
                   </div>
                 )}
                 {patient.email && (
-                  <div className="flex items-center gap-3 text-sm">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm">
+                    <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
                     <span className="truncate">{patient.email}</span>
                   </div>
                 )}
                 {patient.birth_date && (
-                  <div className="flex items-center gap-3 text-sm">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm">
+                    <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
                     <span>{formatDate(patient.birth_date)}</span>
                   </div>
                 )}
                 {(patient.address_city || patient.address_state) && (
-                  <div className="flex items-center gap-3 text-sm">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span>
+                  <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm">
+                    <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
+                    <span className="truncate">
                       {[patient.address_city, patient.address_state].filter(Boolean).join(" - ")}
                     </span>
                   </div>
@@ -169,17 +171,17 @@ export default function PatientDetailPage() {
 
         <div className="lg:col-span-2">
           <Tabs defaultValue="notes" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="notes">Evoluções</TabsTrigger>
-              <TabsTrigger value="health">Saúde</TabsTrigger>
-              <TabsTrigger value="odontogram">Odontograma</TabsTrigger>
-              <TabsTrigger value="documents">Documentos</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
+              <TabsTrigger value="notes" className="text-xs sm:text-sm py-2">Evoluções</TabsTrigger>
+              <TabsTrigger value="health" className="text-xs sm:text-sm py-2">Saúde</TabsTrigger>
+              <TabsTrigger value="odontogram" className="text-xs sm:text-sm py-2">Odontograma</TabsTrigger>
+              <TabsTrigger value="documents" className="text-xs sm:text-sm py-2">Documentos</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="notes" className="mt-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Notas Clínicas</h3>
-                <Button size="sm" className="gap-2" onClick={() => setIsNoteFormOpen(true)}>
+            <TabsContent value="notes" className="mt-4 sm:mt-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mb-4">
+                <h3 className="text-base sm:text-lg font-semibold">Notas Clínicas</h3>
+                <Button size="sm" className="gap-2 w-full sm:w-auto" onClick={() => setIsNoteFormOpen(true)}>
                   <Plus className="h-4 w-4" />
                   Nova Nota
                 </Button>
@@ -188,18 +190,18 @@ export default function PatientDetailPage() {
               <ClinicalNotesTimeline notes={notes} isLoading={notesLoading} />
             </TabsContent>
 
-            <TabsContent value="health" className="mt-6">
+            <TabsContent value="health" className="mt-4 sm:mt-6">
               <PatientRecordForm patientId={patientId ?? ""} record={record} />
             </TabsContent>
 
-            <TabsContent value="odontogram" className="mt-6">
+            <TabsContent value="odontogram" className="mt-4 sm:mt-6">
               <OdontogramViewer patientId={patientId ?? ""} storeId={storeId ?? ""} />
             </TabsContent>
 
-            <TabsContent value="documents" className="mt-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Documentos</h3>
-                <Button size="sm" className="gap-2" onClick={() => setIsDocumentDialogOpen(true)}>
+            <TabsContent value="documents" className="mt-4 sm:mt-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mb-4">
+                <h3 className="text-base sm:text-lg font-semibold">Documentos</h3>
+                <Button size="sm" className="gap-2 w-full sm:w-auto" onClick={() => setIsDocumentDialogOpen(true)}>
                   <FileText className="h-4 w-4" />
                   Gerar Documento
                 </Button>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useStoreAccess } from "@/hooks/useStoreAccess";
-import { useDentalQuotes, DentalQuote } from "@/hooks/dental/useDentalQuotes";
+import { useDentalQuotesByStore, DentalQuote } from "@/hooks/dental/useDentalQuotes";
 import { useDentalProcedures } from "@/hooks/dental/useDentalProcedures";
 import { usePatients } from "@/hooks/dental/usePatients";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,7 +14,7 @@ import DentalQuoteDialog from "@/components/admin/dental/DentalQuoteDialog";
 
 export default function DentalQuotesPage() {
   const { storeId } = useStoreAccess();
-  const { quotes, isLoading } = useDentalQuotes(storeId);
+  const { quotes, isLoading } = useDentalQuotesByStore(storeId);
   const { patients } = usePatients(storeId);
   const { procedures } = useDentalProcedures(storeId);
   const [searchTerm, setSearchTerm] = useState("");

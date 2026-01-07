@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Edit, Phone, Mail, Calendar, MapPin, Plus, FileText } from "lucide-react";
+import { ArrowLeft, Edit, Phone, Mail, Calendar, MapPin, Plus, FileText, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,7 @@ import { OdontogramViewer } from "@/components/admin/dental/OdontogramViewer";
 import { GenerateDocumentDialog } from "@/components/admin/dental/GenerateDocumentDialog";
 import { PatientDocumentsList } from "@/components/admin/dental/PatientDocumentsList";
 import { PatientFormDialog } from "@/components/admin/dental/PatientFormDialog";
+import { PatientFinancialTab } from "@/components/admin/dental/PatientFinancialTab";
 import { format, parseISO, differenceInYears } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
@@ -171,10 +172,14 @@ export default function PatientDetailPage() {
 
         <div className="lg:col-span-2">
           <Tabs defaultValue="notes" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
+            <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5 h-auto">
               <TabsTrigger value="notes" className="text-xs sm:text-sm py-2">Evoluções</TabsTrigger>
               <TabsTrigger value="health" className="text-xs sm:text-sm py-2">Saúde</TabsTrigger>
               <TabsTrigger value="odontogram" className="text-xs sm:text-sm py-2">Odontograma</TabsTrigger>
+              <TabsTrigger value="financial" className="text-xs sm:text-sm py-2 gap-1">
+                <DollarSign className="h-3 w-3 hidden sm:inline" />
+                Financeiro
+              </TabsTrigger>
               <TabsTrigger value="documents" className="text-xs sm:text-sm py-2">Documentos</TabsTrigger>
             </TabsList>
 
@@ -196,6 +201,10 @@ export default function PatientDetailPage() {
 
             <TabsContent value="odontogram" className="mt-4 sm:mt-6">
               <OdontogramViewer patientId={patientId ?? ""} storeId={storeId ?? ""} />
+            </TabsContent>
+
+            <TabsContent value="financial" className="mt-4 sm:mt-6">
+              <PatientFinancialTab patientId={patientId ?? ""} storeId={storeId ?? ""} />
             </TabsContent>
 
             <TabsContent value="documents" className="mt-4 sm:mt-6">

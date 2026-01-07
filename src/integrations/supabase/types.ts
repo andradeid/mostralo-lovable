@@ -2624,6 +2624,86 @@ export type Database = {
           },
         ]
       }
+      dental_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          installment_number: number | null
+          notes: string | null
+          patient_id: string
+          payment_date: string
+          payment_method: string
+          quote_id: string
+          reference_number: string | null
+          registered_by: string | null
+          store_id: string
+          total_installments: number | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          installment_number?: number | null
+          notes?: string | null
+          patient_id: string
+          payment_date?: string
+          payment_method: string
+          quote_id: string
+          reference_number?: string | null
+          registered_by?: string | null
+          store_id: string
+          total_installments?: number | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          installment_number?: number | null
+          notes?: string | null
+          patient_id?: string
+          payment_date?: string
+          payment_method?: string
+          quote_id?: string
+          reference_number?: string | null
+          registered_by?: string | null
+          store_id?: string
+          total_installments?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dental_payments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_payments_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "dental_quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_payments_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_payments_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dental_procedures: {
         Row: {
           category: string | null

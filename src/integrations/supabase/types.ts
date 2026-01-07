@@ -1040,6 +1040,190 @@ export type Database = {
           },
         ]
       }
+      client_subscription_plans: {
+        Row: {
+          benefits: Json | null
+          billing_cycle: string
+          created_at: string
+          description: string | null
+          display_order: number | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          plan_type: string
+          price: number
+          store_id: string
+          updated_at: string
+          usage_limit: number | null
+        }
+        Insert: {
+          benefits?: Json | null
+          billing_cycle?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          plan_type?: string
+          price?: number
+          store_id: string
+          updated_at?: string
+          usage_limit?: number | null
+        }
+        Update: {
+          benefits?: Json | null
+          billing_cycle?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          plan_type?: string
+          price?: number
+          store_id?: string
+          updated_at?: string
+          usage_limit?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_subscription_plans_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_subscription_plans_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_subscriptions: {
+        Row: {
+          auto_renew: boolean
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          created_at: string
+          created_by: string | null
+          current_period_end: string
+          current_period_start: string
+          customer_id: string
+          id: string
+          last_payment_date: string | null
+          next_payment_date: string | null
+          notes: string | null
+          pause_reason: string | null
+          paused_at: string | null
+          payment_amount: number | null
+          payment_method: string | null
+          plan_id: string
+          start_date: string
+          status: string
+          store_id: string
+          updated_at: string
+          usages_this_period: number
+        }
+        Insert: {
+          auto_renew?: boolean
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_period_end: string
+          current_period_start?: string
+          customer_id: string
+          id?: string
+          last_payment_date?: string | null
+          next_payment_date?: string | null
+          notes?: string | null
+          pause_reason?: string | null
+          paused_at?: string | null
+          payment_amount?: number | null
+          payment_method?: string | null
+          plan_id: string
+          start_date?: string
+          status?: string
+          store_id: string
+          updated_at?: string
+          usages_this_period?: number
+        }
+        Update: {
+          auto_renew?: boolean
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_period_end?: string
+          current_period_start?: string
+          customer_id?: string
+          id?: string
+          last_payment_date?: string | null
+          next_payment_date?: string | null
+          notes?: string | null
+          pause_reason?: string | null
+          paused_at?: string | null
+          payment_amount?: number | null
+          payment_method?: string | null
+          plan_id?: string
+          start_date?: string
+          status?: string
+          store_id?: string
+          updated_at?: string
+          usages_this_period?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_subscriptions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_subscriptions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "unified_users_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_subscriptions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "client_subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_subscriptions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_subscriptions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comanda_items: {
         Row: {
           added_at: string
@@ -4388,6 +4572,45 @@ export type Database = {
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plan_included_services: {
+        Row: {
+          created_at: string
+          id: string
+          plan_id: string
+          service_id: string
+          usage_limit_per_service: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          plan_id: string
+          service_id: string
+          usage_limit_per_service?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          plan_id?: string
+          service_id?: string
+          usage_limit_per_service?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_included_services_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "client_subscription_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_included_services_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "booking_services"
             referencedColumns: ["id"]
           },
         ]
@@ -8082,6 +8305,171 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          customer_id: string
+          id: string
+          notes: string | null
+          paid_at: string | null
+          payment_method: string
+          period_end: string
+          period_start: string
+          pix_copia_cola: string | null
+          pix_expires_at: string | null
+          pix_qrcode_base64: string | null
+          pix_txid: string | null
+          status: string
+          store_id: string
+          subscription_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          customer_id: string
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          payment_method: string
+          period_end: string
+          period_start: string
+          pix_copia_cola?: string | null
+          pix_expires_at?: string | null
+          pix_qrcode_base64?: string | null
+          pix_txid?: string | null
+          status?: string
+          store_id: string
+          subscription_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          payment_method?: string
+          period_end?: string
+          period_start?: string
+          pix_copia_cola?: string | null
+          pix_expires_at?: string | null
+          pix_qrcode_base64?: string | null
+          pix_txid?: string | null
+          status?: string
+          store_id?: string
+          subscription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_payments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_payments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "unified_users_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_payments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_payments_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_payments_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_payments_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "client_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_usages: {
+        Row: {
+          booking_id: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          service_id: string
+          subscription_id: string
+          used_at: string
+          used_by_professional_id: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          service_id: string
+          subscription_id: string
+          used_at?: string
+          used_by_professional_id?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          service_id?: string
+          subscription_id?: string
+          used_at?: string
+          used_by_professional_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_usages_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_usages_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "booking_services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_usages_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "client_subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_usages_used_by_professional_id_fkey"
+            columns: ["used_by_professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       system_banners: {
         Row: {
           created_at: string | null
@@ -9854,6 +10242,10 @@ export type Database = {
         Args: { _permission_key: string; _store_id: string; _user_id: string }
         Returns: boolean
       }
+      calculate_subscription_period_end: {
+        Args: { p_billing_cycle: string; p_start_date: string }
+        Returns: string
+      }
       can_access_store_comandas: {
         Args: { check_store_id: string }
         Returns: boolean
@@ -9861,6 +10253,21 @@ export type Database = {
       can_customer_access_comanda: {
         Args: { _comanda_id: string }
         Returns: boolean
+      }
+      check_subscription_coverage: {
+        Args: {
+          p_customer_id: string
+          p_service_id: string
+          p_store_id: string
+        }
+        Returns: {
+          has_coverage: boolean
+          is_unlimited: boolean
+          plan_name: string
+          subscription_id: string
+          usage_limit: number
+          usages_this_period: number
+        }[]
       }
       cleanup_old_password_calls: { Args: never; Returns: undefined }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }

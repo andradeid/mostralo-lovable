@@ -648,6 +648,13 @@ export function AdminSidebar() {
         );
       }
 
+      // Gestão Odontológica - verifica módulo
+      if (hasModule('dental')) {
+        menuItems.push(
+          { title: 'Pacientes', url: '/dashboard/dental/pacientes', icon: Users, group: 'Odontologia' }
+        );
+      }
+
       return menuItems;
     }
   };

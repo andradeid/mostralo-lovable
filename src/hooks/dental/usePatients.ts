@@ -51,7 +51,7 @@ export function usePatients(storeId: string | null) {
     queryFn: async () => {
       if (!storeId) return [];
       
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('patients')
         .select('*')
         .eq('store_id', storeId)
@@ -65,7 +65,7 @@ export function usePatients(storeId: string | null) {
 
   const createPatient = useMutation({
     mutationFn: async (patientData: PatientFormData) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('patients')
         .insert(patientData)
         .select()
@@ -92,7 +92,7 @@ export function usePatients(storeId: string | null) {
 
   const updatePatient = useMutation({
     mutationFn: async ({ id, ...data }: Partial<Patient> & { id: string }) => {
-      const { data: result, error } = await supabase
+      const { data: result, error } = await (supabase as any)
         .from('patients')
         .update(data)
         .eq('id', id)
@@ -120,7 +120,7 @@ export function usePatients(storeId: string | null) {
 
   const deletePatient = useMutation({
     mutationFn: async (patientId: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('patients')
         .delete()
         .eq('id', patientId);
@@ -160,7 +160,7 @@ export function usePatient(patientId: string | null) {
     queryFn: async () => {
       if (!patientId) return null;
       
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('patients')
         .select('*')
         .eq('id', patientId)

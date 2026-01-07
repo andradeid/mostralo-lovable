@@ -45,7 +45,7 @@ export function usePatientRecord(patientId: string | null) {
     queryFn: async () => {
       if (!patientId) return null;
       
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('patient_records')
         .select('*')
         .eq('patient_id', patientId)
@@ -59,7 +59,7 @@ export function usePatientRecord(patientId: string | null) {
 
   const upsertRecord = useMutation({
     mutationFn: async (recordData: Partial<PatientRecordFormData> & { patient_id: string }) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('patient_records')
         .upsert(recordData, { onConflict: 'patient_id' })
         .select()

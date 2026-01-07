@@ -34,7 +34,7 @@ export function useClinicalNotes(patientId: string | null) {
     queryFn: async () => {
       if (!patientId) return [];
       
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('clinical_notes')
         .select(`
           *,
@@ -51,7 +51,7 @@ export function useClinicalNotes(patientId: string | null) {
 
   const createNote = useMutation({
     mutationFn: async (noteData: ClinicalNoteFormData) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('clinical_notes')
         .insert(noteData)
         .select()
@@ -78,7 +78,7 @@ export function useClinicalNotes(patientId: string | null) {
 
   const updateNote = useMutation({
     mutationFn: async ({ id, ...data }: Partial<ClinicalNote> & { id: string }) => {
-      const { data: result, error } = await supabase
+      const { data: result, error } = await (supabase as any)
         .from('clinical_notes')
         .update(data)
         .eq('id', id)
@@ -106,7 +106,7 @@ export function useClinicalNotes(patientId: string | null) {
 
   const deleteNote = useMutation({
     mutationFn: async (noteId: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('clinical_notes')
         .delete()
         .eq('id', noteId);

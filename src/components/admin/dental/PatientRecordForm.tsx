@@ -1,12 +1,9 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -25,34 +22,32 @@ import {
 import { Loader2, Save } from "lucide-react";
 import { PatientRecord, usePatientRecord } from "@/hooks/dental/usePatientRecord";
 
-const recordFormSchema = z.object({
-  blood_type: z.string().optional(),
-  weight: z.string().optional(),
-  height: z.string().optional(),
-  allergies: z.string().optional(),
-  allergy_latex: z.boolean().default(false),
-  allergy_anesthesia: z.boolean().default(false),
-  allergy_penicillin: z.boolean().default(false),
-  current_medications: z.string().optional(),
-  medical_conditions: z.string().optional(),
-  previous_surgeries: z.string().optional(),
-  is_pregnant: z.boolean().default(false),
-  is_breastfeeding: z.boolean().default(false),
-  has_pacemaker: z.boolean().default(false),
-  has_heart_condition: z.boolean().default(false),
-  has_diabetes: z.boolean().default(false),
-  has_hypertension: z.boolean().default(false),
-  has_bleeding_disorder: z.boolean().default(false),
-  has_hepatitis: z.boolean().default(false),
-  has_hiv: z.boolean().default(false),
-  is_smoker: z.boolean().default(false),
-  smoking_frequency: z.string().optional(),
-  alcohol_consumption: z.string().optional(),
-  bruxism: z.boolean().default(false),
-  clinical_observations: z.string().optional(),
-});
-
-type RecordFormData = z.infer<typeof recordFormSchema>;
+interface RecordFormData {
+  blood_type: string;
+  weight: string;
+  height: string;
+  allergies: string;
+  allergy_latex: boolean;
+  allergy_anesthesia: boolean;
+  allergy_penicillin: boolean;
+  current_medications: string;
+  medical_conditions: string;
+  previous_surgeries: string;
+  is_pregnant: boolean;
+  is_breastfeeding: boolean;
+  has_pacemaker: boolean;
+  has_heart_condition: boolean;
+  has_diabetes: boolean;
+  has_hypertension: boolean;
+  has_bleeding_disorder: boolean;
+  has_hepatitis: boolean;
+  has_hiv: boolean;
+  is_smoker: boolean;
+  smoking_frequency: string;
+  alcohol_consumption: string;
+  bruxism: boolean;
+  clinical_observations: string;
+}
 
 interface PatientRecordFormProps {
   patientId: string;
@@ -63,7 +58,6 @@ export function PatientRecordForm({ patientId, record }: PatientRecordFormProps)
   const { upsertRecord } = usePatientRecord(patientId);
 
   const form = useForm<RecordFormData>({
-    resolver: zodResolver(recordFormSchema),
     defaultValues: {
       blood_type: "",
       weight: "",

@@ -33,7 +33,8 @@ const DEFAULT_SETTINGS: Omit<BookingSettings, 'id' | 'store_id' | 'created_at' |
   review_message_template: 'Olá {cliente}! Como foi seu atendimento com {profissional}?\n\nGostaríamos muito de ouvir sua opinião! Avalie em apenas 1 minuto:\n\n👉 {link}\n\nSua avaliação é muito importante para nós! ⭐',
   review_delay_minutes: 30,
   review_expiry_days: 7,
-  show_public_reviews: true
+  show_public_reviews: true,
+  show_subscription_plans: false
 };
 
 export default function BookingSettingsPage() {
@@ -66,7 +67,9 @@ export default function BookingSettingsPage() {
         review_message_template: bookingSettings.review_message_template ?? DEFAULT_SETTINGS.review_message_template,
         review_delay_minutes: bookingSettings.review_delay_minutes ?? DEFAULT_SETTINGS.review_delay_minutes,
         review_expiry_days: bookingSettings.review_expiry_days ?? DEFAULT_SETTINGS.review_expiry_days,
-        show_public_reviews: bookingSettings.show_public_reviews ?? DEFAULT_SETTINGS.show_public_reviews
+        show_public_reviews: bookingSettings.show_public_reviews ?? DEFAULT_SETTINGS.show_public_reviews,
+        // Planos de assinatura
+        show_subscription_plans: bookingSettings.show_subscription_plans ?? DEFAULT_SETTINGS.show_subscription_plans
       });
     }
   }, [bookingSettings]);
@@ -242,6 +245,19 @@ export default function BookingSettingsPage() {
                 id="enable_professional_reviews"
                 checked={formData.enable_professional_reviews}
                 onCheckedChange={(checked) => updateField('enable_professional_reviews', checked)}
+              />
+            </div>
+
+            {/* Exibir planos de assinatura */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="show_subscription_plans">Exibir planos de assinatura na página</Label>
+                <FieldTooltip content="Mostra um banner na página de agendamento convidando clientes a conhecer seus planos de assinatura do Clube" />
+              </div>
+              <Switch
+                id="show_subscription_plans"
+                checked={formData.show_subscription_plans}
+                onCheckedChange={(checked) => updateField('show_subscription_plans', checked)}
               />
             </div>
 

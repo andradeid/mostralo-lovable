@@ -34,6 +34,7 @@ import { cn, formatBrazilianPhone, formatInternationalPhone } from '@/lib/utils'
 import { z } from 'zod';
 import { useCheckSalesChannel } from '@/hooks/useCheckSalesChannel';
 import { SalesChannelPausedBanner } from '@/components/shared/SalesChannelPausedBanner';
+import { BookingSubscriptionBanner } from '@/components/booking/BookingSubscriptionBanner';
 import { useQuery } from '@tanstack/react-query';
 import { CountryCodeSelect } from '@/components/ui/country-code-select';
 import { WhatsAppProfilePreview } from '@/components/leads/WhatsAppProfilePreview';
@@ -699,6 +700,13 @@ const BookingPage = () => {
       <div className="container mx-auto px-4 pt-4">
         <BookingStoreHeader store={store} />
         <BookingStoreInfo store={store} />
+        
+        {/* Subscription Plans Banner */}
+        {bookingSettings?.show_subscription_plans && store && (
+          <div className="container mx-auto px-4 mt-4">
+            <BookingSubscriptionBanner storeId={store.id} storeSlug={store.slug} />
+          </div>
+        )}
       </div>
 
       {/* Progress Steps */}

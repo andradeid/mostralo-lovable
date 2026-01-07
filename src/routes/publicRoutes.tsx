@@ -46,6 +46,7 @@ const AcceptInvitation = lazy(() => import("@/pages/AcceptInvitation"));
 const VerifyContractPage = lazy(() => import("@/pages/public/VerifyContractPage"));
 const DigitalCardPublicPage = lazy(() => import("@/pages/public/DigitalCardPublicPage"));
 const BookingReviewPage = lazy(() => import("@/pages/public/BookingReviewPage"));
+const PublicSubscriptionPlansPage = lazy(() => import("@/pages/public/PublicSubscriptionPlansPage"));
 const NavigatePage = lazy(() => import("@/pages/public/NavigatePage"));
 const FeaturesPage = lazy(() => import("@/pages/public/FeaturesPage"));
 const FeirantesPage = lazy(() => import("@/pages/public/FeirantesPage"));
@@ -163,6 +164,9 @@ export const publicRoutes = (
     
     {/* Agendamento Online - Direct import (critical) */}
     <Route path="/agendar/:storeSlug" element={<BookingPage />} />
+    
+    {/* Planos de Assinatura Públicos */}
+    <Route path="/assinaturas/:storeSlug" element={<LazyRoute><PublicSubscriptionPlansPage /></LazyRoute>} />
     
     {/* Cliente - Autenticação e Painel */}
     <Route path="/cliente/:storeSlug" element={<LazyRoute><CustomerAuth /></LazyRoute>} />

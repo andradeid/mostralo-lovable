@@ -27,6 +27,7 @@ const sections = [
   { id: 'promocoes', title: 'Promoções e Cupons', icon: Tag },
   { id: 'agendados', title: 'Pedidos Agendados', icon: Calendar },
   { id: 'agendamento-servicos', title: '🆕 Agendamento de Serviços', icon: Calendar },
+  { id: 'clube-assinaturas', title: '🆕 Clube de Assinaturas', icon: CreditCard },
   { id: 'impressao', title: 'Impressão Automática', icon: Printer },
   { id: 'pdv', title: 'PDV (Ponto de Venda)', icon: ShoppingCart },
   { id: 'comandas', title: 'Comandas Digitais', icon: ClipboardList },
@@ -212,6 +213,42 @@ const whatsappTexts: Record<string, string> = {
 • Fim dos conflitos de horário
 • Automação total do processo
 • Redução de faltas com lembretes`,
+
+  'clube-assinaturas': `💳 *CLUBE DE ASSINATURAS - FIDELIZAÇÃO PREMIUM* 🆕 EXCLUSIVO!
+
+⭐ *IDEAL PARA:* Barbearias, salões, academias, clínicas, estúdios
+
+⚠️ *Problema:* Cliente gosta do serviço mas não volta mensalmente
+
+✅ *PLANOS DE ASSINATURA MENSAL*
+• Crie planos como "Corte Ilimitado", "Plano VIP", "Pacote Mensal"
+• Defina serviços inclusos (ex: corte + barba ilimitados)
+• Configure limite de uso (ilimitado ou X vezes por mês)
+• Ciclos: mensal, trimestral, semestral ou anual
+
+✅ *GESTÃO DE ASSINANTES*
+• Dashboard com todos os assinantes ativos
+• Controle de período atual e vencimento
+• Status: ativo, pausado, cancelado, expirado
+• Histórico completo de uso por cliente
+
+✅ *INTEGRAÇÃO COM AGENDAMENTO*
+• Cliente agenda e sistema reconhece a assinatura
+• Serviços inclusos aparecem como "Incluso no plano"
+• Registro automático de uso
+• Indicador visual de usos restantes
+
+✅ *CONTROLE DE PAGAMENTOS*
+• Registro de pagamentos manuais
+• PIX automático com QR Code (usa EFI da loja)
+• Histórico de pagamentos por assinante
+• Renovação automática opcional
+
+📊 *BENEFÍCIOS:*
+• Receita recorrente previsível
+• Cliente fidelizado por contrato
+• Menos trabalho vendendo todo mês
+• Valor percebido maior para o cliente`,
 
   'impressao': `🖨️ *IMPRESSÃO AUTOMÁTICA*
 
@@ -590,6 +627,39 @@ Funcionalidades:
 - Link de avaliação pós-atendimento
 - Estrelas + feedback
 - Dashboard de reputação
+
+## CLUBE DE ASSINATURAS (NOVO!) - Módulo Premium
+IDEAL PARA: Barbearias, Salões, Clínicas, Academias, Estúdios
+
+### Planos de Assinatura
+- Crie planos como "Corte Ilimitado" ou "Plano VIP"
+- Defina serviços inclusos de forma flexível
+- Configure limites: ilimitado ou X usos por mês
+- Ciclos: mensal, trimestral, semestral ou anual
+
+### Gestão de Assinantes
+- Dashboard com assinantes ativos e inativos
+- Controle de período e vencimento
+- Status em tempo real (ativo, pausado, cancelado)
+- Histórico de uso por cliente
+
+### Integração com Agendamento
+- Sistema reconhece assinatura ao agendar
+- Serviços inclusos marcados automaticamente
+- Registro de uso sem ação manual
+- Indicador de usos restantes no período
+
+### Controle de Pagamentos
+- Pagamentos manuais ou PIX automático
+- QR Code PIX integrado (usa conta EFI da loja)
+- Histórico completo de cobranças
+- Renovação automática opcional
+
+### Benefícios
+- Receita recorrente e previsível
+- Clientes fidelizados
+- Menos esforço comercial
+- Maior valor percebido
 
 ## IMPRESSÃO AUTOMÁTICA
 - Integração com impressoras térmicas
@@ -1742,6 +1812,186 @@ Site: mostralo.com.br`;
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* Section: Clube de Assinaturas */}
+        <section id="clube-assinaturas" className="py-16 bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-950/20 dark:to-purple-950/20">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-12 h-12 bg-violet-500/10 rounded-xl flex items-center justify-center">
+                <CreditCard className="h-6 w-6 text-violet-500" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">Clube de Assinaturas</h2>
+                  <span className="bg-violet-500 text-white text-xs font-bold px-2 py-1 rounded">🆕 PREMIUM!</span>
+                  <button
+                    onClick={() => copyWhatsAppText('clube-assinaturas')}
+                    className="text-muted-foreground/50 hover:text-green-600 transition-colors p-1"
+                    title="Copiar texto para WhatsApp"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
+                <p className="text-muted-foreground">Fidelização com receita recorrente - ideal para barbearias, salões, academias, clínicas e estúdios</p>
+              </div>
+            </div>
+
+            {/* Problema que resolve */}
+            <Card className="bg-destructive/5 border-destructive/20 mb-8">
+              <CardContent className="p-6">
+                <h3 className="text-lg font-bold text-destructive mb-4">⚠️ O Problema que Resolve</h3>
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="text-center p-4 bg-background/50 rounded-lg">
+                    <p className="text-3xl font-bold text-destructive">80%</p>
+                    <p className="text-sm text-muted-foreground">dos clientes não voltam todo mês espontaneamente</p>
+                  </div>
+                  <div className="text-center p-4 bg-background/50 rounded-lg">
+                    <p className="text-3xl font-bold text-destructive">Incerteza</p>
+                    <p className="text-sm text-muted-foreground">receita variável mês a mês sem previsibilidade</p>
+                  </div>
+                  <div className="text-center p-4 bg-background/50 rounded-lg">
+                    <p className="text-3xl font-bold text-destructive">Esforço</p>
+                    <p className="text-sm text-muted-foreground">vendendo todo mês para os mesmos clientes</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Planos de Assinatura */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <div className="w-8 h-8 bg-violet-500/20 rounded-lg flex items-center justify-center">
+                  <CreditCard className="h-4 w-4 text-violet-500" />
+                </div>
+                Planos de Assinatura
+              </h3>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                  { title: 'Planos Personalizados', desc: 'Crie planos como "Corte Ilimitado" ou "Plano VIP"', icon: CreditCard },
+                  { title: 'Serviços Inclusos', desc: 'Defina quais serviços fazem parte do plano', icon: Package },
+                  { title: 'Limites Flexíveis', desc: 'Ilimitado ou X usos por mês - você escolhe', icon: Target },
+                  { title: 'Ciclos de Cobrança', desc: 'Mensal, trimestral, semestral ou anual', icon: Calendar },
+                ].map((item, i) => (
+                  <Card key={i} className="bg-card hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <item.icon className="h-6 w-6 text-violet-500 mb-2" />
+                      <h4 className="font-semibold text-foreground text-sm mb-1">{item.title}</h4>
+                      <p className="text-xs text-muted-foreground">{item.desc}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* Gestão de Assinantes */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <div className="w-8 h-8 bg-violet-500/20 rounded-lg flex items-center justify-center">
+                  <Users className="h-4 w-4 text-violet-500" />
+                </div>
+                Gestão de Assinantes
+              </h3>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                  { title: 'Dashboard Completo', desc: 'Veja todos os assinantes em um só lugar', icon: Users },
+                  { title: 'Controle de Período', desc: 'Visualize início, fim e renovação', icon: Clock },
+                  { title: 'Histórico de Uso', desc: 'Acompanhe quantas vezes o cliente usou', icon: BarChart3 },
+                  { title: 'Status em Tempo Real', desc: 'Ativo, pausado, cancelado, expirado', icon: Shield },
+                ].map((item, i) => (
+                  <Card key={i} className="bg-card hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <item.icon className="h-6 w-6 text-violet-500 mb-2" />
+                      <h4 className="font-semibold text-foreground text-sm mb-1">{item.title}</h4>
+                      <p className="text-xs text-muted-foreground">{item.desc}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* Integração com Agendamento */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <div className="w-8 h-8 bg-pink-500/20 rounded-lg flex items-center justify-center">
+                  <Calendar className="h-4 w-4 text-pink-500" />
+                </div>
+                Integração com Agendamento
+              </h3>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                  { title: 'Reconhecimento Automático', desc: 'Ao agendar, sistema identifica assinante', icon: Zap },
+                  { title: 'Marca Visual', desc: 'Badge "Incluso no Plano" nos serviços', icon: Star },
+                  { title: 'Registro de Uso', desc: 'Desconta do limite automaticamente', icon: Check },
+                  { title: 'Usos Restantes', desc: 'Indicador visual do saldo no período', icon: Target },
+                ].map((item, i) => (
+                  <Card key={i} className="bg-card hover:shadow-md transition-shadow border-pink-500/20">
+                    <CardContent className="p-4">
+                      <item.icon className="h-6 w-6 text-pink-500 mb-2" />
+                      <h4 className="font-semibold text-foreground text-sm mb-1">{item.title}</h4>
+                      <p className="text-xs text-muted-foreground">{item.desc}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* Controle de Pagamentos */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+                  <Wallet className="h-4 w-4 text-green-500" />
+                </div>
+                Controle de Pagamentos
+              </h3>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                  { title: 'Pagamento Manual', desc: 'Registre dinheiro, cartão ou PIX externo', icon: Wallet },
+                  { title: 'PIX Automático', desc: 'QR Code gerado direto no sistema (EFI)', icon: QrCode },
+                  { title: 'Histórico de Pagamentos', desc: 'Todas as cobranças registradas', icon: Database },
+                  { title: 'Renovação Automática', desc: 'Configure renovação mensal opcional', icon: RefreshCw },
+                ].map((item, i) => (
+                  <Card key={i} className="bg-card hover:shadow-md transition-shadow border-green-500/20">
+                    <CardContent className="p-4">
+                      <item.icon className="h-6 w-6 text-green-500 mb-2" />
+                      <h4 className="font-semibold text-foreground text-sm mb-1">{item.title}</h4>
+                      <p className="text-xs text-muted-foreground">{item.desc}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* Destaque Principal */}
+            <Card className="bg-gradient-to-r from-violet-500 to-purple-500 text-white">
+              <CardContent className="p-8 text-center">
+                <TrendingUp className="h-12 w-12 mx-auto mb-4" />
+                <h3 className="text-2xl font-bold mb-2">RECEITA RECORRENTE E PREVISÍVEL</h3>
+                <p className="text-violet-100 max-w-2xl mx-auto mb-4">
+                  Transforme clientes ocasionais em assinantes fiéis. Com planos mensais, você tem previsibilidade de caixa 
+                  e o cliente percebe mais valor no serviço. Todo mundo ganha!
+                </p>
+                <div className="grid md:grid-cols-4 gap-4 mt-6">
+                  <div className="bg-white/10 rounded-lg p-3">
+                    <p className="text-2xl font-bold">💰</p>
+                    <p className="text-sm text-violet-100">Receita previsível</p>
+                  </div>
+                  <div className="bg-white/10 rounded-lg p-3">
+                    <p className="text-2xl font-bold">🤝</p>
+                    <p className="text-sm text-violet-100">Cliente fidelizado</p>
+                  </div>
+                  <div className="bg-white/10 rounded-lg p-3">
+                    <p className="text-2xl font-bold">⏰</p>
+                    <p className="text-sm text-violet-100">Menos esforço comercial</p>
+                  </div>
+                  <div className="bg-white/10 rounded-lg p-3">
+                    <p className="text-2xl font-bold">⭐</p>
+                    <p className="text-sm text-violet-100">Maior valor percebido</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </section>
 

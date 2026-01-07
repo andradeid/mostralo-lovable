@@ -345,6 +345,126 @@ const FourPillarsSection = () => {
   );
 };
 
+// ==================== SUBSCRIPTION CLUB SECTION ====================
+const SubscriptionClubSection = () => (
+  <section className="py-20 bg-gradient-to-b from-zinc-900 to-zinc-950">
+    <div className="container mx-auto px-4">
+      <div className="max-w-4xl mx-auto text-center mb-16">
+        <Badge className="mb-4 bg-violet-500/20 text-violet-400 border-violet-500/30 px-4 py-2">
+          <CreditCard className="w-4 h-4 mr-2" />
+          🆕 NOVO! Fidelização Premium
+        </Badge>
+        <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
+          Mensalistas que pagam{' '}
+          <span className="bg-gradient-to-r from-violet-500 to-purple-500 bg-clip-text text-transparent">
+            antes de jogar
+          </span>
+        </h2>
+        <p className="text-xl text-zinc-400">
+          Crie planos como <strong className="text-white">"Mensalista Quadra Fixa"</strong> ou{' '}
+          <strong className="text-white">"Plano 2x/semana"</strong> e tenha receita garantida.
+        </p>
+      </div>
+      
+      <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto mb-12">
+        {/* Card 1 - Planos */}
+        <Card className="bg-zinc-900/50 border-zinc-800 hover:border-violet-500/30 transition-all overflow-hidden">
+          <CardContent className="p-8">
+            <div className="flex items-start gap-6">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-violet-500 to-purple-500 flex items-center justify-center flex-shrink-0">
+                <CreditCard className="w-8 h-8 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-white mb-3">Crie Seus Planos</h3>
+                <p className="text-zinc-400 mb-4">Planos como "Mensalista 2x/semana" ou "Horário Fixo Premium". Defina quadras, dias e horários inclusos.</p>
+                <p className="text-sm font-medium text-violet-400 bg-violet-500/10 inline-block px-3 py-1 rounded-full">
+                  Ocupação garantida em horários de baixa
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Card 2 - Dashboard */}
+        <Card className="bg-zinc-900/50 border-zinc-800 hover:border-violet-500/30 transition-all overflow-hidden">
+          <CardContent className="p-8">
+            <div className="flex items-start gap-6">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                <Users className="w-8 h-8 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-white mb-3">Dashboard de Mensalistas</h3>
+                <p className="text-zinc-400 mb-4">Veja todos os mensalistas, controle de período, vencimento e status (ativo, pausado, cancelado).</p>
+                <p className="text-sm font-medium text-purple-400 bg-purple-500/10 inline-block px-3 py-1 rounded-full">
+                  Histórico completo de uso
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Card 3 - Integração */}
+        <Card className="bg-zinc-900/50 border-zinc-800 hover:border-violet-500/30 transition-all overflow-hidden">
+          <CardContent className="p-8">
+            <div className="flex items-start gap-6">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 flex items-center justify-center flex-shrink-0">
+                <Calendar className="w-8 h-8 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-white mb-3">Agenda Integrada</h3>
+                <p className="text-zinc-400 mb-4">Sistema bloqueia automaticamente os horários do mensalista. Reserva aparece como "Plano Mensal".</p>
+                <p className="text-sm font-medium text-pink-400 bg-pink-500/10 inline-block px-3 py-1 rounded-full">
+                  Registro automático de presença
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Card 4 - Receita */}
+        <Card className="bg-zinc-900/50 border-zinc-800 hover:border-violet-500/30 transition-all overflow-hidden">
+          <CardContent className="p-8">
+            <div className="flex items-start gap-6">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-rose-500 to-orange-500 flex items-center justify-center flex-shrink-0">
+                <TrendingUp className="w-8 h-8 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-white mb-3">Receita Antecipada</h3>
+                <p className="text-zinc-400 mb-4">Saiba quanto vai faturar antes do mês começar. Pagamento antecipado via PIX ou cartão.</p>
+                <p className="text-sm font-medium text-orange-400 bg-orange-500/10 inline-block px-3 py-1 rounded-full">
+                  Fim dos no-shows de mensalistas
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Exemplo de Plano */}
+      <div className="max-w-md mx-auto">
+        <Card className="bg-gradient-to-br from-violet-500/20 to-purple-500/20 border-violet-500/50 overflow-hidden">
+          <CardContent className="p-6 text-center">
+            <Badge className="mb-4 bg-violet-500 text-white border-0">
+              EXEMPLO DE PLANO
+            </Badge>
+            <h3 className="text-2xl font-bold text-white mb-2">🎾 Mensalista 2x/semana</h3>
+            <p className="text-zinc-400 mb-4">Beach Tennis 1 - Terça e Quinta 18h</p>
+            <div className="flex items-baseline justify-center gap-1 mb-4">
+              <span className="text-zinc-500">R$</span>
+              <span className="text-5xl font-bold text-violet-400">399</span>
+              <span className="text-zinc-500">/mês</span>
+            </div>
+            <div className="flex items-center justify-center gap-2 text-lime-400">
+              <CheckCircle2 className="w-5 h-5" />
+              <span>Quadra garantida toda semana!</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  </section>
+);
+
 // ==================== COURT SCHEDULE SECTION ====================
 const CourtScheduleSection = () => {
   const [selectedCourt, setSelectedCourt] = useState<string | null>(null);
@@ -1211,6 +1331,10 @@ const FAQSection = () => {
     {
       question: 'Posso testar antes de pagar?',
       answer: 'Sim! Oferecemos 7 dias de teste gratuito com todas as funcionalidades. Sem compromisso e sem cartão de crédito.'
+    },
+    {
+      question: 'Como funciona o Clube de Assinaturas para mensalistas?',
+      answer: 'Você cria planos como "Mensalista 2x/semana" ou "Horário Fixo Premium". O jogador paga mensalmente e tem a quadra garantida nos dias e horários do plano. O sistema bloqueia automaticamente esses horários na agenda. Receita antecipada e ocupação garantida!'
     }
   ];
 
@@ -1291,6 +1415,7 @@ const NichoArenasEsportivasPage = () => {
       <HeroSection />
       <ProblemsSection />
       <FourPillarsSection />
+      <SubscriptionClubSection />
       <CourtScheduleSection />
       <GroupOrderSection />
       <ROISection />

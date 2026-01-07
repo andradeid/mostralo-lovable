@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useToothRecords, TOOTH_CONDITIONS, ToothRecord } from "@/hooks/dental/useToothRecords";
+import { useToothRecords, TOOTH_CONDITIONS } from "@/hooks/dental/useToothRecords";
 import { ToothDetailDialog } from "./ToothDetailDialog";
-import { ToothSVG, OdontogramToolbar } from "./odontogram";
+import { ToothSVG, OdontogramToolbar, GingivalLine } from "./odontogram";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -20,7 +20,7 @@ const ADULT_TEETH = {
 };
 
 // Condições que afetam o dente inteiro (não por face)
-const FULL_TOOTH_CONDITIONS = ["extraction", "missing", "implant", "crown", "prosthesis"];
+const FULL_TOOTH_CONDITIONS = ["extraction", "missing", "implant", "crown", "prosthesis", "endodontic"];
 
 export function OdontogramViewer({ patientId, storeId }: OdontogramViewerProps) {
   const { records, recordsByTooth, isLoading, createRecord, updateRecord, deleteRecord } = useToothRecords(patientId, storeId);
@@ -47,7 +47,6 @@ export function OdontogramViewer({ patientId, storeId }: OdontogramViewerProps) 
     
     toothRecords.forEach((record) => {
       if (record.face) {
-        // Se há múltiplas condições para a mesma face, pega a mais recente
         faceConditions[record.face] = record.condition;
       }
     });
@@ -72,14 +71,12 @@ export function OdontogramViewer({ patientId, storeId }: OdontogramViewerProps) 
   const handleFaceClick = async (toothNumber: number, face: string) => {
     if (!selectedTool) return;
 
-    // Verifica se já existe um registro para esta face
     const existingRecord = (recordsByTooth[toothNumber] || []).find(
       (r) => r.face === face
     );
 
     try {
       if (selectedTool === "eraser") {
-        // Remove o registro se existir
         if (existingRecord) {
           await deleteRecord.mutateAsync(existingRecord.id);
           toast({
@@ -88,7 +85,6 @@ export function OdontogramViewer({ patientId, storeId }: OdontogramViewerProps) 
           });
         }
       } else {
-        // Cria ou atualiza o registro
         if (existingRecord) {
           await updateRecord.mutateAsync({
             id: existingRecord.id,
@@ -137,16 +133,16 @@ export function OdontogramViewer({ patientId, storeId }: OdontogramViewerProps) 
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Odontograma</CardTitle>
-        <CardDescription>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg">Odontograma</CardTitle>
+        <CardDescription className="text-xs">
           {selectedTool 
             ? `Clique nas faces dos dentes para aplicar: ${TOOTH_CONDITIONS[selectedTool as keyof typeof TOOTH_CONDITIONS]?.label || selectedTool}`
-            : "Selecione uma ferramenta abaixo ou clique em um dente para ver detalhes"
+            : "Selecione uma ferramenta ou clique em um dente para ver detalhes"
           }
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         {/* Barra de ferramentas */}
         <OdontogramToolbar
           selectedTool={selectedTool}
@@ -154,16 +150,16 @@ export function OdontogramViewer({ patientId, storeId }: OdontogramViewerProps) 
         />
 
         {/* Legenda compacta */}
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1">
           {Object.entries(TOOTH_CONDITIONS).slice(0, 6).map(([key, { label, color }]) => (
             <Badge
               key={key}
               variant="outline"
-              className="gap-1 text-[10px] px-1.5 py-0"
+              className="gap-1 text-[9px] px-1.5 py-0"
               style={{ borderColor: color }}
             >
               <span
-                className="h-2 w-2 rounded-full"
+                className="h-1.5 w-1.5 rounded-full"
                 style={{ backgroundColor: color }}
               />
               {label}
@@ -171,12 +167,16 @@ export function OdontogramViewer({ patientId, storeId }: OdontogramViewerProps) 
           ))}
         </div>
 
-        {/* Odontograma */}
-        <div className="space-y-4 overflow-x-auto pb-2">
-          {/* Arcada Superior */}
-          <div className="space-y-1">
-            <p className="text-xs font-medium text-muted-foreground text-center">Arcada Superior</p>
-            <div className="flex justify-center gap-0.5 min-w-max">
+        {/* Odontograma com vista frontal + oclusal */}
+        <div className="space-y-2 overflow-x-auto pb-2">
+          {/* ARCADA SUPERIOR */}
+          <div className="space-y-0">
+            <p className="text-[10px] font-semibold text-muted-foreground text-center uppercase tracking-wide mb-1">
+              Arcada Superior
+            </p>
+            
+            {/* Dentes superiores: Vista frontal (raízes cima) + número + oclusal */}
+            <div className="flex justify-center gap-0 min-w-max mx-auto">
               {ADULT_TEETH.upper.map((toothNumber) => {
                 const toothRecords = recordsByTooth[toothNumber] || [];
                 
@@ -196,18 +196,29 @@ export function OdontogramViewer({ patientId, storeId }: OdontogramViewerProps) 
                 );
               })}
             </div>
+
+            {/* Linha gengival superior */}
+            <div className="flex justify-center">
+              <GingivalLine width={ADULT_TEETH.upper.length * 36} className="opacity-60" />
+            </div>
           </div>
 
-          {/* Linha central */}
-          <div className="flex items-center gap-2 py-2">
-            <div className="flex-1 border-t border-dashed border-muted-foreground/30" />
-            <span className="text-[10px] text-muted-foreground">Linha Média</span>
-            <div className="flex-1 border-t border-dashed border-muted-foreground/30" />
+          {/* Linha central/média */}
+          <div className="flex items-center gap-2 py-1">
+            <div className="flex-1 border-t-2 border-dashed border-border" />
+            <span className="text-[9px] font-medium text-muted-foreground px-2">LINHA MÉDIA</span>
+            <div className="flex-1 border-t-2 border-dashed border-border" />
           </div>
 
-          {/* Arcada Inferior */}
-          <div className="space-y-1">
-            <div className="flex justify-center gap-0.5 min-w-max">
+          {/* ARCADA INFERIOR */}
+          <div className="space-y-0">
+            {/* Linha gengival inferior */}
+            <div className="flex justify-center">
+              <GingivalLine width={ADULT_TEETH.lower.length * 36} className="opacity-60 rotate-180" />
+            </div>
+
+            {/* Dentes inferiores: Oclusal + número + vista frontal (raízes baixo) */}
+            <div className="flex justify-center gap-0 min-w-max mx-auto">
               {ADULT_TEETH.lower.map((toothNumber) => {
                 const toothRecords = recordsByTooth[toothNumber] || [];
                 
@@ -227,14 +238,17 @@ export function OdontogramViewer({ patientId, storeId }: OdontogramViewerProps) 
                 );
               })}
             </div>
-            <p className="text-xs font-medium text-muted-foreground text-center">Arcada Inferior</p>
+            
+            <p className="text-[10px] font-semibold text-muted-foreground text-center uppercase tracking-wide mt-1">
+              Arcada Inferior
+            </p>
           </div>
         </div>
 
         {/* Instrução */}
         {selectedTool && (
-          <p className="text-xs text-muted-foreground text-center">
-            Pressione <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-mono">ESC</kbd> para cancelar
+          <p className="text-[10px] text-muted-foreground text-center">
+            Pressione <kbd className="px-1 py-0.5 bg-muted rounded text-[9px] font-mono border">ESC</kbd> para cancelar
           </p>
         )}
 

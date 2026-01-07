@@ -12,8 +12,9 @@ import {
   Truck, Users, Printer, Tag, Megaphone, Calendar, ExternalLink, 
   Image, Search, Filter, CheckCircle, XCircle, Sparkles, Shield, Zap,
   Utensils, Settings2, Monitor, Wallet, Code, QrCode, MessageSquare, Target, Tablet,
-  DollarSign, TrendingUp, AlertTriangle, Link2, FileText, Layers
+  DollarSign, TrendingUp, AlertTriangle, Link2, FileText, Layers, Pencil
 } from 'lucide-react';
+import { ModulePriceEditModal } from '@/components/proposals/ModulePriceEditModal';
 
 // Mapeamento de ícones string -> componente
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -166,8 +167,10 @@ const ModulesPage = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<'all' | 'core' | 'advanced' | 'premium'>('all');
+  const [editingModule, setEditingModule] = useState<Module | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
-  const { data: modules = [], isLoading } = useQuery({
+  const { data: modules = [], isLoading, refetch } = useQuery({
     queryKey: ['modules-list'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -488,6 +491,20 @@ const ModulesPage = () => {
                     <span>⚠️ Requer: {dependencyNames.join(', ')}</span>
                   </div>
                 )}
+
+                {/* Botão Editar Preço */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => {
+                    setEditingModule(module);
+                    setEditModalOpen(true);
+                  }}
+                >
+                  <Pencil className="w-4 h-4 mr-2" />
+                  Editar Preço
+                </Button>
               </CardContent>
             </Card>
           );
@@ -522,6 +539,14 @@ const ModulesPage = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Modal de Edição de Preço */}
+      <ModulePriceEditModal
+        module={editingModule}
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        onSuccess={() => refetch()}
+      />
     </div>
   );
 };

@@ -5357,6 +5357,7 @@ export type Database = {
           health_insurance_validity: string | null
           id: string
           is_active: boolean
+          marital_status: string | null
           name: string
           notes: string | null
           occupation: string | null
@@ -5389,6 +5390,7 @@ export type Database = {
           health_insurance_validity?: string | null
           id?: string
           is_active?: boolean
+          marital_status?: string | null
           name: string
           notes?: string | null
           occupation?: string | null
@@ -5421,6 +5423,7 @@ export type Database = {
           health_insurance_validity?: string | null
           id?: string
           is_active?: boolean
+          marital_status?: string | null
           name?: string
           notes?: string | null
           occupation?: string | null

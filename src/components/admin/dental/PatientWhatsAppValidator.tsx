@@ -1,8 +1,12 @@
-import { Smartphone, CheckCircle2, AlertCircle, MessageSquare } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { Smartphone, CheckCircle2, AlertCircle, MessageSquare, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { CountryCodeSelect } from '@/components/ui/country-code-select';
 import { formatBrazilianPhone, formatInternationalPhone, cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export type WhatsAppValidationStatus = 'idle' | 'validating' | 'valid' | 'invalid';
 
@@ -27,7 +31,8 @@ export function PatientWhatsAppValidator({
   disabled,
   label = "Telefone / WhatsApp"
 }: PatientWhatsAppValidatorProps) {
-  
+  const [isValidating, setIsValidating] = useState(false);
+
   const handlePhoneChange = (value: string) => {
     const formatted = countryCode === '+55'
       ? formatBrazilianPhone(value)
@@ -51,7 +56,51 @@ export function PatientWhatsAppValidator({
     }
   };
 
+  const validateWhatsApp = useCallback(async () => {
+    const cleanPhone = phone.replace(/\D/g, '');
+    if (cleanPhone.length < 10) {
+      toast.error('Digite um número de telefone válido');
+      return;
+    }
+
+    setIsValidating(true);
+    onStatusChange('validating');
+
+    try {
+      const { data, error } = await supabase.functions.invoke('validate-whatsapp-number', {
+        body: { 
+          phone: cleanPhone,
+          sendWelcome: false
+        }
+      });
+
+      if (error) {
+        console.error('Erro ao validar WhatsApp:', error);
+        onStatusChange('invalid');
+        toast.error('Erro ao validar WhatsApp');
+        return;
+      }
+
+      if (data?.valid) {
+        onStatusChange('valid');
+        toast.success('WhatsApp verificado com sucesso!');
+      } else {
+        onStatusChange('invalid');
+        toast.warning(data?.error || 'WhatsApp não encontrado');
+      }
+    } catch (err) {
+      console.error('Erro na validação:', err);
+      onStatusChange('invalid');
+      toast.error('Erro ao validar WhatsApp');
+    } finally {
+      setIsValidating(false);
+    }
+  }, [phone, onStatusChange]);
+
   const getStatusIcon = () => {
+    if (isValidating) {
+      return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />;
+    }
     switch (status) {
       case 'valid':
         return <CheckCircle2 className="h-4 w-4 text-emerald-500" />;
@@ -74,6 +123,8 @@ export function PatientWhatsAppValidator({
         return '';
     }
   };
+
+  const canValidate = phone.replace(/\D/g, '').length >= 10 && !isValidating && status !== 'valid';
 
   return (
     <div className="space-y-2">
@@ -104,6 +155,20 @@ export function PatientWhatsAppValidator({
             {getStatusIcon()}
           </div>
         </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={validateWhatsApp}
+          disabled={!canValidate || disabled}
+          className="shrink-0"
+        >
+          {isValidating ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            'Validar'
+          )}
+        </Button>
       </div>
       {status !== 'idle' && (
         <p className={cn(

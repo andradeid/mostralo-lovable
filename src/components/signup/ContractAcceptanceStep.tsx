@@ -21,7 +21,15 @@ interface ContractAcceptances {
 interface ContractAcceptanceStepProps {
   acceptances: ContractAcceptances;
   onAcceptancesChange: (acceptances: ContractAcceptances) => void;
+  // Dados do CONTRATANTE (cliente)
   companyName: string;
+  companyDocument?: string;
+  representanteName?: string;
+  street?: string;
+  number?: string;
+  complement?: string;
+  city?: string;
+  state?: string;
 }
 
 interface ContractTemplate {
@@ -31,36 +39,102 @@ interface ContractTemplate {
   content: string;
 }
 
+interface ContractorInfo {
+  company_name: string;
+  cnpj: string;
+  address: string;
+  city: string;
+  state: string;
+  cep: string;
+  full_address: string;
+}
+
 const ContractAcceptanceStep = ({ 
   acceptances, 
   onAcceptancesChange,
-  companyName 
+  companyName,
+  companyDocument = '',
+  representanteName = '',
+  street = '',
+  number = '',
+  complement = '',
+  city = '',
+  state = '',
 }: ContractAcceptanceStepProps) => {
   const [contract, setContract] = useState<ContractTemplate | null>(null);
+  const [contractorInfo, setContractorInfo] = useState<ContractorInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasScrolledToEnd, setHasScrolledToEnd] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetchContract();
+    fetchData();
   }, []);
 
-  const fetchContract = async () => {
+  const fetchData = async () => {
     try {
-      const { data, error } = await supabase
-        .from('merchant_contract_templates')
-        .select('*')
-        .eq('is_active', true)
-        .single();
+      // Buscar contrato e dados da contratada em paralelo
+      const [contractResult, contractorResult] = await Promise.all([
+        supabase
+          .from('merchant_contract_templates')
+          .select('*')
+          .eq('is_active', true)
+          .single(),
+        supabase
+          .from('company_settings')
+          .select('value')
+          .eq('key', 'contractor_info')
+          .single()
+      ]);
 
-      if (!error && data) {
-        setContract(data);
+      if (!contractResult.error && contractResult.data) {
+        setContract(contractResult.data);
+      }
+
+      if (!contractorResult.error && contractorResult.data) {
+        setContractorInfo(contractorResult.data.value as unknown as ContractorInfo);
       }
     } catch (error) {
-      console.error('Error fetching contract:', error);
+      console.error('Error fetching contract data:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Função para substituir placeholders no contrato
+  const formatContractContent = (content: string): string => {
+    if (!content) return '';
+
+    // Determinar tipo de pessoa e documento baseado no tamanho
+    const cleanDocument = companyDocument.replace(/\D/g, '');
+    const isCompany = cleanDocument.length > 11;
+    const tipoPessoa = isCompany ? 'jurídica' : 'física';
+    const tipoDocumento = isCompany ? 'CNPJ' : 'CPF';
+
+    // Montar endereço completo do contratante
+    const enderecoContratante = [
+      street,
+      number,
+      complement,
+      city,
+      state
+    ].filter(Boolean).join(', ') || 'Não informado';
+
+    // Substituições da CONTRATADA (Mostralo)
+    let formattedContent = content
+      .replace(/{cnpj_contratada}/g, contractorInfo?.cnpj || '51.691.995/0001-15')
+      .replace(/{endereco_contratada}/g, contractorInfo?.full_address || 'SGCV LOTE 11, 121, BRASILIA - DF, CEP 70714-900');
+
+    // Substituições do CONTRATANTE (cliente)
+    formattedContent = formattedContent
+      .replace(/{nome_empresa}/g, companyName || 'Não informado')
+      .replace(/{tipo_pessoa}/g, tipoPessoa)
+      .replace(/{tipo_documento}/g, tipoDocumento)
+      .replace(/{documento}/g, companyDocument || 'Não informado')
+      .replace(/{endereco_contratante}/g, enderecoContratante)
+      .replace(/{nome_representante}/g, representanteName || companyName || 'Não informado');
+
+    return formattedContent;
   };
 
   const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
@@ -125,7 +199,7 @@ const ContractAcceptanceStep = ({
               className="h-[180px] sm:h-[250px] md:h-[320px] overflow-y-auto p-4 scroll-smooth"
             >
               <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap text-sm pb-8">
-                {contract.content}
+                {formatContractContent(contract.content)}
               </div>
             </div>
             {!hasScrolledToEnd && (

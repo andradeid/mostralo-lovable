@@ -266,10 +266,14 @@ export function PatientFormDialog({ open, onOpenChange, patient, storeId }: Pati
                       name="phone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Telefone</FormLabel>
-                          <FormControl>
-                            <Input placeholder="(00) 00000-0000" {...field} />
-                          </FormControl>
+                          <PatientWhatsAppValidator
+                            phone={field.value || ""}
+                            countryCode={countryCode}
+                            onPhoneChange={field.onChange}
+                            onCountryCodeChange={setCountryCode}
+                            onStatusChange={setWhatsappStatus}
+                            status={whatsappStatus}
+                          />
                           <FormMessage />
                         </FormItem>
                       )}

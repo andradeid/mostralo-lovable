@@ -18,6 +18,7 @@ interface Module {
   price: number;
   key?: string;
   included?: boolean;
+  description?: string;
 }
 
 interface Proposal {
@@ -54,12 +55,40 @@ export default function PublicProposalPage() {
   const [rejectReason, setRejectReason] = useState("");
   const [contractAccepted, setContractAccepted] = useState(false);
   const [showAcceptModal, setShowAcceptModal] = useState(false);
+  const [moduleDescriptions, setModuleDescriptions] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (slug) {
       fetchProposal();
     }
   }, [slug]);
+
+  // Buscar descrições dos módulos quando a proposta carregar
+  useEffect(() => {
+    const fetchModuleDescriptions = async () => {
+      const modules = proposal?.selected_modules as Module[];
+      if (!modules || modules.length === 0) return;
+
+      const moduleIds = modules.map(m => m.id);
+      
+      const { data, error } = await supabase
+        .from('modules')
+        .select('id, description')
+        .in('id', moduleIds);
+
+      if (data && !error) {
+        const descriptions: Record<string, string> = {};
+        data.forEach(m => {
+          if (m.description) descriptions[m.id] = m.description;
+        });
+        setModuleDescriptions(descriptions);
+      }
+    };
+
+    if (proposal?.selected_modules) {
+      fetchModuleDescriptions();
+    }
+  }, [proposal]);
 
   const fetchProposal = async () => {
     try {
@@ -269,11 +298,22 @@ export default function PublicProposalPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="space-y-4">
               {selectedModules.map((module) => (
-                <div key={module.id} className="flex justify-between items-center py-2 border-b last:border-0">
-                  <span>{module.name}</span>
-                  <Badge variant="outline">{formatCurrency(module.price)}/mês</Badge>
+                <div key={module.id} className="border-b last:border-0 pb-3 last:pb-0">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1 pr-3">
+                      <span className="font-medium">{module.name}</span>
+                      {moduleDescriptions[module.id] && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {moduleDescriptions[module.id]}
+                        </p>
+                      )}
+                    </div>
+                    <Badge variant="outline" className="shrink-0">
+                      {formatCurrency(module.price)}/mês
+                    </Badge>
+                  </div>
                 </div>
               ))}
             </div>

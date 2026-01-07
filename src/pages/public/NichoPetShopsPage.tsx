@@ -324,6 +324,190 @@ const FourPillarsSection = () => (
   </section>
 );
 
+// ============ Subscription Club Section ============
+const SubscriptionClubSection = () => (
+  <section className="py-20 bg-gradient-to-b from-zinc-900 to-zinc-950">
+    <div className="container mx-auto px-4">
+      <div className="max-w-4xl mx-auto text-center mb-16">
+        <Badge className="mb-4 bg-violet-500/20 text-violet-400 border-violet-500/30 px-4 py-2">
+          <CreditCard className="w-4 h-4 mr-2" />
+          🆕 NOVO! Fidelização Premium
+        </Badge>
+        <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
+          Banho mensal no{' '}
+          <span className="bg-gradient-to-r from-violet-500 to-purple-500 bg-clip-text text-transparent">
+            piloto automático
+          </span>
+        </h2>
+        <p className="text-xl text-zinc-400">
+          Crie planos como <strong className="text-white">"Plano Banho Mensal"</strong> ou{' '}
+          <strong className="text-white">"Assinatura Tosa + Banho"</strong> e tenha tutores fidelizados.
+        </p>
+      </div>
+      
+      <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto mb-12">
+        {/* Card 1 - Planos */}
+        <Card className="bg-zinc-950 border-zinc-800 hover:border-violet-500/50 transition-all duration-300 hover:-translate-y-2 overflow-hidden">
+          <div className="h-2 bg-gradient-to-r from-violet-500 to-purple-500" />
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-14 h-14 rounded-xl bg-violet-500/10 flex items-center justify-center">
+                <CreditCard className="w-7 h-7 text-violet-500" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white">Crie Seus Planos</h3>
+                <p className="text-violet-400 text-sm">Personalização Total</p>
+              </div>
+            </div>
+            <ul className="space-y-3">
+              <li className="flex items-start gap-3 text-zinc-300">
+                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <span>Planos como "Banho Mensal" ou "Plano Pet VIP"</span>
+              </li>
+              <li className="flex items-start gap-3 text-zinc-300">
+                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <span>Defina serviços inclusos no plano</span>
+              </li>
+              <li className="flex items-start gap-3 text-zinc-300">
+                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <span>Limite: 1x, 2x ou banhos ilimitados por mês</span>
+              </li>
+              <li className="flex items-start gap-3 text-zinc-300">
+                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <span>Ciclos: mensal, trimestral ou anual</span>
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
+
+        {/* Card 2 - Dashboard */}
+        <Card className="bg-zinc-950 border-zinc-800 hover:border-violet-500/50 transition-all duration-300 hover:-translate-y-2 overflow-hidden">
+          <div className="h-2 bg-gradient-to-r from-purple-500 to-pink-500" />
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-14 h-14 rounded-xl bg-purple-500/10 flex items-center justify-center">
+                <Users className="w-7 h-7 text-purple-500" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white">Dashboard Completo</h3>
+                <p className="text-purple-400 text-sm">Gestão de Assinantes</p>
+              </div>
+            </div>
+            <ul className="space-y-3">
+              <li className="flex items-start gap-3 text-zinc-300">
+                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <span>Veja todos os pets assinantes em um só lugar</span>
+              </li>
+              <li className="flex items-start gap-3 text-zinc-300">
+                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <span>Controle de período e vencimento</span>
+              </li>
+              <li className="flex items-start gap-3 text-zinc-300">
+                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <span>Status: ativo, pausado, cancelado</span>
+              </li>
+              <li className="flex items-start gap-3 text-zinc-300">
+                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <span>Histórico de banhos por pet</span>
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
+
+        {/* Card 3 - Integração Agenda */}
+        <Card className="bg-zinc-950 border-zinc-800 hover:border-violet-500/50 transition-all duration-300 hover:-translate-y-2 overflow-hidden">
+          <div className="h-2 bg-gradient-to-r from-pink-500 to-rose-500" />
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-14 h-14 rounded-xl bg-pink-500/10 flex items-center justify-center">
+                <Calendar className="w-7 h-7 text-pink-500" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white">Agenda Reconhece o Plano</h3>
+                <p className="text-pink-400 text-sm">Integração Automática</p>
+              </div>
+            </div>
+            <ul className="space-y-3">
+              <li className="flex items-start gap-3 text-zinc-300">
+                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <span>Sistema identifica pet assinante ao agendar</span>
+              </li>
+              <li className="flex items-start gap-3 text-zinc-300">
+                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <span>Banho aparece como "Incluso no Plano"</span>
+              </li>
+              <li className="flex items-start gap-3 text-zinc-300">
+                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <span>Registro automático de uso</span>
+              </li>
+              <li className="flex items-start gap-3 text-zinc-300">
+                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <span>Pet sempre limpo e cheiroso!</span>
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
+
+        {/* Card 4 - Receita */}
+        <Card className="bg-zinc-950 border-zinc-800 hover:border-violet-500/50 transition-all duration-300 hover:-translate-y-2 overflow-hidden">
+          <div className="h-2 bg-gradient-to-r from-rose-500 to-orange-500" />
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-14 h-14 rounded-xl bg-rose-500/10 flex items-center justify-center">
+                <TrendingUp className="w-7 h-7 text-rose-500" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white">Previsibilidade Financeira</h3>
+                <p className="text-rose-400 text-sm">Receita Recorrente</p>
+              </div>
+            </div>
+            <ul className="space-y-3">
+              <li className="flex items-start gap-3 text-zinc-300">
+                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <span>Saiba quanto vai faturar antes do mês começar</span>
+              </li>
+              <li className="flex items-start gap-3 text-zinc-300">
+                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <span>Tutor fidelizado por contrato mensal</span>
+              </li>
+              <li className="flex items-start gap-3 text-zinc-300">
+                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <span>PIX automático ou pagamento manual</span>
+              </li>
+              <li className="flex items-start gap-3 text-zinc-300">
+                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <span>Agenda do tosador sempre cheia</span>
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Exemplo de Plano */}
+      <div className="max-w-md mx-auto">
+        <Card className="bg-gradient-to-br from-violet-500/20 to-purple-500/20 border-violet-500/50 overflow-hidden">
+          <CardContent className="p-6 text-center">
+            <Badge className="mb-4 bg-violet-500 text-white border-0">
+              EXEMPLO DE PLANO
+            </Badge>
+            <h3 className="text-2xl font-bold text-white mb-2">🐕 Plano Banho Mensal</h3>
+            <p className="text-zinc-400 mb-4">1 banho garantido por mês para o pet</p>
+            <div className="flex items-baseline justify-center gap-1 mb-4">
+              <span className="text-zinc-500">R$</span>
+              <span className="text-5xl font-bold text-violet-400">129</span>
+              <span className="text-zinc-500">/mês</span>
+            </div>
+            <div className="flex items-center justify-center gap-2 text-green-400">
+              <CheckCircle className="w-5 h-5" />
+              <span>Pet sempre limpo e cheiroso!</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  </section>
+);
+
 // ============ Pet Profile Section ============
 interface Pet {
   nome: string;
@@ -1164,6 +1348,10 @@ const faqItems = [
   {
     question: 'Posso testar antes de pagar?',
     answer: 'Sim! Oferecemos 7 dias grátis em todos os planos para você testar todas as funcionalidades sem compromisso e sem precisar colocar cartão de crédito.'
+  },
+  {
+    question: 'Como funciona o Clube de Assinaturas?',
+    answer: 'Você cria planos como "Banho Mensal" ou "Plano Pet VIP". O tutor paga mensalmente e pode agendar banhos conforme o plano permitir. O sistema reconhece automaticamente o pet assinante e marca o serviço como incluso. Pet sempre limpo, agenda do tosador sempre cheia!'
   }
 ];
 
@@ -1258,6 +1446,7 @@ const NichoPetShopsPage = () => {
       <HeroSection />
       <ProblemsSection />
       <FourPillarsSection />
+      <SubscriptionClubSection />
       <PetProfileSection />
       <RecurrenceTimelineSection />
       <ROISection />

@@ -7,7 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Receipt, User, Calendar, DollarSign } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Plus, Search, Receipt, Calendar, DollarSign } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import DentalQuoteDialog from "@/components/admin/dental/DentalQuoteDialog";
@@ -100,6 +101,8 @@ export default function DentalQuotesPage() {
         <div className="grid gap-4">
           {filteredQuotes.map((quote) => {
             const patient = patients.find(p => p.id === quote.patient_id);
+            const getInitials = (name: string) => name.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase();
+            
             return (
               <Card 
                 key={quote.id} 
@@ -114,10 +117,15 @@ export default function DentalQuotesPage() {
                         {getStatusBadge(quote.status)}
                       </div>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <User className="h-4 w-4" />
-                          {patient?.name || "Paciente não encontrado"}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-6 w-6">
+                            <AvatarImage src={patient?.photo_url ?? undefined} />
+                            <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+                              {getInitials(patient?.name || "?")}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span>{patient?.name || "Paciente não encontrado"}</span>
+                        </div>
                         <span className="flex items-center gap-1">
                           <Calendar className="h-4 w-4" />
                           {format(new Date(quote.created_at), "dd/MM/yyyy", { locale: ptBR })}

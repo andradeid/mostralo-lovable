@@ -183,7 +183,11 @@ export default function PatientsPage() {
       ) : (
         <div className="space-y-3">
           {filteredPatients.map((patient) => (
-            <Card key={patient.id} className="hover:bg-accent/50 transition-colors">
+            <Card 
+              key={patient.id} 
+              className="hover:bg-accent/50 transition-colors cursor-pointer"
+              onClick={() => navigate(`/dashboard/dental/pacientes/${patient.id}`)}
+            >
               <CardContent className="p-4">
                 <div className="flex items-center gap-4">
                   <Avatar className="h-12 w-12">
@@ -224,21 +228,21 @@ export default function PatientsPage() {
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
+                      <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => navigate(`/dashboard/dental/pacientes/${patient.id}`)}>
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/dental/pacientes/${patient.id}`); }}>
                         <Eye className="h-4 w-4 mr-2" />
                         Ver Detalhes
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleEdit(patient)}>
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEdit(patient); }}>
                         <Edit className="h-4 w-4 mr-2" />
                         Editar
                       </DropdownMenuItem>
                       <DropdownMenuItem 
-                        onClick={() => setDeletingPatient(patient)}
+                        onClick={(e) => { e.stopPropagation(); setDeletingPatient(patient); }}
                         className="text-destructive focus:text-destructive"
                       >
                         <Trash2 className="h-4 w-4 mr-2" />

@@ -10,12 +10,15 @@ import {
   AlertTriangle,
   Move,
   Eraser,
-  RotateCcw
+  RotateCcw,
+  Activity
 } from "lucide-react";
 
 interface OdontogramToolbarProps {
   selectedTool: string | null;
   onSelectTool: (tool: string | null) => void;
+  periodontalMode?: boolean;
+  onTogglePeriodontalMode?: () => void;
 }
 
 export const ODONTOGRAM_TOOLS = [
@@ -33,9 +36,34 @@ export const ODONTOGRAM_TOOLS = [
   { id: "mobility", icon: Move, label: "Mobilidade", color: "#eab308" },
 ] as const;
 
-export function OdontogramToolbar({ selectedTool, onSelectTool }: OdontogramToolbarProps) {
+export function OdontogramToolbar({
+  selectedTool,
+  onSelectTool,
+  periodontalMode = false,
+  onTogglePeriodontalMode,
+}: OdontogramToolbarProps) {
   return (
     <div className="flex flex-wrap items-center gap-1.5 p-2 bg-muted/50 rounded-lg border">
+      {/* Botão modo periodontal */}
+      {onTogglePeriodontalMode && (
+        <>
+          <Button
+            variant={periodontalMode ? "default" : "outline"}
+            size="sm"
+            onClick={onTogglePeriodontalMode}
+            className={cn(
+              "h-8 px-2 gap-1.5 text-xs",
+              periodontalMode && "bg-pink-600 hover:bg-pink-700 text-white"
+            )}
+            title="Modo Periodontal - Clique na linha gengival para registrar medidas"
+          >
+            <Activity className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Periodontal</span>
+          </Button>
+          <div className="w-px h-6 bg-border mx-1" />
+        </>
+      )}
+
       {ODONTOGRAM_TOOLS.map((tool) => {
         const Icon = tool.icon;
         const isSelected = selectedTool === tool.id;
@@ -48,13 +76,15 @@ export function OdontogramToolbar({ selectedTool, onSelectTool }: OdontogramTool
             onClick={() => onSelectTool(isSelected ? null : tool.id)}
             className={cn(
               "h-8 px-2 gap-1.5 text-xs",
-              isSelected && "ring-2 ring-offset-1"
+              isSelected && "ring-2 ring-offset-1",
+              periodontalMode && "opacity-50 pointer-events-none"
             )}
             style={{
               borderColor: tool.color,
               ...(isSelected && { backgroundColor: tool.color, borderColor: tool.color })
             }}
             title={tool.label}
+            disabled={periodontalMode}
           >
             <Icon 
               className="h-3.5 w-3.5" 
@@ -76,15 +106,19 @@ export function OdontogramToolbar({ selectedTool, onSelectTool }: OdontogramTool
         variant={selectedTool === "eraser" ? "default" : "outline"}
         size="sm"
         onClick={() => onSelectTool(selectedTool === "eraser" ? null : "eraser")}
-        className="h-8 px-2 gap-1.5 text-xs"
+        className={cn(
+          "h-8 px-2 gap-1.5 text-xs",
+          periodontalMode && "opacity-50 pointer-events-none"
+        )}
         title="Remover condição"
+        disabled={periodontalMode}
       >
         <Eraser className="h-3.5 w-3.5" />
         <span className="hidden sm:inline">Apagar</span>
       </Button>
 
       {/* Limpar seleção */}
-      {selectedTool && (
+      {selectedTool && !periodontalMode && (
         <Button
           variant="ghost"
           size="sm"

@@ -5654,6 +5654,70 @@ export type Database = {
           },
         ]
       }
+      periodontal_records: {
+        Row: {
+          bleeding: boolean
+          created_at: string
+          gingival_recession: number
+          id: string
+          patient_id: string
+          pocket_depth: number
+          position: string
+          registered_by: string | null
+          store_id: string
+          tooth_number: number
+          updated_at: string
+        }
+        Insert: {
+          bleeding?: boolean
+          created_at?: string
+          gingival_recession?: number
+          id?: string
+          patient_id: string
+          pocket_depth?: number
+          position: string
+          registered_by?: string | null
+          store_id: string
+          tooth_number: number
+          updated_at?: string
+        }
+        Update: {
+          bleeding?: boolean
+          created_at?: string
+          gingival_recession?: number
+          id?: string
+          patient_id?: string
+          pocket_depth?: number
+          position?: string
+          registered_by?: string | null
+          store_id?: string
+          tooth_number?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "periodontal_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "periodontal_records_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "periodontal_records_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plan_included_services: {
         Row: {
           created_at: string

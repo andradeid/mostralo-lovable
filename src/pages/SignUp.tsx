@@ -70,6 +70,21 @@ const SignUp = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
+  
+  // Estado para dados da proposta (quando vindo de aceite de proposta)
+  const [proposalData, setProposalData] = useState<{
+    proposalId: string | null;
+    clientName: string | null;
+    clientPhone: string | null;
+    clientEmail: string | null;
+    clientCompany: string | null;
+    finalPrice: number | null;
+    modules: Array<{ id: string; name: string; price: number }>;
+  } | null>(null);
+  
+  // Verificar se veio de proposta para pular step 4
+  const isFromProposal = proposalData !== null && proposalData.finalPrice !== null;
+  const totalSteps = isFromProposal ? 5 : 6;
   const [referredBySalespersonId, setReferredBySalespersonId] = useState<string | null>(null);
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const [salespersonName, setSalespersonName] = useState<string | null>(null);
@@ -169,16 +184,7 @@ const SignUp = () => {
     };
   }, []);
 
-  // Estado para dados da proposta (quando vindo de aceite de proposta)
-  const [proposalData, setProposalData] = useState<{
-    proposalId: string | null;
-    clientName: string | null;
-    clientPhone: string | null;
-    clientEmail: string | null;
-    clientCompany: string | null;
-    finalPrice: number | null;
-    modules: Array<{ id: string; name: string; price: number }>;
-  } | null>(null);
+  // Estado para dados da proposta já é definido no início do componente
 
   // Estado para origem do diagnóstico
   const [diagnosticOrigin, setDiagnosticOrigin] = useState<{
@@ -814,15 +820,27 @@ const SignUp = () => {
     return true;
   };
 
-  const handleNext = () => {
-    if (currentStep === 1 && !validateStep1()) return;
-    if (currentStep === 2 && !validateStep2()) return;
-    if (currentStep === 3 && !validateStep3()) return;
-    if (currentStep === 4 && !validateStep4()) return;
-    if (currentStep === 5 && !validateStep5()) return;
-    if (currentStep === 6 && !validateStep6()) return;
+  // Mapear step visual para step real quando vem de proposta
+  const getActualStep = (visualStep: number) => {
+    if (!isFromProposal) return visualStep;
+    // Quando vem de proposta, step 4 (plano) é pulado
+    // Visual: 1,2,3,4,5 → Real: 1,2,3,5,6
+    if (visualStep >= 4) return visualStep + 1;
+    return visualStep;
+  };
 
-    if (currentStep < 6) {
+  const handleNext = () => {
+    const actualStep = getActualStep(currentStep);
+    
+    if (actualStep === 1 && !validateStep1()) return;
+    if (actualStep === 2 && !validateStep2()) return;
+    if (actualStep === 3 && !validateStep3()) return;
+    // Só validar step 4 se NÃO vier de proposta
+    if (!isFromProposal && actualStep === 4 && !validateStep4()) return;
+    if (actualStep === 5 && !validateStep5()) return;
+    if (actualStep === 6 && !validateStep6()) return;
+
+    if (currentStep < totalSteps) {
       setCurrentStep(prev => prev + 1);
     } else {
       handleSubmit();
@@ -930,7 +948,7 @@ const SignUp = () => {
           slug: storeSlug,
           owner_id: userId,
           status: 'inactive',
-          plan_id: formData.planId,
+          plan_id: isFromProposal ? null : formData.planId, // null para planos personalizados via proposta
           wants_online_payment: onlinePaymentConfig.wantsOnlinePayment,
           efi_account_status: onlinePaymentConfig.wantsOnlinePayment ? 'pending_approval' : 'not_configured',
         })
@@ -967,13 +985,22 @@ const SignUp = () => {
         }
       }
 
-      // 6. Buscar dados do plano
-      const selectedPlan = plans.find(p => p.id === formData.planId);
-      
-      // Calcular valor final com cupom
-      const finalPaymentAmount = appliedCoupon 
-        ? appliedCoupon.finalPrice 
-        : (selectedPlan?.price || 0);
+      // 6. Calcular valor final e plan_id
+      let finalPaymentAmount: number;
+      let planIdToUse: string | null = null;
+
+      if (isFromProposal && proposalData?.finalPrice) {
+        // Usar preço da proposta (plano personalizado)
+        finalPaymentAmount = proposalData.finalPrice;
+        // planId fica null para planos personalizados via proposta
+      } else {
+        // Fluxo normal com plano selecionado
+        const selectedPlan = plans.find(p => p.id === formData.planId);
+        finalPaymentAmount = appliedCoupon 
+          ? appliedCoupon.finalPrice 
+          : (selectedPlan?.price || 0);
+        planIdToUse = formData.planId || null;
+      }
 
       // 7. Criar registro de aprovação de pagamento
       const { error: approvalError } = await (supabase as any)
@@ -981,7 +1008,7 @@ const SignUp = () => {
         .insert({
           user_id: userId,
           store_id: storeData.id,
-          plan_id: formData.planId,
+          plan_id: planIdToUse, // null para planos personalizados via proposta
           status: 'pending',
           payment_amount: finalPaymentAmount,
           payment_method: 'pix',
@@ -1000,6 +1027,7 @@ const SignUp = () => {
           referred_by_salesperson_id: referredBySalespersonId, // 🎯 Salvar referência do vendedor
           coupon_id: appliedCoupon?.id || null, // 🎁 Salvar cupom aplicado
           coupon_discount: appliedCoupon?.discountAmount || 0, // 💰 Salvar valor do desconto
+          proposal_id: proposalData?.proposalId || null, // 📝 Vincular à proposta
         });
 
       if (approvalError) throw approvalError;
@@ -1044,7 +1072,7 @@ const SignUp = () => {
               owner_name: formData.fullName,
               owner_email: formData.email,
               owner_phone: formData.phone,
-              plan_name: selectedPlan?.name,
+              plan_name: isFromProposal ? 'Plano Personalizado' : (plans.find(p => p.id === formData.planId)?.name || 'Não selecionado'),
               source: 'self_registration',
             },
           },
@@ -1113,7 +1141,10 @@ const SignUp = () => {
   };
 
   const renderStep = () => {
-    switch (currentStep) {
+    // Mapear step visual para step real quando vem de proposta
+    const actualStep = getActualStep(currentStep);
+    
+    switch (actualStep) {
       case 1:
         return (
           <div className="space-y-4 relative">
@@ -1628,14 +1659,23 @@ const SignUp = () => {
     }
   };
 
-  const stepTitles = [
-    'Dados de Login',
-    'Dados Pessoais e Empresa',
-    'Endereço',
-    'Escolha seu Plano',
-    'Aceite dos Termos',
-    'Pagamento Online'
-  ];
+  // Títulos dinâmicos baseado na origem
+  const stepTitles = isFromProposal
+    ? [
+        'Dados de Login',
+        'Dados Pessoais e Empresa',
+        'Endereço',
+        'Aceite dos Termos',
+        'Pagamento Online'
+      ]
+    : [
+        'Dados de Login',
+        'Dados Pessoais e Empresa',
+        'Endereço',
+        'Escolha seu Plano',
+        'Aceite dos Termos',
+        'Pagamento Online'
+      ];
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/20 via-background to-secondary/20 px-4 py-8">
@@ -1665,7 +1705,7 @@ const SignUp = () => {
 
         {/* Progress */}
         <div className="flex items-center justify-between mb-8">
-          {[1, 2, 3, 4, 5, 6].map((step) => (
+          {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => (
             <div key={step} className="flex items-center">
               <div
                 className={`w-7 h-7 md:w-9 md:h-9 rounded-full flex items-center justify-center font-semibold text-xs md:text-sm ${
@@ -1676,7 +1716,7 @@ const SignUp = () => {
               >
                 {step < currentStep ? <Check className="w-3 h-3 md:w-4 md:h-4" /> : step}
               </div>
-              {step < 6 && (
+              {step < totalSteps && (
                 <div
                   className={`h-1 w-4 md:w-8 mx-0.5 md:mx-1 ${
                     step < currentStep ? 'bg-primary' : 'bg-muted'
@@ -1694,7 +1734,7 @@ const SignUp = () => {
               {stepTitles[currentStep - 1]}
             </CardTitle>
             <CardDescription>
-              Passo {currentStep} de 6
+              Passo {currentStep} de {totalSteps}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -1713,7 +1753,7 @@ const SignUp = () => {
               )}
               <Button
                 onClick={handleNext}
-                disabled={isLoading || (currentStep === 4 && loadingPlans) || (currentStep === 1 && rateLimitSeconds > 0)}
+                disabled={isLoading || (!isFromProposal && currentStep === 4 && loadingPlans) || (currentStep === 1 && rateLimitSeconds > 0)}
                 className="flex-1"
                 variant={(currentStep === 1 && rateLimitSeconds > 0) ? 'outline' : 'default'}
               >
@@ -1727,7 +1767,7 @@ const SignUp = () => {
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Criando conta...
                   </>
-                ) : currentStep === 6 ? (
+                ) : currentStep === totalSteps ? (
                   'Criar Conta'
                 ) : (
                   'Próximo'

@@ -1227,6 +1227,67 @@ export type Database = {
           },
         ]
       }
+      clinical_notes: {
+        Row: {
+          attachments: Json | null
+          content: string
+          created_at: string
+          created_by: string | null
+          created_by_name: string | null
+          id: string
+          note_type: string | null
+          patient_id: string
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          attachments?: Json | null
+          content: string
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          id?: string
+          note_type?: string | null
+          patient_id: string
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          attachments?: Json | null
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          created_by_name?: string | null
+          id?: string
+          note_type?: string | null
+          patient_id?: string
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinical_notes_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinical_notes_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinical_notes_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comanda_items: {
         Row: {
           added_at: string
@@ -2270,6 +2331,531 @@ export type Database = {
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dental_audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          ip_address: unknown
+          new_data: Json | null
+          old_data: Json | null
+          patient_id: string | null
+          store_id: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          ip_address?: unknown
+          new_data?: Json | null
+          old_data?: Json | null
+          patient_id?: string | null
+          store_id: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          ip_address?: unknown
+          new_data?: Json | null
+          old_data?: Json | null
+          patient_id?: string | null
+          store_id?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dental_audit_log_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_audit_log_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_audit_log_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dental_consent_records: {
+        Row: {
+          accepted: boolean
+          accepted_at: string | null
+          consent_type: string
+          created_at: string
+          id: string
+          ip_address: unknown
+          patient_id: string
+          revoked_at: string | null
+          signature_data: string | null
+          store_id: string
+          version: string | null
+        }
+        Insert: {
+          accepted?: boolean
+          accepted_at?: string | null
+          consent_type: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          patient_id: string
+          revoked_at?: string | null
+          signature_data?: string | null
+          store_id: string
+          version?: string | null
+        }
+        Update: {
+          accepted?: boolean
+          accepted_at?: string | null
+          consent_type?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          patient_id?: string
+          revoked_at?: string | null
+          signature_data?: string | null
+          store_id?: string
+          version?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dental_consent_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_consent_records_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_consent_records_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dental_document_templates: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          name: string
+          store_id: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name: string
+          store_id: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name?: string
+          store_id?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dental_document_templates_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_document_templates_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dental_patient_documents: {
+        Row: {
+          content: string
+          created_at: string
+          document_number: string | null
+          generated_by: string | null
+          id: string
+          medications: Json | null
+          patient_id: string
+          patient_signature_data: string | null
+          patient_signed_at: string | null
+          pdf_url: string | null
+          professional_name: string | null
+          professional_registration: string | null
+          sent_at: string | null
+          sent_via: string | null
+          signature_data: string | null
+          signed_at: string | null
+          store_id: string
+          template_id: string | null
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          document_number?: string | null
+          generated_by?: string | null
+          id?: string
+          medications?: Json | null
+          patient_id: string
+          patient_signature_data?: string | null
+          patient_signed_at?: string | null
+          pdf_url?: string | null
+          professional_name?: string | null
+          professional_registration?: string | null
+          sent_at?: string | null
+          sent_via?: string | null
+          signature_data?: string | null
+          signed_at?: string | null
+          store_id: string
+          template_id?: string | null
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          document_number?: string | null
+          generated_by?: string | null
+          id?: string
+          medications?: Json | null
+          patient_id?: string
+          patient_signature_data?: string | null
+          patient_signed_at?: string | null
+          pdf_url?: string | null
+          professional_name?: string | null
+          professional_registration?: string | null
+          sent_at?: string | null
+          sent_via?: string | null
+          signature_data?: string | null
+          signed_at?: string | null
+          store_id?: string
+          template_id?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dental_patient_documents_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_patient_documents_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_patient_documents_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_patient_documents_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "dental_document_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dental_procedures: {
+        Row: {
+          category: string | null
+          code: string | null
+          created_at: string
+          default_price: number
+          description: string | null
+          estimated_duration_minutes: number | null
+          id: string
+          is_active: boolean
+          name: string
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          code?: string | null
+          created_at?: string
+          default_price?: number
+          description?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          is_active?: boolean
+          name: string
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          code?: string | null
+          created_at?: string
+          default_price?: number
+          description?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dental_procedures_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_procedures_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dental_quote_items: {
+        Row: {
+          created_at: string
+          description: string
+          discount_percentage: number | null
+          id: string
+          notes: string | null
+          procedure_code: string | null
+          procedure_id: string | null
+          quantity: number
+          quote_id: string
+          sort_order: number | null
+          tooth_number: number | null
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          discount_percentage?: number | null
+          id?: string
+          notes?: string | null
+          procedure_code?: string | null
+          procedure_id?: string | null
+          quantity?: number
+          quote_id: string
+          sort_order?: number | null
+          tooth_number?: number | null
+          total_price: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          discount_percentage?: number | null
+          id?: string
+          notes?: string | null
+          procedure_code?: string | null
+          procedure_id?: string | null
+          quantity?: number
+          quote_id?: string
+          sort_order?: number | null
+          tooth_number?: number | null
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dental_quote_items_procedure_id_fkey"
+            columns: ["procedure_id"]
+            isOneToOne: false
+            referencedRelation: "dental_procedures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_quote_items_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "dental_quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dental_quotes: {
+        Row: {
+          approved_at: string | null
+          created_at: string
+          created_by: string | null
+          discount_percentage: number | null
+          discount_value: number | null
+          id: string
+          installments: number | null
+          internal_notes: string | null
+          notes: string | null
+          patient_id: string
+          payment_conditions: string | null
+          quote_number: string
+          rejected_at: string | null
+          rejection_reason: string | null
+          sent_at: string | null
+          sent_via: string | null
+          signature_data: string | null
+          signed_at: string | null
+          status: string
+          store_id: string
+          subtotal: number
+          total_value: number
+          treatment_plan_id: string | null
+          updated_at: string
+          valid_until: string | null
+          viewed_at: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          discount_percentage?: number | null
+          discount_value?: number | null
+          id?: string
+          installments?: number | null
+          internal_notes?: string | null
+          notes?: string | null
+          patient_id: string
+          payment_conditions?: string | null
+          quote_number: string
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          sent_at?: string | null
+          sent_via?: string | null
+          signature_data?: string | null
+          signed_at?: string | null
+          status?: string
+          store_id: string
+          subtotal: number
+          total_value: number
+          treatment_plan_id?: string | null
+          updated_at?: string
+          valid_until?: string | null
+          viewed_at?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          discount_percentage?: number | null
+          discount_value?: number | null
+          id?: string
+          installments?: number | null
+          internal_notes?: string | null
+          notes?: string | null
+          patient_id?: string
+          payment_conditions?: string | null
+          quote_number?: string
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          sent_at?: string | null
+          sent_via?: string | null
+          signature_data?: string | null
+          signed_at?: string | null
+          status?: string
+          store_id?: string
+          subtotal?: number
+          total_value?: number
+          treatment_plan_id?: string | null
+          updated_at?: string
+          valid_until?: string | null
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dental_quotes_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_quotes_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_quotes_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dental_quotes_treatment_plan_id_fkey"
+            columns: ["treatment_plan_id"]
+            isOneToOne: false
+            referencedRelation: "treatment_plans"
             referencedColumns: ["id"]
           },
         ]
@@ -4638,6 +5224,224 @@ export type Database = {
           },
           {
             foreignKeyName: "password_calls_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_records: {
+        Row: {
+          alcohol_consumption: string | null
+          allergies: string | null
+          allergy_anesthesia: boolean | null
+          allergy_latex: boolean | null
+          allergy_penicillin: boolean | null
+          blood_type: string | null
+          bruxism: boolean | null
+          clinical_observations: string | null
+          created_at: string
+          current_medications: string | null
+          has_bleeding_disorder: boolean | null
+          has_diabetes: boolean | null
+          has_heart_condition: boolean | null
+          has_hepatitis: boolean | null
+          has_hiv: boolean | null
+          has_hypertension: boolean | null
+          has_pacemaker: boolean | null
+          height: number | null
+          id: string
+          is_breastfeeding: boolean | null
+          is_pregnant: boolean | null
+          is_smoker: boolean | null
+          last_updated_by: string | null
+          medical_conditions: string | null
+          patient_id: string
+          previous_surgeries: string | null
+          smoking_frequency: string | null
+          updated_at: string
+          weight: number | null
+        }
+        Insert: {
+          alcohol_consumption?: string | null
+          allergies?: string | null
+          allergy_anesthesia?: boolean | null
+          allergy_latex?: boolean | null
+          allergy_penicillin?: boolean | null
+          blood_type?: string | null
+          bruxism?: boolean | null
+          clinical_observations?: string | null
+          created_at?: string
+          current_medications?: string | null
+          has_bleeding_disorder?: boolean | null
+          has_diabetes?: boolean | null
+          has_heart_condition?: boolean | null
+          has_hepatitis?: boolean | null
+          has_hiv?: boolean | null
+          has_hypertension?: boolean | null
+          has_pacemaker?: boolean | null
+          height?: number | null
+          id?: string
+          is_breastfeeding?: boolean | null
+          is_pregnant?: boolean | null
+          is_smoker?: boolean | null
+          last_updated_by?: string | null
+          medical_conditions?: string | null
+          patient_id: string
+          previous_surgeries?: string | null
+          smoking_frequency?: string | null
+          updated_at?: string
+          weight?: number | null
+        }
+        Update: {
+          alcohol_consumption?: string | null
+          allergies?: string | null
+          allergy_anesthesia?: boolean | null
+          allergy_latex?: boolean | null
+          allergy_penicillin?: boolean | null
+          blood_type?: string | null
+          bruxism?: boolean | null
+          clinical_observations?: string | null
+          created_at?: string
+          current_medications?: string | null
+          has_bleeding_disorder?: boolean | null
+          has_diabetes?: boolean | null
+          has_heart_condition?: boolean | null
+          has_hepatitis?: boolean | null
+          has_hiv?: boolean | null
+          has_hypertension?: boolean | null
+          has_pacemaker?: boolean | null
+          height?: number | null
+          id?: string
+          is_breastfeeding?: boolean | null
+          is_pregnant?: boolean | null
+          is_smoker?: boolean | null
+          last_updated_by?: string | null
+          medical_conditions?: string | null
+          patient_id?: string
+          previous_surgeries?: string | null
+          smoking_frequency?: string | null
+          updated_at?: string
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: true
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patients: {
+        Row: {
+          address_city: string | null
+          address_complement: string | null
+          address_neighborhood: string | null
+          address_number: string | null
+          address_state: string | null
+          address_street: string | null
+          address_zip: string | null
+          birth_date: string | null
+          cpf: string | null
+          created_at: string
+          email: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_contact_relationship: string | null
+          gender: string | null
+          health_insurance: string | null
+          health_insurance_number: string | null
+          health_insurance_validity: string | null
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          occupation: string | null
+          phone: string | null
+          phone_secondary: string | null
+          photo_url: string | null
+          referred_by: string | null
+          rg: string | null
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip?: string | null
+          birth_date?: string | null
+          cpf?: string | null
+          created_at?: string
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
+          gender?: string | null
+          health_insurance?: string | null
+          health_insurance_number?: string | null
+          health_insurance_validity?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          occupation?: string | null
+          phone?: string | null
+          phone_secondary?: string | null
+          photo_url?: string | null
+          referred_by?: string | null
+          rg?: string | null
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          address_city?: string | null
+          address_complement?: string | null
+          address_neighborhood?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip?: string | null
+          birth_date?: string | null
+          cpf?: string | null
+          created_at?: string
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
+          gender?: string | null
+          health_insurance?: string | null
+          health_insurance_number?: string | null
+          health_insurance_validity?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          occupation?: string | null
+          phone?: string | null
+          phone_secondary?: string | null
+          photo_url?: string | null
+          referred_by?: string | null
+          rg?: string | null
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patients_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patients_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
@@ -8942,6 +9746,251 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "unified_users_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tooth_records: {
+        Row: {
+          color: string | null
+          condition: string
+          created_at: string
+          face: string | null
+          id: string
+          material: string | null
+          notes: string | null
+          patient_id: string
+          registered_by: string | null
+          store_id: string
+          tooth_number: number
+          treatment_done: string | null
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          condition: string
+          created_at?: string
+          face?: string | null
+          id?: string
+          material?: string | null
+          notes?: string | null
+          patient_id: string
+          registered_by?: string | null
+          store_id: string
+          tooth_number: number
+          treatment_done?: string | null
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          condition?: string
+          created_at?: string
+          face?: string | null
+          id?: string
+          material?: string | null
+          notes?: string | null
+          patient_id?: string
+          registered_by?: string | null
+          store_id?: string
+          tooth_number?: number
+          treatment_done?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tooth_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tooth_records_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tooth_records_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      treatment_plan_items: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          discount_percentage: number | null
+          face: string | null
+          id: string
+          notes: string | null
+          plan_id: string
+          priority: number | null
+          procedure_code: string | null
+          procedure_id: string | null
+          procedure_name: string
+          quantity: number
+          scheduled_date: string | null
+          status: string
+          tooth_number: number | null
+          total_price: number
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          discount_percentage?: number | null
+          face?: string | null
+          id?: string
+          notes?: string | null
+          plan_id: string
+          priority?: number | null
+          procedure_code?: string | null
+          procedure_id?: string | null
+          procedure_name: string
+          quantity?: number
+          scheduled_date?: string | null
+          status?: string
+          tooth_number?: number | null
+          total_price: number
+          unit_price: number
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          discount_percentage?: number | null
+          face?: string | null
+          id?: string
+          notes?: string | null
+          plan_id?: string
+          priority?: number | null
+          procedure_code?: string | null
+          procedure_id?: string | null
+          procedure_name?: string
+          quantity?: number
+          scheduled_date?: string | null
+          status?: string
+          tooth_number?: number | null
+          total_price?: number
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "treatment_plan_items_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "treatment_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "treatment_plan_items_procedure_id_fkey"
+            columns: ["procedure_id"]
+            isOneToOne: false
+            referencedRelation: "dental_procedures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      treatment_plans: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          discount_percentage: number | null
+          discount_value: number | null
+          final_value: number
+          id: string
+          name: string
+          notes: string | null
+          patient_id: string
+          plan_number: string | null
+          started_at: string | null
+          status: string
+          store_id: string
+          total_value: number
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discount_percentage?: number | null
+          discount_value?: number | null
+          final_value?: number
+          id?: string
+          name: string
+          notes?: string | null
+          patient_id: string
+          plan_number?: string | null
+          started_at?: string | null
+          status?: string
+          store_id: string
+          total_value?: number
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discount_percentage?: number | null
+          discount_value?: number | null
+          final_value?: number
+          id?: string
+          name?: string
+          notes?: string | null
+          patient_id?: string
+          plan_number?: string | null
+          started_at?: string | null
+          status?: string
+          store_id?: string
+          total_value?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "treatment_plans_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "treatment_plans_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "treatment_plans_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
             referencedColumns: ["id"]
           },
         ]

@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Upload, X, Plus, HelpCircle } from 'lucide-react';
 import { ProductUpsellSelector } from '@/components/admin/products/ProductUpsellSelector';
 import { useAuth } from '@/hooks/use-auth';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import {
   Tooltip,
   TooltipContent,
@@ -454,10 +455,12 @@ export function ProductForm({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="price">Preço (R$) *</Label>
-                  <Input id="price" type="number" step="0.01" min="0" {...form.register('price', {
-                  valueAsNumber: true
-                })} placeholder="0,00" />
+                  <Label htmlFor="price">Preço *</Label>
+                  <CurrencyInput
+                    id="price"
+                    value={form.watch('price') || 0}
+                    onChange={(value) => form.setValue('price', value, { shouldValidate: true })}
+                  />
                   {form.formState.errors.price && <p className="text-sm text-destructive">
                       {form.formState.errors.price.message}
                     </p>}
@@ -534,14 +537,11 @@ export function ProductForm({
               {form.watch('is_on_offer') && (
                 <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
                   <div className="space-y-2">
-                    <Label htmlFor="offer_price">Preço com Desconto (R$) *</Label>
-                    <Input 
-                      id="offer_price" 
-                      type="number" 
-                      step="0.01" 
-                      min="0" 
-                      {...form.register('offer_price', { valueAsNumber: true })} 
-                      placeholder="0,00" 
+                    <Label htmlFor="offer_price">Preço com Desconto *</Label>
+                    <CurrencyInput
+                      id="offer_price"
+                      value={form.watch('offer_price') || 0}
+                      onChange={(value) => form.setValue('offer_price', value, { shouldValidate: true })}
                     />
                     {form.formState.errors.offer_price && (
                       <p className="text-sm text-destructive">
@@ -574,8 +574,11 @@ export function ProductForm({
                   {variants.map((variant, index) => <div key={index} className="flex items-center gap-2 p-2 border rounded-lg">
                       <span className="flex-1 font-medium">{variant.name}</span>
                       <div className="flex items-center gap-2">
-                        <Label className="text-sm">R$</Label>
-                        <Input type="number" step="0.01" min="0" value={variant.price} onChange={e => updateVariantPrice(index, Number(e.target.value))} className="w-20" />
+                        <CurrencyInput
+                          value={variant.price}
+                          onChange={(value) => updateVariantPrice(index, value)}
+                          className="w-32"
+                        />
                         <Button type="button" variant="ghost" size="sm" onClick={() => removeVariant(index)}>
                           <X className="w-4 h-4" />
                         </Button>

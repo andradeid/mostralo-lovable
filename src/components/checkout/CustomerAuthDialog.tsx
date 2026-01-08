@@ -11,13 +11,11 @@ import { toast } from 'sonner';
 import { CustomerLocationPicker } from './CustomerLocationPicker';
 import { z } from 'zod';
 import { formatPhone, normalizePhone } from '@/lib/utils';
-import { useStoreModules } from '@/hooks/useStoreModules';
 import { ForgotPasswordButton } from '@/components/auth/ForgotPasswordButton';
 
 // Componentes de animação
 import { CheckoutAuthIdentifyingStep } from './auth/CheckoutAuthIdentifyingStep';
 import { CheckoutAuthIdentifiedStep } from './auth/CheckoutAuthIdentifiedStep';
-import { CheckoutAuthWhatsAppStep } from './auth/CheckoutAuthWhatsAppStep';
 
 // Schemas de validação
 const registerSchema = z.object({
@@ -39,8 +37,8 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Senha é obrigatória'),
 });
 
-type LoginStep = 'form' | 'identifying' | 'identified' | 'validating_whatsapp' | 'whatsapp_result' | 'success';
-type RegisterStep = 'form' | 'registering' | 'registered' | 'validating_whatsapp' | 'whatsapp_result' | 'success';
+type LoginStep = 'form' | 'identifying' | 'identified' | 'success';
+type RegisterStep = 'form' | 'registering' | 'registered' | 'success';
 
 interface CustomerAuthDialogProps {
   open: boolean;
@@ -57,15 +55,10 @@ export function CustomerAuthDialog({
   storeSlug,
   onAuthSuccess 
 }: CustomerAuthDialogProps) {
-  // Hook de módulos da loja
-  const { hasModule } = useStoreModules(storeId);
-  const hasWhatsAppModule = hasModule('whatsapp');
-
   // Estados de Steps Animados
   const [loginStep, setLoginStep] = useState<LoginStep>('form');
   const [registerStep, setRegisterStep] = useState<RegisterStep>('form');
   const [loginError, setLoginError] = useState<string | null>(null);
-  const [whatsappStatus, setWhatsappStatus] = useState<'validating' | 'valid' | 'invalid'>('validating');
   const [pendingCustomerData, setPendingCustomerData] = useState<any>(null);
 
   // Estados de Login
@@ -143,30 +136,15 @@ export function CustomerAuthDialog({
     }
   }, [loginStep]);
 
-  // Auto-avanço do step "identified" para WhatsApp ou sucesso
+  // Auto-avanço do step "identified" para sucesso
   useEffect(() => {
     if (loginStep === 'identified' && !loginError) {
-      const timer = setTimeout(async () => {
-        if (hasWhatsAppModule && pendingCustomerData?.phone) {
-          setLoginStep('validating_whatsapp');
-          await validateWhatsApp(pendingCustomerData.phone);
-        } else {
-          finishLogin();
-        }
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [loginStep, loginError, hasWhatsAppModule, pendingCustomerData]);
-
-  // Auto-avanço do step "whatsapp_result" para sucesso (login)
-  useEffect(() => {
-    if (loginStep === 'whatsapp_result') {
       const timer = setTimeout(() => {
         finishLogin();
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [loginStep]);
+  }, [loginStep, loginError, pendingCustomerData]);
 
   // Auto-avanço do step "registering" para "registered"
   useEffect(() => {
@@ -178,64 +156,15 @@ export function CustomerAuthDialog({
     }
   }, [registerStep]);
 
-  // Auto-avanço do step "registered" para WhatsApp ou sucesso
+  // Auto-avanço do step "registered" para sucesso
   useEffect(() => {
     if (registerStep === 'registered') {
-      const timer = setTimeout(async () => {
-        if (hasWhatsAppModule && pendingCustomerData?.phone) {
-          setRegisterStep('validating_whatsapp');
-          await validateWhatsApp(pendingCustomerData.phone);
-        } else {
-          finishRegister();
-        }
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [registerStep, hasWhatsAppModule, pendingCustomerData]);
-
-  // Auto-avanço do step "whatsapp_result" para sucesso (register)
-  useEffect(() => {
-    if (registerStep === 'whatsapp_result') {
       const timer = setTimeout(() => {
         finishRegister();
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [registerStep]);
-
-  const validateWhatsApp = async (phone: string) => {
-    try {
-      setWhatsappStatus('validating');
-      
-      // Timeout de 5 segundos para evitar trava
-      const timeoutPromise = new Promise<{ data: null; error: Error }>((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout')), 5000)
-      );
-      
-      const fetchPromise = supabase.functions.invoke('validate-whatsapp-number', {
-        body: { phone, storeId }
-      });
-      
-      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
-
-      // Campo correto é "valid" (não "isValid")
-      if (error || !data?.valid) {
-        setWhatsappStatus('invalid');
-      } else {
-        setWhatsappStatus('valid');
-      }
-    } catch {
-      // Em caso de timeout ou erro, marcar como inválido e continuar
-      setWhatsappStatus('invalid');
-    } finally {
-      // Avançar para o resultado
-      if (loginStep === 'validating_whatsapp') {
-        setLoginStep('whatsapp_result');
-      } else if (registerStep === 'validating_whatsapp') {
-        setRegisterStep('whatsapp_result');
-      }
-    }
-  };
+  }, [registerStep, pendingCustomerData]);
 
   const finishLogin = () => {
     if (pendingCustomerData) {
@@ -512,15 +441,6 @@ export function CustomerAuthDialog({
             isNewToThisStore={pendingCustomerData?.isNewToThisStore}
           />
         );
-      case 'validating_whatsapp':
-        return <CheckoutAuthWhatsAppStep status="validating" />;
-      case 'whatsapp_result':
-        return (
-          <CheckoutAuthWhatsAppStep 
-            status={whatsappStatus} 
-            phone={formatPhone(pendingCustomerData?.phone || '')}
-          />
-        );
       default:
         return null;
     }
@@ -536,15 +456,6 @@ export function CustomerAuthDialog({
           <CheckoutAuthIdentifiedStep 
             isNewCustomer={true} 
             customerName={pendingCustomerData?.name}
-          />
-        );
-      case 'validating_whatsapp':
-        return <CheckoutAuthWhatsAppStep status="validating" />;
-      case 'whatsapp_result':
-        return (
-          <CheckoutAuthWhatsAppStep 
-            status={whatsappStatus} 
-            phone={formatPhone(pendingCustomerData?.phone || '')}
           />
         );
       default:

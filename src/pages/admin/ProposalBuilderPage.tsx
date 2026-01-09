@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   FileText, User, Package, DollarSign, Send, ArrowLeft, ArrowRight,
-  Check, Loader2, Copy, Phone, Mail, Building2, Calendar
+  Check, Loader2, Copy, Phone, Mail, Building2, Calendar, Store
 } from 'lucide-react';
 import { useNiches } from '@/hooks/useNiches';
 import { useNicheTemplates } from '@/hooks/useNicheTemplates';
@@ -71,6 +71,7 @@ export default function ProposalBuilderPage() {
     billing_cycle: 'monthly',
     validity_days: 7,
     internal_notes: '',
+    store_count: 1,
   });
 
   // Queries
@@ -137,16 +138,26 @@ export default function ProposalBuilderPage() {
   // Calcular valores
   const calculations = useMemo(() => {
     const selectedModules = modules.filter(m => selectedModuleIds.includes(m.id));
-    const modulesTotal = selectedModules.reduce((sum, m) => sum + (m.suggested_price || 0), 0);
-    const discountAmount = (modulesTotal * pricingData.discount_percentage) / 100;
-    const finalPrice = modulesTotal - discountAmount + pricingData.setup_fee;
+    const pricePerStore = selectedModules.reduce((sum, m) => sum + (m.suggested_price || 0), 0);
+    
+    // Subtotal com número de lojas
+    const subtotalWithStores = pricePerStore * pricingData.store_count;
+    
+    // Desconto aplicado sobre o subtotal
+    const discountAmount = (subtotalWithStores * pricingData.discount_percentage) / 100;
+    
+    // Mensalidade final
+    const monthlyPrice = Math.max(0, subtotalWithStores - discountAmount);
+    const finalPrice = monthlyPrice + pricingData.setup_fee;
     
     return {
       selectedModules,
-      modulesTotal,
+      pricePerStore,
+      subtotalWithStores,
+      modulesTotal: subtotalWithStores, // Para compatibilidade
       discountAmount,
       finalPrice: Math.max(0, finalPrice),
-      monthlyPrice: Math.max(0, modulesTotal - discountAmount),
+      monthlyPrice,
     };
   }, [modules, selectedModuleIds, pricingData]);
 
@@ -209,6 +220,7 @@ export default function ProposalBuilderPage() {
       billing_cycle: pricingData.billing_cycle,
       valid_until: format(validUntil, 'yyyy-MM-dd'),
       internal_notes: pricingData.internal_notes || undefined,
+      store_count: pricingData.store_count,
     });
 
     setGeneratedSlug(result.slug);
@@ -452,7 +464,25 @@ export default function ProposalBuilderPage() {
           {/* Step 3: Pricing */}
           {currentStep === 3 && (
             <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Store className="w-4 h-4" />
+                    Número de Lojas
+                  </Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={pricingData.store_count}
+                    onChange={(e) => setPricingData(prev => ({ 
+                      ...prev, 
+                      store_count: Math.max(1, parseInt(e.target.value) || 1) 
+                    }))}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Mensalidade multiplicada pelo nº de lojas
+                  </p>
+                </div>
                 <div className="space-y-2">
                   <Label>Taxa de Setup (R$)</Label>
                   <Input
@@ -515,9 +545,15 @@ export default function ProposalBuilderPage() {
               <Card className="bg-muted/50">
                 <CardContent className="p-4 space-y-2">
                   <div className="flex justify-between">
-                    <span>Subtotal módulos:</span>
-                    <span>{formatCurrency(calculations.modulesTotal)}</span>
+                    <span>Valor por loja:</span>
+                    <span>{formatCurrency(calculations.pricePerStore)}/mês</span>
                   </div>
+                  {pricingData.store_count > 1 && (
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>{pricingData.store_count} lojas:</span>
+                      <span>{formatCurrency(calculations.subtotalWithStores)}/mês</span>
+                    </div>
+                  )}
                   {pricingData.discount_percentage > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>Desconto ({pricingData.discount_percentage}%):</span>
@@ -526,12 +562,12 @@ export default function ProposalBuilderPage() {
                   )}
                   {pricingData.setup_fee > 0 && (
                     <div className="flex justify-between">
-                      <span>Taxa de setup:</span>
+                      <span>Taxa de setup (única):</span>
                       <span>+{formatCurrency(pricingData.setup_fee)}</span>
                     </div>
                   )}
                   <div className="border-t pt-2 flex justify-between font-bold text-lg">
-                    <span>Mensalidade:</span>
+                    <span>Mensalidade Total:</span>
                     <span className="text-primary">{formatCurrency(calculations.monthlyPrice)}/mês</span>
                   </div>
                 </CardContent>

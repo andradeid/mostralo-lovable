@@ -72,6 +72,7 @@ export interface CreateProposalData {
   valid_until?: string;
   salesperson_id?: string;
   internal_notes?: string;
+  store_count?: number;
 }
 
 // Gera slug único
@@ -174,6 +175,7 @@ export function useCreateProposal() {
         valid_until: data.valid_until,
         salesperson_id: data.salesperson_id,
         internal_notes: data.internal_notes,
+        store_count: data.store_count || 1,
         proposal_number: generateProposalNumber(),
         slug: generateSlug(),
         status: 'sent',

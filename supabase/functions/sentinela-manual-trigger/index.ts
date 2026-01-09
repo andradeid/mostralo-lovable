@@ -11,6 +11,12 @@ interface ManualTriggerRequest {
   storeId: string;
 }
 
+interface OrderItem {
+  product_id: string;
+  product_name: string;
+  quantity: number;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -232,7 +238,7 @@ async function runSend(supabase: any, storeId: string): Promise<{ sent: number; 
   };
 }
 
-// Processar regra específica
+// Processar regra específica - CORRIGIDO para usar order_items
 async function processRule(supabase: any, store: any, rule: any): Promise<number> {
   const today = new Date();
   const targetDate = new Date(today);
@@ -240,9 +246,10 @@ async function processRule(supabase: any, store: any, rule: any): Promise<number
 
   console.log(`[SENTINELA-MANUAL] Processando regra ${rule.id}, buscando pedidos de ${targetDate.toISOString().split('T')[0]}`);
 
+  // Buscar pedidos (SEM items - usar order_items separadamente)
   const { data: orders, error: ordersError } = await supabase
     .from('orders')
-    .select('id, store_id, customer_id, created_at, items')
+    .select('id, store_id, customer_id, created_at')
     .eq('store_id', store.id)
     .gte('created_at', targetDate.toISOString().split('T')[0])
     .lt('created_at', new Date(targetDate.getTime() + 86400000).toISOString().split('T')[0])
@@ -255,7 +262,18 @@ async function processRule(supabase: any, store: any, rule: any): Promise<number
   let remindersCreated = 0;
 
   for (const order of orders) {
-    const items = order.items || [];
+    // Buscar itens do pedido da tabela order_items
+    const { data: orderItems, error: itemsError } = await supabase
+      .from('order_items')
+      .select('product_id, product_name, quantity')
+      .eq('order_id', order.id);
+
+    if (itemsError) {
+      console.error(`[SENTINELA-MANUAL] Erro ao buscar itens do pedido ${order.id}:`, itemsError);
+      continue;
+    }
+
+    const items: OrderItem[] = orderItems || [];
     let matchingProductId: string | null = null;
 
     if (rule.product_id) {
@@ -285,7 +303,7 @@ async function processRule(supabase: any, store: any, rule: any): Promise<number
       .eq('customer_id', order.customer_id)
       .eq('product_id', matchingProductId)
       .eq('status', 'pending')
-      .single();
+      .maybeSingle();
 
     if (existingReminder) continue;
 
@@ -313,7 +331,7 @@ async function processRule(supabase: any, store: any, rule: any): Promise<number
   return remindersCreated;
 }
 
-// Processar recorrência do produto
+// Processar recorrência do produto - CORRIGIDO para usar order_items
 async function processProductRecurrence(supabase: any, store: any, product: any, reminderDaysBefore: number): Promise<number> {
   if (!product.recurrence_days) return 0;
 
@@ -321,9 +339,10 @@ async function processProductRecurrence(supabase: any, store: any, product: any,
   const targetDate = new Date(today);
   targetDate.setDate(targetDate.getDate() - (product.recurrence_days - reminderDaysBefore));
 
+  // Buscar pedidos (SEM items - usar order_items separadamente)
   const { data: orders, error: ordersError } = await supabase
     .from('orders')
-    .select('id, store_id, customer_id, created_at, items')
+    .select('id, store_id, customer_id, created_at')
     .eq('store_id', store.id)
     .gte('created_at', targetDate.toISOString().split('T')[0])
     .lt('created_at', new Date(targetDate.getTime() + 86400000).toISOString().split('T')[0])
@@ -336,7 +355,18 @@ async function processProductRecurrence(supabase: any, store: any, product: any,
   let remindersCreated = 0;
 
   for (const order of orders) {
-    const items = order.items || [];
+    // Buscar itens do pedido da tabela order_items
+    const { data: orderItems, error: itemsError } = await supabase
+      .from('order_items')
+      .select('product_id, product_name, quantity')
+      .eq('order_id', order.id);
+
+    if (itemsError) {
+      console.error(`[SENTINELA-MANUAL] Erro ao buscar itens do pedido ${order.id}:`, itemsError);
+      continue;
+    }
+
+    const items: OrderItem[] = orderItems || [];
     const hasProduct = items.some((item: any) => item.product_id === product.id);
 
     if (!hasProduct) continue;
@@ -347,7 +377,7 @@ async function processProductRecurrence(supabase: any, store: any, product: any,
       .eq('customer_id', order.customer_id)
       .eq('product_id', product.id)
       .eq('status', 'pending')
-      .single();
+      .maybeSingle();
 
     if (existingReminder) continue;
 

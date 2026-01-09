@@ -17,7 +17,6 @@ interface Order {
   store_id: string;
   customer_id: string;
   created_at: string;
-  items: OrderItem[] | null;
 }
 
 interface SentinelaRule {
@@ -147,15 +146,14 @@ async function processRule(supabase: any, store: any, rule: SentinelaRule): Prom
 
   console.log(`[SENTINELA-CHECK] Processando regra ${rule.id}, buscando pedidos de ${targetDate.toISOString().split('T')[0]}`);
 
-  // Buscar pedidos que contêm o produto/categoria da regra
+  // Buscar pedidos que contêm o produto/categoria da regra (SEM items - usar order_items)
   let ordersQuery = supabase
     .from('orders')
     .select(`
       id,
       store_id,
       customer_id,
-      created_at,
-      items
+      created_at
     `)
     .eq('store_id', store.id)
     .gte('created_at', targetDate.toISOString().split('T')[0])
@@ -176,8 +174,18 @@ async function processRule(supabase: any, store: any, rule: SentinelaRule): Prom
   let remindersCreated = 0;
 
   for (const order of orders as Order[]) {
-    // Verificar se o pedido contém o produto da regra
-    const items = order.items || [];
+    // Buscar itens do pedido da tabela order_items
+    const { data: orderItems, error: itemsError } = await supabase
+      .from('order_items')
+      .select('product_id, product_name, quantity')
+      .eq('order_id', order.id);
+
+    if (itemsError) {
+      console.error(`[SENTINELA-CHECK] Erro ao buscar itens do pedido ${order.id}:`, itemsError);
+      continue;
+    }
+
+    const items: OrderItem[] = orderItems || [];
     let matchingProduct: OrderItem | undefined;
 
     if (rule.product_id) {
@@ -209,7 +217,7 @@ async function processRule(supabase: any, store: any, rule: SentinelaRule): Prom
       .eq('customer_id', order.customer_id)
       .eq('product_id', rule.product_id || matchingProduct.product_id)
       .eq('status', 'pending')
-      .single();
+      .maybeSingle();
 
     if (existingReminder) continue;
 
@@ -255,15 +263,14 @@ async function processProductRecurrence(
 
   console.log(`[SENTINELA-CHECK] Processando produto ${product.name}, buscando pedidos de ${targetDate.toISOString().split('T')[0]}`);
 
-  // Buscar pedidos que contêm o produto
+  // Buscar pedidos (SEM items - usar order_items)
   const { data: orders, error: ordersError } = await supabase
     .from('orders')
     .select(`
       id,
       store_id,
       customer_id,
-      created_at,
-      items
+      created_at
     `)
     .eq('store_id', store.id)
     .gte('created_at', targetDate.toISOString().split('T')[0])
@@ -277,7 +284,18 @@ async function processProductRecurrence(
   let remindersCreated = 0;
 
   for (const order of orders as Order[]) {
-    const items = order.items || [];
+    // Buscar itens do pedido da tabela order_items
+    const { data: orderItems, error: itemsError } = await supabase
+      .from('order_items')
+      .select('product_id, product_name, quantity')
+      .eq('order_id', order.id);
+
+    if (itemsError) {
+      console.error(`[SENTINELA-CHECK] Erro ao buscar itens do pedido ${order.id}:`, itemsError);
+      continue;
+    }
+
+    const items: OrderItem[] = orderItems || [];
     const hasProduct = items.some((item: OrderItem) => item.product_id === product.id);
 
     if (!hasProduct) continue;
@@ -289,7 +307,7 @@ async function processProductRecurrence(
       .eq('customer_id', order.customer_id)
       .eq('product_id', product.id)
       .eq('status', 'pending')
-      .single();
+      .maybeSingle();
 
     if (existingReminder) continue;
 

@@ -522,7 +522,10 @@ export const CheckoutDialog = ({
           })
           .eq('id', existingByAuth.id);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error('[CheckoutDialog] Erro ao atualizar cliente:', updateError);
+          throw updateError;
+        }
         customerId = existingByAuth.id;
       } else {
         // Não existe cliente vinculado a este auth_user_id
@@ -642,6 +645,18 @@ export const CheckoutDialog = ({
       if (numberError) throw numberError;
 
       // Create order
+      console.log('[CheckoutDialog] Criando pedido com dados:', {
+        order_number: orderNumber,
+        store_id: storeId,
+        customer_id: customerId,
+        customer_name: customerName,
+        customer_phone: normalizedPhone,
+        delivery_type: deliveryType,
+        payment_method: paymentMethod,
+        subtotal,
+        total: subtotal + finalDeliveryFee - finalPromotionDiscount
+      });
+      
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert({
@@ -672,7 +687,15 @@ export const CheckoutDialog = ({
         .select()
         .single();
 
-      if (orderError) throw orderError;
+      if (orderError) {
+        console.error('[CheckoutDialog] Erro ao criar pedido:', orderError);
+        console.error('[CheckoutDialog] Código do erro:', orderError.code);
+        console.error('[CheckoutDialog] Detalhes:', orderError.details);
+        console.error('[CheckoutDialog] Hint:', orderError.hint);
+        throw orderError;
+      }
+      
+      console.log('[CheckoutDialog] Pedido criado com sucesso:', order.id);
 
       // Register promotion usage
       if (finalAppliedPromotion && order) {

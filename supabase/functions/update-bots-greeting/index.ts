@@ -368,63 +368,129 @@ SOBRE A PLATAFORMA:
           description: `Bot Mostralo - ${store.name}`,
         };
 
-        // Deletar e recriar (estratégia mais confiável)
-        try {
-          await fetch(`${evolutionUrl}/openai/delete/${botId}/${instanceName}`, {
-            method: 'DELETE',
-            headers: { 'apikey': evolutionConfig.api_key },
-          });
-        } catch (e) {
-          console.log(`⚠️ Erro ao deletar bot antigo (ignorando): ${e}`);
-        }
-
-        // Criar novo bot com contexto atualizado
-        const createResp = await fetch(`${evolutionUrl}/openai/create/${instanceName}`, {
-          method: 'POST',
-          headers: {
-            'apikey': evolutionConfig.api_key,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(updatePayload),
-        });
-
-        const createText = await createResp.text();
-
-        if (createResp.ok) {
-          let newBotId = null;
+        // ESTRATÉGIA SEGURA: Tentar UPDATE primeiro, só CREATE se necessário
+        // NUNCA deletar o bot - isso evita downtime se a recriação falhar
+        
+        let updateSuccess = false;
+        let retryCount = 0;
+        const maxRetries = 2;
+        
+        while (!updateSuccess && retryCount < maxRetries) {
+          retryCount++;
+          
           try {
-            const data = JSON.parse(createText);
-            newBotId = data?.id || data?.openaiBot?.id || null;
-          } catch { /* ignore */ }
+            // Tentar ATUALIZAR o bot existente via PUT (sem deletar)
+            console.log(`🔄 [${store.name}] Tentativa ${retryCount}/${maxRetries}: Atualizando bot ${botId}...`);
+            
+            const updateResp = await fetch(`${evolutionUrl}/openai/settings/${botId}/${instanceName}`, {
+              method: 'PUT',
+              headers: {
+                'apikey': evolutionConfig.api_key,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(updatePayload),
+            });
 
-          // Atualizar ID no banco se mudou
-          if (newBotId && newBotId !== botId) {
-            await supabaseClient
-              .from('store_bot_config')
-              .update({ 
-                evolution_bot_id: newBotId,
-                updated_at: new Date().toISOString()
-              })
-              .eq('id', botConfig.id);
+            const updateText = await updateResp.text();
+
+            if (updateResp.ok) {
+              // UPDATE bem-sucedido - bot continua funcionando!
+              console.log(`✅ [${store.name}] Bot atualizado via PUT | ${period} ${emoji} | ${isOpen ? 'ABERTO' : 'FECHADO'}`);
+              results.push({
+                store: store.name,
+                success: true,
+                method: 'UPDATE',
+                greeting,
+                period,
+                isOpen,
+                currentTime,
+                nextOpening
+              });
+              updateSuccess = true;
+            } else if (updateResp.status === 404) {
+              // Bot não existe mais na Evolution - precisa criar novo
+              console.log(`⚠️ [${store.name}] Bot ${botId} não encontrado (404), criando novo...`);
+              
+              const createResp = await fetch(`${evolutionUrl}/openai/create/${instanceName}`, {
+                method: 'POST',
+                headers: {
+                  'apikey': evolutionConfig.api_key,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updatePayload),
+              });
+
+              const createText = await createResp.text();
+
+              if (createResp.ok) {
+                let newBotId = null;
+                try {
+                  const data = JSON.parse(createText);
+                  newBotId = data?.id || data?.openaiBot?.id || null;
+                } catch { /* ignore */ }
+
+                // Salvar novo ID no banco
+                if (newBotId) {
+                  await supabaseClient
+                    .from('store_bot_config')
+                    .update({ 
+                      evolution_bot_id: newBotId,
+                      updated_at: new Date().toISOString()
+                    })
+                    .eq('id', botConfig.id);
+                  
+                  console.log(`✅ [${store.name}] Novo bot criado com ID: ${newBotId}`);
+                }
+
+                results.push({
+                  store: store.name,
+                  success: true,
+                  method: 'CREATE',
+                  newBotId,
+                  greeting,
+                  period,
+                  isOpen,
+                  currentTime,
+                  nextOpening
+                });
+                updateSuccess = true;
+              } else {
+                console.error(`❌ [${store.name}] Falha ao criar bot:`, createText.slice(0, 200));
+                if (retryCount >= maxRetries) {
+                  results.push({
+                    store: store.name,
+                    success: false,
+                    error: `CREATE falhou: ${createText.slice(0, 100)}`
+                  });
+                }
+              }
+            } else {
+              // Outro erro no UPDATE - logar e tentar novamente
+              console.error(`⚠️ [${store.name}] UPDATE falhou (status ${updateResp.status}):`, updateText.slice(0, 200));
+              if (retryCount >= maxRetries) {
+                results.push({
+                  store: store.name,
+                  success: false,
+                  error: `UPDATE falhou após ${maxRetries} tentativas: ${updateText.slice(0, 100)}`
+                });
+              }
+            }
+          } catch (fetchError) {
+            console.error(`❌ [${store.name}] Erro de conexão (tentativa ${retryCount}):`, fetchError);
+            if (retryCount >= maxRetries) {
+              results.push({
+                store: store.name,
+                success: false,
+                error: `Erro de conexão: ${String(fetchError)}`
+              });
+            }
           }
 
-          console.log(`✅ Bot atualizado: ${store.name} | ${period} ${emoji} | ${greeting} | ${isOpen ? 'ABERTO' : 'FECHADO'}`);
-          results.push({
-            store: store.name,
-            success: true,
-            greeting,
-            period,
-            isOpen,
-            currentTime,
-            nextOpening
-          });
-        } else {
-          console.error(`❌ Erro ao atualizar bot ${store.name}:`, createText.slice(0, 200));
-          results.push({
-            store: store.name,
-            success: false,
-            error: createText.slice(0, 100)
-          });
+          // Aguardar antes de retry (se necessário)
+          if (!updateSuccess && retryCount < maxRetries) {
+            console.log(`⏳ [${store.name}] Aguardando 2s antes de retry...`);
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          }
         }
 
       } catch (botError) {

@@ -844,8 +844,8 @@ export function DeliveryZonesPicker({
           </div>
 
           {/* Mapa */}
-          <div className="flex-1 relative rounded-lg overflow-hidden border">
-            <div ref={mapContainer} className="absolute inset-0" />
+          <div className="flex-1 relative rounded-lg overflow-hidden border min-h-[400px]">
+            <div ref={mapContainer} className="absolute inset-0 w-full h-full" />
           </div>
         </div>
 

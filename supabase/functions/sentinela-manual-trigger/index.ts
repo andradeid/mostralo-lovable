@@ -246,7 +246,7 @@ async function processRule(supabase: any, store: any, rule: any): Promise<number
     .eq('store_id', store.id)
     .gte('created_at', targetDate.toISOString().split('T')[0])
     .lt('created_at', new Date(targetDate.getTime() + 86400000).toISOString().split('T')[0])
-    .in('status', ['concluido', 'entregue']);
+    .in('status', ['concluido']);
 
   if (ordersError || !orders || orders.length === 0) {
     return 0;
@@ -327,7 +327,7 @@ async function processProductRecurrence(supabase: any, store: any, product: any,
     .eq('store_id', store.id)
     .gte('created_at', targetDate.toISOString().split('T')[0])
     .lt('created_at', new Date(targetDate.getTime() + 86400000).toISOString().split('T')[0])
-    .in('status', ['concluido', 'entregue']);
+    .in('status', ['concluido']);
 
   if (ordersError || !orders || orders.length === 0) {
     return 0;

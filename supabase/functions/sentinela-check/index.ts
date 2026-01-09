@@ -160,7 +160,7 @@ async function processRule(supabase: any, store: any, rule: SentinelaRule): Prom
     .eq('store_id', store.id)
     .gte('created_at', targetDate.toISOString().split('T')[0])
     .lt('created_at', new Date(targetDate.getTime() + 86400000).toISOString().split('T')[0])
-    .in('status', ['concluido', 'entregue']);
+    .in('status', ['concluido']);
 
   const { data: orders, error: ordersError } = await ordersQuery;
 
@@ -268,7 +268,7 @@ async function processProductRecurrence(
     .eq('store_id', store.id)
     .gte('created_at', targetDate.toISOString().split('T')[0])
     .lt('created_at', new Date(targetDate.getTime() + 86400000).toISOString().split('T')[0])
-    .in('status', ['concluido', 'entregue']);
+    .in('status', ['concluido']);
 
   if (ordersError || !orders || orders.length === 0) {
     return 0;

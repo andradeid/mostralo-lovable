@@ -180,6 +180,84 @@ serve(async (req) => {
 
     const evolutionUrl = evolutionConfig.api_url.replace(/\/$/, '');
 
+    // =====================================================
+    // Helper: garantir credencial OpenAI por LOJA (não usar evolution_config.openai_creds_id)
+    // Motivo: openai_creds_id no banco pode ser placeholder e quebrar o bot no CRON.
+    // =====================================================
+    async function ensureStoreOpenAiCreds(
+      instanceName: string,
+      storeSlug: string,
+      storeOpenAiApiKey: string | null
+    ): Promise<string | null> {
+      if (!storeOpenAiApiKey) return null;
+
+      const credsName = `store_${storeSlug}_openai`;
+
+      try {
+        // 1) Tentar localizar credencial existente
+        const listResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
+          method: 'GET',
+          headers: { 'apikey': evolutionConfig.api_key },
+        });
+
+        const listText = await listResp.text();
+        if (listResp.ok) {
+          let listData: any = null;
+          try {
+            listData = JSON.parse(listText);
+          } catch {
+            listData = null;
+          }
+
+          const creds = Array.isArray(listData)
+            ? listData
+            : (listData?.creds || listData?.data || []);
+
+          const found = creds.find((c: any) => c?.name === credsName && c?.id);
+          if (found?.id) return found.id as string;
+        } else {
+          console.error('❌ [CRON] Falha ao listar credenciais:', listResp.status, listText.slice(0, 200));
+        }
+
+        // 2) Criar credencial se não existe
+        const createResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
+          method: 'POST',
+          headers: {
+            'apikey': evolutionConfig.api_key,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: credsName,
+            apiKey: storeOpenAiApiKey,
+          }),
+        });
+
+        const createText = await createResp.text();
+        if (!createResp.ok) {
+          console.error('❌ [CRON] Falha ao criar credencial:', createResp.status, createText.slice(0, 200));
+          return null;
+        }
+
+        let created: any = {};
+        try {
+          created = JSON.parse(createText);
+        } catch {
+          created = {};
+        }
+
+        const createdId = created?.id || created?.openaiCredsId || created?.creds?.id || null;
+        if (!createdId) {
+          console.error('❌ [CRON] ID da credencial não retornado:', createText.slice(0, 200));
+          return null;
+        }
+
+        return createdId as string;
+      } catch (e) {
+        console.error('❌ [CRON] Erro ao garantir credencial:', e);
+        return null;
+      }
+    }
+
     // Buscar todos os bots ativos
     const { data: activeBots, error: botsError } = await supabaseClient
       .from('store_bot_config')
@@ -190,7 +268,8 @@ serve(async (req) => {
           business_hours, timezone, delivery_fee, min_order_value,
           accepts_cash, accepts_card, accepts_pix, city, state,
           google_maps_link, custom_domain, custom_domain_verified,
-          segment
+          segment,
+          openai_api_key
         )
       `)
       .eq('enabled', true)
@@ -257,7 +336,22 @@ serve(async (req) => {
         }
         const storeLink = `${baseUrl}/loja/${store.slug}`;
 
-        // Buscar produtos e categorias
+        // Garantir credencial OpenAI correta para esta loja/instância
+        const storeOpenAiCredsId = await ensureStoreOpenAiCreds(
+          instanceName,
+          store.slug,
+          store.openai_api_key
+        );
+
+        if (!storeOpenAiCredsId) {
+          console.error(`❌ [${store.name}] Sem credencial OpenAI válida para o CRON (verifique stores.openai_api_key)`);
+          results.push({
+            store: store.name,
+            success: false,
+            error: 'OpenAI credencial ausente/ inválida (stores.openai_api_key)'
+          });
+          continue;
+        }
         const { data: products } = await supabaseClient
           .from('products')
           .select('name, price, description, slug, is_available')
@@ -314,7 +408,7 @@ ${isOpen
         // Payload de atualização
         const updatePayload = {
           enabled: true,
-          openaiCredsId: evolutionConfig.openai_creds_id,
+          openaiCredsId: storeOpenAiCredsId,
           botType: 'chatCompletion',
           model: evolutionConfig.openai_default_model || 'gpt-4o-mini',
           maxTokens: evolutionConfig.openai_max_tokens || 1000,

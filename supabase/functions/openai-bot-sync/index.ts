@@ -1,5 +1,5 @@
-// OpenAI Bot Sync - v2.1.0 - Estratégia UPDATE > DELETE+CREATE
-// Atualizado: Usa PUT para atualizar bot sem interrupção
+// OpenAI Bot Sync - v2.2.0 - Atualiza flags de sync após sucesso/erro
+// Atualizado: needs_sync, last_synced_at, last_sync_error
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -1209,8 +1209,12 @@ serve(async (req) => {
         bot_time_per_char: config.timePerChar || 0,
         evolution_bot_id: botResult.botId,
         evolution_bot_status: 'active',
-        openai_creds_id: openaiCredsId, // Salvar credencial específica da loja
+        openai_creds_id: openaiCredsId,
         updated_at: new Date().toISOString(),
+        // Flags de sincronização
+        needs_sync: false,
+        last_synced_at: new Date().toISOString(),
+        last_sync_error: null,
       };
 
       if (existingBotConfig) {
@@ -1284,6 +1288,24 @@ serve(async (req) => {
     console.error('Erro:', error);
     const message = error instanceof Error ? error.message : 'Erro desconhecido';
     steps.push({ step: 'error', status: 'error', message: message });
+    
+    // Salvar erro no banco para visibilidade (se temos config)
+    try {
+      const { config } = await req.clone().json().catch(() => ({ config: null }));
+      if (config?.storeId) {
+        const supabaseClient = createClient(
+          Deno.env.get('SUPABASE_URL') ?? '',
+          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+        );
+        await supabaseClient
+          .from('store_bot_config')
+          .update({ last_sync_error: message })
+          .eq('store_id', config.storeId);
+      }
+    } catch (e) {
+      console.error('Erro ao salvar last_sync_error:', e);
+    }
+    
     return new Response(JSON.stringify({ error: message, steps }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

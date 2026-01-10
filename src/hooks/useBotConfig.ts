@@ -235,8 +235,21 @@ export function useBotConfig(storeId: string | null) {
       const updatedConfig = { ...config, ...newConfig };
       const settingsToSave = newPromptSettings || promptSettings;
       
+      // Campos que requerem sincronização quando alterados
+      const syncFields: (keyof BotConfig)[] = [
+        'bot_name', 'stop_bot_from_me', 'listening_from_me', 'delay_message',
+        'expire_minutes', 'keyword_finish', 'unknown_message', 'keep_open',
+        'debounce_time', 'trigger_type', 'trigger_operator', 'trigger_value',
+        'split_messages', 'time_per_char'
+      ];
+      
+      // Verificar se algum campo que requer sync foi alterado
+      const needsSync = config.id && config.enabled && syncFields.some(field => 
+        newConfig[field] !== undefined && newConfig[field] !== config[field]
+      );
+      
       // Preparar dados com mapeamento correto dos nomes de campos
-      const dataToSave = {
+      const dataToSave: Record<string, unknown> = {
         store_id: updatedConfig.store_id,
         enabled: updatedConfig.enabled,
         bot_name: updatedConfig.bot_name,
@@ -252,9 +265,9 @@ export function useBotConfig(storeId: string | null) {
         trigger_operator: updatedConfig.trigger_operator,
         trigger_value: updatedConfig.trigger_value,
         ignore_jids: updatedConfig.ignore_jids,
-        bot_split_messages: updatedConfig.split_messages,    // Mapeamento correto para o banco
-        bot_time_per_char: updatedConfig.time_per_char,      // Mapeamento correto para o banco
-        auto_reactivate_minutes: updatedConfig.auto_reactivate_minutes, // NOVO
+        bot_split_messages: updatedConfig.split_messages,
+        bot_time_per_char: updatedConfig.time_per_char,
+        auto_reactivate_minutes: updatedConfig.auto_reactivate_minutes,
         evolution_bot_id: updatedConfig.evolution_bot_id,
         evolution_bot_status: updatedConfig.evolution_bot_status,
         updated_at: new Date().toISOString(),
@@ -267,6 +280,11 @@ export function useBotConfig(storeId: string | null) {
         include_delivery_fee: settingsToSave.includeDeliveryFee,
         include_min_order: settingsToSave.includeMinOrder,
       };
+      
+      // Marcar needs_sync se houve alteração em campos críticos
+      if (needsSync) {
+        dataToSave.needs_sync = true;
+      }
       
       if (config.id) {
         await supabase
@@ -322,9 +340,10 @@ export function useBotConfig(storeId: string | null) {
 
     setSyncing(true);
     try {
+      // Buscar instância com ID para salvar o vínculo no config
       const { data: instance } = await supabase
         .from('whatsapp_instances')
-        .select('instance_name')
+        .select('id, instance_name')
         .eq('store_id', storeId)
         .single();
 
@@ -337,10 +356,21 @@ export function useBotConfig(storeId: string | null) {
         return { success: false };
       }
 
+      // Persistir whatsapp_instance_id antes de sincronizar (garante que o cron sempre encontra)
+      if (config.id && instance.id) {
+        await supabase
+          .from('store_bot_config')
+          .update({ 
+            whatsapp_instance_id: instance.id,
+            needs_sync: false, // Será atualizado após sync bem-sucedido
+          })
+          .eq('id', config.id);
+      }
+
       const response = await supabase.functions.invoke('openai-bot-sync', {
         body: {
           action,
-          origin: window.location.origin, // Enviar domínio de origem para detecção automática
+          origin: window.location.origin,
           config: {
             storeId,
             instanceName: instance.instance_name,

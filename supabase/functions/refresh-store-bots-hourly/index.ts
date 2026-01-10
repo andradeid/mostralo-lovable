@@ -4,12 +4,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 /**
  * REFRESH-STORE-BOTS-HOURLY
  * 
- * Esta função usa estratégia DELETE + CREATE para garantir que o prompt
- * seja sempre atualizado corretamente na Evolution API:
- * - Deleta o bot existente
- * - Cria um novo bot com o prompt atualizado
- * - Atualiza o novo ID do bot no banco de dados
- * - Usa fallback para UPDATE se DELETE falhar
+ * Esta função usa estratégia UPDATE-FIRST para atualizar os bots na Evolution API:
+ * - Tenta UPDATE primeiro (preserva todas as configurações!)
+ * - Só cria novo bot se o UPDATE retornar 404 (bot não existe)
+ * - NUNCA deleta bots para evitar perda de configurações
  * 
  * Chamada pelo CRON a cada hora para atualizar a saudação dos bots.
  */
@@ -645,67 +643,41 @@ serve(async (req) => {
         botPayload = sanitizeBotPayload(botPayload);
         console.log(`🧹 [${storeSlug}] Payload sanitizado (cardápio -> loja)`);
 
-        // 10. DELETE + CREATE: Deletar bot antigo e criar novo com prompt atualizado
+        // 10. UPDATE-FIRST: Atualizar bot existente via PUT (estratégia segura)
         const existingBotId = botConfig.evolution_bot_id;
-        let success = false;
-        let finalBotId = existingBotId;
 
-        console.log(`🗑️ [${storeSlug}] Deletando bot antigo para aplicar mudanças...`);
+        console.log(`📝 [${storeSlug}] Atualizando bot existente via UPDATE...`);
 
         try {
-          // PASSO 1: Deletar o bot existente
-            const deleteResp = await fetch(
-              // ⚠️ IMPORTANTE: manter padrão de rotas da Evolution igual ao /openai/status/{instance}/{botId}
-              `${evolutionUrl}/openai/delete/${instanceName}/${existingBotId}`,
-              {
-                method: 'DELETE',
-                headers: { 'apikey': evolutionConfig.api_key },
-              }
-            );
-
-          const deleteOk = deleteResp.ok || deleteResp.status === 404;
-          console.log(`🗑️ [${storeSlug}] Delete: ${deleteResp.status} (${deleteOk ? 'OK' : 'FALHOU'})`);
-
-          if (!deleteOk) {
-            console.log(`⚠️ [${storeSlug}] Falha ao deletar, tentando UPDATE...`);
-            
-            // Fallback: tentar UPDATE se delete falhar
-            const updateResp = await fetch(
-              `${evolutionUrl}/openai/settings/${existingBotId}/${instanceName}`,
-              {
-                method: 'PUT',
-                headers: {
-                  'apikey': evolutionConfig.api_key,
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(botPayload),
-              }
-            );
-
-            if (updateResp.ok) {
-              console.log(`✅ [${storeSlug}] Bot atualizado via UPDATE (fallback)`);
-              success = true;
-              results.push({
-                store: storeSlug,
-                status: 'updated',
-                botId: existingBotId.slice(0, 8),
-                greeting,
-                isOpen,
-                method: 'update'
-              });
-            } else {
-              const updateText = await updateResp.text();
-              console.log(`❌ [${storeSlug}] Falha no UPDATE: ${updateResp.status}`);
-              results.push({
-                store: storeSlug,
-                status: 'error',
-                reason: `DELETE e UPDATE falharam: ${updateResp.status}`,
-                details: updateText.slice(0, 100)
-              });
+          // Tentar UPDATE primeiro (não apaga configurações!)
+          const updateResp = await fetch(
+            `${evolutionUrl}/openai/settings/${existingBotId}/${instanceName}`,
+            {
+              method: 'PUT',
+              headers: {
+                'apikey': evolutionConfig.api_key,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(botPayload),
             }
-          } else {
-            // PASSO 2: Criar novo bot com configurações atualizadas
-            console.log(`🆕 [${storeSlug}] Criando novo bot com prompt atualizado...`);
+          );
+
+          const updateText = await updateResp.text();
+          console.log(`📝 [${storeSlug}] UPDATE: ${updateResp.status}`);
+
+          if (updateResp.ok) {
+            console.log(`✅ [${storeSlug}] Bot atualizado com sucesso`);
+            results.push({
+              store: storeSlug,
+              status: 'updated',
+              botId: existingBotId.slice(0, 8),
+              greeting,
+              isOpen,
+              method: 'update'
+            });
+          } else if (updateResp.status === 404) {
+            // Bot não existe mais na Evolution, criar novo
+            console.log(`⚠️ [${storeSlug}] Bot não encontrado (404), criando novo...`);
             
             const createResp = await fetch(
               `${evolutionUrl}/openai/create/${instanceName}`,
@@ -725,10 +697,8 @@ serve(async (req) => {
               
               if (newBotId) {
                 console.log(`✅ [${storeSlug}] Novo bot criado: ${newBotId.slice(0, 8)}...`);
-                finalBotId = newBotId;
-                success = true;
 
-                // PASSO 3: Atualizar o ID do novo bot no banco
+                // Atualizar o ID do novo bot no banco
                 await supabase
                   .from('store_bot_config')
                   .update({
@@ -739,12 +709,11 @@ serve(async (req) => {
 
                 results.push({
                   store: storeSlug,
-                  status: 'recreated',
-                  oldBotId: existingBotId.slice(0, 8),
+                  status: 'created',
                   newBotId: newBotId.slice(0, 8),
                   greeting,
                   isOpen,
-                  method: 'delete+create'
+                  method: 'create_after_404'
                 });
               } else {
                 console.log(`⚠️ [${storeSlug}] Bot criado mas sem ID retornado`);
@@ -764,6 +733,14 @@ serve(async (req) => {
                 details: createText.slice(0, 100)
               });
             }
+          } else {
+            console.log(`❌ [${storeSlug}] Falha no UPDATE: ${updateResp.status}`);
+            results.push({
+              store: storeSlug,
+              status: 'error',
+              reason: `UPDATE falhou: ${updateResp.status}`,
+              details: updateText.slice(0, 100)
+            });
           }
         } catch (e) {
           console.error(`❌ [${storeSlug}] Exceção:`, e);

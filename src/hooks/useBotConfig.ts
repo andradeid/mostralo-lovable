@@ -357,8 +357,7 @@ export function useBotConfig(storeId: string | null) {
             ignoreJids: config.ignore_jids,
             splitMessages: config.split_messages,
             timePerChar: config.time_per_char,
-            // Forçar DELETE+CREATE quando for 'update' para garantir prompt atualizado
-            forceRecreate: action === 'update',
+            // Usar UPDATE-first (não força DELETE+CREATE para preservar configurações)
           },
         },
       });

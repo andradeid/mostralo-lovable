@@ -320,3 +320,6 @@ verify_jwt = false
 
 [functions.proposal-actions]
 verify_jwt = false
+
+[functions.migrate-openai-creds]
+verify_jwt = false

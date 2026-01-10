@@ -22,136 +22,133 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Buscar todas as lojas com bot ativo e instância configurada
-    const { data: stores, error: storesError } = await supabase
-      .from('stores')
+    // Buscar configs de bot ativas com instância vinculada (schema atual usa whatsapp_instance_id)
+    const { data: botConfigs, error: botConfigsError } = await supabase
+      .from('store_bot_config')
       .select(`
         id,
-        name,
-        slug,
-        whatsapp_instances!inner (
-          instance_name
+        store_id,
+        enabled,
+        bot_name,
+        delay_message,
+        expire_minutes,
+        keyword_finish,
+        unknown_message,
+        keep_open,
+        debounce_time,
+        trigger_type,
+        trigger_operator,
+        trigger_value,
+        ignore_jids,
+        stop_bot_from_me,
+        listening_from_me,
+        bot_split_messages,
+        bot_time_per_char,
+        whatsapp_instance_id,
+        store:stores!inner (
+          id,
+          name,
+          slug
         ),
-        store_bot_config!inner (
-          enabled,
-          bot_name,
-          delay_message,
-          expire_minutes,
-          keyword_finish,
-          unknown_message,
-          keep_open,
-          debounce_time,
-          trigger_type,
-          trigger_operator,
-          trigger_value,
-          ignore_jids,
-          stop_bot_from_me,
-          listening_from_me,
-          split_messages,
-          time_per_char
+        whatsapp_instance:whatsapp_instances!store_bot_config_whatsapp_instance_id_fkey (
+          instance_name
         )
       `)
-      .eq('store_bot_config.enabled', true);
+      .eq('enabled', true);
 
-    if (storesError) {
-      console.error('❌ [CRON-SYNC] Erro ao buscar lojas:', storesError);
-      return new Response(JSON.stringify({ 
-        success: false, 
-        error: storesError.message 
+    if (botConfigsError) {
+      console.error('❌ [CRON-SYNC] Erro ao buscar configs:', botConfigsError);
+      return new Response(JSON.stringify({
+        success: false,
+        error: botConfigsError.message,
       }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    if (!stores || stores.length === 0) {
+    if (!botConfigs || botConfigs.length === 0) {
       console.log('ℹ️ [CRON-SYNC] Nenhuma loja com bot ativo encontrada');
-      return new Response(JSON.stringify({ 
-        success: true, 
+      return new Response(JSON.stringify({
+        success: true,
         message: 'Nenhuma loja com bot ativo',
-        synced: 0 
+        synced: 0,
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    console.log(`📋 [CRON-SYNC] ${stores.length} loja(s) com bot ativo encontrada(s)`);
+    console.log(`📋 [CRON-SYNC] ${botConfigs.length} bot(s) ativo(s) encontrado(s)`);
 
     const results: { store: string; success: boolean; error?: string }[] = [];
 
-    // Para cada loja, chamar a edge function openai-bot-sync
-    for (const store of stores) {
-      // Supabase retorna arrays para joins, pegamos o primeiro item
-      const whatsappInstance = Array.isArray(store.whatsapp_instances) 
-        ? store.whatsapp_instances[0] 
-        : store.whatsapp_instances;
-      const botConfigData = Array.isArray(store.store_bot_config) 
-        ? store.store_bot_config[0] 
-        : store.store_bot_config;
-      
+    // Para cada config ativa, chamar a edge function openai-bot-sync
+    for (const botConfig of botConfigs as any[]) {
+      const storeData = Array.isArray(botConfig.store) ? botConfig.store[0] : botConfig.store;
+      const whatsappInstance = Array.isArray(botConfig.whatsapp_instance)
+        ? botConfig.whatsapp_instance[0]
+        : botConfig.whatsapp_instance;
+
+      const storeName = storeData?.name || botConfig.store_id;
       const instanceName = whatsappInstance?.instance_name;
 
-      if (!instanceName || !botConfigData) {
-        console.log(`⏭️ [CRON-SYNC] Pulando ${store.name}: sem instância ou config`);
-        results.push({ store: store.name, success: false, error: 'Sem instância ou config' });
+      if (!instanceName) {
+        console.log(`⏭️ [CRON-SYNC] Pulando ${storeName}: sem whatsapp_instance_id vinculado`);
+        results.push({ store: storeName, success: false, error: 'Sem WhatsApp instance vinculada' });
         continue;
       }
 
-      console.log(`🔄 [CRON-SYNC] Sincronizando: ${store.name} (${instanceName})`);
+      console.log(`🔄 [CRON-SYNC] Sincronizando: ${storeName} (${instanceName})`);
 
       try {
-        // Montar o config igual ao frontend faz
+        // Montar o config no formato esperado pela openai-bot-sync
         const config = {
-          storeId: store.id,
+          storeId: botConfig.store_id,
           instanceName: instanceName,
-          botName: botConfigData.bot_name || 'Assistente Virtual',
-          stopBotFromMe: botConfigData.stop_bot_from_me ?? true,
-          listeningFromMe: botConfigData.listening_from_me ?? false,
-          delayMessage: botConfigData.delay_message ?? 1000,
-          expireMinutes: botConfigData.expire_minutes ?? 20,
-          keywordFinish: botConfigData.keyword_finish || '#sair',
-          unknownMessage: botConfigData.unknown_message || '',
-          keepOpen: botConfigData.keep_open ?? false,
-          debounceTime: botConfigData.debounce_time ?? 10,
-          triggerType: botConfigData.trigger_type || 'all',
-          triggerOperator: botConfigData.trigger_operator || 'contains',
-          triggerValue: botConfigData.trigger_value || '',
-          ignoreJids: botConfigData.ignore_jids || [],
-          splitMessages: botConfigData.split_messages ?? false,
-          timePerChar: botConfigData.time_per_char ?? 50
+          botName: botConfig.bot_name || 'Assistente Virtual',
+          stopBotFromMe: botConfig.stop_bot_from_me ?? true,
+          listeningFromMe: botConfig.listening_from_me ?? false,
+          delayMessage: botConfig.delay_message ?? 1000,
+          expireMinutes: botConfig.expire_minutes ?? 20,
+          keywordFinish: botConfig.keyword_finish || '#sair',
+          unknownMessage: botConfig.unknown_message || '',
+          keepOpen: botConfig.keep_open ?? false,
+          debounceTime: botConfig.debounce_time ?? 10,
+          triggerType: botConfig.trigger_type || 'all',
+          triggerOperator: botConfig.trigger_operator || 'contains',
+          triggerValue: botConfig.trigger_value || '',
+          ignoreJids: botConfig.ignore_jids || [],
+          splitMessages: botConfig.bot_split_messages ?? true,
+          timePerChar: botConfig.bot_time_per_char ?? 50,
         };
 
         // Chamar openai-bot-sync internamente com header de chamada interna
         const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-        const syncResponse = await fetch(
-          `${Deno.env.get('SUPABASE_URL')}/functions/v1/openai-bot-sync`,
+        const { data: syncResult, error: syncError } = await supabase.functions.invoke(
+          'openai-bot-sync',
           {
-            method: 'POST',
             headers: {
-              'Authorization': `Bearer ${serviceRoleKey}`,
               'X-Internal-Secret': serviceRoleKey,
-              'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
+            body: {
               action: 'update',
-              config: config,
-              origin: 'https://mostralo.com.br'
-            }),
+              config,
+              origin: 'https://mostralo.com.br',
+            },
           }
         );
 
-        const syncResult = await syncResponse.json();
-
-        if (syncResponse.ok && syncResult.success) {
-          console.log(`✅ [CRON-SYNC] ${store.name}: sincronizado com sucesso`);
-          results.push({ store: store.name, success: true });
+        if (!syncError && (syncResult as any)?.success) {
+          console.log(`✅ [CRON-SYNC] ${storeName}: sincronizado com sucesso`);
+          results.push({ store: storeName, success: true });
         } else {
-          console.error(`❌ [CRON-SYNC] ${store.name}: ${syncResult.error || 'Erro desconhecido'}`);
-          results.push({ store: store.name, success: false, error: syncResult.error });
+          const msg = (syncError as any)?.message || (syncResult as any)?.error || 'Erro desconhecido';
+          console.error(`❌ [CRON-SYNC] ${storeName}: ${msg}`);
+          results.push({ store: storeName, success: false, error: msg });
         }
       } catch (err) {
-        console.error(`❌ [CRON-SYNC] ${store.name}: Erro na requisição:`, err);
-        results.push({ store: store.name, success: false, error: String(err) });
+        console.error(`❌ [CRON-SYNC] ${storeName}: Erro na execução:`, err);
+        results.push({ store: storeName, success: false, error: String(err) });
       }
 
       // Pequeno delay entre lojas para não sobrecarregar
@@ -161,12 +158,12 @@ serve(async (req) => {
     const elapsed = Date.now() - startTime;
     const successCount = results.filter(r => r.success).length;
 
-    console.log(`🏁 [CRON-SYNC] Finalizado em ${elapsed}ms - ${successCount}/${stores.length} sincronizados`);
+    console.log(`🏁 [CRON-SYNC] Finalizado em ${elapsed}ms - ${successCount}/${botConfigs.length} sincronizados`);
 
     return new Response(JSON.stringify({
       success: true,
       synced: successCount,
-      total: stores.length,
+      total: botConfigs.length,
       elapsed_ms: elapsed,
       results
     }), {

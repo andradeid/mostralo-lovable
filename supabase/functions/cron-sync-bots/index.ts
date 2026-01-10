@@ -1,4 +1,5 @@
 // Cron Sync Bots - Executa "Aplicar Mudanças" para todas as lojas com bot ativo
+// v1.0.0 - Deploy automático a cada 30 minutos
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 

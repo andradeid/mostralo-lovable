@@ -101,8 +101,8 @@ function getSmartGreetingTemplate(
   isOpen: boolean = true,
   nextOpening: string | null = null
 ): string {
-  // Link do cardápio adicionado em todas as saudações
-  const menuLink = `\n\n📱 Confira nosso cardápio: {link_loja}`;
+  // Link da loja adicionado em todas as saudações
+  const menuLink = `\n\n📱 Confira nossa loja: {link_loja}`;
   
   // Se loja está fechada, usar template específico
   if (!isOpen) {
@@ -112,14 +112,14 @@ function getSmartGreetingTemplate(
     
     switch (classification.type) {
       case 'vip':
-        return `${greeting}, {primeiro_nome}! 🌟 Nosso cliente especial!\n\n${closedMessage}\n\nMas enquanto isso, que tal dar uma olhada no cardápio?${menuLink}`;
+        return `${greeting}, {primeiro_nome}! 🌟 Nosso cliente especial!\n\n${closedMessage}\n\nMas enquanto isso, que tal dar uma olhada na nossa loja?${menuLink}`;
       case 'frequent':
       case 'returning':
-        return `${greeting}, {primeiro_nome}! 😊\n\n${closedMessage}\n\nDá uma olhada no cardápio para quando abrirmos!${menuLink}`;
+        return `${greeting}, {primeiro_nome}! 😊\n\n${closedMessage}\n\nDá uma olhada na loja para quando abrirmos!${menuLink}`;
       case 'missed':
-        return `${greeting}, {primeiro_nome}! Que bom ter você de volta! 💕\n\n${closedMessage}\n\nMas já confira o cardápio!${menuLink}`;
+        return `${greeting}, {primeiro_nome}! Que bom ter você de volta! 💕\n\n${closedMessage}\n\nMas já confira nossa loja!${menuLink}`;
       default:
-        return `${greeting}! 👋 Seja bem-vindo(a) à ${storeName}!\n\n${closedMessage}\n\nEnquanto isso, confira nosso cardápio!${menuLink}`;
+        return `${greeting}! 👋 Seja bem-vindo(a) à ${storeName}!\n\n${closedMessage}\n\nEnquanto isso, confira nossa loja!${menuLink}`;
     }
   }
   

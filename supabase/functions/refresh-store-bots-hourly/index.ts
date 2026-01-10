@@ -594,7 +594,7 @@ serve(async (req) => {
           expire: botConfig.expire_minutes || 20,
           keywordFinish: botConfig.keyword_finish || '#SAIR',
           delayMessage: botConfig.delay_message || 4000,
-          unknownMessage: botConfig.unknown_message || 'Desculpe, não entendi. Digite #SAIR para encerrar ou acesse nosso cardápio online.',
+          unknownMessage: botConfig.unknown_message || 'Desculpe, não entendi. Digite #SAIR para encerrar ou acesse nossa loja online.',
           listeningFromMe: botConfig.listening_from_me || false,
           stopBotFromMe: botConfig.stop_bot_from_me !== undefined ? botConfig.stop_bot_from_me : true,
           keepOpen: botConfig.keep_open || false,

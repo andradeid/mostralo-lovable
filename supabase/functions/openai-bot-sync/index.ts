@@ -1077,7 +1077,7 @@ serve(async (req) => {
         expire: config.expireMinutes || 20,
         keywordFinish: config.keywordFinish || '#SAIR',
         delayMessage: config.delayMessage || 4000,
-        unknownMessage: config.unknownMessage || 'Desculpe, não entendi. Digite #SAIR para encerrar ou acesse nosso cardápio online.',
+        unknownMessage: config.unknownMessage || 'Desculpe, não entendi. Digite #SAIR para encerrar ou acesse nossa loja online.',
         listeningFromMe: config.listeningFromMe || false,
         stopBotFromMe: config.stopBotFromMe !== undefined ? config.stopBotFromMe : true,
         keepOpen: config.keepOpen || false,

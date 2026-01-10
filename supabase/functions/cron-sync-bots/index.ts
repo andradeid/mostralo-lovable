@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   const startTime = Date.now();
-  console.log('🔄 [CRON-SYNC] Iniciando sincronização de bots...');
+  console.log('🔄 [CRON-SYNC] Iniciando sincronização de bots... (v1.2.1)');
 
   try {
     const supabase = createClient(

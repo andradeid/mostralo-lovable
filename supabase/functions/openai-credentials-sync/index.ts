@@ -16,8 +16,22 @@ serve(async (req) => {
 
   try {
     // IMPORTANTE: Ler o body primeiro, antes de qualquer outra operação
-    const body = await req.json();
-    const { action, openaiApiKey, model, maxTokens, useSavedKey } = body;
+    type RequestBody = {
+      action?: unknown;
+      openaiApiKey?: unknown;
+      model?: unknown;
+      maxTokens?: unknown;
+      useSavedKey?: unknown;
+    };
+
+    const body = (await req.json()) as RequestBody;
+
+    const action = typeof body.action === 'string' ? body.action.trim() : '';
+    const openaiApiKey = typeof body.openaiApiKey === 'string' ? body.openaiApiKey : undefined;
+    const model = typeof body.model === 'string' ? body.model : undefined;
+    const maxTokens = typeof body.maxTokens === 'number' ? body.maxTokens : undefined;
+    const useSavedKey = Boolean(body.useSavedKey);
+
     console.log('[openai-credentials-sync] Action recebida:', action);
 
     if (!action) {
@@ -259,7 +273,11 @@ serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ error: 'Ação inválida' }), {
+    return new Response(JSON.stringify({
+      error: 'Ação inválida',
+      received_action: action,
+      supported_actions: ['test', 'save', 'sync_creds_id'],
+    }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

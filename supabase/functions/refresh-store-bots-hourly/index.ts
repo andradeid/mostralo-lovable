@@ -61,7 +61,7 @@ function generatePersonalityInstructions(settings: PersonalitySettings): string 
 - Sugira produtos baseado no perfil do cliente
 - Explique benefícios e diferenciais
 - Guie o cliente na melhor escolha
-- Demonstre conhecimento profundo do cardápio`
+- Demonstre conhecimento profundo dos produtos`
   };
 
   const emojiInstructions: Record<EmojiLevel, string> = {
@@ -241,7 +241,7 @@ INSTRUÇÕES DE STATUS:
 - Se cliente perguntar se está aberto: Responda "${isOpen ? 'Sim, estamos abertos!' : `No momento estamos fechados. ${nextOpening ? `Abrimos ${nextOpening}.` : ''}`}"
 - NUNCA diga que está aberto se o STATUS mostrar FECHADO
 - Use a saudação "${greeting}" nas interações
-- Mesmo fechado, ofereça o cardápio: "Enquanto isso, confira nosso cardápio: ${storeLink}"`;
+- Mesmo fechado, ofereça a loja: "Enquanto isso, acesse nossa loja: ${storeLink}"`;
   
   const productList = products
     .filter(p => p.is_available)
@@ -283,7 +283,7 @@ INFORMAÇÕES DA LOJA:
 - Descrição: ${store.description || 'Delivery de qualidade'}
 - Endereço: ${store.address || 'Não informado'}
 - WhatsApp: ${store.whatsapp || 'Não informado'}
-- Link do cardápio: ${storeLink}
+- Acesse nossa loja: ${storeLink}
 ${locationSection}
 ${paymentSection}
 ${deliverySection}
@@ -299,16 +299,16 @@ SAUDAÇÃO INTELIGENTE:
 1. USE a saudação do [CONTEXTO ATUAL] acima (Bom dia/Boa tarde/Boa noite)
 2. Se o cliente informar o nome, USE o nome nas respostas seguintes
 3. Se não souber o nome, seja acolhedor
-4. **SEMPRE envie o link do cardápio na primeira mensagem**
+4. **SEMPRE envie o link da loja na primeira mensagem**
 
 INSTRUÇÕES GERAIS:
 1. Apresente os produtos quando perguntado
 2. Informe preços corretamente
 3. SEMPRE inclua o link do produto quando falar sobre ele
-4. Direcione o cliente para o cardápio online: ${storeLink}
-5. Para finalizar pedido, peça para acessar o link do produto ou cardápio
+4. Direcione o cliente para a loja online: ${storeLink}
+5. Para finalizar pedido, peça para acessar o link do produto ou da loja
 6. Não invente produtos ou preços
-7. Se não souber algo, direcione ao link do cardápio
+7. Se não souber algo, direcione ao link da loja
 8. Responda sempre em português brasileiro
 9. Mencione promoções se houver
 10. Quando pedirem localização, envie o link do Google Maps se disponível
@@ -575,8 +575,8 @@ serve(async (req) => {
         const storeLink = `${baseUrl}/loja/${store.slug}`;
         
         const dynamicGreeting = isOpen
-          ? `${greeting}! 👋 Estamos abertos e prontos para atender! Seja bem-vindo(a) à ${store.name}!\n\n📱 Confira nosso cardápio: ${storeLink}`
-          : `${greeting}! 👋 No momento estamos fechados${nextOpening ? `, mas abrimos ${nextOpening}` : ''}. Seja bem-vindo(a) à ${store.name}!\n\n📱 Enquanto isso, confira nosso cardápio: ${storeLink}`;
+          ? `${greeting}! 👋 Estamos abertos e prontos para atender! Seja bem-vindo(a) à ${store.name}!\n\n📱 Acesse nossa loja: ${storeLink}`
+          : `${greeting}! 👋 No momento estamos fechados${nextOpening ? `, mas abrimos ${nextOpening}` : ''}. Seja bem-vindo(a) à ${store.name}!\n\n📱 Enquanto isso, acesse nossa loja: ${storeLink}`;
 
         // 9. Montar payload do bot (EXATAMENTE igual ao openai-bot-sync)
         const botPayload: any = {

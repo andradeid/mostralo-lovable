@@ -35,6 +35,8 @@ export interface BotConfig {
   auto_reactivate_minutes: number; // NOVO: minutos para reativação automática (0 = manual)
   evolution_bot_id?: string;
   evolution_bot_status?: string;
+  openai_creds_id?: string; // ID da credencial OpenAI na Evolution
+  updated_at?: string; // Data da última atualização
 }
 
 const defaultBotConfig: Omit<BotConfig, 'store_id'> = {

@@ -774,7 +774,48 @@ serve(async (req) => {
     }
 
     // ========================================
-    // FUNÇÃO: Garantir bot com estratégia DELETE + CREATE
+    // FUNÇÃO: Atualizar bot existente na Evolution (PUT)
+    // ========================================
+    async function updateExistingBot(
+      instanceName: string, 
+      botId: string, 
+      botPayload: any
+    ): Promise<{ success: boolean; error?: string }> {
+      try {
+        console.log('Atualizando bot via PUT:', botId, 'na instância:', instanceName);
+        console.log('Payload de atualização:', JSON.stringify(botPayload, null, 2));
+        
+        const updateResp = await fetch(
+          `${evolutionUrl}/openai/update/${botId}/${instanceName}`, 
+          {
+            method: 'PUT',
+            headers: { 
+              'apikey': evolutionConfig.api_key,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(botPayload),
+          }
+        );
+        
+        const updateText = await updateResp.text();
+        console.log('Resposta update bot:', updateResp.status, updateText);
+        
+        if (updateResp.ok) {
+          return { success: true };
+        }
+        
+        return { 
+          success: false, 
+          error: `Status ${updateResp.status}: ${updateText.slice(0, 200)}` 
+        };
+      } catch (e) {
+        console.log('Erro ao atualizar bot:', e);
+        return { success: false, error: String(e) };
+      }
+    }
+
+    // ========================================
+    // FUNÇÃO: Garantir bot com estratégia UPDATE > DELETE + CREATE
     // ========================================
     async function ensureOpenAiBot(
       instanceName: string,
@@ -793,6 +834,8 @@ serve(async (req) => {
       const existingBots = await findExistingBots(instanceName);
 
       if (existingBots.length > 0) {
+        const mainBot = existingBots[0];
+        
         steps.push({
           step: 'bot_list',
           status: 'success',
@@ -800,12 +843,43 @@ serve(async (req) => {
           details: existingBots.map((b) => `${b.description || b.id?.slice(0, 8) || 'sem-id'}`).join(', '),
         });
 
+        // ESTRATÉGIA 1: Tentar UPDATE primeiro (mais seguro, bot não fica offline)
+        if (mainBot.id) {
+          steps.push({
+            step: 'bot_update',
+            status: 'success',
+            message: 'Atualizando bot existente via PUT...',
+            details: `Bot ID: ${mainBot.id.slice(0, 8)}...`,
+          });
+
+          const updateResult = await updateExistingBot(instanceName, mainBot.id, botPayload);
+          
+          if (updateResult.success) {
+            steps.push({
+              step: 'bot_updated',
+              status: 'success',
+              message: '✅ Bot atualizado com sucesso! (sem interrupção)',
+              details: `ID: ${mainBot.id.slice(0, 8)}...`,
+            });
+            return { success: true, botId: mainBot.id, created: false };
+          }
+
+          // UPDATE falhou, usar fallback DELETE + CREATE
+          steps.push({
+            step: 'bot_update_fallback',
+            status: 'warning',
+            message: 'UPDATE falhou, tentando DELETE + CREATE...',
+            details: updateResult.error?.slice(0, 100) || 'Erro desconhecido',
+          });
+        }
+
+        // ESTRATÉGIA 2 (Fallback): DELETE + CREATE
         for (const bot of existingBots) {
           if (bot.id) {
             steps.push({
               step: 'bot_delete',
               status: 'success',
-              message: 'Removendo bot existente para recriar com configurações atualizadas...',
+              message: 'Removendo bot para recriar...',
               details: `Bot ID: ${bot.id.slice(0, 8)}...`,
             });
 

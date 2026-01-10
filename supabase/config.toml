@@ -124,7 +124,7 @@ verify_jwt = false
 verify_jwt = true
 
 [functions.openai-bot-sync]
-verify_jwt = true
+verify_jwt = false
 
 [functions.openai-bot-toggle]
 verify_jwt = true

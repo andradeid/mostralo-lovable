@@ -313,9 +313,20 @@ ${isOpen
 
         // Payload de atualização
         // USAR openai_creds_id específico da loja (store_bot_config), NÃO o global
-        let openaiCredsId = botConfig.openai_creds_id 
-          ? String(botConfig.openai_creds_id) 
-          : null;
+        // GARANTIR que openaiCredsId seja sempre STRING válida (UUID)
+        let openaiCredsId: string | null = null;
+        
+        if (botConfig.openai_creds_id) {
+          // Converter para string e validar formato
+          const rawId = String(botConfig.openai_creds_id).trim();
+          // UUID tem 36 caracteres (8-4-4-4-12)
+          if (rawId.length >= 32) {
+            openaiCredsId = rawId;
+            console.log(`📋 [${store.name}] openai_creds_id do banco: "${openaiCredsId}" (${typeof openaiCredsId})`);
+          } else {
+            console.log(`⚠️ [${store.name}] openai_creds_id inválido no banco: "${rawId}" (len=${rawId.length})`);
+          }
+        }
         
         // Se não tiver credencial salva, tentar buscar na Evolution por nome
         if (!openaiCredsId) {
@@ -330,12 +341,20 @@ ${isOpen
             
             if (credsResp.ok) {
               const credsData = await credsResp.json();
+              console.log(`📥 [${store.name}] Resposta Evolution creds:`, JSON.stringify(credsData).slice(0, 200));
+              
               const existingCreds = Array.isArray(credsData) ? credsData : (credsData?.creds || credsData?.data || []);
-              const storeCred = existingCreds.find((c: any) => c.name === storeCredName);
+              // Primeiro tenta encontrar por nome exato, depois pega a primeira disponível
+              let storeCred = existingCreds.find((c: any) => c.name === storeCredName);
+              
+              if (!storeCred && existingCreds.length > 0) {
+                storeCred = existingCreds[0];
+                console.log(`📋 [${store.name}] Usando primeira credencial disponível: ${storeCred?.name}`);
+              }
               
               if (storeCred?.id) {
-                openaiCredsId = String(storeCred.id);
-                console.log(`✅ [${store.name}] Credencial encontrada na Evolution: ${storeCredName} (${openaiCredsId.slice(0, 8)}...)`);
+                openaiCredsId = String(storeCred.id).trim();
+                console.log(`✅ [${store.name}] Credencial encontrada na Evolution: ${storeCred.name} -> "${openaiCredsId}"`);
                 
                 // Salvar no banco para próximas execuções
                 await supabaseClient
@@ -346,7 +365,7 @@ ${isOpen
                   })
                   .eq('id', botConfig.id);
                 
-                console.log(`💾 [${store.name}] openai_creds_id salvo no banco`);
+                console.log(`💾 [${store.name}] openai_creds_id salvo no banco: "${openaiCredsId}"`);
               }
             }
           } catch (e) {
@@ -364,9 +383,12 @@ ${isOpen
           continue;
         }
         
+        // LOG FINAL - garantir tipo correto
+        console.log(`🔑 [${store.name}] Enviando openaiCredsId: "${openaiCredsId}" (type: ${typeof openaiCredsId})`);
+        
         const updatePayload = {
           enabled: true,
-          openaiCredsId: openaiCredsId,
+          openaiCredsId: String(openaiCredsId), // FORÇAR string no payload
           botType: 'chatCompletion',
           model: evolutionConfig.openai_default_model || 'gpt-4o-mini',
           maxTokens: evolutionConfig.openai_max_tokens || 1000,

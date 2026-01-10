@@ -1,8 +1,11 @@
-// Cron Sync Bots - Executa "Aplicar Mudanças" para todas as lojas com bot ativo
-// v1.5.0 - Debug detalhado para encontrar instâncias
-// Deploy forçado: 2026-01-10T21:05
+// Cron Sync Bots - Processa sincronização em LOTES para escalar
+// v2.0.0 - Batch processing: apenas needs_sync=true, limite de 20 por execução
+// Deploy forçado: 2026-01-10T22:00
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const FUNCTION_VERSION = '2.0.0';
+const BATCH_LIMIT = 20; // Processar no máximo 20 bots por execução
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,7 +18,7 @@ serve(async (req) => {
   }
 
   const startTime = Date.now();
-  console.log('🔄 [CRON-SYNC v1.5.0] Iniciando sincronização de bots...');
+  console.log(`🔄 [CRON-SYNC v${FUNCTION_VERSION}] Iniciando sincronização em lote...`);
 
   try {
     const supabase = createClient(
@@ -23,7 +26,10 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Buscar configs de bot ativas com instância vinculada (schema atual usa whatsapp_instance_id)
+    // ESTRATÉGIA ESCALÁVEL:
+    // 1. Buscar APENAS configs com enabled=true E needs_sync=true
+    // 2. Limitar a BATCH_LIMIT por execução
+    // 3. Ordenar por updated_at ASC (mais antigos primeiro = fila justa)
     const { data: botConfigs, error: botConfigsError } = await supabase
       .from('store_bot_config')
       .select(`
@@ -46,25 +52,29 @@ serve(async (req) => {
         bot_split_messages,
         bot_time_per_char,
         whatsapp_instance_id,
+        needs_sync,
+        last_synced_at,
         store:stores!inner (
           id,
           name,
-          slug,
-          whatsapp_instances (
-            instance_name
-          )
+          slug
         ),
         whatsapp_instance:whatsapp_instances!store_bot_config_whatsapp_instance_id_fkey (
+          id,
           instance_name
         )
       `)
-      .eq('enabled', true);
+      .eq('enabled', true)
+      .eq('needs_sync', true)
+      .order('updated_at', { ascending: true })
+      .limit(BATCH_LIMIT);
 
     if (botConfigsError) {
       console.error('❌ [CRON-SYNC] Erro ao buscar configs:', botConfigsError);
       return new Response(JSON.stringify({
         success: false,
         error: botConfigsError.message,
+        version: FUNCTION_VERSION,
       }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -72,89 +82,81 @@ serve(async (req) => {
     }
 
     if (!botConfigs || botConfigs.length === 0) {
-      console.log('ℹ️ [CRON-SYNC] Nenhuma loja com bot ativo encontrada');
+      console.log('✅ [CRON-SYNC] Nenhum bot pendente de sincronização');
       return new Response(JSON.stringify({
         success: true,
-        message: 'Nenhuma loja com bot ativo',
+        message: 'Nenhum bot pendente de sincronização',
         synced: 0,
+        pending: 0,
+        version: FUNCTION_VERSION,
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    console.log(`📋 [CRON-SYNC] ${botConfigs.length} bot(s) ativo(s) encontrado(s)`);
+    // Verificar quantos ainda estão pendentes (para informar ao admin)
+    const { count: pendingCount } = await supabase
+      .from('store_bot_config')
+      .select('id', { count: 'exact', head: true })
+      .eq('enabled', true)
+      .eq('needs_sync', true);
 
-    const results: { store: string; success: boolean; error?: string; status?: number; details?: unknown }[] = [];
+    console.log(`📋 [CRON-SYNC] Processando ${botConfigs.length} de ${pendingCount || botConfigs.length} pendente(s)`);
 
-    // Para cada config ativa, chamar a edge function openai-bot-sync
+    const results: { 
+      store: string; 
+      store_id: string;
+      config_id: string;
+      whatsapp_instance_id: string | null;
+      instance_found_by: string;
+      success: boolean; 
+      error?: string;
+    }[] = [];
+
     for (const botConfig of botConfigs as any[]) {
       const storeData = Array.isArray(botConfig.store) ? botConfig.store[0] : botConfig.store;
       const storeId = storeData?.id || botConfig.store_id;
       const storeName = storeData?.name || storeId;
+      const configId = botConfig.id;
 
-      console.log(`🔍 [CRON-SYNC] ${storeName}: Analisando config...`);
-      console.log(`   ↳ whatsapp_instance_id no config: ${botConfig.whatsapp_instance_id || 'NULL'}`);
-      console.log(`   ↳ whatsapp_instance (join): ${JSON.stringify(botConfig.whatsapp_instance)}`);
-      console.log(`   ↳ store.whatsapp_instances: ${JSON.stringify(storeData?.whatsapp_instances)}`);
-
-      // 1) Tentar obter instance_name do JOIN direto via whatsapp_instance_id
-      let whatsappInstance = Array.isArray(botConfig.whatsapp_instance)
+      // FONTE ÚNICA DE VERDADE: whatsapp_instance via FK (whatsapp_instance_id)
+      const whatsappInstance = Array.isArray(botConfig.whatsapp_instance)
         ? botConfig.whatsapp_instance[0]
         : botConfig.whatsapp_instance;
 
-      let instanceName = whatsappInstance?.instance_name;
+      const instanceName = whatsappInstance?.instance_name;
+      const instanceId = botConfig.whatsapp_instance_id;
 
-      if (instanceName) {
-        console.log(`✅ [CRON-SYNC] ${storeName}: encontrada via JOIN direto: ${instanceName}`);
-      }
+      console.log(`🔍 [CRON-SYNC] ${storeName}: config_id=${configId}, instance_id=${instanceId || 'NULL'}`);
 
-      // 2) Fallback rápido: pegar pela relação store -> whatsapp_instances (se existir)
+      // Se não tem instância vinculada via FK, não processa
       if (!instanceName) {
-        const storeInstancesRaw = (storeData as any)?.whatsapp_instances;
-        const storeInstances = Array.isArray(storeInstancesRaw) ? storeInstancesRaw : [];
-        const fromStore = storeInstances.find((i: any) => i?.instance_name)?.instance_name;
-
-        if (fromStore) {
-          instanceName = fromStore;
-          console.log(`✅ [CRON-SYNC] ${storeName}: encontrada via store.whatsapp_instances: ${instanceName}`);
-        }
-      }
-
-      // 3) FALLBACK final: buscar diretamente em whatsapp_instances por store_id
-      if (!instanceName && storeId) {
-        console.log(`🔍 [CRON-SYNC] ${storeName}: buscando instance via store_id (${storeId})...`);
-
-        const { data: instancesByStore, error: instancesError } = await supabase
-          .from('whatsapp_instances')
-          .select('instance_name, id')
-          .eq('store_id', storeId);
-
-        console.log(`   ↳ Resultado da query: ${JSON.stringify(instancesByStore)}`);
+        console.log(`⏭️ [CRON-SYNC] ${storeName}: sem whatsapp_instance_id vinculado - pulando`);
         
-        if (instancesError) {
-          console.error(`❌ [CRON-SYNC] ${storeName}: erro ao buscar whatsapp_instances:`, instancesError);
-        }
+        // Marcar erro no banco para visibilidade
+        await supabase
+          .from('store_bot_config')
+          .update({ 
+            last_sync_error: 'WhatsApp não vinculado. Clique em "Aplicar Mudanças" no painel.',
+            needs_sync: true, // Mantém pendente
+          })
+          .eq('id', configId);
 
-        const byStoreName = Array.isArray(instancesByStore) && instancesByStore.length > 0
-          ? instancesByStore[0]?.instance_name
-          : undefined;
-
-        if (byStoreName) {
-          instanceName = byStoreName;
-          console.log(`✅ [CRON-SYNC] ${storeName}: encontrada via query store_id: ${instanceName}`);
-        }
-      }
-
-      if (!instanceName) {
-        console.log(`⏭️ [CRON-SYNC] Pulando ${storeName}: sem WhatsApp instance após 3 tentativas`);
-        results.push({ store: storeName, success: false, error: 'Sem WhatsApp instance vinculada' });
+        results.push({ 
+          store: storeName, 
+          store_id: storeId,
+          config_id: configId,
+          whatsapp_instance_id: instanceId,
+          instance_found_by: 'none',
+          success: false, 
+          error: 'WhatsApp não vinculado ao bot config' 
+        });
         continue;
       }
 
       console.log(`🔄 [CRON-SYNC] Sincronizando: ${storeName} (${instanceName})`);
 
       try {
-        // Montar o config no formato esperado pela openai-bot-sync
         const config = {
           storeId: botConfig.store_id,
           instanceName: instanceName,
@@ -175,12 +177,9 @@ serve(async (req) => {
           timePerChar: botConfig.bot_time_per_char ?? 50,
         };
 
-        // Chamar openai-bot-sync via fetch() direto (mais confiável que supabase.functions.invoke)
         const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
         const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
         const functionUrl = `${supabaseUrl}/functions/v1/openai-bot-sync`;
-
-        console.log(`📡 [CRON-SYNC] ${storeName}: chamando ${functionUrl}`);
 
         const response = await fetch(functionUrl, {
           method: 'POST',
@@ -200,36 +199,89 @@ serve(async (req) => {
 
         if (response.ok && syncResult?.success) {
           console.log(`✅ [CRON-SYNC] ${storeName}: sincronizado com sucesso`);
-          results.push({ store: storeName, success: true });
+          
+          // Marcar como sincronizado (needs_sync=false, last_synced_at=now, limpar erro)
+          await supabase
+            .from('store_bot_config')
+            .update({ 
+              needs_sync: false,
+              last_synced_at: new Date().toISOString(),
+              last_sync_error: null,
+            })
+            .eq('id', configId);
+
+          results.push({ 
+            store: storeName, 
+            store_id: storeId,
+            config_id: configId,
+            whatsapp_instance_id: instanceId,
+            instance_found_by: 'fk_join',
+            success: true 
+          });
         } else {
-          const status = response.status;
           const msg = syncResult?.error || syncResult?.message || 'Erro desconhecido';
-
           console.error(`❌ [CRON-SYNC] ${storeName}: ${msg}`);
-          console.error(`   ↳ status: ${status}`);
-          console.error('   ↳ response:', JSON.stringify(syncResult));
 
-          results.push({ store: storeName, success: false, error: msg, status, details: syncResult });
+          // Marcar erro mas manter needs_sync=true para tentar novamente
+          await supabase
+            .from('store_bot_config')
+            .update({ 
+              last_sync_error: msg,
+              // needs_sync permanece true
+            })
+            .eq('id', configId);
+
+          results.push({ 
+            store: storeName, 
+            store_id: storeId,
+            config_id: configId,
+            whatsapp_instance_id: instanceId,
+            instance_found_by: 'fk_join',
+            success: false, 
+            error: msg 
+          });
         }
       } catch (err) {
+        const errMsg = String(err);
         console.error(`❌ [CRON-SYNC] ${storeName}: Erro na execução:`, err);
-        results.push({ store: storeName, success: false, error: String(err) });
+        
+        await supabase
+          .from('store_bot_config')
+          .update({ last_sync_error: errMsg })
+          .eq('id', configId);
+
+        results.push({ 
+          store: storeName, 
+          store_id: storeId,
+          config_id: configId,
+          whatsapp_instance_id: instanceId,
+          instance_found_by: 'fk_join',
+          success: false, 
+          error: errMsg 
+        });
       }
 
-      // Pequeno delay entre lojas para não sobrecarregar
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Delay entre sincronizações
+      await new Promise(resolve => setTimeout(resolve, 300));
     }
 
     const elapsed = Date.now() - startTime;
     const successCount = results.filter(r => r.success).length;
+    const remainingPending = (pendingCount || 0) - successCount;
 
     console.log(`🏁 [CRON-SYNC] Finalizado em ${elapsed}ms - ${successCount}/${botConfigs.length} sincronizados`);
+    if (remainingPending > 0) {
+      console.log(`📋 [CRON-SYNC] ${remainingPending} ainda pendente(s) para próxima execução`);
+    }
 
     return new Response(JSON.stringify({
       success: true,
       synced: successCount,
-      total: botConfigs.length,
+      processed: botConfigs.length,
+      pending_remaining: remainingPending > 0 ? remainingPending : 0,
       elapsed_ms: elapsed,
+      version: FUNCTION_VERSION,
+      batch_limit: BATCH_LIMIT,
       results
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -239,7 +291,8 @@ serve(async (req) => {
     console.error('❌ [CRON-SYNC] Erro geral:', error);
     return new Response(JSON.stringify({ 
       success: false, 
-      error: String(error) 
+      error: String(error),
+      version: FUNCTION_VERSION,
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

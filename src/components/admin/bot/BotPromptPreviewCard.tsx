@@ -132,7 +132,7 @@ export function BotPromptPreviewCard({
               className="flex items-center gap-1 text-primary hover:underline shrink-0"
             >
               <ExternalLink className="h-3 w-3" />
-              Ver cardápio
+              Ver loja
             </a>
           )}
         </div>

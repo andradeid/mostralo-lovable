@@ -514,13 +514,20 @@ serve(async (req) => {
     // Sanitização defensiva: evita termos antigos em templates customizados salvos no banco
     // (ex.: 'cardápio' → 'loja')
     {
-      const sanitized = finalMessage
-        .replace(/cardápio/gi, 'loja')
-        .replace(/cardapio/gi, 'loja');
+      // Normaliza Unicode para capturar casos com acento "decomposto" (ex.: a + \u0301)
+      const normalized = finalMessage.normalize('NFC');
+      const replaced = normalized
+        .replace(/cardápio/giu, 'loja')
+        .replace(/cardapio/giu, 'loja');
 
-      if (sanitized !== finalMessage) {
-        console.log('[whatsapp-auto-send] Sanitização aplicada: substituído "cardápio" por "loja"');
-        finalMessage = sanitized;
+      if (replaced !== finalMessage) {
+        if (replaced !== normalized) {
+          console.log('[whatsapp-auto-send] Sanitização aplicada: substituído "cardápio" por "loja"');
+        } else {
+          console.log('[whatsapp-auto-send] Sanitização aplicada: normalização Unicode (NFC)');
+        }
+
+        finalMessage = replaced;
       }
     }
 

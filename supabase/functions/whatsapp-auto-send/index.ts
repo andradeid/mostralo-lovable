@@ -511,6 +511,19 @@ serve(async (req) => {
       });
     }
 
+    // Sanitização defensiva: evita termos antigos em templates customizados salvos no banco
+    // (ex.: 'cardápio' → 'loja')
+    {
+      const sanitized = finalMessage
+        .replace(/cardápio/gi, 'loja')
+        .replace(/cardapio/gi, 'loja');
+
+      if (sanitized !== finalMessage) {
+        console.log('[whatsapp-auto-send] Sanitização aplicada: substituído "cardápio" por "loja"');
+        finalMessage = sanitized;
+      }
+    }
+
     // Buscar configuração da Evolution API
     const { data: evolutionConfig, error: evolutionError } = await supabase
       .from('evolution_config')

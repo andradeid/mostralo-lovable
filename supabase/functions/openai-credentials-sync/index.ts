@@ -15,6 +15,18 @@ serve(async (req) => {
   }
 
   try {
+    // IMPORTANTE: Ler o body primeiro, antes de qualquer outra operação
+    const body = await req.json();
+    const { action, openaiApiKey, model, maxTokens, useSavedKey } = body;
+    console.log('[openai-credentials-sync] Action recebida:', action);
+
+    if (!action) {
+      return new Response(JSON.stringify({ error: 'Action não especificada' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -54,8 +66,7 @@ serve(async (req) => {
       });
     }
 
-    const { action, openaiApiKey, model, maxTokens, useSavedKey } = await req.json();
-    console.log('[openai-credentials-sync] Action:', action);
+    console.log('[openai-credentials-sync] Usuário autenticado, processando action:', action);
 
     // Buscar config da Evolution
     const { data: evolutionConfig, error: configError } = await supabaseClient

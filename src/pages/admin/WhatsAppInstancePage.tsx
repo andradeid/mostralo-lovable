@@ -73,7 +73,6 @@ import {
   BotTimezoneCard,
   BotTrainingExamplesCard,
   BotGreetingPreviewCard,
-  BotAIStatusCard,
 } from "@/components/admin/bot";
 import { WhatsAppStatusCardMobile } from "@/components/admin/whatsapp/WhatsAppStatusCardMobile";
 
@@ -1286,13 +1285,6 @@ export default function WhatsAppInstancePage() {
             </div>
           ) : botConfig && (
               <>
-                {/* Card de Status da IA - Amigável para o lojista */}
-                <BotAIStatusCard
-                  storeId={storeId}
-                  openaiCredsId={botConfig.openai_creds_id}
-                  updatedAt={botConfig.updated_at}
-                  onRefresh={() => syncWithEvolution('update')}
-                />
 
                 <div className="grid gap-3 sm:gap-6 lg:grid-cols-2">
                   {/* Coluna Esquerda - 4 cards */}

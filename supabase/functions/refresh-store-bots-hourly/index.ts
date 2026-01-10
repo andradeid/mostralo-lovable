@@ -4,11 +4,12 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 /**
  * REFRESH-STORE-BOTS-HOURLY
  * 
- * Esta função faz EXATAMENTE o que o botão "Ativar Assistente" faz:
- * - UPDATE-first (nunca deleta o bot)
- * - Valida o modelo antes de enviar
- * - Atualiza saudação baseada no horário
- * - Se algo falhar, NÃO mexe no bot (fail-safe)
+ * Esta função usa estratégia DELETE + CREATE para garantir que o prompt
+ * seja sempre atualizado corretamente na Evolution API:
+ * - Deleta o bot existente
+ * - Cria um novo bot com o prompt atualizado
+ * - Atualiza o novo ID do bot no banco de dados
+ * - Usa fallback para UPDATE se DELETE falhar
  * 
  * Chamada pelo CRON a cada hora para atualizar a saudação dos bots.
  */
@@ -605,41 +606,66 @@ serve(async (req) => {
           description: `Bot Mostralo - ${store.name}`,
         };
 
-        // 10. UPDATE-FIRST: Tentar atualizar o bot existente (NUNCA deletar)
+        // 10. DELETE + CREATE: Deletar bot antigo e criar novo com prompt atualizado
         const existingBotId = botConfig.evolution_bot_id;
         let success = false;
         let finalBotId = existingBotId;
 
-        console.log(`🔄 [${storeSlug}] Atualizando bot ${existingBotId.slice(0, 8)}... (${greeting}, ${isOpen ? 'ABERTO' : 'FECHADO'})`);
+        console.log(`🗑️ [${storeSlug}] Deletando bot antigo para aplicar mudanças...`);
 
         try {
-          const updateResp = await fetch(
-            `${evolutionUrl}/openai/settings/${existingBotId}/${instanceName}`,
+          // PASSO 1: Deletar o bot existente
+          const deleteResp = await fetch(
+            `${evolutionUrl}/openai/delete/${existingBotId}/${instanceName}`,
             {
-              method: 'PUT',
-              headers: {
-                'apikey': evolutionConfig.api_key,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(botPayload),
+              method: 'DELETE',
+              headers: { 'apikey': evolutionConfig.api_key },
             }
           );
 
-          const updateText = await updateResp.text();
-          
-          if (updateResp.ok) {
-            console.log(`✅ [${storeSlug}] Bot atualizado com sucesso!`);
-            success = true;
-            results.push({
-              store: storeSlug,
-              status: 'updated',
-              botId: existingBotId.slice(0, 8),
-              greeting,
-              isOpen
-            });
-          } else if (updateResp.status === 404) {
-            // Bot não existe mais, criar novo
-            console.log(`⚠️ [${storeSlug}] Bot não encontrado (404), criando novo...`);
+          const deleteOk = deleteResp.ok || deleteResp.status === 404;
+          console.log(`🗑️ [${storeSlug}] Delete: ${deleteResp.status} (${deleteOk ? 'OK' : 'FALHOU'})`);
+
+          if (!deleteOk) {
+            console.log(`⚠️ [${storeSlug}] Falha ao deletar, tentando UPDATE...`);
+            
+            // Fallback: tentar UPDATE se delete falhar
+            const updateResp = await fetch(
+              `${evolutionUrl}/openai/settings/${existingBotId}/${instanceName}`,
+              {
+                method: 'PUT',
+                headers: {
+                  'apikey': evolutionConfig.api_key,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(botPayload),
+              }
+            );
+
+            if (updateResp.ok) {
+              console.log(`✅ [${storeSlug}] Bot atualizado via UPDATE (fallback)`);
+              success = true;
+              results.push({
+                store: storeSlug,
+                status: 'updated',
+                botId: existingBotId.slice(0, 8),
+                greeting,
+                isOpen,
+                method: 'update'
+              });
+            } else {
+              const updateText = await updateResp.text();
+              console.log(`❌ [${storeSlug}] Falha no UPDATE: ${updateResp.status}`);
+              results.push({
+                store: storeSlug,
+                status: 'error',
+                reason: `DELETE e UPDATE falharam: ${updateResp.status}`,
+                details: updateText.slice(0, 100)
+              });
+            }
+          } else {
+            // PASSO 2: Criar novo bot com configurações atualizadas
+            console.log(`🆕 [${storeSlug}] Criando novo bot com prompt atualizado...`);
             
             const createResp = await fetch(
               `${evolutionUrl}/openai/create/${instanceName}`,
@@ -662,7 +688,7 @@ serve(async (req) => {
                 finalBotId = newBotId;
                 success = true;
 
-                // Atualizar o ID do bot no banco
+                // PASSO 3: Atualizar o ID do novo bot no banco
                 await supabase
                   .from('store_bot_config')
                   .update({
@@ -673,22 +699,31 @@ serve(async (req) => {
 
                 results.push({
                   store: storeSlug,
-                  status: 'created',
-                  botId: newBotId.slice(0, 8),
+                  status: 'recreated',
+                  oldBotId: existingBotId.slice(0, 8),
+                  newBotId: newBotId.slice(0, 8),
                   greeting,
-                  isOpen
+                  isOpen,
+                  method: 'delete+create'
+                });
+              } else {
+                console.log(`⚠️ [${storeSlug}] Bot criado mas sem ID retornado`);
+                results.push({
+                  store: storeSlug,
+                  status: 'warning',
+                  reason: 'Bot criado mas ID não retornado'
                 });
               }
+            } else {
+              const createText = await createResp.text();
+              console.log(`❌ [${storeSlug}] Falha ao criar bot: ${createResp.status}`);
+              results.push({
+                store: storeSlug,
+                status: 'error',
+                reason: `Falha ao criar: ${createResp.status}`,
+                details: createText.slice(0, 100)
+              });
             }
-          } else {
-            // Outro erro - NÃO tentar criar, apenas logar
-            console.log(`❌ [${storeSlug}] Erro ao atualizar (${updateResp.status}): ${updateText.slice(0, 100)}`);
-            results.push({
-              store: storeSlug,
-              status: 'error',
-              reason: `HTTP ${updateResp.status}`,
-              details: updateText.slice(0, 100)
-            });
           }
         } catch (e) {
           console.error(`❌ [${storeSlug}] Exceção:`, e);
@@ -710,9 +745,9 @@ serve(async (req) => {
     }
 
     const elapsed = Date.now() - startTime;
-    const successCount = results.filter(r => r.status === 'updated' || r.status === 'created').length;
+    const successCount = results.filter(r => r.status === 'updated' || r.status === 'created' || r.status === 'recreated').length;
     const errorCount = results.filter(r => r.status === 'error').length;
-    const skippedCount = results.filter(r => r.status === 'skipped').length;
+    const skippedCount = results.filter(r => r.status === 'skipped' || r.status === 'warning').length;
 
     console.log(`\n✅ Refresh completo em ${elapsed}ms`);
     console.log(`   - Sucesso: ${successCount}`);

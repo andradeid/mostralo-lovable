@@ -446,7 +446,7 @@ serve(async (req) => {
       });
     }
 
-    const { action, config, origin } = await req.json() as { action: string; config: BotConfig; origin?: string };
+    const { action, config, origin } = await req.json() as { action: string; config: BotConfig & { forceRecreate?: boolean }; origin?: string };
 
     // Buscar loja do usuário com todos os campos necessários (incluindo domínio customizado e openai_api_key)
     const { data: store, error: storeError } = await supabaseClient
@@ -774,16 +774,91 @@ serve(async (req) => {
     }
 
     // ========================================
-    // FUNÇÃO: Garantir bot com estratégia UPDATE-FIRST (segura)
+    // FUNÇÃO: Garantir bot com estratégia DELETE+CREATE ou UPDATE-FIRST
     // ========================================
     async function ensureOpenAiBot(
       instanceName: string,
       openaiCredsId: string,
       botPayload: any,
       storeName: string,
-      existingBotId?: string | null
+      existingBotId?: string | null,
+      forceRecreate: boolean = false
     ): Promise<{ success: boolean; botId: string | null; created: boolean }> {
       botPayload.description = `Bot Mostralo - ${storeName}`;
+
+      // Se forceRecreate=true, usa DELETE+CREATE para garantir prompt atualizado
+      if (forceRecreate && existingBotId) {
+        steps.push({
+          step: 'bot_force_recreate',
+          status: 'success',
+          message: 'Forçando recriação do bot (DELETE+CREATE)...',
+          details: `Deletando ID: ${existingBotId.slice(0, 8)}...`,
+        });
+
+        // Deletar bot existente
+        const deleteOk = await deleteExistingBot(instanceName, existingBotId);
+        
+        if (deleteOk) {
+          steps.push({
+            step: 'bot_deleted',
+            status: 'success',
+            message: 'Bot antigo deletado com sucesso',
+          });
+
+          // Criar novo bot
+          try {
+            const createResp = await fetch(`${evolutionUrl}/openai/create/${instanceName}`, {
+              method: 'POST',
+              headers: {
+                'apikey': evolutionConfig.api_key,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(botPayload),
+            });
+
+            const createText = await createResp.text();
+            console.log('Resposta criação bot (forceRecreate):', createResp.status, createText);
+
+            if (createResp.ok) {
+              let botData: any = {};
+              try { botData = JSON.parse(createText); } catch { botData = {}; }
+              const newBotId = botData.id || botData.openaiBot?.id || null;
+
+              steps.push({
+                step: 'bot_recreated',
+                status: 'success',
+                message: 'Novo bot criado com prompt atualizado!',
+                details: newBotId ? `Novo ID: ${newBotId.slice(0, 8)}...` : 'ID não retornado',
+              });
+
+              return { success: true, botId: newBotId, created: true };
+            } else {
+              steps.push({
+                step: 'bot_create_after_delete_failed',
+                status: 'error',
+                message: 'Falha ao criar novo bot após delete',
+                details: createText.slice(0, 100),
+              });
+              return { success: false, botId: null, created: false };
+            }
+          } catch (e) {
+            steps.push({
+              step: 'bot_create_after_delete_error',
+              status: 'error',
+              message: 'Erro ao criar novo bot após delete',
+              details: String(e),
+            });
+            return { success: false, botId: null, created: false };
+          }
+        } else {
+          steps.push({
+            step: 'bot_delete_failed',
+            status: 'warning',
+            message: 'Falha ao deletar bot, tentando UPDATE...',
+          });
+          // Fallback para UPDATE
+        }
+      }
 
       // Se já temos um bot ID salvo no banco, tentar UPDATE primeiro (SEGURO)
       if (existingBotId) {
@@ -1089,13 +1164,17 @@ serve(async (req) => {
 
       console.log('Payload do bot:', JSON.stringify(botPayload, null, 2));
 
-      // 5. Garantir bot com estratégia UPDATE-FIRST (passa ID existente do banco)
+      // 5. Garantir bot com estratégia UPDATE-FIRST ou DELETE+CREATE (forceRecreate)
+      const forceRecreate = config.forceRecreate === true;
+      console.log('forceRecreate:', forceRecreate);
+      
       const botResult = await ensureOpenAiBot(
         config.instanceName, 
         openaiCredsId, 
         botPayload, 
         store.name,
-        existingBotConfig?.evolution_bot_id  // Passa o ID existente para UPDATE-first
+        existingBotConfig?.evolution_bot_id,  // Passa o ID existente
+        forceRecreate  // Flag para forçar DELETE+CREATE
       );
 
       if (!botResult.success || !botResult.botId) {

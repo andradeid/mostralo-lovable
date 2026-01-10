@@ -19,11 +19,11 @@ export function BotTrainingExamplesCard({ storeName, storeSlug, menuLink }: BotT
       : window.location.origin
     : 'https://mostralo.com.br';
   
-  const lojaLink = menuLink || (storeSlug ? `${baseUrl}/loja/${storeSlug}` : `${baseUrl}/loja/sua-loja`);
+  const cardapioLink = menuLink || (storeSlug ? `${baseUrl}/loja/${storeSlug}` : `${baseUrl}/loja/sua-loja`);
   
   const assistantExample = `Olá! 👋 Bem-vindo(a) à ${storeName || 'nossa loja'}!
 
-Confira nossa loja: ${lojaLink}
+Confira nosso cardápio completo: ${cardapioLink}
 
 Estou aqui para ajudar! 😊`;
 

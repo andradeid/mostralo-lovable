@@ -755,7 +755,7 @@ serve(async (req) => {
     async function deleteExistingBot(instanceName: string, botId: string): Promise<boolean> {
       try {
         console.log('🗑️ Deletando bot:', botId, 'da instância:', instanceName);
-        const deleteResp = await fetch(`${evolutionUrl}/openai/delete/${instanceName}/${botId}`, {
+        const deleteResp = await fetch(`${evolutionUrl}/openai/delete/${botId}/${instanceName}`, {
           method: 'DELETE',
           headers: { 'apikey': evolutionConfig.api_key },
         });
@@ -883,6 +883,8 @@ serve(async (req) => {
         let botName: string;
         let triggerKeywords: string[];
         let behaviorConfig: BotBehaviorConfig;
+        const existingBotIdField = `${bt}_bot_evolution_id`;
+        const existingBotId = config[existingBotIdField];
 
         switch (bt) {
           case 'sales':
@@ -980,154 +982,124 @@ serve(async (req) => {
           timePerChar: behaviorConfig.time_per_char || 0,
         };
 
-        // 🔒 ESTRATÉGIA UPDATE-FIRST (segura, sem downtime)
-        // 1) Tentar atualizar bot existente via PUT
-        // 2) Se bot não existir (404), criar novo
-        // 3) NUNCA deletar bot antes de criar (evita downtime se criação falhar)
+        // 🔥 ESTRATÉGIA DELETE + CREATE (igual ao lojista)
+        // A Evolution API permite apenas 1 bot ativo por instância, então:
+        // 1) Deleta qualquer bot existente (mesmo de outros tipos)
+        // 2) Zera IDs no banco
+        // 3) Cria o bot novo
 
-        const existingBotIdField = `${bt}_bot_evolution_id` as const;
-        const existingBotId = config[existingBotIdField] as string | null;
+        const botIdFieldsToClear = [
+          'sales_bot_evolution_id',
+          'recruitment_bot_evolution_id',
+          'support_bot_evolution_id',
+        ] as const;
 
-        let finalBotId: string | null = null;
-        let wasCreated = false;
+        const botIdsToDelete = botIdFieldsToClear
+          .map((field) => config[field])
+          .filter((id): id is string => typeof id === 'string' && id.length > 0);
 
-        // Tentar UPDATE primeiro se temos ID salvo
-        if (existingBotId) {
-          console.log(`🔄 [${bt}] Tentando atualizar bot existente: ${existingBotId.slice(0, 8)}...`);
+        if (botIdsToDelete.length > 0) {
+          console.log(`🧹 Limpando bots existentes na instância antes de criar ${bt}...`, botIdsToDelete);
 
-          try {
-            const updateResp = await fetch(
-              `${evolutionUrl}/openai/settings/${existingBotId}/${config.instance_name}`,
-              {
-                method: 'PUT',
-                headers: {
-                  'apikey': evolutionConfig.api_key,
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(botPayload),
-              }
-            );
-
-            const updateText = await updateResp.text();
-            console.log(`📥 [${bt}] Resposta UPDATE:`, updateResp.status, updateText.slice(0, 200));
-
-            if (updateResp.ok) {
-              console.log(`✅ [${bt}] Bot atualizado via PUT (sem downtime)`);
-              finalBotId = existingBotId;
-              wasCreated = false;
-            } else if (updateResp.status === 404) {
-              console.log(`⚠️ [${bt}] Bot ${existingBotId.slice(0, 8)}... não encontrado (404), criando novo...`);
-              // Continua para criar novo
-            } else {
-              console.log(`⚠️ [${bt}] UPDATE falhou (status ${updateResp.status}), tentando criar novo...`);
-            }
-          } catch (updateError) {
-            console.error(`❌ [${bt}] Erro no UPDATE:`, updateError);
+          for (const botId of botIdsToDelete) {
+            await deleteExistingBot(config.instance_name, botId);
           }
-        } else {
-          // Sem ID salvo, verificar se há bots na instância e tentar atualizar
-          console.log(`🔍 [${bt}] Sem ID salvo, buscando bots existentes na instância...`);
-          const existingBots = await findExistingBots(config.instance_name);
 
-          if (existingBots.length > 0) {
-            const foundBotId = existingBots[0]?.id || existingBots[0]?.openaiBot?.id;
-            if (foundBotId) {
-              console.log(`🔄 [${bt}] Bot encontrado: ${foundBotId.slice(0, 8)}..., tentando atualizar...`);
-
-              try {
-                const updateResp = await fetch(
-                  `${evolutionUrl}/openai/settings/${foundBotId}/${config.instance_name}`,
-                  {
-                    method: 'PUT',
-                    headers: {
-                      'apikey': evolutionConfig.api_key,
-                      'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(botPayload),
-                  }
-                );
-
-                if (updateResp.ok) {
-                  console.log(`✅ [${bt}] Bot encontrado e atualizado via PUT`);
-                  finalBotId = foundBotId;
-                  wasCreated = false;
-                }
-              } catch (e) {
-                console.log(`⚠️ [${bt}] Falha ao atualizar bot encontrado:`, e);
-              }
-            }
-          }
-        }
-
-        // Se UPDATE não funcionou, criar novo bot
-        if (!finalBotId) {
-          console.log(`➕ [${bt}] Criando novo bot...`);
-
-          try {
-            const createResp = await fetch(`${evolutionUrl}/openai/create/${config.instance_name}`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'apikey': evolutionConfig.api_key,
-              },
-              body: JSON.stringify(botPayload),
-            });
-
-            const createText = await createResp.text();
-            console.log(`📥 [${bt}] Resposta CREATE:`, createResp.status, createText.slice(0, 200));
-
-            if (createResp.ok) {
-              let responseData: any = {};
-              try { responseData = JSON.parse(createText); } catch { responseData = {}; }
-
-              finalBotId = responseData.id || responseData.openaiBot?.id || responseData.openai?.id || null;
-              wasCreated = true;
-
-              if (finalBotId) {
-                console.log(`✅ [${bt}] Novo bot criado com ID: ${finalBotId.slice(0, 8)}...`);
-              } else {
-                console.log(`⚠️ [${bt}] Bot criado mas ID não retornado`);
-              }
-            } else if (createText.includes('already exists') || createText.includes('already')) {
-              // Bot já existe, buscar ID
-              console.log(`⚠️ [${bt}] Bot já existe, buscando ID...`);
-              const existingBots = await findExistingBots(config.instance_name);
-              if (existingBots.length > 0) {
-                finalBotId = existingBots[0]?.id || existingBots[0]?.openaiBot?.id || null;
-                wasCreated = false;
-                if (finalBotId) {
-                  console.log(`✅ [${bt}] Usando bot existente: ${finalBotId.slice(0, 8)}...`);
-                }
-              }
-            } else {
-              throw new Error(`Falha ao criar bot: ${createText.slice(0, 150)}`);
-            }
-          } catch (createError) {
-            throw createError;
-          }
-        }
-
-        // Salvar no banco
-        if (finalBotId) {
+          // Zerar IDs no banco (já que foram deletados)
           await supabase
             .from('master_whatsapp_config')
-            .update({ 
-              [existingBotIdField]: finalBotId,
-              primary_bot_type: bt
+            .update({
+              sales_bot_evolution_id: null,
+              recruitment_bot_evolution_id: null,
+              support_bot_evolution_id: null,
             })
             .eq('id', configId);
 
-          results[bt] = { success: true, botId: finalBotId };
-          console.log(`✅ [${bt}] Sincronização concluída | ID: ${finalBotId.slice(0, 8)}... | Método: ${wasCreated ? 'CREATE' : 'UPDATE'}`);
-        } else {
-          results[bt] = { success: true, botId: undefined };
-          console.log(`⚠️ [${bt}] Sincronização concluída mas sem ID`);
+          await delay(1000);
         }
 
-        // Aguardar antes do próximo bot
+        // Sempre criar novo bot
+        async function createBotOnce(): Promise<{ ok: boolean; status: number; text: string }> {
+          const resp = await fetch(`${evolutionUrl}/openai/create/${config.instance_name}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': evolutionConfig.api_key,
+            },
+            body: JSON.stringify(botPayload),
+          });
+
+          const text = await resp.text();
+          return { ok: resp.ok, status: resp.status, text };
+        }
+
+        console.log(`➕ Criando novo bot ${bt}...`);
+        let createResult = await createBotOnce();
+        console.log(`📥 Resposta create ${bt}:`, createResult.status, createResult.text);
+
+        // Se ainda assim existir bot "fantasma" na instância, descobrir e deletar via /openai/find
+        if (!createResult.ok && (createResult.text.includes('already exists') || createResult.text.includes('already') || createResult.status === 500)) {
+          console.log(`⚠️ Create ${bt} falhou com possível conflito de bot existente. Tentando localizar e deletar via find...`);
+
+          const existingBots = await findExistingBots(config.instance_name);
+          const foundIds = existingBots
+            .map((b: any) => b?.id || b?.openaiBot?.id || b?.openai?.id || b?.botId)
+            .filter((id: any): id is string => typeof id === 'string' && id.length > 0);
+
+          if (foundIds.length > 0) {
+            console.log('🗑️ Deletando bots encontrados via find:', foundIds);
+            for (const foundId of foundIds) {
+              await deleteExistingBot(config.instance_name, foundId);
+            }
+
+            await supabase
+              .from('master_whatsapp_config')
+              .update({
+                sales_bot_evolution_id: null,
+                recruitment_bot_evolution_id: null,
+                support_bot_evolution_id: null,
+              })
+              .eq('id', configId);
+
+            await delay(1200);
+          } else {
+            console.log('ℹ️ Nenhum bot retornado pelo find; seguindo sem deletar.');
+          }
+
+          console.log(`🔁 Tentando criar o bot ${bt} novamente...`);
+          createResult = await createBotOnce();
+          console.log(`📥 Resposta create retry ${bt}:`, createResult.status, createResult.text);
+        }
+
+        if (!createResult.ok) {
+          throw new Error(`Falha ao criar bot: ${createResult.text}`);
+        }
+
+        let responseData: any = {};
+        try { responseData = JSON.parse(createResult.text); } catch { responseData = {}; }
+
+        const newBotId = responseData.id || responseData.openaiBot?.id || responseData.openai?.id;
+        if (newBotId) {
+          // Atualizar o botId E o primary_bot_type automaticamente
+          await supabase
+            .from('master_whatsapp_config')
+            .update({ 
+              [existingBotIdField]: newBotId,
+              primary_bot_type: bt  // Atualiza automaticamente o bot principal
+            })
+            .eq('id', configId);
+
+          results[bt] = { success: true, botId: newBotId };
+          console.log(`✅ Bot ${bt} criado com ID: ${newBotId} - primary_bot_type atualizado para "${bt}"`);
+        } else {
+          results[bt] = { success: true, botId: undefined };
+          console.log(`⚠️ Bot ${bt} criado mas sem ID retornado`);
+        }
+
+        // Aguardar 3 segundos antes do próximo bot para evitar rate limit na Evolution API
         if (botsToSync.indexOf(bt) < botsToSync.length - 1) {
-          console.log(`⏳ Aguardando 2s antes do próximo bot...`);
-          await delay(2000);
+          console.log(`⏳ Aguardando 3s antes do próximo bot...`);
+          await delay(3000);
         }
 
       } catch (botError) {

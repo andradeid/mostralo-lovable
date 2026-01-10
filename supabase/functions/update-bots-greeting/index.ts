@@ -1,10 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-// ========================================
-// VERSÃO DA FUNÇÃO - Para debug de deploy
-// ========================================
-const FUNCTION_VERSION = "2026-01-10-v3";
 import { 
   getRandomGreeting, 
   getPeriodFromHour, 
@@ -155,28 +150,6 @@ serve(async (req) => {
   const startTime = Date.now();
   const results: any[] = [];
 
-  console.log(`[update-bots-greeting] version: ${FUNCTION_VERSION}`);
-
-  // ========================================
-  // Sanitizar texto para remover "cardápio"
-  // ========================================
-  function sanitizeText(text: string): string {
-    if (!text) return text;
-    return text
-      .replace(/cardápio/giu, 'loja')
-      .replace(/cardapio/giu, 'loja')
-      .replace(/cardápios/giu, 'lojas')
-      .replace(/cardapios/giu, 'lojas')
-      .replace(/confira nosso loja/gi, 'confira nossa loja')
-      .replace(/nosso loja/gi, 'nossa loja')
-      .replace(/ofereça o loja/gi, 'ofereça a loja')
-      .replace(/o loja/gi, 'a loja')
-      .replace(/do loja/gi, 'da loja')
-      .replace(/ao loja/gi, 'à loja')
-      .replace(/Link do loja/gi, 'Link da loja')
-      .replace(/link do loja/gi, 'link da loja');
-  }
-
   try {
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -207,84 +180,6 @@ serve(async (req) => {
 
     const evolutionUrl = evolutionConfig.api_url.replace(/\/$/, '');
 
-    // =====================================================
-    // Helper: garantir credencial OpenAI por LOJA (não usar evolution_config.openai_creds_id)
-    // Motivo: openai_creds_id no banco pode ser placeholder e quebrar o bot no CRON.
-    // =====================================================
-    async function ensureStoreOpenAiCreds(
-      instanceName: string,
-      storeSlug: string,
-      storeOpenAiApiKey: string | null
-    ): Promise<string | null> {
-      if (!storeOpenAiApiKey) return null;
-
-      const credsName = `store_${storeSlug}_openai`;
-
-      try {
-        // 1) Tentar localizar credencial existente
-        const listResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
-          method: 'GET',
-          headers: { 'apikey': evolutionConfig.api_key },
-        });
-
-        const listText = await listResp.text();
-        if (listResp.ok) {
-          let listData: any = null;
-          try {
-            listData = JSON.parse(listText);
-          } catch {
-            listData = null;
-          }
-
-          const creds = Array.isArray(listData)
-            ? listData
-            : (listData?.creds || listData?.data || []);
-
-          const found = creds.find((c: any) => c?.name === credsName && c?.id);
-          if (found?.id) return found.id as string;
-        } else {
-          console.error('❌ [CRON] Falha ao listar credenciais:', listResp.status, listText.slice(0, 200));
-        }
-
-        // 2) Criar credencial se não existe
-        const createResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
-          method: 'POST',
-          headers: {
-            'apikey': evolutionConfig.api_key,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name: credsName,
-            apiKey: storeOpenAiApiKey,
-          }),
-        });
-
-        const createText = await createResp.text();
-        if (!createResp.ok) {
-          console.error('❌ [CRON] Falha ao criar credencial:', createResp.status, createText.slice(0, 200));
-          return null;
-        }
-
-        let created: any = {};
-        try {
-          created = JSON.parse(createText);
-        } catch {
-          created = {};
-        }
-
-        const createdId = created?.id || created?.openaiCredsId || created?.creds?.id || null;
-        if (!createdId) {
-          console.error('❌ [CRON] ID da credencial não retornado:', createText.slice(0, 200));
-          return null;
-        }
-
-        return createdId as string;
-      } catch (e) {
-        console.error('❌ [CRON] Erro ao garantir credencial:', e);
-        return null;
-      }
-    }
-
     // Buscar todos os bots ativos
     const { data: activeBots, error: botsError } = await supabaseClient
       .from('store_bot_config')
@@ -295,8 +190,7 @@ serve(async (req) => {
           business_hours, timezone, delivery_fee, min_order_value,
           accepts_cash, accepts_card, accepts_pix, city, state,
           google_maps_link, custom_domain, custom_domain_verified,
-          segment,
-          openai_api_key
+          segment
         )
       `)
       .eq('enabled', true)
@@ -363,22 +257,7 @@ serve(async (req) => {
         }
         const storeLink = `${baseUrl}/loja/${store.slug}`;
 
-        // Garantir credencial OpenAI correta para esta loja/instância
-        const storeOpenAiCredsId = await ensureStoreOpenAiCreds(
-          instanceName,
-          store.slug,
-          store.openai_api_key
-        );
-
-        if (!storeOpenAiCredsId) {
-          console.error(`❌ [${store.name}] Sem credencial OpenAI válida para o CRON (verifique stores.openai_api_key)`);
-          results.push({
-            store: store.name,
-            success: false,
-            error: 'OpenAI credencial ausente/ inválida (stores.openai_api_key)'
-          });
-          continue;
-        }
+        // Buscar produtos e categorias
         const { data: products } = await supabaseClient
           .from('products')
           .select('name, price, description, slug, is_available')
@@ -404,9 +283,9 @@ ${!isOpen && nextOpening ? `- Próxima abertura: ${nextOpening}` : ''}
 INSTRUÇÕES DE STATUS (responda de forma natural e acolhedora):
 ${isOpen 
   ? `- Quando perguntarem se está aberto: Confirme de forma amigável que está funcionando, sem usar frases robóticas como "Sim, estamos abertos!"
-- Seja acolhedor e convide para acessar a loja online`
+- Seja acolhedor e convide para ver o cardápio`
   : `- Quando perguntarem se está aberto: Informe de forma gentil que está fechado${nextOpening ? ` e mencione que abrirá ${nextOpening}` : ''}
-- Ofereça a loja online para o cliente já ir escolhendo: ${storeLink}`}
+- Ofereça o cardápio para o cliente já ir escolhendo: ${storeLink}`}
 - NUNCA diga que está aberto se o STATUS mostrar FECHADO
 - Use a saudação "${greeting}" nas interações
 - ${period === 'madrugada' ? 'De madrugada, seja especialmente acolhedor com quem está acordado nesse horário!' : ''}`;
@@ -433,9 +312,9 @@ ${isOpen
         });
 
         // Payload de atualização
-        const rawPayload = {
+        const updatePayload = {
           enabled: true,
-          openaiCredsId: storeOpenAiCredsId,
+          openaiCredsId: evolutionConfig.openai_creds_id,
           botType: 'chatCompletion',
           model: evolutionConfig.openai_default_model || 'gpt-4o-mini',
           maxTokens: evolutionConfig.openai_max_tokens || 1000,
@@ -448,7 +327,7 @@ INFORMAÇÕES DA LOJA:
 - Descrição: ${store.description || 'Delivery de qualidade'}
 - Endereço: ${store.address || 'Não informado'}
 - WhatsApp: ${store.whatsapp || 'Não informado'}
-- Link da loja: ${storeLink}
+- Link do cardápio: ${storeLink}
 - Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte'}
 - Pedido mínimo: ${store.min_order_value ? `R$ ${store.min_order_value.toFixed(2)}` : 'Sem mínimo'}
 
@@ -461,7 +340,7 @@ INSTRUÇÕES:
 1. Apresente produtos quando perguntado
 2. Informe preços corretamente
 3. SEMPRE inclua links dos produtos
-4. Direcione à loja online: ${storeLink}
+4. Direcione ao cardápio: ${storeLink}
 5. Se cliente perguntar se está aberto, use o STATUS acima
 6. Responda em português brasileiro
 
@@ -469,9 +348,7 @@ SOBRE A PLATAFORMA:
 - Gestão Financeira completa para o lojista
 - Dashboard com KPIs de receitas, despesas e saldo
 - Controle de entradas/saídas por categoria
-- Gráficos de fluxo de caixa mensal
-
-[CRON update-bots-greeting v${FUNCTION_VERSION} - ${new Date().toISOString()}]`],
+- Gráficos de fluxo de caixa mensal`],
           assistantMessages: [dynamicGreeting],
           userMessages: ['Oi', 'Olá', 'Boa tarde', 'Boa noite', 'Bom dia', 'Vocês estão abertos?'],
           triggerType: botConfig.trigger_type || 'all',
@@ -480,7 +357,7 @@ SOBRE A PLATAFORMA:
           expire: botConfig.expire_minutes || 20,
           keywordFinish: botConfig.keyword_finish || '#SAIR',
           delayMessage: botConfig.delay_message || 4000,
-          unknownMessage: sanitizeText(botConfig.unknown_message || 'Desculpe, não entendi.'),
+          unknownMessage: botConfig.unknown_message || 'Desculpe, não entendi.',
           listeningFromMe: botConfig.listening_from_me || false,
           stopBotFromMe: botConfig.stop_bot_from_me !== undefined ? botConfig.stop_bot_from_me : true,
           keepOpen: botConfig.keep_open || false,
@@ -489,13 +366,6 @@ SOBRE A PLATAFORMA:
           splitMessages: botConfig.bot_split_messages !== undefined ? botConfig.bot_split_messages : true,
           timePerChar: botConfig.bot_time_per_char || 0,
           description: `Bot Mostralo - ${store.name}`,
-        };
-
-        // Sanitizar todo o payload antes de enviar
-        const updatePayload = {
-          ...rawPayload,
-          systemMessages: rawPayload.systemMessages.map(sanitizeText),
-          assistantMessages: rawPayload.assistantMessages.map(sanitizeText),
         };
 
         // ESTRATÉGIA SEGURA: Tentar UPDATE primeiro, só CREATE se necessário
@@ -644,12 +514,7 @@ SOBRE A PLATAFORMA:
       processed: results.length,
       successful: successCount,
       duration: `${duration}ms`,
-      results,
-      responseMeta: {
-        function: 'update-bots-greeting',
-        version: FUNCTION_VERSION,
-        timestamp: new Date().toISOString()
-      }
+      results
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

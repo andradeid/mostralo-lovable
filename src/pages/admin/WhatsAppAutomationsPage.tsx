@@ -55,7 +55,7 @@ interface AutoMessageConfig {
 const defaultMessages = {
   greeting_message: `Olá! 👋 Seja bem-vindo(a) à {loja}!
 
-Confira nossa loja: {link_loja}
+Confira nosso cardápio: {link_loja}
 Faça seu pedido agora! 🍕`,
   order_received_message: `✅ Recebemos seu pedido #{numero_pedido}!
 Valor: R$ {valor_total}

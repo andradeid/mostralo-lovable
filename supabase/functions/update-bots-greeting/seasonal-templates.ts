@@ -7,43 +7,43 @@ export const weekdayGreetings: Partial<Record<Weekday, { aberto: string[]; fecha
   friday: {
     aberto: [
       "Sextou! 🎉 A {loja} está aberta e pronta pra você começar bem o fim de semana!\n\n📱 Confira: {link}",
-      "Opa, sexta-feira! 🥳 A {loja} tá funcionando! Bora celebrar?\n\nVeja a loja: {link}",
-      "É sexta, meu povo! 🎊 Estamos abertos e esperando seu pedido!\n\n📱 Veja: {link}",
+      "Opa, sexta-feira! 🥳 A {loja} tá funcionando! Bora celebrar?\n\nVeja o cardápio: {link}",
+      "É sexta, meu povo! 🎊 Estamos abertos e esperando seu pedido!\n\n📱 Cardápio: {link}",
       "Sexta-feira chegou! 🎉 A {loja} está pronta pra fazer seu fim de semana especial!\n\nConfira: {link}",
       "Sextouuu! 🥳 Que tal um pedido pra comemorar? A {loja} está aberta!\n\n📱 Veja: {link}",
     ],
     fechado: [
-      "Sextou! 🎉 Mas infelizmente estamos fechados{proxima_abertura}.\n\nVeja a loja: {link}",
-      "É sexta-feira! 🎊 A {loja} está fechada agora{proxima_abertura}.\n\nConfira nossa loja: {link}",
-      "Sexta chegou! 🥳 Estamos fechados no momento{proxima_abertura}.\n\n📱 Veja: {link}",
+      "Sextou! 🎉 Mas infelizmente estamos fechados{proxima_abertura}.\n\nVeja o cardápio: {link}",
+      "É sexta-feira! 🎊 A {loja} está fechada agora{proxima_abertura}.\n\nConfira nosso cardápio: {link}",
+      "Sexta chegou! 🥳 Estamos fechados no momento{proxima_abertura}.\n\n📱 Cardápio: {link}",
     ]
   },
   saturday: {
     aberto: [
       "Bom sábado! 🌟 A {loja} está aberta! O fim de semana começou com tudo!\n\n📱 Confira: {link}",
-      "Sabadou! ✨ Estamos funcionando e prontos pra você!\n\nVeja tudo aqui: {link}",
+      "Sabadou! ✨ Estamos funcionando e prontos pra você!\n\nCardápio completo: {link}",
       "Sábado maravilhoso! 🎊 A {loja} está aberta! Aproveite o dia!\n\n📱 Veja: {link}",
       "É sábado! 🌴 Dia de relaxar e fazer um pedido especial!\n\nConfira: {link}",
-      "Sabadão chegou! 🎉 A {loja} está funcionando! Bora pedir?\n\n📱 Veja: {link}",
+      "Sabadão chegou! 🎉 A {loja} está funcionando! Bora pedir?\n\n📱 Cardápio: {link}",
     ],
     fechado: [
-      "Bom sábado! 🌟 Estamos fechados no momento{proxima_abertura}.\n\nVeja a loja: {link}",
+      "Bom sábado! 🌟 Estamos fechados no momento{proxima_abertura}.\n\nVeja o cardápio: {link}",
       "Sabadou! ✨ A {loja} está fechada agora{proxima_abertura}.\n\n📱 Confira: {link}",
-      "É sábado! 🎊 Infelizmente estamos fechados{proxima_abertura}.\n\nVeja: {link}",
+      "É sábado! 🎊 Infelizmente estamos fechados{proxima_abertura}.\n\nCardápio: {link}",
     ]
   },
   sunday: {
     aberto: [
       "Bom domingo! ☀️ A {loja} está aberta! Aproveite o dia de descanso!\n\n📱 Confira: {link}",
       "Domingão! 🌤️ Estamos funcionando! Relaxe e faça seu pedido.\n\nVeja: {link}",
-      "Domingo especial! 🌈 A {loja} está pronta pra deixar seu dia ainda melhor!\n\n📱 Veja: {link}",
+      "Domingo especial! 🌈 A {loja} está pronta pra deixar seu dia ainda melhor!\n\n📱 Cardápio: {link}",
       "É domingo! ☀️ Dia de curtir com a família! A {loja} está aberta!\n\nConfira: {link}",
       "Domingou! 🌟 Estamos funcionando e esperando seu pedido!\n\n📱 Veja: {link}",
     ],
     fechado: [
-      "Bom domingo! ☀️ Estamos fechados no momento{proxima_abertura}.\n\nVeja a loja: {link}",
+      "Bom domingo! ☀️ Estamos fechados no momento{proxima_abertura}.\n\nVeja o cardápio: {link}",
       "Domingão! 🌤️ A {loja} está fechada agora{proxima_abertura}.\n\n📱 Confira: {link}",
-      "É domingo! 🌈 Infelizmente estamos fechados{proxima_abertura}.\n\nVeja: {link}",
+      "É domingo! 🌈 Infelizmente estamos fechados{proxima_abertura}.\n\nCardápio: {link}",
     ]
   }
 };
@@ -64,10 +64,10 @@ export const holidayGreetings: Record<string, HolidayTemplates> = {
       aberto: [
         "🎊 Feliz Ano Novo! A {loja} está aberta para começar o ano com você!\n\n📱 Confira: {link}",
         "🎆 Primeiro dia do ano! A {loja} está funcionando! Bora começar bem?\n\nVeja: {link}",
-        "🎉 Ano Novo, vida nova! A {loja} está aberta! Feliz 2025!\n\n📱 Veja: {link}",
+        "🎉 Ano Novo, vida nova! A {loja} está aberta! Feliz 2025!\n\n📱 Cardápio: {link}",
       ],
       fechado: [
-        "🎊 Feliz Ano Novo! Estamos descansando hoje{proxima_abertura}.\n\nVeja nossa loja: {link}",
+        "🎊 Feliz Ano Novo! Estamos descansando hoje{proxima_abertura}.\n\nVeja nosso cardápio: {link}",
         "🎆 Ano Novo! A {loja} está fechada{proxima_abertura}.\n\n📱 Confira: {link}",
       ]
     }
@@ -78,10 +78,10 @@ export const holidayGreetings: Record<string, HolidayTemplates> = {
       aberto: [
         "🎭 É Carnaval! A {loja} está aberta pra animar sua folia!\n\n📱 Confira: {link}",
         "🎊 Carnaval chegou! Estamos funcionando! Aproveite!\n\nVeja: {link}",
-        "🥳 Carnavaaaal! A {loja} está aberta! Bora curtir?\n\n📱 Veja: {link}",
+        "🥳 Carnavaaaal! A {loja} está aberta! Bora curtir?\n\n📱 Cardápio: {link}",
       ],
       fechado: [
-        "🎭 É Carnaval! Estamos curtindo a folia{proxima_abertura}.\n\nVeja a loja: {link}",
+        "🎭 É Carnaval! Estamos curtindo a folia{proxima_abertura}.\n\nVeja o cardápio: {link}",
         "🎊 Carnaval! A {loja} está fechada{proxima_abertura}.\n\n📱 Confira: {link}",
       ]
     }
@@ -94,7 +94,7 @@ export const holidayGreetings: Record<string, HolidayTemplates> = {
         "🇧🇷 Dia de Tiradentes! Estamos funcionando!\n\nVeja: {link}",
       ],
       fechado: [
-        "📜 Feriado de Tiradentes! Estamos fechados{proxima_abertura}.\n\nVeja: {link}",
+        "📜 Feriado de Tiradentes! Estamos fechados{proxima_abertura}.\n\nCardápio: {link}",
       ]
     }
   },
@@ -103,10 +103,10 @@ export const holidayGreetings: Record<string, HolidayTemplates> = {
     templates: {
       aberto: [
         "🛠️ Feliz Dia do Trabalho! A {loja} está aberta pra você!\n\n📱 Confira: {link}",
-        "💪 Dia do Trabalhador! Estamos funcionando!\n\nVeja nossa loja: {link}",
+        "💪 Dia do Trabalhador! Estamos funcionando!\n\nVeja nosso cardápio: {link}",
       ],
       fechado: [
-        "🛠️ Feliz Dia do Trabalho! Merecemos descansar{proxima_abertura}.\n\nVeja: {link}",
+        "🛠️ Feliz Dia do Trabalho! Merecemos descansar{proxima_abertura}.\n\nCardápio: {link}",
         "💪 Dia do Trabalhador! Estamos fechados hoje{proxima_abertura}.\n\n📱 Confira: {link}",
       ]
     }
@@ -117,11 +117,11 @@ export const holidayGreetings: Record<string, HolidayTemplates> = {
       aberto: [
         "💕 Feliz Dia dos Namorados! A {loja} está aberta para tornar seu dia mais especial!\n\n📱 Confira: {link}",
         "❤️ Dia dos Namorados! Surpreenda quem você ama! Estamos abertos!\n\nVeja: {link}",
-        "💘 Amor está no ar! A {loja} está funcionando pra deixar seu dia romântico!\n\n📱 Veja: {link}",
+        "💘 Amor está no ar! A {loja} está funcionando pra deixar seu dia romântico!\n\n📱 Cardápio: {link}",
         "🌹 Dia dos Namorados! Que tal algo especial pra dois? A {loja} está aberta!\n\nConfira: {link}",
       ],
       fechado: [
-        "💕 Feliz Dia dos Namorados! Estamos fechados{proxima_abertura}.\n\nVeja: {link}",
+        "💕 Feliz Dia dos Namorados! Estamos fechados{proxima_abertura}.\n\nCardápio: {link}",
         "❤️ Dia dos Namorados! A {loja} está fechada{proxima_abertura}.\n\n📱 Veja: {link}",
       ]
     }
@@ -132,10 +132,10 @@ export const holidayGreetings: Record<string, HolidayTemplates> = {
       aberto: [
         "🔥 Viva São João! A {loja} está aberta! Arraiá chegou!\n\n📱 Confira: {link}",
         "🎆 Festa Junina! Estamos funcionando! Forró e comida boa!\n\nVeja: {link}",
-        "🌽 São João chegou! A {loja} está aberta! Arretado!\n\n📱 Veja: {link}",
+        "🌽 São João chegou! A {loja} está aberta! Arretado!\n\n📱 Cardápio: {link}",
       ],
       fechado: [
-        "🔥 Viva São João! Estamos curtindo a fogueira{proxima_abertura}.\n\nVeja: {link}",
+        "🔥 Viva São João! Estamos curtindo a fogueira{proxima_abertura}.\n\nCardápio: {link}",
         "🎆 Festa Junina! A {loja} está fechada{proxima_abertura}.\n\n📱 Confira: {link}",
       ]
     }
@@ -148,7 +148,7 @@ export const holidayGreetings: Record<string, HolidayTemplates> = {
         "💚💛 Independência! Estamos funcionando e celebrando!\n\nVeja: {link}",
       ],
       fechado: [
-        "🇧🇷 Feliz Independência! Estamos fechados{proxima_abertura}.\n\nVeja: {link}",
+        "🇧🇷 Feliz Independência! Estamos fechados{proxima_abertura}.\n\nCardápio: {link}",
       ]
     }
   },
@@ -158,10 +158,10 @@ export const holidayGreetings: Record<string, HolidayTemplates> = {
       aberto: [
         "🎈 Feliz Dia das Crianças! A {loja} está aberta para a criançada!\n\n📱 Confira: {link}",
         "👧👦 Dia das Crianças! Estamos funcionando com alegria!\n\nVeja: {link}",
-        "🎁 Dia especial! A {loja} está aberta! Venha comemorar!\n\n📱 Veja: {link}",
+        "🎁 Dia especial! A {loja} está aberta! Venha comemorar!\n\n📱 Cardápio: {link}",
       ],
       fechado: [
-        "🎈 Feliz Dia das Crianças! Estamos fechados{proxima_abertura}.\n\nVeja a loja: {link}",
+        "🎈 Feliz Dia das Crianças! Estamos fechados{proxima_abertura}.\n\nVeja o cardápio: {link}",
         "👧👦 Dia das Crianças! A {loja} está fechada{proxima_abertura}.\n\n📱 Confira: {link}",
       ]
     }
@@ -173,7 +173,7 @@ export const holidayGreetings: Record<string, HolidayTemplates> = {
         "🕯️ Dia de Finados. A {loja} está aberta com respeito e carinho.\n\n📱 Confira: {link}",
       ],
       fechado: [
-        "🕯️ Dia de Finados. Estamos fechados{proxima_abertura}.\n\nVeja: {link}",
+        "🕯️ Dia de Finados. Estamos fechados{proxima_abertura}.\n\nCardápio: {link}",
       ]
     }
   },
@@ -185,7 +185,7 @@ export const holidayGreetings: Record<string, HolidayTemplates> = {
         "💚 Proclamação da República! Estamos funcionando!\n\nVeja: {link}",
       ],
       fechado: [
-        "🇧🇷 Feriado da República! Estamos fechados{proxima_abertura}.\n\nVeja: {link}",
+        "🇧🇷 Feriado da República! Estamos fechados{proxima_abertura}.\n\nCardápio: {link}",
       ]
     }
   },
@@ -197,7 +197,7 @@ export const holidayGreetings: Record<string, HolidayTemplates> = {
         "🖤 Consciência Negra! Estamos funcionando com orgulho!\n\nVeja: {link}",
       ],
       fechado: [
-        "✊🏿 Dia da Consciência Negra! Estamos fechados{proxima_abertura}.\n\nVeja: {link}",
+        "✊🏿 Dia da Consciência Negra! Estamos fechados{proxima_abertura}.\n\nCardápio: {link}",
       ]
     }
   },
@@ -207,10 +207,10 @@ export const holidayGreetings: Record<string, HolidayTemplates> = {
       aberto: [
         "🎄 Véspera de Natal! A {loja} está aberta! Feliz Natal!\n\n📱 Confira: {link}",
         "🎅 É Natal! Estamos funcionando pra deixar sua ceia especial!\n\nVeja: {link}",
-        "✨ Noite de Natal chegando! A {loja} está aberta!\n\n📱 Veja: {link}",
+        "✨ Noite de Natal chegando! A {loja} está aberta!\n\n📱 Cardápio: {link}",
       ],
       fechado: [
-        "🎄 Véspera de Natal! Estamos em confraternização{proxima_abertura}.\n\nVeja: {link}",
+        "🎄 Véspera de Natal! Estamos em confraternização{proxima_abertura}.\n\nCardápio: {link}",
         "🎅 Natal chegando! A {loja} está fechada{proxima_abertura}.\n\n📱 Confira: {link}",
       ]
     }
@@ -221,11 +221,11 @@ export const holidayGreetings: Record<string, HolidayTemplates> = {
       aberto: [
         "🎄 Feliz Natal! A {loja} está aberta para deixar seu Natal ainda mais especial!\n\n📱 Confira: {link}",
         "🎅 Ho ho ho! A {loja} deseja um Feliz Natal! Estamos abertos!\n\nVeja: {link}",
-        "✨ Natal mágico! A {loja} está funcionando! Feliz Natal!\n\n📱 Veja: {link}",
+        "✨ Natal mágico! A {loja} está funcionando! Feliz Natal!\n\n📱 Cardápio: {link}",
         "🎁 Feliz Natal! Que tal um presente delicioso? Estamos abertos!\n\nConfira: {link}",
       ],
       fechado: [
-        "🎄 Feliz Natal! Hoje estamos curtindo em família{proxima_abertura}.\n\n📱 Veja: {link}",
+        "🎄 Feliz Natal! Hoje estamos curtindo em família{proxima_abertura}.\n\n📱 Cardápio: {link}",
         "🎅 Natal! A {loja} está fechada, descansando{proxima_abertura}.\n\nConfira: {link}",
       ]
     }
@@ -236,10 +236,10 @@ export const holidayGreetings: Record<string, HolidayTemplates> = {
       aberto: [
         "🎆 Último dia do ano! A {loja} está aberta! Bora celebrar!\n\n📱 Confira: {link}",
         "🥂 Réveillon chegando! Estamos funcionando! Feliz Ano Novo!\n\nVeja: {link}",
-        "🎇 31 de dezembro! A {loja} está aberta pra sua festa!\n\n📱 Veja: {link}",
+        "🎇 31 de dezembro! A {loja} está aberta pra sua festa!\n\n📱 Cardápio: {link}",
       ],
       fechado: [
-        "🎆 Véspera de Ano Novo! Estamos em recesso{proxima_abertura}.\n\nVeja: {link}",
+        "🎆 Véspera de Ano Novo! Estamos em recesso{proxima_abertura}.\n\nCardápio: {link}",
         "🥂 Réveillon! A {loja} está fechada{proxima_abertura}.\n\n📱 Confira: {link}",
       ]
     }

@@ -101,8 +101,8 @@ function getSmartGreetingTemplate(
   isOpen: boolean = true,
   nextOpening: string | null = null
 ): string {
-  // Link da loja adicionado em todas as saudações
-  const menuLink = `\n\n📱 Confira nossa loja: {link_loja}`;
+  // Link do cardápio adicionado em todas as saudações
+  const menuLink = `\n\n📱 Confira nosso cardápio: {link_loja}`;
   
   // Se loja está fechada, usar template específico
   if (!isOpen) {
@@ -112,14 +112,14 @@ function getSmartGreetingTemplate(
     
     switch (classification.type) {
       case 'vip':
-        return `${greeting}, {primeiro_nome}! 🌟 Nosso cliente especial!\n\n${closedMessage}\n\nMas enquanto isso, que tal dar uma olhada na nossa loja?${menuLink}`;
+        return `${greeting}, {primeiro_nome}! 🌟 Nosso cliente especial!\n\n${closedMessage}\n\nMas enquanto isso, que tal dar uma olhada no cardápio?${menuLink}`;
       case 'frequent':
       case 'returning':
-        return `${greeting}, {primeiro_nome}! 😊\n\n${closedMessage}\n\nDá uma olhada na loja para quando abrirmos!${menuLink}`;
+        return `${greeting}, {primeiro_nome}! 😊\n\n${closedMessage}\n\nDá uma olhada no cardápio para quando abrirmos!${menuLink}`;
       case 'missed':
-        return `${greeting}, {primeiro_nome}! Que bom ter você de volta! 💕\n\n${closedMessage}\n\nMas já confira nossa loja!${menuLink}`;
+        return `${greeting}, {primeiro_nome}! Que bom ter você de volta! 💕\n\n${closedMessage}\n\nMas já confira o cardápio!${menuLink}`;
       default:
-        return `${greeting}! 👋 Seja bem-vindo(a) à ${storeName}!\n\n${closedMessage}\n\nEnquanto isso, confira nossa loja!${menuLink}`;
+        return `${greeting}! 👋 Seja bem-vindo(a) à ${storeName}!\n\n${closedMessage}\n\nEnquanto isso, confira nosso cardápio!${menuLink}`;
     }
   }
   
@@ -509,26 +509,6 @@ serve(async (req) => {
         estimatedTime: formatEstimatedTime(orderData?.estimated_delivery_minutes),
         googleMapsLink: navigationLink
       });
-    }
-
-    // Sanitização defensiva: evita termos antigos em templates customizados salvos no banco
-    // (ex.: 'cardápio' → 'loja')
-    {
-      // Normaliza Unicode para capturar casos com acento "decomposto" (ex.: a + \u0301)
-      const normalized = finalMessage.normalize('NFC');
-      const replaced = normalized
-        .replace(/cardápio/giu, 'loja')
-        .replace(/cardapio/giu, 'loja');
-
-      if (replaced !== finalMessage) {
-        if (replaced !== normalized) {
-          console.log('[whatsapp-auto-send] Sanitização aplicada: substituído "cardápio" por "loja"');
-        } else {
-          console.log('[whatsapp-auto-send] Sanitização aplicada: normalização Unicode (NFC)');
-        }
-
-        finalMessage = replaced;
-      }
     }
 
     // Buscar configuração da Evolution API

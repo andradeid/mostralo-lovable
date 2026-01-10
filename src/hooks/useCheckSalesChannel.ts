@@ -10,8 +10,8 @@ interface SalesChannelStatus {
 }
 
 const CHANNEL_MESSAGES: Record<SalesChannelKey, string> = {
-  totem_enabled: 'Autoatendimento pausado. Navegue pela loja!',
-  mesa_enabled: 'Pedidos pela mesa pausados. Confira nossa loja!',
+  totem_enabled: 'Autoatendimento pausado. Navegue pelo cardápio!',
+  mesa_enabled: 'Pedidos pela mesa pausados. Confira nosso cardápio!',
   pdv_enabled: 'Vendas no balcão temporariamente pausadas.',
   ifood_enabled: 'Integração iFood pausada.',
   delivery_enabled: 'Delivery temporariamente pausado.',

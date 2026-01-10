@@ -73,16 +73,16 @@ export const nicheInfo: Record<StoreNiche, { label: string; emoji: string }> = {
 export const nicheTemplates: Record<StoreNiche, { aberto: string[]; fechado: string[] }> = {
   restaurante: {
     aberto: [
-      "Oi! 🍽️ Bateu aquela fome? A {loja} está aberta e funcionando!\n\n📱 Confira: {link}",
+      "Oi! 🍽️ Bateu aquela fome? A {loja} está aberta e com o cardápio quentinho!\n\n📱 Confira: {link}",
       "Olá! 😋 Tá com fome? A {loja} está funcionando! Escolhe o que você vai comer!\n\nVeja: {link}",
-      "Oi! 🍴 O cheirinho tá bom por aqui! A {loja} está pronta pra matar sua fome!\n\n📱 Veja: {link}",
+      "Oi! 🍴 O cheirinho tá bom por aqui! A {loja} está pronta pra matar sua fome!\n\n📱 Cardápio: {link}",
       "Eaí! 🍽️ Bora comer? A {loja} está aberta e esperando seu pedido!\n\nConfira: {link}",
       "Olá! 😋 A cozinha tá funcionando! Vem pro {loja} fazer seu pedido!\n\n📱 Veja: {link}",
     ],
     fechado: [
-      "Oi! 🍽️ Que pena, a cozinha já fechou{proxima_abertura}.\n\nMas veja nossa loja: {link}",
-      "Olá! 😋 Estamos fechados agora{proxima_abertura}.\n\n📱 Confira a loja: {link}",
-      "Oi! 🍴 A {loja} está fechada no momento{proxima_abertura}.\n\nVeja a loja: {link}",
+      "Oi! 🍽️ Que pena, a cozinha já fechou{proxima_abertura}.\n\nMas veja nosso cardápio: {link}",
+      "Olá! 😋 Estamos fechados agora{proxima_abertura}.\n\n📱 Confira o cardápio: {link}",
+      "Oi! 🍴 A {loja} está fechada no momento{proxima_abertura}.\n\nVeja o cardápio: {link}",
     ]
   },
   
@@ -90,14 +90,14 @@ export const nicheTemplates: Record<StoreNiche, { aberto: string[]; fechado: str
     aberto: [
       "Oi! 🍕 Dia de pizza! A {loja} está com o forno ligado e pronta pra você!\n\n📱 Confira os sabores: {link}",
       "Olá! 🍕 A {loja} está aberta! Uma pizza quentinha cairia bem, né?\n\nVeja: {link}",
-      "Oi! 🔥 Forno ligado, massa fresquinha! A {loja} está funcionando!\n\n📱 Veja: {link}",
+      "Oi! 🔥 Forno ligado, massa fresquinha! A {loja} está funcionando!\n\n📱 Cardápio: {link}",
       "Pizza time! 🍕 A {loja} está aberta! Escolhe seus sabores favoritos!\n\nConfira: {link}",
       "Oi! 🍕 Tá com vontade de pizza? A {loja} tá aberta e esperando você!\n\n📱 Sabores: {link}",
     ],
     fechado: [
       "Oi! 🍕 O forno já apagou por hoje{proxima_abertura}.\n\nVeja nossos sabores: {link}",
       "Olá! 🔥 A {loja} está fechada agora{proxima_abertura}.\n\n📱 Confira os sabores: {link}",
-      "Oi! 🍕 Estamos fechados no momento{proxima_abertura}.\n\nVeja: {link}",
+      "Oi! 🍕 Estamos fechados no momento{proxima_abertura}.\n\nCardápio: {link}",
     ]
   },
   
@@ -105,14 +105,14 @@ export const nicheTemplates: Record<StoreNiche, { aberto: string[]; fechado: str
     aberto: [
       "Oi! 🍔 Bateu aquela vontade de hambúrguer? A {loja} está aberta!\n\n📱 Confira: {link}",
       "Olá! 🍔 A chapa tá quente! A {loja} está funcionando e esperando seu pedido!\n\nVeja: {link}",
-      "Oi! 🔥 Burger time! A {loja} está pronta pra fazer aquele lanche perfeito!\n\n📱 Veja: {link}",
+      "Oi! 🔥 Burger time! A {loja} está pronta pra fazer aquele lanche perfeito!\n\n📱 Cardápio: {link}",
       "Smash! 🍔 A {loja} está aberta! Vem pro melhor hambúrguer!\n\nConfira: {link}",
       "Oi! 🍔 Fome de hambúrguer? A {loja} tá funcionando!\n\n📱 Veja os burgers: {link}",
     ],
     fechado: [
-      "Oi! 🍔 A chapa já esfriou por hoje{proxima_abertura}.\n\nVeja nossa loja: {link}",
+      "Oi! 🍔 A chapa já esfriou por hoje{proxima_abertura}.\n\nVeja nosso cardápio: {link}",
       "Olá! 🔥 Estamos fechados agora{proxima_abertura}.\n\n📱 Confira os burgers: {link}",
-      "Oi! 🍔 A {loja} está fechada no momento{proxima_abertura}.\n\nVeja: {link}",
+      "Oi! 🍔 A {loja} está fechada no momento{proxima_abertura}.\n\nCardápio: {link}",
     ]
   },
 
@@ -120,10 +120,10 @@ export const nicheTemplates: Record<StoreNiche, { aberto: string[]; fechado: str
     aberto: [
       "Oi! 🥪 Bateu aquela fominha? A {loja} está aberta!\n\n📱 Confira: {link}",
       "Olá! 🍟 A {loja} está funcionando! Que tal um lanche?\n\nVeja: {link}",
-      "Oi! 🥤 Hora do lanche! A {loja} está pronta pra atender!\n\n📱 Veja: {link}",
+      "Oi! 🥤 Hora do lanche! A {loja} está pronta pra atender!\n\n📱 Cardápio: {link}",
     ],
     fechado: [
-      "Oi! 🥪 Estamos fechados agora{proxima_abertura}.\n\nVeja nossa loja: {link}",
+      "Oi! 🥪 Estamos fechados agora{proxima_abertura}.\n\nVeja nosso cardápio: {link}",
       "Olá! 🍟 A {loja} está fechada no momento{proxima_abertura}.\n\n📱 Confira: {link}",
     ]
   },
@@ -132,10 +132,10 @@ export const nicheTemplates: Record<StoreNiche, { aberto: string[]; fechado: str
     aberto: [
       "Oi! ☕ Hora do café! A {loja} está aberta com o aroma mais gostoso!\n\n📱 Confira: {link}",
       "Olá! ☕ Que tal um cafézinho? A {loja} está funcionando!\n\nVeja: {link}",
-      "Oi! 🧁 Café fresquinho esperando você! A {loja} está aberta!\n\n📱 Veja: {link}",
+      "Oi! 🧁 Café fresquinho esperando você! A {loja} está aberta!\n\n📱 Cardápio: {link}",
     ],
     fechado: [
-      "Oi! ☕ A {loja} já fechou por hoje{proxima_abertura}.\n\nVeja nossa loja: {link}",
+      "Oi! ☕ A {loja} já fechou por hoje{proxima_abertura}.\n\nVeja nosso cardápio: {link}",
       "Olá! ☕ Estamos fechados no momento{proxima_abertura}.\n\n📱 Confira: {link}",
     ]
   },
@@ -144,11 +144,11 @@ export const nicheTemplates: Record<StoreNiche, { aberto: string[]; fechado: str
     aberto: [
       "Bom dia! 🥐 Cheirinho de pão fresquinho! A {loja} está aberta!\n\n📱 Confira: {link}",
       "Olá! 🍞 A {loja} está funcionando! Pães quentinhos saindo do forno!\n\nVeja: {link}",
-      "Oi! ☕ Café com pão? A {loja} está aberta e esperando você!\n\n📱 Veja: {link}",
+      "Oi! ☕ Café com pão? A {loja} está aberta e esperando você!\n\n📱 Cardápio: {link}",
       "Padariaaaa! 🥖 A {loja} está com os pães fresquinhos!\n\nConfira: {link}",
     ],
     fechado: [
-      "Oi! 🥐 Os fornos já descansaram por hoje{proxima_abertura}.\n\nVeja nossa loja: {link}",
+      "Oi! 🥐 Os fornos já descansaram por hoje{proxima_abertura}.\n\nVeja nosso cardápio: {link}",
       "Olá! 🍞 A {loja} está fechada agora{proxima_abertura}.\n\n📱 Confira: {link}",
     ]
   },
@@ -157,7 +157,7 @@ export const nicheTemplates: Record<StoreNiche, { aberto: string[]; fechado: str
     aberto: [
       "Oi! 🍰 Vontade de doce? A {loja} está aberta com as melhores sobremesas!\n\n📱 Confira: {link}",
       "Olá! 🧁 A {loja} está funcionando! Doces deliciosos esperando você!\n\nVeja: {link}",
-      "Oi! 🎂 Hora de adoçar o dia! A {loja} está aberta!\n\n📱 Veja: {link}",
+      "Oi! 🎂 Hora de adoçar o dia! A {loja} está aberta!\n\n📱 Cardápio: {link}",
     ],
     fechado: [
       "Oi! 🍰 A doceria já fechou{proxima_abertura}.\n\nVeja nossos doces: {link}",
@@ -167,12 +167,12 @@ export const nicheTemplates: Record<StoreNiche, { aberto: string[]; fechado: str
 
   sushi: {
     aberto: [
-      "Oi! 🍣 Sushi fresco! A {loja} está aberta!\n\n📱 Confira: {link}",
+      "Oi! 🍣 Sushi fresco! A {loja} está aberta!\n\n📱 Confira o cardápio: {link}",
       "Olá! 🥢 A {loja} está funcionando! Combinados e temakis esperando você!\n\nVeja: {link}",
-      "Oi! 🍱 Hora do japonês! A {loja} está aberta!\n\n📱 Veja: {link}",
+      "Oi! 🍱 Hora do japonês! A {loja} está aberta!\n\n📱 Cardápio: {link}",
     ],
     fechado: [
-      "Oi! 🍣 A cozinha japonesa já fechou{proxima_abertura}.\n\nVeja a loja: {link}",
+      "Oi! 🍣 A cozinha japonesa já fechou{proxima_abertura}.\n\nVeja o cardápio: {link}",
       "Olá! 🥢 Estamos fechados no momento{proxima_abertura}.\n\n📱 Confira: {link}",
     ]
   },
@@ -181,10 +181,10 @@ export const nicheTemplates: Record<StoreNiche, { aberto: string[]; fechado: str
     aberto: [
       "Oi! 🥩 Dia de carne! A {loja} está aberta com cortes especiais!\n\n📱 Confira: {link}",
       "Olá! 🔥 A brasa tá acesa! A {loja} está funcionando!\n\nVeja: {link}",
-      "Oi! 🥩 Churras time! A {loja} está pronta pra você!\n\n📱 Veja: {link}",
+      "Oi! 🥩 Churras time! A {loja} está pronta pra você!\n\n📱 Cardápio: {link}",
     ],
     fechado: [
-      "Oi! 🥩 A brasa já apagou por hoje{proxima_abertura}.\n\nVeja nossa loja: {link}",
+      "Oi! 🥩 A brasa já apagou por hoje{proxima_abertura}.\n\nVeja nosso cardápio: {link}",
       "Olá! 🔥 Estamos fechados no momento{proxima_abertura}.\n\n📱 Confira: {link}",
     ]
   },

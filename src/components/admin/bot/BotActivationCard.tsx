@@ -198,23 +198,18 @@ export function BotActivationCard({
         </div>
 
         {config.enabled && (
-          <div className="flex flex-col gap-2">
-            <Button 
-              variant={hasUnsyncedChanges ? "default" : "outline"}
-              className={`w-full text-xs sm:text-sm ${hasUnsyncedChanges ? "animate-pulse" : ""}`}
-              onClick={handleForceSync}
-              disabled={syncing}
-            >
-              {syncing ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin shrink-0" /> Sincronizando...</>
-              ) : (
-                <><RefreshCw className="h-4 w-4 mr-2 shrink-0" /> {hasUnsyncedChanges ? "Aplicar Mudanças" : "Forçar Sincronização"}</>
-              )}
-            </Button>
-            <p className="text-[10px] text-muted-foreground text-center">
-              Atualiza prompt, horários e catálogo no bot sem desativar
-            </p>
-          </div>
+          <Button 
+            variant={hasUnsyncedChanges ? "default" : "outline"}
+            className={`w-full text-xs sm:text-sm ${hasUnsyncedChanges ? "animate-pulse" : ""}`}
+            onClick={handleForceSync}
+            disabled={syncing}
+          >
+            {syncing ? (
+              <><Loader2 className="h-4 w-4 mr-2 animate-spin shrink-0" /> Sincronizando...</>
+            ) : (
+              <><RefreshCw className="h-4 w-4 mr-2 shrink-0" /> {hasUnsyncedChanges ? "Aplicar Mudanças" : "Atualizar Bot"}</>
+            )}
+          </Button>
         )}
       </CardContent>
     </Card>

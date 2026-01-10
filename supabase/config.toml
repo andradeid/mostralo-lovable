@@ -320,6 +320,3 @@ verify_jwt = false
 
 [functions.proposal-actions]
 verify_jwt = false
-
-[functions.sync-evolution-creds]
-verify_jwt = false

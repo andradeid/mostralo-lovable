@@ -306,7 +306,7 @@ INSTRUÇÕES DE STATUS:
 - Se cliente perguntar se está aberto: Responda "${isOpen ? 'Sim, estamos abertos!' : `No momento estamos fechados. ${nextOpening ? `Abrimos ${nextOpening}.` : ''}`}"
 - NUNCA diga que está aberto se o STATUS mostrar FECHADO
 - Use a saudação "${greeting}" nas interações
-- Mesmo fechado, ofereça o cardápio: "Enquanto isso, confira nosso cardápio: ${storeLink}"`;
+- Mesmo fechado, ofereça a loja: "Enquanto isso, confira nossa loja: ${storeLink}"`;
   }
   
   const productList = products

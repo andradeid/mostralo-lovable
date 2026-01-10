@@ -320,3 +320,6 @@ verify_jwt = false
 
 [functions.proposal-actions]
 verify_jwt = false
+
+[functions.refresh-store-bots-hourly]
+verify_jwt = false

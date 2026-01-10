@@ -45,7 +45,7 @@ const defaultBotConfig: Omit<BotConfig, 'store_id'> = {
   delay_message: 1500,
   expire_minutes: 20,
   keyword_finish: '#SAIR',
-  unknown_message: 'Desculpe, não entendi. Digite #SAIR para encerrar ou acesse nosso cardápio online.',
+  unknown_message: 'Desculpe, não entendi. Digite #SAIR para encerrar ou acesse nossa loja online.',
   keep_open: false,
   debounce_time: 10,
   trigger_type: 'all',

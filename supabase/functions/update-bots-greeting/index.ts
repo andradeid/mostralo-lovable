@@ -312,17 +312,54 @@ ${isOpen
         });
 
         // Payload de atualização
-        // Garantir que openaiCredsId seja string (Evolution API requer string)
-        const openaiCredsId = evolutionConfig.openai_creds_id 
-          ? String(evolutionConfig.openai_creds_id) 
+        // USAR openai_creds_id específico da loja (store_bot_config), NÃO o global
+        let openaiCredsId = botConfig.openai_creds_id 
+          ? String(botConfig.openai_creds_id) 
           : null;
         
+        // Se não tiver credencial salva, tentar buscar na Evolution por nome
         if (!openaiCredsId) {
-          console.error(`❌ [${store.name}] openai_creds_id não configurado na Evolution`);
+          console.log(`⚠️ [${store.name}] openai_creds_id não encontrado no banco, buscando na Evolution...`);
+          
+          try {
+            const storeCredName = `store_${store.slug}_openai`;
+            const credsResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
+              method: 'GET',
+              headers: { 'apikey': evolutionConfig.api_key },
+            });
+            
+            if (credsResp.ok) {
+              const credsData = await credsResp.json();
+              const existingCreds = Array.isArray(credsData) ? credsData : (credsData?.creds || credsData?.data || []);
+              const storeCred = existingCreds.find((c: any) => c.name === storeCredName);
+              
+              if (storeCred?.id) {
+                openaiCredsId = String(storeCred.id);
+                console.log(`✅ [${store.name}] Credencial encontrada na Evolution: ${storeCredName} (${openaiCredsId.slice(0, 8)}...)`);
+                
+                // Salvar no banco para próximas execuções
+                await supabaseClient
+                  .from('store_bot_config')
+                  .update({ 
+                    openai_creds_id: openaiCredsId,
+                    updated_at: new Date().toISOString()
+                  })
+                  .eq('id', botConfig.id);
+                
+                console.log(`💾 [${store.name}] openai_creds_id salvo no banco`);
+              }
+            }
+          } catch (e) {
+            console.error(`❌ [${store.name}] Erro ao buscar credenciais:`, e);
+          }
+        }
+        
+        if (!openaiCredsId) {
+          console.error(`❌ [${store.name}] openai_creds_id não encontrado para esta loja`);
           results.push({
             store: store.name,
             success: false,
-            error: 'openai_creds_id não configurado na Evolution API'
+            error: 'openai_creds_id não encontrado para esta loja (nem no banco, nem na Evolution)'
           });
           continue;
         }

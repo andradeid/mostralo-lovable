@@ -1194,6 +1194,7 @@ serve(async (req) => {
         bot_time_per_char: config.timePerChar || 0,
         evolution_bot_id: botResult.botId,
         evolution_bot_status: 'active',
+        openai_creds_id: openaiCredsId, // Salvar credencial específica da loja
         updated_at: new Date().toISOString(),
       };
 

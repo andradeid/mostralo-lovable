@@ -323,3 +323,6 @@ verify_jwt = false
 
 [functions.migrate-openai-creds]
 verify_jwt = false
+
+[functions.cron-sync-bots]
+verify_jwt = false

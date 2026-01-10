@@ -124,6 +124,13 @@ export default function NicheTemplatesPage() {
     }, 0);
   };
 
+  const getPriceTier = (total: number) => {
+    if (total === 0) return null;
+    if (total < 500) return { label: 'Econômico', color: 'bg-green-100 text-green-700 border-green-300', icon: '💰' };
+    if (total < 1000) return { label: 'Intermediário', color: 'bg-blue-100 text-blue-700 border-blue-300', icon: '⭐' };
+    return { label: 'Premium', color: 'bg-amber-100 text-amber-700 border-amber-300', icon: '👑' };
+  };
+
   // Agrupar templates por nicho
   const groupedTemplates = templates.reduce((acc, template) => {
     const nicheName = template.niche?.name || 'Sem nicho';
@@ -214,9 +221,16 @@ export default function NicheTemplatesPage() {
                     )}
                   </div>
                   <div className="flex items-center justify-between mt-2">
-                    <p className="text-xs text-muted-foreground">
-                      {template.module_ids.length} módulos selecionados
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs text-muted-foreground">
+                        {template.module_ids.length} módulos
+                      </p>
+                      {getPriceTier(getModulesTotal(template.module_ids)) && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full border ${getPriceTier(getModulesTotal(template.module_ids))?.color}`}>
+                          {getPriceTier(getModulesTotal(template.module_ids))?.icon} {getPriceTier(getModulesTotal(template.module_ids))?.label}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm font-semibold text-primary">
                       R$ {getModulesTotal(template.module_ids).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/mês
                     </p>
@@ -306,11 +320,18 @@ export default function NicheTemplatesPage() {
             </div>
 
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <Label>Módulos ({formData.module_ids.length} selecionados)</Label>
-                <span className="text-sm font-semibold text-primary">
-                  Total: R$ {getModulesTotal(formData.module_ids).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/mês
-                </span>
+                <div className="flex items-center gap-2">
+                  {getPriceTier(getModulesTotal(formData.module_ids)) && (
+                    <span className={`text-xs px-2 py-0.5 rounded-full border ${getPriceTier(getModulesTotal(formData.module_ids))?.color}`}>
+                      {getPriceTier(getModulesTotal(formData.module_ids))?.icon} {getPriceTier(getModulesTotal(formData.module_ids))?.label}
+                    </span>
+                  )}
+                  <span className="text-sm font-semibold text-primary">
+                    R$ {getModulesTotal(formData.module_ids).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/mês
+                  </span>
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto border rounded-md p-3">
                 {modules.map(module => (

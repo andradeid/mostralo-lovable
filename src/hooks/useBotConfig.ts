@@ -357,12 +357,13 @@ export function useBotConfig(storeId: string | null) {
       }
 
       // Persistir whatsapp_instance_id antes de sincronizar (garante que o cron sempre encontra)
+      // Importante: NÃO marcar needs_sync=false aqui. O openai-bot-sync marca needs_sync=false apenas se a sync der certo.
       if (config.id && instance.id) {
         await supabase
           .from('store_bot_config')
           .update({ 
             whatsapp_instance_id: instance.id,
-            needs_sync: false, // Será atualizado após sync bem-sucedido
+            ...(action === 'delete' ? {} : { needs_sync: true }),
           })
           .eq('id', config.id);
       }

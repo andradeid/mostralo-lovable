@@ -263,7 +263,9 @@ export function OpenAIConfigCard({
   const handleSyncEvolutionCreds = async () => {
     setSyncingCreds(true);
     try {
-      const { data, error } = await supabase.functions.invoke('sync-evolution-creds');
+      const { data, error } = await supabase.functions.invoke('openai-credentials-sync', {
+        body: { action: 'sync_creds_id' },
+      });
 
       if (error) {
         console.error('Erro ao sincronizar:', error);
@@ -272,15 +274,13 @@ export function OpenAIConfigCard({
       }
 
       if (data?.success) {
-        toast.success(`✅ Credenciais sincronizadas! ID: ${data.openai_creds_id}`);
+        toast.success('✅ Credenciais sincronizadas com sucesso!');
         setHasCredsId(true);
-        fetchConfig(); // Recarregar dados
+        fetchConfig();
         onSaved?.();
       } else {
         toast.error(data?.error || 'Falha ao sincronizar');
-        if (data?.hint) {
-          toast.info(data.hint);
-        }
+        if (data?.hint) toast.info(data.hint);
       }
     } catch (error) {
       console.error('Erro ao sincronizar:', error);
@@ -316,8 +316,8 @@ export function OpenAIConfigCard({
           <div className="space-y-4">
             {/* Status atual */}
             {hasExistingKey && (
-              <div className="p-3 rounded-lg flex items-center gap-2 text-sm bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                <CheckCircle className="h-5 w-5" />
+              <div className="p-3 rounded-lg flex items-center gap-2 text-sm border bg-muted/40">
+                <CheckCircle className="h-5 w-5 text-primary" />
                 <span className="font-medium">API Key configurada!</span>
               </div>
             )}
@@ -473,15 +473,15 @@ export function OpenAIConfigCard({
             {/* Sincronização Evolution - só para Master */}
             {context === 'master' && (
               <div className="space-y-2">
-                <div className={`p-3 rounded-lg flex items-center justify-between ${hasCredsId ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-amber-500/10 border border-amber-500/20'}`}>
-                  <div className="flex items-center gap-2">
-                    {hasCredsId ? (
-                      <CheckCircle className="h-4 w-4 text-emerald-600" />
-                    ) : (
-                      <AlertCircle className="h-4 w-4 text-amber-600" />
-                    )}
-                    <span className={`text-sm font-medium ${hasCredsId ? 'text-emerald-600' : 'text-amber-600'}`}>
-                      {hasCredsId ? 'Evolution Creds ID configurado' : 'Evolution Creds ID não configurado'}
+                <div className="p-3 rounded-lg border bg-muted/40 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Badge variant={hasCredsId ? 'secondary' : 'outline'}>
+                      {hasCredsId ? 'Creds OK' : 'Creds pendente'}
+                    </Badge>
+                    <span className="text-sm font-medium truncate">
+                      {hasCredsId
+                        ? 'Evolution Creds ID configurado'
+                        : 'Evolution Creds ID não configurado'}
                     </span>
                   </div>
                   <Button
@@ -499,15 +499,15 @@ export function OpenAIConfigCard({
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Busca automaticamente o ID das credenciais OpenAI da Evolution API
+                  Busca automaticamente o ID das credenciais OpenAI da Evolution API.
                 </p>
               </div>
             )}
 
             {/* Info box */}
             {context === 'master' && (
-              <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 text-xs text-blue-600 dark:text-blue-400">
-                <p>ℹ️ A credencial será usada automaticamente pelos bots de Vendas, Recrutamento e Suporte quando ativados.</p>
+              <div className="p-3 rounded-lg border bg-muted/40 text-xs text-muted-foreground">
+                <p>ℹ️ Essa credencial é usada pelos bots quando ativados.</p>
               </div>
             )}
           </div>

@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // ========================================
 // VERSÃO DA FUNÇÃO - Para debug de deploy
 // ========================================
-const FUNCTION_VERSION = "2026-01-10-v2";
+const FUNCTION_VERSION = "2026-01-10-v3";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -104,10 +104,21 @@ interface OperationStep {
 // ========================================
 function sanitizeText(text: string): string {
   if (!text) return text;
-  // Regex case-insensitive para pegar "cardápio" e "cardapio" (sem acento)
+  // Regex case-insensitive para pegar todas variações de "cardápio"
   return text
     .replace(/cardápio/giu, 'loja')
-    .replace(/cardapio/giu, 'loja');
+    .replace(/cardapio/giu, 'loja')
+    .replace(/cardápios/giu, 'lojas')
+    .replace(/cardapios/giu, 'lojas')
+    // Corrigir frases específicas
+    .replace(/confira nosso loja/gi, 'confira nossa loja')
+    .replace(/nosso loja/gi, 'nossa loja')
+    .replace(/ofereça o loja/gi, 'ofereça a loja')
+    .replace(/o loja/gi, 'a loja')
+    .replace(/do loja/gi, 'da loja')
+    .replace(/ao loja/gi, 'à loja')
+    .replace(/Link do loja/gi, 'Link da loja')
+    .replace(/link do loja/gi, 'link da loja');
 }
 
 function sanitizeBotPayload(payload: any): any {

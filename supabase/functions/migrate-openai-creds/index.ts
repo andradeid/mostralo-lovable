@@ -1,11 +1,13 @@
-// Migrate OpenAI Credentials - v1.0.0
+// Migrate OpenAI Credentials - v1.0.1
 // Busca credenciais OpenAI existentes na Evolution e popula openai_creds_id nas lojas
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 interface MigrationResult {
@@ -19,9 +21,12 @@ interface MigrationResult {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight
+  console.log(`📥 Request: ${req.method} ${req.url}`);
+  
+  // Handle CORS preflight - MUST return 200 OK
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    console.log('✅ CORS preflight handled');
+    return new Response('ok', { status: 200, headers: corsHeaders });
   }
 
   console.log('🔄 Iniciando migração de credenciais OpenAI...');

@@ -84,7 +84,7 @@ serve(async (req) => {
 
     console.log(`📋 [CRON-SYNC] ${botConfigs.length} bot(s) ativo(s) encontrado(s)`);
 
-    const results: { store: string; success: boolean; error?: string }[] = [];
+    const results: { store: string; success: boolean; error?: string; status?: number; details?: unknown }[] = [];
 
     // Para cada config ativa, chamar a edge function openai-bot-sync
     for (const botConfig of botConfigs as any[]) {
@@ -185,9 +185,16 @@ serve(async (req) => {
           console.log(`✅ [CRON-SYNC] ${storeName}: sincronizado com sucesso`);
           results.push({ store: storeName, success: true });
         } else {
-          const msg = (syncError as any)?.message || (syncResult as any)?.error || 'Erro desconhecido';
+          const errAny = syncError as any;
+          const status = errAny?.context?.status ?? errAny?.status;
+          const details = errAny?.context?.body ?? (syncResult as any);
+          const msg = errAny?.message || (syncResult as any)?.error || 'Erro desconhecido';
+
           console.error(`❌ [CRON-SYNC] ${storeName}: ${msg}`);
-          results.push({ store: storeName, success: false, error: msg });
+          if (status) console.error(`   ↳ status: ${status}`);
+          if (details) console.error('   ↳ details:', details);
+
+          results.push({ store: storeName, success: false, error: msg, status, details });
         }
       } catch (err) {
         console.error(`❌ [CRON-SYNC] ${storeName}: Erro na execução:`, err);

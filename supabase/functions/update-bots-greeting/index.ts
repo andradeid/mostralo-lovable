@@ -312,9 +312,24 @@ ${isOpen
         });
 
         // Payload de atualização
+        // Garantir que openaiCredsId seja string (Evolution API requer string)
+        const openaiCredsId = evolutionConfig.openai_creds_id 
+          ? String(evolutionConfig.openai_creds_id) 
+          : null;
+        
+        if (!openaiCredsId) {
+          console.error(`❌ [${store.name}] openai_creds_id não configurado na Evolution`);
+          results.push({
+            store: store.name,
+            success: false,
+            error: 'openai_creds_id não configurado na Evolution API'
+          });
+          continue;
+        }
+        
         const updatePayload = {
           enabled: true,
-          openaiCredsId: evolutionConfig.openai_creds_id,
+          openaiCredsId: openaiCredsId,
           botType: 'chatCompletion',
           model: evolutionConfig.openai_default_model || 'gpt-4o-mini',
           maxTokens: evolutionConfig.openai_max_tokens || 1000,

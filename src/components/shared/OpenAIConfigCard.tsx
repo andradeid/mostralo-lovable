@@ -16,7 +16,9 @@ import {
   CheckCircle, 
   Sparkles,
   Trash2,
-  ExternalLink
+  ExternalLink,
+  RefreshCw,
+  AlertCircle
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -61,6 +63,8 @@ export function OpenAIConfigCard({
   const [testingKey, setTestingKey] = useState(false);
   const [savingKey, setSavingKey] = useState(false);
   const [hasExistingKey, setHasExistingKey] = useState(false);
+  const [syncingCreds, setSyncingCreds] = useState(false);
+  const [hasCredsId, setHasCredsId] = useState(false);
 
   useEffect(() => {
     fetchConfig();
@@ -79,7 +83,7 @@ export function OpenAIConfigCard({
         // Buscar modelo e tokens do evolution_config
         const { data: evolutionConfig } = await supabase
           .from('evolution_config')
-          .select('openai_default_model, openai_max_tokens')
+          .select('openai_default_model, openai_max_tokens, openai_creds_id')
           .eq('is_active', true)
           .single();
 
@@ -89,6 +93,7 @@ export function OpenAIConfigCard({
         if (evolutionConfig) {
           setModel(evolutionConfig.openai_default_model || 'gpt-4-turbo');
           setMaxTokens(evolutionConfig.openai_max_tokens || 1000);
+          setHasCredsId(!!evolutionConfig.openai_creds_id);
         }
       } else if (context === 'store' && storeId) {
         // Buscar config da loja
@@ -251,6 +256,37 @@ export function OpenAIConfigCard({
       toast.error('Erro ao remover API Key');
     } finally {
       setSavingKey(false);
+    }
+  };
+
+  // Sincronizar credenciais da Evolution API automaticamente
+  const handleSyncEvolutionCreds = async () => {
+    setSyncingCreds(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-evolution-creds');
+
+      if (error) {
+        console.error('Erro ao sincronizar:', error);
+        toast.error(error.message || 'Erro ao sincronizar credenciais');
+        return;
+      }
+
+      if (data?.success) {
+        toast.success(`✅ Credenciais sincronizadas! ID: ${data.openai_creds_id}`);
+        setHasCredsId(true);
+        fetchConfig(); // Recarregar dados
+        onSaved?.();
+      } else {
+        toast.error(data?.error || 'Falha ao sincronizar');
+        if (data?.hint) {
+          toast.info(data.hint);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao sincronizar:', error);
+      toast.error('Erro ao sincronizar credenciais da Evolution');
+    } finally {
+      setSyncingCreds(false);
     }
   };
 
@@ -433,6 +469,40 @@ export function OpenAIConfigCard({
                 </Button>
               )}
             </div>
+
+            {/* Sincronização Evolution - só para Master */}
+            {context === 'master' && (
+              <div className="space-y-2">
+                <div className={`p-3 rounded-lg flex items-center justify-between ${hasCredsId ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-amber-500/10 border border-amber-500/20'}`}>
+                  <div className="flex items-center gap-2">
+                    {hasCredsId ? (
+                      <CheckCircle className="h-4 w-4 text-emerald-600" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 text-amber-600" />
+                    )}
+                    <span className={`text-sm font-medium ${hasCredsId ? 'text-emerald-600' : 'text-amber-600'}`}>
+                      {hasCredsId ? 'Evolution Creds ID configurado' : 'Evolution Creds ID não configurado'}
+                    </span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSyncEvolutionCreds}
+                    disabled={syncingCreds}
+                  >
+                    {syncingCreds ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                    )}
+                    Sincronizar
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Busca automaticamente o ID das credenciais OpenAI da Evolution API
+                </p>
+              </div>
+            )}
 
             {/* Info box */}
             {context === 'master' && (

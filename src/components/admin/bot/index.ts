@@ -12,4 +12,5 @@ export { BotGreetingPreviewCard } from './BotGreetingPreviewCard';
 export { BotPausedContactsCard } from './BotPausedContactsCard';
 export { BotActiveSessionsCard } from './BotActiveSessionsCard';
 export { ConversationsTab } from './ConversationsTab';
+export { BotAIStatusCard } from './BotAIStatusCard';
 export type { PersonalitySettings, PersonalityType, EmojiLevel } from './BotPersonalityCard';

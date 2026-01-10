@@ -377,9 +377,9 @@ ${!isOpen && nextOpening ? `- Próxima abertura: ${nextOpening}` : ''}
 INSTRUÇÕES DE STATUS (responda de forma natural e acolhedora):
 ${isOpen 
   ? `- Quando perguntarem se está aberto: Confirme de forma amigável que está funcionando, sem usar frases robóticas como "Sim, estamos abertos!"
-- Seja acolhedor e convide para ver o cardápio`
+- Seja acolhedor e convide para acessar a loja online`
   : `- Quando perguntarem se está aberto: Informe de forma gentil que está fechado${nextOpening ? ` e mencione que abrirá ${nextOpening}` : ''}
-- Ofereça o cardápio para o cliente já ir escolhendo: ${storeLink}`}
+- Ofereça a loja online para o cliente já ir escolhendo: ${storeLink}`}
 - NUNCA diga que está aberto se o STATUS mostrar FECHADO
 - Use a saudação "${greeting}" nas interações
 - ${period === 'madrugada' ? 'De madrugada, seja especialmente acolhedor com quem está acordado nesse horário!' : ''}`;

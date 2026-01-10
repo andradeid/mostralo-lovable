@@ -1,5 +1,6 @@
 // Cron Sync Bots - Executa "Aplicar Mudanças" para todas as lojas com bot ativo
-// v1.2.0 - Fallback: busca instance via store_id quando whatsapp_instance_id está NULL
+// v1.3.0 - Fallback via store_id + logs detalhados
+// Deploy forçado: 2026-01-10T12:00
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -14,7 +15,7 @@ serve(async (req) => {
   }
 
   const startTime = Date.now();
-  console.log('🔄 [CRON-SYNC] Iniciando sincronização de bots... (v1.2.1)');
+  console.log('🔄 [CRON-SYNC v1.3.0] Iniciando sincronização de bots...');
 
   try {
     const supabase = createClient(

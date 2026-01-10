@@ -1,6 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+// ========================================
+// VERSÃO DA FUNÇÃO - Para debug de deploy
+// ========================================
+const FUNCTION_VERSION = "2026-01-10-v2";
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -481,7 +486,19 @@ serve(async (req) => {
       });
     }
 
-    const { action, config, origin } = await req.json() as { action: string; config: BotConfig & { forceRecreate?: boolean }; origin?: string };
+    console.log(`[openai-bot-sync] version: ${FUNCTION_VERSION}`);
+
+    const requestBody = await req.json() as { action: string; config: BotConfig & { forceRecreate?: boolean }; origin?: string };
+    const { action, origin } = requestBody;
+    
+    // ========================================
+    // SANITIZAR CONFIG NA ENTRADA (blindagem contra "cardápio")
+    // ========================================
+    const config = {
+      ...requestBody.config,
+      unknownMessage: sanitizeText(requestBody.config.unknownMessage),
+      botName: sanitizeText(requestBody.config.botName),
+    };
 
     // Buscar loja do usuário com todos os campos necessários (incluindo domínio customizado e openai_api_key)
     const { data: store, error: storeError } = await supabaseClient
@@ -1198,6 +1215,12 @@ serve(async (req) => {
         botId: botResult.botId,
         created: botResult.created,
         steps,
+        responseMeta: {
+          function: 'openai-bot-sync',
+          version: FUNCTION_VERSION,
+          timestamp: new Date().toISOString(),
+          methodUsed: botResult.created ? 'CREATE' : 'UPDATE'
+        }
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

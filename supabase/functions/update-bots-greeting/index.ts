@@ -1,5 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+// ========================================
+// VERSÃO DA FUNÇÃO - Para debug de deploy
+// ========================================
+const FUNCTION_VERSION = "2026-01-10-v2";
 import { 
   getRandomGreeting, 
   getPeriodFromHour, 
@@ -149,6 +154,16 @@ serve(async (req) => {
 
   const startTime = Date.now();
   const results: any[] = [];
+
+  console.log(`[update-bots-greeting] version: ${FUNCTION_VERSION}`);
+
+  // ========================================
+  // Sanitizar texto para remover "cardápio"
+  // ========================================
+  function sanitizeText(text: string): string {
+    if (!text) return text;
+    return text.replace(/cardápio/giu, 'loja').replace(/cardapio/giu, 'loja');
+  }
 
   try {
     const supabaseClient = createClient(
@@ -406,7 +421,7 @@ ${isOpen
         });
 
         // Payload de atualização
-        const updatePayload = {
+        const rawPayload = {
           enabled: true,
           openaiCredsId: storeOpenAiCredsId,
           botType: 'chatCompletion',
@@ -442,7 +457,9 @@ SOBRE A PLATAFORMA:
 - Gestão Financeira completa para o lojista
 - Dashboard com KPIs de receitas, despesas e saldo
 - Controle de entradas/saídas por categoria
-- Gráficos de fluxo de caixa mensal`],
+- Gráficos de fluxo de caixa mensal
+
+[CRON update-bots-greeting v${FUNCTION_VERSION} - ${new Date().toISOString()}]`],
           assistantMessages: [dynamicGreeting],
           userMessages: ['Oi', 'Olá', 'Boa tarde', 'Boa noite', 'Bom dia', 'Vocês estão abertos?'],
           triggerType: botConfig.trigger_type || 'all',
@@ -451,7 +468,7 @@ SOBRE A PLATAFORMA:
           expire: botConfig.expire_minutes || 20,
           keywordFinish: botConfig.keyword_finish || '#SAIR',
           delayMessage: botConfig.delay_message || 4000,
-          unknownMessage: botConfig.unknown_message || 'Desculpe, não entendi.',
+          unknownMessage: sanitizeText(botConfig.unknown_message || 'Desculpe, não entendi.'),
           listeningFromMe: botConfig.listening_from_me || false,
           stopBotFromMe: botConfig.stop_bot_from_me !== undefined ? botConfig.stop_bot_from_me : true,
           keepOpen: botConfig.keep_open || false,
@@ -460,6 +477,13 @@ SOBRE A PLATAFORMA:
           splitMessages: botConfig.bot_split_messages !== undefined ? botConfig.bot_split_messages : true,
           timePerChar: botConfig.bot_time_per_char || 0,
           description: `Bot Mostralo - ${store.name}`,
+        };
+
+        // Sanitizar todo o payload antes de enviar
+        const updatePayload = {
+          ...rawPayload,
+          systemMessages: rawPayload.systemMessages.map(sanitizeText),
+          assistantMessages: rawPayload.assistantMessages.map(sanitizeText),
         };
 
         // ESTRATÉGIA SEGURA: Tentar UPDATE primeiro, só CREATE se necessário
@@ -608,7 +632,12 @@ SOBRE A PLATAFORMA:
       processed: results.length,
       successful: successCount,
       duration: `${duration}ms`,
-      results
+      results,
+      responseMeta: {
+        function: 'update-bots-greeting',
+        version: FUNCTION_VERSION,
+        timestamp: new Date().toISOString()
+      }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

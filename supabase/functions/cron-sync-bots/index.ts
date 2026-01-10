@@ -120,13 +120,15 @@ serve(async (req) => {
           timePerChar: botConfigData.time_per_char ?? 50
         };
 
-        // Chamar openai-bot-sync internamente via HTTP
+        // Chamar openai-bot-sync internamente com header de chamada interna
+        const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
         const syncResponse = await fetch(
           `${Deno.env.get('SUPABASE_URL')}/functions/v1/openai-bot-sync`,
           {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+              'Authorization': `Bearer ${serviceRoleKey}`,
+              'X-Internal-Secret': serviceRoleKey,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({

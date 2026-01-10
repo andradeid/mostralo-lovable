@@ -970,7 +970,9 @@ serve(async (req) => {
           let botData: any = {};
           try {
             botData = JSON.parse(createText);
-          } catch { botData = {}; }
+          } catch {
+            botData = {};
+          }
 
           const newBotId = botData.id || botData.openaiBot?.id || null;
 
@@ -981,20 +983,110 @@ serve(async (req) => {
             details: newBotId ? `ID: ${newBotId.slice(0, 8)}...` : 'ID não retornado',
           });
 
+          // ✅ GARANTIA: alguns ambientes criam o bot "vazio" no /openai/create.
+          // Após criar, sempre aplicar as configurações via PUT /openai/settings.
+          if (newBotId) {
+            try {
+              console.log('Aplicando settings no bot recém-criado:', newBotId);
+              const applyResp = await fetch(
+                `${evolutionUrl}/openai/settings/${newBotId}/${instanceName}`,
+                {
+                  method: 'PUT',
+                  headers: {
+                    'apikey': evolutionConfig.api_key,
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(botPayload),
+                }
+              );
+
+              const applyText = await applyResp.text();
+              console.log('Resposta apply settings:', applyResp.status, applyText);
+
+              if (!applyResp.ok) {
+                steps.push({
+                  step: 'bot_apply_settings_failed',
+                  status: 'error',
+                  message: 'Bot criado, mas falhou ao aplicar configurações (settings).',
+                  details: `Status: ${applyResp.status} - ${applyText.slice(0, 150)}`,
+                });
+                return { success: false, botId: newBotId, created: true };
+              }
+
+              steps.push({
+                step: 'bot_apply_settings',
+                status: 'success',
+                message: 'Configurações aplicadas no bot recém-criado (settings).',
+                details: `ID: ${newBotId.slice(0, 8)}...`,
+              });
+            } catch (e) {
+              steps.push({
+                step: 'bot_apply_settings_error',
+                status: 'error',
+                message: 'Bot criado, mas erro ao aplicar configurações (settings).',
+                details: String(e),
+              });
+              return { success: false, botId: newBotId, created: true };
+            }
+          }
+
           return { success: true, botId: newBotId, created: true };
         }
 
-        // Se já existe, buscar o ID existente e retornar
+        // Se já existe, buscar o ID existente e tentar aplicar settings
         if (createText.includes('already exists') || createText.includes('already')) {
           const existingBots = await findExistingBots(instanceName);
           if (existingBots.length > 0 && existingBots[0].id) {
+            const existingId = existingBots[0].id as string;
             steps.push({
               step: 'bot_exists',
               status: 'success',
-              message: 'Bot já existe, usando ID existente',
-              details: `ID: ${existingBots[0].id.slice(0, 8)}...`,
+              message: 'Bot já existe, aplicando configurações via UPDATE',
+              details: `ID: ${existingId.slice(0, 8)}...`,
             });
-            return { success: true, botId: existingBots[0].id, created: false };
+
+            try {
+              const applyResp = await fetch(
+                `${evolutionUrl}/openai/settings/${existingId}/${instanceName}`,
+                {
+                  method: 'PUT',
+                  headers: {
+                    'apikey': evolutionConfig.api_key,
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(botPayload),
+                }
+              );
+              const applyText = await applyResp.text();
+              console.log('Resposta apply settings (existing):', applyResp.status, applyText);
+
+              if (!applyResp.ok) {
+                steps.push({
+                  step: 'bot_apply_settings_failed',
+                  status: 'error',
+                  message: 'Bot já existia, mas falhou ao aplicar configurações (settings).',
+                  details: `Status: ${applyResp.status} - ${applyText.slice(0, 150)}`,
+                });
+                return { success: false, botId: existingId, created: false };
+              }
+
+              steps.push({
+                step: 'bot_apply_settings',
+                status: 'success',
+                message: 'Configurações aplicadas no bot existente (settings).',
+                details: `ID: ${existingId.slice(0, 8)}...`,
+              });
+
+              return { success: true, botId: existingId, created: false };
+            } catch (e) {
+              steps.push({
+                step: 'bot_apply_settings_error',
+                status: 'error',
+                message: 'Erro ao aplicar configurações no bot existente (settings).',
+                details: String(e),
+              });
+              return { success: false, botId: existingId, created: false };
+            }
           }
         }
 

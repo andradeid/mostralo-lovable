@@ -16,9 +16,7 @@ import {
   CheckCircle, 
   Sparkles,
   Trash2,
-  ExternalLink,
-  RefreshCw,
-  AlertCircle
+  ExternalLink
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -63,8 +61,6 @@ export function OpenAIConfigCard({
   const [testingKey, setTestingKey] = useState(false);
   const [savingKey, setSavingKey] = useState(false);
   const [hasExistingKey, setHasExistingKey] = useState(false);
-  const [syncingCreds, setSyncingCreds] = useState(false);
-  const [hasCredsId, setHasCredsId] = useState(false);
 
   useEffect(() => {
     fetchConfig();
@@ -93,7 +89,7 @@ export function OpenAIConfigCard({
         if (evolutionConfig) {
           setModel(evolutionConfig.openai_default_model || 'gpt-4-turbo');
           setMaxTokens(evolutionConfig.openai_max_tokens || 1000);
-          setHasCredsId(!!evolutionConfig.openai_creds_id);
+          
         }
       } else if (context === 'store' && storeId) {
         // Buscar config da loja
@@ -259,36 +255,6 @@ export function OpenAIConfigCard({
     }
   };
 
-  // Sincronizar credenciais da Evolution API automaticamente
-  const handleSyncEvolutionCreds = async () => {
-    setSyncingCreds(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('openai-credentials-sync', {
-        body: { action: 'sync_creds_id' },
-      });
-
-      if (error) {
-        console.error('Erro ao sincronizar:', error);
-        toast.error(error.message || 'Erro ao sincronizar credenciais');
-        return;
-      }
-
-      if (data?.success) {
-        toast.success('✅ Credenciais sincronizadas com sucesso!');
-        setHasCredsId(true);
-        fetchConfig();
-        onSaved?.();
-      } else {
-        toast.error(data?.error || 'Falha ao sincronizar');
-        if (data?.hint) toast.info(data.hint);
-      }
-    } catch (error) {
-      console.error('Erro ao sincronizar:', error);
-      toast.error('Erro ao sincronizar credenciais da Evolution');
-    } finally {
-      setSyncingCreds(false);
-    }
-  };
 
   const title = context === 'master' 
     ? 'Configurar OpenAI' 
@@ -470,46 +436,6 @@ export function OpenAIConfigCard({
               )}
             </div>
 
-            {/* Sincronização Evolution - só para Master */}
-            {context === 'master' && (
-              <div className="space-y-2">
-                <div className="p-3 rounded-lg border bg-muted/40 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <Badge variant={hasCredsId ? 'secondary' : 'outline'}>
-                      {hasCredsId ? 'Creds OK' : 'Creds pendente'}
-                    </Badge>
-                    <span className="text-sm font-medium truncate">
-                      {hasCredsId
-                        ? 'Evolution Creds ID configurado'
-                        : 'Evolution Creds ID não configurado'}
-                    </span>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleSyncEvolutionCreds}
-                    disabled={syncingCreds}
-                  >
-                    {syncingCreds ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                    )}
-                    Sincronizar
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Busca automaticamente o ID das credenciais OpenAI da Evolution API.
-                </p>
-              </div>
-            )}
-
-            {/* Info box */}
-            {context === 'master' && (
-              <div className="p-3 rounded-lg border bg-muted/40 text-xs text-muted-foreground">
-                <p>ℹ️ Essa credencial é usada pelos bots quando ativados.</p>
-              </div>
-            )}
           </div>
         )}
       </CardContent>

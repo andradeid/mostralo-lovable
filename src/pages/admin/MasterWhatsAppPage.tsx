@@ -53,7 +53,7 @@ import { MasterBotConfigTab } from "@/components/admin/master-whatsapp/MasterBot
 import { MasterSessionsTab } from "@/components/admin/master-whatsapp/MasterSessionsTab";
 import { MasterNotificationsCard } from "@/components/admin/master-whatsapp/MasterNotificationsCard";
 import { WhatsAppLinkConfigCard } from "@/components/admin/master-whatsapp/WhatsAppLinkConfigCard";
-import { MasterCredsMigrationCard } from "@/components/admin/master-whatsapp/MasterCredsMigrationCard";
+
 import { OpenAIConfigCard } from "@/components/shared/OpenAIConfigCard";
 
 interface TestMessage {
@@ -818,8 +818,6 @@ export default function MasterWhatsAppPage() {
               instanceStatus={instanceStatus}
             />
 
-            {/* Card de Migração de Credenciais */}
-            <MasterCredsMigrationCard />
 
           </div>
 

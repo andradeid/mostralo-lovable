@@ -316,7 +316,30 @@ export function useBotConfig(storeId: string | null) {
   };
 
   const syncWithEvolution = async (action: 'create' | 'update' | 'delete') => {
-    if (!storeId || !config) return;
+    if (!storeId) {
+      toast({
+        title: "Loja não identificada",
+        description: "Recarregue a página e tente novamente.",
+        variant: "destructive",
+      });
+      return { success: false };
+    }
+
+    if (!config) {
+      toast({
+        title: "Configuração ainda carregando",
+        description: "Aguarde 2 segundos e tente novamente.",
+        variant: "destructive",
+      });
+      return { success: false };
+    }
+
+    console.log('[bot-sync] start', {
+      action,
+      storeId,
+      enabled: config.enabled,
+      hasUnsyncedChanges,
+    });
 
     setSyncing(true);
     try {
@@ -362,24 +385,33 @@ export function useBotConfig(storeId: string | null) {
         },
       });
 
+      console.log('[bot-sync] edge response', {
+        error: response.error,
+        data: response.data,
+      });
+
       if (response.error) throw response.error;
 
       if (response.data?.success) {
+        const version = response.data?.responseMeta?.version;
+        const methodUsed = response.data?.responseMeta?.methodUsed;
+
         toast({
           title: action === 'delete' ? "Bot desativado" : "Bot sincronizado",
-          description: response.data.message || "Operação realizada com sucesso!",
+          description: `${response.data.message || "Operação realizada com sucesso!"}${version ? ` (v${version}${methodUsed ? ` / ${methodUsed}` : ''})` : ''}`,
         });
-        
+
         // Atualizar config sincronizada
         lastSyncedConfig.current = { ...config };
         setHasUnsyncedChanges(false);
-        
+
         await fetchConfig();
         return { success: true, steps: response.data.steps };
-      } else {
-        throw new Error(response.data?.error || 'Falha na sincronização');
       }
+
+      throw new Error(response.data?.error || 'Falha na sincronização');
     } catch (error: any) {
+      console.error('[bot-sync] error', error);
       toast({
         title: "Erro na sincronização",
         description: error.message || "Falha ao sincronizar bot com Evolution",

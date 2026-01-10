@@ -306,7 +306,12 @@ export default function NicheTemplatesPage() {
             </div>
 
             <div className="space-y-2">
-              <Label>Módulos ({formData.module_ids.length} selecionados)</Label>
+              <div className="flex items-center justify-between">
+                <Label>Módulos ({formData.module_ids.length} selecionados)</Label>
+                <span className="text-sm font-semibold text-primary">
+                  Total: R$ {getModulesTotal(formData.module_ids).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/mês
+                </span>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto border rounded-md p-3">
                 {modules.map(module => (
                   <div

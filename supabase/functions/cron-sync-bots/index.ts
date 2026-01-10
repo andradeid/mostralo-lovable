@@ -1,5 +1,5 @@
 // Cron Sync Bots - Executa "Aplicar Mudanças" para todas as lojas com bot ativo
-// v1.1.0 - Corrigido: usa whatsapp_instance_id FK para buscar instance_name
+// v1.2.0 - Fallback: busca instance via store_id quando whatsapp_instance_id está NULL
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -85,15 +85,34 @@ serve(async (req) => {
     // Para cada config ativa, chamar a edge function openai-bot-sync
     for (const botConfig of botConfigs as any[]) {
       const storeData = Array.isArray(botConfig.store) ? botConfig.store[0] : botConfig.store;
-      const whatsappInstance = Array.isArray(botConfig.whatsapp_instance)
+      const storeId = storeData?.id || botConfig.store_id;
+      const storeName = storeData?.name || storeId;
+
+      // Tentar obter instance_name do JOIN direto via whatsapp_instance_id
+      let whatsappInstance = Array.isArray(botConfig.whatsapp_instance)
         ? botConfig.whatsapp_instance[0]
         : botConfig.whatsapp_instance;
 
-      const storeName = storeData?.name || botConfig.store_id;
-      const instanceName = whatsappInstance?.instance_name;
+      let instanceName = whatsappInstance?.instance_name;
+
+      // FALLBACK: Se não encontrou via whatsapp_instance_id, buscar via store_id
+      if (!instanceName && storeId) {
+        console.log(`🔍 [CRON-SYNC] ${storeName}: buscando instance via store_id...`);
+
+        const { data: instanceByStore } = await supabase
+          .from('whatsapp_instances')
+          .select('instance_name')
+          .eq('store_id', storeId)
+          .maybeSingle();
+
+        if (instanceByStore?.instance_name) {
+          instanceName = instanceByStore.instance_name;
+          console.log(`✅ [CRON-SYNC] ${storeName}: encontrada via store_id: ${instanceName}`);
+        }
+      }
 
       if (!instanceName) {
-        console.log(`⏭️ [CRON-SYNC] Pulando ${storeName}: sem whatsapp_instance_id vinculado`);
+        console.log(`⏭️ [CRON-SYNC] Pulando ${storeName}: sem WhatsApp instance`);
         results.push({ store: storeName, success: false, error: 'Sem WhatsApp instance vinculada' });
         continue;
       }

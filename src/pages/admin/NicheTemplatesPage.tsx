@@ -117,6 +117,13 @@ export default function NicheTemplatesPage() {
       .slice(0, 3);
   };
 
+  const getModulesTotal = (moduleIds: string[]) => {
+    return moduleIds.reduce((sum, id) => {
+      const module = modules.find(m => m.id === id);
+      return sum + (module?.suggested_price || 0);
+    }, 0);
+  };
+
   // Agrupar templates por nicho
   const groupedTemplates = templates.reduce((acc, template) => {
     const nicheName = template.niche?.name || 'Sem nicho';
@@ -206,9 +213,14 @@ export default function NicheTemplatesPage() {
                       </Badge>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {template.module_ids.length} módulos selecionados
-                  </p>
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-xs text-muted-foreground">
+                      {template.module_ids.length} módulos selecionados
+                    </p>
+                    <p className="text-sm font-semibold text-primary">
+                      R$ {getModulesTotal(template.module_ids).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/mês
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             ))}

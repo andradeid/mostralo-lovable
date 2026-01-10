@@ -1,6 +1,6 @@
 // Cron Sync Bots - Executa "Aplicar Mudanças" para todas as lojas com bot ativo
-// v1.4.0 - Usar fetch() direto em vez de supabase.functions.invoke()
-// Deploy forçado: 2026-01-10T20:45
+// v1.5.0 - Debug detalhado para encontrar instâncias
+// Deploy forçado: 2026-01-10T21:05
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -15,7 +15,7 @@ serve(async (req) => {
   }
 
   const startTime = Date.now();
-  console.log('🔄 [CRON-SYNC v1.4.0] Iniciando sincronização de bots...');
+  console.log('🔄 [CRON-SYNC v1.5.0] Iniciando sincronização de bots...');
 
   try {
     const supabase = createClient(
@@ -92,12 +92,21 @@ serve(async (req) => {
       const storeId = storeData?.id || botConfig.store_id;
       const storeName = storeData?.name || storeId;
 
+      console.log(`🔍 [CRON-SYNC] ${storeName}: Analisando config...`);
+      console.log(`   ↳ whatsapp_instance_id no config: ${botConfig.whatsapp_instance_id || 'NULL'}`);
+      console.log(`   ↳ whatsapp_instance (join): ${JSON.stringify(botConfig.whatsapp_instance)}`);
+      console.log(`   ↳ store.whatsapp_instances: ${JSON.stringify(storeData?.whatsapp_instances)}`);
+
       // 1) Tentar obter instance_name do JOIN direto via whatsapp_instance_id
       let whatsappInstance = Array.isArray(botConfig.whatsapp_instance)
         ? botConfig.whatsapp_instance[0]
         : botConfig.whatsapp_instance;
 
       let instanceName = whatsappInstance?.instance_name;
+
+      if (instanceName) {
+        console.log(`✅ [CRON-SYNC] ${storeName}: encontrada via JOIN direto: ${instanceName}`);
+      }
 
       // 2) Fallback rápido: pegar pela relação store -> whatsapp_instances (se existir)
       if (!instanceName) {
@@ -113,19 +122,20 @@ serve(async (req) => {
 
       // 3) FALLBACK final: buscar diretamente em whatsapp_instances por store_id
       if (!instanceName && storeId) {
-        console.log(`🔍 [CRON-SYNC] ${storeName}: buscando instance via store_id...`);
+        console.log(`🔍 [CRON-SYNC] ${storeName}: buscando instance via store_id (${storeId})...`);
 
         const { data: instancesByStore, error: instancesError } = await supabase
           .from('whatsapp_instances')
-          .select('instance_name')
-          .eq('store_id', storeId)
-          .limit(1);
+          .select('instance_name, id')
+          .eq('store_id', storeId);
 
+        console.log(`   ↳ Resultado da query: ${JSON.stringify(instancesByStore)}`);
+        
         if (instancesError) {
-          console.error(`❌ [CRON-SYNC] ${storeName}: erro ao buscar whatsapp_instances por store_id:`, instancesError);
+          console.error(`❌ [CRON-SYNC] ${storeName}: erro ao buscar whatsapp_instances:`, instancesError);
         }
 
-        const byStoreName = Array.isArray(instancesByStore)
+        const byStoreName = Array.isArray(instancesByStore) && instancesByStore.length > 0
           ? instancesByStore[0]?.instance_name
           : undefined;
 
@@ -136,7 +146,7 @@ serve(async (req) => {
       }
 
       if (!instanceName) {
-        console.log(`⏭️ [CRON-SYNC] Pulando ${storeName}: sem WhatsApp instance`);
+        console.log(`⏭️ [CRON-SYNC] Pulando ${storeName}: sem WhatsApp instance após 3 tentativas`);
         results.push({ store: storeName, success: false, error: 'Sem WhatsApp instance vinculada' });
         continue;
       }

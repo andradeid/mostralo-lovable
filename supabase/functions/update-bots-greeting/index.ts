@@ -283,9 +283,9 @@ ${!isOpen && nextOpening ? `- Próxima abertura: ${nextOpening}` : ''}
 INSTRUÇÕES DE STATUS (responda de forma natural e acolhedora):
 ${isOpen 
   ? `- Quando perguntarem se está aberto: Confirme de forma amigável que está funcionando, sem usar frases robóticas como "Sim, estamos abertos!"
-- Seja acolhedor e convide para ver o cardápio`
+- Seja acolhedor e convide para ver a loja`
   : `- Quando perguntarem se está aberto: Informe de forma gentil que está fechado${nextOpening ? ` e mencione que abrirá ${nextOpening}` : ''}
-- Ofereça o cardápio para o cliente já ir escolhendo: ${storeLink}`}
+- Ofereça a loja para o cliente já ir escolhendo: ${storeLink}`}
 - NUNCA diga que está aberto se o STATUS mostrar FECHADO
 - Use a saudação "${greeting}" nas interações
 - ${period === 'madrugada' ? 'De madrugada, seja especialmente acolhedor com quem está acordado nesse horário!' : ''}`;
@@ -359,7 +359,7 @@ INSTRUÇÕES:
           ignoreJids: botConfig.ignore_jids || [],
           splitMessages: botConfig.bot_split_messages !== undefined ? botConfig.bot_split_messages : true,
           timePerChar: botConfig.bot_time_per_char || 0,
-          description: `Bot Mostralo - ${store.name}`,
+          description: `Bot - ${store.name}`,
         };
 
         // ESTRATÉGIA SEGURA: Tentar UPDATE primeiro, só CREATE se necessário

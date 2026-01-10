@@ -52,63 +52,63 @@ export const nicheInfo: Record<StoreNiche, { label: string; emoji: string }> = {
 export const greetingTemplates: Record<Period, { aberto: string[]; fechado: string[] }> = {
   madrugada: {
     aberto: [
-      "Olá, boa noite! 🌙 Que bom ter você aqui conosco, mesmo nesse horário!\n\nEstamos abertos e prontos para atender.\n\n📱 Confira nosso cardápio: {link}",
+      "Olá, boa noite! 🌙 Que bom ter você aqui conosco, mesmo nesse horário!\n\nEstamos abertos e prontos para atender.\n\n📱 Confira nossa loja: {link}",
       "Oi! 🌙 Ainda acordado? Nós também! A {loja} está aberta neste momento.\n\nDá uma olhada no que temos pra você: {link}",
-      "Boa noite! 🌙 Noite de fome? Estamos funcionando! Seja bem-vindo(a) à {loja}.\n\n📱 Veja nosso cardápio: {link}",
+      "Boa noite! 🌙 Noite de fome? Estamos funcionando! Seja bem-vindo(a) à {loja}.\n\n📱 Veja nossa loja: {link}",
     ],
     fechado: [
-      "Boa noite! 🌙 Estamos fechados no momento{proxima_abertura}.\n\nMas você pode conferir nosso cardápio: {link}",
-      "Oi! 🌙 A {loja} já encerrou o expediente{proxima_abertura}.\n\n📱 Veja o cardápio para quando abrirmos: {link}",
+      "Boa noite! 🌙 Estamos fechados no momento{proxima_abertura}.\n\nMas você pode conferir nossa loja: {link}",
+      "Oi! 🌙 A {loja} já encerrou o expediente{proxima_abertura}.\n\n📱 Veja a loja para quando abrirmos: {link}",
     ]
   },
   manha: {
     aberto: [
       "Bom dia! ☀️ Seja bem-vindo(a) à {loja}! Estamos abertos e prontos para começar seu dia bem.\n\n📱 Confira: {link}",
-      "Oi, bom dia! ☀️ A {loja} já está funcionando! Que tal começar o dia com algo especial?\n\nVeja nosso cardápio: {link}",
+      "Oi, bom dia! ☀️ A {loja} já está funcionando! Que tal começar o dia com algo especial?\n\nVeja nossa loja: {link}",
     ],
     fechado: [
-      "Bom dia! ☀️ Ainda estamos fechados{proxima_abertura}.\n\nMas você pode ver nosso cardápio: {link}",
-      "Oi, bom dia! ☀️ A {loja} ainda não abriu{proxima_abertura}.\n\n📱 Confira o cardápio: {link}",
+      "Bom dia! ☀️ Ainda estamos fechados{proxima_abertura}.\n\nMas você pode ver nossa loja: {link}",
+      "Oi, bom dia! ☀️ A {loja} ainda não abriu{proxima_abertura}.\n\n📱 Confira a loja: {link}",
     ]
   },
   almoco: {
     aberto: [
-      "Oi! 🍽️ Hora do almoço! A {loja} está aberta e pronta pra matar sua fome.\n\n📱 Veja nosso cardápio: {link}",
-      "Boa tarde! 🍽️ Tá com fome? A {loja} está funcionando! Confira nossas opções.\n\n📱 Cardápio: {link}",
+      "Oi! 🍽️ Hora do almoço! A {loja} está aberta e pronta pra matar sua fome.\n\n📱 Veja nossa loja: {link}",
+      "Boa tarde! 🍽️ Tá com fome? A {loja} está funcionando! Confira nossas opções.\n\n📱 Loja: {link}",
     ],
     fechado: [
-      "Oi! 🍽️ Que pena, estamos fechados no horário do almoço{proxima_abertura}.\n\nMas confira nosso cardápio: {link}",
-      "Olá! 🍽️ A {loja} não está funcionando agora{proxima_abertura}.\n\n📱 Veja o cardápio: {link}",
+      "Oi! 🍽️ Que pena, estamos fechados no horário do almoço{proxima_abertura}.\n\nMas confira nossa loja: {link}",
+      "Olá! 🍽️ A {loja} não está funcionando agora{proxima_abertura}.\n\n📱 Veja a loja: {link}",
     ]
   },
   tarde: {
     aberto: [
       "Boa tarde! 🌤️ Seja bem-vindo(a) à {loja}! Estamos abertos e prontos para atender.\n\n📱 Confira: {link}",
-      "Oi, boa tarde! 🌤️ A {loja} está funcionando! O que você tá procurando hoje?\n\nVeja nosso cardápio: {link}",
+      "Oi, boa tarde! 🌤️ A {loja} está funcionando! O que você tá procurando hoje?\n\nVeja nossa loja: {link}",
     ],
     fechado: [
-      "Boa tarde! 🌤️ Estamos fechados no momento{proxima_abertura}.\n\nMas você pode conferir o cardápio: {link}",
-      "Oi! 🌤️ A {loja} não está funcionando agora{proxima_abertura}.\n\n📱 Veja nosso cardápio: {link}",
+      "Boa tarde! 🌤️ Estamos fechados no momento{proxima_abertura}.\n\nMas você pode conferir a loja: {link}",
+      "Oi! 🌤️ A {loja} não está funcionando agora{proxima_abertura}.\n\n📱 Veja nossa loja: {link}",
     ]
   },
   noite: {
     aberto: [
-      "Boa noite! 🌆 Seja bem-vindo(a) à {loja}! Estamos abertos e prontos pra você.\n\n📱 Confira nosso cardápio: {link}",
+      "Boa noite! 🌆 Seja bem-vindo(a) à {loja}! Estamos abertos e prontos pra você.\n\n📱 Confira nossa loja: {link}",
       "Oi, boa noite! 🌆 A {loja} está funcionando! Que tal fazer um pedido?\n\nVeja: {link}",
     ],
     fechado: [
-      "Boa noite! 🌆 Infelizmente estamos fechados agora{proxima_abertura}.\n\nMas você pode ver nosso cardápio: {link}",
-      "Oi, boa noite! 🌆 A {loja} já encerrou o expediente{proxima_abertura}.\n\n📱 Confira o cardápio: {link}",
+      "Boa noite! 🌆 Infelizmente estamos fechados agora{proxima_abertura}.\n\nMas você pode ver nossa loja: {link}",
+      "Oi, boa noite! 🌆 A {loja} já encerrou o expediente{proxima_abertura}.\n\n📱 Confira a loja: {link}",
     ]
   },
   noite_tarde: {
     aberto: [
       "Boa noite! 🌙 Ainda estamos abertos! A {loja} funciona até tarde pra você.\n\n📱 Confira: {link}",
-      "Oi! 🌙 Já é tarde, mas a {loja} ainda está funcionando! Aproveita!\n\nCardápio: {link}",
+      "Oi! 🌙 Já é tarde, mas a {loja} ainda está funcionando! Aproveita!\n\nLoja: {link}",
     ],
     fechado: [
-      "Boa noite! 🌙 Já encerramos o expediente{proxima_abertura}.\n\nMas você pode conferir o cardápio: {link}",
-      "Oi! 🌙 A {loja} já fechou por hoje{proxima_abertura}.\n\n📱 Veja o cardápio: {link}",
+      "Boa noite! 🌙 Já encerramos o expediente{proxima_abertura}.\n\nMas você pode conferir a loja: {link}",
+      "Oi! 🌙 A {loja} já fechou por hoje{proxima_abertura}.\n\n📱 Veja a loja: {link}",
     ]
   }
 };
@@ -121,20 +121,20 @@ export const weekdayGreetings: Partial<Record<Weekday, { aberto: string[]; fecha
   friday: {
     aberto: [
       "Sextou! 🎉 A {loja} está aberta e pronta pra você começar bem o fim de semana!\n\n📱 Confira: {link}",
-      "Opa, sexta-feira! 🥳 A {loja} tá funcionando! Bora celebrar?\n\nVeja o cardápio: {link}",
-      "É sexta, meu povo! 🎊 Estamos abertos e esperando seu pedido!\n\n📱 Cardápio: {link}",
+      "Opa, sexta-feira! 🥳 A {loja} tá funcionando! Bora celebrar?\n\nVeja a loja: {link}",
+      "É sexta, meu povo! 🎊 Estamos abertos e esperando seu pedido!\n\n📱 Loja: {link}",
     ],
     fechado: [
-      "Sextou! 🎉 Mas infelizmente estamos fechados{proxima_abertura}.\n\nVeja o cardápio: {link}",
+      "Sextou! 🎉 Mas infelizmente estamos fechados{proxima_abertura}.\n\nVeja a loja: {link}",
     ]
   },
   saturday: {
     aberto: [
       "Bom sábado! 🌟 A {loja} está aberta! O fim de semana começou com tudo!\n\n📱 Confira: {link}",
-      "Sabadou! ✨ Estamos funcionando e prontos pra você!\n\nCardápio completo: {link}",
+      "Sabadou! ✨ Estamos funcionando e prontos pra você!\n\nLoja completa: {link}",
     ],
     fechado: [
-      "Bom sábado! 🌟 Estamos fechados no momento{proxima_abertura}.\n\nVeja o cardápio: {link}",
+      "Bom sábado! 🌟 Estamos fechados no momento{proxima_abertura}.\n\nVeja a loja: {link}",
     ]
   },
   sunday: {
@@ -143,7 +143,7 @@ export const weekdayGreetings: Partial<Record<Weekday, { aberto: string[]; fecha
       "Domingão! 🌤️ Estamos funcionando! Relaxe e faça seu pedido.\n\nVeja: {link}",
     ],
     fechado: [
-      "Bom domingo! ☀️ Estamos fechados no momento{proxima_abertura}.\n\nVeja o cardápio: {link}",
+      "Bom domingo! ☀️ Estamos fechados no momento{proxima_abertura}.\n\nVeja a loja: {link}",
     ]
   }
 };
@@ -157,35 +157,35 @@ export const holidayGreetings: Record<string, { name: string; templates: { abert
     name: 'Ano Novo',
     templates: {
       aberto: ["🎊 Feliz Ano Novo! A {loja} está aberta para começar o ano com você!\n\n📱 Confira: {link}"],
-      fechado: ["🎊 Feliz Ano Novo! Estamos descansando hoje{proxima_abertura}.\n\nVeja nosso cardápio: {link}"]
+      fechado: ["🎊 Feliz Ano Novo! Estamos descansando hoje{proxima_abertura}.\n\nVeja nossa loja: {link}"]
     }
   },
   '12/06': {
     name: 'Dia dos Namorados',
     templates: {
       aberto: ["💕 Feliz Dia dos Namorados! A {loja} está aberta para tornar seu dia mais especial!\n\n📱 Confira: {link}"],
-      fechado: ["💕 Feliz Dia dos Namorados! Estamos fechados{proxima_abertura}.\n\nCardápio: {link}"]
+      fechado: ["💕 Feliz Dia dos Namorados! Estamos fechados{proxima_abertura}.\n\nLoja: {link}"]
     }
   },
   '12/10': {
     name: 'Dia das Crianças',
     templates: {
       aberto: ["🎈 Feliz Dia das Crianças! A {loja} está aberta para a criançada!\n\n📱 Confira: {link}"],
-      fechado: ["🎈 Feliz Dia das Crianças! Estamos fechados{proxima_abertura}.\n\nVeja o cardápio: {link}"]
+      fechado: ["🎈 Feliz Dia das Crianças! Estamos fechados{proxima_abertura}.\n\nVeja a loja: {link}"]
     }
   },
   '25/12': {
     name: 'Natal',
     templates: {
       aberto: ["🎄 Feliz Natal! A {loja} está aberta para deixar seu Natal ainda mais especial!\n\n📱 Confira: {link}"],
-      fechado: ["🎄 Feliz Natal! Hoje estamos curtindo em família{proxima_abertura}.\n\n📱 Cardápio: {link}"]
+      fechado: ["🎄 Feliz Natal! Hoje estamos curtindo em família{proxima_abertura}.\n\n📱 Loja: {link}"]
     }
   },
   '31/12': {
     name: 'Véspera de Ano Novo',
     templates: {
       aberto: ["🎆 Último dia do ano! A {loja} está aberta! Bora celebrar!\n\n📱 Confira: {link}"],
-      fechado: ["🎆 Véspera de Ano Novo! Estamos em recesso{proxima_abertura}.\n\nCardápio: {link}"]
+      fechado: ["🎆 Véspera de Ano Novo! Estamos em recesso{proxima_abertura}.\n\nLoja: {link}"]
     }
   }
 };
@@ -197,11 +197,11 @@ export const holidayGreetings: Record<string, { name: string; templates: { abert
 export const nicheTemplates: Record<StoreNiche, { aberto: string[]; fechado: string[] }> = {
   restaurante: {
     aberto: [
-      "Oi! 🍽️ Bateu aquela fome? A {loja} está aberta e com o cardápio quentinho!\n\n📱 Confira: {link}",
+      "Oi! 🍽️ Bateu aquela fome? A {loja} está aberta e pronta pra você!\n\n📱 Confira: {link}",
       "Olá! 😋 Tá com fome? A {loja} está funcionando! Escolhe o que você vai comer!\n\nVeja: {link}",
     ],
     fechado: [
-      "Oi! 🍽️ Que pena, a cozinha já fechou{proxima_abertura}.\n\nMas veja nosso cardápio: {link}",
+      "Oi! 🍽️ Que pena, a cozinha já fechou{proxima_abertura}.\n\nMas veja nossa loja: {link}",
     ]
   },
   pizzaria: {
@@ -219,32 +219,32 @@ export const nicheTemplates: Record<StoreNiche, { aberto: string[]; fechado: str
       "Smash! 🍔 A {loja} está aberta! Vem pro melhor hambúrguer!\n\nConfira: {link}",
     ],
     fechado: [
-      "Oi! 🍔 A chapa já esfriou por hoje{proxima_abertura}.\n\nVeja nosso cardápio: {link}",
+      "Oi! 🍔 A chapa já esfriou por hoje{proxima_abertura}.\n\nVeja nossa loja: {link}",
     ]
   },
   lanchonete: {
     aberto: ["Oi! 🥪 Bateu aquela fominha? A {loja} está aberta!\n\n📱 Confira: {link}"],
-    fechado: ["Oi! 🥪 Estamos fechados agora{proxima_abertura}.\n\nVeja nosso cardápio: {link}"]
+    fechado: ["Oi! 🥪 Estamos fechados agora{proxima_abertura}.\n\nVeja nossa loja: {link}"]
   },
   cafeteria: {
     aberto: ["Oi! ☕ Hora do café! A {loja} está aberta com o aroma mais gostoso!\n\n📱 Confira: {link}"],
-    fechado: ["Oi! ☕ A {loja} já fechou por hoje{proxima_abertura}.\n\nVeja nosso cardápio: {link}"]
+    fechado: ["Oi! ☕ A {loja} já fechou por hoje{proxima_abertura}.\n\nVeja nossa loja: {link}"]
   },
   padaria: {
     aberto: ["Bom dia! 🥐 Cheirinho de pão fresquinho! A {loja} está aberta!\n\n📱 Confira: {link}"],
-    fechado: ["Oi! 🥐 Os fornos já descansaram por hoje{proxima_abertura}.\n\nVeja nosso cardápio: {link}"]
+    fechado: ["Oi! 🥐 Os fornos já descansaram por hoje{proxima_abertura}.\n\nVeja nossa loja: {link}"]
   },
   doceria: {
     aberto: ["Oi! 🍰 Vontade de doce? A {loja} está aberta com as melhores sobremesas!\n\n📱 Confira: {link}"],
     fechado: ["Oi! 🍰 A doceria já fechou{proxima_abertura}.\n\nVeja nossos doces: {link}"]
   },
   sushi: {
-    aberto: ["Oi! 🍣 Sushi fresco! A {loja} está aberta!\n\n📱 Confira o cardápio: {link}"],
-    fechado: ["Oi! 🍣 A cozinha japonesa já fechou{proxima_abertura}.\n\nVeja o cardápio: {link}"]
+    aberto: ["Oi! 🍣 Sushi fresco! A {loja} está aberta!\n\n📱 Confira a loja: {link}"],
+    fechado: ["Oi! 🍣 A cozinha japonesa já fechou{proxima_abertura}.\n\nVeja a loja: {link}"]
   },
   churrascaria: {
     aberto: ["Oi! 🥩 Dia de carne! A {loja} está aberta com cortes especiais!\n\n📱 Confira: {link}"],
-    fechado: ["Oi! 🥩 A brasa já apagou por hoje{proxima_abertura}.\n\nVeja nosso cardápio: {link}"]
+    fechado: ["Oi! 🥩 A brasa já apagou por hoje{proxima_abertura}.\n\nVeja nossa loja: {link}"]
   },
   farmacia: {
     aberto: ["Olá! 💊 Precisando de algo? A {loja} está aberta e pronta para ajudar!\n\n📱 Confira: {link}"],

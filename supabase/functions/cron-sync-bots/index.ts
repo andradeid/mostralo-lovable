@@ -48,7 +48,10 @@ serve(async (req) => {
         store:stores!inner (
           id,
           name,
-          slug
+          slug,
+          whatsapp_instances (
+            instance_name
+          )
         ),
         whatsapp_instance:whatsapp_instances!store_bot_config_whatsapp_instance_id_fkey (
           instance_name
@@ -88,26 +91,46 @@ serve(async (req) => {
       const storeId = storeData?.id || botConfig.store_id;
       const storeName = storeData?.name || storeId;
 
-      // Tentar obter instance_name do JOIN direto via whatsapp_instance_id
+      // 1) Tentar obter instance_name do JOIN direto via whatsapp_instance_id
       let whatsappInstance = Array.isArray(botConfig.whatsapp_instance)
         ? botConfig.whatsapp_instance[0]
         : botConfig.whatsapp_instance;
 
       let instanceName = whatsappInstance?.instance_name;
 
-      // FALLBACK: Se não encontrou via whatsapp_instance_id, buscar via store_id
+      // 2) Fallback rápido: pegar pela relação store -> whatsapp_instances (se existir)
+      if (!instanceName) {
+        const storeInstancesRaw = (storeData as any)?.whatsapp_instances;
+        const storeInstances = Array.isArray(storeInstancesRaw) ? storeInstancesRaw : [];
+        const fromStore = storeInstances.find((i: any) => i?.instance_name)?.instance_name;
+
+        if (fromStore) {
+          instanceName = fromStore;
+          console.log(`✅ [CRON-SYNC] ${storeName}: encontrada via store.whatsapp_instances: ${instanceName}`);
+        }
+      }
+
+      // 3) FALLBACK final: buscar diretamente em whatsapp_instances por store_id
       if (!instanceName && storeId) {
         console.log(`🔍 [CRON-SYNC] ${storeName}: buscando instance via store_id...`);
 
-        const { data: instanceByStore } = await supabase
+        const { data: instancesByStore, error: instancesError } = await supabase
           .from('whatsapp_instances')
           .select('instance_name')
           .eq('store_id', storeId)
-          .maybeSingle();
+          .limit(1);
 
-        if (instanceByStore?.instance_name) {
-          instanceName = instanceByStore.instance_name;
-          console.log(`✅ [CRON-SYNC] ${storeName}: encontrada via store_id: ${instanceName}`);
+        if (instancesError) {
+          console.error(`❌ [CRON-SYNC] ${storeName}: erro ao buscar whatsapp_instances por store_id:`, instancesError);
+        }
+
+        const byStoreName = Array.isArray(instancesByStore)
+          ? instancesByStore[0]?.instance_name
+          : undefined;
+
+        if (byStoreName) {
+          instanceName = byStoreName;
+          console.log(`✅ [CRON-SYNC] ${storeName}: encontrada via query store_id: ${instanceName}`);
         }
       }
 

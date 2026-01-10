@@ -1,6 +1,6 @@
 // Cron Sync Bots - Executa "Aplicar Mudanças" para todas as lojas com bot ativo
-// v1.3.0 - Fallback via store_id + logs detalhados
-// Deploy forçado: 2026-01-10T12:00
+// v1.3.1 - Retornar status/details quando openai-bot-sync falhar
+// Deploy forçado: 2026-01-10T20:12
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -15,7 +15,7 @@ serve(async (req) => {
   }
 
   const startTime = Date.now();
-  console.log('🔄 [CRON-SYNC v1.3.0] Iniciando sincronização de bots...');
+  console.log('🔄 [CRON-SYNC v1.3.1] Iniciando sincronização de bots...');
 
   try {
     const supabase = createClient(
@@ -186,13 +186,13 @@ serve(async (req) => {
           results.push({ store: storeName, success: true });
         } else {
           const errAny = syncError as any;
-          const status = errAny?.context?.status ?? errAny?.status;
-          const details = errAny?.context?.body ?? (syncResult as any);
+          const status = errAny?.context?.status ?? errAny?.status ?? null;
+          const details = errAny?.context?.body ?? errAny?.context ?? (syncResult as any) ?? null;
           const msg = errAny?.message || (syncResult as any)?.error || 'Erro desconhecido';
 
           console.error(`❌ [CRON-SYNC] ${storeName}: ${msg}`);
-          if (status) console.error(`   ↳ status: ${status}`);
-          if (details) console.error('   ↳ details:', details);
+          console.error(`   ↳ status: ${status}`);
+          console.error('   ↳ details:', details);
 
           results.push({ store: storeName, success: false, error: msg, status, details });
         }

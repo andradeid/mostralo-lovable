@@ -273,8 +273,9 @@ serve(async (req) => {
       });
     }
 
+    const build = '2026-01-10.1719';
     return new Response(JSON.stringify({
-      error: 'Ação inválida',
+      error: `Ação inválida (build ${build})`,
       received_action: action,
       supported_actions: ['test', 'save', 'sync_creds_id'],
     }), {

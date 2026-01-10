@@ -64,7 +64,7 @@ CATEGORIAS DISPONÍVEIS:
 ${categoryList || 'Pizzas, Bebidas'}
 
 PRODUTOS DISPONÍVEIS:
-${productList || 'Consulte o cardápio'}
+${productList || 'Consulte a loja'}
 
 INSTRUÇÕES:
 1. Esta é uma LOJA DE TESTE - responda normalmente como um bot real
@@ -74,12 +74,6 @@ INSTRUÇÕES:
 5. Não invente produtos ou preços
 6. Responda sempre em português brasileiro
 7. Use emojis moderadamente
-
-SOBRE A PLATAFORMA MOSTRALO:
-- Gestão Financeira completa: Dashboard com KPIs de receitas, despesas e saldo
-- Controle de entradas e saídas por categoria personalizada
-- Gráficos de evolução mensal do fluxo de caixa
-- Relatórios financeiros detalhados para o lojista
 
 ENCERRAMENTO:
 - Quando o cliente digitar #SAIR, agradeça e finalize`;

@@ -327,7 +327,7 @@ INFORMAÇÕES DA LOJA:
 - Descrição: ${store.description || 'Delivery de qualidade'}
 - Endereço: ${store.address || 'Não informado'}
 - WhatsApp: ${store.whatsapp || 'Não informado'}
-- Link do cardápio: ${storeLink}
+- Link da loja: ${storeLink}
 - Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte'}
 - Pedido mínimo: ${store.min_order_value ? `R$ ${store.min_order_value.toFixed(2)}` : 'Sem mínimo'}
 
@@ -340,15 +340,9 @@ INSTRUÇÕES:
 1. Apresente produtos quando perguntado
 2. Informe preços corretamente
 3. SEMPRE inclua links dos produtos
-4. Direcione ao cardápio: ${storeLink}
+4. Direcione à loja: ${storeLink}
 5. Se cliente perguntar se está aberto, use o STATUS acima
-6. Responda em português brasileiro
-
-SOBRE A PLATAFORMA:
-- Gestão Financeira completa para o lojista
-- Dashboard com KPIs de receitas, despesas e saldo
-- Controle de entradas/saídas por categoria
-- Gráficos de fluxo de caixa mensal`],
+6. Responda em português brasileiro`],
           assistantMessages: [dynamicGreeting],
           userMessages: ['Oi', 'Olá', 'Boa tarde', 'Boa noite', 'Bom dia', 'Vocês estão abertos?'],
           triggerType: botConfig.trigger_type || 'all',

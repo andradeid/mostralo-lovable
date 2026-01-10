@@ -755,7 +755,7 @@ serve(async (req) => {
     async function deleteExistingBot(instanceName: string, botId: string): Promise<boolean> {
       try {
         console.log('🗑️ Deletando bot:', botId, 'da instância:', instanceName);
-        const deleteResp = await fetch(`${evolutionUrl}/openai/delete/${botId}/${instanceName}`, {
+        const deleteResp = await fetch(`${evolutionUrl}/openai/delete/${instanceName}/${botId}`, {
           method: 'DELETE',
           headers: { 'apikey': evolutionConfig.api_key },
         });

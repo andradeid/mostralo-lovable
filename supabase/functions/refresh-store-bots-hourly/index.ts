@@ -615,13 +615,14 @@ serve(async (req) => {
 
         try {
           // PASSO 1: Deletar o bot existente
-          const deleteResp = await fetch(
-            `${evolutionUrl}/openai/delete/${existingBotId}/${instanceName}`,
-            {
-              method: 'DELETE',
-              headers: { 'apikey': evolutionConfig.api_key },
-            }
-          );
+            const deleteResp = await fetch(
+              // ⚠️ IMPORTANTE: manter padrão de rotas da Evolution igual ao /openai/status/{instance}/{botId}
+              `${evolutionUrl}/openai/delete/${instanceName}/${existingBotId}`,
+              {
+                method: 'DELETE',
+                headers: { 'apikey': evolutionConfig.api_key },
+              }
+            );
 
           const deleteOk = deleteResp.ok || deleteResp.status === 404;
           console.log(`🗑️ [${storeSlug}] Delete: ${deleteResp.status} (${deleteOk ? 'OK' : 'FALHOU'})`);

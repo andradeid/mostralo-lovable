@@ -1,3 +1,5 @@
+// OpenAI Bot Sync - v2.1.0 - Estratégia UPDATE > DELETE+CREATE
+// Atualizado: Usa PUT para atualizar bot sem interrupção
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 

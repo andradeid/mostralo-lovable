@@ -94,6 +94,41 @@ interface OperationStep {
   details?: string;
 }
 
+// ========================================
+// FUNÇÃO: Sanitizar textos - remover "cardápio" e trocar por "loja"
+// ========================================
+function sanitizeText(text: string): string {
+  if (!text) return text;
+  // Regex case-insensitive para pegar "cardápio" e "cardapio" (sem acento)
+  return text
+    .replace(/cardápio/giu, 'loja')
+    .replace(/cardapio/giu, 'loja');
+}
+
+function sanitizeBotPayload(payload: any): any {
+  // Sanitizar systemMessages (array de strings)
+  if (payload.systemMessages && Array.isArray(payload.systemMessages)) {
+    payload.systemMessages = payload.systemMessages.map((msg: string) => sanitizeText(msg));
+  }
+  
+  // Sanitizar assistantMessages (array de strings)
+  if (payload.assistantMessages && Array.isArray(payload.assistantMessages)) {
+    payload.assistantMessages = payload.assistantMessages.map((msg: string) => sanitizeText(msg));
+  }
+  
+  // Sanitizar unknownMessage (string)
+  if (payload.unknownMessage) {
+    payload.unknownMessage = sanitizeText(payload.unknownMessage);
+  }
+  
+  // Sanitizar description (string)
+  if (payload.description) {
+    payload.description = sanitizeText(payload.description);
+  }
+  
+  return payload;
+}
+
 function formatBusinessHours(hours: any): string {
   if (!hours) return 'Não informado';
   
@@ -1140,7 +1175,7 @@ serve(async (req) => {
         : `${greeting}! 👋 No momento estamos fechados${nextOpening ? `, mas abrimos ${nextOpening}` : ''}. Seja bem-vindo(a) à ${store.name}!\n\n📱 Enquanto isso, acesse nossa loja: ${storeLink}`;
 
       // 5. Montar payload do bot
-      const botPayload: any = {
+      let botPayload: any = {
         enabled: true,
         openaiCredsId: openaiCredsId,
         botType: 'chatCompletion',
@@ -1165,7 +1200,9 @@ serve(async (req) => {
         timePerChar: config.timePerChar || 0,
       };
 
-      console.log('Payload do bot:', JSON.stringify(botPayload, null, 2));
+      // 🧹 SANITIZAÇÃO: Remover "cardápio" de todos os textos antes de enviar
+      botPayload = sanitizeBotPayload(botPayload);
+      console.log('Payload do bot sanitizado (cardápio -> loja):', JSON.stringify(botPayload, null, 2));
 
       // 5. Garantir bot com estratégia UPDATE-FIRST ou DELETE+CREATE (forceRecreate)
       const forceRecreate = config.forceRecreate === true;

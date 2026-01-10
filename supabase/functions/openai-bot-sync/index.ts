@@ -782,69 +782,123 @@ serve(async (req) => {
     }
 
     // ========================================
-    // FUNÇÃO: Garantir bot com estratégia DELETE + CREATE
+    // FUNÇÃO: Garantir bot com estratégia UPDATE-FIRST (segura)
     // ========================================
     async function ensureOpenAiBot(
       instanceName: string,
       openaiCredsId: string,
       botPayload: any,
-      storeName: string
+      storeName: string,
+      existingBotId?: string | null
     ): Promise<{ success: boolean; botId: string | null; created: boolean }> {
       botPayload.description = `Bot Mostralo - ${storeName}`;
 
-      steps.push({
-        step: 'bot_search',
-        status: 'success',
-        message: 'Consultando bots existentes na Evolution...',
-      });
-
-      const existingBots = await findExistingBots(instanceName);
-
-      if (existingBots.length > 0) {
+      // Se já temos um bot ID salvo no banco, tentar UPDATE primeiro (SEGURO)
+      if (existingBotId) {
         steps.push({
-          step: 'bot_list',
+          step: 'bot_update_attempt',
           status: 'success',
-          message: `${existingBots.length} bot(s) encontrado(s)`,
-          details: existingBots.map((b) => `${b.description || b.id?.slice(0, 8) || 'sem-id'}`).join(', '),
+          message: 'Tentando atualizar bot existente (estratégia segura)...',
+          details: `ID: ${existingBotId.slice(0, 8)}...`,
         });
 
-        for (const bot of existingBots) {
-          if (bot.id) {
-            steps.push({
-              step: 'bot_delete',
-              status: 'success',
-              message: 'Removendo bot existente para recriar com configurações atualizadas...',
-              details: `Bot ID: ${bot.id.slice(0, 8)}...`,
-            });
-
-            const deleted = await deleteExistingBot(instanceName, bot.id);
-            
-            if (deleted) {
-              steps.push({
-                step: 'bot_deleted',
-                status: 'success',
-                message: 'Bot removido com sucesso',
-                details: `ID: ${bot.id.slice(0, 8)}...`,
-              });
-            } else {
-              steps.push({
-                step: 'bot_delete',
-                status: 'warning',
-                message: 'Falha ao remover bot (tentando continuar)',
-                details: `ID: ${bot.id.slice(0, 8)}...`,
-              });
+        try {
+          const updateResp = await fetch(
+            `${evolutionUrl}/openai/settings/${existingBotId}/${instanceName}`,
+            {
+              method: 'PUT',
+              headers: {
+                'apikey': evolutionConfig.api_key,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(botPayload),
             }
+          );
+
+          const updateText = await updateResp.text();
+          console.log('Resposta update bot:', updateResp.status, updateText);
+
+          if (updateResp.ok) {
+            steps.push({
+              step: 'bot_updated',
+              status: 'success',
+              message: 'Bot atualizado com sucesso! (sem downtime)',
+              details: `ID mantido: ${existingBotId.slice(0, 8)}...`,
+            });
+            return { success: true, botId: existingBotId, created: false };
           }
+
+          if (updateResp.status === 404) {
+            steps.push({
+              step: 'bot_not_found',
+              status: 'warning',
+              message: 'Bot não encontrado na Evolution, criando novo...',
+            });
+            // Continua para criar novo
+          } else {
+            steps.push({
+              step: 'bot_update_failed',
+              status: 'warning',
+              message: 'Falha ao atualizar, tentando criar novo...',
+              details: updateText.slice(0, 100),
+            });
+          }
+        } catch (e) {
+          steps.push({
+            step: 'bot_update_error',
+            status: 'warning',
+            message: 'Erro ao atualizar, tentando criar novo...',
+            details: String(e),
+          });
         }
       } else {
+        // Sem ID existente, verificar se há bots na instância
         steps.push({
-          step: 'bot_list',
-          status: 'warning',
-          message: 'Nenhum bot encontrado na instância',
+          step: 'bot_search',
+          status: 'success',
+          message: 'Consultando bots existentes na Evolution...',
         });
+
+        const existingBots = await findExistingBots(instanceName);
+
+        if (existingBots.length > 0 && existingBots[0].id) {
+          const foundBotId = existingBots[0].id;
+          steps.push({
+            step: 'bot_found',
+            status: 'success',
+            message: `Bot encontrado na instância, tentando atualizar...`,
+            details: `ID: ${foundBotId.slice(0, 8)}...`,
+          });
+
+          try {
+            const updateResp = await fetch(
+              `${evolutionUrl}/openai/settings/${foundBotId}/${instanceName}`,
+              {
+                method: 'PUT',
+                headers: {
+                  'apikey': evolutionConfig.api_key,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(botPayload),
+              }
+            );
+
+            if (updateResp.ok) {
+              steps.push({
+                step: 'bot_updated',
+                status: 'success',
+                message: 'Bot encontrado e atualizado com sucesso!',
+                details: `ID: ${foundBotId.slice(0, 8)}...`,
+              });
+              return { success: true, botId: foundBotId, created: false };
+            }
+          } catch (e) {
+            console.log('Erro ao atualizar bot encontrado:', e);
+          }
+        }
       }
 
-      // Criar novo bot
+      // Criar novo bot (apenas se UPDATE falhou ou não existe)
       steps.push({
         step: 'bot_creating',
         status: 'success',
@@ -865,96 +919,49 @@ serve(async (req) => {
         const createText = await createResp.text();
         console.log('Resposta criação bot:', createResp.status, createText);
 
-        if (!createResp.ok) {
-          const alreadyExists = createText.includes('already exists') || createText.includes('already');
-          if (alreadyExists) {
+        if (createResp.ok) {
+          let botData: any = {};
+          try {
+            botData = JSON.parse(createText);
+          } catch { botData = {}; }
+
+          const newBotId = botData.id || botData.openaiBot?.id || null;
+
+          steps.push({
+            step: 'bot_created',
+            status: 'success',
+            message: 'Novo bot criado com sucesso!',
+            details: newBotId ? `ID: ${newBotId.slice(0, 8)}...` : 'ID não retornado',
+          });
+
+          return { success: true, botId: newBotId, created: true };
+        }
+
+        // Se já existe, buscar o ID existente e retornar
+        if (createText.includes('already exists') || createText.includes('already')) {
+          const existingBots = await findExistingBots(instanceName);
+          if (existingBots.length > 0 && existingBots[0].id) {
             steps.push({
-              step: 'bot_create',
-              status: 'warning',
-              message: 'A Evolution informou que o bot já existe; deletando e recriando...',
-              details: createText.slice(0, 140),
+              step: 'bot_exists',
+              status: 'success',
+              message: 'Bot já existe, usando ID existente',
+              details: `ID: ${existingBots[0].id.slice(0, 8)}...`,
             });
-
-            const botsAfter = await findExistingBots(instanceName);
-            
-            for (const bot of botsAfter) {
-              if (bot.id) {
-                await deleteExistingBot(instanceName, bot.id);
-              }
-            }
-
-            const retryResp = await fetch(createUrl, {
-              method: 'POST',
-              headers: {
-                'apikey': evolutionConfig.api_key,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(botPayload),
-            });
-
-            const retryText = await retryResp.text();
-            console.log('Resposta retry criação bot:', retryResp.status, retryText);
-
-            if (retryResp.ok) {
-              let retryData: any = {};
-              try {
-                retryData = JSON.parse(retryText);
-              } catch {
-                retryData = {};
-              }
-
-              const retryBotId = retryData.id || retryData.openaiBot?.id || null;
-              if (retryBotId) {
-                steps.push({
-                  step: 'bot_created',
-                  status: 'success',
-                  message: 'Bot recriado com sucesso!',
-                  details: `ID: ${retryBotId.slice(0, 8)}...`,
-                });
-                return { success: true, botId: retryBotId, created: true };
-              }
-            }
+            return { success: true, botId: existingBots[0].id, created: false };
           }
-
-          steps.push({
-            step: 'bot_create',
-            status: 'error',
-            message: 'Falha ao criar bot',
-            details: `Status: ${createResp.status} - ${createText.slice(0, 160)}`,
-          });
-          return { success: false, botId: null, created: false };
-        }
-
-        let botData: any = {};
-        try {
-          botData = JSON.parse(createText);
-        } catch {
-          botData = {};
-        }
-
-        const botId = botData.id || botData.openaiBot?.id || null;
-
-        if (!botId) {
-          steps.push({
-            step: 'bot_create',
-            status: 'error',
-            message: 'ID do bot não retornado',
-            details: createText.slice(0, 160),
-          });
-          return { success: false, botId: null, created: false };
         }
 
         steps.push({
-          step: 'bot_created',
-          status: 'success',
-          message: 'Novo bot criado com sucesso!',
-          details: `ID: ${botId.slice(0, 8)}...`,
+          step: 'bot_create_failed',
+          status: 'error',
+          message: 'Falha ao criar bot',
+          details: `Status: ${createResp.status} - ${createText.slice(0, 150)}`,
         });
 
-        return { success: true, botId, created: true };
+        return { success: false, botId: null, created: false };
       } catch (e) {
         steps.push({
-          step: 'bot_create',
+          step: 'bot_create_error',
           status: 'error',
           message: 'Erro ao criar bot',
           details: String(e),
@@ -1090,8 +1097,14 @@ serve(async (req) => {
 
       console.log('Payload do bot:', JSON.stringify(botPayload, null, 2));
 
-      // 5. Garantir bot com consulta prévia
-      const botResult = await ensureOpenAiBot(config.instanceName, openaiCredsId, botPayload, store.name);
+      // 5. Garantir bot com estratégia UPDATE-FIRST (passa ID existente do banco)
+      const botResult = await ensureOpenAiBot(
+        config.instanceName, 
+        openaiCredsId, 
+        botPayload, 
+        store.name,
+        existingBotConfig?.evolution_bot_id  // Passa o ID existente para UPDATE-first
+      );
 
       if (!botResult.success || !botResult.botId) {
         return new Response(JSON.stringify({

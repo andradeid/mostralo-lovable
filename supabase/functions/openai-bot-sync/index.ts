@@ -1,5 +1,6 @@
-// OpenAI Bot Sync - v2.2.0 - Atualiza flags de sync após sucesso/erro
-// Atualizado: needs_sync, last_synced_at, last_sync_error
+// OpenAI Bot Sync - v3.0.0 - Simplificado sem saudação dinâmica
+// Removido: crons automáticos, contexto de horário, saudação baseada em hora
+// O lojista controla quando sincronizar manualmente
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -141,115 +142,6 @@ function formatPaymentMethods(store: any): string {
   return methods.join('\n');
 }
 
-// Função para verificar se loja está aberta agora
-function isStoreOpenNow(businessHours: any, timezone: string): boolean {
-  if (!businessHours) return false;
-  if (businessHours.service_paused === true || businessHours.service_paused === 'true') {
-    return false;
-  }
-
-  const now = new Date();
-  const formatter = new Intl.DateTimeFormat('en-US', {
-    timeZone: timezone,
-    weekday: 'long',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  });
-
-  const parts = formatter.formatToParts(now);
-  const weekdayEn = parts.find(p => p.type === 'weekday')?.value?.toLowerCase() || '';
-  const hour = parts.find(p => p.type === 'hour')?.value || '00';
-  const minute = parts.find(p => p.type === 'minute')?.value || '00';
-  const currentTime = `${hour}:${minute}`;
-
-  const dayMap: Record<string, string> = {
-    'sunday': 'sunday',
-    'monday': 'monday',
-    'tuesday': 'tuesday',
-    'wednesday': 'wednesday',
-    'thursday': 'thursday',
-    'friday': 'friday',
-    'saturday': 'saturday',
-  };
-
-  const dayKey = dayMap[weekdayEn];
-  if (!dayKey) return false;
-
-  const dayHours = businessHours[dayKey];
-  if (!dayHours || dayHours.closed) return false;
-
-  return currentTime >= dayHours.open && currentTime <= dayHours.close;
-}
-
-// Função para calcular próxima abertura
-function getNextOpeningTime(businessHours: any, timezone: string): string | null {
-  if (!businessHours) return null;
-
-  const now = new Date();
-  const formatter = new Intl.DateTimeFormat('en-US', {
-    timeZone: timezone,
-    weekday: 'long',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  });
-
-  const parts = formatter.formatToParts(now);
-  const weekdayEn = parts.find(p => p.type === 'weekday')?.value?.toLowerCase() || '';
-  const hour = parts.find(p => p.type === 'hour')?.value || '00';
-  const minute = parts.find(p => p.type === 'minute')?.value || '00';
-  const currentTime = `${hour}:${minute}`;
-
-  const dayNamesEn = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-  const dayNamesPt = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-
-  const currentDayIndex = dayNamesEn.indexOf(weekdayEn);
-  if (currentDayIndex === -1) return null;
-
-  // Verificar se abre ainda hoje
-  const todayHours = businessHours[dayNamesEn[currentDayIndex]];
-  if (todayHours && !todayHours.closed && currentTime < todayHours.open) {
-    return `hoje às ${todayHours.open}`;
-  }
-
-  // Procurar próximo dia aberto
-  for (let i = 1; i <= 7; i++) {
-    const nextDayIndex = (currentDayIndex + i) % 7;
-    const nextDayHours = businessHours[dayNamesEn[nextDayIndex]];
-
-    if (nextDayHours && !nextDayHours.closed) {
-      if (i === 1) {
-        return `amanhã às ${nextDayHours.open}`;
-      }
-      return `${dayNamesPt[nextDayIndex]} às ${nextDayHours.open}`;
-    }
-  }
-
-  return null;
-}
-
-// Função para calcular saudação baseada no horário
-function getGreetingForTime(timezone: string): { greeting: string; currentTime: string; hour: number } {
-  const now = new Date();
-  const formatter = new Intl.DateTimeFormat('pt-BR', {
-    timeZone: timezone,
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  });
-
-  const currentTime = formatter.format(now);
-  const hour = parseInt(currentTime.split(':')[0]);
-
-  let greeting = 'Olá';
-  if (hour >= 5 && hour < 12) greeting = 'Bom dia';
-  else if (hour >= 12 && hour < 18) greeting = 'Boa tarde';
-  else greeting = 'Boa noite';
-
-  return { greeting, currentTime, hour };
-}
-
 // Determinar domínio correto para links da loja
 function getStoreBaseUrl(store: any, origin?: string): string {
   // 1º Prioridade: Domínio customizado VERIFICADO da loja
@@ -263,7 +155,6 @@ function getStoreBaseUrl(store: any, origin?: string): string {
     const isDevDomain = devDomains.some(d => origin.includes(d));
     
     if (!isDevDomain) {
-      // Remove trailing slash e retorna origem
       return origin.replace(/\/$/, '');
     }
   }
@@ -272,44 +163,16 @@ function getStoreBaseUrl(store: any, origin?: string): string {
   return 'https://mostralo.com.br';
 }
 
-interface StoreStatusContext {
-  greeting: string;
-  currentTime: string;
-  isOpen: boolean;
-  nextOpening: string | null;
-  timezone: string;
-}
-
 function generateSystemPrompt(
   botName: string, 
   store: any, 
   products: any[], 
   categories: any[], 
   origin?: string,
-  personalitySettings?: PersonalitySettings,
-  statusContext?: StoreStatusContext
+  personalitySettings?: PersonalitySettings
 ): string {
   const baseUrl = getStoreBaseUrl(store, origin);
   const storeLink = `${baseUrl}/loja/${store.slug}`;
-  
-  // Gerar seção de contexto atual (horário + status)
-  let statusSection = '';
-  if (statusContext) {
-    const { greeting, currentTime, isOpen, nextOpening, timezone } = statusContext;
-    statusSection = `
-
-[CONTEXTO ATUAL - ${currentTime} (${timezone})]
-- Horário da loja: ${currentTime}
-- Saudação apropriada: "${greeting}"
-- STATUS: ${isOpen ? '✅ ABERTO AGORA' : `❌ FECHADO${nextOpening ? ` - Abre ${nextOpening}` : ''}`}
-${!isOpen && nextOpening ? `- Próxima abertura: ${nextOpening}` : ''}
-
-INSTRUÇÕES DE STATUS:
-- Se cliente perguntar se está aberto: Responda "${isOpen ? 'Sim, estamos abertos!' : `No momento estamos fechados. ${nextOpening ? `Abrimos ${nextOpening}.` : ''}`}"
-- NUNCA diga que está aberto se o STATUS mostrar FECHADO
-- Use a saudação "${greeting}" nas interações
-- Mesmo fechado, ofereça o cardápio: "Enquanto isso, confira nosso cardápio: ${storeLink}"`;
-  }
   
   const productList = products
     .filter(p => p.is_available)
@@ -366,7 +229,6 @@ ${formatBusinessHours(store.business_hours)}`;
 Quando o cliente perguntar seu nome, responda: "Meu nome é ${botName}!"
 
 ${personalityInstructions}
-${statusSection}
 
 INFORMAÇÕES DA LOJA:
 - Nome: ${store.name || 'Loja'}
@@ -385,11 +247,11 @@ ${categoryList || 'Não há categorias cadastradas'}
 PRODUTOS DISPONÍVEIS:
 ${productList || 'Não há produtos cadastrados'}
 
-SAUDAÇÃO INTELIGENTE:
-1. USE a saudação do [CONTEXTO ATUAL] acima (Bom dia/Boa tarde/Boa noite)
+INSTRUÇÕES DE SAUDAÇÃO:
+1. Seja sempre acolhedor e educado
 2. Se o cliente informar o nome, USE o nome nas respostas seguintes
-3. Se não souber o nome, seja acolhedor
-4. **SEMPRE envie o link do cardápio na primeira mensagem**
+3. **SEMPRE envie o link do cardápio na primeira mensagem**
+4. Se perguntarem se está aberto, consulte o horário de funcionamento acima
 
 INSTRUÇÕES GERAIS:
 1. Apresente os produtos quando perguntado
@@ -404,7 +266,6 @@ INSTRUÇÕES GERAIS:
 10. Quando pedirem localização, envie o link do Google Maps se disponível
 11. Informe horário de funcionamento quando perguntado
 12. Informe formas de pagamento aceitas quando perguntado
-13. SE CLIENTE PERGUNTAR SE ESTÁ ABERTO - USE O STATUS DO [CONTEXTO ATUAL]
 
 LINKS DE PRODUTOS:
 - Quando o cliente perguntar sobre um produto específico, SEMPRE envie o link do produto
@@ -436,7 +297,6 @@ serve(async (req) => {
     let userId: string | null = null;
 
     if (isInternalCall) {
-      // Chamada interna do cron - pular autenticação de usuário
       console.log('🔄 [INTERNAL] Chamada interna detectada - bypass de auth');
     } else {
       // Verificar autenticação normal de usuário
@@ -463,7 +323,7 @@ serve(async (req) => {
 
     const { action, config, origin } = await req.json() as { action: string; config: BotConfig; origin?: string };
 
-    // Buscar loja do usuário com todos os campos necessários (incluindo domínio customizado e openai_api_key)
+    // Buscar loja do usuário com todos os campos necessários
     const { data: store, error: storeError } = await supabaseClient
       .from('stores')
       .select(`
@@ -523,7 +383,7 @@ serve(async (req) => {
 
     steps.push({ step: 'evolution_config', status: 'success', message: 'Evolution API configurada', details: evolutionConfig.api_url });
 
-    // Verificar API Key OpenAI da loja (de stores.openai_api_key, não de evolution_config)
+    // Verificar API Key OpenAI da loja
     const openaiApiKey = store.openai_api_key;
     
     if (!openaiApiKey) {
@@ -546,7 +406,7 @@ serve(async (req) => {
 
     const evolutionUrl = evolutionConfig.api_url.replace(/\/$/, '');
 
-    // Buscar produtos e categorias (incluindo slug para links)
+    // Buscar produtos e categorias
     const { data: products } = await supabaseClient
       .from('products')
       .select('*, slug')
@@ -579,7 +439,6 @@ serve(async (req) => {
         details: `Instância: ${instanceName}`,
       });
 
-      // 1. Listar credenciais existentes
       console.log('Buscando credenciais OpenAI para instância:', instanceName);
       let existingCreds: any[] = [];
       
@@ -619,7 +478,7 @@ serve(async (req) => {
         });
       }
 
-      // 2. Se temos ID salvo, verificar se ainda é válido
+      // Se temos ID salvo, verificar se ainda é válido
       if (evolutionConfig.openai_creds_id) {
         const found = existingCreds.find(c => c.id === evolutionConfig.openai_creds_id);
         if (found) {
@@ -633,7 +492,6 @@ serve(async (req) => {
           return evolutionConfig.openai_creds_id;
         }
         
-        // ID não existe mais - limpar
         console.log('ID salvo não é válido, limpando...');
         steps.push({
           step: 'openai_creds_invalid',
@@ -648,7 +506,7 @@ serve(async (req) => {
           .eq('id', evolutionConfig.id);
       }
 
-      // 3. Buscar credencial existente para esta loja específica
+      // Buscar credencial existente para esta loja específica
       const storeCredentialName = `store_${store.slug}_openai`;
       const storeCredential = existingCreds.find(c => c.name === storeCredentialName);
       if (storeCredential?.id) {
@@ -663,7 +521,7 @@ serve(async (req) => {
         return storeCredential.id;
       }
 
-      // 4. Criar nova credencial para a loja
+      // Criar nova credencial para a loja
       if (!openaiApiKey) {
         steps.push({
           step: 'openai_creds_create',
@@ -1071,7 +929,7 @@ serve(async (req) => {
 
       console.log('Usando openaiCredsId:', openaiCredsId);
 
-      // 2. Gerar prompt com dados da loja (com detecção automática de domínio e personalidade)
+      // 2. Gerar prompt com dados da loja (SEM contexto de horário dinâmico)
       const botName = config.botName || 'Assistente';
       
       // Buscar configurações de personalidade do banco
@@ -1083,27 +941,9 @@ serve(async (req) => {
       
       console.log('Personalidade do bot:', personalitySettings);
       
-      // Calcular storeLink para usar no assistantMessages (few-shot learning)
+      // Calcular storeLink para usar no assistantMessages
       const baseUrl = getStoreBaseUrl(store, origin);
       const storeLink = `${baseUrl}/loja/${store.slug}`;
-      
-      // ==============================
-      // CONTEXTO DE HORÁRIO E STATUS
-      // ==============================
-      const timezone = store.timezone || 'America/Sao_Paulo';
-      const { greeting, currentTime, hour } = getGreetingForTime(timezone);
-      const isOpen = isStoreOpenNow(store.business_hours, timezone);
-      const nextOpening = !isOpen ? getNextOpeningTime(store.business_hours, timezone) : null;
-      
-      const statusContext: StoreStatusContext = {
-        greeting,
-        currentTime,
-        isOpen,
-        nextOpening,
-        timezone
-      };
-      
-      console.log('Contexto de status:', statusContext);
       
       const systemPrompt = generateSystemPrompt(
         botName, 
@@ -1111,15 +951,14 @@ serve(async (req) => {
         products || [], 
         categories || [], 
         origin,
-        personalitySettings,
-        statusContext
+        personalitySettings
       );
 
       steps.push({
         step: 'prompt_generate',
         status: 'success',
         message: 'Prompt gerado com dados da loja',
-        details: `${products?.length || 0} produto(s), ${categories?.length || 0} categoria(s), ${greeting}, ${isOpen ? 'ABERTO' : 'FECHADO'}`,
+        details: `${products?.length || 0} produto(s), ${categories?.length || 0} categoria(s)`,
       });
 
       // 3. Validar modelo
@@ -1140,10 +979,9 @@ serve(async (req) => {
         });
       }
 
-      // 4. Montar saudação dinâmica para few-shot learning
-      const dynamicGreeting = isOpen
-        ? `${greeting}! 👋 Estamos abertos e prontos para atender! Seja bem-vindo(a) à ${store.name}!\n\n📱 Confira nosso cardápio: ${storeLink}`
-        : `${greeting}! 👋 No momento estamos fechados${nextOpening ? `, mas abrimos ${nextOpening}` : ''}. Seja bem-vindo(a) à ${store.name}!\n\n📱 Enquanto isso, confira nosso cardápio: ${storeLink}`;
+      // 4. Montar saudação fixa (sem horário dinâmico)
+      const greeting = personalitySettings.customGreeting || `Olá! 👋 Seja bem-vindo(a) à ${store.name}!`;
+      const fixedGreeting = `${greeting}\n\n📱 Confira nosso cardápio: ${storeLink}`;
 
       // 5. Montar payload do bot
       const botPayload: any = {
@@ -1153,7 +991,7 @@ serve(async (req) => {
         model: model,
         maxTokens: evolutionConfig.openai_max_tokens || 1000,
         systemMessages: [systemPrompt],
-        assistantMessages: [dynamicGreeting],
+        assistantMessages: [fixedGreeting],
         userMessages: ['Oi', 'Olá', 'Boa tarde', 'Boa noite', 'Bom dia', 'Vocês estão abertos?', 'Está aberto?'],
         triggerType: config.triggerType || 'all',
         triggerOperator: config.triggerOperator || 'contains',
@@ -1173,7 +1011,7 @@ serve(async (req) => {
 
       console.log('Payload do bot:', JSON.stringify(botPayload, null, 2));
 
-      // 5. Garantir bot com consulta prévia
+      // 6. Garantir bot com consulta prévia
       const botResult = await ensureOpenAiBot(config.instanceName, openaiCredsId, botPayload, store.name);
 
       if (!botResult.success || !botResult.botId) {
@@ -1187,7 +1025,7 @@ serve(async (req) => {
         });
       }
 
-      // 6. Salvar configuração no banco
+      // 7. Salvar configuração no banco
       const botConfigData = {
         store_id: config.storeId,
         whatsapp_instance_id: null,
@@ -1289,7 +1127,7 @@ serve(async (req) => {
     const message = error instanceof Error ? error.message : 'Erro desconhecido';
     steps.push({ step: 'error', status: 'error', message: message });
     
-    // Salvar erro no banco para visibilidade (se temos config)
+    // Salvar erro no banco para visibilidade
     try {
       const { config } = await req.clone().json().catch(() => ({ config: null }));
       if (config?.storeId) {

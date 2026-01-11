@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Bot, Loader2, RefreshCw, Power, PowerOff, AlertTriangle, Sparkles } from "lucide-react";
 import { BotConfig } from "@/hooks/useBotConfig";
 import { supabase } from "@/integrations/supabase/client";
@@ -198,18 +199,25 @@ export function BotActivationCard({
         </div>
 
         {config.enabled && (
-          <Button 
-            variant={hasUnsyncedChanges ? "default" : "outline"}
-            className={`w-full text-xs sm:text-sm ${hasUnsyncedChanges ? "animate-pulse" : ""}`}
-            onClick={handleForceSync}
-            disabled={syncing}
-          >
-            {syncing ? (
-              <><Loader2 className="h-4 w-4 mr-2 animate-spin shrink-0" /> Sincronizando...</>
-            ) : (
-              <><RefreshCw className="h-4 w-4 mr-2 shrink-0" /> {hasUnsyncedChanges ? "Aplicar Mudanças" : "Atualizar Bot"}</>
-            )}
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant={hasUnsyncedChanges ? "default" : "outline"}
+                className={`w-full text-xs sm:text-sm ${hasUnsyncedChanges ? "animate-pulse" : ""}`}
+                onClick={handleForceSync}
+                disabled={syncing}
+              >
+                {syncing ? (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin shrink-0" /> Sincronizando...</>
+                ) : (
+                  <><RefreshCw className="h-4 w-4 mr-2 shrink-0" /> {hasUnsyncedChanges ? "Aplicar Mudanças" : "Sincronizar"}</>
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-[250px] text-center">
+              <p>Clique sempre que adicionar produtos ou mudar configurações</p>
+            </TooltipContent>
+          </Tooltip>
         )}
       </CardContent>
     </Card>

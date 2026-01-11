@@ -1,6 +1,6 @@
-// OpenAI Bot Sync - v3.0.0 - Simplificado sem saudação dinâmica
-// Removido: crons automáticos, contexto de horário, saudação baseada em hora
-// O lojista controla quando sincronizar manualmente
+// OpenAI Bot Sync - v3.1.0 - Limpeza final
+// Removido: crons automáticos, saudação dinâmica, lógica de chamada interna
+// Apenas autenticação via JWT do usuário
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -290,36 +290,26 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Verificar se é chamada interna do cron (bypass de autenticação de usuário)
-    const internalCallSecret = req.headers.get('X-Internal-Secret');
-    const isInternalCall = internalCallSecret === Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    
-    let userId: string | null = null;
-
-    if (isInternalCall) {
-      console.log('🔄 [INTERNAL] Chamada interna detectada - bypass de auth');
-    } else {
-      // Verificar autenticação normal de usuário
-      const authHeader = req.headers.get('Authorization');
-      if (!authHeader) {
-        return new Response(JSON.stringify({ error: 'Não autorizado', steps }), {
-          status: 401,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-
-      const token = authHeader.replace('Bearer ', '');
-      const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
-      
-      if (authError || !user) {
-        return new Response(JSON.stringify({ error: 'Token inválido', steps }), {
-          status: 401,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      
-      userId = user.id;
+    // Verificar autenticação do usuário
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Não autorizado', steps }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+    
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Token inválido', steps }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    const userId = user.id;
 
     const { action, config, origin } = await req.json() as { action: string; config: BotConfig; origin?: string };
 
@@ -346,22 +336,20 @@ serve(async (req) => {
 
     steps.push({ step: 'store_check', status: 'success', message: 'Loja encontrada', details: store.name });
 
-    // Verificar permissão (pular se for chamada interna)
-    if (!isInternalCall && userId) {
-      const isMasterAdmin = await supabaseClient
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .eq('role', 'master_admin')
-        .single();
+    // Verificar permissão do usuário
+    const isMasterAdmin = await supabaseClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .eq('role', 'master_admin')
+      .single();
 
-      if (!isMasterAdmin.data && store.owner_id !== userId) {
-        steps.push({ step: 'auth_check', status: 'error', message: 'Acesso negado' });
-        return new Response(JSON.stringify({ error: 'Acesso negado', steps }), {
-          status: 403,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
+    if (!isMasterAdmin.data && store.owner_id !== userId) {
+      steps.push({ step: 'auth_check', status: 'error', message: 'Acesso negado' });
+      return new Response(JSON.stringify({ error: 'Acesso negado', steps }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     steps.push({ step: 'auth_check', status: 'success', message: 'Autorização verificada' });

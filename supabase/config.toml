@@ -129,9 +129,6 @@ verify_jwt = false
 [functions.openai-bot-toggle]
 verify_jwt = true
 
-[functions.update-bots-greeting]
-verify_jwt = false
-
 [functions.whatsapp-bot-pause]
 verify_jwt = false
 
@@ -322,7 +319,4 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.migrate-openai-creds]
-verify_jwt = false
-
-[functions.cron-sync-bots]
 verify_jwt = false

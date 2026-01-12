@@ -23,9 +23,11 @@ export default function Gestao360Page() {
   }, [setTheme]);
 
   usePageSEO({
-    title: 'Inteligência Operacional 360° | Mostralo - Gerir Lucro, Não Apenas Vendas',
-    description: 'Sistema de Inteligência Operacional All-in-One. Atração Preditiva, Conversão Autônoma, Eficiência Operacional e Gestão de Talentos em um único ecossistema.',
-    keywords: 'inteligência operacional, gestão de lucro, sistema all-in-one, automação de vendas, gestão de equipe, PDV inteligente, IA para negócios',
+    title: 'Mostralo 360° | Sistema de Gestão All-in-One para Lucrar Mais',
+    description: 'Sistema completo: Marketing preditivo, WhatsApp autônomo, PDV inteligente e gestão de equipe. Economize até R$ 90.000/ano. Teste grátis.',
+    image: 'https://mostralo.com.br/og-gestao-360.png',
+    url: 'https://mostralo.com.br/gestao-360',
+    keywords: 'inteligência operacional, gestão de lucro, sistema all-in-one, automação de vendas, gestão de equipe, PDV inteligente, IA para negócios, mostralo',
   });
 
   return (

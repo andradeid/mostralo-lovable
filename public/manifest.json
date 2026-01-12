@@ -1,7 +1,7 @@
 {
-  "name": "Mostralo - Cardápios Digitais",
+  "name": "Mostralo 360° | Sistema de Gestão All-in-One",
   "short_name": "Mostralo",
-  "description": "Plataforma completa para criar e gerenciar cardápios digitais. Gestão de pedidos, produtos, categorias e muito mais.",
+  "description": "Sistema completo: Marketing preditivo, WhatsApp autônomo, PDV inteligente e gestão de equipe. Economize até R$ 90.000/ano.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -10,25 +10,25 @@
   "scope": "/",
   "icons": [
     {
-      "src": "/favicon.png",
+      "src": "/favicon-mostralo.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/favicon.png",
+      "src": "/favicon-mostralo.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/favicon.png",
+      "src": "/favicon-mostralo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/favicon.png",
+      "src": "/favicon-mostralo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -44,21 +44,21 @@
       "short_name": "Pedidos",
       "description": "Ver pedidos em andamento",
       "url": "/dashboard/orders",
-      "icons": [{ "src": "/favicon.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/favicon-mostralo.png", "sizes": "192x192" }]
     },
     {
       "name": "Produtos",
       "short_name": "Produtos",
       "description": "Gerenciar produtos",
       "url": "/admin/products",
-      "icons": [{ "src": "/favicon.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/favicon-mostralo.png", "sizes": "192x192" }]
     },
     {
       "name": "Dashboard",
       "short_name": "Dashboard",
       "description": "Painel administrativo",
       "url": "/dashboard",
-      "icons": [{ "src": "/favicon.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/favicon-mostralo.png", "sizes": "192x192" }]
     }
   ],
   "screenshots": [],

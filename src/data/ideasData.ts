@@ -4731,5 +4731,192 @@ Ordem de implementação:
       '□ Documentar modelos de leitores compatíveis para lojistas',
       '□ Criar guia de configuração de leitores Bluetooth'
     ]
+  },
+
+  // =====================================================
+  // IDEIA 21: Reserve with Google (Google Maps Integration)
+  // =====================================================
+  {
+    id: 21,
+    title: '📍 Reserve with Google (Google Maps Integration)',
+    status: 'idea',
+    priority: 'high',
+    createdAt: '2025-01-13',
+    description: 'Integrar o Mostralo como Scheduling Partner do Google Actions Center, permitindo que clientes agendem serviços diretamente pelo Google Maps e Busca com sincronização automática para o Dashboard e WhatsApp.',
+    
+    context: `O Google oferece o programa "Reserve with Google" que permite que clientes finais agendem serviços diretamente pela interface do Google Maps e Google Search. O botão "Reservar" aparece no perfil do estabelecimento, eliminando a necessidade do cliente acessar um site externo.
+
+Fluxo atual do sistema Mostralo:
+• Sistema de agendamentos completo em BookingCalendarPage.tsx
+• Gestão de profissionais e serviços funcionando
+• Disponibilidade configurável por profissional
+• Confirmação via WhatsApp já implementada
+• Botão "Adicionar ao Google Calendar" manual em BookingConfirmation.tsx
+
+Oportunidade identificada:
+• Integração nativa para reservas aparecerem automaticamente no Google
+• Diferencial competitivo massivo (poucos sistemas brasileiros têm isso)
+• Aumento exponencial de conversão (cliente reserva sem sair do Google)`,
+
+    problem: `Atualmente os clientes precisam:
+1. Pesquisar o estabelecimento no Google
+2. Clicar no link do site/cardápio
+3. Navegar até a página de agendamentos
+4. Preencher formulário de reserva
+
+Com Reserve with Google:
+1. Pesquisar o estabelecimento no Google
+2. Clicar em "Reservar" diretamente no Maps
+3. Pronto - reserva confirmada e sincronizada
+
+O "Reserve with Google" elimina 80% do atrito no processo de agendamento.`,
+
+    marketAnalysis: {
+      title: '📊 Análise de Mercado e Impacto',
+      items: [
+        'Poucos sistemas de agendamento brasileiros têm integração oficial com Google',
+        'Botão "Reservar" no Google Maps aumenta conversão em até 200%',
+        'Clientes confiam mais em reservas feitas dentro do ecossistema Google',
+        'Diferencial competitivo para atrair salões, barbearias, clínicas e estúdios',
+        'Possibilidade de destacar parceiros Mostralo em buscas locais',
+        'Selo oficial do Google aumenta credibilidade do estabelecimento'
+      ]
+    },
+
+    technicalDetails: {
+      title: '🔧 Requisitos Técnicos do Google Actions Center',
+      items: [
+        'Merchant Feed (JSON): Dados de todos os estabelecimentos (nome, endereço, telefone, geo)',
+        'Service Feed (JSON): Catálogo de serviços com preços e durações',
+        'Availability Feed (JSON): Slots disponíveis em tempo real',
+        'Booking Server (REST API): Endpoints para criar/atualizar/cancelar reservas',
+        'Real-Time Updates (RTU): Notificar Google quando reservas mudam fora do sistema',
+        'Edge Function google-rwg-booking-server: Recebe requisições do Google (CreateBooking, UpdateBooking)',
+        'Edge Function google-rwg-availability: Retorna disponibilidade em tempo real',
+        'Edge Function google-rwg-rtu: Envia atualizações ao Google',
+        'Edge Function google-rwg-feeds: Gera feeds JSON de merchants, services e availability',
+        'Tabela google_rwg_config: Configurações por loja (merchant_id, is_enabled, sandbox_mode)',
+        'Tabela google_rwg_bookings: Mapeamento booking_id <-> google_booking_id',
+        'Trigger no banco para chamar RTU automaticamente em INSERT/UPDATE de bookings'
+      ]
+    },
+
+    phases: [
+      {
+        name: 'Fase 1 - Preparação e Aplicação (Manual)',
+        description: 'Configurar projeto no Google Cloud e aplicar ao programa',
+        items: [
+          'Criar conta no Google Actions Center (partnerdash.google.com/apps/actionsCenter)',
+          'Vincular projeto Google Cloud existente ou criar novo',
+          'Preencher formulário de interesse do Google para categoria "Appointments/Scheduling"',
+          'Garantir que cada loja tenha perfil verificado no Google Meu Negócio',
+          'Endereço e telefone devem coincidir entre Mostralo e Google Business Profile',
+          'Aguardar aprovação do Google (1-2 semanas estimado)'
+        ]
+      },
+      {
+        name: 'Fase 2 - Desenvolvimento das APIs',
+        description: 'Implementar Edge Functions e estrutura de banco',
+        items: [
+          'Criar tabela google_rwg_config com campos: store_id, is_enabled, google_merchant_id, sandbox_mode',
+          'Criar tabela google_rwg_bookings para mapeamento de IDs',
+          'Implementar google-rwg-feeds (Merchant Feed, Service Feed, Availability Feed)',
+          'Implementar google-rwg-booking-server com endpoints BatchAvailabilityLookup, CreateBooking, UpdateBooking',
+          'Implementar google-rwg-availability para consultas de disponibilidade',
+          'Implementar google-rwg-rtu para notificar Google de mudanças',
+          'Adicionar secrets GOOGLE_RWG_PROJECT_ID e GOOGLE_RWG_SERVICE_ACCOUNT'
+        ]
+      },
+      {
+        name: 'Fase 3 - Sincronização Automática',
+        description: 'Criar triggers e fluxo de sincronização bidirecional',
+        items: [
+          'Criar trigger on_booking_change_rwg no banco de dados',
+          'Implementar função notify_google_rwg() via pg_net',
+          'Sincronizar cancelamentos e alterações de horário',
+          'Tratar conflitos de disponibilidade em tempo real',
+          'Implementar retry logic para falhas de comunicação'
+        ]
+      },
+      {
+        name: 'Fase 4 - Interface Admin',
+        description: 'Criar página de configuração para lojistas',
+        items: [
+          'Criar ReserveWithGooglePage.tsx na área admin',
+          'Exibir status da conexão (pendente, aprovado, ativo)',
+          'Mostrar checklist de pré-requisitos (Google Business Profile, endereço, etc)',
+          'Campo para configurar Google Merchant ID',
+          'Toggle para ativar/desativar sincronização',
+          'Adicionar rota e link no menu do lojista (seção Integrações)'
+        ]
+      },
+      {
+        name: 'Fase 5 - Sandbox Testing',
+        description: 'Testes obrigatórios exigidos pelo Google',
+        items: [
+          'Realizar 20+ reservas de teste no ambiente sandbox',
+          'Testar fluxo completo: reserva, confirmação, cancelamento',
+          'Validar sincronização bidirecional',
+          'Submeter para revisão do Google',
+          'Corrigir issues apontados na revisão'
+        ]
+      },
+      {
+        name: 'Fase 6 - Go-Live',
+        description: 'Migração para produção e rollout',
+        items: [
+          'Migrar de sandbox para produção após aprovação',
+          'Ativar para lojas piloto inicialmente',
+          'Monitorar métricas de conversão e erros',
+          'Rollout gradual para demais lojas interessadas',
+          'Documentar processo para onboarding de novas lojas'
+        ]
+      }
+    ],
+
+    legalConsiderations: [
+      'Necessário aceitar Terms of Service do Google Actions Center',
+      'Dados de clientes são compartilhados com Google durante reserva',
+      'Política de privacidade deve mencionar integração com Google',
+      'Google pode exigir SLA de disponibilidade para APIs',
+      'Certificação de segurança pode ser solicitada pelo Google',
+      'Contrato de parceria formal com Google para produção'
+    ],
+
+    recommendation: `**Recomendação: PRIORIDADE ALTA**
+
+Esta integração oferece um diferencial competitivo massivo. O "Reserve with Google" é um dos maiores fatores de conversão para negócios locais e poucos concorrentes brasileiros oferecem isso.
+
+Sugestão de abordagem:
+1. Iniciar processo de aplicação imediatamente (não depende de código)
+2. Enquanto aguarda aprovação, desenvolver as Edge Functions
+3. Usar ambiente sandbox para testes antes do go-live
+4. Começar com lojas piloto do nicho de beleza/barbearia (maior fit)
+
+**Investimento estimado:** 4-6 semanas de desenvolvimento
+**ROI esperado:** Aumento de 50-200% em agendamentos para lojas com Google Business Profile ativo
+
+Benefícios principais:
+• Zero barreira - Cliente reserva sem sair do Google
+• SEO massivo - Botão "Reservar" destaca no Maps
+• Confiança - Selo oficial do Google
+• Conversão - Menos cliques = mais agendamentos
+• Diferencial competitivo - Poucos sistemas brasileiros têm isso`,
+
+    nextSteps: [
+      '□ [PREPARAÇÃO] Criar conta no Google Actions Center',
+      '□ [PREPARAÇÃO] Preencher formulário de interesse do programa',
+      '□ [PREPARAÇÃO] Verificar Google Business Profiles das lojas piloto',
+      '□ [FASE 1] Criar migração SQL para tabelas google_rwg_config e google_rwg_bookings',
+      '□ [FASE 2] Implementar Edge Function google-rwg-feeds',
+      '□ [FASE 2] Implementar Edge Function google-rwg-booking-server',
+      '□ [FASE 2] Implementar Edge Function google-rwg-availability',
+      '□ [FASE 2] Implementar Edge Function google-rwg-rtu',
+      '□ [FASE 3] Criar trigger on_booking_change_rwg no banco',
+      '□ [FASE 4] Criar página ReserveWithGooglePage.tsx',
+      '□ [FASE 4] Adicionar rota e link no menu de integrações',
+      '□ [FASE 5] Realizar 20+ testes no sandbox do Google',
+      '□ [FASE 6] Submeter para revisão e go-live'
+    ]
   }
 ];

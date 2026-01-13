@@ -132,6 +132,10 @@ const moduleDetails: Record<string, { description: string; category: 'core' | 'a
   'booking': {
     description: 'Sistema completo de agendamento de serviços com gestão de profissionais, horários de trabalho, bloqueios manuais (férias/folgas), vínculo com serviços e automações via WhatsApp (confirmação, lembretes, satisfação).',
     category: 'premium'
+  },
+  'google_calendar': {
+    description: 'Sincronização automática de agendamentos com o Google Agenda dos profissionais. Eventos criados, atualizados e removidos em tempo real conforme os agendamentos são gerenciados no sistema.',
+    category: 'premium'
   }
 };
 

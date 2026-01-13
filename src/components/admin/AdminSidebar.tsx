@@ -411,6 +411,7 @@ export function AdminSidebar() {
         { title: 'Acesso a Módulos', url: '/dashboard/modulos/gerenciar-acesso', icon: Settings, group: 'Sistema' },
         { title: 'Compilar Apps', url: '/dashboard/compile-apps', icon: Smartphone, group: 'Sistema' },
         { title: 'Evolution API', url: '/dashboard/evolution-config', icon: MessageCircle, group: 'Sistema' },
+        { title: 'Google Apps', url: '/dashboard/google-apps', icon: Cloud, group: 'Sistema' },
         { title: 'WhatsApp Master', url: '/dashboard/master-whatsapp', icon: Send, group: 'Sistema' },
         { title: 'Pagamentos Assinaturas', url: '/dashboard/subscription-payments', icon: Receipt, group: 'Financeiro' },
         { title: 'Faturamento Externo', url: '/dashboard/external-billing', icon: FileText, group: 'Financeiro' },

@@ -58,6 +58,7 @@ const ProposalsListPage = lazy(() => import("@/pages/admin/ProposalsListPage"));
 const ProposalBuilderPage = lazy(() => import("@/pages/admin/ProposalBuilderPage"));
 const NicheTemplatesPage = lazy(() => import("@/pages/admin/NicheTemplatesPage"));
 const CompanySettingsPage = lazy(() => import("@/pages/admin/CompanySettingsPage"));
+const GoogleAppsConfigPage = lazy(() => import("@/pages/admin/GoogleAppsConfigPage"));
 
 export const masterRoutes = (
   <>
@@ -436,6 +437,13 @@ export const masterRoutes = (
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Templates por Nicho">
           <LazyRoute><NicheTemplatesPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/google-apps" element={
+      <ProtectedRoute allowedRoles={['master_admin']}>
+        <AdminLayout pageTitle="Configurações Google Apps">
+          <LazyRoute><GoogleAppsConfigPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

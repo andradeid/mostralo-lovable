@@ -8372,7 +8372,11 @@ export type Database = {
           include_payment_methods: boolean | null
           keep_open: boolean | null
           keyword_finish: string | null
+          last_sync_error: string | null
+          last_synced_at: string | null
           listening_from_me: boolean | null
+          needs_sync: boolean | null
+          openai_creds_id: string | null
           personality: string | null
           stop_bot_from_me: boolean | null
           store_id: string
@@ -8406,7 +8410,11 @@ export type Database = {
           include_payment_methods?: boolean | null
           keep_open?: boolean | null
           keyword_finish?: string | null
+          last_sync_error?: string | null
+          last_synced_at?: string | null
           listening_from_me?: boolean | null
+          needs_sync?: boolean | null
+          openai_creds_id?: string | null
           personality?: string | null
           stop_bot_from_me?: boolean | null
           store_id: string
@@ -8440,7 +8448,11 @@ export type Database = {
           include_payment_methods?: boolean | null
           keep_open?: boolean | null
           keyword_finish?: string | null
+          last_sync_error?: string | null
+          last_synced_at?: string | null
           listening_from_me?: boolean | null
+          needs_sync?: boolean | null
+          openai_creds_id?: string | null
           personality?: string | null
           stop_bot_from_me?: boolean | null
           store_id?: string

@@ -20,28 +20,46 @@ serve(async (req) => {
     // Get frontend URL from referer or use default
     const frontendUrl = Deno.env.get("FRONTEND_URL") || "https://mostralo.lovable.app";
 
-    if (error) {
-      console.error("Google OAuth error:", error);
-      return Response.redirect(
-        `${frontendUrl}/profissional/google-calendar?error=google_denied`,
-        302
-      );
-    }
-
-    if (!code || !stateBase64) {
+    // Decode state first to determine flow type
+    let state: { 
+      professional_id: string; 
+      store_id: string; 
+      user_id: string;
+      flow?: "store_admin" | "professional";
+    };
+    
+    if (stateBase64) {
+      try {
+        state = JSON.parse(atob(stateBase64));
+      } catch {
+        return Response.redirect(
+          `${frontendUrl}/profissional/google-calendar?error=invalid_state`,
+          302
+        );
+      }
+    } else {
       return Response.redirect(
         `${frontendUrl}/profissional/google-calendar?error=missing_params`,
         302
       );
     }
 
-    // Decode state
-    let state: { professional_id: string; store_id: string; user_id: string };
-    try {
-      state = JSON.parse(atob(stateBase64));
-    } catch {
+    const isStoreAdminFlow = state.flow === "store_admin";
+    const redirectBase = isStoreAdminFlow 
+      ? `${frontendUrl}/dashboard/booking/professionals`
+      : `${frontendUrl}/profissional/google-calendar`;
+
+    if (error) {
+      console.error("Google OAuth error:", error);
       return Response.redirect(
-        `${frontendUrl}/profissional/google-calendar?error=invalid_state`,
+        `${redirectBase}?error=google_denied`,
+        302
+      );
+    }
+
+    if (!code) {
+      return Response.redirect(
+        `${redirectBase}?error=missing_params`,
         302
       );
     }
@@ -57,7 +75,7 @@ serve(async (req) => {
     if (configError || !oauthConfig?.client_id || !oauthConfig?.client_secret) {
       console.error("OAuth config error:", configError);
       return Response.redirect(
-        `${frontendUrl}/profissional/google-calendar?error=config_missing`,
+        `${redirectBase}?error=config_missing`,
         302
       );
     }
@@ -82,7 +100,7 @@ serve(async (req) => {
       const errorBody = await tokenResponse.text();
       console.error("Token exchange failed:", errorBody);
       return Response.redirect(
-        `${frontendUrl}/profissional/google-calendar?error=token_exchange`,
+        `${redirectBase}?error=token_exchange`,
         302
       );
     }
@@ -92,7 +110,7 @@ serve(async (req) => {
     if (!tokens.access_token || !tokens.refresh_token) {
       console.error("Missing tokens in response:", tokens);
       return Response.redirect(
-        `${frontendUrl}/profissional/google-calendar?error=missing_tokens`,
+        `${redirectBase}?error=missing_tokens`,
         302
       );
     }
@@ -133,16 +151,17 @@ serve(async (req) => {
     if (upsertError) {
       console.error("Failed to save tokens:", upsertError);
       return Response.redirect(
-        `${frontendUrl}/profissional/google-calendar?error=save_failed`,
+        `${redirectBase}?error=save_failed`,
         302
       );
     }
 
-    // Success! Redirect back to the integration page
-    return Response.redirect(
-      `${frontendUrl}/profissional/google-calendar?success=true`,
-      302
-    );
+    // Success! Redirect back appropriately
+    const successUrl = isStoreAdminFlow 
+      ? `${redirectBase}?google_success=true&professional_id=${state.professional_id}`
+      : `${redirectBase}?success=true`;
+      
+    return Response.redirect(successUrl, 302);
 
   } catch (error) {
     console.error("Error in google-calendar-callback:", error);

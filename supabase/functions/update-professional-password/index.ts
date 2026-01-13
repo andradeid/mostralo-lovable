@@ -1,4 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 
 interface UpdatePasswordRequest {
   professional_id: string;
@@ -12,7 +12,6 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -20,6 +19,8 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    
+    console.log('Creating admin client...');
     
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
       auth: {
@@ -30,9 +31,10 @@ Deno.serve(async (req) => {
 
     const body: UpdatePasswordRequest = await req.json();
     
-    console.log('Updating professional password:', { 
+    console.log('Request received:', { 
       professional_id: body.professional_id, 
-      store_id: body.store_id 
+      store_id: body.store_id,
+      password_length: body.new_password?.length || 0
     });
 
     // Validações
@@ -58,6 +60,7 @@ Deno.serve(async (req) => {
     }
 
     // Buscar profissional e validar que pertence à loja
+    console.log('Fetching professional...');
     const { data: professional, error: professionalError } = await supabaseAdmin
       .from('professionals')
       .select('id, user_id, name, store_id')
@@ -73,6 +76,8 @@ Deno.serve(async (req) => {
       );
     }
 
+    console.log('Professional found:', professional.name, 'user_id:', professional.user_id);
+
     if (!professional.user_id) {
       return new Response(
         JSON.stringify({ success: false, error: 'Profissional não possui conta de acesso vinculada' }),
@@ -80,8 +85,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Atualizar senha do usuário
-    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+    // Atualizar senha do usuário usando Admin API
+    console.log('Updating password for user:', professional.user_id);
+    
+    const { data: updatedUser, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
       professional.user_id,
       { password: body.new_password }
     );
@@ -94,7 +101,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('Password updated successfully for professional:', professional.name);
+    console.log('Password updated successfully for:', professional.name);
 
     return new Response(
       JSON.stringify({

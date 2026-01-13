@@ -9,6 +9,7 @@ import { Loader2, Calendar, CheckCircle2, AlertTriangle, RefreshCw, Unlink } fro
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
+import { useStoreModules } from '@/hooks/useStoreModules';
 
 interface GoogleCalendar {
   id: string;
@@ -34,6 +35,7 @@ export function ProfessionalGoogleCalendarDialog({
   storeId
 }: ProfessionalGoogleCalendarDialogProps) {
   const { session } = useAuth();
+  const { hasModule, loading: loadingModules } = useStoreModules(storeId);
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
@@ -41,9 +43,11 @@ export function ProfessionalGoogleCalendarDialog({
   const [calendars, setCalendars] = useState<GoogleCalendar[]>([]);
   const [loadingCalendars, setLoadingCalendars] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [hasGoogleModule, setHasGoogleModule] = useState(false);
   const [syncEnabled, setSyncEnabled] = useState(true);
   const [selectedCalendarId, setSelectedCalendarId] = useState<string>('primary');
+
+  // Verificar módulo usando o hook correto
+  const hasGoogleModule = hasModule('google_calendar');
 
   const fetchCalendars = useCallback(async () => {
     if (!session?.access_token) return;
@@ -63,30 +67,6 @@ export function ProfessionalGoogleCalendarDialog({
       setLoadingCalendars(false);
     }
   }, [session?.access_token, professionalId]);
-
-  useEffect(() => {
-    if (!open || !storeId) return;
-    
-    const checkModule = async () => {
-      try {
-        const response = await fetch(
-          `https://noshwvwpjtnvndokbfjx.supabase.co/rest/v1/store_modules?store_id=eq.${storeId}&module_key=eq.google_calendar&select=is_enabled`,
-          {
-            headers: {
-              'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5vc2h3dndwanRudm5kb2tiZmp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU3OTY2NzYsImV4cCI6MjA3MTM3MjY3Nn0.RkppC11I7QW8n8Fdx5FOyjlX_yE1kOFGUlzb3xpphEA',
-              'Authorization': `Bearer ${session?.access_token || ''}`
-            }
-          }
-        );
-        const data = await response.json();
-        setHasGoogleModule(Boolean(data?.[0]?.is_enabled));
-      } catch (err) {
-        console.error('Error checking module:', err);
-      }
-    };
-    
-    checkModule();
-  }, [open, storeId, session?.access_token]);
 
   useEffect(() => {
     if (!open || !professionalId) return;
@@ -200,6 +180,25 @@ export function ProfessionalGoogleCalendarDialog({
       setSaving(false);
     }
   };
+
+  // Mostrar loading enquanto verifica módulos
+  if (loadingModules) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Google Calendar
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   if (!hasGoogleModule) {
     return (

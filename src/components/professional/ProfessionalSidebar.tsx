@@ -6,7 +6,8 @@ import {
   CalendarX, 
   User, 
   LogOut,
-  BarChart3
+  BarChart3,
+  CalendarSync
 } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { PreloadLink } from "@/components/PreloadLink";
@@ -44,6 +45,7 @@ export function ProfessionalSidebar({
     { icon: DollarSign, title: "Minhas Comissões", path: "/profissional/comissoes" },
     { icon: Clock, title: "Meus Horários", path: "/profissional/horarios" },
     { icon: CalendarX, title: "Bloqueios", path: "/profissional/bloqueios" },
+    { icon: CalendarSync, title: "Google Calendar", path: "/profissional/google-calendar" },
     { icon: User, title: "Perfil", path: "/profissional/perfil" },
   ];
 

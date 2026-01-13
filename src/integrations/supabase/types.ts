@@ -481,6 +481,61 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_google_events: {
+        Row: {
+          booking_id: string
+          created_at: string | null
+          google_calendar_id: string
+          google_event_id: string
+          id: string
+          last_error: string | null
+          store_id: string
+          synced_at: string | null
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string | null
+          google_calendar_id: string
+          google_event_id: string
+          id?: string
+          last_error?: string | null
+          store_id: string
+          synced_at?: string | null
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string | null
+          google_calendar_id?: string
+          google_event_id?: string
+          id?: string
+          last_error?: string | null
+          store_id?: string
+          synced_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_google_events_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_google_events_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_google_events_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_notification_logs: {
         Row: {
           booking_id: string
@@ -3941,6 +3996,79 @@ export type Database = {
           },
           {
             foreignKeyName: "financial_transactions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      google_calendar_tokens: {
+        Row: {
+          access_token: string
+          calendar_id: string | null
+          created_at: string | null
+          google_email: string | null
+          id: string
+          is_active: boolean | null
+          last_error: string | null
+          last_sync_at: string | null
+          professional_id: string
+          refresh_token: string
+          store_id: string
+          sync_enabled: boolean | null
+          token_expires_at: string
+          updated_at: string | null
+        }
+        Insert: {
+          access_token: string
+          calendar_id?: string | null
+          created_at?: string | null
+          google_email?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_error?: string | null
+          last_sync_at?: string | null
+          professional_id: string
+          refresh_token: string
+          store_id: string
+          sync_enabled?: boolean | null
+          token_expires_at: string
+          updated_at?: string | null
+        }
+        Update: {
+          access_token?: string
+          calendar_id?: string | null
+          created_at?: string | null
+          google_email?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_error?: string | null
+          last_sync_at?: string | null
+          professional_id?: string
+          refresh_token?: string
+          store_id?: string
+          sync_enabled?: boolean | null
+          token_expires_at?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "google_calendar_tokens_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: true
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "google_calendar_tokens_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "google_calendar_tokens_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"

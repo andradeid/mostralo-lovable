@@ -126,4 +126,5 @@ export const routePreloadMap: Record<string, RouteImportFn> = {
   '/master/system-updates': () => import('@/pages/admin/SystemUpdatesManagementPage'),
   '/master/system-banners': () => import('@/pages/admin/SystemBannersPage'),
   '/dashboard/documentacao-tecnica': () => import('@/pages/admin/TechnicalDocsPage'),
+  '/dashboard/sistemas/especificacoes': () => import('@/pages/admin/TechSpecsPage'),
 };

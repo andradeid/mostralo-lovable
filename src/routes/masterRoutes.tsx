@@ -50,6 +50,7 @@ const ContractTemplateEditPage = lazy(() => import("@/pages/admin/ContractTempla
 const SystemUpdatesManagementPage = lazy(() => import("@/pages/admin/SystemUpdatesManagementPage"));
 const SystemBannersPage = lazy(() => import("@/pages/admin/SystemBannersPage"));
 const TechnicalDocsPage = lazy(() => import("@/pages/admin/TechnicalDocsPage"));
+const TechSpecsPage = lazy(() => import("@/pages/admin/TechSpecsPage"));
 const PopupABTestPage = lazy(() => import("@/pages/admin/PopupABTestPage"));
 const AdminDigitalCardPage = lazy(() => import("@/pages/admin/AdminDigitalCardPage"));
 const TutorialsManagementPage = lazy(() => import("@/pages/admin/TutorialsManagementPage"));
@@ -384,6 +385,13 @@ export const masterRoutes = (
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Documentação Técnica">
           <LazyRoute><TechnicalDocsPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/sistemas/especificacoes" element={
+      <ProtectedRoute allowedRoles={['master_admin']}>
+        <AdminLayout pageTitle="Especificações Técnicas">
+          <LazyRoute><TechSpecsPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

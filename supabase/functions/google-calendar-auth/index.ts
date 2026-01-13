@@ -50,21 +50,7 @@ serve(async (req) => {
     if (professionalId) {
       isStoreAdminFlow = true;
       
-      // Verify store admin has access to this professional
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role, store_id")
-        .eq("id", user.id)
-        .single();
-      
-      if (!profile || !["store_admin", "master_admin"].includes(profile.role)) {
-        return new Response(
-          JSON.stringify({ error: "Sem permissão para gerenciar profissionais" }),
-          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      
-      // Verify professional belongs to the same store
+      // Buscar profissional primeiro para validar
       const { data: professional, error: profCheckError } = await supabase
         .from("professionals")
         .select("id, store_id")
@@ -78,9 +64,39 @@ serve(async (req) => {
         );
       }
       
-      if (professional.store_id !== profile.store_id && profile.role !== "master_admin") {
+      // Verificar se usuário tem permissão para gerenciar este profissional
+      // Pode ser: owner da loja, store_admin da loja, ou master_admin
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+      
+      const isMasterAdmin = profile?.role === "master_admin";
+      
+      // Verificar se é owner da loja
+      const { data: store } = await supabase
+        .from("stores")
+        .select("owner_id")
+        .eq("id", professional.store_id)
+        .single();
+      
+      const isStoreOwner = store?.owner_id === user.id;
+      
+      // Verificar se é store_admin da loja
+      const { data: storeAdminRole } = await supabase
+        .from("user_roles")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("store_id", professional.store_id)
+        .eq("role", "store_admin")
+        .maybeSingle();
+      
+      const isStoreAdmin = !!storeAdminRole;
+      
+      if (!isMasterAdmin && !isStoreOwner && !isStoreAdmin) {
         return new Response(
-          JSON.stringify({ error: "Profissional não pertence à sua loja" }),
+          JSON.stringify({ error: "Sem permissão para gerenciar profissionais desta loja" }),
           { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }

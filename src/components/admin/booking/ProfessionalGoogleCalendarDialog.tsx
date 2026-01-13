@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -37,7 +37,7 @@ export function ProfessionalGoogleCalendarDialog({
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
-  const [tokenData, setTokenData] = useState<any>(null);
+  const [tokenData, setTokenData] = useState<Record<string, unknown> | null>(null);
   const [calendars, setCalendars] = useState<GoogleCalendar[]>([]);
   const [loadingCalendars, setLoadingCalendars] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -45,54 +45,7 @@ export function ProfessionalGoogleCalendarDialog({
   const [syncEnabled, setSyncEnabled] = useState(true);
   const [selectedCalendarId, setSelectedCalendarId] = useState<string>('primary');
 
-  useEffect(() => {
-    const checkModule = async () => {
-      const { data } = await supabase
-        .from('store_modules')
-        .select('is_enabled')
-        .eq('store_id', storeId)
-        .eq('module_key', 'google_calendar')
-        .maybeSingle();
-      
-      setHasGoogleModule(data?.is_enabled || false);
-    };
-    
-    if (open && storeId) {
-      checkModule();
-    }
-  }, [open, storeId]);
-
-  useEffect(() => {
-    const fetchTokenData = async () => {
-      if (!open || !professionalId) return;
-      
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('google_calendar_tokens')
-          .select('*')
-          .eq('professional_id', professionalId)
-          .maybeSingle();
-
-        if (!error && data) {
-          setTokenData(data);
-          setSyncEnabled(data.sync_enabled ?? true);
-          setSelectedCalendarId(data.calendar_id || 'primary');
-          if (data.is_active) fetchCalendars();
-        } else {
-          setTokenData(null);
-        }
-      } catch (err) {
-        console.error('Error:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTokenData();
-  }, [open, professionalId]);
-
-  const fetchCalendars = async () => {
+  const fetchCalendars = useCallback(async () => {
     if (!session?.access_token) return;
     
     setLoadingCalendars(true);
@@ -109,7 +62,68 @@ export function ProfessionalGoogleCalendarDialog({
     } finally {
       setLoadingCalendars(false);
     }
-  };
+  }, [session?.access_token, professionalId]);
+
+  useEffect(() => {
+    if (!open || !storeId) return;
+    
+    const checkModule = async () => {
+      try {
+        const response = await fetch(
+          `https://noshwvwpjtnvndokbfjx.supabase.co/rest/v1/store_modules?store_id=eq.${storeId}&module_key=eq.google_calendar&select=is_enabled`,
+          {
+            headers: {
+              'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5vc2h3dndwanRudm5kb2tiZmp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU3OTY2NzYsImV4cCI6MjA3MTM3MjY3Nn0.RkppC11I7QW8n8Fdx5FOyjlX_yE1kOFGUlzb3xpphEA',
+              'Authorization': `Bearer ${session?.access_token || ''}`
+            }
+          }
+        );
+        const data = await response.json();
+        setHasGoogleModule(Boolean(data?.[0]?.is_enabled));
+      } catch (err) {
+        console.error('Error checking module:', err);
+      }
+    };
+    
+    checkModule();
+  }, [open, storeId, session?.access_token]);
+
+  useEffect(() => {
+    if (!open || !professionalId) return;
+    
+    const fetchTokenData = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `https://noshwvwpjtnvndokbfjx.supabase.co/rest/v1/google_calendar_tokens?professional_id=eq.${professionalId}&select=*&limit=1`,
+          {
+            headers: {
+              'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5vc2h3dndwanRudm5kb2tiZmp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU3OTY2NzYsImV4cCI6MjA3MTM3MjY3Nn0.RkppC11I7QW8n8Fdx5FOyjlX_yE1kOFGUlzb3xpphEA',
+              'Authorization': `Bearer ${session?.access_token || ''}`
+            }
+          }
+        );
+        const data = await response.json();
+        const token = data?.[0];
+        if (token) {
+          setTokenData(token as Record<string, unknown>);
+          setSyncEnabled(Boolean(token.sync_enabled ?? true));
+          setSelectedCalendarId(String(token.calendar_id || 'primary'));
+          if (token.is_active) {
+            fetchCalendars();
+          }
+        } else {
+          setTokenData(null);
+        }
+      } catch (err) {
+        console.error('Error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchTokenData();
+  }, [open, professionalId, fetchCalendars, session?.access_token]);
 
   const handleConnect = async () => {
     if (!session?.access_token) {
@@ -245,7 +259,7 @@ export function ProfessionalGoogleCalendarDialog({
                 <CheckCircle2 className="h-5 w-5 text-green-600" />
                 <div>
                   <p className="font-medium text-green-800 dark:text-green-200">Conectado</p>
-                  <p className="text-sm text-green-600">{tokenData.google_email}</p>
+                  <p className="text-sm text-green-600">{String(tokenData.google_email || '')}</p>
                 </div>
               </div>
               <Button variant="ghost" size="sm" onClick={handleDisconnect} disabled={disconnecting} className="text-red-600 hover:bg-red-50">

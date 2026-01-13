@@ -342,12 +342,16 @@ export default function IdeasPage() {
       </Card>
 
       <DragDropContext onDragEnd={onDragEnd}>
-        <Droppable droppableId="ideas-list">
-          {(provided) => (
+        <Droppable droppableId="ideas-list" mode="standard">
+          {(provided, droppableSnapshot) => (
             <div 
               {...provided.droppableProps} 
               ref={provided.innerRef}
-              className="space-y-4"
+              className="space-y-4 min-h-[200px]"
+              style={{
+                // Ajuda o react-beautiful-dnd a detectar corretamente o scroll container
+                position: 'relative',
+              }}
             >
               {filteredIdeas.map((idea, index) => (
                 <Draggable 

@@ -45,6 +45,7 @@ import {
   UserPlus,
   Film,
   Lightbulb,
+  Code,
   Monitor,
   Megaphone,
   Building2,
@@ -428,6 +429,7 @@ export function AdminSidebar() {
         { title: 'Monitor Webhooks', url: '/dashboard/webhooks-monitor', icon: Rss, group: 'Sistema' },
         { title: 'Guia Cloudflare', url: '/dashboard/cloudflare-guide', icon: Cloud, group: 'Sistema' },
         { title: 'Homologação iFood', url: '/dashboard/ifood-homologation', icon: ClipboardCheck, group: 'Sistema' },
+        { title: 'Especificações Técnicas', url: '/dashboard/sistemas/especificacoes', icon: Code, group: 'Sistema' },
         { title: 'Cartão Digital', url: '/dashboard/cartao-digital', icon: CreditCard, group: 'Conta' },
         { title: 'Novidades', url: '/dashboard/novidades', icon: Megaphone, group: 'Conta' },
         { title: 'Perfil', url: '/dashboard/profile', icon: User, group: 'Conta' }

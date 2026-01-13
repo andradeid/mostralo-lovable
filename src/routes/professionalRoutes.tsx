@@ -11,6 +11,7 @@ const ProfessionalSchedule = lazy(() => import("@/pages/professional/Professiona
 const ProfessionalBlocks = lazy(() => import("@/pages/professional/ProfessionalBlocks"));
 const ProfessionalProfile = lazy(() => import("@/pages/professional/ProfessionalProfile"));
 const ProfessionalPerformance = lazy(() => import("@/pages/professional/ProfessionalPerformance"));
+const ProfessionalGoogleCalendar = lazy(() => import("@/pages/professional/ProfessionalGoogleCalendar"));
 
 export const professionalRoutes = (
   <>
@@ -47,6 +48,11 @@ export const professionalRoutes = (
     <Route path="/profissional/performance" element={
       <ProtectedRoute allowedRoles={["professional"]}>
         <ProfessionalLayout><LazyRoute><ProfessionalPerformance /></LazyRoute></ProfessionalLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/profissional/google-calendar" element={
+      <ProtectedRoute allowedRoles={["professional"]}>
+        <ProfessionalLayout><LazyRoute><ProfessionalGoogleCalendar /></LazyRoute></ProfessionalLayout>
       </ProtectedRoute>
     } />
   </>

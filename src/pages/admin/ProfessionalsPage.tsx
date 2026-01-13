@@ -70,6 +70,7 @@ import { ProfessionalScheduleDialog } from '@/components/admin/booking/Professio
 import { ProfessionalBlocksDialog } from '@/components/admin/booking/ProfessionalBlocksDialog';
 import { ProfessionalServicesDialog } from '@/components/admin/booking/ProfessionalServicesDialog';
 import { ProfessionalAgendaDialog } from '@/components/admin/booking/ProfessionalAgendaDialog';
+import { ProfessionalGoogleCalendarDialog } from '@/components/admin/booking/ProfessionalGoogleCalendarDialog';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import {
   Collapsible,
@@ -107,6 +108,7 @@ const ProfessionalsPage = () => {
   const [isBlocksDialogOpen, setIsBlocksDialogOpen] = useState(false);
   const [isServicesDialogOpen, setIsServicesDialogOpen] = useState(false);
   const [isAgendaDialogOpen, setIsAgendaDialogOpen] = useState(false);
+  const [isGoogleCalendarDialogOpen, setIsGoogleCalendarDialogOpen] = useState(false);
   const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [showValidationOverlay, setShowValidationOverlay] = useState(false);
@@ -797,6 +799,13 @@ const ProfessionalsPage = () => {
                          <Calendar className="h-4 w-4 mr-2" />
                           Ver Agenda Completa
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => {
+                          setSelectedProfessional(professional);
+                          setIsGoogleCalendarDialogOpen(true);
+                        }}>
+                          <Calendar className="h-4 w-4 mr-2" />
+                          Google Calendar
+                        </DropdownMenuItem>
                         {storeSlug && (
                           <DropdownMenuItem onClick={() => {
                             const url = `${window.location.origin}/agendar/${storeSlug}?profissional=${professional.id}`;
@@ -1283,6 +1292,17 @@ const ProfessionalsPage = () => {
             onOpenChange={setIsAgendaDialogOpen}
             professionalId={selectedProfessional.id}
             professionalName={selectedProfessional.name}
+          />
+        )}
+
+        {/* Google Calendar Dialog */}
+        {selectedProfessional && storeId && (
+          <ProfessionalGoogleCalendarDialog
+            open={isGoogleCalendarDialogOpen}
+            onOpenChange={setIsGoogleCalendarDialogOpen}
+            professionalId={selectedProfessional.id}
+            professionalName={selectedProfessional.name}
+            storeId={storeId}
           />
         )}
 

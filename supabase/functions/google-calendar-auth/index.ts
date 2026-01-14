@@ -66,13 +66,14 @@ serve(async (req) => {
       
       // Verificar se usuário tem permissão para gerenciar este profissional
       // Pode ser: owner da loja, store_admin da loja, ou master_admin
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
+      const { data: masterAdminRole } = await supabase
+        .from("user_roles")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("role", "master_admin")
+        .maybeSingle();
       
-      const isMasterAdmin = profile?.role === "master_admin";
+      const isMasterAdmin = !!masterAdminRole;
       
       // Verificar se é owner da loja
       const { data: store } = await supabase

@@ -80,9 +80,8 @@ serve(async (req) => {
       );
     }
 
-    // Exchange code for tokens
-    const { origin } = new URL(req.url);
-    const redirectUri = `${origin}/google-calendar-callback`;
+    // Exchange code for tokens - usar URL completa com /functions/v1/
+    const redirectUri = "https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/google-calendar-callback";
 
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",

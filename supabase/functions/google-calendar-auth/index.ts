@@ -115,9 +115,8 @@ serve(async (req) => {
         );
       }
 
-      // Build the redirect URI
-      const { origin } = new URL(req.url);
-      const redirectUri = `${origin}/google-calendar-callback`;
+      // Build the redirect URI - usar URL completa com /functions/v1/
+      const redirectUri = "https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/google-calendar-callback";
 
       // State contains professional_id, store_id, user_id and flow type
       const state = JSON.stringify({
@@ -179,9 +178,8 @@ serve(async (req) => {
       );
     }
 
-    // Build the redirect URI
-    const { origin } = new URL(req.url);
-    const redirectUri = `${origin}/google-calendar-callback`;
+    // Build the redirect URI - usar URL completa com /functions/v1/
+    const redirectUri = "https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/google-calendar-callback";
 
     // State contains professional_id and store_id for the callback
     const state = JSON.stringify({

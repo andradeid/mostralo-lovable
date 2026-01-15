@@ -1,13 +1,14 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, DollarSign, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { Calendar, Clock, DollarSign, CheckCircle, XCircle, Loader2, Share2, Copy, ExternalLink } from "lucide-react";
 import { useProfessionalData, useProfessionalBookings, useProfessionalStats } from "@/hooks/useProfessionalData";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 
 export default function ProfessionalDashboard() {
   const queryClient = useQueryClient();
@@ -66,18 +67,137 @@ export default function ProfessionalDashboard() {
     return <Badge variant={style.variant}>{style.label}</Badge>;
   };
 
+  // Generate the booking link with professional pre-selected
+  const getBookingLink = () => {
+    const baseUrl = window.location.origin;
+    const storeSlug = professional?.stores?.slug;
+    if (!storeSlug || !professional?.id) return null;
+    return `${baseUrl}/agendar/${storeSlug}?profissional=${professional.id}`;
+  };
+
+  const handleCopyLink = async () => {
+    const link = getBookingLink();
+    if (!link) {
+      toast.error("Link não disponível");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(link);
+      toast.success("Link copiado para a área de transferência!");
+    } catch {
+      toast.error("Erro ao copiar link");
+    }
+  };
+
+  const handleShareLink = async () => {
+    const link = getBookingLink();
+    if (!link) {
+      toast.error("Link não disponível");
+      return;
+    }
+    
+    const shareData = {
+      title: `Agende com ${professional?.name}`,
+      text: `Agende seu horário com ${professional?.name} - ${professional?.stores?.name}`,
+      url: link,
+    };
+
+    if (navigator.share && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        // User cancelled or error - fallback to copy
+        handleCopyLink();
+      }
+    } else {
+      // Fallback to copy
+      handleCopyLink();
+    }
+  };
+
+  const bookingLink = getBookingLink();
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold">
-          Olá, {professional?.name?.split(" ")[0]}! 👋
-        </h1>
-        <p className="text-muted-foreground">
-          {professional?.specialty && `${professional.specialty} • `}
-          {professional?.stores?.name}
-        </p>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold">
+            Olá, {professional?.name?.split(" ")[0]}! 👋
+          </h1>
+          <p className="text-muted-foreground">
+            {professional?.specialty && `${professional.specialty} • `}
+            {professional?.stores?.name}
+          </p>
+        </div>
+
+        {/* Share Link Button */}
+        {bookingLink && (
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleCopyLink}
+              className="gap-2"
+            >
+              <Copy className="w-4 h-4" />
+              <span className="hidden sm:inline">Copiar Link</span>
+            </Button>
+            <Button 
+              size="sm"
+              onClick={handleShareLink}
+              className="gap-2"
+            >
+              <Share2 className="w-4 h-4" />
+              <span className="hidden sm:inline">Compartilhar Agenda</span>
+            </Button>
+          </div>
+        )}
       </div>
+
+      {/* Share Card - Mobile friendly */}
+      {bookingLink && (
+        <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
+          <CardContent className="p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="flex items-center gap-3 flex-1">
+                <div className="p-2 rounded-full bg-primary/20">
+                  <Share2 className="w-5 h-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm">Seu link de agendamento</p>
+                  <p className="text-xs text-muted-foreground truncate">{bookingLink}</p>
+                </div>
+              </div>
+              <div className="flex gap-2 self-end sm:self-auto">
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => window.open(bookingLink, '_blank')}
+                  title="Abrir link"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={handleCopyLink}
+                  title="Copiar link"
+                >
+                  <Copy className="w-4 h-4" />
+                </Button>
+                <Button 
+                  size="icon"
+                  onClick={handleShareLink}
+                  title="Compartilhar"
+                >
+                  <Share2 className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

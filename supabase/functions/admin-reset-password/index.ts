@@ -244,25 +244,26 @@ serve(async (req) => {
       );
     }
 
-    // Verificar se o usuário target existe (e capturar erro real quando a Admin API não está configurada)
-    const { data: targetUserData, error: targetUserError } =
-      await supabaseAdmin.auth.admin.getUserById(userId);
+    // Verificar se o usuário target existe na tabela profiles (evita problema com Admin API)
+    const { data: targetProfile, error: profileError } = await supabaseAdmin
+      .from("profiles")
+      .select("id, email, full_name")
+      .eq("id", userId)
+      .maybeSingle();
 
-    console.log('🔎 Target user check:', {
+    console.log('🔎 Target user profile check:', {
       userId: userId.substring(0, 8) + '***',
-      hasTargetUser: !!targetUserData?.user,
-      error: targetUserError?.message,
-      errorStatus: (targetUserError as any)?.status,
+      hasTargetProfile: !!targetProfile,
+      targetEmail: targetProfile?.email?.substring(0, 5) + '***',
+      error: profileError?.message,
     });
 
-    if (targetUserError) {
-      console.error('❌ Failed to fetch target user:', targetUserError);
+    if (profileError) {
+      console.error('❌ Failed to fetch target user profile:', profileError);
       return new Response(
         JSON.stringify({
           error: "Failed to fetch target user",
-          details:
-            targetUserError.message ||
-            "Check if SUPABASE_SERVICE_ROLE_KEY is configured for this Edge Function.",
+          details: profileError.message,
         }),
         {
           status: 500,
@@ -271,7 +272,7 @@ serve(async (req) => {
       );
     }
 
-    if (!targetUserData?.user) {
+    if (!targetProfile) {
       return new Response(
         JSON.stringify({ error: "User not found" }),
         {
@@ -312,7 +313,7 @@ serve(async (req) => {
         action: "password_reset",
         target_user_id: userId,
         details: {
-          target_email: targetUserData.user.email,
+          target_email: targetProfile.email,
           reset_by: user.email,
           timestamp: new Date().toISOString(),
         },
@@ -330,8 +331,8 @@ serve(async (req) => {
         success: true,
         message: "Password reset successfully",
         user: {
-          id: updateData.user.id,
-          email: updateData.user.email,
+          id: updateData?.user?.id ?? userId,
+          email: updateData?.user?.email ?? targetProfile.email,
         },
       }),
       {

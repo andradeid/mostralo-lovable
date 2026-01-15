@@ -509,9 +509,22 @@ export function useBooking(storeId: string | null) {
         single: true
       });
     },
-    onSuccess: () => {
+    onSuccess: async (booking) => {
       queryClient.invalidateQueries({ queryKey: ['bookings', storeId] });
       toast.success('Agendamento criado com sucesso!');
+      
+      // Sincronizar com Google Calendar (em background, não bloqueia)
+      if (booking?.id) {
+        supabase.functions.invoke('google-calendar-sync', {
+          body: { action: 'create', booking_id: booking.id }
+        }).then(({ error }) => {
+          if (error) {
+            console.error('Erro ao sincronizar com Google Calendar:', error);
+          }
+        }).catch(err => {
+          console.error('Falha na sincronização com Google Calendar:', err);
+        });
+      }
     },
     onError: (error: Error) => {
       toast.error(`Erro ao criar agendamento: ${error.message}`);

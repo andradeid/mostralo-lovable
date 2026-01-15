@@ -49,7 +49,7 @@ export function ProfessionalGoogleCalendarDialog({
   // Verificar módulo usando o hook correto
   const hasGoogleModule = hasModule('google_calendar');
 
-  const fetchCalendars = useCallback(async () => {
+  const fetchCalendars = useCallback(async (savedCalendarId?: string) => {
     setLoadingCalendars(true);
     try {
       // Garantir que temos uma sessão válida
@@ -78,6 +78,28 @@ export function ProfessionalGoogleCalendarDialog({
       if (data?.calendars && data.calendars.length > 0) {
         setCalendars(data.calendars);
         console.log('fetchCalendars: Loaded', data.calendars.length, 'calendars');
+        
+        // Se temos um calendar_id salvo, verificar se ainda é válido
+        const calendarIdToUse = savedCalendarId || selectedCalendarId;
+        const savedExists = data.calendars.some((cal: GoogleCalendar) => cal.id === calendarIdToUse);
+        
+        if (savedExists) {
+          // Manter o calendário salvo
+          setSelectedCalendarId(calendarIdToUse);
+        } else if (calendarIdToUse === 'primary') {
+          // Se era "primary", encontrar o calendário principal real
+          const primaryCal = data.calendars.find((cal: GoogleCalendar) => cal.primary);
+          if (primaryCal) {
+            setSelectedCalendarId(primaryCal.id);
+          }
+        } else {
+          // Calendário salvo não existe mais, usar o principal
+          const primaryCal = data.calendars.find((cal: GoogleCalendar) => cal.primary);
+          if (primaryCal) {
+            setSelectedCalendarId(primaryCal.id);
+            toast.info('Calendário anterior não encontrado, usando o principal');
+          }
+        }
       } else if (data?.error) {
         console.error('fetchCalendars: API error:', data.error);
         toast.error(data.error);
@@ -91,7 +113,7 @@ export function ProfessionalGoogleCalendarDialog({
     } finally {
       setLoadingCalendars(false);
     }
-  }, [professionalId]);
+  }, [professionalId, selectedCalendarId]);
 
   useEffect(() => {
     if (!open || !professionalId) return;
@@ -113,9 +135,10 @@ export function ProfessionalGoogleCalendarDialog({
         if (token) {
           setTokenData(token as Record<string, unknown>);
           setSyncEnabled(Boolean(token.sync_enabled ?? true));
-          setSelectedCalendarId(String(token.calendar_id || 'primary'));
+          const savedCalId = String(token.calendar_id || 'primary');
+          setSelectedCalendarId(savedCalId);
           if (token.is_active) {
-            fetchCalendars();
+            fetchCalendars(savedCalId);
           }
         } else {
           setTokenData(null);
@@ -294,7 +317,7 @@ export function ProfessionalGoogleCalendarDialog({
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label>Calendário</Label>
-                <Button variant="ghost" size="sm" onClick={fetchCalendars} disabled={loadingCalendars}>
+                <Button variant="ghost" size="sm" onClick={() => fetchCalendars()} disabled={loadingCalendars}>
                   <RefreshCw className={`h-4 w-4 ${loadingCalendars ? 'animate-spin' : ''}`} />
                 </Button>
               </div>
@@ -309,7 +332,7 @@ export function ProfessionalGoogleCalendarDialog({
                   <p className="text-sm text-muted-foreground text-center">
                     Nenhum calendário encontrado. Clique no botão de atualizar.
                   </p>
-                  <Button variant="outline" size="sm" onClick={fetchCalendars}>
+                  <Button variant="outline" size="sm" onClick={() => fetchCalendars()}>
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Carregar Calendários
                   </Button>

@@ -33,18 +33,56 @@ serve(async (req) => {
       );
     }
 
-    // Parse request body for professional_id (store admin flow)
+    // Parse request body for professional_id (store admin flow) and origin_url
     let professionalId: string | null = null;
     let isStoreAdminFlow = false;
+    let originUrl: string | null = null;
     
     if (req.method === "POST") {
       try {
         const body = await req.json();
         professionalId = body.professional_id || null;
+        originUrl = body.origin_url || null;
       } catch {
         // No body or invalid JSON, continue with default flow
       }
     }
+    
+    // Se não veio origin_url no body, tentar pegar do header Origin ou Referer
+    if (!originUrl) {
+      const origin = req.headers.get("Origin");
+      const referer = req.headers.get("Referer");
+      if (origin) {
+        originUrl = origin;
+      } else if (referer) {
+        try {
+          const refererUrl = new URL(referer);
+          originUrl = refererUrl.origin;
+        } catch {
+          // Referer inválido, ignorar
+        }
+      }
+    }
+    
+    // Validar e normalizar originUrl - usar apenas domínios do Mostralo
+    const validDomains = ['mostralo.me', 'mostralo.com.br', 'mostralo.app'];
+    let finalOriginUrl = 'https://mostralo.com.br'; // fallback padrão
+    
+    if (originUrl) {
+      try {
+        const parsedOrigin = new URL(originUrl);
+        const isValidDomain = validDomains.some(d => 
+          parsedOrigin.hostname === d || parsedOrigin.hostname.endsWith(`.${d}`)
+        );
+        if (isValidDomain) {
+          finalOriginUrl = parsedOrigin.origin;
+        }
+      } catch {
+        // URL inválida, usar fallback
+      }
+    }
+    
+    console.log('📍 Origin URL detectado:', finalOriginUrl);
 
     // If professional_id is provided, this is store admin flow
     if (professionalId) {
@@ -118,12 +156,13 @@ serve(async (req) => {
       // Build the redirect URI - usar URL completa com /functions/v1/
       const redirectUri = "https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/google-calendar-callback";
 
-      // State contains professional_id, store_id, user_id and flow type
+      // State contains professional_id, store_id, user_id, flow type and origin_url
       const state = JSON.stringify({
         professional_id: professionalId,
         store_id: professional.store_id,
         user_id: user.id,
-        flow: "store_admin"
+        flow: "store_admin",
+        origin_url: finalOriginUrl
       });
 
       // Google OAuth URL with calendar scopes
@@ -181,12 +220,13 @@ serve(async (req) => {
     // Build the redirect URI - usar URL completa com /functions/v1/
     const redirectUri = "https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/google-calendar-callback";
 
-    // State contains professional_id and store_id for the callback
+    // State contains professional_id, store_id, user_id, flow type and origin_url
     const state = JSON.stringify({
       professional_id: professional.id,
       store_id: professional.store_id,
       user_id: user.id,
-      flow: "professional"
+      flow: "professional",
+      origin_url: finalOriginUrl
     });
 
     // Google OAuth URL with calendar scopes

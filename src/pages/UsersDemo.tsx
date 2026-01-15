@@ -19,7 +19,7 @@ interface Profile {
   id: string;
   email: string;
   full_name: string | null;
-  user_type: 'master_admin' | 'store_admin';
+  user_type: 'master_admin' | 'store_admin' | 'professional';
   created_at: string;
 }
 

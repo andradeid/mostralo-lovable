@@ -1,16 +1,43 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useAuth } from '@/hooks/use-auth';
 import { 
   Store,
   Menu,
   X,
-  Briefcase
+  Briefcase,
+  LayoutDashboard,
+  LogOut
 } from 'lucide-react';
 
 export const LandingHeader = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user, userRole, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
+  const getDashboardPath = () => {
+    switch (userRole) {
+      case 'master_admin':
+      case 'store_admin':
+      case 'attendant':
+        return '/dashboard';
+      case 'delivery_driver':
+        return '/delivery-panel';
+      case 'professional':
+        return '/profissional';
+      case 'salesperson':
+        return '/vendedor';
+      default:
+        return '/dashboard';
+    }
+  };
 
   return (
     <header className="border-b bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full">
@@ -101,12 +128,35 @@ export const LandingHeader = () => {
           <div className="hidden sm:block">
             <ThemeToggle />
           </div>
-          <Link to="/auth" className="hidden sm:block">
-            <Button variant="outline" size="sm" className="md:size-default text-xs sm:text-sm">Entrar</Button>
-          </Link>
-          <Link to="/signup" className="flex-shrink-0">
-            <Button size="sm" className="md:size-default text-xs sm:text-sm px-3 sm:px-4">Começar</Button>
-          </Link>
+          
+          {user ? (
+            <>
+              <Link to={getDashboardPath()} className="hidden sm:block">
+                <Button variant="outline" size="sm" className="md:size-default text-xs sm:text-sm gap-1.5">
+                  <LayoutDashboard className="w-4 h-4" />
+                  Painel
+                </Button>
+              </Link>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="hidden sm:flex md:size-default text-xs sm:text-sm gap-1.5 text-destructive hover:text-destructive"
+                onClick={handleSignOut}
+              >
+                <LogOut className="w-4 h-4" />
+                Sair
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link to="/auth" className="hidden sm:block">
+                <Button variant="outline" size="sm" className="md:size-default text-xs sm:text-sm">Entrar</Button>
+              </Link>
+              <Link to="/signup" className="flex-shrink-0">
+                <Button size="sm" className="md:size-default text-xs sm:text-sm px-3 sm:px-4">Começar</Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
 
@@ -178,9 +228,34 @@ export const LandingHeader = () => {
               <Briefcase className="w-4 h-4" />
               Trabalhe Conosco
             </Link>
-            <Link to="/auth" className="sm:hidden" onClick={() => setMobileMenuOpen(false)}>
-              <Button variant="outline" size="sm" className="w-full">Entrar</Button>
-            </Link>
+            {user ? (
+              <>
+                <Link 
+                  to={getDashboardPath()} 
+                  className="flex items-center justify-center gap-2 text-sm font-medium text-primary hover:text-primary/80 py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  Acessar Painel
+                </Link>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full gap-2 text-destructive hover:text-destructive"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleSignOut();
+                  }}
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sair
+                </Button>
+              </>
+            ) : (
+              <Link to="/auth" className="sm:hidden" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="outline" size="sm" className="w-full">Entrar</Button>
+              </Link>
+            )}
           </nav>
         </div>
       )}

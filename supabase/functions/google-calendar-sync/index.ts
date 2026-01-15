@@ -144,6 +144,141 @@ function buildGoogleEvent(booking: BookingData, timezone: string = "America/Sao_
   };
 }
 
+async function handleSyncAll(supabase: any, storeId: string): Promise<Response> {
+  console.log(`Starting sync_all for store: ${storeId}`);
+  
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date().toISOString().split('T')[0];
+  
+  // Get all future bookings for this store that don't have a Google event yet
+  const { data: bookings, error: bookingsError } = await supabase
+    .from("bookings")
+    .select(`
+      id,
+      booking_date,
+      start_time,
+      end_time,
+      customer_name,
+      customer_phone,
+      notes,
+      professional_id,
+      store_id,
+      status,
+      service:booking_services(name, duration_minutes),
+      store:stores(name, timezone)
+    `)
+    .eq("store_id", storeId)
+    .gte("booking_date", today)
+    .in("status", ["pending", "confirmed"])
+    .order("booking_date", { ascending: true });
+
+  if (bookingsError) {
+    console.error("Error fetching bookings:", bookingsError);
+    return new Response(
+      JSON.stringify({ error: "Erro ao buscar agendamentos" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  if (!bookings || bookings.length === 0) {
+    return new Response(
+      JSON.stringify({ success: true, synced_count: 0, message: "Nenhum agendamento futuro encontrado" }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  console.log(`Found ${bookings.length} bookings to check`);
+
+  let syncedCount = 0;
+  let skippedCount = 0;
+  const errors: string[] = [];
+
+  for (const booking of bookings) {
+    try {
+      // Check if already has Google event
+      const { data: existingEvent } = await supabase
+        .from("booking_google_events")
+        .select("id")
+        .eq("booking_id", booking.id)
+        .single();
+
+      if (existingEvent) {
+        skippedCount++;
+        continue;
+      }
+
+      // Get valid access token for the professional
+      const tokenData = await getValidAccessToken(supabase, booking.professional_id);
+      
+      if (!tokenData) {
+        // Professional doesn't have Google Calendar connected
+        skippedCount++;
+        continue;
+      }
+
+      const { token, tokenRecord } = tokenData;
+      const calendarId = tokenRecord.calendar_id || "primary";
+      const timezone = booking.store?.timezone || "America/Sao_Paulo";
+
+      // Create the event
+      const googleEvent = buildGoogleEvent(booking, timezone);
+      
+      const response = await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(googleEvent)
+        }
+      );
+
+      if (response.ok) {
+        const eventData = await response.json();
+        
+        // Save the mapping
+        await supabase
+          .from("booking_google_events")
+          .insert({
+            booking_id: booking.id,
+            google_event_id: eventData.id,
+            google_calendar_id: calendarId,
+            store_id: storeId,
+            synced_at: new Date().toISOString()
+          });
+
+        syncedCount++;
+        console.log(`Synced booking ${booking.id} -> Google Event ${eventData.id}`);
+      } else {
+        const errorText = await response.text();
+        console.error(`Failed to create event for booking ${booking.id}:`, errorText);
+        errors.push(`Booking ${booking.id}: ${errorText}`);
+      }
+    } catch (err: any) {
+      console.error(`Error processing booking ${booking.id}:`, err);
+      errors.push(`Booking ${booking.id}: ${err.message}`);
+    }
+  }
+
+  console.log(`Sync completed: ${syncedCount} synced, ${skippedCount} skipped, ${errors.length} errors`);
+
+  return new Response(
+    JSON.stringify({ 
+      success: true, 
+      synced_count: syncedCount,
+      skipped_count: skippedCount,
+      total_checked: bookings.length,
+      errors: errors.length > 0 ? errors : undefined,
+      message: syncedCount > 0 
+        ? `${syncedCount} agendamento(s) sincronizado(s) com sucesso` 
+        : "Todos os agendamentos já estão sincronizados ou não têm Google Calendar conectado"
+    }),
+    { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -151,7 +286,12 @@ serve(async (req) => {
 
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const { action, booking_id } = await req.json();
+    const { action, booking_id, store_id } = await req.json();
+
+    // Handle sync_all action for store
+    if (action === "sync_all" && store_id) {
+      return await handleSyncAll(supabase, store_id);
+    }
 
     if (!booking_id) {
       return new Response(

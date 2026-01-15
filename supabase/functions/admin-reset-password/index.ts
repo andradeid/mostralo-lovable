@@ -167,38 +167,34 @@ serve(async (req) => {
       );
     }
 
-    // Verificar se o usuário é master_admin
-    const { data: profile, error: profileError } = await supabaseClient
-      .from("profiles")
-      .select("user_type")
-      .eq("id", user.id)
-      .maybeSingle();
-
-    console.log('🔍 Profile check:', { 
-      hasProfile: !!profile, 
-      userType: profile?.user_type,
-      error: profileError?.message 
-    });
-
-    // Verificar também via user_roles
-    const { data: roleData } = await supabaseClient
+    // Verificar se o usuário é master_admin (SOMENTE via user_roles)
+    // ⚠️ CRÍTICO: não confiar em role no profile para evitar privilege escalation
+    const { data: roleData, error: roleError } = await supabaseClient
       .from("user_roles")
       .select("role")
       .eq("user_id", user.id)
-      .limit(1)
+      .eq("role", "master_admin")
       .maybeSingle();
 
-    console.log('🔍 Role check:', { role: roleData?.role });
+    console.log('🔍 Master admin role check:', {
+      hasRole: !!roleData,
+      error: roleError?.message,
+    });
 
-    const isMasterAdmin = 
-      profile?.user_type === "master_admin" || 
-      roleData?.role === "master_admin";
+    if (roleError) {
+      return new Response(
+        JSON.stringify({
+          error: "Erro ao verificar permissões",
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
 
-    if (!isMasterAdmin) {
-      console.error('❌ Not master admin:', { 
-        userType: profile?.user_type, 
-        role: roleData?.role 
-      });
+    if (!roleData) {
+      console.error('❌ Not master admin (no user_roles):', { userId: user.id.substring(0, 8) + '***' });
       return new Response(
         JSON.stringify({ 
           error: "Forbidden: Only master admins can reset passwords" 

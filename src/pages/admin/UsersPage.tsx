@@ -141,6 +141,7 @@ const UsersPage = () => {
             store_id,
             user_id,
             stores (
+              id,
               name,
               logo_url
             )
@@ -153,18 +154,61 @@ const UsersPage = () => {
 
         if (!rolesError && roles) {
           // Agrupar roles por user_id
-          roles.forEach((role) => {
+          roles.forEach((role: any) => {
+            const embeddedStore = Array.isArray(role.stores) ? role.stores[0] : role.stores;
+
             if (!rolesMap[role.user_id]) {
               rolesMap[role.user_id] = [];
             }
+
             rolesMap[role.user_id].push({
               id: role.id,
               role: role.role,
               store_id: role.store_id,
-              store_name: role.stores?.name,
-              store_logo: role.stores?.logo_url,
+              store_name: embeddedStore?.name,
+              store_logo: embeddedStore?.logo_url,
             });
           });
+
+          // Fallback: se o embed de stores vier vazio (ou vier em formato inesperado), buscar em lote por store_id
+          const storeIdsToFetch = Array.from(
+            new Set(
+              Object.values(rolesMap)
+                .flat()
+                .filter((r: any) => !!r.store_id && (!r.store_name || !r.store_logo))
+                .map((r: any) => r.store_id)
+            )
+          );
+
+          if (storeIdsToFetch.length > 0) {
+            const { data: storesData, error: storesDataError } = await supabase
+              .from('stores')
+              .select('id, name, logo_url')
+              .in('id', storeIdsToFetch);
+
+            if (!storesDataError && storesData) {
+              const storeLookup = storesData.reduce<Record<string, { name: string; logo_url: string | null }>>(
+                (acc, store) => {
+                  acc[store.id] = { name: store.name, logo_url: store.logo_url };
+                  return acc;
+                },
+                {}
+              );
+
+              Object.values(rolesMap).forEach((rolesArr: any[]) => {
+                rolesArr.forEach((r: any) => {
+                  if (!r.store_id) return;
+                  const store = storeLookup[r.store_id];
+                  if (!store) return;
+
+                  if (!r.store_name) r.store_name = store.name;
+                  if (!r.store_logo && store.logo_url) r.store_logo = store.logo_url;
+                });
+              });
+            } else {
+              console.warn('⚠️ Não foi possível carregar stores para complementar roles:', storesDataError);
+            }
+          }
         } else {
           console.warn('⚠️ Não foi possível carregar roles:', rolesError);
         }

@@ -53,6 +53,9 @@ serve(async (req) => {
   try {
     console.log("📅 google-calendar-list-calendars: Request received");
     
+    // Create admin client for database operations
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
     // Get user from authorization header
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
@@ -63,13 +66,11 @@ serve(async (req) => {
       );
     }
 
-    // Create a client with the user's auth context to validate token
-    const supabaseAnon = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const userClient = createClient(supabaseUrl, supabaseAnon, {
-      global: { headers: { Authorization: authHeader } }
-    });
-
-    const { data: { user }, error: authError } = await userClient.auth.getUser();
+    // Extract token and validate using admin client
+    const token = authHeader.replace("Bearer ", "");
+    console.log("🔐 Validating token...");
+    
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     
     if (authError || !user) {
       console.log("❌ Invalid token:", authError?.message);
@@ -81,9 +82,6 @@ serve(async (req) => {
 
     const userId = user.id;
     console.log("✅ User authenticated:", userId.substring(0, 8) + "...");
-    
-    // Create admin client for database operations
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get professional_id from request
     const { professional_id } = await req.json();

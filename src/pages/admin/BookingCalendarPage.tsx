@@ -16,8 +16,10 @@ import {
   Info,
   ChevronDown,
   ChevronUp,
-  Globe
+  Globe,
+  RefreshCw
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useBooking, Booking, Professional } from '@/hooks/useBooking';
 import { useSalesChannels } from '@/hooks/useSalesChannels';
@@ -75,6 +77,34 @@ const BookingCalendarPage = () => {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isActionsDialogOpen, setIsActionsDialogOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [syncingCalendar, setSyncingCalendar] = useState(false);
+
+  // Sync all bookings with Google Calendar
+  const handleSyncGoogleCalendar = async () => {
+    if (!storeId) return;
+    
+    setSyncingCalendar(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('google-calendar-sync', {
+        body: { action: 'sync_all', store_id: storeId }
+      });
+      
+      if (error) throw error;
+      
+      if (data?.synced_count > 0) {
+        toast.success(`${data.synced_count} agendamento(s) sincronizado(s) com Google Calendar`);
+      } else if (data?.message) {
+        toast.info(data.message);
+      } else {
+        toast.info('Nenhum agendamento pendente para sincronizar');
+      }
+    } catch (err: any) {
+      console.error('Erro ao sincronizar com Google Calendar:', err);
+      toast.error('Erro ao sincronizar. Verifique se há profissionais conectados ao Google Calendar.');
+    } finally {
+      setSyncingCalendar(false);
+    }
+  };
 
   // Fetch store slug for public link
   useEffect(() => {
@@ -492,7 +522,7 @@ const BookingCalendarPage = () => {
         {/* Action Buttons Grid - 2x2 on mobile */}
         <Card>
           <CardContent className="p-3 sm:p-4">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
               {storeSlug && (
                 <Button variant="outline" className="h-auto py-3 flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-xs sm:text-sm" asChild>
                   <a href={`/agendar/${storeSlug}`} target="_blank" rel="noopener noreferrer">
@@ -512,6 +542,15 @@ const BookingCalendarPage = () => {
                   <Settings className="h-4 w-4" />
                   <span>Serviços</span>
                 </Link>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-auto py-3 flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-xs sm:text-sm"
+                onClick={handleSyncGoogleCalendar}
+                disabled={syncingCalendar}
+              >
+                <RefreshCw className={cn("h-4 w-4", syncingCalendar && "animate-spin")} />
+                <span>Sync Calendar</span>
               </Button>
               <Button className="h-auto py-3 flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-xs sm:text-sm" onClick={() => setIsNewBookingOpen(true)}>
                 <Plus className="h-4 w-4" />

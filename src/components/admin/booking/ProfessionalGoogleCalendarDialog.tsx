@@ -69,7 +69,6 @@ export function ProfessionalGoogleCalendarDialog({
 
       if (error) {
         console.error('fetchCalendars: Error from edge function:', error);
-        // Tentar extrair mensagem de erro do contexto
         const errorMsg = data?.error || 'Erro ao buscar calendários';
         toast.error(errorMsg);
         return;
@@ -80,24 +79,22 @@ export function ProfessionalGoogleCalendarDialog({
         console.log('fetchCalendars: Loaded', data.calendars.length, 'calendars');
         
         // Se temos um calendar_id salvo, verificar se ainda é válido
-        const calendarIdToUse = savedCalendarId || selectedCalendarId;
-        const savedExists = data.calendars.some((cal: GoogleCalendar) => cal.id === calendarIdToUse);
-        
-        if (savedExists) {
-          // Manter o calendário salvo
-          setSelectedCalendarId(calendarIdToUse);
-        } else if (calendarIdToUse === 'primary') {
-          // Se era "primary", encontrar o calendário principal real
-          const primaryCal = data.calendars.find((cal: GoogleCalendar) => cal.primary);
-          if (primaryCal) {
-            setSelectedCalendarId(primaryCal.id);
-          }
-        } else {
-          // Calendário salvo não existe mais, usar o principal
-          const primaryCal = data.calendars.find((cal: GoogleCalendar) => cal.primary);
-          if (primaryCal) {
-            setSelectedCalendarId(primaryCal.id);
-            toast.info('Calendário anterior não encontrado, usando o principal');
+        if (savedCalendarId) {
+          const savedExists = data.calendars.some((cal: GoogleCalendar) => cal.id === savedCalendarId);
+          
+          if (savedExists) {
+            setSelectedCalendarId(savedCalendarId);
+          } else if (savedCalendarId === 'primary') {
+            const primaryCal = data.calendars.find((cal: GoogleCalendar) => cal.primary);
+            if (primaryCal) {
+              setSelectedCalendarId(primaryCal.id);
+            }
+          } else {
+            const primaryCal = data.calendars.find((cal: GoogleCalendar) => cal.primary);
+            if (primaryCal) {
+              setSelectedCalendarId(primaryCal.id);
+              toast.info('Calendário anterior não encontrado, usando o principal');
+            }
           }
         }
       } else if (data?.error) {
@@ -113,7 +110,7 @@ export function ProfessionalGoogleCalendarDialog({
     } finally {
       setLoadingCalendars(false);
     }
-  }, [professionalId, selectedCalendarId]);
+  }, [professionalId]);
 
   useEffect(() => {
     if (!open || !professionalId) return;
@@ -151,7 +148,8 @@ export function ProfessionalGoogleCalendarDialog({
     };
     
     fetchTokenData();
-  }, [open, professionalId, fetchCalendars, session?.access_token]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, professionalId, session?.access_token]);
 
   const handleConnect = async () => {
     if (!session?.access_token) {

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Edit, Plus, X, Phone, MessageCircle, Check, AlertCircle } from 'lucide-react';
+import { Loader2, Edit, Plus, X, Phone, MessageCircle, Check, AlertCircle, ChevronsUpDown } from 'lucide-react';
 import { useUserManagement } from '@/hooks/useUserManagement';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -12,6 +12,9 @@ import { Badge } from '@/components/ui/badge';
 import { formatPhone } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { CountryCodeSelect } from '@/components/ui/country-code-select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { cn } from '@/lib/utils';
 
 interface UserEditDialogProps {
   open: boolean;
@@ -46,6 +49,7 @@ export function UserEditDialog({ open, onOpenChange, user, onSuccess }: UserEdit
   const [newRole, setNewRole] = useState('');
   const { updateUser, addRole, removeRole, loading } = useUserManagement();
   const [localLoading, setLocalLoading] = useState(false);
+  const [storePopoverOpen, setStorePopoverOpen] = useState(false);
 
   useEffect(() => {
     if (open && user) {
@@ -318,18 +322,49 @@ export function UserEditDialog({ open, onOpenChange, user, onSuccess }: UserEdit
                 </Select>
 
                 {['professional', 'store_admin', 'delivery_driver', 'customer'].includes(newRole) && (
-                  <Select value={selectedStore} onValueChange={setSelectedStore}>
-                    <SelectTrigger className="h-9 text-sm">
-                      <SelectValue placeholder="Selecione a loja" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {stores.map((store) => (
-                        <SelectItem key={store.id} value={store.id}>
-                          {store.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Popover open={storePopoverOpen} onOpenChange={setStorePopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={storePopoverOpen}
+                        className="h-9 text-sm justify-between font-normal"
+                      >
+                        {selectedStore
+                          ? stores.find((store) => store.id === selectedStore)?.name
+                          : "Buscar loja..."}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[280px] p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Digite o nome da loja..." className="h-9" />
+                        <CommandList>
+                          <CommandEmpty>Nenhuma loja encontrada.</CommandEmpty>
+                          <CommandGroup>
+                            {stores.map((store) => (
+                              <CommandItem
+                                key={store.id}
+                                value={store.name}
+                                onSelect={() => {
+                                  setSelectedStore(store.id);
+                                  setStorePopoverOpen(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    selectedStore === store.id ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                {store.name}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 )}
               </div>
               

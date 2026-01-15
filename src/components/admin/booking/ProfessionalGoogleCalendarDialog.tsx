@@ -50,19 +50,39 @@ export function ProfessionalGoogleCalendarDialog({
   const hasGoogleModule = hasModule('google_calendar');
 
   const fetchCalendars = useCallback(async () => {
-    if (!session?.access_token) return;
+    if (!session?.access_token) {
+      console.log('fetchCalendars: No session token');
+      return;
+    }
     
     setLoadingCalendars(true);
     try {
+      console.log('fetchCalendars: Calling edge function for professional:', professionalId);
       const { data, error } = await supabase.functions.invoke('google-calendar-list-calendars', {
         body: { professional_id: professionalId }
       });
 
-      if (!error && data?.calendars) {
+      console.log('fetchCalendars: Response:', { data, error });
+
+      if (error) {
+        console.error('fetchCalendars: Error from edge function:', error);
+        toast.error(data?.error || 'Erro ao buscar calendários');
+        return;
+      }
+
+      if (data?.calendars && data.calendars.length > 0) {
         setCalendars(data.calendars);
+        console.log('fetchCalendars: Loaded', data.calendars.length, 'calendars');
+      } else if (data?.error) {
+        console.error('fetchCalendars: API error:', data.error);
+        toast.error(data.error);
+      } else {
+        console.log('fetchCalendars: No calendars found');
+        toast.warning('Nenhum calendário encontrado na conta Google');
       }
     } catch (err) {
-      console.error('Error:', err);
+      console.error('fetchCalendars: Exception:', err);
+      toast.error('Erro ao buscar calendários');
     } finally {
       setLoadingCalendars(false);
     }
@@ -273,20 +293,38 @@ export function ProfessionalGoogleCalendarDialog({
                   <RefreshCw className={`h-4 w-4 ${loadingCalendars ? 'animate-spin' : ''}`} />
                 </Button>
               </div>
-              <Select value={selectedCalendarId} onValueChange={setSelectedCalendarId}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>
-                  {calendars.map((cal) => (
-                    <SelectItem key={cal.id} value={cal.id}>
-                      <div className="flex items-center gap-2">
-                        {cal.backgroundColor && <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cal.backgroundColor }} />}
-                        <span>{cal.summary}</span>
-                        {cal.primary && <Badge variant="secondary" className="text-xs">Principal</Badge>}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {loadingCalendars ? (
+                <div className="flex items-center gap-2 p-3 border rounded-md bg-muted/50">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="text-sm text-muted-foreground">Carregando calendários...</span>
+                </div>
+              ) : calendars.length === 0 ? (
+                <div className="flex flex-col items-center gap-2 p-4 border border-dashed rounded-md">
+                  <AlertTriangle className="h-5 w-5 text-amber-500" />
+                  <p className="text-sm text-muted-foreground text-center">
+                    Nenhum calendário encontrado. Clique no botão de atualizar.
+                  </p>
+                  <Button variant="outline" size="sm" onClick={fetchCalendars}>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Carregar Calendários
+                  </Button>
+                </div>
+              ) : (
+                <Select value={selectedCalendarId} onValueChange={setSelectedCalendarId}>
+                  <SelectTrigger><SelectValue placeholder="Selecione um calendário" /></SelectTrigger>
+                  <SelectContent>
+                    {calendars.map((cal) => (
+                      <SelectItem key={cal.id} value={cal.id}>
+                        <div className="flex items-center gap-2">
+                          {cal.backgroundColor && <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cal.backgroundColor }} />}
+                          <span>{cal.summary}</span>
+                          {cal.primary && <Badge variant="secondary" className="text-xs">Principal</Badge>}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
 
             <div className="flex items-center justify-between">

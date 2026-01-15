@@ -71,6 +71,7 @@ import { ProfessionalBlocksDialog } from '@/components/admin/booking/Professiona
 import { ProfessionalServicesDialog } from '@/components/admin/booking/ProfessionalServicesDialog';
 import { ProfessionalAgendaDialog } from '@/components/admin/booking/ProfessionalAgendaDialog';
 import { ProfessionalGoogleCalendarDialog } from '@/components/admin/booking/ProfessionalGoogleCalendarDialog';
+import { GoogleCalendarInstructionsCard } from '@/components/admin/booking/GoogleCalendarInstructionsCard';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import {
   Collapsible,
@@ -656,6 +657,9 @@ const ProfessionalsPage = () => {
             </CollapsibleContent>
           </Card>
         </Collapsible>
+
+        {/* Card: Google Calendar Integration */}
+        <GoogleCalendarInstructionsCard />
 
         {/* KPI Summary Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">

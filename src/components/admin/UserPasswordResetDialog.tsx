@@ -43,7 +43,7 @@ export function UserPasswordResetDialog({
   userName,
   userPhone,
 }: UserPasswordResetDialogProps) {
-  const { profile } = useAuth();
+  const { userRole } = useAuth();
   const queryClient = useQueryClient();
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -105,8 +105,8 @@ export function UserPasswordResetDialog({
   // Mutation para resetar senha manualmente (Admin API)
   const resetPasswordManuallyMutation = useMutation({
     mutationFn: async (password: string) => {
-      // Verificar se é master_admin
-      if (profile?.user_type !== "master_admin") {
+      // Verificar se é master_admin (⚠️ NUNCA confiar em role no profile)
+      if (userRole !== "master_admin") {
         throw new Error("Apenas master admins podem resetar senhas manualmente.");
       }
 
@@ -224,7 +224,7 @@ export function UserPasswordResetDialog({
   };
 
   // Verificar se é master admin
-  const isMasterAdmin = profile?.user_type === "master_admin";
+  const isMasterAdmin = userRole === "master_admin";
   const hasPhone = !!userPhone && userPhone.replace(/\D/g, '').length >= 10;
 
   return (

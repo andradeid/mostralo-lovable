@@ -28,7 +28,7 @@ export function FixUserLoginDialog({
   onOpenChange,
   userEmail: initialEmail,
 }: FixUserLoginDialogProps) {
-  const { profile } = useAuth();
+  const { userRole } = useAuth();
   const [email, setEmail] = useState(initialEmail || "");
   const [newPassword, setNewPassword] = useState("");
   const [diagnosticResult, setDiagnosticResult] = useState<any>(null);
@@ -36,8 +36,8 @@ export function FixUserLoginDialog({
   // Mutation para diagnosticar e corrigir
   const fixLoginMutation = useMutation({
     mutationFn: async ({ email, newPassword }: { email: string; newPassword?: string }) => {
-      // Verificar se é master_admin
-      if (profile?.user_type !== "master_admin") {
+      // Verificar se é master_admin (⚠️ NUNCA confiar em role no profile)
+      if (userRole !== "master_admin") {
         throw new Error("Apenas master admins podem corrigir problemas de login.");
       }
 
@@ -153,7 +153,7 @@ export function FixUserLoginDialog({
   };
 
   // Verificar se é master admin
-  const isMasterAdmin = profile?.user_type === "master_admin";
+  const isMasterAdmin = userRole === "master_admin";
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>

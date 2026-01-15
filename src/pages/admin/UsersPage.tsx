@@ -708,7 +708,7 @@ const UsersPage = () => {
                             })
                             .map((role: any, idx: number) => (
                             <div key={idx} className="flex items-center gap-1 shrink-0">
-                              {(role.role === 'attendant' || role.role === 'store_admin' || role.role === 'delivery_driver') && role.store_logo && (
+                            {(role.role === 'attendant' || role.role === 'store_admin' || role.role === 'delivery_driver' || role.role === 'professional' || role.role === 'customer') && role.store_logo && (
                                 <img 
                                   src={role.store_logo} 
                                   alt={role.store_name || 'Loja'} 
@@ -716,7 +716,8 @@ const UsersPage = () => {
                                 />
                               )}
                               <Badge variant="outline" className="text-[10px] md:text-xs">
-                                {role.role === 'delivery_driver' ? 'Entregador' : 
+                                {role.role === 'professional' ? 'Profissional' :
+                                 role.role === 'delivery_driver' ? 'Entregador' : 
                                  role.role === 'salesperson' ? 'Vendedor' : 
                                  role.role === 'attendant' ? 'Atendente' : 
                                  role.role === 'store_admin' ? 'Lojista' : 

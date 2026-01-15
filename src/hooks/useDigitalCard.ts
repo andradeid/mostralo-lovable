@@ -238,6 +238,7 @@ export function usePublicCard(slug: string) {
           professional:professionals!professional_id (
             id,
             name,
+            slug,
             photo_url
           )
         `)

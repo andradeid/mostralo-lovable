@@ -9,6 +9,7 @@ export interface Professional {
   store_id: string;
   user_id: string | null;
   name: string;
+  slug: string | null;
   photo_url: string | null;
   specialty: string | null;
   description: string | null;

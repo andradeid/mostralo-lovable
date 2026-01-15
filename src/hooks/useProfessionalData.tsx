@@ -6,6 +6,7 @@ interface ProfessionalData {
   store_id: string;
   user_id: string;
   name: string;
+  slug: string | null;
   photo_url: string | null;
   specialty: string | null;
   description: string | null;
@@ -32,6 +33,7 @@ export function useProfessionalData() {
           store_id,
           user_id,
           name,
+          slug,
           photo_url,
           specialty,
           description,

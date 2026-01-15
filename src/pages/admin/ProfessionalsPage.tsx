@@ -812,7 +812,8 @@ const ProfessionalsPage = () => {
                         </DropdownMenuItem>
                         {storeSlug && (
                           <DropdownMenuItem onClick={() => {
-                            const url = `${window.location.origin}/agendar/${storeSlug}?profissional=${professional.id}`;
+                            const professionalSlug = professional.slug || professional.id;
+                            const url = `${window.location.origin}/agendar/${storeSlug}?profissional=${professionalSlug}`;
                             navigator.clipboard.writeText(url);
                             toast.success('Link copiado!', { 
                               description: 'Cole e compartilhe com o cliente' 
@@ -890,7 +891,8 @@ const ProfessionalsPage = () => {
                           size="sm"
                           className="h-7 text-xs gap-1"
                           onClick={() => {
-                            const url = `${window.location.origin}/agendar/${storeSlug}?profissional=${professional.id}`;
+                            const professionalSlug = professional.slug || professional.id;
+                            const url = `${window.location.origin}/agendar/${storeSlug}?profissional=${professionalSlug}`;
                             navigator.clipboard.writeText(url);
                             toast.success('Link copiado!', { 
                               description: 'Cole e compartilhe com o cliente' 

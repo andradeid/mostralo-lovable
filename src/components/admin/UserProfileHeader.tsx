@@ -30,8 +30,28 @@ export function UserProfileHeader() {
   const [countryCode, setCountryCode] = useState('+55');
   const [whatsappValid, setWhatsappValid] = useState(false);
   const [validatingWhatsApp, setValidatingWhatsApp] = useState(false);
+  const [professionalPhotoUrl, setProfessionalPhotoUrl] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Buscar foto do profissional se o user_type for 'professional'
+  useEffect(() => {
+    const fetchProfessionalPhoto = async () => {
+      if (profile?.user_type === 'professional' && user?.id) {
+        const { data } = await supabase
+          .from('professionals')
+          .select('photo_url')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (data?.photo_url) {
+          setProfessionalPhotoUrl(data.photo_url);
+        }
+      }
+    };
+    
+    fetchProfessionalPhoto();
+  }, [profile?.user_type, user?.id]);
 
   useEffect(() => {
     if (profile) {
@@ -216,7 +236,7 @@ export function UserProfileHeader() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="flex items-center space-x-2 h-10 px-2">
             <Avatar className="w-8 h-8">
-              <AvatarImage src={profile.avatar_url || undefined} />
+              <AvatarImage src={professionalPhotoUrl || profile.avatar_url || undefined} />
               <AvatarFallback className="text-xs">
                 {getInitials(profile.full_name)}
               </AvatarFallback>

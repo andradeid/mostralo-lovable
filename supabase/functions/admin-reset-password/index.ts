@@ -73,32 +73,51 @@ serve(async (req) => {
       );
     }
 
+    // Validar variáveis de ambiente necessárias (sem expor segredos)
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
+    console.log("🔧 Env check:", {
+      hasUrl: !!supabaseUrl,
+      hasAnonKey: !!supabaseAnonKey,
+      hasServiceRoleKey: !!supabaseServiceRoleKey,
+      serviceRoleKeyLength: supabaseServiceRoleKey.length,
+    });
+
+    if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceRoleKey) {
+      console.error("❌ Missing required env vars for Admin API");
+      return new Response(
+        JSON.stringify({
+          error: "Server misconfiguration",
+          details:
+            "Missing SUPABASE_URL / SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY. Configure these secrets in Supabase Functions.",
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     // Criar cliente Supabase com service_role key (Admin API)
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      }
-    );
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
 
     // Criar cliente regular para verificar o usuário que está fazendo a requisição
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-        global: {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      }
-    );
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+      global: {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    });
 
     // Verificar autenticação
     // IMPORTANTE: passar o token explicitamente para evitar AuthSessionMissingError
@@ -229,11 +248,34 @@ serve(async (req) => {
       );
     }
 
-    // Verificar se o usuário target existe
-    const { data: targetUser, error: targetUserError } =
+    // Verificar se o usuário target existe (e capturar erro real quando a Admin API não está configurada)
+    const { data: targetUserData, error: targetUserError } =
       await supabaseAdmin.auth.admin.getUserById(userId);
 
-    if (targetUserError || !targetUser) {
+    console.log('🔎 Target user check:', {
+      userId: userId.substring(0, 8) + '***',
+      hasTargetUser: !!targetUserData?.user,
+      error: targetUserError?.message,
+      errorStatus: (targetUserError as any)?.status,
+    });
+
+    if (targetUserError) {
+      console.error('❌ Failed to fetch target user:', targetUserError);
+      return new Response(
+        JSON.stringify({
+          error: "Failed to fetch target user",
+          details:
+            targetUserError.message ||
+            "Check if SUPABASE_SERVICE_ROLE_KEY is configured for this Edge Function.",
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    if (!targetUserData?.user) {
       return new Response(
         JSON.stringify({ error: "User not found" }),
         {
@@ -243,6 +285,8 @@ serve(async (req) => {
       );
     }
 
+    console.log('🔄 Updating password for target user...');
+
     // Resetar a senha usando Admin API
     const { data: updateData, error: updateError } =
       await supabaseAdmin.auth.admin.updateUserById(userId, {
@@ -250,9 +294,13 @@ serve(async (req) => {
       });
 
     if (updateError) {
-      console.error("Error updating user password:", updateError);
+      console.error("❌ Error updating user password:", updateError);
       return new Response(
-        JSON.stringify({ error: updateError.message || "Failed to update password" }),
+        JSON.stringify({
+          error: updateError.message || "Failed to update password",
+          hint:
+            "If this keeps failing, verify the Edge Function has SUPABASE_SERVICE_ROLE_KEY configured in Supabase Secrets.",
+        }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -268,7 +316,7 @@ serve(async (req) => {
         action: "password_reset",
         target_user_id: userId,
         details: {
-          target_email: targetUser.user.email,
+          target_email: targetUserData.user.email,
           reset_by: user.email,
           timestamp: new Date().toISOString(),
         },

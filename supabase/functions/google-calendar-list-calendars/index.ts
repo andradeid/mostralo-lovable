@@ -4,7 +4,6 @@ import { corsHeaders } from "../_shared/cors.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
 async function refreshAccessToken(
   supabase: any,
@@ -67,15 +66,11 @@ serve(async (req) => {
       );
     }
 
-    // Validate token using an anon client with the caller's Authorization header
-    // NOTE: supabase-js@2.49.x on Deno may not support getUser(token) reliably.
-    console.log("🔐 Validating token (anon client)...");
+    // Extract token and validate using admin client with getUser(token)
+    const token = authHeader.replace("Bearer ", "");
+    console.log("🔐 Validating token with admin client...");
 
-    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } }
-    });
-
-    const { data: { user }, error: authError } = await userClient.auth.getUser();
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     
     if (authError || !user) {
       console.log("❌ Invalid token:", authError?.message);

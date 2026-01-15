@@ -84,12 +84,14 @@ Deno.serve(async (req) => {
     const storeName = storeData?.name || 'nossa loja';
 
     // 3. Criar usuário no auth.users com a senha definida pelo lojista
+    // IMPORTANTE: role_type é usado pelo trigger handle_new_user para identificar o tipo
     const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
       email: email.toLowerCase(),
       password: password,
       email_confirm: true,
       user_metadata: {
-        name,
+        full_name: name,
+        role_type: 'professional', // CRÍTICO: trigger usa isso para definir user_type
         user_type: 'professional',
         store_id,
       }
@@ -156,19 +158,22 @@ Deno.serve(async (req) => {
 
     console.log(`✅ Role 'professional' atribuída`);
 
-    // 7. Criar profile se não existir
+    // 7. Atualizar profile com user_type correto
+    // NOTA: O trigger já cria o profile, mas precisamos garantir user_type = 'professional'
     const { error: profileError } = await supabase
       .from('profiles')
-      .upsert({
-        id: authUser.user.id,
-        name,
-        email: email.toLowerCase(),
+      .update({
+        full_name: name,
         phone: formattedPhone || null,
         user_type: 'professional',
-      }, { onConflict: 'id' });
+        approval_status: 'approved', // Profissionais são aprovados automaticamente
+      })
+      .eq('id', authUser.user.id);
 
     if (profileError) {
-      console.error('⚠️ Aviso ao criar profile:', profileError);
+      console.error('⚠️ Aviso ao atualizar profile:', profileError);
+    } else {
+      console.log('✅ Profile atualizado com user_type: professional');
     }
 
     // 8. Enviar notificação via WhatsApp (se tiver telefone e solicitado)

@@ -17,15 +17,16 @@ serve(async (req) => {
     const stateBase64 = url.searchParams.get("state");
     const error = url.searchParams.get("error");
 
-    // Get frontend URL from referer or use default
-    const frontendUrl = Deno.env.get("FRONTEND_URL") || "https://mostralo-lovable.lovable.app";
+    // Fallback URL (será substituído pelo origin_url do state se disponível)
+    const fallbackUrl = "https://mostralo.com.br";
 
-    // Decode state first to determine flow type
+    // Decode state first to determine flow type and origin_url
     let state: { 
       professional_id: string; 
       store_id: string; 
       user_id: string;
       flow?: "store_admin" | "professional";
+      origin_url?: string;
     };
     
     if (stateBase64) {
@@ -33,16 +34,20 @@ serve(async (req) => {
         state = JSON.parse(atob(stateBase64));
       } catch {
         return Response.redirect(
-          `${frontendUrl}/profissional/google-calendar?error=invalid_state`,
+          `${fallbackUrl}/profissional/google-calendar?error=invalid_state`,
           302
         );
       }
     } else {
       return Response.redirect(
-        `${frontendUrl}/profissional/google-calendar?error=missing_params`,
+        `${fallbackUrl}/profissional/google-calendar?error=missing_params`,
         302
       );
     }
+
+    // Usar origin_url do state ou fallback
+    const frontendUrl = state.origin_url || fallbackUrl;
+    console.log('📍 Redirecionando para:', frontendUrl);
 
     const isStoreAdminFlow = state.flow === "store_admin";
     const redirectBase = isStoreAdminFlow 
@@ -164,9 +169,9 @@ serve(async (req) => {
 
   } catch (error) {
     console.error("Error in google-calendar-callback:", error);
-    const frontendUrl = Deno.env.get("FRONTEND_URL") || "https://mostralo-lovable.lovable.app";
+    // Em caso de erro, usar fallback do Mostralo
     return Response.redirect(
-      `${frontendUrl}/profissional/google-calendar?error=internal`,
+      `https://mostralo.com.br/profissional/google-calendar?error=internal`,
       302
     );
   }

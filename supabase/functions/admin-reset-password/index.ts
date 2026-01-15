@@ -194,7 +194,9 @@ serve(async (req) => {
     console.log('✅ Master admin verified');
 
     // Obter dados do body
+    console.log('📋 Parsing request body...');
     const { userId, newPassword } = await req.json();
+    console.log('📋 Request body parsed:', { hasUserId: !!userId, hasPassword: !!newPassword, passwordLength: newPassword?.length });
 
     // Validações
     if (!userId) {
@@ -277,11 +279,7 @@ serve(async (req) => {
       // Não falhar a operação se o log falhar
     }
 
-    // Limpar recovery token se existir
-    await supabaseAdmin
-      .from("auth.users")
-      .update({ recovery_sent_at: null })
-      .eq("id", userId);
+    console.log('✅ Password updated successfully for user:', userId.substring(0, 8) + '***');
 
     return new Response(
       JSON.stringify({

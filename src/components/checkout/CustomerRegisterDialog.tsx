@@ -15,15 +15,16 @@ import { useGeolocation } from '@/hooks/useGeolocation';
 
 const MAPBOX_TOKEN = 'pk.eyJ1IjoibW9zdHJhbG8iLCJhIjoiY200eWI2ZmtvMDFhNjJrczgyaWd4eXJpeSJ9.EWExgXOHVjFpEsLNVdORkQ';
 
-// Schema de validação - localização obrigatória
+// Schema de validação - apenas nome e telefone obrigatórios
+// Localização será solicitada apenas no momento do pedido de delivery
 const customerSchema = z.object({
   name: z.string().trim().min(1, 'Nome é obrigatório').max(120, 'Nome deve ter no máximo 120 caracteres'),
   phone: z.string().regex(/^\d{10,11}$/, 'Telefone deve ter 10 ou 11 dígitos'),
   email: z.string().trim().email('E-mail inválido').max(255, 'E-mail deve ter no máximo 255 caracteres').optional().or(z.literal('')),
-  address: z.string().trim().min(1, 'Endereço é obrigatório').max(500, 'Endereço deve ter no máximo 500 caracteres'),
+  address: z.string().trim().max(500, 'Endereço deve ter no máximo 500 caracteres').optional().or(z.literal('')),
   notes: z.string().trim().max(500, 'Observações devem ter no máximo 500 caracteres').optional().or(z.literal('')),
-  latitude: z.number({ error: 'Localização GPS é obrigatória' }),
-  longitude: z.number({ error: 'Localização GPS é obrigatória' }),
+  latitude: z.number().optional().nullable(),
+  longitude: z.number().optional().nullable(),
 });
 
 interface CustomerRegisterDialogProps {
@@ -301,12 +302,12 @@ export function CustomerRegisterDialog({ open, onOpenChange, storeId }: Customer
               />
             </div>
 
-            {/* Localização - OBRIGATÓRIA */}
+            {/* Localização - OPCIONAL no cadastro */}
             <div className="space-y-3">
               <Label className="flex items-center gap-1">
                 <MapPin className="h-4 w-4" />
-                Localização *
-                <span className="text-xs text-muted-foreground">(obrigatório)</span>
+                Localização
+                <span className="text-xs text-muted-foreground">(opcional - será solicitada no pedido)</span>
               </Label>
 
               {geolocation.hasLocation ? (
@@ -396,7 +397,7 @@ export function CustomerRegisterDialog({ open, onOpenChange, storeId }: Customer
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleSave} disabled={loading || !geolocation.hasLocation}>
+            <Button onClick={handleSave} disabled={loading}>
               {loading ? 'Salvando...' : 'Salvar Cadastro'}
             </Button>
           </DialogFooter>

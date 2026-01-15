@@ -221,11 +221,16 @@ export function ProfessionalGoogleCalendarDialog({
   const handleSaveSettings = async () => {
     setSaving(true);
     try {
+      // Encontrar o nome do calendário selecionado
+      const selectedCalendar = calendars.find(cal => cal.id === selectedCalendarId);
+      const calendarName = selectedCalendar?.summary || (selectedCalendarId === 'primary' ? 'Calendário Principal' : null);
+
       const { error } = await supabase
         .from('google_calendar_tokens')
         .update({
           sync_enabled: syncEnabled,
           calendar_id: selectedCalendarId,
+          calendar_name: calendarName,
           updated_at: new Date().toISOString()
         })
         .eq('professional_id', professionalId);

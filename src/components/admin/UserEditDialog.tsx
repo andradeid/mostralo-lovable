@@ -131,9 +131,10 @@ export function UserEditDialog({ open, onOpenChange, user, onSuccess }: UserEdit
   const handleAddRole = async () => {
     if (!user || !newRole) return;
 
-    const storeId = ['delivery_driver', 'customer'].includes(newRole) ? selectedStore : undefined;
+    const rolesRequiringStore = ['professional', 'store_admin', 'delivery_driver', 'customer'];
+    const storeId = rolesRequiringStore.includes(newRole) ? selectedStore : undefined;
 
-    if (['delivery_driver', 'customer'].includes(newRole) && !storeId) {
+    if (rolesRequiringStore.includes(newRole) && !storeId) {
       toast.error('Selecione uma loja para este tipo de role');
       return;
     }
@@ -309,12 +310,14 @@ export function UserEditDialog({ open, onOpenChange, user, onSuccess }: UserEdit
                     <SelectValue placeholder="Selecione a role" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="professional">Profissional</SelectItem>
+                    <SelectItem value="store_admin">Admin da Loja</SelectItem>
                     <SelectItem value="delivery_driver">Entregador</SelectItem>
                     <SelectItem value="customer">Cliente</SelectItem>
                   </SelectContent>
                 </Select>
 
-                {['delivery_driver', 'customer'].includes(newRole) && (
+                {['professional', 'store_admin', 'delivery_driver', 'customer'].includes(newRole) && (
                   <Select value={selectedStore} onValueChange={setSelectedStore}>
                     <SelectTrigger className="h-9 text-sm">
                       <SelectValue placeholder="Selecione a loja" />

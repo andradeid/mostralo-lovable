@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1?target=deno";
 import { corsHeaders } from "../_shared/cors.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -51,13 +51,11 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    
     console.log("📅 google-calendar-list-calendars: Request received");
     
     // Get user from authorization header
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
+    if (!authHeader?.startsWith("Bearer ")) {
       console.log("❌ No authorization header");
       return new Response(
         JSON.stringify({ error: "Não autorizado" }),
@@ -65,8 +63,13 @@ serve(async (req) => {
       );
     }
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    // Create a client with the user's auth context to validate token
+    const supabaseAnon = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const userClient = createClient(supabaseUrl, supabaseAnon, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const { data: { user }, error: authError } = await userClient.auth.getUser();
     
     if (authError || !user) {
       console.log("❌ Invalid token:", authError?.message);
@@ -76,7 +79,11 @@ serve(async (req) => {
       );
     }
 
-    console.log("✅ User authenticated:", user.id.substring(0, 8) + "...");
+    const userId = user.id;
+    console.log("✅ User authenticated:", userId.substring(0, 8) + "...");
+    
+    // Create admin client for database operations
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get professional_id from request
     const { professional_id } = await req.json();
@@ -96,7 +103,7 @@ serve(async (req) => {
     const { data: userRoles } = await supabase
       .from("user_roles")
       .select("role, store_id")
-      .eq("user_id", user.id);
+      .eq("user_id", userId);
 
     console.log("👤 User roles found:", userRoles?.length || 0, userRoles);
 

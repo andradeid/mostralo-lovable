@@ -578,8 +578,11 @@ export const CustomerLocationPicker = ({
 
   // Confirmar localização
   const handleConfirm = async () => {
-    // Bloquear se fora da área e loja não aceita
-    if (zoneValidation && !zoneValidation.isInZone && !acceptOutsideZone) {
+    // Se há zonas configuradas E cliente está fora E loja não aceita fora da zona, bloquear
+    const hasZonesConfigured = deliveryZones.length > 0;
+    const isOutsideAndNotAllowed = hasZonesConfigured && zoneValidation && !zoneValidation.isInZone && !acceptOutsideZone;
+    
+    if (isOutsideAndNotAllowed) {
       toast({
         title: 'Localização inválida',
         description: 'Esta localização está fora da área de entrega',
@@ -647,12 +650,13 @@ export const CustomerLocationPicker = ({
           <div className="flex-1 rounded-lg overflow-hidden border relative">
             <div ref={mapContainer} className="w-full h-full" />
             
-            {/* Erro de configuração - fixo no topo */}
+            {/* Aviso de configuração - fixo no topo */}
             {storeConfigError && (
               <div className="absolute top-4 left-4 right-4 z-10">
-                <Alert variant="destructive">
-                  <AlertDescription>
-                    {storeConfigError}
+                <Alert className="bg-yellow-50 border-yellow-200 dark:bg-yellow-950 dark:border-yellow-800">
+                  <AlertDescription className="flex items-center gap-2 text-yellow-900 dark:text-yellow-100">
+                    <span>⚠️</span>
+                    <span>{storeConfigError}. Selecione sua localização no mapa para continuar.</span>
                   </AlertDescription>
                 </Alert>
               </div>
@@ -718,7 +722,7 @@ export const CustomerLocationPicker = ({
           </Button>
           <Button 
             onClick={handleConfirm} 
-            disabled={loading || (zoneValidation && !zoneValidation.isInZone && !acceptOutsideZone)} 
+            disabled={loading || (deliveryZones.length > 0 && zoneValidation && !zoneValidation.isInZone && !acceptOutsideZone)} 
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
             Confirmar Localização

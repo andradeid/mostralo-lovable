@@ -53,9 +53,12 @@ serve(async (req) => {
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
+    console.log("📅 google-calendar-list-calendars: Request received");
+    
     // Get user from authorization header
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
+      console.log("❌ No authorization header");
       return new Response(
         JSON.stringify({ error: "Não autorizado" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -66,16 +69,22 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     
     if (authError || !user) {
+      console.log("❌ Invalid token:", authError?.message);
       return new Response(
         JSON.stringify({ error: "Token inválido" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    console.log("✅ User authenticated:", user.id.substring(0, 8) + "...");
+
     // Get professional_id from request
     const { professional_id } = await req.json();
     
+    console.log("📋 Professional ID received:", professional_id);
+    
     if (!professional_id) {
+      console.log("❌ No professional_id provided");
       return new Response(
         JSON.stringify({ error: "professional_id é obrigatório" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -123,6 +132,7 @@ serve(async (req) => {
     }
 
     // Get tokens for this professional
+    console.log("🔑 Fetching tokens for professional:", professional_id);
     const { data: tokens, error: tokensError } = await supabase
       .from("google_calendar_tokens")
       .select("access_token, refresh_token, token_expires_at")
@@ -131,11 +141,14 @@ serve(async (req) => {
       .single();
 
     if (tokensError || !tokens) {
+      console.log("❌ No tokens found for professional:", tokensError?.message);
       return new Response(
         JSON.stringify({ error: "Google Calendar não conectado para este profissional" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    console.log("✅ Tokens found, expires at:", tokens.token_expires_at);
 
     // Get OAuth config for token refresh
     const { data: oauthConfig } = await supabase
@@ -144,33 +157,46 @@ serve(async (req) => {
       .single();
 
     if (!oauthConfig) {
+      console.log("❌ No OAuth config found");
       return new Response(
         JSON.stringify({ error: "Configuração OAuth não encontrada" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    console.log("✅ OAuth config found");
+
     // Check if token is expired and refresh if needed
     let accessToken = tokens.access_token;
     const tokenExpiry = new Date(tokens.token_expires_at);
+    const now = new Date();
     
-    if (tokenExpiry <= new Date()) {
-      console.log("Token expired, refreshing...");
+    console.log("🕐 Token expiry check:", { 
+      tokenExpiry: tokenExpiry.toISOString(), 
+      now: now.toISOString(),
+      isExpired: tokenExpiry <= now 
+    });
+    
+    if (tokenExpiry <= now) {
+      console.log("🔄 Token expired, refreshing...");
       const newToken = await refreshAccessToken(supabase, {
         refresh_token: tokens.refresh_token,
         professional_id
       }, oauthConfig);
       
       if (!newToken) {
+        console.log("❌ Token refresh failed");
         return new Response(
           JSON.stringify({ error: "Falha ao renovar token. Reconecte o Google Calendar." }),
           { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       accessToken = newToken;
+      console.log("✅ Token refreshed successfully");
     }
 
     // Fetch calendars from Google
+    console.log("🌐 Fetching calendars from Google API...");
     const calendarsResponse = await fetch(
       "https://www.googleapis.com/calendar/v3/users/me/calendarList",
       { headers: { Authorization: `Bearer ${accessToken}` } }
@@ -178,7 +204,7 @@ serve(async (req) => {
 
     if (!calendarsResponse.ok) {
       const errorText = await calendarsResponse.text();
-      console.error("Failed to fetch calendars:", errorText);
+      console.error("❌ Failed to fetch calendars:", calendarsResponse.status, errorText);
       return new Response(
         JSON.stringify({ error: "Falha ao buscar calendários do Google" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -186,6 +212,7 @@ serve(async (req) => {
     }
 
     const calendarsData = await calendarsResponse.json();
+    console.log("✅ Calendars received:", calendarsData.items?.length || 0, "items");
     
     // Format calendars for response
     const calendars = (calendarsData.items || []).map((cal: any) => ({
@@ -196,6 +223,8 @@ serve(async (req) => {
       backgroundColor: cal.backgroundColor,
       accessRole: cal.accessRole
     }));
+
+    console.log("📋 Returning", calendars.length, "formatted calendars");
 
     return new Response(
       JSON.stringify({ calendars }),

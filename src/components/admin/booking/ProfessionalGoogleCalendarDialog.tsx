@@ -50,13 +50,16 @@ export function ProfessionalGoogleCalendarDialog({
   const hasGoogleModule = hasModule('google_calendar');
 
   const fetchCalendars = useCallback(async () => {
-    if (!session?.access_token) {
-      console.log('fetchCalendars: No session token');
-      return;
-    }
-    
     setLoadingCalendars(true);
     try {
+      // Garantir que temos uma sessão válida
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session?.access_token) {
+        console.log('fetchCalendars: No session token');
+        toast.error('Sessão expirada. Faça login novamente.');
+        return;
+      }
+
       console.log('fetchCalendars: Calling edge function for professional:', professionalId);
       const { data, error } = await supabase.functions.invoke('google-calendar-list-calendars', {
         body: { professional_id: professionalId }
@@ -66,7 +69,9 @@ export function ProfessionalGoogleCalendarDialog({
 
       if (error) {
         console.error('fetchCalendars: Error from edge function:', error);
-        toast.error(data?.error || 'Erro ao buscar calendários');
+        // Tentar extrair mensagem de erro do contexto
+        const errorMsg = data?.error || 'Erro ao buscar calendários';
+        toast.error(errorMsg);
         return;
       }
 
@@ -86,7 +91,7 @@ export function ProfessionalGoogleCalendarDialog({
     } finally {
       setLoadingCalendars(false);
     }
-  }, [session?.access_token, professionalId]);
+  }, [professionalId]);
 
   useEffect(() => {
     if (!open || !professionalId) return;

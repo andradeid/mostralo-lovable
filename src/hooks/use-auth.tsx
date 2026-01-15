@@ -9,7 +9,7 @@ interface Profile {
   full_name?: string;
   phone?: string | null;
   whatsapp_valid?: boolean | null;
-  user_type: 'master_admin' | 'store_admin';
+  user_type: 'master_admin' | 'store_admin' | 'professional';
   avatar_url?: string;
   approval_status?: string | null;
   accepted_terms_version?: string | null;

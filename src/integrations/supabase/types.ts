@@ -12142,7 +12142,7 @@ export type Database = {
         | "first_order"
         | "minimum_order"
       store_status: "active" | "inactive" | "suspended"
-      user_type: "master_admin" | "store_admin"
+      user_type: "master_admin" | "store_admin" | "professional"
       whatsapp_campaign_status:
         | "draft"
         | "scheduled"
@@ -12338,7 +12338,7 @@ export const Constants = {
         "minimum_order",
       ],
       store_status: ["active", "inactive", "suspended"],
-      user_type: ["master_admin", "store_admin"],
+      user_type: ["master_admin", "store_admin", "professional"],
       whatsapp_campaign_status: [
         "draft",
         "scheduled",

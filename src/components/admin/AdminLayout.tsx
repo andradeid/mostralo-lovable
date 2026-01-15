@@ -53,6 +53,11 @@ export function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
     return <Navigate to="/delivery-panel" replace />;
   }
 
+  // Redirecionar profissionais para sua área específica
+  if (userRole === 'professional') {
+    return <Navigate to="/profissional" replace />;
+  }
+
   // Se ainda não temos profile, mas a role indica admin/attendant, permite seguir; caso contrário, aguarda
   if (!profile) {
     if (userRole === 'master_admin' || userRole === 'store_admin' || userRole === 'attendant') {

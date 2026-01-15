@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -49,8 +49,19 @@ export function ProfessionalGoogleCalendarDialog({
   // Verificar módulo usando o hook correto
   const hasGoogleModule = hasModule('google_calendar');
 
+  // Ref para manter o calendário salvo durante refreshes
+  const savedCalendarRef = useRef<string>('primary');
+
   const fetchCalendars = useCallback(async (savedCalendarId?: string) => {
     setLoadingCalendars(true);
+    
+    // Se recebeu um savedCalendarId, atualizar a ref
+    if (savedCalendarId) {
+      savedCalendarRef.current = savedCalendarId;
+    }
+    
+    const calendarIdToRestore = savedCalendarId || savedCalendarRef.current;
+    
     try {
       // Garantir que temos uma sessão válida
       const { data: sessionData } = await supabase.auth.getSession();
@@ -61,6 +72,8 @@ export function ProfessionalGoogleCalendarDialog({
       }
 
       console.log('fetchCalendars: Calling edge function for professional:', professionalId);
+      console.log('fetchCalendars: Calendar to restore:', calendarIdToRestore);
+      
       const { data, error } = await supabase.functions.invoke('google-calendar-list-calendars', {
         body: { professional_id: professionalId }
       });
@@ -78,23 +91,26 @@ export function ProfessionalGoogleCalendarDialog({
         setCalendars(data.calendars);
         console.log('fetchCalendars: Loaded', data.calendars.length, 'calendars');
         
-        // Se temos um calendar_id salvo, verificar se ainda é válido
-        if (savedCalendarId) {
-          const savedExists = data.calendars.some((cal: GoogleCalendar) => cal.id === savedCalendarId);
-          
-          if (savedExists) {
-            setSelectedCalendarId(savedCalendarId);
-          } else if (savedCalendarId === 'primary') {
-            const primaryCal = data.calendars.find((cal: GoogleCalendar) => cal.primary);
-            if (primaryCal) {
-              setSelectedCalendarId(primaryCal.id);
-            }
-          } else {
-            const primaryCal = data.calendars.find((cal: GoogleCalendar) => cal.primary);
-            if (primaryCal) {
-              setSelectedCalendarId(primaryCal.id);
-              toast.info('Calendário anterior não encontrado, usando o principal');
-            }
+        // Verificar se o calendário salvo ainda existe
+        const savedExists = data.calendars.some((cal: GoogleCalendar) => cal.id === calendarIdToRestore);
+        
+        if (savedExists) {
+          console.log('fetchCalendars: Restoring saved calendar:', calendarIdToRestore);
+          setSelectedCalendarId(calendarIdToRestore);
+        } else if (calendarIdToRestore === 'primary') {
+          const primaryCal = data.calendars.find((cal: GoogleCalendar) => cal.primary);
+          if (primaryCal) {
+            console.log('fetchCalendars: Using primary calendar:', primaryCal.id);
+            setSelectedCalendarId(primaryCal.id);
+            savedCalendarRef.current = primaryCal.id;
+          }
+        } else {
+          const primaryCal = data.calendars.find((cal: GoogleCalendar) => cal.primary);
+          if (primaryCal) {
+            console.log('fetchCalendars: Saved calendar not found, using primary:', primaryCal.id);
+            setSelectedCalendarId(primaryCal.id);
+            savedCalendarRef.current = primaryCal.id;
+            toast.info('Calendário anterior não encontrado, usando o principal');
           }
         }
       } else if (data?.error) {
@@ -336,7 +352,7 @@ export function ProfessionalGoogleCalendarDialog({
                   </Button>
                 </div>
               ) : (
-                <Select value={selectedCalendarId} onValueChange={setSelectedCalendarId}>
+                <Select value={selectedCalendarId} onValueChange={(value) => { setSelectedCalendarId(value); savedCalendarRef.current = value; }}>
                   <SelectTrigger><SelectValue placeholder="Selecione um calendário" /></SelectTrigger>
                   <SelectContent>
                     {calendars.map((cal) => (

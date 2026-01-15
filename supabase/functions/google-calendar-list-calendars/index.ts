@@ -92,18 +92,13 @@ serve(async (req) => {
     }
 
     // Verify user has access to this professional
-    const { data: profile } = await supabase
-      .from("profiles")
+    // Check user_roles table for role and store_id
+    const { data: userRoles } = await supabase
+      .from("user_roles")
       .select("role, store_id")
-      .eq("id", user.id)
-      .single();
+      .eq("user_id", user.id);
 
-    if (!profile) {
-      return new Response(
-        JSON.stringify({ error: "Perfil não encontrado" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    console.log("👤 User roles found:", userRoles?.length || 0, userRoles);
 
     // Get professional to verify access
     const { data: professional } = await supabase
@@ -113,23 +108,34 @@ serve(async (req) => {
       .single();
 
     if (!professional) {
+      console.log("❌ Professional not found");
       return new Response(
         JSON.stringify({ error: "Profissional não encontrado" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Check access
-    const hasAccess = 
-      profile.role === "master_admin" || 
-      (["store_admin"].includes(profile.role) && profile.store_id === professional.store_id);
+    console.log("✅ Professional found, store_id:", professional.store_id);
+
+    // Check access - master_admin or store_admin of the same store
+    const isMasterAdmin = userRoles?.some(r => r.role === "master_admin");
+    const isStoreAdmin = userRoles?.some(r => 
+      (r.role === "store_admin" || r.role === "professional") && 
+      r.store_id === professional.store_id
+    );
+    const hasAccess = isMasterAdmin || isStoreAdmin;
+
+    console.log("🔐 Access check:", { isMasterAdmin, isStoreAdmin, hasAccess });
 
     if (!hasAccess) {
+      console.log("❌ Access denied");
       return new Response(
         JSON.stringify({ error: "Sem permissão" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    console.log("✅ Access granted");
 
     // Get tokens for this professional
     console.log("🔑 Fetching tokens for professional:", professional_id);

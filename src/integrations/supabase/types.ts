@@ -6649,6 +6649,7 @@ export type Database = {
           name: string
           phone: string | null
           photo_url: string | null
+          slug: string | null
           specialty: string | null
           store_id: string
           updated_at: string | null
@@ -6665,6 +6666,7 @@ export type Database = {
           name: string
           phone?: string | null
           photo_url?: string | null
+          slug?: string | null
           specialty?: string | null
           store_id: string
           updated_at?: string | null
@@ -6681,6 +6683,7 @@ export type Database = {
           name?: string
           phone?: string | null
           photo_url?: string | null
+          slug?: string | null
           specialty?: string | null
           store_id?: string
           updated_at?: string | null
@@ -11957,6 +11960,10 @@ export type Database = {
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
       generate_product_slug: {
         Args: { input_store_id: string; product_name: string }
+        Returns: string
+      }
+      generate_professional_slug: {
+        Args: { p_name: string; p_professional_id?: string; p_store_id: string }
         Returns: string
       }
       generate_proposal_number: { Args: never; Returns: string }

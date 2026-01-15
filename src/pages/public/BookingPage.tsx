@@ -43,6 +43,7 @@ import { WhatsAppProfilePreview } from '@/components/leads/WhatsAppProfilePrevie
 interface Professional {
   id: string;
   name: string;
+  slug: string | null;
   photo_url: string | null;
   specialty: string | null;
 }
@@ -176,7 +177,7 @@ const BookingPage = () => {
         // Fetch professionals
         const profsResult = await client
           .from('professionals')
-          .select('id, name, photo_url, specialty')
+          .select('id, name, slug, photo_url, specialty')
           .eq('store_id', storeData.id)
           .eq('is_active', true)
           .order('display_order', { ascending: true }) as unknown as { data: Professional[] | null };
@@ -195,10 +196,12 @@ const BookingPage = () => {
     fetchData();
   }, [storeSlug]);
 
-  // Pre-selecionar profissional se vier da URL
+  // Pre-selecionar profissional se vier da URL (aceita tanto ID quanto slug)
   useEffect(() => {
     if (preselectedProfessionalId && professionals.length > 0 && !selectedProfessional) {
-      const professional = professionals.find(p => p.id === preselectedProfessionalId);
+      const professional = professionals.find(
+        p => p.id === preselectedProfessionalId || p.slug === preselectedProfessionalId
+      );
       if (professional) {
         setSelectedProfessional(professional);
         setIsProfessionalPreselected(true);

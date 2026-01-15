@@ -67,12 +67,13 @@ export default function ProfessionalDashboard() {
     return <Badge variant={style.variant}>{style.label}</Badge>;
   };
 
-  // Generate the booking link with professional pre-selected
+  // Generate the booking link with professional pre-selected (usando slug amigável)
   const getBookingLink = () => {
     const baseUrl = window.location.origin;
     const storeSlug = professional?.stores?.slug;
-    if (!storeSlug || !professional?.id) return null;
-    return `${baseUrl}/agendar/${storeSlug}?profissional=${professional.id}`;
+    const professionalSlug = professional?.slug || professional?.id;
+    if (!storeSlug || !professionalSlug) return null;
+    return `${baseUrl}/agendar/${storeSlug}?profissional=${professionalSlug}`;
   };
 
   const handleCopyLink = async () => {

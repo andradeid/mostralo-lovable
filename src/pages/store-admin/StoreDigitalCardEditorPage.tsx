@@ -141,7 +141,7 @@ export default function StoreDigitalCardEditorPage() {
     }
   };
 
-  // Gerar URL de agendamento
+  // Gerar URL de agendamento (usando professional_id como fallback)
   const bookingUrl = useMemo(() => {
     if (!storeData?.slug || !card?.professional_id) return undefined;
     return `/agendar/${storeData.slug}?profissional=${card.professional_id}`;

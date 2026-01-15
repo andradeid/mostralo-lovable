@@ -138,7 +138,7 @@ export default function DigitalCardPublicPage() {
     booking_button_text: card.booking_button_text,
   };
 
-  // Gerar URL de agendamento se aplicável
+  // Gerar URL de agendamento se aplicável (usando professional_id como fallback)
   const bookingUrl = card.booking_enabled && storeSlug && card.professional_id
     ? `/agendar/${storeSlug}?profissional=${card.professional_id}`
     : undefined;

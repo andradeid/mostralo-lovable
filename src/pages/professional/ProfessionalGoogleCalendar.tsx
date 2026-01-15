@@ -83,12 +83,14 @@ export default function ProfessionalGoogleCalendar() {
   const { data: oauthConfigured } = useQuery({
     queryKey: ["google-oauth-configured"],
     queryFn: async () => {
-      const { count, error } = await supabase
+      const { data, error } = await supabase
         .from("google_oauth_config")
-        .select("*", { count: "exact", head: true });
+        .select("id, is_active")
+        .eq("is_active", true)
+        .maybeSingle();
 
       if (error) throw error;
-      return (count || 0) > 0;
+      return !!data;
     }
   });
 
@@ -246,8 +248,13 @@ export default function ProfessionalGoogleCalendar() {
                   <p className="text-sm text-muted-foreground">
                     {tokenStatus.calendar_id === "primary" 
                       ? "Calendário Principal" 
-                      : tokenStatus.calendar_id || "Calendário Principal"}
+                      : (tokenStatus as any).calendar_name || tokenStatus.calendar_id || "Calendário Principal"}
                   </p>
+                  {(tokenStatus as any).calendar_name && tokenStatus.calendar_id !== "primary" && (
+                    <p className="text-xs text-muted-foreground/70 mt-1 font-mono truncate">
+                      {tokenStatus.calendar_id}
+                    </p>
+                  )}
                 </div>
 
                 {tokenStatus.last_sync_at && (

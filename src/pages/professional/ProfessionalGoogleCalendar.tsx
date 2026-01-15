@@ -241,6 +241,15 @@ export default function ProfessionalGoogleCalendar() {
                   </Button>
                 </div>
 
+                <div className="border-t pt-4">
+                  <p className="font-medium">Calendário Sincronizado</p>
+                  <p className="text-sm text-muted-foreground">
+                    {tokenStatus.calendar_id === "primary" 
+                      ? "Calendário Principal" 
+                      : tokenStatus.calendar_id || "Calendário Principal"}
+                  </p>
+                </div>
+
                 {tokenStatus.last_sync_at && (
                   <div>
                     <p className="text-sm text-muted-foreground">

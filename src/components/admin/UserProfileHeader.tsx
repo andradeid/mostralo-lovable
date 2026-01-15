@@ -224,7 +224,11 @@ export function UserProfileHeader() {
             <div className="hidden md:block text-left">
               <p className="text-sm font-medium">{profile.full_name || profile.email}</p>
               <p className="text-xs text-muted-foreground">
-                {profile.user_type === 'master_admin' ? 'Admin Master' : 'Admin Loja'}
+                {profile.user_type === 'master_admin' 
+                  ? 'Admin Master' 
+                  : profile.user_type === 'professional' 
+                    ? 'Profissional' 
+                    : 'Admin Loja'}
               </p>
             </div>
           </Button>

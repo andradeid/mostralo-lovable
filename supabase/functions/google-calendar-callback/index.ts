@@ -18,7 +18,7 @@ serve(async (req) => {
     const error = url.searchParams.get("error");
 
     // Get frontend URL from referer or use default
-    const frontendUrl = Deno.env.get("FRONTEND_URL") || "https://mostralo.lovable.app";
+    const frontendUrl = Deno.env.get("FRONTEND_URL") || "https://mostralo-lovable.lovable.app";
 
     // Decode state first to determine flow type
     let state: { 
@@ -164,7 +164,7 @@ serve(async (req) => {
 
   } catch (error) {
     console.error("Error in google-calendar-callback:", error);
-    const frontendUrl = Deno.env.get("FRONTEND_URL") || "https://mostralo.lovable.app";
+    const frontendUrl = Deno.env.get("FRONTEND_URL") || "https://mostralo-lovable.lovable.app";
     return Response.redirect(
       `${frontendUrl}/profissional/google-calendar?error=internal`,
       302

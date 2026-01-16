@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,42 @@ export default function ProfessionalAgenda() {
   const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 });
   const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 0 });
   const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
+
+  // Real-time subscription for bookings
+  useEffect(() => {
+    if (!professional?.id) return;
+
+    const channel = supabase
+      .channel(`professional-bookings-realtime-${professional.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'bookings',
+          filter: `professional_id=eq.${professional.id}`
+        },
+        (payload) => {
+          console.log('📅 Professional booking realtime update:', payload.eventType);
+          // Invalidate queries to refetch bookings
+          queryClient.invalidateQueries({ queryKey: ["professional-bookings"] });
+          
+          // Show toast notification for new bookings
+          if (payload.eventType === 'INSERT') {
+            toast.info('Novo agendamento recebido!', {
+              description: 'Sua agenda foi atualizada automaticamente.'
+            });
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('📡 Professional bookings subscription status:', status);
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [professional?.id, queryClient]);
 
   const handleConfirm = async (bookingId: string) => {
     const { error } = await supabase

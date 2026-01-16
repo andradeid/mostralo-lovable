@@ -88,8 +88,8 @@ export const useCouponValidation = () => {
         };
       }
 
-      // Verificar limite de usos
-      if (coupon.max_uses !== null && coupon.used_count >= coupon.max_uses) {
+      // Verificar limite de usos (max_uses = 0 ou null significa sem limite)
+      if (coupon.max_uses !== null && coupon.max_uses > 0 && coupon.used_count >= coupon.max_uses) {
         return {
           isValid: false,
           coupon: null,

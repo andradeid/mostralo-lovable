@@ -577,6 +577,91 @@ export default function BookingCommissionPaymentsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Dialog de Visualização de Comprovante - dentro da view do profissional */}
+        <Dialog open={!!viewingReceiptUrl} onOpenChange={(open) => {
+          if (!open) {
+            setViewingReceiptUrl(null);
+            setViewingReceiptCommission(null);
+          }
+        }}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Receipt className="w-5 h-5" />
+                Comprovante de Pagamento
+              </DialogTitle>
+            </DialogHeader>
+            
+            {viewingReceiptCommission && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Valor:</span>
+                  <span className="font-medium">
+                    R$ {Number(viewingReceiptCommission.commission_amount).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Data do Pagamento:</span>
+                  <span className="font-medium">
+                    {viewingReceiptCommission.paid_at 
+                      ? format(parseISO(viewingReceiptCommission.paid_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
+                      : "-"
+                    }
+                  </span>
+                </div>
+                {viewingReceiptCommission.payment_method && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Método:</span>
+                    <span className="font-medium">
+                      {PAYMENT_METHODS.find(m => m.value === viewingReceiptCommission.payment_method)?.label || viewingReceiptCommission.payment_method}
+                    </span>
+                  </div>
+                )}
+
+                <div className="border rounded-lg overflow-hidden bg-muted/30">
+                  {viewingReceiptUrl && (viewingReceiptUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                    <img
+                      src={viewingReceiptUrl}
+                      alt="Comprovante de pagamento"
+                      className="w-full h-auto max-h-96 object-contain"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-12 gap-3">
+                      <svg
+                        className="w-16 h-16 text-muted-foreground"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                        />
+                      </svg>
+                      <p className="text-sm text-muted-foreground">Arquivo PDF</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => {
+                    setViewingReceiptUrl(null);
+                    setViewingReceiptCommission(null);
+                  }}>
+                    Fechar
+                  </Button>
+                  <Button onClick={() => viewingReceiptUrl && window.open(viewingReceiptUrl, "_blank")} className="gap-2">
+                    <Download className="w-4 h-4" />
+                    Abrir
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }

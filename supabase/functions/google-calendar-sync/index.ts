@@ -117,9 +117,14 @@ async function getValidAccessToken(
 function buildGoogleEvent(booking: BookingData, timezone: string = "America/Sao_Paulo") {
   const serviceName = booking.service?.name || "Agendamento";
   
-  // Build datetime strings
-  const startDateTime = `${booking.booking_date}T${booking.start_time}:00`;
-  const endDateTime = `${booking.booking_date}T${booking.end_time}:00`;
+  // Build datetime strings - handle both HH:mm and HH:mm:ss formats
+  const formatTime = (time: string) => {
+    const parts = time.split(':');
+    return `${parts[0]}:${parts[1]}:00`; // Always use HH:mm:ss format
+  };
+  
+  const startDateTime = `${booking.booking_date}T${formatTime(booking.start_time)}`;
+  const endDateTime = `${booking.booking_date}T${formatTime(booking.end_time)}`;
 
   return {
     summary: `${serviceName} - ${booking.customer_name}`,

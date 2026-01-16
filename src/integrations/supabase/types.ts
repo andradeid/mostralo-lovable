@@ -2682,6 +2682,7 @@ export type Database = {
       dental_payments: {
         Row: {
           amount: number
+          attachment_url: string | null
           created_at: string
           id: string
           installment_number: number | null
@@ -2698,6 +2699,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          attachment_url?: string | null
           created_at?: string
           id?: string
           installment_number?: number | null
@@ -2714,6 +2716,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          attachment_url?: string | null
           created_at?: string
           id?: string
           installment_number?: number | null

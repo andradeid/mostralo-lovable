@@ -14,6 +14,7 @@ export interface DentalPayment {
   total_installments: number;
   reference_number: string | null;
   notes: string | null;
+  attachment_url: string | null;
   registered_by: string | null;
   created_at: string;
   updated_at: string;
@@ -30,6 +31,7 @@ export type DentalPaymentFormData = {
   total_installments?: number;
   reference_number?: string;
   notes?: string;
+  attachment_url?: string;
 };
 
 export const PAYMENT_METHODS = {

@@ -26,10 +26,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2 } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Loader2, Upload, X, FileImage } from "lucide-react";
 import { usePatientPayments, PAYMENT_METHODS } from "@/hooks/dental/useDentalPayments";
 import { DentalQuote } from "@/hooks/dental/useDentalQuotes";
+import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 
 const paymentSchema = z.object({
   quote_id: z.string().min(1, "Selecione um orçamento"),
@@ -61,6 +64,9 @@ export function PaymentFormDialog({
 }: PaymentFormDialogProps) {
   const { createPayment } = usePatientPayments(patientId);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
+  const [attachmentPreview, setAttachmentPreview] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const form = useForm<PaymentFormData>({
     resolver: zodResolver(paymentSchema),
@@ -76,12 +82,61 @@ export function PaymentFormDialog({
     },
   });
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Arquivo muito grande",
+          description: "O tamanho máximo é 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      setAttachmentFile(file);
+      if (file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onloadend = () => setAttachmentPreview(reader.result as string);
+        reader.readAsDataURL(file);
+      } else {
+        setAttachmentPreview(null);
+      }
+    }
+  };
+
+  const uploadAttachment = async (): Promise<string | null> => {
+    if (!attachmentFile) return null;
+
+    const fileExt = attachmentFile.name.split(".").pop();
+    const fileName = `${patientId}/${Date.now()}.${fileExt}`;
+
+    const { error } = await supabase.storage
+      .from("dental-payment-receipts")
+      .upload(fileName, attachmentFile);
+
+    if (error) {
+      console.error("Erro ao fazer upload:", error);
+      throw new Error("Falha ao enviar comprovante");
+    }
+
+    const { data } = supabase.storage
+      .from("dental-payment-receipts")
+      .getPublicUrl(fileName);
+
+    return data.publicUrl;
+  };
+
   const selectedQuoteId = form.watch("quote_id");
   const selectedQuote = quotes.find(q => q.id === selectedQuoteId);
 
   const onSubmit = async (data: PaymentFormData) => {
     setIsSubmitting(true);
     try {
+      let attachmentUrl: string | null = null;
+      if (attachmentFile) {
+        attachmentUrl = await uploadAttachment();
+      }
+
       await createPayment.mutateAsync({
         quote_id: data.quote_id,
         patient_id: patientId,
@@ -93,9 +148,14 @@ export function PaymentFormDialog({
         total_installments: data.total_installments,
         reference_number: data.reference_number,
         notes: data.notes,
+        attachment_url: attachmentUrl || undefined,
       });
       form.reset();
+      setAttachmentFile(null);
+      setAttachmentPreview(null);
       onOpenChange(false);
+    } catch (error) {
+      console.error("Erro ao registrar pagamento:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -258,6 +318,48 @@ export function PaymentFormDialog({
                 </FormItem>
               )}
             />
+
+            {/* Attachment Upload */}
+            <div className="space-y-2">
+              <Label>Comprovante (opcional)</Label>
+              {!attachmentFile ? (
+                <div>
+                  <Input
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,application/pdf"
+                    onChange={handleFileChange}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">JPG, PNG ou PDF (máx. 5MB)</p>
+                </div>
+              ) : (
+                <div className="border rounded-lg p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FileImage className="w-4 h-4 text-primary" />
+                      <span className="text-sm truncate max-w-[200px]">{attachmentFile.name}</span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setAttachmentFile(null);
+                        setAttachmentPreview(null);
+                      }}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  {attachmentPreview && (
+                    <img
+                      src={attachmentPreview}
+                      alt="Preview"
+                      className="w-full h-24 object-contain rounded"
+                    />
+                  )}
+                </div>
+              )}
+            </div>
 
             {/* Notes */}
             <FormField

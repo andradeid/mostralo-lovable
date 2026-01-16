@@ -3,10 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DollarSign, Receipt, Plus, CreditCard, Calendar, Clock } from "lucide-react";
+import { DollarSign, Receipt, Plus, CreditCard, Calendar, Clock, Paperclip } from "lucide-react";
 import { useDentalQuotes, DentalQuote } from "@/hooks/dental/useDentalQuotes";
 import { usePatientPayments, DentalPayment, PAYMENT_METHODS } from "@/hooks/dental/useDentalPayments";
 import { PaymentFormDialog } from "./PaymentFormDialog";
+import { PaymentAttachmentDialog } from "./PaymentAttachmentDialog";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -19,6 +20,7 @@ export function PatientFinancialTab({ patientId, storeId }: PatientFinancialTabP
   const { quotes, isLoading: quotesLoading } = useDentalQuotes(patientId);
   const { payments, isLoading: paymentsLoading } = usePatientPayments(patientId);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState<DentalPayment | null>(null);
 
   const isLoading = quotesLoading || paymentsLoading;
 
@@ -209,7 +211,17 @@ export function PatientFinancialTab({ patientId, storeId }: PatientFinancialTabP
               {payments.map((payment) => {
                 const quote = quotes.find(q => q.id === payment.quote_id);
                 return (
-                  <div key={payment.id} className="flex items-center gap-3 p-3 border rounded-lg">
+                  <div
+                    key={payment.id}
+                    className={`flex items-center gap-3 p-3 border rounded-lg ${
+                      payment.attachment_url ? "cursor-pointer hover:bg-muted/50 transition-colors" : ""
+                    }`}
+                    onClick={() => {
+                      if (payment.attachment_url) {
+                        setSelectedPayment(payment);
+                      }
+                    }}
+                  >
                     <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-full">
                       <DollarSign className="h-4 w-4 text-green-600 dark:text-green-400" />
                     </div>
@@ -221,6 +233,12 @@ export function PatientFinancialTab({ patientId, storeId }: PatientFinancialTabP
                         <Badge variant="outline" className="text-xs">
                           {PAYMENT_METHODS[payment.payment_method as keyof typeof PAYMENT_METHODS] || payment.payment_method}
                         </Badge>
+                        {payment.attachment_url && (
+                          <Badge variant="secondary" className="text-xs gap-1">
+                            <Paperclip className="h-3 w-3" />
+                            Comprovante
+                          </Badge>
+                        )}
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                         <Clock className="h-3 w-3" />
@@ -254,6 +272,15 @@ export function PatientFinancialTab({ patientId, storeId }: PatientFinancialTabP
         patientId={patientId}
         storeId={storeId}
         quotes={quotes}
+      />
+
+      {/* Attachment Dialog */}
+      <PaymentAttachmentDialog
+        open={!!selectedPayment}
+        onOpenChange={(open) => !open && setSelectedPayment(null)}
+        attachmentUrl={selectedPayment?.attachment_url || null}
+        paymentAmount={selectedPayment?.amount || 0}
+        paymentDate={selectedPayment ? format(parseISO(selectedPayment.payment_date), "dd/MM/yyyy", { locale: ptBR }) : ""}
       />
     </div>
   );

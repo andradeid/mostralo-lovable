@@ -299,8 +299,9 @@ const BookingCalendarPage = () => {
     setSelectedBooking({
       ...booking,
       professional_name: getProfessionalName(booking.professional_id),
+      professional_photo_url: getProfessionalPhoto(booking.professional_id),
       service_name: getServiceName(booking.service_id)
-    } as Booking & { professional_name?: string; service_name?: string });
+    } as Booking & { professional_name?: string; professional_photo_url?: string; service_name?: string });
     setIsActionsDialogOpen(true);
   };
 
@@ -337,8 +338,14 @@ const BookingCalendarPage = () => {
                       style={{ top: 0 }}
                     >
                       <div className="font-medium truncate">{booking.customer_name}</div>
-                      <div className="truncate opacity-90">
-                        {getServiceName(booking.service_id)} - {getProfessionalName(booking.professional_id)}
+                      <div className="flex items-center gap-1.5 truncate opacity-90">
+                        <Avatar className="h-4 w-4 border border-white/30 flex-shrink-0">
+                          <AvatarImage src={getProfessionalPhoto(booking.professional_id) || undefined} />
+                          <AvatarFallback className="text-[8px] bg-white/20">
+                            {getProfessionalInitials(booking.professional_id)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="truncate">{getServiceName(booking.service_id)} - {getProfessionalName(booking.professional_id)}</span>
                       </div>
                       <div className="flex items-center gap-1 opacity-80">
                         <Clock className="h-3 w-3" />

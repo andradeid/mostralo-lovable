@@ -819,10 +819,10 @@ export function AdminSidebar() {
 
         {/* Navigation Groups - Collapsible */}
         {Object.entries(groupedItems).map(([groupName, items]) => {
-          const isGroupCollapsed = collapsedGroups[groupName] ?? false;
-          const hasActiveRoute = groupContainsActiveRoute(items);
-          // Se tem rota ativa, sempre mostrar expandido
-          const isOpen = hasActiveRoute || !isGroupCollapsed;
+          // Verificar se o grupo foi explicitamente colapsado pelo usuário
+          const isExplicitlyCollapsed = collapsedGroups[groupName] === true;
+          // Se foi explicitamente colapsado, respeitar a escolha do usuário
+          const isOpen = !isExplicitlyCollapsed;
           
           return (
             <SidebarGroup key={groupName}>

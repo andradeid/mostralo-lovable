@@ -754,7 +754,7 @@ export function AdminSidebar() {
   if (loadingConfig && profile?.user_type === 'store_admin') {
     console.log('⏳ AdminSidebar: Mostrando loading...');
     return (
-      <Sidebar className={collapsed ? "w-16" : "w-64"}>
+      <Sidebar collapsible="icon">
         <SidebarContent className="bg-background border-r">
           <div className="flex items-center justify-center h-full">
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -772,7 +772,7 @@ export function AdminSidebar() {
   });
 
   return (
-    <Sidebar className={collapsed ? "w-16" : "w-64"}>
+    <Sidebar collapsible="icon">
       <SidebarContent className="bg-background border-r">
         {/* Logo/Header */}
         <div className="p-4 border-b">

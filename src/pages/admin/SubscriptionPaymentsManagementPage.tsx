@@ -1684,7 +1684,20 @@ export default function SubscriptionPaymentsManagementPage() {
           <div className="flex flex-col gap-4">
             <div className="flex justify-center items-center bg-muted rounded-lg p-4 overflow-auto max-h-[60vh]">
               {selectedProofUrl && (() => {
-                const ext = selectedProofUrl.split(".").pop()?.toLowerCase();
+                // Verifica se é uma URL válida (http/https)
+                const isValidUrl = selectedProofUrl.startsWith('http://') || selectedProofUrl.startsWith('https://');
+                
+                if (!isValidUrl) {
+                  // É apenas texto (ex: "PIX confirmado via webhook...")
+                  return (
+                    <div className="flex flex-col items-center justify-center py-8 gap-3 text-center">
+                      <CheckCircle2 className="w-16 h-16 text-green-500" />
+                      <p className="text-sm text-muted-foreground max-w-md">{selectedProofUrl}</p>
+                    </div>
+                  );
+                }
+                
+                const ext = selectedProofUrl.split(".").pop()?.toLowerCase().split("?")[0];
                 const isImage = ["jpg", "jpeg", "png", "gif", "webp"].includes(ext || "");
                 
                 if (isImage) {
@@ -1711,7 +1724,7 @@ export default function SubscriptionPaymentsManagementPage() {
                           d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
                         />
                       </svg>
-                      <p className="text-sm text-muted-foreground">Arquivo PDF</p>
+                      <p className="text-sm text-muted-foreground">Arquivo PDF ou documento</p>
                     </div>
                   );
                 }
@@ -1721,10 +1734,12 @@ export default function SubscriptionPaymentsManagementPage() {
               <Button variant="outline" onClick={() => setShowProofDialog(false)}>
                 Fechar
               </Button>
-              <Button onClick={() => window.open(selectedProofUrl, "_blank")} className="gap-2">
-                <ExternalLink className="w-4 h-4" />
-                Abrir em nova aba
-              </Button>
+              {selectedProofUrl && (selectedProofUrl.startsWith('http://') || selectedProofUrl.startsWith('https://')) && (
+                <Button onClick={() => window.open(selectedProofUrl, "_blank")} className="gap-2">
+                  <ExternalLink className="w-4 h-4" />
+                  Abrir em nova aba
+                </Button>
+              )}
             </div>
           </div>
         </DialogContent>

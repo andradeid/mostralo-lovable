@@ -1,14 +1,16 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Clock, CheckCircle, Loader2, TrendingUp } from "lucide-react";
+import { DollarSign, Clock, CheckCircle, Loader2, TrendingUp, Eye, Receipt } from "lucide-react";
 import { useProfessionalData, useProfessionalCommissions } from "@/hooks/useProfessionalData";
 import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { CommissionDetailsDialog } from "@/components/professional/CommissionDetailsDialog";
 
 export default function ProfessionalCommissions() {
   const [tab, setTab] = useState("pending");
+  const [selectedCommission, setSelectedCommission] = useState<any>(null);
   const { data: professional } = useProfessionalData();
   const { data: commissions, isLoading } = useProfessionalCommissions(professional?.id);
 
@@ -18,7 +20,6 @@ export default function ProfessionalCommissions() {
   const pendingTotal = pendingCommissions.reduce((acc: number, c: any) => acc + Number(c.commission_amount), 0);
   const paidTotal = paidCommissions.reduce((acc: number, c: any) => acc + Number(c.commission_amount), 0);
 
-  // Comissões do mês atual
   const now = new Date();
   const monthStart = startOfMonth(now);
   const monthEnd = endOfMonth(now);
@@ -29,9 +30,12 @@ export default function ProfessionalCommissions() {
   const monthTotal = monthCommissions.reduce((acc: number, c: any) => acc + Number(c.commission_amount), 0);
 
   const CommissionCard = ({ commission }: { commission: any }) => (
-    <div className="p-4 rounded-lg border bg-card">
+    <div 
+      className="p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors cursor-pointer"
+      onClick={() => setSelectedCommission(commission)}
+    >
       <div className="flex items-start justify-between">
-        <div>
+        <div className="flex-1">
           <p className="font-medium">
             {commission.bookings?.booking_services?.name || "Serviço"}
           </p>
@@ -53,11 +57,26 @@ export default function ProfessionalCommissions() {
             } de R$ {Number(commission.service_price).toFixed(2)}
           </p>
           {commission.status === "paid" && commission.paid_at && (
-            <p className="text-xs text-green-600 mt-1">
-              Pago em {format(parseISO(commission.paid_at), "dd/MM/yyyy")}
-            </p>
+            <div className="flex items-center gap-1 justify-end mt-1">
+              <CheckCircle className="w-3 h-3 text-green-600" />
+              <p className="text-xs text-green-600">
+                Pago em {format(parseISO(commission.paid_at), "dd/MM/yyyy")}
+              </p>
+            </div>
+          )}
+          {commission.payment_receipt_url && (
+            <div className="flex items-center gap-1 justify-end mt-1">
+              <Receipt className="w-3 h-3 text-blue-600" />
+              <span className="text-xs text-blue-600">Com comprovante</span>
+            </div>
           )}
         </div>
+      </div>
+      <div className="flex items-center justify-end mt-2 pt-2 border-t">
+        <span className="text-xs text-muted-foreground flex items-center gap-1">
+          <Eye className="w-3 h-3" />
+          Toque para ver detalhes
+        </span>
       </div>
     </div>
   );
@@ -66,7 +85,6 @@ export default function ProfessionalCommissions() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Minhas Comissões</h1>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4">
@@ -111,7 +129,6 @@ export default function ProfessionalCommissions() {
         </Card>
       </div>
 
-      {/* Commission Type Info */}
       {professional && (
         <Card>
           <CardContent className="p-4">
@@ -131,7 +148,6 @@ export default function ProfessionalCommissions() {
         </Card>
       )}
 
-      {/* Tabs */}
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="grid grid-cols-2 w-full max-w-md">
           <TabsTrigger value="pending" className="gap-2">
@@ -182,6 +198,12 @@ export default function ProfessionalCommissions() {
           )}
         </TabsContent>
       </Tabs>
+
+      <CommissionDetailsDialog
+        open={!!selectedCommission}
+        onOpenChange={(open) => !open && setSelectedCommission(null)}
+        commission={selectedCommission}
+      />
     </div>
   );
 }

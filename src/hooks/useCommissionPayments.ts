@@ -215,11 +215,13 @@ export function useCommissionPayments(storeId: string | null, filters?: Commissi
       paymentMethod,
       reference,
       notes,
+      receiptUrl,
     }: {
       commissionIds: string[];
       paymentMethod: string;
       reference?: string;
       notes?: string;
+      receiptUrl?: string;
     }) => {
       const now = new Date().toISOString();
 
@@ -230,6 +232,10 @@ export function useCommissionPayments(storeId: string | null, filters?: Commissi
           status: "paid",
           paid_at: now,
           updated_at: now,
+          payment_method: paymentMethod,
+          payment_reference: reference || null,
+          payment_notes: notes || null,
+          payment_receipt_url: receiptUrl || null,
         })
         .in("id", commissionIds);
 

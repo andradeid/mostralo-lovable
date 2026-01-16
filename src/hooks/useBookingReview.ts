@@ -140,9 +140,12 @@ export function useCreateReviewToken() {
 
       if (error) throw error;
       
+      // Link de avaliação sempre usa domínio principal do Mostralo
+      const siteUrl = import.meta.env.VITE_SITE_URL || 'https://mostralo.com.br';
+      
       return {
         ...data,
-        reviewUrl: `${window.location.origin}/avaliar/${token}`,
+        reviewUrl: `${siteUrl}/avaliar/${token}`,
       };
     },
     onSuccess: () => {

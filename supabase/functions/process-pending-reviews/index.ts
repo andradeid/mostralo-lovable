@@ -207,12 +207,8 @@ serve(async (req) => {
 
       console.log(`[process-pending-reviews] Encontrados ${bookings.length} agendamentos para enviar avaliação`);
 
-      // Buscar dados da loja
-      const { data: store } = await supabase
-        .from('stores')
-        .select('custom_domain, slug')
-        .eq('id', settings.store_id)
-        .single();
+      // URL base para links de avaliação - SEMPRE usar domínio principal do Mostralo
+      const siteUrl = Deno.env.get('SITE_URL') || 'https://mostralo.com.br';
 
       for (const booking of bookings) {
         try {
@@ -261,15 +257,8 @@ serve(async (req) => {
             continue;
           }
 
-          // Montar link de avaliação
-          let baseUrl = 'https://mostralo.com.br';
-          if (store?.custom_domain) {
-            baseUrl = `https://${store.custom_domain}`;
-          } else if (store?.slug) {
-            baseUrl = `https://${store.slug}.mostralo.com.br`;
-          }
-          
-          const reviewLink = `${baseUrl}/avaliar/${token}`;
+          // Montar link de avaliação - usar domínio principal
+          const reviewLink = `${siteUrl}/avaliar/${token}`;
 
           // Template padrão
           const template = settings.review_message_template || 

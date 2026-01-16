@@ -686,13 +686,20 @@ export function AdminSidebar() {
 
   const navigationItems = getNavigationItems();
   
-  const groupedItems = navigationItems.reduce((acc, item) => {
-    if (!acc[item.group]) {
-      acc[item.group] = [];
+  // Aplicar preferências de menu para master_admin
+  const groupedItems = useMemo(() => {
+    if (isMasterAdmin && menuPreferences) {
+      return applyMenuOrder(navigationItems, menuPreferences);
     }
-    acc[item.group].push(item);
-    return acc;
-  }, {} as Record<string, typeof navigationItems>);
+    // Agrupamento padrão
+    return navigationItems.reduce((acc, item) => {
+      if (!acc[item.group]) {
+        acc[item.group] = [];
+      }
+      acc[item.group].push(item);
+      return acc;
+    }, {} as Record<string, typeof navigationItems>);
+  }, [navigationItems, menuPreferences, isMasterAdmin]);
 
   const isActive = (path: string) => {
     if (path === "/dashboard") {

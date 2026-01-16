@@ -1,28 +1,104 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, ChevronLeft, ChevronRight, CheckCircle, XCircle, Clock, Loader2 } from "lucide-react";
-import { useProfessionalData, useProfessionalBookings } from "@/hooks/useProfessionalData";
-import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval, isToday, isSameDay } from "date-fns";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CalendarIcon, ChevronLeft, ChevronRight, CalendarDays, CalendarRange, LayoutGrid } from "lucide-react";
+import { useProfessionalData } from "@/hooks/useProfessionalData";
+import { useAgendaNavigation, ViewMode } from "@/hooks/useAgendaNavigation";
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
+import { 
+  AgendaDayView, 
+  AgendaWeekView, 
+  AgendaMonthView 
+} from "@/components/professional/agenda";
 
 export default function ProfessionalAgenda() {
   const queryClient = useQueryClient();
-  const [selectedDate, setSelectedDate] = useState(new Date());
   const { data: professional } = useProfessionalData();
-  const dateStr = format(selectedDate, "yyyy-MM-dd");
-  const { data: bookings, isLoading } = useProfessionalBookings(professional?.id, dateStr);
+  
+  const {
+    selectedDate,
+    setSelectedDate,
+    viewMode,
+    setViewMode,
+    navigate,
+    goToToday,
+    weekDays,
+    dateRangeLabel,
+  } = useAgendaNavigation();
 
-  const weekStart = startOfWeek(selectedDate, { weekStartsOn: 0 });
-  const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 0 });
-  const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
+  // Get date range based on view mode
+  const dateRange = useMemo(() => {
+    switch (viewMode) {
+      case 'day':
+        return {
+          start: format(selectedDate, 'yyyy-MM-dd'),
+          end: format(selectedDate, 'yyyy-MM-dd'),
+        };
+      case 'week': {
+        const start = startOfWeek(selectedDate, { weekStartsOn: 0 });
+        const end = endOfWeek(selectedDate, { weekStartsOn: 0 });
+        return {
+          start: format(start, 'yyyy-MM-dd'),
+          end: format(end, 'yyyy-MM-dd'),
+        };
+      }
+      case 'month': {
+        const start = startOfMonth(selectedDate);
+        const end = endOfMonth(selectedDate);
+        return {
+          start: format(start, 'yyyy-MM-dd'),
+          end: format(end, 'yyyy-MM-dd'),
+        };
+      }
+      default:
+        return {
+          start: format(selectedDate, 'yyyy-MM-dd'),
+          end: format(selectedDate, 'yyyy-MM-dd'),
+        };
+    }
+  }, [selectedDate, viewMode]);
+
+  // Fetch bookings for the date range
+  const { data: bookings = [], isLoading } = useQuery({
+    queryKey: ["professional-bookings-range", professional?.id, dateRange.start, dateRange.end],
+    queryFn: async () => {
+      if (!professional?.id) return [];
+
+      const { data, error } = await supabase
+        .from("bookings")
+        .select(`
+          *,
+          booking_services:service_id (name, duration_minutes)
+        `)
+        .eq("professional_id", professional.id)
+        .gte("booking_date", dateRange.start)
+        .lte("booking_date", dateRange.end)
+        .order("booking_date", { ascending: true })
+        .order("start_time", { ascending: true });
+
+      if (error) {
+        console.error("Erro ao buscar agendamentos:", error);
+        throw error;
+      }
+
+      return data || [];
+    },
+    enabled: !!professional?.id,
+  });
+
+  // Filter bookings for day view
+  const dayBookings = useMemo(() => {
+    if (viewMode !== 'day') return [];
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    return bookings.filter((b: any) => b.booking_date === dateStr);
+  }, [bookings, selectedDate, viewMode]);
 
   // Real-time subscription for bookings
   useEffect(() => {
@@ -40,10 +116,8 @@ export default function ProfessionalAgenda() {
         },
         (payload) => {
           console.log('📅 Professional booking realtime update:', payload.eventType);
-          // Invalidate queries to refetch bookings
-          queryClient.invalidateQueries({ queryKey: ["professional-bookings"] });
+          queryClient.invalidateQueries({ queryKey: ["professional-bookings-range"] });
           
-          // Show toast notification for new bookings
           if (payload.eventType === 'INSERT') {
             toast.info('Novo agendamento recebido!', {
               description: 'Sua agenda foi atualizada automaticamente.'
@@ -60,7 +134,7 @@ export default function ProfessionalAgenda() {
     };
   }, [professional?.id, queryClient]);
 
-  const handleConfirm = async (bookingId: string) => {
+  const handleConfirm = useCallback(async (bookingId: string) => {
     const { error } = await supabase
       .from("bookings")
       .update({ status: "confirmed" })
@@ -71,10 +145,10 @@ export default function ProfessionalAgenda() {
       return;
     }
     toast.success("Confirmado!");
-    queryClient.invalidateQueries({ queryKey: ["professional-bookings"] });
-  };
+    queryClient.invalidateQueries({ queryKey: ["professional-bookings-range"] });
+  }, [queryClient]);
 
-  const handleCancel = async (bookingId: string) => {
+  const handleCancel = useCallback(async (bookingId: string) => {
     const { error } = await supabase
       .from("bookings")
       .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
@@ -85,10 +159,10 @@ export default function ProfessionalAgenda() {
       return;
     }
     toast.success("Cancelado");
-    queryClient.invalidateQueries({ queryKey: ["professional-bookings"] });
-  };
+    queryClient.invalidateQueries({ queryKey: ["professional-bookings-range"] });
+  }, [queryClient]);
 
-  const handleComplete = async (bookingId: string) => {
+  const handleComplete = useCallback(async (bookingId: string) => {
     const { error } = await supabase
       .from("bookings")
       .update({ status: "completed" })
@@ -99,178 +173,125 @@ export default function ProfessionalAgenda() {
       return;
     }
     toast.success("Serviço concluído!");
-    queryClient.invalidateQueries({ queryKey: ["professional-bookings"] });
-  };
+    queryClient.invalidateQueries({ queryKey: ["professional-bookings-range"] });
+  }, [queryClient]);
 
-  const getStatusStyle = (status: string) => {
-    const styles: Record<string, { bg: string; text: string; label: string }> = {
-      pending: { bg: "bg-yellow-500/10", text: "text-yellow-600", label: "Pendente" },
-      confirmed: { bg: "bg-blue-500/10", text: "text-blue-600", label: "Confirmado" },
-      completed: { bg: "bg-green-500/10", text: "text-green-600", label: "Concluído" },
-      cancelled: { bg: "bg-red-500/10", text: "text-red-600", label: "Cancelado" },
-      no_show: { bg: "bg-gray-500/10", text: "text-gray-600", label: "Não Compareceu" },
-    };
-    return styles[status] || styles.pending;
-  };
+  const handleDayClick = useCallback((date: Date) => {
+    setSelectedDate(date);
+    setViewMode('day');
+  }, [setSelectedDate, setViewMode]);
+
+  const handleViewModeChange = useCallback((value: string) => {
+    setViewMode(value as ViewMode);
+  }, [setViewMode]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <h1 className="text-2xl font-bold">Minha Agenda</h1>
-        
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={() => setSelectedDate(subDays(selectedDate, 7))}>
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
+    <div className="space-y-4">
+      {/* Header with navigation */}
+      <div className="flex flex-col gap-4">
+        {/* View Mode Tabs */}
+        <Tabs value={viewMode} onValueChange={handleViewModeChange} className="w-full">
+          <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto">
+            <TabsTrigger value="day" className="gap-2">
+              <CalendarDays className="w-4 h-4" />
+              <span className="hidden sm:inline">Dia</span>
+            </TabsTrigger>
+            <TabsTrigger value="week" className="gap-2">
+              <CalendarRange className="w-4 h-4" />
+              <span className="hidden sm:inline">Semana</span>
+            </TabsTrigger>
+            <TabsTrigger value="month" className="gap-2">
+              <LayoutGrid className="w-4 h-4" />
+              <span className="hidden sm:inline">Mês</span>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        {/* Navigation Controls */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h2 className="text-lg font-semibold capitalize text-center sm:text-left">
+            {dateRangeLabel}
+          </h2>
           
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="w-auto">
-                <CalendarIcon className="w-4 h-4 mr-2" />
-                {format(selectedDate, "MMMM yyyy", { locale: ptBR })}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={(date) => date && setSelectedDate(date)}
-                locale={ptBR}
-              />
-            </PopoverContent>
-          </Popover>
-          
-          <Button variant="outline" size="icon" onClick={() => setSelectedDate(addDays(selectedDate, 7))}>
-            <ChevronRight className="w-4 h-4" />
-          </Button>
-          
-          <Button variant="outline" onClick={() => setSelectedDate(new Date())}>
-            Hoje
-          </Button>
+          <div className="flex items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={() => navigate('prev')}
+              className="h-9 w-9"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="h-9 px-3">
+                  <CalendarIcon className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">Ir para</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="center">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => date && setSelectedDate(date)}
+                  locale={ptBR}
+                />
+              </PopoverContent>
+            </Popover>
+            
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={() => navigate('next')}
+              className="h-9 w-9"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+            
+            <Button 
+              variant="secondary" 
+              onClick={goToToday}
+              className="h-9 px-3"
+            >
+              Hoje
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Week Navigation */}
-      <div className="grid grid-cols-7 gap-2">
-        {weekDays.map((day) => {
-          const isSelected = isSameDay(day, selectedDate);
-          const isTodayDate = isToday(day);
-          
-          return (
-            <button
-              key={day.toISOString()}
-              onClick={() => setSelectedDate(day)}
-              className={cn(
-                "flex flex-col items-center p-2 rounded-lg transition-colors",
-                isSelected 
-                  ? "bg-primary text-primary-foreground" 
-                  : "hover:bg-muted",
-                isTodayDate && !isSelected && "ring-2 ring-primary"
-              )}
-            >
-              <span className="text-xs font-medium uppercase">
-                {format(day, "EEE", { locale: ptBR })}
-              </span>
-              <span className="text-lg font-bold">
-                {format(day, "d")}
-              </span>
-            </button>
-          );
-        })}
+      {/* View Content */}
+      <div className="min-h-[400px]">
+        {viewMode === 'day' && (
+          <AgendaDayView
+            date={selectedDate}
+            bookings={dayBookings}
+            isLoading={isLoading}
+            onConfirm={handleConfirm}
+            onCancel={handleCancel}
+            onComplete={handleComplete}
+          />
+        )}
+
+        {viewMode === 'week' && (
+          <AgendaWeekView
+            weekDays={weekDays}
+            bookings={bookings}
+            isLoading={isLoading}
+            onDayClick={handleDayClick}
+            selectedDate={selectedDate}
+          />
+        )}
+
+        {viewMode === 'month' && (
+          <AgendaMonthView
+            selectedDate={selectedDate}
+            bookings={bookings}
+            isLoading={isLoading}
+            onDayClick={handleDayClick}
+          />
+        )}
       </div>
-
-      {/* Day View */}
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin" />
-            </div>
-          ) : bookings && bookings.length > 0 ? (
-            <div className="space-y-3">
-              {bookings.map((booking: any) => {
-                const statusStyle = getStatusStyle(booking.status);
-                
-                return (
-                  <div
-                    key={booking.id}
-                    className={cn(
-                      "p-4 rounded-lg border",
-                      statusStyle.bg
-                    )}
-                  >
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Clock className="w-4 h-4" />
-                          <span className="font-semibold">
-                            {booking.start_time?.slice(0, 5)} - {booking.end_time?.slice(0, 5)}
-                          </span>
-                          <Badge variant="outline" className={statusStyle.text}>
-                            {statusStyle.label}
-                          </Badge>
-                        </div>
-                        <p className="font-medium">{booking.booking_services?.name}</p>
-                        <p className="text-sm text-muted-foreground">{booking.customer_name}</p>
-                        {booking.customer_phone && (
-                          <a 
-                            href={`tel:${booking.customer_phone}`}
-                            className="text-sm text-primary hover:underline"
-                          >
-                            {booking.customer_phone}
-                          </a>
-                        )}
-                        {booking.notes && (
-                          <p className="text-xs text-muted-foreground mt-1 italic">
-                            Obs: {booking.notes}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="flex flex-wrap gap-2">
-                        {booking.status === "pending" && (
-                          <>
-                            <Button size="sm" variant="outline" onClick={() => handleCancel(booking.id)}>
-                              <XCircle className="w-4 h-4 mr-1" />
-                              Cancelar
-                            </Button>
-                            <Button size="sm" onClick={() => handleConfirm(booking.id)}>
-                              <CheckCircle className="w-4 h-4 mr-1" />
-                              Confirmar
-                            </Button>
-                          </>
-                        )}
-                        {booking.status === "confirmed" && (
-                          <>
-                            <Button size="sm" variant="outline" onClick={() => handleCancel(booking.id)}>
-                              <XCircle className="w-4 h-4 mr-1" />
-                              Cancelar
-                            </Button>
-                            <Button size="sm" variant="default" onClick={() => handleComplete(booking.id)}>
-                              <CheckCircle className="w-4 h-4 mr-1" />
-                              Concluir
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              <CalendarIcon className="w-12 h-12 mx-auto mb-2 opacity-50" />
-              <p>Nenhum agendamento para esta data</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2, Check, X, Play, Square, AlertTriangle, User, Phone, Calendar, Clock, Scissors, MessageCircle, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,6 +24,7 @@ interface Booking {
   status: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show';
   notes?: string;
   professional_name?: string;
+  professional_photo_url?: string;
   service_name?: string;
   confirmation_sent?: boolean;
   reminder_sent?: boolean;
@@ -241,7 +243,12 @@ export function BookingActionsDialog({
             )}
             {booking.professional_name && (
               <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-muted-foreground" />
+                <Avatar className="h-6 w-6 border">
+                  <AvatarImage src={booking.professional_photo_url || undefined} alt={booking.professional_name} />
+                  <AvatarFallback className="text-xs bg-muted">
+                    {booking.professional_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
                 <span>{booking.professional_name}</span>
               </div>
             )}

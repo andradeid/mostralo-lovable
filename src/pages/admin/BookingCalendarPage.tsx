@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Calendar as CalendarIcon, 
   ChevronLeft, 
@@ -275,6 +276,18 @@ const BookingCalendarPage = () => {
     return prof?.name || 'Não atribuído';
   };
 
+  // Get professional photo by ID
+  const getProfessionalPhoto = (id: string) => {
+    const prof = professionals.find(p => p.id === id);
+    return prof?.photo_url || null;
+  };
+
+  // Get professional initials for avatar fallback
+  const getProfessionalInitials = (id: string) => {
+    const name = getProfessionalName(id);
+    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  };
+
   // Get service name by ID
   const getServiceName = (id: string) => {
     const service = bookingServices.find(s => s.id === id);
@@ -390,8 +403,17 @@ const BookingCalendarPage = () => {
                         getStatusColor(booking.status)
                       )}
                     >
-                      <div className="font-medium truncate">{booking.start_time.slice(0, 5)}</div>
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <Avatar className="h-4 w-4 border border-white/30">
+                          <AvatarImage src={getProfessionalPhoto(booking.professional_id) || undefined} />
+                          <AvatarFallback className="text-[8px] bg-white/20">
+                            {getProfessionalInitials(booking.professional_id)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="font-medium truncate">{booking.start_time.slice(0, 5)}</span>
+                      </div>
                       <div className="truncate">{booking.customer_name}</div>
+                      <div className="truncate opacity-80 text-[10px]">{getProfessionalName(booking.professional_id)}</div>
                     </div>
                   ))
                 )}
@@ -449,11 +471,17 @@ const BookingCalendarPage = () => {
                         handleBookingClick(booking);
                       }}
                       className={cn(
-                        "rounded px-1 py-0.5 text-white text-[10px] truncate cursor-pointer hover:opacity-90",
+                        "rounded px-1 py-0.5 text-white text-[10px] cursor-pointer hover:opacity-90 flex items-center gap-1",
                         getStatusColor(booking.status)
                       )}
                     >
-                      {booking.start_time.slice(0, 5)} {booking.customer_name}
+                      <Avatar className="h-3 w-3 border border-white/30 flex-shrink-0">
+                        <AvatarImage src={getProfessionalPhoto(booking.professional_id) || undefined} />
+                        <AvatarFallback className="text-[6px] bg-white/20">
+                          {getProfessionalInitials(booking.professional_id)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="truncate">{booking.start_time.slice(0, 5)} {booking.customer_name}</span>
                     </div>
                   ))}
                   {dayBookings.length > 3 && (

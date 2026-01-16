@@ -62,6 +62,7 @@ const ProfessionalAvailabilityPage = lazy(() => import("@/pages/admin/Profession
 const BookingSettingsPage = lazy(() => import("@/pages/admin/BookingSettingsPage"));
 const BookingReportsPage = lazy(() => import("@/pages/admin/BookingReportsPage"));
 const BookingReviewsPage = lazy(() => import("@/pages/admin/BookingReviewsPage"));
+const BookingCommissionPaymentsPage = lazy(() => import("@/pages/admin/BookingCommissionPaymentsPage"));
 const ClientSubscriptionsDashboardPage = lazy(() => import("@/pages/admin/ClientSubscriptionsDashboardPage"));
 const ClientSubscriptionPlansPage = lazy(() => import("@/pages/admin/ClientSubscriptionPlansPage"));
 const ClientSubscribersPage = lazy(() => import("@/pages/admin/ClientSubscribersPage"));
@@ -560,6 +561,13 @@ export const storeAdminRoutes = (
       <ProtectedRoute allowedRoles={['store_admin']}>
         <AdminLayout pageTitle="Avaliações dos Profissionais">
           <LazyRoute><BookingReviewsPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/booking/payments" element={
+      <ProtectedRoute allowedRoles={['store_admin']}>
+        <AdminLayout pageTitle="Pagamentos de Comissões">
+          <LazyRoute><BookingCommissionPaymentsPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

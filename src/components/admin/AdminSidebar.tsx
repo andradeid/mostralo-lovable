@@ -58,7 +58,8 @@ import {
   Phone,
   PlayCircle,
   Palette,
-  Stethoscope
+  Stethoscope,
+  Banknote
 } from "lucide-react";
 
 import {

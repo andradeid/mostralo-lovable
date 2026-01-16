@@ -162,6 +162,35 @@ const BookingCalendarPage = () => {
     refetchBookings();
   }, [refetchBookings]);
 
+  // Real-time subscription for bookings
+  useEffect(() => {
+    if (!storeId) return;
+
+    const channel = supabase
+      .channel(`bookings-realtime-${storeId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'bookings',
+          filter: `store_id=eq.${storeId}`
+        },
+        (payload) => {
+          console.log('📅 Booking realtime update:', payload.eventType);
+          // Refetch bookings when any change occurs
+          refetchBookings();
+        }
+      )
+      .subscribe((status) => {
+        console.log('📡 Bookings subscription status:', status);
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [storeId, refetchBookings]);
+
   // Filter bookings by selected professional
   const filteredBookings = useMemo(() => {
     if (selectedProfessionalId === 'all') return bookings;

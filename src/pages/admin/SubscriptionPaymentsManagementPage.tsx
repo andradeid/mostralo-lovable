@@ -984,6 +984,7 @@ export default function SubscriptionPaymentsManagementPage() {
                           size="sm"
                           className="w-full h-9"
                           onClick={() => {
+                            console.log('📎 Abrindo comprovante (mobile):', approval.payment_proof_url);
                             setSelectedProofUrl(approval.payment_proof_url!);
                             setShowProofDialog(true);
                           }}
@@ -1092,6 +1093,7 @@ export default function SubscriptionPaymentsManagementPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => {
+                              console.log('📎 Abrindo comprovante (desktop):', approval.payment_proof_url);
                               setSelectedProofUrl(approval.payment_proof_url!);
                               setShowProofDialog(true);
                             }}
@@ -1574,8 +1576,15 @@ export default function SubscriptionPaymentsManagementPage() {
                   <Button
                     variant="outline"
                     onClick={() => {
-                      setSelectedProofUrl(selectedInvoice.payment_proof_url!);
-                      setShowProofDialog(true);
+                      const proofUrl = selectedInvoice.payment_proof_url!;
+                      console.log('📎 Abrindo comprovante:', proofUrl);
+                      // Primeiro fechar o dialog de detalhes, depois abrir o de comprovante
+                      setShowDetailDialog(false);
+                      // Pequeno delay para garantir que o primeiro diálogo fechou
+                      setTimeout(() => {
+                        setSelectedProofUrl(proofUrl);
+                        setShowProofDialog(true);
+                      }, 100);
                     }}
                   >
                     <Eye className="h-4 w-4 mr-2" />

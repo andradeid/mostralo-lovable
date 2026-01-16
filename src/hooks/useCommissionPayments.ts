@@ -15,6 +15,10 @@ export interface CommissionWithDetails {
   commission_amount: number;
   status: string;
   paid_at: string | null;
+  payment_method?: string | null;
+  payment_reference?: string | null;
+  payment_notes?: string | null;
+  payment_receipt_url?: string | null;
   created_at: string;
   updated_at: string;
   professional?: {

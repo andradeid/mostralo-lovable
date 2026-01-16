@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { CreditCard, Calendar, DollarSign, Upload, FileText, Copy, Check, Clock, AlertCircle, CheckCircle2, QrCode, Gift, Tag, X, Loader2, RefreshCw, Receipt, ExternalLink } from "lucide-react";
+import { CreditCard, Calendar, DollarSign, Upload, FileText, Copy, Check, Clock, AlertCircle, CheckCircle2, QrCode, Gift, Tag, X, Loader2, RefreshCw, Receipt, ExternalLink, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
@@ -1256,18 +1256,35 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                       </div>
                     </TableCell>
                     <TableCell className="text-right py-2 md:py-4">
-                      {invoice.payment_status !== 'paid' && (
-                        <Button 
-                          size="sm" 
-                          className="h-7 text-xs md:h-8 md:text-sm"
-                          onClick={() => handlePayClick(invoice)}
-                          disabled={invoice.payment_proof_url !== null && invoice.payment_status === 'pending'}
-                        >
-                          {invoice.payment_proof_url && invoice.payment_status === 'pending' 
-                            ? 'Aguardando' 
-                            : 'Pagar'}
-                        </Button>
-                      )}
+                      <div className="flex items-center justify-end gap-1">
+                        {/* Botão de ver comprovante quando existe */}
+                        {invoice.payment_proof_url && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7 md:h-8 md:w-8"
+                            title="Ver comprovante"
+                            onClick={() => {
+                              setSelectedProofUrl(invoice.payment_proof_url!);
+                              setShowProofDialog(true);
+                            }}
+                          >
+                            <Eye className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                          </Button>
+                        )}
+                        {invoice.payment_status !== 'paid' && (
+                          <Button 
+                            size="sm" 
+                            className="h-7 text-xs md:h-8 md:text-sm"
+                            onClick={() => handlePayClick(invoice)}
+                            disabled={invoice.payment_proof_url !== null && invoice.payment_status === 'pending'}
+                          >
+                            {invoice.payment_proof_url && invoice.payment_status === 'pending' 
+                              ? 'Aguardando' 
+                              : 'Pagar'}
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

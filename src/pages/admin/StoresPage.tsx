@@ -16,11 +16,13 @@ import {
   Loader2,
   ExternalLink,
   Sparkles,
-  Check
+  Check,
+  Trash2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 import { StoreOpenAIConfigModal } from '@/components/admin/stores/StoreOpenAIConfigModal';
+import { StoreDeleteDialog } from '@/components/admin/stores/StoreDeleteDialog';
 
 interface StoreData {
   id: string;
@@ -49,6 +51,7 @@ const StoresPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
   const [openAIModalStore, setOpenAIModalStore] = useState<StoreData | null>(null);
+  const [deleteStore, setDeleteStore] = useState<StoreData | null>(null);
 
   useEffect(() => {
     fetchStores();
@@ -300,6 +303,14 @@ const StoresPage = () => {
                             <ExternalLink className="w-3 h-3" />
                           </Button>
                         </Link>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => setDeleteStore(store)}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -319,6 +330,14 @@ const StoresPage = () => {
           onSaved={() => fetchStores()}
         />
       )}
+
+      {/* Dialog de exclusão de loja */}
+      <StoreDeleteDialog
+        open={!!deleteStore}
+        onOpenChange={(open) => !open && setDeleteStore(null)}
+        store={deleteStore}
+        onSuccess={() => fetchStores()}
+      />
     </div>
   );
 };

@@ -59,7 +59,8 @@ import {
   PlayCircle,
   Palette,
   Stethoscope,
-  Banknote
+  Banknote,
+  Pencil
 } from "lucide-react";
 
 import {
@@ -83,6 +84,8 @@ import { useNewOrders } from "@/contexts/NewOrdersContext";
 import { useStoreModules } from "@/hooks/useStoreModules";
 import { useUnreadUpdates } from "@/hooks/useUnreadUpdates";
 import { useAttendantPermissions, PermissionKey } from "@/hooks/useAttendantPermissions";
+import { useAdminMenuPreferences, applyMenuOrder, MenuPreferences } from "@/hooks/useAdminMenuPreferences";
+import { MenuEditMode } from "./MenuEditMode";
 export function AdminSidebar() {
   const { state, isMobile } = useSidebar();
   const location = useLocation();
@@ -735,18 +738,45 @@ export function AdminSidebar() {
       <SidebarContent className="bg-background border-r">
         {/* Logo/Header */}
         <div className="p-4 border-b">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Crown className="w-5 h-5 text-primary-foreground" />
-            </div>
-            {(!collapsed || isMobile) && (
-              <div>
-                <h2 className="text-lg font-bold text-primary">Mostralo</h2>
-                <p className="text-xs text-muted-foreground">Admin Panel</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <Crown className="w-5 h-5 text-primary-foreground" />
               </div>
+              {(!collapsed || isMobile) && (
+                <div>
+                  <h2 className="text-lg font-bold text-primary">Mostralo</h2>
+                  <p className="text-xs text-muted-foreground">Admin Panel</p>
+                </div>
+              )}
+            </div>
+            {/* Botão de edição do menu - apenas para master_admin */}
+            {isMasterAdmin && (!collapsed || isMobile) && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsEditingMenu(!isEditingMenu)}
+                className="h-8 w-8"
+                title="Reorganizar menu"
+              >
+                <Pencil className="w-4 h-4" />
+              </Button>
             )}
           </div>
         </div>
+
+        {/* Modo de Edição do Menu */}
+        {isEditingMenu && isMasterAdmin ? (
+          <MenuEditMode
+            groupedItems={groupedItems}
+            onSave={saveMenuPreferences}
+            onCancel={() => setIsEditingMenu(false)}
+            onReset={resetMenuPreferences}
+            saving={menuPrefsSaving}
+            currentSortAlphabetically={menuPreferences?.sortAlphabetically ?? false}
+          />
+        ) : (
+          <>
 
 
         {/* Navigation Groups */}
@@ -799,6 +829,8 @@ export function AdminSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         ))}
+        </>
+        )}
 
         {/* Logout Button */}
         <div className="mt-auto p-4 border-t">

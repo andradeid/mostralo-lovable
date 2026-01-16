@@ -274,6 +274,45 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_menu_preferences: {
+        Row: {
+          admin_id: string
+          created_at: string
+          id: string
+          menu_order: Json
+          updated_at: string
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          id?: string
+          menu_order?: Json
+          updated_at?: string
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          id?: string
+          menu_order?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_menu_preferences_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_menu_preferences_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: true
+            referencedRelation: "unified_users_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       affiliate_earnings_resets: {
         Row: {
           affiliates_count: number

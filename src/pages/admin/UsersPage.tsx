@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 
 import { UserEditDialog } from '@/components/admin/UserEditDialog';
 import { UserBlockDialog } from '@/components/admin/UserBlockDialog';
-import { UserDeleteDialog } from '@/components/admin/UserDeleteDialog';
+import { AdvancedDeleteUserModal } from '@/components/admin/AdvancedDeleteUserModal';
 import { UserAuditLogDialog } from '@/components/admin/UserAuditLogDialog';
 import { UserPasswordResetDialog } from '@/components/admin/UserPasswordResetDialog';
 import { FixUserLoginDialog } from '@/components/admin/FixUserLoginDialog';
@@ -721,12 +721,13 @@ const UsersPage = () => {
                               )}
                             </DropdownMenuItem>
                             
-                            {!user.is_deleted && (
-                              <DropdownMenuItem onClick={() => setDeleteUser(user)}>
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Excluir
-                              </DropdownMenuItem>
-                            )}
+                            <DropdownMenuItem 
+                              onClick={() => setDeleteUser(user)}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Exclusão Avançada
+                            </DropdownMenuItem>
                             
                             <DropdownMenuSeparator />
                             
@@ -869,10 +870,15 @@ const UsersPage = () => {
         onSuccess={fetchUsers}
       />
 
-      <UserDeleteDialog
+      <AdvancedDeleteUserModal
         open={!!deleteUser}
         onOpenChange={(open) => !open && setDeleteUser(null)}
-        user={deleteUser}
+        user={deleteUser ? {
+          id: deleteUser.id,
+          full_name: deleteUser.full_name || deleteUser.email,
+          email: deleteUser.email,
+          store_name: deleteUser.roles?.find((r: any) => r.role === 'store_admin')?.store_name
+        } : null}
         onSuccess={fetchUsers}
       />
 

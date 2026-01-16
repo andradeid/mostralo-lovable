@@ -248,22 +248,10 @@ serve(async (req) => {
       throw reviewError;
     }
 
-    // Buscar domínio da loja para montar o link
-    const { data: store } = await supabase
-      .from('stores')
-      .select('custom_domain, slug')
-      .eq('id', booking.store_id)
-      .single();
-
-    // Montar link de avaliação
-    let baseUrl = 'https://mostralo.com.br';
-    if (store?.custom_domain) {
-      baseUrl = `https://${store.custom_domain}`;
-    } else if (store?.slug) {
-      baseUrl = `https://${store.slug}.mostralo.com.br`;
-    }
-    
-    const reviewLink = `${baseUrl}/avaliar/${token}`;
+    // Montar link de avaliação - SEMPRE usar domínio principal do Mostralo
+    // Similar às faturas, avaliações são rotas internas e não devem usar custom_domain
+    const siteUrl = Deno.env.get('SITE_URL') || 'https://mostralo.com.br';
+    const reviewLink = `${siteUrl}/avaliar/${token}`;
 
     // Template padrão
     const template = settings?.review_message_template || 

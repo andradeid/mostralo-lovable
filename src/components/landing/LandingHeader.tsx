@@ -4,14 +4,19 @@ import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuth } from '@/hooks/use-auth';
 import { 
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import { 
   Store,
   Menu,
-  X,
   Briefcase,
   LayoutDashboard,
   LogOut
 } from 'lucide-react';
-
 export const LandingHeader = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, userRole, signOut } = useAuth();
@@ -116,15 +121,122 @@ export const LandingHeader = () => {
         {/* Actions */}
         <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 flex-shrink-0">
           {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="md:hidden h-9 w-9 p-0"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </Button>
-
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="md:hidden h-9 w-9 p-0"
+              >
+                <Menu className="w-5 h-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[280px] p-0">
+              <SheetHeader className="p-4 border-b">
+                <SheetTitle className="flex items-center gap-2">
+                  <Store className="w-6 h-6 text-primary" />
+                  <span className="text-primary font-bold">Mostralo</span>
+                </SheetTitle>
+              </SheetHeader>
+              <nav className="flex flex-col p-4 space-y-1">
+                <a 
+                  href="#recursos" 
+                  className="text-sm font-medium text-muted-foreground hover:text-primary hover:bg-muted transition-colors py-2.5 px-3 rounded-md"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Recursos
+                </a>
+                <a 
+                  href="#calculadora" 
+                  className="text-sm font-medium text-muted-foreground hover:text-primary hover:bg-muted transition-colors py-2.5 px-3 rounded-md"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Calculadora
+                </a>
+                <a 
+                  href="#marketing-digital" 
+                  className="text-sm font-medium text-muted-foreground hover:text-primary hover:bg-muted transition-colors py-2.5 px-3 rounded-md"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Marketing Digital
+                </a>
+                <a 
+                  href="#whatsapp-marketing" 
+                  className="text-sm font-medium text-muted-foreground hover:text-primary hover:bg-muted transition-colors py-2.5 px-3 rounded-md"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  WhatsApp
+                </a>
+                <a 
+                  href="#integracao-ia" 
+                  className="text-sm font-medium text-muted-foreground hover:text-primary hover:bg-muted transition-colors py-2.5 px-3 rounded-md"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  IA
+                </a>
+                <a 
+                  href="#plans" 
+                  className="text-sm font-medium text-muted-foreground hover:text-primary hover:bg-muted transition-colors py-2.5 px-3 rounded-md"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Planos
+                </a>
+                <Link 
+                  to="/funcionalidades" 
+                  className="text-sm font-medium text-muted-foreground hover:text-primary hover:bg-muted transition-colors py-2.5 px-3 rounded-md"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Funcionalidades
+                </Link>
+                <Link 
+                  to="/sobre" 
+                  className="text-sm font-medium text-muted-foreground hover:text-primary hover:bg-muted transition-colors py-2.5 px-3 rounded-md"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Sobre
+                </Link>
+                
+                <div className="pt-3 border-t mt-3 space-y-2">
+                  <Link 
+                    to="/seja-vendedor" 
+                    className="flex items-center justify-center gap-2 text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 px-4 py-2.5 rounded-md transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Briefcase className="w-4 h-4" />
+                    Trabalhe Conosco
+                  </Link>
+                  {user ? (
+                    <>
+                      <Link 
+                        to={getDashboardPath()} 
+                        className="flex items-center justify-center gap-2 text-sm font-medium text-primary hover:text-primary/80 py-2.5 px-3 rounded-md hover:bg-muted"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <LayoutDashboard className="w-4 h-4" />
+                        Acessar Painel
+                      </Link>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full gap-2 text-destructive hover:text-destructive"
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          handleSignOut();
+                        }}
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Sair
+                      </Button>
+                    </>
+                  ) : (
+                    <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="outline" size="sm" className="w-full">Entrar</Button>
+                    </Link>
+                  )}
+                </div>
+              </nav>
+            </SheetContent>
+          </Sheet>
           <div className="hidden sm:block">
             <ThemeToggle />
           </div>
@@ -160,105 +272,6 @@ export const LandingHeader = () => {
         </div>
       </div>
 
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t bg-background">
-          <nav className="container px-4 py-4 flex flex-col space-y-3">
-            <a 
-              href="#recursos" 
-              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors py-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Recursos
-            </a>
-            <a 
-              href="#calculadora" 
-              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors py-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Calculadora
-            </a>
-            <a 
-              href="#marketing-digital" 
-              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors py-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Marketing Digital
-            </a>
-            <a 
-              href="#whatsapp-marketing" 
-              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors py-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              WhatsApp
-            </a>
-            <a 
-              href="#integracao-ia" 
-              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors py-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              IA
-            </a>
-            <a 
-              href="#plans" 
-              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors py-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Planos
-            </a>
-            <Link 
-              to="/funcionalidades" 
-              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors py-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Funcionalidades
-            </Link>
-            <Link 
-              to="/sobre" 
-              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors py-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Sobre
-            </Link>
-            <Link 
-              to="/seja-vendedor" 
-              className="flex items-center justify-center gap-2 text-sm font-semibold text-primary-foreground bg-primary hover:bg-primary/90 px-4 py-3 rounded-lg transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <Briefcase className="w-4 h-4" />
-              Trabalhe Conosco
-            </Link>
-            {user ? (
-              <>
-                <Link 
-                  to={getDashboardPath()} 
-                  className="flex items-center justify-center gap-2 text-sm font-medium text-primary hover:text-primary/80 py-2"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <LayoutDashboard className="w-4 h-4" />
-                  Acessar Painel
-                </Link>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full gap-2 text-destructive hover:text-destructive"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    handleSignOut();
-                  }}
-                >
-                  <LogOut className="w-4 h-4" />
-                  Sair
-                </Button>
-              </>
-            ) : (
-              <Link to="/auth" className="sm:hidden" onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="outline" size="sm" className="w-full">Entrar</Button>
-              </Link>
-            )}
-          </nav>
-        </div>
-      )}
     </header>
   );
 };

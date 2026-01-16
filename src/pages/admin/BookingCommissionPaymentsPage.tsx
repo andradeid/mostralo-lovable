@@ -439,6 +439,10 @@ export default function BookingCommissionPaymentsPage() {
                     selected={selectedCommissions.includes(commission.id)}
                     onSelect={() => handleSelectCommission(commission.id)}
                     showCheckbox
+                    onViewReceipt={(url) => {
+                      setViewingReceiptUrl(url);
+                      setViewingReceiptCommission(commission);
+                    }}
                   />
                 ))}
 

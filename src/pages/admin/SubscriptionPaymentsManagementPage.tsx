@@ -180,6 +180,9 @@ export default function SubscriptionPaymentsManagementPage() {
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [processingApproval, setProcessingApproval] = useState(false);
+  const [showPaidExternallyDialog, setShowPaidExternallyDialog] = useState(false);
+  const [paidExternallyAmount, setPaidExternallyAmount] = useState("");
+  const [paidExternallyNotes, setPaidExternallyNotes] = useState("");
 
   useEffect(() => {
     fetchInvoices();
@@ -363,6 +366,58 @@ export default function SubscriptionPaymentsManagementPage() {
     } catch (error: any) {
       console.error('❌ Erro ao rejeitar:', error);
       toast.error(error.message || 'Erro ao rejeitar pagamento');
+    } finally {
+      setProcessingApproval(false);
+    }
+  };
+
+  // Função para aprovar como "Pago por Fora"
+  const handlePaidExternally = async () => {
+    if (!selectedApproval || !user) return;
+
+    setProcessingApproval(true);
+    try {
+      const amount = paidExternallyAmount ? parseFloat(paidExternallyAmount) : selectedApproval.payment_amount;
+      
+      // 1. Aprovar via RPC (atualiza approval_status, ativa loja, etc)
+      const { error: approvalError } = await (supabase as any).rpc('approve_payment', {
+        approval_id: selectedApproval.id,
+        admin_user_id: user.id
+      });
+
+      if (approvalError) throw approvalError;
+
+      // 2. Criar invoice na tabela subscription_invoices marcando como pago
+      const { error: invoiceError } = await supabase
+        .from('subscription_invoices')
+        .insert({
+          store_id: selectedApproval.store_id,
+          plan_id: selectedApproval.plan_id,
+          amount: amount,
+          due_date: new Date().toISOString(),
+          paid_at: new Date().toISOString(),
+          payment_status: 'paid',
+          payment_method: 'external',
+          notes: paidExternallyNotes || 'Pagamento realizado por fora - aprovado manualmente pelo admin',
+          approved_at: new Date().toISOString(),
+        });
+
+      if (invoiceError) {
+        console.error('Erro ao criar invoice:', invoiceError);
+      }
+
+      toast.success('✅ Pagamento aprovado como "Pago por Fora"! Loja ativada com sucesso!');
+      setShowPaidExternallyDialog(false);
+      setSelectedApproval(null);
+      setPaidExternallyAmount("");
+      setPaidExternallyNotes("");
+      
+      // Recarregar as listas
+      fetchPendingApprovals();
+      fetchInvoices();
+    } catch (error: any) {
+      console.error('❌ Erro ao aprovar como pago por fora:', error);
+      toast.error(error.message || 'Erro ao processar pagamento');
     } finally {
       setProcessingApproval(false);
     }
@@ -998,8 +1053,8 @@ export default function SubscriptionPaymentsManagementPage() {
                         </div>
                       )}
                       
-                      {/* Aprovar + Rejeitar lado a lado */}
-                      <div className="grid grid-cols-2 gap-2">
+                      {/* Aprovar + Pago por Fora + Rejeitar */}
+                      <div className="grid grid-cols-3 gap-2">
                         <Button
                           size="sm"
                           className="h-9 bg-green-600 hover:bg-green-700 text-white"
@@ -1011,6 +1066,19 @@ export default function SubscriptionPaymentsManagementPage() {
                         >
                           <Check className="w-4 h-4 mr-1" />
                           Aprovar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-9 border-green-500 text-green-600 hover:bg-green-50"
+                          onClick={() => {
+                            setSelectedApproval(approval);
+                            setPaidExternallyAmount(approval.payment_amount.toString());
+                            setShowPaidExternallyDialog(true);
+                          }}
+                        >
+                          <FileCheck className="w-4 h-4 mr-1" />
+                          Por Fora
                         </Button>
                         <Button
                           variant="destructive"
@@ -1118,6 +1186,19 @@ export default function SubscriptionPaymentsManagementPage() {
                           >
                             <Check className="w-4 h-4 mr-1" />
                             Aprovar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-green-500 text-green-600 hover:bg-green-50"
+                            onClick={() => {
+                              setSelectedApproval(approval);
+                              setPaidExternallyAmount(approval.payment_amount.toString());
+                              setShowPaidExternallyDialog(true);
+                            }}
+                          >
+                            <FileCheck className="w-4 h-4 mr-1" />
+                            Pago por Fora
                           </Button>
                           <Button
                             size="sm"
@@ -2427,6 +2508,91 @@ O QR Code PIX será gerado quando você acessar! 🚀`}
                 <>
                   <X className="w-4 h-4 mr-2" />
                   Rejeitar Pagamento
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Pago por Fora */}
+      <Dialog open={showPaidExternallyDialog} onOpenChange={setShowPaidExternallyDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <FileCheck className="w-5 h-5 text-green-500" />
+              <span>Marcar como Pago por Fora</span>
+            </DialogTitle>
+            <DialogDescription>
+              Aprove este pagamento confirmando que foi recebido por fora do sistema (transferência manual, dinheiro, etc.)
+            </DialogDescription>
+          </DialogHeader>
+          {selectedApproval && (
+            <div className="space-y-4">
+              <div className="p-4 bg-muted rounded-lg space-y-2">
+                <p><strong>Usuário:</strong> {selectedApproval.profiles?.full_name}</p>
+                <p><strong>Email:</strong> {selectedApproval.profiles?.email}</p>
+                <p><strong>Empresa:</strong> {selectedApproval.company_name}</p>
+                <p><strong>Plano:</strong> {selectedApproval.plans?.name}</p>
+                <p><strong>Valor Original:</strong> R$ {selectedApproval.payment_amount.toFixed(2)}</p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="paid-externally-amount">Valor Pago (pode alterar se houve desconto)</Label>
+                <Input
+                  id="paid-externally-amount"
+                  type="number"
+                  step="0.01"
+                  value={paidExternallyAmount}
+                  onChange={(e) => setPaidExternallyAmount(e.target.value)}
+                  placeholder="Ex: 147.00"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="paid-externally-notes">Observações (opcional)</Label>
+                <Textarea
+                  id="paid-externally-notes"
+                  value={paidExternallyNotes}
+                  onChange={(e) => setPaidExternallyNotes(e.target.value)}
+                  placeholder="Ex: Pago via PIX manual, transferência bancária, etc."
+                  rows={3}
+                />
+              </div>
+              
+              <div className="bg-green-500/10 border border-green-500/50 rounded-lg p-4">
+                <p className="text-sm font-medium text-green-700 dark:text-green-400">
+                  ✅ A loja será ativada e uma fatura será registrada como paga no sistema.
+                </p>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowPaidExternallyDialog(false);
+                setPaidExternallyAmount("");
+                setPaidExternallyNotes("");
+              }}
+              disabled={processingApproval}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handlePaidExternally}
+              disabled={processingApproval}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {processingApproval ? (
+                <>
+                  <Clock className="w-4 h-4 mr-2 animate-spin" />
+                  Processando...
+                </>
+              ) : (
+                <>
+                  <FileCheck className="w-4 h-4 mr-2" />
+                  Confirmar Pagamento
                 </>
               )}
             </Button>

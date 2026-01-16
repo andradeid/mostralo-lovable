@@ -102,6 +102,18 @@ export function AdminSidebar() {
     storeId: userRole === 'attendant' ? (validatedStoreId ?? '') : ''
   });
   
+  // Hook de preferências de menu para master_admin
+  const {
+    preferences: menuPreferences,
+    savePreferences: saveMenuPreferences,
+    resetPreferences: resetMenuPreferences,
+    saving: menuPrefsSaving,
+    isMasterAdmin
+  } = useAdminMenuPreferences();
+  
+  // Estado para modo de edição do menu
+  const [isEditingMenu, setIsEditingMenu] = useState(false);
+  
   const collapsed = state === "collapsed";
   const currentPath = location.pathname;
   const [storeConfig, setStoreConfig] = useState<any>(null);

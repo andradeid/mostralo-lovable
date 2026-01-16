@@ -6480,6 +6480,10 @@ export type Database = {
           created_at: string | null
           id: string
           paid_at: string | null
+          payment_method: string | null
+          payment_notes: string | null
+          payment_receipt_url: string | null
+          payment_reference: string | null
           professional_id: string
           service_price: number
           status: string | null
@@ -6494,6 +6498,10 @@ export type Database = {
           created_at?: string | null
           id?: string
           paid_at?: string | null
+          payment_method?: string | null
+          payment_notes?: string | null
+          payment_receipt_url?: string | null
+          payment_reference?: string | null
           professional_id: string
           service_price: number
           status?: string | null
@@ -6508,6 +6516,10 @@ export type Database = {
           created_at?: string | null
           id?: string
           paid_at?: string | null
+          payment_method?: string | null
+          payment_notes?: string | null
+          payment_receipt_url?: string | null
+          payment_reference?: string | null
           professional_id?: string
           service_price?: number
           status?: string | null

@@ -17,7 +17,10 @@ import {
   Banknote,
   Wallet,
   RotateCcw,
-  Eye
+  Eye,
+  Upload,
+  X,
+  FileImage
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,6 +44,8 @@ import {
   CommissionWithDetails,
   ProfessionalSummary 
 } from "@/hooks/useCommissionPayments";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import {
   BarChart,
   Bar,
@@ -88,6 +93,9 @@ export default function BookingCommissionPaymentsPage() {
     reference: "",
     notes: "",
   });
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const {
     commissions,
@@ -155,19 +163,74 @@ export default function BookingCommissionPaymentsPage() {
     );
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+    if (!validTypes.includes(file.type)) {
+      toast.error('Tipo de arquivo inválido. Use JPG, PNG ou PDF.');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Arquivo muito grande. Máximo: 5MB');
+      return;
+    }
+
+    setReceiptFile(file);
+
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onloadend = () => setReceiptPreview(reader.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      setReceiptPreview(null);
+    }
+  };
+
   const handlePayment = async () => {
     if (selectedCommissions.length === 0) return;
 
-    await payCommissions({
-      commissionIds: selectedCommissions,
-      paymentMethod: paymentForm.method,
-      reference: paymentForm.reference || undefined,
-      notes: paymentForm.notes || undefined,
-    });
+    setIsUploading(true);
+    let receiptUrl: string | undefined;
 
-    setSelectedCommissions([]);
-    setIsPaymentDialogOpen(false);
-    setPaymentForm({ method: "pix", reference: "", notes: "" });
+    try {
+      if (receiptFile && storeId && selectedProfessional) {
+        const fileExt = receiptFile.name.split('.').pop();
+        const filePath = `${storeId}/${selectedProfessional.id}/${Date.now()}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('payment-receipts')
+          .upload(filePath, receiptFile);
+
+        if (uploadError) {
+          console.error('Upload error:', uploadError);
+          toast.error('Erro ao fazer upload do comprovante');
+        } else {
+          const { data: urlData } = supabase.storage
+            .from('payment-receipts')
+            .getPublicUrl(filePath);
+          receiptUrl = urlData.publicUrl;
+        }
+      }
+
+      await payCommissions({
+        commissionIds: selectedCommissions,
+        paymentMethod: paymentForm.method,
+        reference: paymentForm.reference || undefined,
+        notes: paymentForm.notes || undefined,
+        receiptUrl,
+      });
+
+      setSelectedCommissions([]);
+      setIsPaymentDialogOpen(false);
+      setPaymentForm({ method: "pix", reference: "", notes: "" });
+      setReceiptFile(null);
+      setReceiptPreview(null);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const selectedTotal = useMemo(() => {
@@ -462,14 +525,44 @@ export default function BookingCommissionPaymentsPage() {
                   rows={3}
                 />
               </div>
+
+              {/* Upload de Comprovante */}
+              <div className="space-y-2">
+                <Label>Comprovante (opcional)</Label>
+                {!receiptFile ? (
+                  <div>
+                    <Input
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,application/pdf"
+                      onChange={handleFileChange}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">JPG, PNG ou PDF (máx. 5MB)</p>
+                  </div>
+                ) : (
+                  <div className="border rounded-lg p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <FileImage className="w-4 h-4 text-primary" />
+                        <span className="text-sm truncate">{receiptFile.name}</span>
+                      </div>
+                      <Button variant="ghost" size="sm" onClick={() => { setReceiptFile(null); setReceiptPreview(null); }}>
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    {receiptPreview && (
+                      <img src={receiptPreview} alt="Preview" className="w-full h-24 object-contain rounded" />
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsPaymentDialogOpen(false)}>
                 Cancelar
               </Button>
-              <Button onClick={handlePayment} disabled={isPaying}>
-                {isPaying ? "Processando..." : "Confirmar Pagamento"}
+              <Button onClick={handlePayment} disabled={isPaying || isUploading}>
+                {isPaying || isUploading ? "Processando..." : "Confirmar Pagamento"}
               </Button>
             </DialogFooter>
           </DialogContent>

@@ -81,17 +81,17 @@ export const ProductCardWithPromotion = ({
         onClick={() => onProductClick(product)}
       >
         <CardContent className="p-0">
-          <div className="relative aspect-square w-full">
+          <div className="relative aspect-square w-full overflow-hidden bg-muted">
             {product.image_url ? (
               <img
                 src={product.image_url}
                 alt={product.name}
-                className={`w-full h-full object-cover transition-all ${
+                className={`absolute inset-0 w-full h-full object-cover transition-all ${
                   !canAddToCart ? 'grayscale opacity-60' : ''
                 }`}
               />
             ) : (
-              <div className="w-full h-full bg-muted flex items-center justify-center">
+              <div className="absolute inset-0 w-full h-full bg-muted flex items-center justify-center">
                 <StoreIcon className="w-12 h-12 text-muted-foreground" />
               </div>
             )}
@@ -179,17 +179,17 @@ export const ProductCardWithPromotion = ({
         onClick={() => onProductClick(product)}
       >
         <CardContent className="p-0">
-          <div className="relative aspect-square w-full">
+          <div className="relative aspect-square w-full overflow-hidden bg-muted">
             {product.image_url ? (
               <img
                 src={product.image_url}
                 alt={product.name}
-                className={`w-full h-full object-cover transition-all ${
+                className={`absolute inset-0 w-full h-full object-cover transition-all ${
                   !canAddToCart ? 'grayscale opacity-60' : ''
                 }`}
               />
             ) : (
-              <div className="w-full h-full bg-muted flex items-center justify-center">
+              <div className="absolute inset-0 w-full h-full bg-muted flex items-center justify-center">
                 <StoreIcon className="w-12 h-12 text-muted-foreground" />
               </div>
             )}
@@ -274,30 +274,30 @@ export const ProductCardWithPromotion = ({
     <Card className="overflow-hidden hover:shadow-md transition-shadow bg-white cursor-pointer" onClick={() => onProductClick(product)}>
       <CardContent className="p-0">
         <div className="flex min-h-28 lg:min-h-32">
-          {product.image_url ? (
-            <div className="w-24 h-24 lg:w-28 lg:h-28 flex-shrink-0 p-3 relative">
-              <img
-                src={product.image_url}
-                alt={product.name}
-                className={`w-full h-full object-cover rounded-lg transition-all ${
-                  !canAddToCart ? 'grayscale opacity-60' : ''
-                }`}
-              />
-              {shouldShowSchedulingRequired && (
-                <div className="absolute top-1 left-1">
-                  <Badge className="bg-blue-500 text-white text-[10px] px-1 py-0">
-                    📅
-                  </Badge>
+          <div className="w-24 h-24 lg:w-28 lg:h-28 flex-shrink-0 p-3 relative">
+            <div className="relative w-full h-full overflow-hidden rounded-lg bg-muted">
+              {product.image_url ? (
+                <img
+                  src={product.image_url}
+                  alt={product.name}
+                  className={`absolute inset-0 w-full h-full object-cover transition-all ${
+                    !canAddToCart ? 'grayscale opacity-60' : ''
+                  }`}
+                />
+              ) : (
+                <div className="absolute inset-0 w-full h-full flex items-center justify-center">
+                  <StoreIcon className="w-6 h-6 text-muted-foreground" />
                 </div>
               )}
             </div>
-          ) : (
-            <div className="w-24 h-24 lg:w-28 lg:h-28 flex-shrink-0 p-3">
-              <div className="w-full h-full bg-muted rounded-lg flex items-center justify-center">
-                <StoreIcon className="w-6 h-6 text-muted-foreground" />
+            {shouldShowSchedulingRequired && (
+              <div className="absolute top-1 left-1">
+                <Badge className="bg-blue-500 text-white text-[10px] px-1 py-0">
+                  📅
+                </Badge>
               </div>
-            </div>
-          )}
+            )}
+          </div>
           
           <div className="flex-1 p-3 lg:p-4 flex flex-col justify-between">
             <div className="mb-2">

@@ -527,28 +527,41 @@ const BookingPage = () => {
       
       const endTime = calculateEndTime(selectedTime, selectedService.duration_minutes);
       
-      // 3. Cadastrar cliente de forma simples
+      // 3. Buscar ou cadastrar cliente (evita duplicatas)
       let customerId: string | null = null;
+      const normalizedPhone = customerPhone.trim().replace(/\D/g, '');
       
-      const { data: newCustomer, error: customerError } = await supabase
+      // Tentar buscar cliente existente pelo telefone
+      const { data: existingCustomer } = await supabase
         .from('customers')
-        .insert({
-          name: customerName.trim(),
-          phone: customerPhone.trim(),
-          email: customerEmail.trim() || null,
-          notes: notes.trim() || null
-        })
         .select('id')
-        .single();
-
-      if (customerError) {
-        console.error('Error creating customer:', customerError);
-        // Continuar mesmo com erro (fallback)
+        .or(`phone.eq.${normalizedPhone},phone.eq.${customerPhone.trim()}`)
+        .limit(1)
+        .maybeSingle();
+      
+      if (existingCustomer) {
+        customerId = existingCustomer.id;
       } else {
-        customerId = newCustomer?.id || null;
+        // Criar novo cliente
+        const { data: newCustomer, error: customerError } = await supabase
+          .from('customers')
+          .insert({
+            name: customerName.trim(),
+            phone: normalizedPhone,
+            email: customerEmail.trim() || null,
+            notes: notes.trim() || null
+          })
+          .select('id')
+          .single();
+
+        if (customerError) {
+          console.error('Error creating customer:', customerError);
+        } else {
+          customerId = newCustomer?.id || null;
+        }
       }
 
-      // 4. Aplicar etiqueta "Agendamento Online" automaticamente
+      // 4. Aplicar etiqueta "Agendamento Online" automaticamente (evita duplicatas)
       if (customerId) {
         try {
           const { data: originLabel } = await supabase
@@ -556,16 +569,26 @@ const BookingPage = () => {
             .select('id')
             .eq('store_id', store.id)
             .eq('name', 'Agendamento Online')
-            .single();
+            .maybeSingle();
           
           if (originLabel) {
-            await supabase
+            // Verificar se já existe a atribuição
+            const { data: existingAssignment } = await supabase
               .from('customer_label_assignments')
-              .insert({
-                customer_id: customerId,
-                label_id: originLabel.id,
-                store_id: store.id
-              });
+              .select('id')
+              .eq('customer_id', customerId)
+              .eq('label_id', originLabel.id)
+              .maybeSingle();
+            
+            if (!existingAssignment) {
+              await supabase
+                .from('customer_label_assignments')
+                .insert({
+                  customer_id: customerId,
+                  label_id: originLabel.id,
+                  store_id: store.id
+                });
+            }
           }
         } catch (labelError) {
           console.error('Error assigning label:', labelError);

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Package, Grid, ArrowUp, ArrowDown, GripVertical } from 'lucide-react';
+import { Plus, Edit, Trash2, Package, Grid, ArrowUp, ArrowDown, GripVertical, ArrowDownAZ } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -350,6 +350,40 @@ export default function AddonsPage() {
     }
   };
 
+  const applyAlphabeticalOrderToCategory = async (categoryId: string) => {
+    const category = categories.find(c => c.id === categoryId);
+    if (!category || category.addons.length === 0) return;
+
+    // Ordenar adicionais alfabeticamente (pt-BR para acentuação correta)
+    const sortedAddons = [...category.addons].sort((a, b) => 
+      a.name.localeCompare(b.name, 'pt-BR')
+    );
+
+    try {
+      // Atualizar display_order no banco de dados
+      for (let i = 0; i < sortedAddons.length; i++) {
+        await supabase
+          .from('addons')
+          .update({ display_order: i })
+          .eq('id', sortedAddons[i].id);
+      }
+
+      toast({
+        title: 'Sucesso',
+        description: `Adicionais de "${category.name}" ordenados de A-Z.`,
+      });
+
+      fetchData();
+    } catch (error) {
+      console.error('Erro ao ordenar adicionais:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao ordenar adicionais alfabeticamente.',
+        variant: 'destructive'
+      });
+    }
+  };
+
   const totalAddons = categories.reduce((total, category) => total + category.addons.length, 0);
   const activeAddons = categories.reduce((total, category) => 
     total + category.addons.filter(a => a.is_available).length, 0);
@@ -513,6 +547,20 @@ export default function AddonsPage() {
                           <Badge variant="outline" className="text-xs">
                             {category.addons.length} {category.addons.length !== 1 ? 'itens' : 'item'}
                           </Badge>
+                          {category.addons.length > 1 && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 w-7 p-0 sm:h-8 sm:w-8"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                applyAlphabeticalOrderToCategory(category.id);
+                              }}
+                              title="Ordenar adicionais de A-Z"
+                            >
+                              <ArrowDownAZ className="w-3 h-3 md:w-4 md:h-4" />
+                            </Button>
+                          )}
                           <Button
                             size="sm"
                             className="h-7 text-xs sm:h-8 sm:text-sm"

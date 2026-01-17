@@ -124,6 +124,7 @@ const BookingPage = () => {
     pushName: string | null;
     formattedNumber: string | null;
   } | null>(null);
+  const [showConfirmationAnimation, setShowConfirmationAnimation] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Check if booking channel is enabled
@@ -441,6 +442,49 @@ const BookingPage = () => {
     return `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`;
   };
 
+  const validateWhatsApp = async (): Promise<boolean> => {
+    const cleanPhone = customerPhone.replace(/\D/g, '');
+    if (cleanPhone.length < 10) {
+      toast.error('Digite um número de telefone válido');
+      return false;
+    }
+    
+    setWhatsappValidating(true);
+    setWhatsappValid(null);
+    setWhatsappProfile(null);
+    
+    const fullPhone = `${countryCode.replace('+', '')}${cleanPhone}`;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('validate-whatsapp-number', {
+        body: { phone: fullPhone }
+      });
+      
+      if (error) throw error;
+      
+      if (data?.valid || data?.exists) {
+        setWhatsappValid(true);
+        setWhatsappProfile({
+          pictureUrl: data.profilePictureUrl || null,
+          pushName: data.pushName || null,
+          formattedNumber: data.formattedNumber || fullPhone
+        });
+        return true;
+      } else {
+        setWhatsappValid(false);
+        toast.error('Número de WhatsApp inválido. Por favor, digite um número válido.');
+        return false;
+      }
+    } catch (error) {
+      console.error('Erro ao validar WhatsApp:', error);
+      setWhatsappValid(false);
+      toast.error('Erro ao validar WhatsApp. Tente novamente.');
+      return false;
+    } finally {
+      setWhatsappValidating(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!store || !selectedService || !selectedProfessional || !selectedDate || !selectedTime) {
       return;
@@ -469,9 +513,21 @@ const BookingPage = () => {
     setSubmitting(true);
     
     try {
+      // 1. Validar WhatsApp primeiro
+      const isValid = await validateWhatsApp();
+      if (!isValid) {
+        setSubmitting(false);
+        return;
+      }
+      
+      // 2. Mostrar animação de confirmação por 3 segundos
+      setShowConfirmationAnimation(true);
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      setShowConfirmationAnimation(false);
+      
       const endTime = calculateEndTime(selectedTime, selectedService.duration_minutes);
       
-      // 1. Cadastrar cliente de forma simples
+      // 3. Cadastrar cliente de forma simples
       let customerId: string | null = null;
       
       const { data: newCustomer, error: customerError } = await supabase
@@ -492,7 +548,7 @@ const BookingPage = () => {
         customerId = newCustomer?.id || null;
       }
 
-      // 2. Aplicar etiqueta "Agendamento Online" automaticamente
+      // 4. Aplicar etiqueta "Agendamento Online" automaticamente
       if (customerId) {
         try {
           const { data: originLabel } = await supabase
@@ -517,7 +573,7 @@ const BookingPage = () => {
         }
       }
 
-      // 3. Criar booking COM customer_id
+      // 5. Criar booking COM customer_id
       const { data: bookingData, error } = await supabase
         .from('bookings')
         .insert({
@@ -540,7 +596,7 @@ const BookingPage = () => {
       
       if (error) throw error;
       
-      // 4. Enviar confirmação via WhatsApp
+      // 6. Enviar confirmação via WhatsApp
       if (bookingData?.id) {
         try {
           console.log('[BookingPage] Enviando confirmação para agendamento:', bookingData.id);
@@ -577,7 +633,7 @@ const BookingPage = () => {
       case 'service': return !!selectedService;
       case 'professional': return !!selectedProfessional;
       case 'datetime': return !!selectedDate && !!selectedTime;
-      case 'confirm': return !!customerName && !!customerPhone && whatsappValid === true;
+      case 'confirm': return !!customerName && customerPhone.replace(/\D/g, '').length >= 10;
       default: return false;
     }
   };
@@ -996,81 +1052,26 @@ const BookingPage = () => {
                       }}
                     />
                     
-                    <div className="relative flex-1">
-                      <Input
-                        id="phone"
-                        type="tel"
-                        value={customerPhone}
-                        onChange={(e) => {
-                          const formatted = countryCode === '+55'
-                            ? formatBrazilianPhone(e.target.value)
-                            : formatInternationalPhone(e.target.value);
-                          setCustomerPhone(formatted);
-                          setWhatsappValid(null);
-                          setWhatsappProfile(null);
-                        }}
-                        placeholder={countryCode === '+55' ? '(00) 00000-0000' : 'Número'}
-                        maxLength={countryCode === '+55' ? 16 : 20}
-                        className={cn(
-                          'pr-10',
-                          errors.customerPhone && 'border-destructive',
-                          whatsappValid === true && 'border-emerald-500',
-                          whatsappValid === false && 'border-amber-500'
-                        )}
-                      />
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        {whatsappValidating && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-                        {whatsappValid === true && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
-                        {whatsappValid === false && <AlertCircle className="h-4 w-4 text-amber-500" />}
-                      </div>
-                    </div>
-                    
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={async () => {
-                        const cleanPhone = customerPhone.replace(/\D/g, '');
-                        if (cleanPhone.length < 10) {
-                          toast.error('Digite um número de telefone válido');
-                          return;
-                        }
-                        
-                        setWhatsappValidating(true);
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={customerPhone}
+                      onChange={(e) => {
+                        const formatted = countryCode === '+55'
+                          ? formatBrazilianPhone(e.target.value)
+                          : formatInternationalPhone(e.target.value);
+                        setCustomerPhone(formatted);
                         setWhatsappValid(null);
                         setWhatsappProfile(null);
-                        
-                        const fullPhone = `${countryCode.replace('+', '')}${cleanPhone}`;
-                        
-                        try {
-                          const { data, error } = await supabase.functions.invoke('validate-whatsapp-number', {
-                            body: { phone: fullPhone }
-                          });
-                          
-                          if (error) throw error;
-                          
-                          if (data?.valid || data?.exists) {
-                            setWhatsappValid(true);
-                            setWhatsappProfile({
-                              pictureUrl: data.profilePictureUrl || null,
-                              pushName: data.pushName || null,
-                              formattedNumber: data.formattedNumber || fullPhone
-                            });
-                          } else {
-                            setWhatsappValid(false);
-                          }
-                        } catch (error) {
-                          console.error('Erro ao validar WhatsApp:', error);
-                          setWhatsappValid(false);
-                        } finally {
-                          setWhatsappValidating(false);
-                        }
                       }}
-                      disabled={whatsappValidating || customerPhone.replace(/\D/g, '').length < 10}
-                      className="shrink-0"
-                    >
-                      {whatsappValidating ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Validar'}
-                    </Button>
+                      placeholder={countryCode === '+55' ? '(00) 00000-0000' : 'Número'}
+                      maxLength={countryCode === '+55' ? 16 : 20}
+                      className={cn(
+                        errors.customerPhone && 'border-destructive',
+                        whatsappValid === true && 'border-emerald-500',
+                        whatsappValid === false && 'border-amber-500'
+                      )}
+                    />
                   </div>
                   
                   {errors.customerPhone && (
@@ -1089,10 +1090,10 @@ const BookingPage = () => {
                   )}
                   
                   {whatsappValid === false && (
-                    <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 animate-fade-in">
-                      <p className="text-xs text-amber-700 dark:text-amber-400 flex items-center gap-2">
+                    <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30 animate-fade-in">
+                      <p className="text-xs text-destructive flex items-center gap-2">
                         <AlertCircle className="h-3 w-3" />
-                        Número não encontrado no WhatsApp, mas você pode continuar com o agendamento.
+                        Número de WhatsApp inválido. Por favor, digite um número válido para continuar.
                       </p>
                     </div>
                   )}
@@ -1140,9 +1141,19 @@ const BookingPage = () => {
           {currentStep === 'confirm' ? (
             <Button
               onClick={handleSubmit}
-              disabled={!canProceed() || submitting}
+              disabled={!canProceed() || submitting || whatsappValidating || showConfirmationAnimation}
             >
-              {submitting ? (
+              {whatsappValidating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Validando WhatsApp...
+                </>
+              ) : showConfirmationAnimation ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Finalizando agendamento...
+                </>
+              ) : submitting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Confirmando...

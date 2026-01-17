@@ -60,15 +60,15 @@ export function RelatedProducts({ products, store, onProductClick }: RelatedProd
                   onClick={() => onProductClick(product)}
                 >
                   <CardContent className="p-0">
-                    <div className="relative">
+                    <div className="relative aspect-square w-full overflow-hidden rounded-t-lg bg-muted">
                       {product.image_url ? (
                         <img
                           src={product.image_url}
                           alt={product.name}
-                          className="w-full h-40 object-cover rounded-t-lg"
+                          className="absolute inset-0 w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-40 bg-muted rounded-t-lg flex items-center justify-center">
+                        <div className="absolute inset-0 w-full h-full flex items-center justify-center">
                           <span className="text-muted-foreground">Sem imagem</span>
                         </div>
                       )}
@@ -126,15 +126,15 @@ export function RelatedProducts({ products, store, onProductClick }: RelatedProd
               onClick={() => onProductClick(product)}
             >
               <CardContent className="p-0">
-                <div className="relative">
+                <div className="relative aspect-square w-full overflow-hidden rounded-t-lg bg-muted">
                   {product.image_url ? (
                     <img
                       src={product.image_url}
                       alt={product.name}
-                      className="w-full h-48 object-cover rounded-t-lg"
+                      className="absolute inset-0 w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-48 bg-muted rounded-t-lg flex items-center justify-center">
+                    <div className="absolute inset-0 w-full h-full flex items-center justify-center">
                       <span className="text-muted-foreground">Sem imagem</span>
                     </div>
                   )}

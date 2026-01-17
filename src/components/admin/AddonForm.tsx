@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
@@ -150,13 +151,10 @@ export function AddonForm({ addon, categories, onSuccess, onCancel }: AddonFormP
 
         <div className="space-y-2">
           <Label htmlFor="price">Preço *</Label>
-          <Input
+          <CurrencyInput
             id="price"
-            type="number"
-            step="0.01"
-            min="0"
-            {...register('price', { valueAsNumber: true })}
-            placeholder="0.00"
+            value={watch('price') || 0}
+            onChange={(value) => setValue('price', value)}
           />
           {errors.price && (
             <p className="text-sm text-destructive">{errors.price.message}</p>

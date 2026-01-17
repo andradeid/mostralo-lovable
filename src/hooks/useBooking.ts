@@ -503,8 +503,82 @@ export function useBooking(storeId: string | null) {
 
   const createBookingMutation = useMutation({
     mutationFn: async (input: CreateBookingInput) => {
+      // 1. Buscar ou criar cliente pelo telefone
+      let customerId = input.customer_id;
+      
+      if (!customerId && input.customer_phone) {
+        // Normalizar telefone para busca
+        const normalizedPhone = input.customer_phone.replace(/\D/g, '');
+        
+        // Tentar buscar cliente existente
+        const { data: existingCustomer } = await supabase
+          .from('customers')
+          .select('id')
+          .or(`phone.eq.${normalizedPhone},phone.eq.${input.customer_phone}`)
+          .limit(1)
+          .maybeSingle();
+        
+        if (existingCustomer) {
+          customerId = existingCustomer.id;
+        } else {
+          // Criar novo cliente
+          const { data: newCustomer, error: customerError } = await supabase
+            .from('customers')
+            .insert({
+              name: input.customer_name,
+              phone: normalizedPhone,
+              email: input.customer_email || null,
+            })
+            .select('id')
+            .single();
+          
+          if (!customerError && newCustomer) {
+            customerId = newCustomer.id;
+          }
+        }
+      }
+      
+      // 2. Aplicar etiqueta "Agendamento Online" (evita duplicatas)
+      if (customerId) {
+        try {
+          const { data: originLabel } = await supabase
+            .from('customer_labels')
+            .select('id')
+            .eq('store_id', input.store_id)
+            .eq('name', 'Agendamento Online')
+            .maybeSingle();
+          
+          if (originLabel) {
+            // Verificar se já existe a atribuição
+            const { data: existingAssignment } = await supabase
+              .from('customer_label_assignments')
+              .select('id')
+              .eq('customer_id', customerId)
+              .eq('label_id', originLabel.id)
+              .maybeSingle();
+            
+            if (!existingAssignment) {
+              await supabase
+                .from('customer_label_assignments')
+                .insert({
+                  customer_id: customerId,
+                  label_id: originLabel.id,
+                  store_id: input.store_id,
+                });
+            }
+          }
+        } catch (labelError) {
+          console.error('Error assigning booking label:', labelError);
+          // Não bloquear o fluxo se falhar
+        }
+      }
+      
+      // 3. Criar booking COM customer_id
       return rawQuery<Booking>('bookings', 'insert', {
-        data: input,
+        data: {
+          ...input,
+          customer_id: customerId || null,
+        },
         select: '*',
         single: true
       });

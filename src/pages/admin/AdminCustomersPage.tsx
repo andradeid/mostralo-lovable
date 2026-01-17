@@ -22,6 +22,7 @@ interface Customer {
   auth_user_id: string | null;
   created_at: string;
   order_count?: number;
+  booking_count?: number;
 }
 
 // Componente separado para a lista de clientes com etiquetas
@@ -109,6 +110,13 @@ function CustomerList({
                       <ShoppingBag className="h-4 w-4 shrink-0" />
                       <span>{customer.order_count} {customer.order_count === 1 ? 'pedido' : 'pedidos'}</span>
                     </div>
+
+                    {(customer.booking_count ?? 0) > 0 && (
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 shrink-0 text-primary" />
+                        <span>{customer.booking_count} {customer.booking_count === 1 ? 'agendamento' : 'agendamentos'}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -271,7 +279,7 @@ export default function AdminCustomersPage() {
 
       console.log('🏪 Store admin - buscando clientes da loja:', storeId);
 
-      // Buscar pedidos da loja
+      // Buscar clientes de pedidos da loja
       const { data: orders, error: ordersError } = await supabase
         .from('orders')
         .select('customer_id')
@@ -284,10 +292,26 @@ export default function AdminCustomersPage() {
 
       console.log('✅ Pedidos encontrados:', orders?.length || 0);
 
-      // Extrair IDs únicos de clientes
-      const uniqueCustomerIds = [...new Set(orders?.map(o => o.customer_id).filter(Boolean))];
+      // Buscar clientes de agendamentos da loja
+      const { data: bookings, error: bookingsError } = await supabase
+        .from('bookings')
+        .select('customer_id')
+        .eq('store_id', storeId)
+        .not('customer_id', 'is', null);
 
-      console.log('✅ Clientes únicos:', uniqueCustomerIds.length);
+      if (bookingsError) {
+        console.error('❌ Erro ao buscar agendamentos:', bookingsError);
+        throw bookingsError;
+      }
+
+      console.log('✅ Agendamentos encontrados:', bookings?.length || 0);
+
+      // Extrair IDs únicos de clientes (pedidos + agendamentos)
+      const orderCustomerIds = orders?.map(o => o.customer_id).filter(Boolean) || [];
+      const bookingCustomerIds = bookings?.map(b => b.customer_id).filter(Boolean) || [];
+      const uniqueCustomerIds = [...new Set([...orderCustomerIds, ...bookingCustomerIds])];
+
+      console.log('✅ Clientes únicos (pedidos + agendamentos):', uniqueCustomerIds.length);
 
       if (uniqueCustomerIds.length === 0) {
         console.log('⚠️ Nenhum cliente encontrado para esta loja');
@@ -316,25 +340,33 @@ export default function AdminCustomersPage() {
 
       console.log('✅ Dados de clientes carregados:', data?.length || 0);
 
-      // Buscar contagem de pedidos para cada cliente (apenas da loja)
-      const customersWithOrders = await Promise.all(
+      // Buscar contagem de pedidos e agendamentos para cada cliente (apenas da loja)
+      const customersWithCounts = await Promise.all(
         (data || []).map(async (customer) => {
-          const { count } = await supabase
-            .from('orders')
-            .select('id', { count: 'exact', head: true })
-            .eq('customer_id', customer.id)
-            .eq('store_id', storeId);
+          const [ordersResult, bookingsResult] = await Promise.all([
+            supabase
+              .from('orders')
+              .select('id', { count: 'exact', head: true })
+              .eq('customer_id', customer.id)
+              .eq('store_id', storeId),
+            supabase
+              .from('bookings')
+              .select('id', { count: 'exact', head: true })
+              .eq('customer_id', customer.id)
+              .eq('store_id', storeId)
+          ]);
 
           return {
             ...customer,
-            order_count: count || 0
+            order_count: ordersResult.count || 0,
+            booking_count: bookingsResult.count || 0
           };
         })
       );
 
-      console.log('✅ Total final:', customersWithOrders.length);
-      setCustomers(customersWithOrders);
-      setFilteredCustomers(customersWithOrders);
+      console.log('✅ Total final:', customersWithCounts.length);
+      setCustomers(customersWithCounts);
+      setFilteredCustomers(customersWithCounts);
     } catch (error) {
       console.error('❌ Erro ao buscar clientes:', error);
       toast.error('Erro ao carregar clientes');

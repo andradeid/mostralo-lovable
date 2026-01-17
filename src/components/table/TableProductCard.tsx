@@ -22,13 +22,19 @@ export function TableProductCard({ product, onAdd, isLoading, disabled = false }
   return (
     <Card className="overflow-hidden">
       <div className="flex">
-        {product.image_url && (
-          <img 
-            src={product.image_url} 
-            alt={product.name}
-            className="w-24 h-24 object-cover"
-          />
-        )}
+        <div className="w-24 h-24 flex-shrink-0 overflow-hidden bg-muted">
+          {product.image_url ? (
+            <img 
+              src={product.image_url} 
+              alt={product.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <span className="text-xs text-muted-foreground">Sem foto</span>
+            </div>
+          )}
+        </div>
         <CardContent className="flex-1 p-3 flex flex-col justify-between">
           <div>
             <h3 className="font-medium">{product.name}</h3>

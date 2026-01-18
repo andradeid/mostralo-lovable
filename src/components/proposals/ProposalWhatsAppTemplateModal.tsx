@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { Send, FileText, Loader2, Check, Edit2, User, Phone, DollarSign } from 'lucide-react';
@@ -174,127 +173,137 @@ export function ProposalWhatsAppTemplateModal({ open, onClose, proposal }: Propo
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent side="bottom" className="h-[90vh] sm:h-auto sm:max-h-[85vh] rounded-t-2xl">
-        <SheetHeader className="pb-4 border-b">
-          <SheetTitle className="flex items-center gap-2 text-lg">
-            <Send className="w-5 h-5 text-green-600" />
-            Enviar Proposta via WhatsApp
+      <SheetContent 
+        side="bottom" 
+        className="h-[85vh] flex flex-col rounded-t-2xl p-0"
+      >
+        {/* Header fixo */}
+        <SheetHeader className="shrink-0 px-4 pt-4 pb-3 border-b">
+          <SheetTitle className="flex items-center gap-2 text-base">
+            <Send className="w-4 h-4 text-green-600" />
+            Enviar via WhatsApp
           </SheetTitle>
-          <SheetDescription className="text-sm">
-            Escolha um template e personalize antes de enviar
+          <SheetDescription className="text-xs">
+            Escolha um template e personalize
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto py-4 space-y-4">
-          {/* Proposal Info - Compact */}
-          <div className="grid grid-cols-3 gap-2">
-            <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
-              <User className="w-4 h-4 text-muted-foreground shrink-0" />
-              <span className="text-sm font-medium truncate">{proposal.client_name.split(' ')[0]}</span>
+        {/* Conteúdo com scroll */}
+        <ScrollArea className="flex-1">
+          <div className="px-4 py-3 space-y-3">
+            {/* Proposal Info - Compact */}
+            <div className="grid grid-cols-3 gap-2">
+              <div className="flex items-center gap-1.5 p-2 bg-muted rounded-lg">
+                <User className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                <span className="text-xs font-medium truncate">{proposal.client_name.split(' ')[0]}</span>
+              </div>
+              <div className="flex items-center gap-1.5 p-2 bg-muted rounded-lg">
+                <Phone className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                <span className="text-xs font-medium truncate">{proposal.client_phone}</span>
+              </div>
+              <div className="flex items-center gap-1.5 p-2 bg-green-500/10 rounded-lg">
+                <DollarSign className="w-3.5 h-3.5 text-green-600 shrink-0" />
+                <span className="text-xs font-semibold text-green-600 truncate">
+                  {formatCurrency(proposal.final_monthly_price)}
+                </span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
-              <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
-              <span className="text-sm font-medium truncate">{proposal.client_phone}</span>
-            </div>
-            <div className="flex items-center gap-2 p-2 bg-green-500/10 rounded-lg">
-              <DollarSign className="w-4 h-4 text-green-600 shrink-0" />
-              <span className="text-sm font-semibold text-green-600 truncate">
-                {formatCurrency(proposal.final_monthly_price)}
-              </span>
-            </div>
-          </div>
 
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-primary" />
-            </div>
-          ) : (
-            <>
-              {/* Template Selection - Horizontal Scroll */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Selecionar Template</Label>
-                {templates.length === 0 ? (
-                  <Card className="p-4 text-center">
-                    <p className="text-sm text-muted-foreground">
-                      Nenhum template de proposta encontrado.
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Acesse a aba "Templates WhatsApp" para criar.
-                    </p>
-                  </Card>
-                ) : (
-                  <ScrollArea className="w-full" type="scroll">
-                    <div className="flex gap-2 pb-2">
-                      {templates.map((template) => (
-                        <Card
-                          key={template.id}
-                          className={`p-3 cursor-pointer transition-all hover:bg-accent shrink-0 min-w-[140px] max-w-[180px] ${
-                            selectedTemplate?.id === template.id
-                              ? 'ring-2 ring-primary bg-primary/5'
-                              : ''
-                          }`}
-                          onClick={() => setSelectedTemplate(template)}
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
-                              <span className="font-medium text-sm truncate">{template.name}</span>
+            {loading ? (
+              <div className="flex items-center justify-center py-6">
+                <Loader2 className="w-5 h-5 animate-spin text-primary" />
+              </div>
+            ) : (
+              <>
+                {/* Template Selection - Horizontal Scroll */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium">Selecionar Template</Label>
+                  {templates.length === 0 ? (
+                    <Card className="p-3 text-center">
+                      <p className="text-xs text-muted-foreground">
+                        Nenhum template de proposta encontrado.
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Acesse a aba "Templates WhatsApp" para criar.
+                      </p>
+                    </Card>
+                  ) : (
+                    <ScrollArea className="w-full" type="scroll">
+                      <div className="flex gap-2 pb-1">
+                        {templates.map((template) => (
+                          <Card
+                            key={template.id}
+                            className={`p-2.5 cursor-pointer transition-all hover:bg-accent shrink-0 min-w-[120px] max-w-[150px] ${
+                              selectedTemplate?.id === template.id
+                                ? 'ring-2 ring-primary bg-primary/5'
+                                : ''
+                            }`}
+                            onClick={() => setSelectedTemplate(template)}
+                          >
+                            <div className="flex items-start justify-between gap-1.5">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <FileText className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                                <span className="font-medium text-xs truncate">{template.name}</span>
+                              </div>
+                              {selectedTemplate?.id === template.id && (
+                                <Check className="w-3.5 h-3.5 text-primary shrink-0" />
+                              )}
                             </div>
-                            {selectedTemplate?.id === template.id && (
-                              <Check className="w-4 h-4 text-primary shrink-0" />
-                            )}
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                )}
-              </div>
-
-              {/* Message Preview/Edit */}
-              <div className="space-y-2 flex-1">
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium">Mensagem</Label>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsEditing(!isEditing)}
-                    className="text-xs h-7 px-2"
-                  >
-                    <Edit2 className="w-3 h-3 mr-1" />
-                    {isEditing ? 'Cancelar' : 'Editar'}
-                  </Button>
+                          </Card>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  )}
                 </div>
-                
-                {isEditing ? (
-                  <Textarea
-                    value={previewMessage}
-                    onChange={(e) => setPreviewMessage(e.target.value)}
-                    className="min-h-[200px] text-sm"
-                    placeholder="Digite sua mensagem..."
-                  />
-                ) : (
-                  <div className="bg-muted rounded-lg p-4 whitespace-pre-wrap text-sm min-h-[200px] max-h-[300px] overflow-y-auto">
-                    {previewMessage || 'Selecione um template para visualizar a mensagem'}
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-        </div>
 
-        <SheetFooter className="pt-4 border-t gap-2 flex-row">
-          <Button variant="outline" onClick={onClose} className="flex-1 sm:flex-none">
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleSendWhatsApp}
-            disabled={!previewMessage || loading}
-            className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700"
-          >
-            <Send className="w-4 h-4 mr-2" />
-            Abrir WhatsApp
-          </Button>
+                {/* Message Preview/Edit */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-medium">Mensagem</Label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsEditing(!isEditing)}
+                      className="text-xs h-6 px-2"
+                    >
+                      <Edit2 className="w-3 h-3 mr-1" />
+                      {isEditing ? 'Cancelar' : 'Editar'}
+                    </Button>
+                  </div>
+                  
+                  {isEditing ? (
+                    <Textarea
+                      value={previewMessage}
+                      onChange={(e) => setPreviewMessage(e.target.value)}
+                      className="min-h-[140px] max-h-[160px] text-xs"
+                      placeholder="Digite sua mensagem..."
+                    />
+                  ) : (
+                    <div className="bg-muted rounded-lg p-3 whitespace-pre-wrap text-xs max-h-[160px] overflow-y-auto">
+                      {previewMessage || 'Selecione um template para visualizar a mensagem'}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </ScrollArea>
+
+        {/* Footer SEMPRE visível */}
+        <SheetFooter className="shrink-0 px-4 py-3 border-t bg-background">
+          <div className="flex gap-2 w-full">
+            <Button variant="outline" onClick={onClose} className="flex-1 h-10">
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSendWhatsApp}
+              disabled={!previewMessage || loading}
+              className="flex-1 h-10 bg-green-600 hover:bg-green-700"
+            >
+              <Send className="w-4 h-4 mr-2" />
+              Abrir WhatsApp
+            </Button>
+          </div>
         </SheetFooter>
       </SheetContent>
     </Sheet>

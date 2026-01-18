@@ -79,6 +79,7 @@ const SignUp = () => {
     clientEmail: string | null;
     clientCompany: string | null;
     finalPrice: number | null;
+    paymentMethod: string | null;
     modules: Array<{ id: string; name: string; price: number }>;
   } | null>(null);
   
@@ -207,6 +208,7 @@ const SignUp = () => {
         const clientEmail = params.get('client_email');
         const clientCompany = params.get('client_company');
         const finalPrice = params.get('final_price');
+        const paymentMethod = params.get('payment_method');
         const modulesJson = params.get('modules');
         
         let modules: Array<{ id: string; name: string; price: number }> = [];
@@ -225,6 +227,7 @@ const SignUp = () => {
           clientEmail,
           clientCompany,
           finalPrice: finalPrice ? parseFloat(finalPrice) : null,
+          paymentMethod,
           modules,
         });
         
@@ -1003,6 +1006,9 @@ const SignUp = () => {
       }
 
       // 7. Criar registro de aprovação de pagamento
+      // Determinar payment_method: usar da proposta ou default 'pix'
+      const paymentMethodToUse = proposalData?.paymentMethod || 'pix';
+      
       const { error: approvalError } = await (supabase as any)
         .from('payment_approvals')
         .insert({
@@ -1011,7 +1017,7 @@ const SignUp = () => {
           plan_id: planIdToUse, // null para planos personalizados via proposta
           status: 'pending',
           payment_amount: finalPaymentAmount,
-          payment_method: 'pix',
+          payment_method: paymentMethodToUse,
           company_name: formData.companyName,
           company_document: formData.companyDocument,
           phone: formData.phone,
@@ -1100,17 +1106,45 @@ const SignUp = () => {
         console.error('Erro ao enviar boas-vindas:', welcomeError);
       }
 
-      // 10. Redirecionar para página de comprovante
+      // 10. Redirecionar baseado na forma de pagamento
       // 🧹 Limpar código de referência após cadastro bem-sucedido
       localStorage.removeItem('mostralo_referral_code');
       localStorage.removeItem('mostralo_referral_timestamp');
       
+      // Determinar destino baseado no método de pagamento
+      const getPostSignupDestination = (paymentMethod: string | null | undefined): string => {
+        // Métodos que requerem comprovante/pagamento digital
+        const requiresPaymentProof = ['pix', 'boleto', 'cartao_credito', 'cartao_debito', 'transferencia'];
+        
+        // Se for um dos métodos conhecidos que requer prova de pagamento
+        if (paymentMethod && requiresPaymentProof.includes(paymentMethod)) {
+          return '/payment-proof';
+        }
+        
+        // Para permuta, a_combinar, ou qualquer texto personalizado -> aguardar aprovação
+        return '/pending-approval';
+      };
+      
+      const destination = getPostSignupDestination(proposalData?.paymentMethod);
+      const toastMessage = destination === '/payment-proof' 
+        ? 'Agora faça o upload do comprovante de pagamento.'
+        : 'Aguarde a ativação da sua conta pelo nosso time.';
+      
       toast({
         title: 'Conta criada com sucesso! 🎉',
-        description: 'Agora faça o upload do comprovante de pagamento.',
+        description: toastMessage,
       });
 
-      navigate('/payment-proof');
+      // Se for pending-approval, passar dados para a página
+      if (destination === '/pending-approval') {
+        const pendingParams = new URLSearchParams({
+          company: formData.companyName,
+          payment_method: proposalData?.paymentMethod || 'a_combinar',
+        });
+        navigate(`${destination}?${pendingParams.toString()}`);
+      } else {
+        navigate(destination);
+      }
 
     } catch (error: any) {
       console.error('Erro ao criar conta:', error);

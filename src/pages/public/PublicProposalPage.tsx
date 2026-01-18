@@ -210,6 +210,7 @@ export default function PublicProposalPage() {
         client_email: proposal?.client_email || '',
         client_company: proposal?.client_company || '',
         final_price: String(proposal?.final_monthly_price || 0),
+        payment_method: proposal?.payment_method || 'pix',
         modules: selectedModulesJson
       });
       

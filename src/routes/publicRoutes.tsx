@@ -13,6 +13,7 @@ import BookingPage from "@/pages/public/BookingPage";
 
 // Public Pages - Lazy loaded
 const SignUp = lazy(() => import("@/pages/SignUp"));
+const PendingApprovalPage = lazy(() => import("@/pages/PendingApprovalPage"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const StorePromotions = lazy(() => import("@/pages/StorePromotions"));
 const ProductPage = lazy(() => import("@/pages/ProductPage"));
@@ -146,6 +147,7 @@ export const publicRoutes = (
     
     {/* Autenticação */}
     <Route path="/signup" element={<LazyRoute><SignUp /></LazyRoute>} />
+    <Route path="/pending-approval" element={<LazyRoute><PendingApprovalPage /></LazyRoute>} />
     <Route path="/auth/reset-password" element={<LazyRoute><ResetPassword /></LazyRoute>} />
     
     {/* Loja Pública */}

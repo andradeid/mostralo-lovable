@@ -72,6 +72,7 @@ export default function ProposalBuilderPage() {
     validity_days: 7,
     internal_notes: '',
     store_count: 1,
+    payment_method: 'pix',
   });
 
   // Queries
@@ -237,6 +238,7 @@ export default function ProposalBuilderPage() {
       valid_until: format(validUntil, 'yyyy-MM-dd'),
       internal_notes: pricingData.internal_notes || undefined,
       store_count: pricingData.store_count,
+      payment_method: pricingData.payment_method,
     });
 
     setGeneratedSlug(result.slug);
@@ -534,6 +536,26 @@ export default function ProposalBuilderPage() {
                       <SelectItem value="quarterly">Trimestral</SelectItem>
                       <SelectItem value="biannual">Semestral</SelectItem>
                       <SelectItem value="annual">Anual</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Forma de Pagamento</Label>
+                  <Select 
+                    value={pricingData.payment_method} 
+                    onValueChange={(v) => setPricingData(prev => ({ ...prev, payment_method: v }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pix">PIX</SelectItem>
+                      <SelectItem value="boleto">Boleto Bancário</SelectItem>
+                      <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
+                      <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
+                      <SelectItem value="transferencia">Transferência Bancária</SelectItem>
+                      <SelectItem value="permuta">Permuta</SelectItem>
+                      <SelectItem value="a_combinar">A Combinar</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

@@ -95,7 +95,8 @@ export default function PublicProposalPage() {
   const [rejecting, setRejecting] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
-  const [contractAccepted, setContractAccepted] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [lgpdAccepted, setLgpdAccepted] = useState(false);
   const [showAcceptModal, setShowAcceptModal] = useState(false);
   const [moduleDescriptions, setModuleDescriptions] = useState<Record<string, string>>({});
   const [moduleIcons, setModuleIcons] = useState<Record<string, string>>({});
@@ -155,8 +156,8 @@ export default function PublicProposalPage() {
   };
 
   const handleAccept = async () => {
-    if (!contractAccepted) {
-      toast.error("Você precisa aceitar os termos do contrato");
+    if (!termsAccepted || !lgpdAccepted) {
+      toast.error("Você precisa aceitar os Termos de Uso e a Política de Privacidade (LGPD)");
       return;
     }
 
@@ -166,7 +167,11 @@ export default function PublicProposalPage() {
         body: { 
           action: 'accept', 
           slug,
-          data: { contract_accepted: true }
+          data: { 
+            contract_accepted: true,
+            terms_accepted: true,
+            lgpd_accepted: true
+          }
         }
       });
 
@@ -406,6 +411,14 @@ export default function PublicProposalPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
+            {/* Número de lojas se aplicável */}
+            {(proposal as any).store_count && (proposal as any).store_count > 1 && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Quantidade de lojas</span>
+                <span>{(proposal as any).store_count} lojas</span>
+              </div>
+            )}
+            
             <div className="flex justify-between">
               <span className="text-muted-foreground">Subtotal dos módulos</span>
               <span>{formatCurrency(proposal.modules_total)}</span>
@@ -421,13 +434,6 @@ export default function PublicProposalPage() {
                 </span>
               </div>
             )}
-            
-            {proposal.setup_fee && proposal.setup_fee > 0 && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Taxa de setup (única)</span>
-                <span>{formatCurrency(proposal.setup_fee)}</span>
-              </div>
-            )}
 
             <div className="border-t pt-3 mt-3">
               <div className="flex justify-between items-center">
@@ -438,9 +444,56 @@ export default function PublicProposalPage() {
               </div>
               <p className="text-sm text-muted-foreground mt-1">
                 Cobrança {proposal.billing_cycle === 'monthly' ? 'mensal' : 
-                         proposal.billing_cycle === 'quarterly' ? 'trimestral' : 'anual'}
+                         proposal.billing_cycle === 'quarterly' ? 'trimestral' : 
+                         proposal.billing_cycle === 'biannual' ? 'semestral' : 'anual'}
               </p>
             </div>
+
+            {/* Detalhamento do período (para ciclos não mensais) */}
+            {proposal.billing_cycle !== 'monthly' && (() => {
+              const billingCycleMonths: Record<string, number> = {
+                'monthly': 1,
+                'quarterly': 3,
+                'biannual': 6,
+                'annual': 12,
+              };
+              const months = billingCycleMonths[proposal.billing_cycle] || 1;
+              const totalMonthlyPayments = proposal.final_monthly_price * months;
+              const totalWithSetup = totalMonthlyPayments + (proposal.setup_fee || 0);
+              
+              return (
+                <div className="pt-3 border-t border-dashed space-y-2">
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Mensalidades ({months}x):</span>
+                    <span>{months}x {formatCurrency(proposal.final_monthly_price)}</span>
+                  </div>
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>= Subtotal mensalidades:</span>
+                    <span>{formatCurrency(totalMonthlyPayments)}</span>
+                  </div>
+                  {proposal.setup_fee && proposal.setup_fee > 0 && (
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>+ Setup (único):</span>
+                      <span>{formatCurrency(proposal.setup_fee)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between font-bold text-lg pt-2 border-t">
+                    <span>Total do Contrato:</span>
+                    <span className="text-primary">{formatCurrency(totalWithSetup)}</span>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Setup para ciclos mensais */}
+            {proposal.billing_cycle === 'monthly' && proposal.setup_fee && proposal.setup_fee > 0 && (
+              <div className="pt-3 border-t border-dashed">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Taxa de setup (única)</span>
+                  <span>{formatCurrency(proposal.setup_fee)}</span>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -504,16 +557,43 @@ export default function PublicProposalPage() {
               <DialogTitle>Confirmar Aceite da Proposta</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
+              {/* Checkbox 1: Termos de Uso */}
               <div className="flex items-start gap-3">
                 <Checkbox 
-                  id="contract"
-                  checked={contractAccepted}
-                  onCheckedChange={(checked) => setContractAccepted(checked as boolean)}
+                  id="terms"
+                  checked={termsAccepted}
+                  onCheckedChange={(checked) => setTermsAccepted(checked as boolean)}
                 />
-                <label htmlFor="contract" className="text-sm leading-relaxed cursor-pointer">
-                  Declaro que li e aceito os termos e condições da proposta comercial. 
-                  Entendo que ao aceitar esta proposta, estou concordando com os valores 
-                  e condições apresentados.
+                <label htmlFor="terms" className="text-sm leading-relaxed cursor-pointer">
+                  Li e aceito os{' '}
+                  <a 
+                    href="/termos" 
+                    target="_blank" 
+                    className="text-primary underline hover:text-primary/80"
+                  >
+                    Termos de Uso
+                  </a>{' '}
+                  da plataforma Mostralo.
+                </label>
+              </div>
+
+              {/* Checkbox 2: LGPD */}
+              <div className="flex items-start gap-3">
+                <Checkbox 
+                  id="lgpd"
+                  checked={lgpdAccepted}
+                  onCheckedChange={(checked) => setLgpdAccepted(checked as boolean)}
+                />
+                <label htmlFor="lgpd" className="text-sm leading-relaxed cursor-pointer">
+                  Concordo com a{' '}
+                  <a 
+                    href="/privacidade" 
+                    target="_blank" 
+                    className="text-primary underline hover:text-primary/80"
+                  >
+                    Política de Privacidade (LGPD)
+                  </a>{' '}
+                  e autorizo o tratamento dos meus dados pessoais.
                 </label>
               </div>
             </div>
@@ -521,7 +601,7 @@ export default function PublicProposalPage() {
               <Button variant="outline" onClick={() => setShowAcceptModal(false)}>
                 Cancelar
               </Button>
-              <Button onClick={handleAccept} disabled={accepting || !contractAccepted}>
+              <Button onClick={handleAccept} disabled={accepting || !termsAccepted || !lgpdAccepted}>
                 {accepting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 Confirmar Aceite
               </Button>

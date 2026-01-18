@@ -83,7 +83,18 @@ interface Proposal {
   rejected_at: string | null;
   internal_notes: string | null;
   niches?: { name: string } | null;
+  payment_method?: string | null;
 }
+
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  'pix': 'PIX',
+  'boleto': 'Boleto Bancário',
+  'cartao_credito': 'Cartão de Crédito',
+  'cartao_debito': 'Cartão de Débito',
+  'transferencia': 'Transferência Bancária',
+  'permuta': 'Permuta',
+  'a_combinar': 'A Combinar',
+};
 
 export default function PublicProposalPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -491,6 +502,18 @@ export default function PublicProposalPage() {
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Taxa de setup (única)</span>
                   <span>{formatCurrency(proposal.setup_fee)}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Forma de Pagamento */}
+            {proposal.payment_method && (
+              <div className="pt-3 border-t border-dashed">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Forma de Pagamento</span>
+                  <span className="font-medium">
+                    {PAYMENT_METHOD_LABELS[proposal.payment_method] || proposal.payment_method}
+                  </span>
                 </div>
               </div>
             )}

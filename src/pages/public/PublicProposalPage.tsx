@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { ProposalLegalSecurityCard } from "@/components/proposals/ProposalLegalSecurityCard";
 
 // Mapa de ícones para módulos
 const moduleIconMap: Record<string, LucideIcon> = {
@@ -84,6 +85,10 @@ interface Proposal {
   internal_notes: string | null;
   niches?: { name: string } | null;
   payment_method?: string | null;
+  accept_ip_address?: string | null;
+  accept_user_agent?: string | null;
+  terms_accepted?: boolean | null;
+  lgpd_accepted?: boolean | null;
 }
 
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
@@ -299,19 +304,30 @@ export default function PublicProposalPage() {
 
         {/* Status Banner */}
         {proposal.status === 'accepted' && (
-          <Card className="border-green-500 bg-green-50 dark:bg-green-950/20">
-            <CardContent className="py-4 flex items-center gap-3">
-              <CheckCircle className="h-6 w-6 text-green-600" />
-              <div>
-                <p className="font-semibold text-green-700 dark:text-green-400">Proposta Aceita</p>
-                {proposal.accepted_at && (
-                  <p className="text-sm text-green-600">
-                    Em {format(new Date(proposal.accepted_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <>
+            <Card className="border-green-500 bg-green-50 dark:bg-green-950/20">
+              <CardContent className="py-4 flex items-center gap-3">
+                <CheckCircle className="h-6 w-6 text-green-600" />
+                <div>
+                  <p className="font-semibold text-green-700 dark:text-green-400">Proposta Aceita</p>
+                  {proposal.accepted_at && (
+                    <p className="text-sm text-green-600">
+                      Em {format(new Date(proposal.accepted_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Seção de Segurança Jurídica */}
+            <ProposalLegalSecurityCard
+              acceptIpAddress={proposal.accept_ip_address}
+              acceptUserAgent={proposal.accept_user_agent}
+              acceptedAt={proposal.accepted_at}
+              termsAccepted={proposal.terms_accepted}
+              lgpdAccepted={proposal.lgpd_accepted}
+            />
+          </>
         )}
 
         {proposal.status === 'rejected' && (

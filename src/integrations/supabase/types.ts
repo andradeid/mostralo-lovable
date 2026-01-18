@@ -1586,6 +1586,7 @@ export type Database = {
           final_monthly_price: number
           id: string
           internal_notes: string | null
+          lgpd_accepted: boolean | null
           modules_total: number
           niche_id: string | null
           payment_approval_id: string | null
@@ -1602,6 +1603,7 @@ export type Database = {
           status: string | null
           store_count: number | null
           store_id: string | null
+          terms_accepted: boolean | null
           updated_at: string | null
           valid_until: string | null
           viewed_at: string | null
@@ -1623,6 +1625,7 @@ export type Database = {
           final_monthly_price?: number
           id?: string
           internal_notes?: string | null
+          lgpd_accepted?: boolean | null
           modules_total?: number
           niche_id?: string | null
           payment_approval_id?: string | null
@@ -1639,6 +1642,7 @@ export type Database = {
           status?: string | null
           store_count?: number | null
           store_id?: string | null
+          terms_accepted?: boolean | null
           updated_at?: string | null
           valid_until?: string | null
           viewed_at?: string | null
@@ -1660,6 +1664,7 @@ export type Database = {
           final_monthly_price?: number
           id?: string
           internal_notes?: string | null
+          lgpd_accepted?: boolean | null
           modules_total?: number
           niche_id?: string | null
           payment_approval_id?: string | null
@@ -1676,6 +1681,7 @@ export type Database = {
           status?: string | null
           store_count?: number | null
           store_id?: string | null
+          terms_accepted?: boolean | null
           updated_at?: string | null
           valid_until?: string | null
           viewed_at?: string | null

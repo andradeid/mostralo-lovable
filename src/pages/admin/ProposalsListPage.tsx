@@ -51,10 +51,17 @@ export default function ProposalsListPage() {
   const [selectedProposalForWhatsApp, setSelectedProposalForWhatsApp] = useState<{
     client_name: string;
     client_phone: string;
+    client_email?: string | null;
+    client_company?: string | null;
     slug: string;
+    proposal_number?: string;
     final_monthly_price: number;
     billing_cycle: string;
-    valid_until?: string;
+    payment_method?: string | null;
+    setup_fee?: number | null;
+    discount_percentage?: number | null;
+    discount_amount?: number | null;
+    valid_until?: string | null;
   } | null>(null);
 
   const { showTutorial, completeTutorial, openTutorial } = useProposalsTutorial();
@@ -80,9 +87,16 @@ export default function ProposalsListPage() {
     setSelectedProposalForWhatsApp({
       client_name: proposal.client_name,
       client_phone: proposal.client_phone,
+      client_email: proposal.client_email,
+      client_company: proposal.client_company,
       slug: proposal.slug,
+      proposal_number: proposal.proposal_number,
       final_monthly_price: proposal.final_monthly_price,
       billing_cycle: proposal.billing_cycle,
+      payment_method: proposal.payment_method,
+      setup_fee: proposal.setup_fee,
+      discount_percentage: proposal.discount_percentage,
+      discount_amount: proposal.discount_amount,
       valid_until: proposal.valid_until,
     });
     setWhatsappModalOpen(true);

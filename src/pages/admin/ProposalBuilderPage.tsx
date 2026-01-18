@@ -148,7 +148,20 @@ export default function ProposalBuilderPage() {
     
     // Mensalidade final
     const monthlyPrice = Math.max(0, subtotalWithStores - discountAmount);
-    const finalPrice = monthlyPrice + pricingData.setup_fee;
+    
+    // Calcular número de meses do ciclo
+    const billingCycleMonths = {
+      'monthly': 1,
+      'quarterly': 3,
+      'biannual': 6,
+      'annual': 12,
+    }[pricingData.billing_cycle] || 1;
+    
+    // Total de mensalidades no período
+    const totalMonthlyPayments = monthlyPrice * billingCycleMonths;
+    
+    // Total geral (mensalidades + setup)
+    const totalWithSetup = totalMonthlyPayments + pricingData.setup_fee;
     
     return {
       selectedModules,
@@ -156,8 +169,11 @@ export default function ProposalBuilderPage() {
       subtotalWithStores,
       modulesTotal: subtotalWithStores, // Para compatibilidade
       discountAmount,
-      finalPrice: Math.max(0, finalPrice),
+      finalPrice: Math.max(0, monthlyPrice + pricingData.setup_fee),
       monthlyPrice,
+      billingCycleMonths,
+      totalMonthlyPayments,
+      totalWithSetup,
     };
   }, [modules, selectedModuleIds, pricingData]);
 
@@ -570,6 +586,29 @@ export default function ProposalBuilderPage() {
                     <span>Mensalidade Total:</span>
                     <span className="text-primary">{formatCurrency(calculations.monthlyPrice)}/mês</span>
                   </div>
+                  {/* Mostrar total do período quando não for mensal */}
+                  {pricingData.billing_cycle !== 'monthly' && (
+                    <div className="mt-3 pt-3 border-t border-dashed space-y-2">
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Mensalidades ({calculations.billingCycleMonths}x):</span>
+                        <span>{calculations.billingCycleMonths}x {formatCurrency(calculations.monthlyPrice)}</span>
+                      </div>
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>= Subtotal mensalidades:</span>
+                        <span>{formatCurrency(calculations.totalMonthlyPayments)}</span>
+                      </div>
+                      {pricingData.setup_fee > 0 && (
+                        <div className="flex justify-between text-muted-foreground">
+                          <span>+ Setup:</span>
+                          <span>{formatCurrency(pricingData.setup_fee)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between font-bold text-lg pt-2 border-t">
+                        <span>Total do Período:</span>
+                        <span className="text-primary">{formatCurrency(calculations.totalWithSetup)}</span>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -607,7 +646,7 @@ export default function ProposalBuilderPage() {
               </Card>
 
               <Card className="bg-primary/5 border-primary/30">
-                <CardContent className="p-4">
+                <CardContent className="p-4 space-y-3">
                   <div className="flex justify-between items-center">
                     <div>
                       <p className="text-sm text-muted-foreground">Valor mensal</p>
@@ -617,13 +656,34 @@ export default function ProposalBuilderPage() {
                     </div>
                     {pricingData.setup_fee > 0 && (
                       <div className="text-right">
-                        <p className="text-sm text-muted-foreground">Taxa única</p>
+                        <p className="text-sm text-muted-foreground">Taxa de setup</p>
                         <p className="text-lg font-semibold">
                           {formatCurrency(pricingData.setup_fee)}
                         </p>
                       </div>
                     )}
                   </div>
+                  {/* Mostrar resumo total quando não for mensal */}
+                  {pricingData.billing_cycle !== 'monthly' && (
+                    <div className="pt-3 border-t border-primary/20 space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">
+                          {calculations.billingCycleMonths}x mensalidades:
+                        </span>
+                        <span>{formatCurrency(calculations.totalMonthlyPayments)}</span>
+                      </div>
+                      {pricingData.setup_fee > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">+ Setup:</span>
+                          <span>{formatCurrency(pricingData.setup_fee)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between font-bold text-lg pt-2 border-t border-primary/20">
+                        <span>Total do Contrato:</span>
+                        <span className="text-primary">{formatCurrency(calculations.totalWithSetup)}</span>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>

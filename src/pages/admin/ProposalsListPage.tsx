@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ProposalsTutorial, useProposalsTutorial } from '@/components/proposals/ProposalsTutorial';
 import { ProposalsDashboard } from '@/components/proposals/ProposalsDashboard';
+import { ProposalWhatsAppTemplateModal } from '@/components/proposals/ProposalWhatsAppTemplateModal';
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
   draft: { label: 'Rascunho', color: 'bg-gray-500/10 text-gray-600 border-gray-500/20', icon: Clock },
@@ -45,6 +46,15 @@ export default function ProposalsListPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [whatsappModalOpen, setWhatsappModalOpen] = useState(false);
+  const [selectedProposalForWhatsApp, setSelectedProposalForWhatsApp] = useState<{
+    client_name: string;
+    client_phone: string;
+    slug: string;
+    final_monthly_price: number;
+    billing_cycle: string;
+    valid_until?: string;
+  } | null>(null);
 
   const { showTutorial, completeTutorial, openTutorial } = useProposalsTutorial();
 
@@ -65,12 +75,16 @@ export default function ProposalsListPage() {
     toast.success('Link copiado!');
   };
 
-  const sendWhatsApp = (phone: string, slug: string, clientName: string) => {
-    const url = `${window.location.origin}/proposta/${slug}`;
-    const message = encodeURIComponent(
-      `Olá ${clientName}! 👋\n\nSua proposta comercial personalizada está pronta!\n\nAcesse aqui: ${url}\n\nQualquer dúvida estou à disposição!`
-    );
-    window.open(`https://wa.me/55${phone.replace(/\D/g, '')}?text=${message}`, '_blank');
+  const openWhatsAppModal = (proposal: any) => {
+    setSelectedProposalForWhatsApp({
+      client_name: proposal.client_name,
+      client_phone: proposal.client_phone,
+      slug: proposal.slug,
+      final_monthly_price: proposal.final_monthly_price,
+      billing_cycle: proposal.billing_cycle,
+      valid_until: proposal.valid_until,
+    });
+    setWhatsappModalOpen(true);
   };
 
   const handleDelete = async () => {
@@ -122,12 +136,20 @@ export default function ProposalsListPage() {
             <HelpCircle className="w-5 h-5" />
           </Button>
         </div>
-        <Link to="/dashboard/propostas/nova">
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
-            Nova Proposta
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link to="/dashboard/whatsapp/templates">
+            <Button variant="outline" size="sm">
+              <FileText className="w-4 h-4 mr-2" />
+              Templates WhatsApp
+            </Button>
+          </Link>
+          <Link to="/dashboard/propostas/nova">
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              Nova Proposta
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -224,7 +246,7 @@ export default function ProposalsListPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => sendWhatsApp(proposal.client_phone, proposal.slug, proposal.client_name)}
+                      onClick={() => openWhatsAppModal(proposal)}
                       className="text-green-600 border-green-500/30 hover:bg-green-500/10"
                     >
                       <Send className="w-4 h-4 mr-1" />
@@ -288,6 +310,16 @@ export default function ProposalsListPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* WhatsApp Template Modal */}
+      <ProposalWhatsAppTemplateModal
+        open={whatsappModalOpen}
+        onClose={() => {
+          setWhatsappModalOpen(false);
+          setSelectedProposalForWhatsApp(null);
+        }}
+        proposal={selectedProposalForWhatsApp}
+      />
     </div>
   );
 }

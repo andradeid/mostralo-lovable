@@ -74,6 +74,19 @@ export default function ProposalBuilderPage() {
     store_count: 1,
     payment_method: 'pix',
   });
+  
+  const [customPaymentMethod, setCustomPaymentMethod] = useState('');
+  
+  const PAYMENT_METHOD_LABELS: Record<string, string> = {
+    'pix': 'PIX',
+    'boleto': 'Boleto Bancário',
+    'cartao_credito': 'Cartão de Crédito',
+    'cartao_debito': 'Cartão de Débito',
+    'transferencia': 'Transferência Bancária',
+    'permuta': 'Permuta',
+    'a_combinar': 'A Combinar',
+    'outro': 'Outro',
+  };
 
   // Queries
   const { data: niches = [] } = useNiches();
@@ -238,7 +251,9 @@ export default function ProposalBuilderPage() {
       valid_until: format(validUntil, 'yyyy-MM-dd'),
       internal_notes: pricingData.internal_notes || undefined,
       store_count: pricingData.store_count,
-      payment_method: pricingData.payment_method,
+      payment_method: pricingData.payment_method === 'outro' 
+        ? customPaymentMethod 
+        : pricingData.payment_method,
     });
 
     setGeneratedSlug(result.slug);
@@ -543,7 +558,10 @@ export default function ProposalBuilderPage() {
                   <Label>Forma de Pagamento</Label>
                   <Select 
                     value={pricingData.payment_method} 
-                    onValueChange={(v) => setPricingData(prev => ({ ...prev, payment_method: v }))}
+                    onValueChange={(v) => {
+                      setPricingData(prev => ({ ...prev, payment_method: v }));
+                      if (v !== 'outro') setCustomPaymentMethod('');
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -556,8 +574,17 @@ export default function ProposalBuilderPage() {
                       <SelectItem value="transferencia">Transferência Bancária</SelectItem>
                       <SelectItem value="permuta">Permuta</SelectItem>
                       <SelectItem value="a_combinar">A Combinar</SelectItem>
+                      <SelectItem value="outro">Outro (especificar)</SelectItem>
                     </SelectContent>
                   </Select>
+                  {pricingData.payment_method === 'outro' && (
+                    <Input
+                      placeholder="Ex: Crédito 3x - Entrada + 30 e 60 dias"
+                      value={customPaymentMethod}
+                      onChange={(e) => setCustomPaymentMethod(e.target.value)}
+                      className="mt-2"
+                    />
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label>Validade (dias)</Label>
@@ -684,6 +711,15 @@ export default function ProposalBuilderPage() {
                         </p>
                       </div>
                     )}
+                  </div>
+                  {/* Forma de pagamento */}
+                  <div className="flex justify-between items-center pt-2 border-t border-primary/20">
+                    <span className="text-sm text-muted-foreground">Forma de Pagamento</span>
+                    <span className="font-medium">
+                      {pricingData.payment_method === 'outro' 
+                        ? customPaymentMethod || 'A especificar'
+                        : PAYMENT_METHOD_LABELS[pricingData.payment_method] || pricingData.payment_method}
+                    </span>
                   </div>
                   {/* Mostrar resumo total quando não for mensal */}
                   {pricingData.billing_cycle !== 'monthly' && (

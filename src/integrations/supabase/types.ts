@@ -1600,6 +1600,7 @@ export type Database = {
           signature_data: Json | null
           slug: string
           status: string | null
+          store_count: number | null
           store_id: string | null
           updated_at: string | null
           valid_until: string | null
@@ -1636,6 +1637,7 @@ export type Database = {
           signature_data?: Json | null
           slug: string
           status?: string | null
+          store_count?: number | null
           store_id?: string | null
           updated_at?: string | null
           valid_until?: string | null
@@ -1672,6 +1674,7 @@ export type Database = {
           signature_data?: Json | null
           slug?: string
           status?: string | null
+          store_count?: number | null
           store_id?: string | null
           updated_at?: string | null
           valid_until?: string | null

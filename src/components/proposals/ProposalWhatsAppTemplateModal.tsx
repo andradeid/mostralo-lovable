@@ -1,12 +1,4 @@
 import { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,9 +6,17 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { Send, FileText, Loader2, Check, ExternalLink, Edit2 } from 'lucide-react';
+import { Send, FileText, Loader2, Check, Edit2, User, Phone, DollarSign } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from '@/components/ui/sheet';
 
 interface ProposalData {
   client_name: string;
@@ -75,7 +75,6 @@ export function ProposalWhatsAppTemplateModal({ open, onClose, proposal }: Propo
   const fetchTemplates = async () => {
     setLoading(true);
     try {
-      // Buscar templates de proposta (globais e da loja)
       const { data, error } = await supabase
         .from('whatsapp_templates')
         .select('id, name, content, category')
@@ -88,7 +87,6 @@ export function ProposalWhatsAppTemplateModal({ open, onClose, proposal }: Propo
       const templatesData = (data || []) as unknown as Template[];
       setTemplates(templatesData);
       
-      // Selecionar o primeiro template por padrão
       if (templatesData.length > 0) {
         setSelectedTemplate(templatesData[0]);
       }
@@ -145,127 +143,130 @@ export function ProposalWhatsAppTemplateModal({ open, onClose, proposal }: Propo
   if (!proposal) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+    <Sheet open={open} onOpenChange={onClose}>
+      <SheetContent side="bottom" className="h-[90vh] sm:h-auto sm:max-h-[85vh] rounded-t-2xl">
+        <SheetHeader className="pb-4 border-b">
+          <SheetTitle className="flex items-center gap-2 text-lg">
             <Send className="w-5 h-5 text-green-600" />
             Enviar Proposta via WhatsApp
-          </DialogTitle>
-          <DialogDescription>
-            Selecione um template e personalize a mensagem antes de enviar
-          </DialogDescription>
-        </DialogHeader>
+          </SheetTitle>
+          <SheetDescription className="text-sm">
+            Escolha um template e personalize antes de enviar
+          </SheetDescription>
+        </SheetHeader>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+        <div className="flex-1 overflow-y-auto py-4 space-y-4">
+          {/* Proposal Info - Compact */}
+          <div className="grid grid-cols-3 gap-2">
+            <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
+              <User className="w-4 h-4 text-muted-foreground shrink-0" />
+              <span className="text-sm font-medium truncate">{proposal.client_name.split(' ')[0]}</span>
+            </div>
+            <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
+              <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
+              <span className="text-sm font-medium truncate">{proposal.client_phone}</span>
+            </div>
+            <div className="flex items-center gap-2 p-2 bg-green-500/10 rounded-lg">
+              <DollarSign className="w-4 h-4 text-green-600 shrink-0" />
+              <span className="text-sm font-semibold text-green-600 truncate">
+                {formatCurrency(proposal.final_monthly_price)}
+              </span>
+            </div>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {/* Template Selection */}
-            <div className="space-y-2">
-              <Label>Selecionar Template</Label>
-              <ScrollArea className="h-32 border rounded-lg p-2">
-                <div className="space-y-2">
-                  {templates.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-4">
+
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            </div>
+          ) : (
+            <>
+              {/* Template Selection - Horizontal Scroll */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Selecionar Template</Label>
+                {templates.length === 0 ? (
+                  <Card className="p-4 text-center">
+                    <p className="text-sm text-muted-foreground">
                       Nenhum template de proposta encontrado.
-                      <br />
-                      <a href="/dashboard/whatsapp/templates" className="text-primary hover:underline flex items-center justify-center gap-1 mt-2">
-                        Criar templates <ExternalLink className="w-3 h-3" />
-                      </a>
                     </p>
-                  ) : (
-                    templates.map((template) => (
-                      <Card
-                        key={template.id}
-                        className={`p-3 cursor-pointer transition-all hover:bg-accent ${
-                          selectedTemplate?.id === template.id
-                            ? 'ring-2 ring-primary bg-primary/5'
-                            : ''
-                        }`}
-                        onClick={() => setSelectedTemplate(template)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <FileText className="w-4 h-4 text-muted-foreground" />
-                            <span className="font-medium text-sm">{template.name}</span>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Acesse a aba "Templates WhatsApp" para criar.
+                    </p>
+                  </Card>
+                ) : (
+                  <ScrollArea className="w-full" type="scroll">
+                    <div className="flex gap-2 pb-2">
+                      {templates.map((template) => (
+                        <Card
+                          key={template.id}
+                          className={`p-3 cursor-pointer transition-all hover:bg-accent shrink-0 min-w-[140px] max-w-[180px] ${
+                            selectedTemplate?.id === template.id
+                              ? 'ring-2 ring-primary bg-primary/5'
+                              : ''
+                          }`}
+                          onClick={() => setSelectedTemplate(template)}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
+                              <span className="font-medium text-sm truncate">{template.name}</span>
+                            </div>
+                            {selectedTemplate?.id === template.id && (
+                              <Check className="w-4 h-4 text-primary shrink-0" />
+                            )}
                           </div>
-                          {selectedTemplate?.id === template.id && (
-                            <Check className="w-4 h-4 text-primary" />
-                          )}
-                        </div>
-                      </Card>
-                    ))
-                  )}
+                        </Card>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
+              </div>
+
+              {/* Message Preview/Edit */}
+              <div className="space-y-2 flex-1">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium">Mensagem</Label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsEditing(!isEditing)}
+                    className="text-xs h-7 px-2"
+                  >
+                    <Edit2 className="w-3 h-3 mr-1" />
+                    {isEditing ? 'Cancelar' : 'Editar'}
+                  </Button>
                 </div>
-              </ScrollArea>
-            </div>
+                
+                {isEditing ? (
+                  <Textarea
+                    value={previewMessage}
+                    onChange={(e) => setPreviewMessage(e.target.value)}
+                    className="min-h-[200px] text-sm"
+                    placeholder="Digite sua mensagem..."
+                  />
+                ) : (
+                  <div className="bg-muted rounded-lg p-4 whitespace-pre-wrap text-sm min-h-[200px] max-h-[300px] overflow-y-auto">
+                    {previewMessage || 'Selecione um template para visualizar a mensagem'}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
 
-            {/* Message Preview/Edit */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label>Mensagem</Label>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsEditing(!isEditing)}
-                  className="text-xs"
-                >
-                  <Edit2 className="w-3 h-3 mr-1" />
-                  {isEditing ? 'Cancelar edição' : 'Personalizar'}
-                </Button>
-              </div>
-              
-              {isEditing ? (
-                <Textarea
-                  value={previewMessage}
-                  onChange={(e) => setPreviewMessage(e.target.value)}
-                  rows={8}
-                  placeholder="Digite sua mensagem..."
-                />
-              ) : (
-                <div className="bg-muted rounded-lg p-4 whitespace-pre-wrap text-sm max-h-48 overflow-y-auto">
-                  {previewMessage || 'Selecione um template para visualizar a mensagem'}
-                </div>
-              )}
-            </div>
-
-            {/* Proposal Info */}
-            <div className="bg-muted/50 rounded-lg p-3 space-y-1">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Cliente:</span>
-                <span className="font-medium">{proposal.client_name}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Telefone:</span>
-                <span className="font-medium">{proposal.client_phone}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Valor:</span>
-                <Badge variant="outline" className="font-medium">
-                  {formatCurrency(proposal.final_monthly_price)}/mês
-                </Badge>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={onClose}>
+        <SheetFooter className="pt-4 border-t gap-2 flex-row">
+          <Button variant="outline" onClick={onClose} className="flex-1 sm:flex-none">
             Cancelar
           </Button>
           <Button
             onClick={handleSendWhatsApp}
             disabled={!previewMessage || loading}
-            className="bg-green-600 hover:bg-green-700"
+            className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700"
           >
             <Send className="w-4 h-4 mr-2" />
             Abrir WhatsApp
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

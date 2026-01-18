@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   FileText, Plus, Search, Eye, Copy, Trash2, Send,
-  Clock, CheckCircle, XCircle, AlertCircle, Filter, HelpCircle, BarChart3, List
+  Clock, CheckCircle, XCircle, AlertCircle, Filter, HelpCircle, BarChart3, List, MessageSquare
 } from 'lucide-react';
 import { useCommercialProposals, useDeleteProposal } from '@/hooks/useCommercialProposals';
 import { format } from 'date-fns';
@@ -27,6 +27,7 @@ import {
 import { ProposalsTutorial, useProposalsTutorial } from '@/components/proposals/ProposalsTutorial';
 import { ProposalsDashboard } from '@/components/proposals/ProposalsDashboard';
 import { ProposalWhatsAppTemplateModal } from '@/components/proposals/ProposalWhatsAppTemplateModal';
+import { ProposalTemplatesManager } from '@/components/proposals/ProposalTemplatesManager';
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
   draft: { label: 'Rascunho', color: 'bg-gray-500/10 text-gray-600 border-gray-500/20', icon: Clock },
@@ -94,13 +95,6 @@ export default function ProposalsListPage() {
     }
   };
 
-  const stats = {
-    total: proposals.length,
-    sent: proposals.filter(p => p.status === 'sent').length,
-    viewed: proposals.filter(p => p.status === 'viewed').length,
-    accepted: proposals.filter(p => p.status === 'accepted').length,
-  };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -137,12 +131,6 @@ export default function ProposalsListPage() {
           </Button>
         </div>
         <div className="flex items-center gap-2">
-          <Link to="/dashboard/whatsapp/templates">
-            <Button variant="outline" size="sm">
-              <FileText className="w-4 h-4 mr-2" />
-              Templates WhatsApp
-            </Button>
-          </Link>
           <Link to="/dashboard/propostas/nova">
             <Button>
               <Plus className="w-4 h-4 mr-2" />
@@ -154,14 +142,18 @@ export default function ProposalsListPage() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
+        <TabsList className="w-full sm:w-auto grid grid-cols-3 sm:flex">
           <TabsTrigger value="dashboard" className="gap-2">
             <BarChart3 className="w-4 h-4" />
-            Dashboard
+            <span className="hidden sm:inline">Dashboard</span>
           </TabsTrigger>
           <TabsTrigger value="list" className="gap-2">
             <List className="w-4 h-4" />
-            Propostas
+            <span className="hidden sm:inline">Propostas</span>
+          </TabsTrigger>
+          <TabsTrigger value="templates" className="gap-2">
+            <MessageSquare className="w-4 h-4" />
+            <span className="hidden sm:inline">Templates</span>
           </TabsTrigger>
         </TabsList>
 
@@ -174,122 +166,127 @@ export default function ProposalsListPage() {
         <TabsContent value="list" className="mt-6 space-y-6">
           {/* Filters */}
           <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por nome, empresa ou número..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-48">
-                <Filter className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Filtrar status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os status</SelectItem>
-                <SelectItem value="draft">Rascunho</SelectItem>
-                <SelectItem value="sent">Enviada</SelectItem>
-                <SelectItem value="viewed">Visualizada</SelectItem>
-                <SelectItem value="accepted">Aceita</SelectItem>
-                <SelectItem value="rejected">Rejeitada</SelectItem>
-                <SelectItem value="expired">Expirada</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Proposals List */}
-      <div className="space-y-3">
-        {filteredProposals.map((proposal) => {
-          const status = statusConfig[proposal.status] || statusConfig.draft;
-          const StatusIcon = status.icon;
-
-          return (
-            <Card key={proposal.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold text-lg">{proposal.client_name}</span>
-                      {proposal.client_company && (
-                        <span className="text-muted-foreground">- {proposal.client_company}</span>
-                      )}
-                      <Badge variant="outline" className={status.color}>
-                        <StatusIcon className="w-3 h-3 mr-1" />
-                        {status.label}
-                      </Badge>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                      <span>#{proposal.proposal_number}</span>
-                      <span>{proposal.niche?.name || 'Sem nicho'}</span>
-                      <span>{formatCurrency(proposal.final_monthly_price)}/mês</span>
-                      <span>
-                        {format(new Date(proposal.created_at), "dd 'de' MMM 'de' yyyy", { locale: ptBR })}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => copyLink(proposal.slug)}
-                    >
-                      <Copy className="w-4 h-4 mr-1" />
-                      Copiar Link
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openWhatsAppModal(proposal)}
-                      className="text-green-600 border-green-500/30 hover:bg-green-500/10"
-                    >
-                      <Send className="w-4 h-4 mr-1" />
-                      WhatsApp
-                    </Button>
-                    <Link to={`/proposta/${proposal.slug}`} target="_blank">
-                      <Button variant="outline" size="sm">
-                        <Eye className="w-4 h-4 mr-1" />
-                        Ver
-                      </Button>
-                    </Link>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setDeleteId(proposal.id)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar por nome, empresa ou número..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9"
+                  />
                 </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-
-        {filteredProposals.length === 0 && (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-              <p className="text-muted-foreground">
-                Nenhuma proposta encontrada.
-              </p>
-              <Link to="/dashboard/propostas/nova" className="mt-4 inline-block">
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Criar Primeira Proposta
-                </Button>
-              </Link>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-full sm:w-48">
+                    <Filter className="w-4 h-4 mr-2" />
+                    <SelectValue placeholder="Filtrar status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os status</SelectItem>
+                    <SelectItem value="draft">Rascunho</SelectItem>
+                    <SelectItem value="sent">Enviada</SelectItem>
+                    <SelectItem value="viewed">Visualizada</SelectItem>
+                    <SelectItem value="accepted">Aceita</SelectItem>
+                    <SelectItem value="rejected">Rejeitada</SelectItem>
+                    <SelectItem value="expired">Expirada</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </CardContent>
           </Card>
-        )}
-      </div>
+
+          {/* Proposals List */}
+          <div className="space-y-3">
+            {filteredProposals.map((proposal) => {
+              const status = statusConfig[proposal.status] || statusConfig.draft;
+              const StatusIcon = status.icon;
+
+              return (
+                <Card key={proposal.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-semibold text-lg">{proposal.client_name}</span>
+                          {proposal.client_company && (
+                            <span className="text-muted-foreground">- {proposal.client_company}</span>
+                          )}
+                          <Badge variant="outline" className={status.color}>
+                            <StatusIcon className="w-3 h-3 mr-1" />
+                            {status.label}
+                          </Badge>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                          <span>#{proposal.proposal_number}</span>
+                          <span>{proposal.niche?.name || 'Sem nicho'}</span>
+                          <span>{formatCurrency(proposal.final_monthly_price)}/mês</span>
+                          <span>
+                            {format(new Date(proposal.created_at), "dd 'de' MMM 'de' yyyy", { locale: ptBR })}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => copyLink(proposal.slug)}
+                        >
+                          <Copy className="w-4 h-4 mr-1" />
+                          Copiar Link
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openWhatsAppModal(proposal)}
+                          className="text-green-600 border-green-500/30 hover:bg-green-500/10"
+                        >
+                          <Send className="w-4 h-4 mr-1" />
+                          WhatsApp
+                        </Button>
+                        <Link to={`/proposta/${proposal.slug}`} target="_blank">
+                          <Button variant="outline" size="sm">
+                            <Eye className="w-4 h-4 mr-1" />
+                            Ver
+                          </Button>
+                        </Link>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setDeleteId(proposal.id)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+
+            {filteredProposals.length === 0 && (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-muted-foreground">
+                    Nenhuma proposta encontrada.
+                  </p>
+                  <Link to="/dashboard/propostas/nova" className="mt-4 inline-block">
+                    <Button>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Criar Primeira Proposta
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </TabsContent>
+
+        {/* Templates Tab */}
+        <TabsContent value="templates" className="mt-6">
+          <ProposalTemplatesManager />
         </TabsContent>
       </Tabs>
 

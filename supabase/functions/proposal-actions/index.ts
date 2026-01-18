@@ -77,6 +77,12 @@ Deno.serve(async (req) => {
         }
 
         const { signature_data, contract_accepted } = data || {}
+        
+        // Capturar IP e User Agent para segurança jurídica
+        const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+                         req.headers.get('x-real-ip') || 
+                         'unknown'
+        const userAgent = req.headers.get('user-agent') || 'unknown'
 
         const { error: updateError } = await supabase
           .from('commercial_proposals')
@@ -84,7 +90,9 @@ Deno.serve(async (req) => {
             status: 'accepted',
             accepted_at: new Date().toISOString(),
             signature_data: signature_data || null,
-            contract_accepted: contract_accepted || false
+            contract_accepted: contract_accepted || false,
+            accept_ip_address: clientIp,
+            accept_user_agent: userAgent
           })
           .eq('id', proposal.id)
 
@@ -96,13 +104,16 @@ Deno.serve(async (req) => {
           )
         }
 
-        // Log activity
+        // Log activity com IP e User Agent
         await supabase.from('proposal_activity_log').insert({
           proposal_id: proposal.id,
           action: 'accepted',
-          details: { 
+          ip_address: clientIp,
+          user_agent: userAgent,
+          metadata: { 
             signature_data: !!signature_data,
-            contract_accepted 
+            contract_accepted,
+            accepted_at: new Date().toISOString()
           }
         })
 

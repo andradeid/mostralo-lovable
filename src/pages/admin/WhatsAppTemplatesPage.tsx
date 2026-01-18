@@ -69,6 +69,7 @@ const MESSAGE_TYPES = [
 ];
 
 const VARIABLES = [
+  // Gerais / Cliente
   { var: '{nome}', desc: 'Nome completo do cliente' },
   { var: '{primeiro_nome}', desc: 'Primeiro nome do cliente' },
   { var: '{telefone}', desc: 'Telefone do cliente' },
@@ -78,9 +79,17 @@ const VARIABLES = [
   { var: '{ultimo_pedido}', desc: 'Data do último pedido' },
   { var: '{loja}', desc: 'Nome da loja' },
   { var: '{link_loja}', desc: 'Link do cardápio' },
+  // Propostas Comerciais
+  { var: '{empresa}', desc: 'Nome da empresa do cliente' },
+  { var: '{email}', desc: 'Email do cliente' },
   { var: '{valor_mensal}', desc: 'Valor mensal da proposta' },
   { var: '{valor_total}', desc: 'Valor total do contrato' },
+  { var: '{valor_setup}', desc: 'Taxa de setup/implantação' },
+  { var: '{desconto_percentual}', desc: 'Percentual de desconto' },
+  { var: '{desconto_valor}', desc: 'Valor do desconto em R$' },
+  { var: '{numero_proposta}', desc: 'Número da proposta' },
   { var: '{ciclo_cobranca}', desc: 'Ciclo de cobrança (mensal, anual, etc)' },
+  { var: '{forma_pagamento}', desc: 'Forma de pagamento escolhida' },
   { var: '{link_proposta}', desc: 'Link da proposta comercial' },
   { var: '{validade}', desc: 'Data de validade da proposta' },
 ];

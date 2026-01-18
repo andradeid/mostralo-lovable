@@ -21,9 +21,16 @@ import {
 interface ProposalData {
   client_name: string;
   client_phone: string;
+  client_email?: string;
+  client_company?: string;
   slug: string;
+  proposal_number?: string;
   final_monthly_price: number;
   billing_cycle: string;
+  payment_method?: string;
+  setup_fee?: number;
+  discount_percentage?: number;
+  discount_amount?: number;
   valid_until?: string;
 }
 
@@ -45,6 +52,16 @@ const BILLING_CYCLE_LABELS: Record<string, string> = {
   quarterly: 'Trimestral',
   biannual: 'Semestral',
   annual: 'Anual',
+};
+
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  pix: 'PIX',
+  boleto: 'Boleto',
+  credit_card: 'Cartão de Crédito',
+  debit_card: 'Cartão de Débito',
+  bank_transfer: 'Transferência Bancária',
+  permuta: 'Permuta',
+  a_combinar: 'A Combinar',
 };
 
 const formatCurrency = (value: number) => {
@@ -118,13 +135,26 @@ export function ProposalWhatsAppTemplateModal({ open, onClose, proposal }: Propo
     }[prop.billing_cycle] || 1;
 
     const totalValue = prop.final_monthly_price * billingCycleMonths;
+    const paymentMethodLabel = prop.payment_method 
+      ? (PAYMENT_METHOD_LABELS[prop.payment_method] || prop.payment_method) 
+      : 'A Combinar';
 
     return content
+      // Cliente
       .replace(/\{nome\}/g, prop.client_name)
       .replace(/\{primeiro_nome\}/g, firstName)
+      .replace(/\{empresa\}/g, prop.client_company || 'N/A')
+      .replace(/\{email\}/g, prop.client_email || 'N/A')
+      // Valores
       .replace(/\{valor_mensal\}/g, formatCurrency(prop.final_monthly_price))
       .replace(/\{valor_total\}/g, formatCurrency(totalValue))
+      .replace(/\{valor_setup\}/g, prop.setup_fee ? formatCurrency(prop.setup_fee) : 'Isento')
+      .replace(/\{desconto_percentual\}/g, prop.discount_percentage ? `${prop.discount_percentage}%` : '0%')
+      .replace(/\{desconto_valor\}/g, prop.discount_amount ? formatCurrency(prop.discount_amount) : 'R$ 0,00')
+      // Proposta
+      .replace(/\{numero_proposta\}/g, prop.proposal_number || 'N/A')
       .replace(/\{ciclo_cobranca\}/g, BILLING_CYCLE_LABELS[prop.billing_cycle] || prop.billing_cycle)
+      .replace(/\{forma_pagamento\}/g, paymentMethodLabel)
       .replace(/\{link_proposta\}/g, proposalUrl)
       .replace(/\{validade\}/g, validityDate);
   };

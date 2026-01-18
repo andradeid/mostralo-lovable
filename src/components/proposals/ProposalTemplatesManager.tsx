@@ -39,11 +39,21 @@ interface Template {
 }
 
 const AVAILABLE_VARIABLES = [
+  // Cliente
   { key: '{nome}', description: 'Nome completo do cliente' },
   { key: '{primeiro_nome}', description: 'Primeiro nome do cliente' },
+  { key: '{empresa}', description: 'Nome da empresa do cliente' },
+  { key: '{email}', description: 'Email do cliente' },
+  // Valores
   { key: '{valor_mensal}', description: 'Valor mensal formatado (R$)' },
   { key: '{valor_total}', description: 'Valor total do período' },
+  { key: '{valor_setup}', description: 'Taxa de setup/implantação' },
+  { key: '{desconto_percentual}', description: 'Percentual de desconto' },
+  { key: '{desconto_valor}', description: 'Valor do desconto em R$' },
+  // Proposta
+  { key: '{numero_proposta}', description: 'Número identificador da proposta' },
   { key: '{ciclo_cobranca}', description: 'Ciclo de cobrança (Mensal, Trimestral...)' },
+  { key: '{forma_pagamento}', description: 'Forma de pagamento escolhida' },
   { key: '{link_proposta}', description: 'Link da proposta' },
   { key: '{validade}', description: 'Data de validade da proposta' },
 ];
@@ -302,9 +312,16 @@ export function ProposalTemplatesManager() {
                 {formData.content
                   .replace(/\{nome\}/g, 'João da Silva')
                   .replace(/\{primeiro_nome\}/g, 'João')
+                  .replace(/\{empresa\}/g, 'Empresa XYZ Ltda')
+                  .replace(/\{email\}/g, 'joao@empresa.com')
                   .replace(/\{valor_mensal\}/g, 'R$ 497,00')
-                  .replace(/\{valor_total\}/g, 'R$ 497,00')
+                  .replace(/\{valor_total\}/g, 'R$ 5.964,00')
+                  .replace(/\{valor_setup\}/g, 'R$ 1.500,00')
+                  .replace(/\{desconto_percentual\}/g, '10%')
+                  .replace(/\{desconto_valor\}/g, 'R$ 50,00')
+                  .replace(/\{numero_proposta\}/g, '2601-0001')
                   .replace(/\{ciclo_cobranca\}/g, 'Mensal')
+                  .replace(/\{forma_pagamento\}/g, 'PIX')
                   .replace(/\{link_proposta\}/g, 'https://mostralo.com/proposta/abc123')
                   .replace(/\{validade\}/g, '25 de janeiro de 2026')}
               </div>

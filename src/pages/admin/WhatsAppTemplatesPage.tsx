@@ -55,6 +55,7 @@ const CATEGORIES = [
   { value: 'boas_vindas', label: 'Boas-vindas', icon: Sparkles },
   { value: 'promocao', label: 'Promoção', icon: Gift },
   { value: 'agradecimento', label: 'Agradecimento', icon: Heart },
+  { value: 'proposta', label: 'Proposta Comercial', icon: FileText },
   { value: 'custom', label: 'Personalizado', icon: FileText },
 ];
 
@@ -77,6 +78,11 @@ const VARIABLES = [
   { var: '{ultimo_pedido}', desc: 'Data do último pedido' },
   { var: '{loja}', desc: 'Nome da loja' },
   { var: '{link_loja}', desc: 'Link do cardápio' },
+  { var: '{valor_mensal}', desc: 'Valor mensal da proposta' },
+  { var: '{valor_total}', desc: 'Valor total do contrato' },
+  { var: '{ciclo_cobranca}', desc: 'Ciclo de cobrança (mensal, anual, etc)' },
+  { var: '{link_proposta}', desc: 'Link da proposta comercial' },
+  { var: '{validade}', desc: 'Data de validade da proposta' },
 ];
 
 export default function WhatsAppTemplatesPage() {

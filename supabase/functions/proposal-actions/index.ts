@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
           )
         }
 
-        const { signature_data, contract_accepted } = data || {}
+        const { signature_data, contract_accepted, terms_accepted, lgpd_accepted } = data || {}
         
         // Capturar IP e User Agent para segurança jurídica
         const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
@@ -91,6 +91,8 @@ Deno.serve(async (req) => {
             accepted_at: new Date().toISOString(),
             signature_data: signature_data || null,
             contract_accepted: contract_accepted || false,
+            terms_accepted: terms_accepted || false,
+            lgpd_accepted: lgpd_accepted || false,
             accept_ip_address: clientIp,
             accept_user_agent: userAgent
           })

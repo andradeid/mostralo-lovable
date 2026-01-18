@@ -55,10 +55,10 @@ const BILLING_CYCLE_LABELS: Record<string, string> = {
 
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
   pix: 'PIX',
-  boleto: 'Boleto',
-  credit_card: 'Cartão de Crédito',
-  debit_card: 'Cartão de Débito',
-  bank_transfer: 'Transferência Bancária',
+  boleto: 'Boleto Bancário',
+  cartao_credito: 'Cartão de Crédito',
+  cartao_debito: 'Cartão de Débito',
+  transferencia: 'Transferência Bancária',
   permuta: 'Permuta',
   a_combinar: 'A Combinar',
 };

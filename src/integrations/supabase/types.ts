@@ -1570,8 +1570,6 @@ export type Database = {
       }
       commercial_proposals: {
         Row: {
-          accept_ip_address: string | null
-          accept_user_agent: string | null
           accepted_at: string | null
           billing_cycle: string | null
           client_company: string | null
@@ -1589,7 +1587,6 @@ export type Database = {
           modules_total: number
           niche_id: string | null
           payment_approval_id: string | null
-          payment_method: string | null
           proposal_number: string
           rejected_at: string | null
           rejection_reason: string | null
@@ -1606,8 +1603,6 @@ export type Database = {
           viewed_at: string | null
         }
         Insert: {
-          accept_ip_address?: string | null
-          accept_user_agent?: string | null
           accepted_at?: string | null
           billing_cycle?: string | null
           client_company?: string | null
@@ -1625,7 +1620,6 @@ export type Database = {
           modules_total?: number
           niche_id?: string | null
           payment_approval_id?: string | null
-          payment_method?: string | null
           proposal_number: string
           rejected_at?: string | null
           rejection_reason?: string | null
@@ -1642,8 +1636,6 @@ export type Database = {
           viewed_at?: string | null
         }
         Update: {
-          accept_ip_address?: string | null
-          accept_user_agent?: string | null
           accepted_at?: string | null
           billing_cycle?: string | null
           client_company?: string | null
@@ -1661,7 +1653,6 @@ export type Database = {
           modules_total?: number
           niche_id?: string | null
           payment_approval_id?: string | null
-          payment_method?: string | null
           proposal_number?: string
           rejected_at?: string | null
           rejection_reason?: string | null

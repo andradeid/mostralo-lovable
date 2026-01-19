@@ -10,8 +10,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   FileText, User, Package, DollarSign, Send, ArrowLeft, ArrowRight,
-  Check, Loader2, Copy, Phone, Mail, Building2, Calendar, Store
+  Check, Loader2, Copy, Phone, Mail, Building2, Calendar, Store, Percent, Target
 } from 'lucide-react';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { useNiches } from '@/hooks/useNiches';
 import { useNicheTemplates } from '@/hooks/useNicheTemplates';
 import { useCreateProposal, SelectedModule } from '@/hooks/useCommercialProposals';
@@ -76,6 +77,8 @@ export default function ProposalBuilderPage() {
   });
   
   const [customPaymentMethod, setCustomPaymentMethod] = useState('');
+  const [discountMode, setDiscountMode] = useState<'percentage' | 'fixed_price'>('percentage');
+  const [targetMonthlyPrice, setTargetMonthlyPrice] = useState<number>(0);
   
   const PAYMENT_METHOD_LABELS: Record<string, string> = {
     'pix': 'PIX',
@@ -157,11 +160,23 @@ export default function ProposalBuilderPage() {
     // Subtotal com número de lojas
     const subtotalWithStores = pricePerStore * pricingData.store_count;
     
-    // Desconto aplicado sobre o subtotal
-    const discountAmount = (subtotalWithStores * pricingData.discount_percentage) / 100;
+    let discountAmount: number;
+    let discountPercentage: number;
+    let monthlyPrice: number;
     
-    // Mensalidade final
-    const monthlyPrice = Math.max(0, subtotalWithStores - discountAmount);
+    if (discountMode === 'fixed_price' && targetMonthlyPrice > 0) {
+      // Modo: definir valor final desejado
+      monthlyPrice = Math.min(targetMonthlyPrice, subtotalWithStores);
+      discountAmount = subtotalWithStores - monthlyPrice;
+      discountPercentage = subtotalWithStores > 0 
+        ? Math.round((discountAmount / subtotalWithStores) * 100) 
+        : 0;
+    } else {
+      // Modo: desconto por porcentagem
+      discountPercentage = pricingData.discount_percentage;
+      discountAmount = (subtotalWithStores * discountPercentage) / 100;
+      monthlyPrice = Math.max(0, subtotalWithStores - discountAmount);
+    }
     
     // Calcular número de meses do ciclo
     const billingCycleMonths = {
@@ -183,13 +198,14 @@ export default function ProposalBuilderPage() {
       subtotalWithStores,
       modulesTotal: subtotalWithStores, // Para compatibilidade
       discountAmount,
+      discountPercentage, // Porcentagem calculada para enviar ao banco
       finalPrice: Math.max(0, monthlyPrice + pricingData.setup_fee),
       monthlyPrice,
       billingCycleMonths,
       totalMonthlyPayments,
       totalWithSetup,
     };
-  }, [modules, selectedModuleIds, pricingData]);
+  }, [modules, selectedModuleIds, pricingData, discountMode, targetMonthlyPrice]);
 
   // Aplicar template quando nicho mudar
   const handleNicheChange = (nicheId: string) => {
@@ -244,7 +260,7 @@ export default function ProposalBuilderPage() {
       selected_modules: selectedModules,
       modules_total: calculations.modulesTotal,
       setup_fee: pricingData.setup_fee,
-      discount_percentage: pricingData.discount_percentage,
+      discount_percentage: calculations.discountPercentage,
       discount_amount: calculations.discountAmount,
       final_monthly_price: calculations.monthlyPrice,
       billing_cycle: pricingData.billing_cycle,
@@ -526,14 +542,69 @@ export default function ProposalBuilderPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Desconto (%)</Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={pricingData.discount_percentage}
-                    onChange={(e) => setPricingData(prev => ({ ...prev, discount_percentage: parseFloat(e.target.value) || 0 }))}
-                  />
+                  <Label>Desconto</Label>
+                  
+                  {/* Toggle de Modo */}
+                  <div className="flex items-center gap-1 mb-2">
+                    <Button
+                      type="button"
+                      variant={discountMode === 'percentage' ? 'default' : 'outline'}
+                      size="sm"
+                      className="flex-1 h-8"
+                      onClick={() => {
+                        setDiscountMode('percentage');
+                        setTargetMonthlyPrice(0);
+                      }}
+                    >
+                      <Percent className="w-3 h-3 mr-1" />
+                      %
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={discountMode === 'fixed_price' ? 'default' : 'outline'}
+                      size="sm"
+                      className="flex-1 h-8"
+                      onClick={() => {
+                        setDiscountMode('fixed_price');
+                        setPricingData(prev => ({ ...prev, discount_percentage: 0 }));
+                      }}
+                    >
+                      <Target className="w-3 h-3 mr-1" />
+                      Valor
+                    </Button>
+                  </div>
+                  
+                  {/* Campo baseado no modo */}
+                  {discountMode === 'percentage' ? (
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={pricingData.discount_percentage}
+                        onChange={(e) => setPricingData(prev => ({ 
+                          ...prev, 
+                          discount_percentage: Math.min(100, Math.max(0, parseInt(e.target.value) || 0))
+                        }))}
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">%</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      <CurrencyInput
+                        value={targetMonthlyPrice}
+                        onChange={(v) => setTargetMonthlyPrice(v)}
+                        placeholder="Valor mensal desejado"
+                      />
+                      {calculations.subtotalWithStores > 0 && targetMonthlyPrice > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          Desconto: <span className="font-medium text-primary">
+                            {calculations.discountPercentage}%
+                          </span> ({formatCurrency(calculations.discountAmount)})
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -169,7 +169,7 @@ export function useCreateProposal() {
         niche_id: data.niche_id,
         modules_total: data.modules_total,
         setup_fee: data.setup_fee || 0,
-        discount_percentage: data.discount_percentage || 0,
+        discount_percentage: Math.round(data.discount_percentage || 0),
         discount_amount: data.discount_amount || 0,
         final_monthly_price: data.final_monthly_price,
         billing_cycle: data.billing_cycle || 'monthly',

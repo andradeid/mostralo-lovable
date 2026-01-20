@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { usePageSEO } from '@/hooks/useSEO';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Package, Plus, Search, Edit, Trash2, Grid, ArrowUp, ArrowDown, GripVertical, AlertCircle, ArrowDownAZ } from 'lucide-react';
+import { Loader2, Package, Plus, Search, Edit, Trash2, Grid, ArrowUp, ArrowDown, GripVertical, AlertCircle, ArrowDownAZ, PackageX } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
@@ -35,6 +35,10 @@ interface ProductData {
   is_on_offer: boolean;
   original_price: number | null;
   offer_price: number | null;
+  // Campos de estoque
+  track_stock: boolean | null;
+  stock_quantity: number | null;
+  stock_alert_threshold: number | null;
 }
 
 interface CategoryData {
@@ -96,7 +100,7 @@ const ProductsPage = () => {
       // Buscar produtos
       const { data: productsData, error: productsError } = await supabase
         .from('products')
-        .select('*, is_on_offer, original_price, offer_price')
+        .select('*, is_on_offer, original_price, offer_price, track_stock, stock_quantity, stock_alert_threshold')
         .eq('store_id', storeId)
         .order('display_order', { ascending: true });
 
@@ -819,6 +823,25 @@ const ProductsPage = () => {
                                                     {Math.round((1 - product.offer_price / product.price) * 100)}% OFF
                                                   </Badge>
                                                 )}
+                                                {/* Badge de Estoque Mobile */}
+                                                {product.track_stock && (
+                                                  <Badge 
+                                                    variant={
+                                                      (product.stock_quantity ?? 0) <= 0 ? 'destructive' :
+                                                      (product.stock_quantity ?? 0) <= (product.stock_alert_threshold ?? 5) ? 'secondary' : 
+                                                      'outline'
+                                                    }
+                                                    className="text-[10px]"
+                                                  >
+                                                    {(product.stock_quantity ?? 0) <= 0 ? (
+                                                      <span className="flex items-center gap-0.5">
+                                                        <PackageX className="w-2.5 h-2.5" /> Esgotado
+                                                      </span>
+                                                    ) : (
+                                                      <span>{product.stock_quantity} un.</span>
+                                                    )}
+                                                  </Badge>
+                                                )}
                                               </div>
                                               <div className="mt-1">
                                                 {product.is_on_offer && product.offer_price ? (
@@ -849,6 +872,29 @@ const ProductsPage = () => {
                                                   {product.is_on_offer && product.offer_price && (
                                                     <Badge variant="destructive" className="text-xs">
                                                       {Math.round((1 - product.offer_price / product.price) * 100)}%
+                                                    </Badge>
+                                                  )}
+                                                  {/* Badge de Estoque Desktop */}
+                                                  {product.track_stock && (
+                                                    <Badge 
+                                                      variant={
+                                                        (product.stock_quantity ?? 0) <= 0 ? 'destructive' :
+                                                        (product.stock_quantity ?? 0) <= (product.stock_alert_threshold ?? 5) ? 'secondary' : 
+                                                        'outline'
+                                                      }
+                                                      className="text-xs"
+                                                    >
+                                                      {(product.stock_quantity ?? 0) <= 0 ? (
+                                                        <span className="flex items-center gap-1">
+                                                          <PackageX className="w-3 h-3" /> Sem estoque
+                                                        </span>
+                                                      ) : (product.stock_quantity ?? 0) <= (product.stock_alert_threshold ?? 5) ? (
+                                                        <span className="flex items-center gap-1">
+                                                          <AlertCircle className="w-3 h-3" /> {product.stock_quantity} un.
+                                                        </span>
+                                                      ) : (
+                                                        <span>Estoque: {product.stock_quantity}</span>
+                                                      )}
                                                     </Badge>
                                                   )}
                                                 </div>

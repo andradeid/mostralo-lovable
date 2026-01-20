@@ -59,6 +59,7 @@ export interface CreateComandaInput {
 export interface AddItemInput {
   comanda_id: string;
   product_id?: string;
+  variant_id?: string;
   product_name: string;
   unit_price: number;
   quantity: number;
@@ -208,6 +209,27 @@ export function useComandas() {
   // Adicionar item à comanda
   const addItemMutation = useMutation({
     mutationFn: async (input: AddItemInput) => {
+      // Decrementar estoque se o produto tiver controle de estoque
+      if (input.product_id) {
+        const { data: stockResult, error: stockError } = await supabase
+          .rpc('decrement_product_stock', {
+            p_product_id: input.product_id,
+            p_variant_id: input.variant_id || null,
+            p_quantity: input.quantity
+          });
+
+        if (stockError) {
+          console.error('Erro ao decrementar estoque:', stockError);
+          throw new Error('Erro ao verificar estoque do produto');
+        }
+
+        // Cast para o tipo esperado
+        const result = stockResult as { success: boolean; message?: string; available?: number } | null;
+        if (result && !result.success && result.message === 'Estoque insuficiente') {
+          throw new Error(`Estoque insuficiente. Disponível: ${result.available ?? 0} unidades`);
+        }
+      }
+
       const { data: user } = await supabase.auth.getUser();
 
       const { data, error } = await supabase

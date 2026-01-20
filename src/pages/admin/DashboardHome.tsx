@@ -33,6 +33,7 @@ import { RecentActivityReal } from '@/components/admin/dashboard/RecentActivityR
 import { PendingActions } from '@/components/admin/dashboard/PendingActions';
 import { StoreHealthIndicators } from '@/components/admin/dashboard/StoreHealthIndicators';
 import { SystemBanner } from '@/components/admin/SystemBanner';
+import { LowStockAlert } from '@/components/admin/dashboard/LowStockAlert';
 
 interface DashboardStats {
   totalUsers: number;
@@ -499,6 +500,9 @@ const DashboardHome = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Alerta de Estoque Baixo */}
+        <LowStockAlert storeId={validatedStoreId} />
 
         {/* Card de Economia de Marketplace */}
         <MarketplaceSavingsCard className="mb-6" />

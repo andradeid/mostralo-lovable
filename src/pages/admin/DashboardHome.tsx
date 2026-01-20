@@ -34,6 +34,8 @@ import { PendingActions } from '@/components/admin/dashboard/PendingActions';
 import { StoreHealthIndicators } from '@/components/admin/dashboard/StoreHealthIndicators';
 import { SystemBanner } from '@/components/admin/SystemBanner';
 import { LowStockAlert } from '@/components/admin/dashboard/LowStockAlert';
+import { StoreDailyKPIs } from '@/components/admin/dashboard/StoreDailyKPIs';
+import { StoreRecentActivity } from '@/components/admin/dashboard/StoreRecentActivity';
 
 interface DashboardStats {
   totalUsers: number;
@@ -442,28 +444,53 @@ const DashboardHome = () => {
     ];
 
     return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Painel de controle da {storeStats.storeName}
-          </p>
-          <div className="flex items-center space-x-2 mt-2">
-            <Badge 
-              variant={storeStats.storeStatus === 'active' ? 'default' : 'destructive'}
-            >
-              {storeStats.storeStatus === 'active' ? 'Loja Ativa' : 'Loja Inativa'}
-            </Badge>
-            {storeStats.planName && (
-              <Badge variant="outline">
-                {storeStats.planName}
+      <div className="space-y-4 md:space-y-6">
+        {/* Header compacto */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold">{storeStats.storeName}</h1>
+            <div className="flex items-center gap-2 mt-1">
+              <Badge 
+                variant={storeStats.storeStatus === 'active' ? 'default' : 'destructive'}
+                className="text-xs"
+              >
+                {storeStats.storeStatus === 'active' ? 'Ativa' : 'Inativa'}
               </Badge>
-            )}
+              {storeStats.planName && (
+                <Badge variant="outline" className="text-xs">
+                  {storeStats.planName}
+                </Badge>
+              )}
+            </div>
+          </div>
+          {/* Ações rápidas como pills */}
+          <div className="flex flex-wrap gap-2">
+            <NavLink to="/dashboard/orders">
+              <Button variant="outline" size="sm" className="h-8 text-xs">
+                <ShoppingCart className="w-3 h-3 mr-1" />
+                Pedidos
+              </Button>
+            </NavLink>
+            <NavLink to="/dashboard/products">
+              <Button variant="outline" size="sm" className="h-8 text-xs">
+                <Package className="w-3 h-3 mr-1" />
+                Produtos
+              </Button>
+            </NavLink>
+            <NavLink to={`/${storeStats.storeSlug}`} target="_blank">
+              <Button variant="outline" size="sm" className="h-8 text-xs">
+                <Eye className="w-3 h-3 mr-1" />
+                Ver Loja
+              </Button>
+            </NavLink>
           </div>
         </div>
 
         {/* Banner do Sistema */}
         <SystemBanner position="dashboard" />
+
+        {/* KPIs do Dia - Barra horizontal */}
+        <StoreDailyKPIs storeId={validatedStoreId} />
 
         {/* Alerta de Assinatura */}
         {subscriptionAlert.type && (
@@ -472,236 +499,222 @@ const DashboardHome = () => {
               ? 'border-red-500 bg-red-50 dark:bg-red-950/20' 
               : 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20'
           }`}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-base">
                 <AlertCircle className={`h-5 w-5 ${
                   subscriptionAlert.type === 'expired' ? 'text-red-600' : 'text-yellow-600'
                 }`} />
                 {subscriptionAlert.type === 'expired' 
-                  ? '❌ Assinatura Expirada' 
-                  : '⚠️ Assinatura Próxima ao Vencimento'}
+                  ? 'Assinatura Expirada' 
+                  : 'Assinatura Próxima ao Vencimento'}
               </CardTitle>
               <CardDescription className={
                 subscriptionAlert.type === 'expired' ? 'text-red-700' : 'text-yellow-700'
               }>
                 {subscriptionAlert.type === 'expired'
-                  ? `Sua assinatura do plano ${subscriptionAlert.planName} expirou há ${Math.abs(subscriptionAlert.daysUntil)} dia(s). Regularize para continuar usando o sistema.`
-                  : `Sua assinatura do plano ${subscriptionAlert.planName} vence em ${subscriptionAlert.daysUntil} dia(s). ${subscriptionAlert.pendingInvoices} mensalidade(s) pendente(s).`
+                  ? `Plano ${subscriptionAlert.planName} expirou há ${Math.abs(subscriptionAlert.daysUntil)} dia(s).`
+                  : `Plano ${subscriptionAlert.planName} vence em ${subscriptionAlert.daysUntil} dia(s).`
                 }
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0">
               <NavLink to="/dashboard/subscription">
-                <Button variant={subscriptionAlert.type === 'expired' ? 'destructive' : 'default'}>
+                <Button size="sm" variant={subscriptionAlert.type === 'expired' ? 'destructive' : 'default'}>
                   <CreditCard className="w-4 h-4 mr-2" />
-                  Ver Detalhes e Pagar
+                  Regularizar
                 </Button>
               </NavLink>
             </CardContent>
           </Card>
         )}
 
-        {/* Alerta de Estoque Baixo */}
-        <LowStockAlert storeId={validatedStoreId} />
-
-        {/* Card de Economia de Marketplace */}
-        <MarketplaceSavingsCard className="mb-6" />
-
-        {/* Cards de Informações da Loja */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Informações da Loja</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {storeInfoCards.map((card, index) => (
-              <Card key={index}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    {card.title}
-                  </CardTitle>
-                  <div className={`${card.bgColor} p-2 rounded-md`}>
-                    <card.icon className={`h-4 w-4 ${card.color}`} />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{card.value}</div>
-                  <p className="text-xs text-muted-foreground">
-                    {card.description}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
+        {/* Grid Principal - 2 Colunas */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Coluna Esquerda */}
+          <div className="space-y-4">
+            {/* Estoque Baixo */}
+            <LowStockAlert storeId={validatedStoreId} maxItems={4} />
+            
+            {/* Economia de Marketplace - Compacto */}
+            <MarketplaceSavingsCard variant="compact" />
+          </div>
+          
+          {/* Coluna Direita */}
+          <div className="space-y-4">
+            {/* Atividade Recente */}
+            <StoreRecentActivity storeId={validatedStoreId} maxItems={5} />
           </div>
         </div>
 
-        {/* Cards de Estatísticas do Negócio */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Estatísticas do Negócio</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {businessCards.map((card, index) => (
-              <Card key={index} className="cursor-pointer hover:shadow-md transition-shadow">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    {card.title}
-                  </CardTitle>
-                  <card.icon className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{card.value}</div>
-                  <p className="text-xs text-muted-foreground mb-1">
-                    {card.description}
-                  </p>
-                  <p className="text-xs text-primary font-medium">
-                    {card.trend}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        {/* Alertas e Recomendações */}
-        {(!storeStats.storePhone || !storeStats.storeAddress || storeStats.totalProducts === 0) && (
-          <Card className="border-yellow-200 bg-yellow-50">
-            <CardHeader>
-              <CardTitle className="flex items-center text-yellow-800">
-                <AlertCircle className="w-5 h-5 mr-2" />
-                Recomendações para sua Loja
+        {/* Cards de Informações e Estatísticas - Grid 2x2 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Informações da Loja */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Store className="w-4 h-4 text-primary" />
+                Informações da Loja
               </CardTitle>
-              <CardDescription className="text-yellow-700">
-                Complete as configurações para melhorar a experiência dos clientes
-              </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {!storeStats.storePhone && (
-                  <div className="flex items-center justify-between p-3 border border-yellow-200 rounded-lg bg-white">
-                    <div className="flex items-center space-x-3">
-                      <Phone className="w-4 h-4 text-yellow-600" />
-                      <span className="text-sm">Adicione um telefone de contato</span>
+            <CardContent className="pt-0">
+              <div className="grid grid-cols-2 gap-3">
+                {storeInfoCards.map((card, index) => (
+                  <div key={index} className="p-3 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className={`${card.bgColor} p-1.5 rounded-md`}>
+                        <card.icon className={`h-3 w-3 ${card.color}`} />
+                      </div>
+                      <span className="text-xs text-muted-foreground">{card.title}</span>
                     </div>
-                    <NavLink to="/dashboard/my-store">
-                      <Button size="sm" variant="outline">Configurar</Button>
-                    </NavLink>
+                    <p className="text-sm font-semibold">{card.value}</p>
                   </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Estatísticas do Negócio */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-primary" />
+                Estatísticas do Negócio
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="grid grid-cols-2 gap-3">
+                {businessCards.map((card, index) => (
+                  <div key={index} className="p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer">
+                    <div className="flex items-center gap-2 mb-1">
+                      <card.icon className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">{card.title}</span>
+                    </div>
+                    <p className="text-sm font-semibold">{card.value}</p>
+                    <p className="text-[10px] text-primary">{card.trend}</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Alertas e Recomendações - Compacto */}
+        {(!storeStats.storePhone || !storeStats.storeAddress || storeStats.totalProducts === 0) && (
+          <Card className="border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-950/20">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center text-yellow-800 dark:text-yellow-400 text-sm">
+                <AlertCircle className="w-4 h-4 mr-2" />
+                Complete sua Loja
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="flex flex-wrap gap-2">
+                {!storeStats.storePhone && (
+                  <NavLink to="/dashboard/my-store">
+                    <Button size="sm" variant="outline" className="h-7 text-xs">
+                      <Phone className="w-3 h-3 mr-1" />
+                      Adicionar Telefone
+                    </Button>
+                  </NavLink>
                 )}
                 {!storeStats.storeAddress && (
-                  <div className="flex items-center justify-between p-3 border border-yellow-200 rounded-lg bg-white">
-                    <div className="flex items-center space-x-3">
-                      <MapPin className="w-4 h-4 text-yellow-600" />
-                      <span className="text-sm">Adicione o endereço da loja</span>
-                    </div>
-                    <NavLink to="/dashboard/my-store">
-                      <Button size="sm" variant="outline">Configurar</Button>
-                    </NavLink>
-                  </div>
+                  <NavLink to="/dashboard/my-store">
+                    <Button size="sm" variant="outline" className="h-7 text-xs">
+                      <MapPin className="w-3 h-3 mr-1" />
+                      Adicionar Endereço
+                    </Button>
+                  </NavLink>
                 )}
                 {storeStats.totalProducts === 0 && (
-                  <div className="flex items-center justify-between p-3 border border-yellow-200 rounded-lg bg-white">
-                    <div className="flex items-center space-x-3">
-                      <Package className="w-4 h-4 text-yellow-600" />
-                      <span className="text-sm">Adicione produtos ao seu cardápio</span>
-                    </div>
-                    <NavLink to="/dashboard/products">
-                      <Button size="sm" variant="outline">Adicionar</Button>
-                    </NavLink>
-                  </div>
+                  <NavLink to="/dashboard/products">
+                    <Button size="sm" variant="outline" className="h-7 text-xs">
+                      <Package className="w-3 h-3 mr-1" />
+                      Adicionar Produtos
+                    </Button>
+                  </NavLink>
                 )}
               </div>
             </CardContent>
           </Card>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Ações Rápidas e Próximos Passos - Grid 2 colunas */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Ações Rápidas */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Package className="w-5 h-5 mr-2" />
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Package className="w-4 h-4 text-primary" />
                 Ações Rápidas
               </CardTitle>
-              <CardDescription>Funcionalidades mais utilizadas</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <NavLink to="/dashboard/products">
-                <Button variant="outline" className="w-full justify-start">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Adicionar Produto
-                </Button>
-              </NavLink>
-              <NavLink to="/dashboard/categories">
-                <Button variant="outline" className="w-full justify-start">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Nova Categoria
-                </Button>
-              </NavLink>
-              <NavLink to="/dashboard/my-store">
-                <Button variant="outline" className="w-full justify-start">
-                  <Store className="w-4 h-4 mr-2" />
-                  Configurar Loja
-                </Button>
-              </NavLink>
-              <NavLink to="/dashboard/reports">
-                <Button variant="outline" className="w-full justify-start">
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                  Ver Relatórios
-                </Button>
-              </NavLink>
+            <CardContent className="pt-0">
+              <div className="grid grid-cols-2 gap-2">
+                <NavLink to="/dashboard/products">
+                  <Button variant="outline" size="sm" className="w-full justify-start h-9 text-xs">
+                    <Plus className="w-3 h-3 mr-1" />
+                    Novo Produto
+                  </Button>
+                </NavLink>
+                <NavLink to="/dashboard/categories">
+                  <Button variant="outline" size="sm" className="w-full justify-start h-9 text-xs">
+                    <Plus className="w-3 h-3 mr-1" />
+                    Nova Categoria
+                  </Button>
+                </NavLink>
+                <NavLink to="/dashboard/my-store">
+                  <Button variant="outline" size="sm" className="w-full justify-start h-9 text-xs">
+                    <Store className="w-3 h-3 mr-1" />
+                    Configurar Loja
+                  </Button>
+                </NavLink>
+                <NavLink to="/dashboard/reports">
+                  <Button variant="outline" size="sm" className="w-full justify-start h-9 text-xs">
+                    <TrendingUp className="w-3 h-3 mr-1" />
+                    Relatórios
+                  </Button>
+                </NavLink>
+              </div>
             </CardContent>
           </Card>
 
           {/* Status e Próximos Passos */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Clock className="w-5 h-5 mr-2" />
-                Próximos Passos
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Clock className="w-4 h-4 text-primary" />
+                Status da Loja
               </CardTitle>
-              <CardDescription>Recomendações para melhorar sua loja</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {storeStats.totalProducts === 0 ? (
-                  <div className="text-center py-6">
-                    <Package className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Comece adicionando produtos ao seu cardápio
+            <CardContent className="pt-0">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
+                  <div className="w-2 h-2 bg-green-500 rounded-full shrink-0"></div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium truncate">Loja configurada</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {storeStats.totalProducts} produto(s) • {storeStats.totalCategories} categoria(s)
                     </p>
-                    <NavLink to="/dashboard/products">
-                      <Button size="sm">Adicionar Primeiro Produto</Button>
-                    </NavLink>
                   </div>
-                ) : (
-                  <>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">Loja configurada</p>
-                        <p className="text-xs text-muted-foreground">
-                          {storeStats.totalProducts} produto(s) cadastrado(s)
-                        </p>
-                      </div>
-                    </div>
-                    {storeStats.totalCategories === 0 && (
-                      <div className="flex items-center space-x-3">
-                        <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">Organize em categorias</p>
-                          <p className="text-xs text-muted-foreground">
-                            Melhore a navegação do cardápio
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">Compartilhe seu cardápio</p>
-                        <p className="text-xs text-muted-foreground">
-                          URL: /{storeStats.storeSlug}
-                        </p>
-                      </div>
-                    </div>
-                  </>
-                )}
+                </div>
+                <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
+                  <div className={`w-2 h-2 rounded-full shrink-0 ${storeStats.storeSlug ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium truncate">Cardápio Online</p>
+                    <p className="text-[10px] text-muted-foreground truncate">
+                      {storeStats.storeSlug ? `/${storeStats.storeSlug}` : 'Configure seu link'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
+                  <div className={`w-2 h-2 rounded-full shrink-0 ${storeStats.storePhone ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium truncate">Contato</p>
+                    <p className="text-[10px] text-muted-foreground truncate">
+                      {storeStats.storePhone || 'Adicione telefone'}
+                    </p>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>

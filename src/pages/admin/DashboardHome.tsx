@@ -36,6 +36,7 @@ import { SystemBanner } from '@/components/admin/SystemBanner';
 import { LowStockAlert } from '@/components/admin/dashboard/LowStockAlert';
 import { StoreDailyKPIs } from '@/components/admin/dashboard/StoreDailyKPIs';
 import { StoreRecentActivity } from '@/components/admin/dashboard/StoreRecentActivity';
+import { StoreQuickToggle } from '@/components/admin/dashboard/StoreQuickToggle';
 
 interface DashboardStats {
   totalUsers: number;
@@ -463,8 +464,9 @@ const DashboardHome = () => {
               )}
             </div>
           </div>
-          {/* Ações rápidas como pills */}
-          <div className="flex flex-wrap gap-2">
+          {/* Toggle de abrir/fechar loja + Ações rápidas */}
+          <div className="flex flex-wrap items-center gap-2">
+            <StoreQuickToggle storeId={validatedStoreId} variant="compact" />
             <NavLink to="/dashboard/orders">
               <Button variant="outline" size="sm" className="h-8 text-xs">
                 <ShoppingCart className="w-3 h-3 mr-1" />

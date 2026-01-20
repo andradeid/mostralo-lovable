@@ -690,9 +690,9 @@ export default function ProposalBuilderPage() {
                       <span>{formatCurrency(calculations.subtotalWithStores)}/mês</span>
                     </div>
                   )}
-                  {pricingData.discount_percentage > 0 && (
+                  {calculations.discountPercentage > 0 && (
                     <div className="flex justify-between text-green-600">
-                      <span>Desconto ({pricingData.discount_percentage}%):</span>
+                      <span>Desconto ({calculations.discountPercentage}%):</span>
                       <span>-{formatCurrency(calculations.discountAmount)}</span>
                     </div>
                   )}
@@ -783,6 +783,19 @@ export default function ProposalBuilderPage() {
                       </div>
                     )}
                   </div>
+                  {/* Desconto aplicado */}
+                  {calculations.discountPercentage > 0 && (
+                    <div className="pt-2 border-t border-primary/20">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Subtotal dos módulos:</span>
+                        <span>{formatCurrency(calculations.subtotalWithStores)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm text-green-600">
+                        <span>Desconto ({calculations.discountPercentage}%):</span>
+                        <span>-{formatCurrency(calculations.discountAmount)}</span>
+                      </div>
+                    </div>
+                  )}
                   {/* Forma de pagamento */}
                   <div className="flex justify-between items-center pt-2 border-t border-primary/20">
                     <span className="text-sm text-muted-foreground">Forma de Pagamento</span>

@@ -6374,6 +6374,8 @@ export type Database = {
           name: string
           price: number
           product_id: string
+          stock_quantity: number | null
+          track_stock: boolean | null
           updated_at: string
         }
         Insert: {
@@ -6386,6 +6388,8 @@ export type Database = {
           name: string
           price?: number
           product_id: string
+          stock_quantity?: number | null
+          track_stock?: boolean | null
           updated_at?: string
         }
         Update: {
@@ -6398,6 +6402,8 @@ export type Database = {
           name?: string
           price?: number
           product_id?: string
+          stock_quantity?: number | null
+          track_stock?: boolean | null
           updated_at?: string
         }
         Relationships: []
@@ -6421,7 +6427,10 @@ export type Database = {
           recurrence_days: number | null
           show_in_menu: boolean | null
           slug: string | null
+          stock_alert_threshold: number | null
+          stock_quantity: number | null
           store_id: string | null
+          track_stock: boolean | null
           updated_at: string
         }
         Insert: {
@@ -6442,7 +6451,10 @@ export type Database = {
           recurrence_days?: number | null
           show_in_menu?: boolean | null
           slug?: string | null
+          stock_alert_threshold?: number | null
+          stock_quantity?: number | null
           store_id?: string | null
+          track_stock?: boolean | null
           updated_at?: string
         }
         Update: {
@@ -6463,7 +6475,10 @@ export type Database = {
           recurrence_days?: number | null
           show_in_menu?: boolean | null
           slug?: string | null
+          stock_alert_threshold?: number | null
+          stock_quantity?: number | null
           store_id?: string | null
+          track_stock?: boolean | null
           updated_at?: string
         }
         Relationships: [
@@ -12030,6 +12045,14 @@ export type Database = {
       }
       cleanup_old_password_calls: { Args: never; Returns: undefined }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
+      decrement_product_stock: {
+        Args: {
+          p_product_id: string
+          p_quantity?: number
+          p_variant_id?: string
+        }
+        Returns: Json
+      }
       generate_product_slug: {
         Args: { input_store_id: string; product_name: string }
         Returns: string
@@ -12101,6 +12124,14 @@ export type Database = {
         Returns: undefined
       }
       increment_card_views: { Args: { card_slug: string }; Returns: undefined }
+      increment_product_stock: {
+        Args: {
+          p_product_id: string
+          p_quantity?: number
+          p_variant_id?: string
+        }
+        Returns: Json
+      }
       increment_promotion_usage: {
         Args: { promotion_id_param: string }
         Returns: undefined

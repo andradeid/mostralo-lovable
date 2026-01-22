@@ -391,6 +391,26 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
       : selectedPlan.price;
   };
 
+  type PlanChangeIntent = 'renewal' | 'upgrade';
+
+  const getPlanChangeIntent = (planId: string): PlanChangeIntent => {
+    const currentPlanId = subscription?.currentPlanId;
+    const expiresAt = subscription?.subscriptionExpiresAt;
+
+    // Se não temos data de expiração, assume "renewal" exceto quando claramente é troca de plano
+    if (!expiresAt) {
+      return currentPlanId && planId !== currentPlanId ? 'upgrade' : 'renewal';
+    }
+
+    const daysUntil = Math.ceil((new Date(expiresAt).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+    const isExpired = subscription?.storeStatus === 'inactive' || daysUntil < 0;
+    const isExpiring = daysUntil <= 7;
+
+    if (isExpired || isExpiring) return 'renewal';
+    if (currentPlanId && planId !== currentPlanId) return 'upgrade';
+    return 'renewal';
+  };
+
   const handleApplyRenewalCoupon = async () => {
     if (!renewalCouponCode.trim() || !selectedPlan || !user) return;
     
@@ -429,10 +449,14 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
       const basePrice = getRenewalBasePrice();
       const finalPrice = appliedRenewalCoupon ? appliedRenewalCoupon.finalPrice : basePrice;
 
+      const intent = getPlanChangeIntent(selectedPlan.id);
+      const paymentNotes = intent === 'upgrade' ? 'Upgrade de plano' : 'Renovação de assinatura';
+      const descriptionPrefix = intent === 'upgrade' ? 'Upgrade Mostralo' : 'Renovação Mostralo';
+
       const { data, error } = await supabase.functions.invoke('efi-create-pix-charge', {
         body: {
           valor: finalPrice.toFixed(2),
-          descricao: `Renovação Mostralo - ${selectedPlan.name}`,
+          descricao: `${descriptionPrefix} - ${selectedPlan.name}`,
           expiracao_segundos: 3600,
         },
       });
@@ -458,7 +482,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
         payment_amount: finalPrice,
         payment_method: 'pix',
         status: 'pending',
-        notes: 'Renovação de assinatura',
+        notes: paymentNotes,
         pix_txid: data.txid,
         pix_location: data.location,
         pix_qrcode_base64: data.qrCodeBase64,
@@ -654,6 +678,9 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
         ? selectedPlan.discount_price 
         : selectedPlan.price);
 
+    const intent = getPlanChangeIntent(selectedPlan.id);
+    const paymentNotes = intent === 'upgrade' ? 'Upgrade de plano' : 'Renovação de assinatura';
+
     const { error: insertError } = await supabase
       .from('payment_approvals')
       .insert({
@@ -664,7 +691,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
         payment_method: 'pix',
         payment_proof_url: publicUrl,
         status: 'pending',
-        notes: 'Renovação de assinatura',
+        notes: paymentNotes,
       });
 
     if (insertError) {
@@ -718,6 +745,8 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
 
   const status = getSubscriptionStatus();
   const hasPendingRenewal = paymentApproval?.status === 'pending' && paymentApproval?.notes === 'Renovação de assinatura';
+  const hasPendingUpgrade = paymentApproval?.status === 'pending' && paymentApproval?.notes === 'Upgrade de plano';
+  const hasPendingPlanChange = hasPendingRenewal || hasPendingUpgrade;
 
   return (
     <div className="container mx-auto px-3 md:px-6 py-4 md:py-6 space-y-4 md:space-y-6">
@@ -758,6 +787,26 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
               <p className="text-sm text-yellow-600 dark:text-yellow-300">
                 Seu comprovante de renovação foi enviado e está sendo analisado pelo administrador. 
                 Assim que aprovado, sua assinatura será reativada automaticamente.
+              </p>
+              <p className="text-xs text-muted-foreground mt-2">
+                Enviado em: {format(new Date(paymentApproval.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+              </p>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Alert de Upgrade Pendente */}
+      {hasPendingUpgrade && (
+        <Alert className="border-yellow-500/50 bg-yellow-500/5">
+          <Clock className="h-4 w-4 text-yellow-500" />
+          <AlertDescription>
+            <div className="space-y-2">
+              <p className="font-semibold text-yellow-700 dark:text-yellow-400">
+                ⏳ Upgrade em Análise
+              </p>
+              <p className="text-sm text-yellow-600 dark:text-yellow-300">
+                Seu pedido de upgrade foi enviado e está aguardando aprovação. Assim que aprovado, o novo plano será aplicado e o ciclo reiniciará.
               </p>
               <p className="text-xs text-muted-foreground mt-2">
                 Enviado em: {format(new Date(paymentApproval.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
@@ -853,7 +902,7 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
       )}
 
       {/* Seção de Renovação - Planos Disponíveis */}
-      {(status.isExpired || status.isExpiring) && !hasPendingRenewal && (
+      {(status.isExpired || status.isExpiring) && !hasPendingPlanChange && (
         <Card className="border-primary/50">
           <CardHeader className="p-3 md:p-6">
             <CardTitle className="flex items-center gap-2 text-base md:text-lg">
@@ -1035,6 +1084,118 @@ const [showRenewalDialog, setShowRenewalDialog] = useState(false);
                 })}
               </div>
             )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Seção de Upgrade - Planos Sempre Visíveis (assinatura ativa) */}
+      {!status.isExpired && !status.isExpiring && availablePlans.length > 0 && (
+        <Card className="border-primary/50">
+          <CardHeader className="p-3 md:p-6">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <CreditCard className="h-4 w-4 md:h-5 md:w-5" />
+              Trocar de Plano (Upgrade)
+            </CardTitle>
+            <CardDescription className="text-xs md:text-sm">
+              Se você fizer upgrade, após aprovação o plano muda imediatamente e o ciclo reinicia a partir de hoje.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-3 md:p-6 pt-0 md:pt-0 space-y-4">
+            {subscription?.customMonthlyPrice && (
+              <Alert>
+                <AlertDescription className="text-xs md:text-sm">
+                  Você possui um preço especial no plano atual. Ao trocar de plano, esse desconto não se aplica.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {hasPendingPlanChange && (
+              <Alert className="border-yellow-500/50 bg-yellow-500/5">
+                <Clock className="h-4 w-4 text-yellow-500" />
+                <AlertDescription className="text-xs md:text-sm">
+                  Você já tem uma solicitação pendente ({paymentApproval?.notes}). Aguarde a aprovação para solicitar outra troca.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {subscription?.currentPlanId && (
+              (() => {
+                const currentPlan = availablePlans.find((p) => p.id === subscription.currentPlanId);
+                if (!currentPlan) return null;
+
+                return (
+                  <Card className="relative overflow-hidden border-primary bg-primary/5">
+                    <div className="absolute top-0 right-0 bg-gradient-to-l from-primary to-primary/80 text-primary-foreground px-2 md:px-4 py-1 md:py-1.5 text-[10px] md:text-xs font-bold rounded-bl-lg">
+                      PLANO ATUAL
+                    </div>
+                    <CardHeader className="pb-2 md:pb-3 pt-8 md:pt-10">
+                      <CardTitle className="text-lg md:text-2xl">{currentPlan.name}</CardTitle>
+                      <CardDescription className="text-xs md:text-base">{currentPlan.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3 md:space-y-4 p-3 md:p-6 pt-0">
+                      <div>
+                        <p className="text-xl md:text-3xl font-bold text-primary">
+                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subscription.actualPrice)}
+                          <span className="text-xs md:text-base font-normal text-muted-foreground">
+                            /{currentPlan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
+                          </span>
+                        </p>
+                      </div>
+                      <Button className="w-full h-9 md:h-10 text-sm" size="lg" disabled>
+                        Plano atual
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })()
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {availablePlans
+                .filter((p) => p.id !== subscription?.currentPlanId)
+                .map((plan) => {
+                  const finalPrice = plan.promotion_active && plan.discount_price
+                    ? plan.discount_price
+                    : plan.price;
+                  const hasDiscount = plan.promotion_active && plan.discount_price;
+
+                  return (
+                    <Card key={plan.id} className="relative overflow-hidden">
+                      {hasDiscount && (
+                        <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-2 py-0.5 text-[10px] md:text-xs font-bold">
+                          PROMO
+                        </div>
+                      )}
+                      <CardHeader className="p-3 md:p-4 pb-2">
+                        <CardTitle className="text-base md:text-xl">{plan.name}</CardTitle>
+                        <CardDescription className="line-clamp-2 text-xs md:text-sm">{plan.description}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="p-3 md:p-4 pt-0 space-y-3 md:space-y-4">
+                        <div>
+                          {hasDiscount && (
+                            <p className="text-xs text-muted-foreground line-through">
+                              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(plan.price)}
+                            </p>
+                          )}
+                          <p className="text-lg md:text-2xl font-bold text-primary">
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(finalPrice)}
+                            <span className="text-[10px] md:text-sm font-normal text-muted-foreground">
+                              /{plan.billing_cycle === 'monthly' ? 'mês' : 'ano'}
+                            </span>
+                          </p>
+                        </div>
+                        <Button
+                          className="w-full h-9 text-sm"
+                          onClick={() => handleSelectPlanForRenewal(plan)}
+                          disabled={hasPendingPlanChange}
+                        >
+                          Fazer upgrade
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+            </div>
           </CardContent>
         </Card>
       )}

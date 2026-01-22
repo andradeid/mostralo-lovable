@@ -303,6 +303,18 @@ export default function SubscriptionPaymentsManagementPage() {
       if (approvalError) throw approvalError;
 
       // 2. Criar invoice na tabela subscription_invoices
+      const approvalType = (selectedApproval as any).notes === 'Upgrade de plano'
+        ? 'Upgrade'
+        : (selectedApproval as any).notes === 'Renovação de assinatura'
+        ? 'Renovação'
+        : 'Pagamento inicial';
+
+      const invoiceNotes = approvalType === 'Upgrade'
+        ? 'Upgrade aprovado pelo admin'
+        : approvalType === 'Renovação'
+        ? 'Renovação aprovada pelo admin'
+        : 'Pagamento inicial aprovado pelo admin';
+
       const { error: invoiceError } = await supabase
         .from('subscription_invoices')
         .insert({
@@ -315,7 +327,7 @@ export default function SubscriptionPaymentsManagementPage() {
           payment_method: (selectedApproval as any).payment_method || 'pix',
           payment_proof_url: (selectedApproval as any).payment_proof_url,
           pix_key: (selectedApproval as any).pix_key,
-          notes: 'Pagamento inicial aprovado pelo admin',
+          notes: invoiceNotes,
           approved_at: new Date().toISOString(),
         });
 

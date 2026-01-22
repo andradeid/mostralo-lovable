@@ -7,6 +7,8 @@ import { Smartphone, Tablet, UtensilsCrossed, Store, Copy, Check, Link2 } from '
 import { useSalesChannels } from '@/hooks/useSalesChannels';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
+import { useStoreModules } from '@/hooks/useStoreModules';
+import { Link } from 'react-router-dom';
 
 interface SalesChannelsCardProps {
   storeId: string;
@@ -67,8 +69,17 @@ const CHANNELS: ChannelConfig[] = [
   },
 ];
 
+const CHANNEL_MODULE_KEY: Record<ChannelConfig['key'], string> = {
+  delivery_enabled: 'delivery',
+  ifood_enabled: 'ifood_integration',
+  totem_enabled: 'self_service_totem',
+  mesa_enabled: 'self_service_table',
+  pdv_enabled: 'pdv_comandas',
+};
+
 export function SalesChannelsCard({ storeId, storeSlug }: SalesChannelsCardProps) {
   const { channels, loading, updating, updateChannel } = useSalesChannels(storeId);
+  const { loading: modulesLoading, hasModule } = useStoreModules(storeId);
   const { toast } = useToast();
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
@@ -91,7 +102,7 @@ export function SalesChannelsCard({ storeId, storeSlug }: SalesChannelsCardProps
     }
   };
 
-  if (loading) {
+  if (loading || modulesLoading) {
     return (
       <Card>
         <CardHeader>
@@ -107,14 +118,42 @@ export function SalesChannelsCard({ storeId, storeSlug }: SalesChannelsCardProps
     );
   }
 
+  const visibleChannels = CHANNELS.filter((channel) => {
+    const moduleKey = CHANNEL_MODULE_KEY[channel.key];
+    if (!moduleKey) return true;
+    return hasModule(moduleKey);
+  });
+
+  const hiddenCount = CHANNELS.length - visibleChannels.length;
+
   return (
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-lg">Canais de Vendas</CardTitle>
         <CardDescription>Ative ou desative os canais de atendimento</CardDescription>
       </CardHeader>
-      <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {CHANNELS.map((channel) => {
+      <CardContent className="space-y-3">
+        {hiddenCount > 0 && (
+          <div className="flex items-start justify-between gap-3 rounded-lg border bg-muted/30 p-3">
+            <div className="min-w-0">
+              <p className="text-sm font-medium">Alguns canais não estão disponíveis no seu plano.</p>
+              <p className="text-xs text-muted-foreground">
+                Faça upgrade para liberar todos os recursos.
+              </p>
+            </div>
+            <Button asChild size="sm" className="shrink-0">
+              <Link to="/dashboard/subscription">Ver planos</Link>
+            </Button>
+          </div>
+        )}
+
+        {visibleChannels.length === 0 ? (
+          <div className="rounded-lg border bg-background p-4 text-sm text-muted-foreground">
+            Nenhum canal disponível para o seu plano no momento.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {visibleChannels.map((channel) => {
           const Icon = channel.icon;
           const isEnabled = channels?.[channel.key] ?? true;
 
@@ -190,7 +229,9 @@ export function SalesChannelsCard({ storeId, storeSlug }: SalesChannelsCardProps
               )}
             </div>
           );
-        })}
+            })}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

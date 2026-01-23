@@ -8,3 +8,12 @@ verify_jwt = false
 
 [functions.delete-user-complete]
 verify_jwt = false
+
+[functions.system-finance-categories]
+verify_jwt = false
+
+[functions.system-finance-transactions]
+verify_jwt = false
+
+[functions.system-finance-summary]
+verify_jwt = false

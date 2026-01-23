@@ -10083,11 +10083,15 @@ export type Database = {
           created_by: string | null
           description: string
           id: string
+          is_auto: boolean
           is_recurring: boolean
           notes: string | null
           payment_method: string | null
           recurrence_type: string | null
           reference_number: string | null
+          source_id: string | null
+          source_paid_at: string | null
+          source_type: string | null
           transaction_date: string
           type: string
           updated_at: string
@@ -10101,11 +10105,15 @@ export type Database = {
           created_by?: string | null
           description: string
           id?: string
+          is_auto?: boolean
           is_recurring?: boolean
           notes?: string | null
           payment_method?: string | null
           recurrence_type?: string | null
           reference_number?: string | null
+          source_id?: string | null
+          source_paid_at?: string | null
+          source_type?: string | null
           transaction_date?: string
           type: string
           updated_at?: string
@@ -10119,11 +10127,15 @@ export type Database = {
           created_by?: string | null
           description?: string
           id?: string
+          is_auto?: boolean
           is_recurring?: boolean
           notes?: string | null
           payment_method?: string | null
           recurrence_type?: string | null
           reference_number?: string | null
+          source_id?: string | null
+          source_paid_at?: string | null
+          source_type?: string | null
           transaction_date?: string
           type?: string
           updated_at?: string

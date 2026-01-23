@@ -10041,6 +10041,118 @@ export type Database = {
         }
         Relationships: []
       }
+      system_financial_categories: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      system_financial_transactions: {
+        Row: {
+          amount: number
+          attachment_url: string | null
+          category_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          is_recurring: boolean
+          notes: string | null
+          payment_method: string | null
+          recurrence_type: string | null
+          reference_number: string | null
+          transaction_date: string
+          type: string
+          updated_at: string
+          vendor: string | null
+        }
+        Insert: {
+          amount: number
+          attachment_url?: string | null
+          category_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          is_recurring?: boolean
+          notes?: string | null
+          payment_method?: string | null
+          recurrence_type?: string | null
+          reference_number?: string | null
+          transaction_date?: string
+          type: string
+          updated_at?: string
+          vendor?: string | null
+        }
+        Update: {
+          amount?: number
+          attachment_url?: string | null
+          category_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          is_recurring?: boolean
+          notes?: string | null
+          payment_method?: string | null
+          recurrence_type?: string | null
+          reference_number?: string | null
+          transaction_date?: string
+          type?: string
+          updated_at?: string
+          vendor?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_financial_transactions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "system_financial_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "system_financial_transactions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "system_financial_transactions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "unified_users_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       system_terms_config: {
         Row: {
           config_key: string

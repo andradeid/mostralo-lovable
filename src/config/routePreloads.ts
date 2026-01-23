@@ -118,6 +118,7 @@ export const routePreloadMap: Record<string, RouteImportFn> = {
   '/master/modules': () => import('@/pages/admin/ModulesPage'),
   '/master/subscribers': () => import('@/pages/admin/SubscribersPage'),
   '/master/plans': () => import('@/pages/admin/PlansPage'),
+  '/dashboard/system-finance': () => import('@/pages/admin/SystemFinancePage'),
   '/master/coupons': () => import('@/pages/admin/AdminCouponsPage'),
   '/master/evolution-config': () => import('@/pages/admin/EvolutionConfigPage'),
   '/master/leads': () => import('@/pages/admin/LeadsManagementPage'),

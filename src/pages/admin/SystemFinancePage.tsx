@@ -4,7 +4,7 @@ import { LayoutDashboard, ArrowLeftRight, Tags } from 'lucide-react';
 import { FinancialKPICards } from '@/components/admin/financial/FinancialKPICards';
 import { FinancialChart } from '@/components/admin/financial/FinancialChart';
 import { TransactionsList } from '@/components/admin/financial/TransactionsList';
-import { TransactionForm } from '@/components/admin/financial/TransactionForm';
+import { SystemTransactionForm, SystemTransactionFormValues } from '@/components/admin/financial/SystemTransactionForm';
 import { CategoriesManager } from '@/components/admin/financial/CategoriesManager';
 import { useSystemFinancialCategories } from '@/hooks/useSystemFinancialCategories';
 import { useSystemFinancialTransactions } from '@/hooks/useSystemFinancialTransactions';
@@ -61,16 +61,7 @@ export default function SystemFinancePage() {
     setFormOpen(true);
   };
 
-  const handleFormSubmit = (data: {
-    type: 'income' | 'expense';
-    category_id: string;
-    amount: string;
-    description: string;
-    notes?: string;
-    transaction_date: string;
-    payment_method?: string;
-    reference_number?: string;
-  }) => {
+  const handleFormSubmit = (data: SystemTransactionFormValues) => {
     const payload = {
       category_id: data.category_id,
       type: data.type,
@@ -80,6 +71,7 @@ export default function SystemFinancePage() {
       transaction_date: data.transaction_date,
       payment_method: data.payment_method || undefined,
       reference_number: data.reference_number || undefined,
+      vendor: data.vendor || undefined,
     };
 
     if (editingTransaction) {
@@ -189,7 +181,7 @@ export default function SystemFinancePage() {
           </TabsContent>
         </Tabs>
 
-        <TransactionForm
+        <SystemTransactionForm
           open={formOpen}
           onClose={() => {
             setFormOpen(false);

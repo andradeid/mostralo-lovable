@@ -10,7 +10,15 @@ export interface SystemTransactionFilters {
   startDate?: string;
   endDate?: string;
   search?: string;
+  origin?: 'all' | 'manual' | 'auto';
 }
+
+export type SystemFinancialTransaction = FinancialTransaction & {
+  is_auto: boolean;
+  source_type: string | null;
+  source_id: string | null;
+  source_paid_at: string | null;
+};
 
 export interface CreateSystemTransactionParams {
   category_id: string;
@@ -48,6 +56,10 @@ type SystemTransactionRow = {
   payment_method: string | null;
   reference_number: string | null;
   vendor: string | null;
+  is_auto: boolean;
+  source_type: string | null;
+  source_id: string | null;
+  source_paid_at: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -63,7 +75,7 @@ type SystemTransactionRow = {
   } | null;
 };
 
-function toFinancialTransaction(row: SystemTransactionRow): FinancialTransaction {
+function toFinancialTransaction(row: SystemTransactionRow): SystemFinancialTransaction {
   const category: FinancialCategory | undefined = row.category
     ? {
         id: row.category.id,
@@ -100,6 +112,10 @@ function toFinancialTransaction(row: SystemTransactionRow): FinancialTransaction
     created_at: row.created_at,
     updated_at: row.updated_at,
     category,
+    is_auto: row.is_auto,
+    source_type: row.source_type,
+    source_id: row.source_id,
+    source_paid_at: row.source_paid_at,
   };
 }
 

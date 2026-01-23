@@ -16,6 +16,7 @@ interface ListPayload {
     startDate?: string;
     endDate?: string;
     search?: string;
+    origin?: "all" | "manual" | "auto";
   };
   limit?: number;
 }
@@ -166,6 +167,8 @@ serve(async (req) => {
       if (f.categoryId) query = query.eq("category_id", f.categoryId);
       if (f.startDate) query = query.gte("transaction_date", f.startDate);
       if (f.endDate) query = query.lte("transaction_date", f.endDate);
+      if (f.origin === "auto") query = query.eq("is_auto", true);
+      if (f.origin === "manual") query = query.eq("is_auto", false);
       if (f.search) {
         const q = `%${f.search}%`;
         query = query.or(
@@ -229,6 +232,34 @@ serve(async (req) => {
         });
       }
 
+      // Bloqueia alteração de lançamentos automáticos
+      const { data: existing, error: existingError } = await supabaseAdmin
+        .from("system_financial_transactions")
+        .select("id,is_auto")
+        .eq("id", payload.id)
+        .maybeSingle();
+
+      if (existingError) throw existingError;
+      if (!existing) {
+        return new Response(JSON.stringify({ error: "Transação não encontrada" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (existing.is_auto) {
+        return new Response(
+          JSON.stringify({
+            error:
+              "Esta transação é automática e não pode ser editada. Refaça a importação ou ajuste na fonte (invoice/approval).",
+          }),
+          {
+            status: 403,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+
       const { id, ...updates } = payload;
       const { data, error } = await supabaseAdmin
         .from("system_financial_transactions")
@@ -255,6 +286,34 @@ serve(async (req) => {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
+      }
+
+      // Bloqueia exclusão de lançamentos automáticos
+      const { data: existing, error: existingError } = await supabaseAdmin
+        .from("system_financial_transactions")
+        .select("id,is_auto")
+        .eq("id", payload.id)
+        .maybeSingle();
+
+      if (existingError) throw existingError;
+      if (!existing) {
+        return new Response(JSON.stringify({ error: "Transação não encontrada" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (existing.is_auto) {
+        return new Response(
+          JSON.stringify({
+            error:
+              "Esta transação é automática e não pode ser excluída. Refaça a importação ou ajuste na fonte (invoice/approval).",
+          }),
+          {
+            status: 403,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
       }
 
       const { error } = await supabaseAdmin

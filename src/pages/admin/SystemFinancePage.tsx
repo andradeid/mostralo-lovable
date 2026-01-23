@@ -1,23 +1,26 @@
 import { useMemo, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LayoutDashboard, ArrowLeftRight, Tags } from 'lucide-react';
+import { LayoutDashboard, ArrowDownToLine, ArrowLeftRight, Tags } from 'lucide-react';
 import { FinancialKPICards } from '@/components/admin/financial/FinancialKPICards';
 import { FinancialChart } from '@/components/admin/financial/FinancialChart';
 import { TransactionsList } from '@/components/admin/financial/TransactionsList';
 import { SystemTransactionForm, SystemTransactionFormValues } from '@/components/admin/financial/SystemTransactionForm';
 import { CategoriesManager } from '@/components/admin/financial/CategoriesManager';
+import { Button } from '@/components/ui/button';
+import { SystemRevenueImportDialog } from '@/components/admin/financial/SystemRevenueImportDialog';
 import { useSystemFinancialCategories } from '@/hooks/useSystemFinancialCategories';
-import { useSystemFinancialTransactions } from '@/hooks/useSystemFinancialTransactions';
+import { useSystemFinancialTransactions, type SystemFinancialTransaction } from '@/hooks/useSystemFinancialTransactions';
 import { useSystemFinancialSummary } from '@/hooks/useSystemFinancialSummary';
-import type { FinancialTransaction } from '@/hooks/useFinancialTransactions';
 
 export default function SystemFinancePage() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [originFilter, setOriginFilter] = useState<'all' | 'manual' | 'auto'>('all');
 
   const [formOpen, setFormOpen] = useState(false);
-  const [editingTransaction, setEditingTransaction] = useState<FinancialTransaction | null>(null);
+  const [editingTransaction, setEditingTransaction] = useState<SystemFinancialTransaction | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   const {
     categories,
@@ -34,8 +37,9 @@ export default function SystemFinancePage() {
       type: typeFilter !== 'all' ? (typeFilter as 'income' | 'expense') : undefined,
       categoryId: categoryFilter !== 'all' ? categoryFilter : undefined,
       search: searchTerm || undefined,
+      origin: originFilter,
     }),
-    [typeFilter, categoryFilter, searchTerm]
+    [typeFilter, categoryFilter, searchTerm, originFilter]
   );
 
   const {
@@ -56,7 +60,7 @@ export default function SystemFinancePage() {
     setFormOpen(true);
   };
 
-  const handleEditTransaction = (transaction: FinancialTransaction) => {
+  const handleEditTransaction = (transaction: SystemFinancialTransaction) => {
     setEditingTransaction(transaction);
     setFormOpen(true);
   };
@@ -156,7 +160,7 @@ export default function SystemFinancePage() {
               categories={categories}
               isLoading={transactionsLoading}
               onAdd={handleAddTransaction}
-              onEdit={handleEditTransaction}
+              onEdit={(tx) => handleEditTransaction(tx as SystemFinancialTransaction)}
               onDelete={deleteTransaction}
               typeFilter={typeFilter}
               onTypeFilterChange={setTypeFilter}
@@ -164,6 +168,19 @@ export default function SystemFinancePage() {
               onCategoryFilterChange={setCategoryFilter}
               searchTerm={searchTerm}
               onSearchChange={setSearchTerm}
+              originFilter={originFilter}
+              onOriginFilterChange={setOriginFilter}
+              extraActions={
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full sm:w-auto h-8 md:h-9 text-xs md:text-sm"
+                  onClick={() => setImportOpen(true)}
+                >
+                  <ArrowDownToLine className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1.5 md:mr-2" />
+                  Importar receitas
+                </Button>
+              }
             />
           </TabsContent>
 
@@ -192,6 +209,8 @@ export default function SystemFinancePage() {
           categories={categories}
           isLoading={isCreatingTransaction || isUpdatingTransaction}
         />
+
+        <SystemRevenueImportDialog open={importOpen} onClose={() => setImportOpen(false)} />
       </main>
     </div>
   );

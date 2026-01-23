@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { ReactNode, useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,11 +36,11 @@ import { FinancialCategory } from '@/hooks/useFinancialCategories';
 import { cn } from '@/lib/utils';
 
 interface TransactionsListProps {
-  transactions: FinancialTransaction[];
+  transactions: Array<FinancialTransaction & { is_auto?: boolean }>;
   categories: FinancialCategory[];
   isLoading?: boolean;
   onAdd: () => void;
-  onEdit: (transaction: FinancialTransaction) => void;
+  onEdit: (transaction: FinancialTransaction & { is_auto?: boolean }) => void;
   onDelete: (id: string) => void;
   typeFilter: string;
   onTypeFilterChange: (value: string) => void;
@@ -48,6 +48,9 @@ interface TransactionsListProps {
   onCategoryFilterChange: (value: string) => void;
   searchTerm: string;
   onSearchChange: (value: string) => void;
+  originFilter?: 'all' | 'manual' | 'auto';
+  onOriginFilterChange?: (value: 'all' | 'manual' | 'auto') => void;
+  extraActions?: ReactNode;
 }
 
 export function TransactionsList({
@@ -63,8 +66,19 @@ export function TransactionsList({
   onCategoryFilterChange,
   searchTerm,
   onSearchChange,
+  originFilter,
+  onOriginFilterChange,
+  extraActions,
 }: TransactionsListProps) {
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const showOriginFilter = !!originFilter && !!onOriginFilterChange;
+  const originLabel = useMemo(() => {
+    if (!originFilter) return 'Origem';
+    if (originFilter === 'manual') return 'Manual';
+    if (originFilter === 'auto') return 'Automático';
+    return 'Todas';
+  }, [originFilter]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -112,10 +126,13 @@ export function TransactionsList({
       <Card>
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0 p-3 md:p-6 pb-3 md:pb-4">
           <CardTitle className="text-base md:text-lg">Transações</CardTitle>
-          <Button onClick={onAdd} size="sm" className="w-full sm:w-auto h-8 md:h-9 text-xs md:text-sm">
-            <Plus className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1.5 md:mr-2" />
-            Nova Transação
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            {extraActions}
+            <Button onClick={onAdd} size="sm" className="w-full sm:w-auto h-8 md:h-9 text-xs md:text-sm">
+              <Plus className="h-3.5 w-3.5 md:h-4 md:w-4 mr-1.5 md:mr-2" />
+              Nova Transação
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="p-3 md:p-6 pt-0">
           {/* Filtros */}
@@ -154,6 +171,18 @@ export function TransactionsList({
                   ))}
                 </SelectContent>
               </Select>
+              {showOriginFilter && (
+                <Select value={originFilter} onValueChange={(v) => onOriginFilterChange(v as any)}>
+                  <SelectTrigger className="flex-1 sm:w-[150px] sm:flex-none h-8 md:h-9 text-xs md:text-sm">
+                    <SelectValue placeholder="Origem">{originLabel}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    <SelectItem value="manual">Manual</SelectItem>
+                    <SelectItem value="auto">Automático</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </div>
 
@@ -187,12 +216,13 @@ export function TransactionsList({
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => onEdit(tx)}>
+                          <DropdownMenuItem onClick={() => onEdit(tx)} disabled={!!tx.is_auto}>
                             <Pencil className="h-4 w-4 mr-2" />
                             Editar
                           </DropdownMenuItem>
                           <DropdownMenuItem 
-                            onClick={() => setDeleteId(tx.id)}
+                            onClick={() => !tx.is_auto && setDeleteId(tx.id)}
+                            disabled={!!tx.is_auto}
                             className="text-destructive"
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
@@ -210,6 +240,11 @@ export function TransactionsList({
                     >
                       {tx.category?.name || 'Sem categoria'}
                     </Badge>
+                    {tx.is_auto ? (
+                      <Badge variant="secondary" className="text-xs">
+                        AUTO
+                      </Badge>
+                    ) : null}
                     {tx.payment_method && (
                       <span className="text-xs text-muted-foreground">
                         {paymentMethodLabels[tx.payment_method]}
@@ -259,6 +294,11 @@ export function TransactionsList({
                         >
                           {tx.category?.name || 'Sem categoria'}
                         </Badge>
+                        {tx.is_auto ? (
+                          <Badge variant="secondary" className="ml-2">
+                            AUTO
+                          </Badge>
+                        ) : null}
                       </TableCell>
                       <TableCell className="text-muted-foreground hidden lg:table-cell">
                         {tx.payment_method ? paymentMethodLabels[tx.payment_method] : '-'}
@@ -279,12 +319,13 @@ export function TransactionsList({
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => onEdit(tx)}>
+                            <DropdownMenuItem onClick={() => onEdit(tx)} disabled={!!tx.is_auto}>
                               <Pencil className="h-4 w-4 mr-2" />
                               Editar
                             </DropdownMenuItem>
                             <DropdownMenuItem 
-                              onClick={() => setDeleteId(tx.id)}
+                              onClick={() => !tx.is_auto && setDeleteId(tx.id)}
+                              disabled={!!tx.is_auto}
                               className="text-destructive"
                             >
                               <Trash2 className="h-4 w-4 mr-2" />

@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.system-finance-summary]
 verify_jwt = false
+
+[functions.system-finance-import-revenue]
+verify_jwt = false

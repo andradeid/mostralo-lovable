@@ -1441,10 +1441,10 @@ const Store = () => {
                       />
                     ))}
                   </div>
-                  {/* Infinite scroll trigger */}
-                  {!searchTerm && !selectedCategory && (
+                  {/* Infinite scroll trigger - sempre visível quando há mais produtos */}
+                  {hasMore && (
                     <>
-                      <div ref={loadMoreRef} className="h-4" />
+                      <div ref={loadMoreRef} className="h-10" />
                       <LoadMoreIndicator isLoading={loadingMore} hasMore={hasMore} />
                     </>
                   )}
@@ -1472,10 +1472,10 @@ const Store = () => {
                       ))}
                     </div>
                   </div>
-                  {/* Infinite scroll trigger */}
-                  {!searchTerm && !selectedCategory && (
+                  {/* Infinite scroll trigger - sempre visível quando há mais produtos */}
+                  {hasMore && (
                     <>
-                      <div ref={loadMoreRef} className="h-4" />
+                      <div ref={loadMoreRef} className="h-10" />
                       <LoadMoreIndicator isLoading={loadingMore} hasMore={hasMore} />
                     </>
                   )}
@@ -1500,10 +1500,10 @@ const Store = () => {
                     />
                   ))}
                 </div>
-                {/* Infinite scroll trigger */}
-                {!searchTerm && !selectedCategory && (
+                {/* Infinite scroll trigger - sempre visível quando há mais produtos */}
+                {hasMore && (
                   <>
-                    <div ref={loadMoreRef} className="h-4" />
+                    <div ref={loadMoreRef} className="h-10" />
                     <LoadMoreIndicator isLoading={loadingMore} hasMore={hasMore} />
                   </>
                 )}

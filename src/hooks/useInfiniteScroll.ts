@@ -13,44 +13,59 @@ export function useInfiniteScroll({
   isLoading,
   onLoadMore,
   threshold = 0.1,
-  rootMargin = '100px',
+  rootMargin = '200px',
 }: UseInfiniteScrollOptions) {
-  const observerRef = useRef<HTMLDivElement>(null);
-  const observerInstance = useRef<IntersectionObserver | null>(null);
-
-  const handleIntersection = useCallback(
-    (entries: IntersectionObserverEntry[]) => {
-      const [entry] = entries;
-      if (entry.isIntersecting && hasMore && !isLoading) {
-        onLoadMore();
-      }
-    },
-    [hasMore, isLoading, onLoadMore]
-  );
-
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  
+  // Usar refs para valores que mudam frequentemente (evitar stale closures)
+  const hasMoreRef = useRef(hasMore);
+  const isLoadingRef = useRef(isLoading);
+  const onLoadMoreRef = useRef(onLoadMore);
+  
+  // Atualizar refs quando props mudam
   useEffect(() => {
-    // Disconnect previous observer
-    if (observerInstance.current) {
-      observerInstance.current.disconnect();
-    }
+    hasMoreRef.current = hasMore;
+  }, [hasMore]);
+  
+  useEffect(() => {
+    isLoadingRef.current = isLoading;
+  }, [isLoading]);
+  
+  useEffect(() => {
+    onLoadMoreRef.current = onLoadMore;
+  }, [onLoadMore]);
 
-    // Create new observer
-    observerInstance.current = new IntersectionObserver(handleIntersection, {
-      threshold,
-      rootMargin,
-    });
-
-    // Observe element
+  // Callback ref para garantir que o observer é criado quando o elemento existe
+  const setRef = useCallback((node: HTMLDivElement | null) => {
+    // Limpar observer anterior se existir
     if (observerRef.current) {
-      observerInstance.current.observe(observerRef.current);
+      observerRef.current.disconnect();
     }
+    
+    if (!node) return;
+    
+    // Criar novo observer
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting && hasMoreRef.current && !isLoadingRef.current) {
+          onLoadMoreRef.current();
+        }
+      },
+      { threshold, rootMargin }
+    );
+    
+    observerRef.current.observe(node);
+  }, [threshold, rootMargin]);
 
+  // Cleanup no unmount
+  useEffect(() => {
     return () => {
-      if (observerInstance.current) {
-        observerInstance.current.disconnect();
+      if (observerRef.current) {
+        observerRef.current.disconnect();
       }
     };
-  }, [handleIntersection, threshold, rootMargin]);
+  }, []);
 
-  return observerRef;
+  return setRef;
 }

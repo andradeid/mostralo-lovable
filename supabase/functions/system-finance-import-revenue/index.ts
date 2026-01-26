@@ -26,6 +26,12 @@ interface ImportPayload {
 type RequestPayload = ImportPayload;
 
 async function requireMasterAdmin(authHeader: string) {
+  if (!authHeader?.startsWith("Bearer ")) {
+    return { ok: false as const, status: 401 as const, error: "Unauthorized" };
+  }
+
+  const token = authHeader.replace("Bearer ", "");
+
   const supabaseClient = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_ANON_KEY") ?? "",
@@ -35,16 +41,23 @@ async function requireMasterAdmin(authHeader: string) {
     }
   );
 
+  // Passar o token explicitamente para getUser
   const {
     data: { user },
     error: authError,
-  } = await supabaseClient.auth.getUser();
+  } = await supabaseClient.auth.getUser(token);
 
   if (authError || !user) {
     return { ok: false as const, status: 401 as const, error: "Unauthorized" };
   }
 
-  const { data: roleData, error: roleError } = await supabaseClient
+  // Usar service role para verificar roles (bypass RLS)
+  const supabaseAdmin = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+  );
+
+  const { data: roleData, error: roleError } = await supabaseAdmin
     .from("user_roles")
     .select("role")
     .eq("user_id", user.id)

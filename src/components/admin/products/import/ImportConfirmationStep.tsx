@@ -39,12 +39,12 @@ export function ImportConfirmationStep({
           <p className="text-sm text-muted-foreground">Produtos</p>
         </div>
         <div className="border rounded-lg p-4 text-center">
-          <Layers className="h-8 w-8 mx-auto mb-2 text-blue-500" />
+          <Layers className="h-8 w-8 mx-auto mb-2 text-primary" />
           <p className="text-2xl font-bold">{totalVariants}</p>
           <p className="text-sm text-muted-foreground">Variantes</p>
         </div>
         <div className="border rounded-lg p-4 text-center">
-          <FolderTree className="h-8 w-8 mx-auto mb-2 text-green-500" />
+          <FolderTree className="h-8 w-8 mx-auto mb-2 text-primary" />
           <p className="text-2xl font-bold">{newCategories}</p>
           <p className="text-sm text-muted-foreground">Novas Categorias</p>
         </div>

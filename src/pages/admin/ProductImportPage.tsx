@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, Upload, Columns, CheckCircle, Download as DownloadIcon } from 'lucide-react';
-import { useStoreId } from '@/hooks/useStoreId';
+import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useProductImport } from '@/hooks/useProductImport';
 import { FileUploadStep } from '@/components/admin/products/import/FileUploadStep';
 import { ColumnMappingStep } from '@/components/admin/products/import/ColumnMappingStep';
@@ -31,7 +31,7 @@ const STEPS: { key: ImportStep; label: string; icon: React.ElementType }[] = [
 
 export default function ProductImportPage() {
   const navigate = useNavigate();
-  const { storeId } = useStoreId();
+  const { storeId } = useStoreAccess();
   const { 
     isValidating, 
     isImporting, 

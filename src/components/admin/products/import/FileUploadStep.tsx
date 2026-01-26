@@ -1,8 +1,15 @@
 import { useCallback, useState } from 'react';
-import { Upload, FileSpreadsheet, AlertCircle, Download } from 'lucide-react';
+import { Upload, FileSpreadsheet, AlertCircle, Download, Info, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { Badge } from '@/components/ui/badge';
 
 interface FileUploadStepProps {
   onFileSelect: (file: File) => void;
@@ -11,6 +18,22 @@ interface FileUploadStepProps {
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const MAX_ROWS = 1000;
 const ACCEPTED_TYPES = ['.csv', '.xlsx', '.xls'];
+
+const COLUMN_INSTRUCTIONS = [
+  { name: 'nome', required: true, desc: 'Nome do produto (obrigatório)', example: 'Pizza Margherita' },
+  { name: 'preco', required: true, desc: 'Preço de venda (obrigatório). Use vírgula ou ponto como decimal', example: '39,90 ou 39.90' },
+  { name: 'categoria', required: true, desc: 'Categoria do produto (obrigatório). Se não existir, será criada', example: 'Pizzas' },
+  { name: 'descricao', required: false, desc: 'Descrição detalhada do produto', example: 'Pizza tradicional com molho...' },
+  { name: 'disponivel', required: false, desc: 'Se o produto está disponível para venda. Valores: sim/não, s/n, 1/0', example: 'sim' },
+  { name: 'mostrar_menu', required: false, desc: 'Se aparece no cardápio digital', example: 'sim' },
+  { name: 'controlar_estoque', required: false, desc: 'Ativar controle de estoque', example: 'sim' },
+  { name: 'quantidade_estoque', required: false, desc: 'Quantidade inicial em estoque', example: '50' },
+  { name: 'alerta_estoque', required: false, desc: 'Quantidade mínima para alerta', example: '10' },
+  { name: 'preco_oferta', required: false, desc: 'Preço promocional (aparece riscado)', example: '35,90' },
+  { name: 'imagem_url', required: false, desc: 'URL da imagem do produto', example: 'https://...' },
+  { name: 'variante_nome', required: false, desc: 'Nome da variação (ex: tamanho)', example: 'Grande' },
+  { name: 'variante_preco', required: false, desc: 'Preço específico da variação', example: '45,00' },
+];
 
 export function FileUploadStep({ onFileSelect }: FileUploadStepProps) {
   const [isDragging, setIsDragging] = useState(false);
@@ -60,7 +83,7 @@ export function FileUploadStep({ onFileSelect }: FileUploadStepProps) {
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
-        className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
+        className={`border-2 border-dashed rounded-lg p-8 md:p-12 text-center transition-colors ${
           isDragging ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:border-primary/50'
         }`}
       >
@@ -98,22 +121,106 @@ export function FileUploadStep({ onFileSelect }: FileUploadStepProps) {
         </Alert>
       )}
 
-      {/* Template Download */}
-      <div className="border rounded-lg p-4 bg-muted/30">
-        <div className="flex items-center justify-between">
+      {/* Template Download & Instructions */}
+      <div className="border rounded-lg overflow-hidden">
+        {/* Download Section */}
+        <div className="p-4 bg-muted/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
-            <p className="font-medium">Modelo de Planilha</p>
+            <p className="font-medium flex items-center gap-2">
+              <FileSpreadsheet className="h-4 w-4 text-primary" />
+              Modelo de Planilha
+            </p>
             <p className="text-sm text-muted-foreground">
-              Baixe o modelo para ver o formato esperado
+              Baixe o modelo pronto para preencher
             </p>
           </div>
-          <Button variant="outline" asChild>
+          <Button variant="outline" size="sm" asChild>
             <a href="/templates/importacao-produtos-modelo.csv" download>
               <Download className="mr-2 h-4 w-4" />
-              Baixar Modelo
+              Baixar Modelo CSV
             </a>
           </Button>
         </div>
+
+        {/* Instructions Accordion */}
+        <Accordion type="single" collapsible className="border-t">
+          <AccordionItem value="instructions" className="border-b-0">
+            <AccordionTrigger className="px-4 hover:no-underline">
+              <span className="flex items-center gap-2 text-sm">
+                <Info className="h-4 w-4 text-muted-foreground" />
+                Como preencher a planilha
+              </span>
+            </AccordionTrigger>
+            <AccordionContent className="px-4 pb-4">
+              <div className="space-y-4">
+                {/* Quick Tips */}
+                <div className="bg-primary/5 rounded-lg p-3 space-y-2">
+                  <p className="font-medium text-sm flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-primary" />
+                    Dicas rápidas
+                  </p>
+                  <ul className="text-sm text-muted-foreground space-y-1 ml-6 list-disc">
+                    <li>A primeira linha deve conter os nomes das colunas</li>
+                    <li>Apenas <strong>nome</strong>, <strong>preco</strong> e <strong>categoria</strong> são obrigatórios</li>
+                    <li>Categorias inexistentes serão criadas automaticamente</li>
+                    <li>Para variantes: repita o produto com diferentes valores em <code className="bg-muted px-1 rounded">variante_nome</code></li>
+                  </ul>
+                </div>
+
+                {/* Columns Table */}
+                <div className="border rounded-lg overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/50">
+                      <tr>
+                        <th className="text-left p-2 font-medium">Coluna</th>
+                        <th className="text-left p-2 font-medium hidden sm:table-cell">Descrição</th>
+                        <th className="text-left p-2 font-medium">Exemplo</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {COLUMN_INSTRUCTIONS.map((col) => (
+                        <tr key={col.name} className="hover:bg-muted/20">
+                          <td className="p-2">
+                            <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono">
+                              {col.name}
+                            </code>
+                            {col.required && (
+                              <Badge variant="destructive" className="ml-2 text-[10px] px-1 py-0">
+                                obrigatório
+                              </Badge>
+                            )}
+                          </td>
+                          <td className="p-2 text-muted-foreground hidden sm:table-cell">
+                            {col.desc}
+                          </td>
+                          <td className="p-2 text-muted-foreground font-mono text-xs">
+                            {col.example}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Variants Example */}
+                <div className="bg-muted/30 rounded-lg p-3">
+                  <p className="font-medium text-sm mb-2">Exemplo de produto com variantes:</p>
+                  <div className="overflow-x-auto">
+                    <pre className="text-xs bg-background p-2 rounded border font-mono whitespace-pre">
+{`nome,preco,categoria,variante_nome,variante_preco
+Coca-Cola,8.00,Bebidas,,
+Coca-Cola,12.00,Bebidas,600ml,12.00
+Coca-Cola,15.00,Bebidas,1 Litro,15.00`}
+                    </pre>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    → Cria 1 produto "Coca-Cola" com 2 variantes (600ml e 1 Litro)
+                  </p>
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </div>
     </div>
   );

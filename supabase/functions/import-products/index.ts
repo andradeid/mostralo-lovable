@@ -240,6 +240,7 @@ serve(async (req) => {
         }
 
         // Insert product
+        const hasOfferPrice = product.preco_oferta !== undefined && product.preco_oferta !== null && product.preco_oferta > 0;
         const { data: newProduct, error: productError } = await supabase
           .from('products')
           .insert({
@@ -248,7 +249,9 @@ serve(async (req) => {
             name: product.nome.trim(),
             description: product.descricao?.trim() || null,
             price: product.preco,
-            sale_price: product.preco_oferta || null,
+            original_price: hasOfferPrice ? product.preco : null,
+            offer_price: hasOfferPrice ? product.preco_oferta : null,
+            is_on_offer: hasOfferPrice,
             is_available: product.disponivel !== false,
             show_in_menu: product.mostrar_menu !== false,
             track_stock: product.controlar_estoque || false,
@@ -276,7 +279,6 @@ serve(async (req) => {
                 product_id: newProduct.id,
                 name: variant.nome.trim(),
                 price: variant.preco,
-                sale_price: variant.preco_oferta || null,
                 is_available: variant.disponivel !== false,
               });
 

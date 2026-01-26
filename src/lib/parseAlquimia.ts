@@ -93,21 +93,84 @@ export function mapAlquimiaCategory(cla: string | null | undefined): string {
   
   const code = String(cla).toUpperCase().trim();
   
+  // Se estiver vazio após trim, retorna Outros
+  if (!code) return 'Outros';
+  
   const categoryMap: Record<string, string> = {
+    // Medicamentos Genéricos
     'GEN': 'Medicamentos Genéricos',
+    'GE': 'Medicamentos Genéricos',  // Versão truncada
+    'GENERICO': 'Medicamentos Genéricos',
+    
+    // Medicamentos (referência/similares)
     'MON': 'Medicamentos',
+    'MO': 'Medicamentos',
     'BON': 'Medicamentos',
+    'BO': 'Medicamentos',
+    'MUL': 'Medicamentos',  // Multi/Multiplo
+    'SIM': 'Medicamentos',  // Similar
+    'REF': 'Medicamentos',  // Referência
+    'ETI': 'Medicamentos',  // Ético
+    
+    // Higiene e Perfumaria
     'PER': 'Higiene e Perfumaria',
+    'PE': 'Higiene e Perfumaria',
+    'HIG': 'Higiene e Perfumaria',
+    
+    // Primeiros Socorros
     'HOS': 'Primeiros Socorros e Materiais',
+    'HO': 'Primeiros Socorros e Materiais',
+    'MAT': 'Primeiros Socorros e Materiais',
+    
+    // Produtos Naturais
     'NAT': 'Produtos Naturais',
+    'NA': 'Produtos Naturais',
+    
+    // Suplementos
     'SUP': 'Suplementos e Vitaminas',
+    'SU': 'Suplementos e Vitaminas',
+    'VIT': 'Suplementos e Vitaminas',
+    
+    // Conveniência
     'VAR': 'Conveniência',
+    'VA': 'Conveniência',
+    'DIV': 'Conveniência',
+    
+    // Controlados
     'PSI': 'Medicamentos Controlados',
+    'PS': 'Medicamentos Controlados',
+    'CON': 'Medicamentos Controlados',
+    'CTR': 'Medicamentos Controlados',
+    
+    // Dermocosméticos
     'DER': 'Dermocosméticos',
+    'DE': 'Dermocosméticos',
+    'COS': 'Dermocosméticos',
+    
+    // Bebês e Mamães  
     'BEB': 'Bebês e Mamães',
+    'BE': 'Bebês e Mamães',
+    'INF': 'Bebês e Mamães',  // Infantil
   };
   
-  return categoryMap[code] || 'Outros';
+  // Busca exata primeiro
+  if (categoryMap[code]) {
+    return categoryMap[code];
+  }
+  
+  // Busca por prefixo (primeiros 2-3 caracteres)
+  const prefix3 = code.substring(0, 3);
+  const prefix2 = code.substring(0, 2);
+  
+  if (categoryMap[prefix3]) {
+    return categoryMap[prefix3];
+  }
+  
+  if (categoryMap[prefix2]) {
+    return categoryMap[prefix2];
+  }
+  
+  return 'Outros';
 }
 
 /**

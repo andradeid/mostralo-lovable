@@ -1,0 +1,10 @@
+nome,preco,categoria,descricao,disponivel,preco_oferta,variante_nome,variante_preco
+Pizza Margherita,45.90,Pizzas,Pizza com molho de tomate e mussarela,sim,,
+Pizza Calabresa,49.90,Pizzas,Pizza de calabresa com cebola,sim,44.90,Pequena,39.90
+Pizza Calabresa,49.90,Pizzas,Pizza de calabresa com cebola,sim,44.90,Grande,59.90
+Coca-Cola 2L,12.00,Bebidas,Refrigerante Coca-Cola 2 Litros,sim,,
+Suco Natural,8.00,Bebidas,Suco de laranja natural,sim,,Pequeno,6.00
+Suco Natural,8.00,Bebidas,Suco de laranja natural,sim,,Grande,10.00
+Hambúrguer Artesanal,32.00,Lanches,Hambúrguer 180g com queijo e bacon,sim,28.00,
+Batata Frita,18.00,Porções,Batata frita crocante,sim,,Pequena,12.00
+Batata Frita,18.00,Porções,Batata frita crocante,sim,,Grande,22.00

@@ -6298,6 +6298,63 @@ export type Database = {
         }
         Relationships: []
       }
+      product_import_logs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_count: number
+          errors: Json | null
+          file_name: string
+          id: string
+          imported_by: string
+          status: string
+          store_id: string
+          success_count: number
+          total_rows: number
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_count?: number
+          errors?: Json | null
+          file_name: string
+          id?: string
+          imported_by: string
+          status?: string
+          store_id: string
+          success_count?: number
+          total_rows?: number
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_count?: number
+          errors?: Json | null
+          file_name?: string
+          id?: string
+          imported_by?: string
+          status?: string
+          store_id?: string
+          success_count?: number
+          total_rows?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_import_logs_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_import_logs_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_upsells: {
         Row: {
           created_at: string | null

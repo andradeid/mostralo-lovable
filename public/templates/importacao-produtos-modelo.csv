@@ -1,10 +1,11 @@
-nome,preco,categoria,descricao,disponivel,preco_oferta,variante_nome,variante_preco
-Pizza Margherita,45.90,Pizzas,Pizza com molho de tomate e mussarela,sim,,
-Pizza Calabresa,49.90,Pizzas,Pizza de calabresa com cebola,sim,44.90,Pequena,39.90
-Pizza Calabresa,49.90,Pizzas,Pizza de calabresa com cebola,sim,44.90,Grande,59.90
-Coca-Cola 2L,12.00,Bebidas,Refrigerante Coca-Cola 2 Litros,sim,,
-Suco Natural,8.00,Bebidas,Suco de laranja natural,sim,,Pequeno,6.00
-Suco Natural,8.00,Bebidas,Suco de laranja natural,sim,,Grande,10.00
-Hambúrguer Artesanal,32.00,Lanches,Hambúrguer 180g com queijo e bacon,sim,28.00,
-Batata Frita,18.00,Porções,Batata frita crocante,sim,,Pequena,12.00
-Batata Frita,18.00,Porções,Batata frita crocante,sim,,Grande,22.00
+nome,preco,categoria,descricao,disponivel,mostrar_menu,controlar_estoque,quantidade_estoque,alerta_estoque,preco_oferta,imagem_url,variante_nome,variante_preco
+"Pizza Margherita",39.90,"Pizzas","Pizza tradicional com molho de tomate, mussarela e manjericão",sim,sim,nao,,,,"https://exemplo.com/pizza.jpg",,
+"Pizza Calabresa",42.90,"Pizzas","Pizza com calabresa fatiada e cebola",sim,sim,nao,,,35.90,"https://exemplo.com/calabresa.jpg",,
+"Hambúrguer Clássico",28.00,"Lanches","Pão, hambúrguer 150g, queijo, alface e tomate",sim,sim,sim,50,10,,"https://exemplo.com/hamburguer.jpg",,
+"Hambúrguer Clássico",32.00,"Lanches","Pão, hambúrguer 150g, queijo, alface e tomate",sim,sim,sim,50,10,,"https://exemplo.com/hamburguer.jpg","Duplo",32.00
+"Hambúrguer Clássico",38.00,"Lanches","Pão, hambúrguer 150g, queijo, alface e tomate",sim,sim,sim,50,10,,"https://exemplo.com/hamburguer.jpg","Triplo",38.00
+"Coca-Cola",8.00,"Bebidas","Refrigerante 350ml",sim,sim,sim,100,20,,,
+"Coca-Cola",12.00,"Bebidas","Refrigerante 350ml",sim,sim,sim,100,20,,,"600ml",12.00
+"Coca-Cola",15.00,"Bebidas","Refrigerante 350ml",sim,sim,sim,100,20,,,"1 Litro",15.00
+"Água Mineral",5.00,"Bebidas","Água mineral sem gás 500ml",sim,sim,sim,200,50,,,
+"Pudim",12.00,"Sobremesas","Pudim de leite condensado caseiro",sim,sim,nao,,,10.00,"https://exemplo.com/pudim.jpg",,

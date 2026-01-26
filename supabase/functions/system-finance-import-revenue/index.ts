@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.55.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,11 +26,13 @@ interface ImportPayload {
 type RequestPayload = ImportPayload;
 
 async function requireMasterAdmin(authHeader: string) {
-  if (!authHeader?.startsWith("Bearer ")) {
+  // Aceita variações de casing e espaços
+  const [scheme, maybeToken] = authHeader?.split(" ") ?? [];
+  if (!scheme || scheme.toLowerCase() !== "bearer" || !maybeToken) {
     return { ok: false as const, status: 401 as const, error: "Unauthorized" };
   }
 
-  const token = authHeader.replace("Bearer ", "");
+  const token = maybeToken;
 
   const supabaseClient = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
@@ -41,13 +43,11 @@ async function requireMasterAdmin(authHeader: string) {
     }
   );
 
-  // Passar o token explicitamente para getUser
-  const {
-    data: { user },
-    error: authError,
-  } = await supabaseClient.auth.getUser(token);
+  // Signing-keys: validar JWT e extrair claims com getClaims()
+  const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(token);
+  const userId = claimsData?.claims?.sub;
 
-  if (authError || !user) {
+  if (claimsError || !userId) {
     return { ok: false as const, status: 401 as const, error: "Unauthorized" };
   }
 
@@ -60,7 +60,7 @@ async function requireMasterAdmin(authHeader: string) {
   const { data: roleData, error: roleError } = await supabaseAdmin
     .from("user_roles")
     .select("role")
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .eq("role", "master_admin")
     .maybeSingle();
 
@@ -80,7 +80,7 @@ async function requireMasterAdmin(authHeader: string) {
     };
   }
 
-  return { ok: true as const, userId: user.id };
+  return { ok: true as const, userId };
 }
 
 function toIsoStart(date: string) {

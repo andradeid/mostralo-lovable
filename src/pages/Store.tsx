@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, lazy, Suspense } from 'react';
+import { useEffect, useState, useMemo, lazy, Suspense, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,6 +10,9 @@ import { PopupController } from '@/utils/popupController';
 import BottomNavigation from '@/components/BottomNavigation';
 import { getStoreStatusMessage } from '@/utils/storeStatus';
 import { useStoreStatus } from '@/hooks/useStoreStatus';
+import { LoadMoreIndicator } from '@/components/store/LoadMoreIndicator';
+import { ProductsCounter } from '@/components/store/ProductsCounter';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 
 // Lazy load de componentes pesados
 const ProductDetail = lazy(() => import('@/components/ProductDetail'));
@@ -142,6 +145,14 @@ const Store = () => {
   const [promotionCount, setPromotionCount] = useState(0);
   const [popupPromotion, setPopupPromotion] = useState<any>(null);
   const [showPopupPromotion, setShowPopupPromotion] = useState(false);
+  
+  // Estados de paginação
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const currentPageRef = useRef(0);
+  const PRODUCTS_PER_PAGE = 50;
+  
   const { toast } = useToast();
   const { profile } = useAuth();
   const { addItem, getTotalPrice, getTotalItems } = useCart();
@@ -176,6 +187,9 @@ const Store = () => {
     setBanners([]);
     setSelectedCategory(null);
     setSearchTerm('');
+    setTotalProducts(0);
+    setHasMore(true);
+    currentPageRef.current = 0;
     
     if (slug) {
       fetchStoreData();
@@ -427,8 +441,10 @@ const Store = () => {
       // Permitir renderização inicial com dados básicos
       setLoading(false);
       
-      // ETAPA 2: Carregar categorias e produtos em paralelo (conteúdo principal)
+      // ETAPA 2: Carregar categorias e contagem de produtos em paralelo
       setLoadingProducts(true);
+      currentPageRef.current = 0;
+      
       Promise.all([
         supabase
           .from('categories')
@@ -436,19 +452,32 @@ const Store = () => {
           .eq('store_id', storeData.id)
           .eq('is_active', true)
           .order('display_order'),
+        // Contagem total de produtos (rápida)
+        supabase
+          .from('products')
+          .select('id', { count: 'exact', head: true })
+          .eq('store_id', storeData.id)
+          .eq('is_available', true),
+        // Primeira página de produtos (50 produtos)
         supabase
           .from('products')
           .select('id, name, description, price, image_url, image_gallery, category_id, display_order, button_text, slug, is_on_offer, original_price, offer_price')
           .eq('store_id', storeData.id)
           .eq('is_available', true)
           .order('display_order')
-      ]).then(async ([categoriesResult, productsResult]) => {
+          .range(0, PRODUCTS_PER_PAGE - 1)
+      ]).then(async ([categoriesResult, countResult, productsResult]) => {
         if (categoriesResult.data) {
           setCategories(categoriesResult.data);
         }
 
+        // Atualizar contagem total
+        const total = countResult.count || 0;
+        setTotalProducts(total);
+        setHasMore(PRODUCTS_PER_PAGE < total);
+
         if (productsResult.data) {
-          // Buscar TODAS as variantes em uma única query (otimizado)
+          // Buscar variantes apenas dos produtos da página atual
           const productIds = productsResult.data.map(p => p.id);
           
           const { data: allVariants } = await supabase
@@ -570,6 +599,90 @@ const Store = () => {
       setLoading(false);
     }
   };
+
+  // Função para carregar mais produtos (infinite scroll)
+  const loadMoreProducts = useCallback(async () => {
+    if (!store?.id || loadingMore || !hasMore) return;
+    
+    setLoadingMore(true);
+    const nextPage = currentPageRef.current + 1;
+    const from = nextPage * PRODUCTS_PER_PAGE;
+    const to = from + PRODUCTS_PER_PAGE - 1;
+    
+    try {
+      const { data: newProducts, error } = await supabase
+        .from('products')
+        .select('id, name, description, price, image_url, image_gallery, category_id, display_order, button_text, slug, is_on_offer, original_price, offer_price')
+        .eq('store_id', store.id)
+        .eq('is_available', true)
+        .order('display_order')
+        .range(from, to);
+      
+      if (error) throw error;
+      
+      if (newProducts && newProducts.length > 0) {
+        // Buscar variantes dos novos produtos
+        const productIds = newProducts.map(p => p.id);
+        
+        const { data: variants } = await supabase
+          .from('product_variants')
+          .select('*')
+          .in('product_id', productIds)
+          .eq('is_available', true)
+          .order('display_order');
+
+        // Mapear variantes
+        const productsWithVariants = newProducts.map((product) => {
+          const productVariants = variants?.filter(v => v.product_id === product.id) || [];
+          
+          if (productVariants.length > 0) {
+            const defaultVariant = productVariants.find(v => v.is_default) || productVariants[0];
+            return {
+              ...product,
+              price: Number(defaultVariant.price),
+              variants: productVariants
+            };
+          }
+
+          return {
+            ...product,
+            variants: []
+          };
+        });
+
+        // Adicionar ao array existente sem duplicatas
+        setProducts(prev => {
+          const existingIds = new Set(prev.map(p => p.id));
+          const uniqueNew = productsWithVariants.filter(p => !existingIds.has(p.id));
+          return [...prev, ...uniqueNew];
+        });
+        
+        currentPageRef.current = nextPage;
+        
+        // Verificar se ainda há mais produtos
+        const totalLoaded = (nextPage + 1) * PRODUCTS_PER_PAGE;
+        setHasMore(totalLoaded < totalProducts);
+      } else {
+        setHasMore(false);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar mais produtos:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao carregar mais produtos. Tente novamente.',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [store?.id, loadingMore, hasMore, totalProducts, toast]);
+
+  // Hook de infinite scroll
+  const loadMoreRef = useInfiniteScroll({
+    hasMore,
+    isLoading: loadingMore,
+    onLoadMore: loadMoreProducts,
+  });
 
   const getProductsByCategory = (categoryId: string | null) => {
     let filteredProducts = categoryId ? products.filter(p => p.category_id === categoryId) : products;
@@ -1275,6 +1388,15 @@ const Store = () => {
       {/* Conteúdo Principal */}
       <div className="px-4 py-4 pb-24">
         <div className="max-w-[1080px] mx-auto">
+          {/* Contador de produtos (apenas se não estiver buscando) */}
+          {!searchTerm && !loadingProducts && products.length > 0 && (
+            <ProductsCounter
+              loaded={products.length}
+              total={totalProducts}
+              isSearching={!!searchTerm}
+            />
+          )}
+
           {/* Renderização dinâmica baseada no layout configurado */}
           {(() => {
             const productsToDisplay = getProductsByCategory(selectedCategory);
@@ -1304,61 +1426,88 @@ const Store = () => {
             // Layout GRID - Grade vertical responsiva
             if (layout === 'grid') {
               return (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-                  {productsToDisplay.map((product) => (
-                    <ProductCardWithPromotion
-                      key={product.id}
-                      product={product}
-                      storeId={store.id}
-                      primaryColor={primaryColor}
-                      layout="grid"
-                      onProductClick={handleProductClick}
-                      canAddToCart={storeStatus.canAddToCart}
-                      shouldShowSchedulingRequired={storeStatus.shouldShowSchedulingRequired}
-                    />
-                  ))}
-                </div>
-              );
-            }
-
-            // Layout CAROUSEL - Scroll horizontal
-            if (layout === 'carousel') {
-              return (
-                <div className="relative">
-                  <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
+                <>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
                     {productsToDisplay.map((product) => (
                       <ProductCardWithPromotion
                         key={product.id}
                         product={product}
                         storeId={store.id}
                         primaryColor={primaryColor}
-                        layout="carousel"
+                        layout="grid"
                         onProductClick={handleProductClick}
                         canAddToCart={storeStatus.canAddToCart}
                         shouldShowSchedulingRequired={storeStatus.shouldShowSchedulingRequired}
                       />
                     ))}
                   </div>
-                </div>
+                  {/* Infinite scroll trigger */}
+                  {!searchTerm && !selectedCategory && (
+                    <>
+                      <div ref={loadMoreRef} className="h-4" />
+                      <LoadMoreIndicator isLoading={loadingMore} hasMore={hasMore} />
+                    </>
+                  )}
+                </>
+              );
+            }
+
+            // Layout CAROUSEL - Scroll horizontal
+            if (layout === 'carousel') {
+              return (
+                <>
+                  <div className="relative">
+                    <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
+                      {productsToDisplay.map((product) => (
+                        <ProductCardWithPromotion
+                          key={product.id}
+                          product={product}
+                          storeId={store.id}
+                          primaryColor={primaryColor}
+                          layout="carousel"
+                          onProductClick={handleProductClick}
+                          canAddToCart={storeStatus.canAddToCart}
+                          shouldShowSchedulingRequired={storeStatus.shouldShowSchedulingRequired}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  {/* Infinite scroll trigger */}
+                  {!searchTerm && !selectedCategory && (
+                    <>
+                      <div ref={loadMoreRef} className="h-4" />
+                      <LoadMoreIndicator isLoading={loadingMore} hasMore={hasMore} />
+                    </>
+                  )}
+                </>
               );
             }
 
             // Layout LIST - Horizontal (padrão atual otimizado)
             return (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {productsToDisplay.map((product) => (
-                  <ProductCardWithPromotion
-                    key={product.id}
-                    product={product}
-                    storeId={store.id}
-                    primaryColor={primaryColor}
-                    layout="list"
-                    onProductClick={handleProductClick}
-                    canAddToCart={storeStatus.canAddToCart}
-                    shouldShowSchedulingRequired={storeStatus.shouldShowSchedulingRequired}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {productsToDisplay.map((product) => (
+                    <ProductCardWithPromotion
+                      key={product.id}
+                      product={product}
+                      storeId={store.id}
+                      primaryColor={primaryColor}
+                      layout="list"
+                      onProductClick={handleProductClick}
+                      canAddToCart={storeStatus.canAddToCart}
+                      shouldShowSchedulingRequired={storeStatus.shouldShowSchedulingRequired}
+                    />
+                  ))}
+                </div>
+                {/* Infinite scroll trigger */}
+                {!searchTerm && !selectedCategory && (
+                  <>
+                    <div ref={loadMoreRef} className="h-4" />
+                    <LoadMoreIndicator isLoading={loadingMore} hasMore={hasMore} />
+                  </>
+                )}
+              </>
             );
           })()}
 

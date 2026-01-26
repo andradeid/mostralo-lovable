@@ -12,7 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 import { usePageSEO } from '@/hooks/useSEO';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Package, Plus, Search, Edit, Trash2, Grid, ArrowUp, ArrowDown, GripVertical, AlertCircle, ArrowDownAZ, PackageX, Upload } from 'lucide-react';
+import { Loader2, Package, Plus, Search, Edit, Trash2, Grid, ArrowUp, ArrowDown, GripVertical, AlertCircle, ArrowDownAZ, PackageX, Upload, ChevronDown, FileSpreadsheet } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
@@ -546,16 +547,26 @@ const ProductsPage = () => {
           <p className="text-sm text-muted-foreground">Gerencie os produtos da sua loja</p>
         </div>
           <div className="flex flex-col sm:flex-row gap-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="flex-1 sm:flex-none"
-            onClick={() => navigate('/dashboard/products/import')}
-          >
-            <Upload className="w-4 h-4 mr-1 sm:mr-2" />
-            <span className="hidden sm:inline">Importar</span>
-            <span className="sm:hidden">Importar</span>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
+                <Upload className="w-4 h-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Importar</span>
+                <span className="sm:hidden">Importar</span>
+                <ChevronDown className="w-3 h-3 ml-1" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => navigate('/dashboard/products/import')}>
+                <Upload className="w-4 h-4 mr-2" />
+                Importação Padrão (CSV/Excel)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/dashboard/products/import-alquimia')}>
+                <FileSpreadsheet className="w-4 h-4 mr-2" />
+                Importar do Alquimia
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button 
             variant="outline" 
             size="sm"

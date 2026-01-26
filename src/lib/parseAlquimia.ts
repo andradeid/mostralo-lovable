@@ -367,6 +367,9 @@ export async function parseAlquimiaCSV(file: File): Promise<AlquimiaParseResult>
     const vendaStr = String(row[cols.venda] || '0');
     const custoStr = String(row[cols.custo] || '0');
     
+    // DEBUG: Log para entender os dados da linha
+    console.log(`[Alquimia] Linha ${actualRowIndex}: Nome="${nomeOriginal}", Cla="${claOriginal}", Row completa:`, row);
+    
     // Produto raw (dados originais)
     const rawProduct: AlquimiaRawProduct = {
       nomeOriginal,
@@ -386,6 +389,9 @@ export async function parseAlquimiaCSV(file: File): Promise<AlquimiaParseResult>
     const nome = toTitleCase(nomeOriginal);
     const preco = parseBrazilianPrice(vendaStr);
     const categoria = mapAlquimiaCategory(claOriginal);
+    
+    // DEBUG: Log do mapeamento de categoria
+    console.log(`[Alquimia] Mapeamento: "${claOriginal}" -> "${categoria}"`);
     
     const errors: string[] = [];
     if (!nome) errors.push('Nome vazio');

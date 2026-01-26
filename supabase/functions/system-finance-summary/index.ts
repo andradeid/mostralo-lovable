@@ -16,6 +16,8 @@ interface SummaryPayload {
 }
 
 async function requireMasterAdmin(authHeader: string) {
+  const token = authHeader.replace("Bearer ", "");
+  
   const supabaseClient = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_ANON_KEY") ?? "",
@@ -28,13 +30,19 @@ async function requireMasterAdmin(authHeader: string) {
   const {
     data: { user },
     error: authError,
-  } = await supabaseClient.auth.getUser();
+  } = await supabaseClient.auth.getUser(token);
 
   if (authError || !user) {
+    console.error("Auth error:", authError);
     return { ok: false as const, status: 401 as const, error: "Unauthorized" };
   }
 
-  const { data: roleData, error: roleError } = await supabaseClient
+  const supabaseAdmin = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+  );
+
+  const { data: roleData, error: roleError } = await supabaseAdmin
     .from("user_roles")
     .select("role")
     .eq("user_id", user.id)
@@ -42,6 +50,7 @@ async function requireMasterAdmin(authHeader: string) {
     .maybeSingle();
 
   if (roleError) {
+    console.error("Role check error:", roleError);
     return {
       ok: false as const,
       status: 500 as const,

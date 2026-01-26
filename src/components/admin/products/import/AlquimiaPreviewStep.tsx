@@ -31,10 +31,16 @@ interface AlquimiaPreviewStepProps {
   onNext: () => void;
 }
 
+// Categorias alinhadas com o mapeamento em parseAlquimia.ts
 const AVAILABLE_CATEGORIES = [
   'Medicamentos',
-  'Higiene e Beleza',
-  'Suplementos',
+  'Medicamentos Genéricos',
+  'Medicamentos Controlados',
+  'Higiene e Perfumaria',
+  'Primeiros Socorros e Materiais',
+  'Produtos Naturais',
+  'Suplementos e Vitaminas',
+  'Conveniência',
   'Dermocosméticos',
   'Bebês e Mamães',
   'Outros',

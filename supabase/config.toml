@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.import-products]
 verify_jwt = false
+
+[functions.delete-all-products]
+verify_jwt = false

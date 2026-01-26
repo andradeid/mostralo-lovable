@@ -256,21 +256,69 @@ function parseCSVContent(content: string): string[][] {
 }
 
 /**
- * Compacta array removendo células vazias consecutivas do Alquimia
- * Transforma [, , , Nome, , , , , , Apresentacao, ...] em [Nome, Apresentacao, ...]
+ * Detecta os índices das colunas baseado nos headers encontrados
+ * Retorna um mapeamento de nome de coluna para índice
  */
-function compactAlquimiaRow(row: string[]): string[] {
-  return row.filter(cell => cell !== null && cell !== undefined && cell.trim() !== '');
+function detectColumnIndices(headerRow: string[]): Record<string, number> {
+  const indices: Record<string, number> = {
+    nome: -1,
+    apresentacao: -1,
+    laboratorio: -1,
+    cla: -1,
+    qtde: -1,
+    custo: -1,
+    totalCusto: -1,
+    venda: -1,
+    totalVenda: -1,
+  };
+  
+  for (let i = 0; i < headerRow.length; i++) {
+    const cell = String(headerRow[i] || '').toLowerCase().trim();
+    
+    if (cell.includes('nome do produto') || cell === 'nome' || cell === 'produto') {
+      indices.nome = i;
+    } else if (cell.includes('apresent') || cell.includes('descri')) {
+      indices.apresentacao = i;
+    } else if (cell.includes('laborat') || cell.includes('fabric')) {
+      indices.laboratorio = i;
+    } else if (cell === 'cla' || cell.includes('classif') || cell.includes('categ')) {
+      indices.cla = i;
+    } else if (cell === 'qtde' || cell.includes('quant') || cell === 'estoque') {
+      indices.qtde = i;
+    } else if (cell === 'custo' && !cell.includes('total')) {
+      indices.custo = i;
+    } else if (cell.includes('total') && cell.includes('custo')) {
+      indices.totalCusto = i;
+    } else if (cell === 'venda' && !cell.includes('total')) {
+      indices.venda = i;
+    } else if (cell.includes('total') && cell.includes('venda')) {
+      indices.totalVenda = i;
+    }
+  }
+  
+  return indices;
+}
+
+/**
+ * Extrai valor de uma célula com fallback
+ */
+function getCellValue(row: string[], index: number): string {
+  if (index < 0 || index >= row.length) return '';
+  return String(row[index] || '').trim();
 }
 
 /**
  * Verifica se a linha é metadado do Alquimia (cabeçalho técnico)
  */
-function isAlquimiaMetadataLine(compactedRow: string[]): boolean {
-  if (compactedRow.length === 0) return true;
+function isAlquimiaMetadataLine(row: string[]): boolean {
+  if (!row || row.length === 0) return true;
   
-  const firstCell = compactedRow[0]?.toLowerCase() || '';
-  const joinedRow = compactedRow.join(' ').toLowerCase();
+  // Encontrar primeira célula não vazia
+  const firstNonEmpty = row.find(cell => cell && cell.trim() !== '');
+  if (!firstNonEmpty) return true;
+  
+  const firstCell = firstNonEmpty.toLowerCase();
+  const joinedRow = row.filter(c => c).join(' ').toLowerCase();
   
   // Ignora linhas de metadados conhecidas
   if (firstCell.includes('relatorio') ||
@@ -284,7 +332,7 @@ function isAlquimiaMetadataLine(compactedRow: string[]): boolean {
   }
   
   // Ignora linhas que parecem ser data/hora (ex: "21/01/2026")
-  if (/^\d{2}\/\d{2}\/\d{4}$/.test(firstCell)) {
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(firstCell.trim())) {
     return true;
   }
   
@@ -293,43 +341,45 @@ function isAlquimiaMetadataLine(compactedRow: string[]): boolean {
 
 /**
  * Processa arquivo CSV e retorna produtos formatados
+ * OTIMIZADO: Usa índices fixos de colunas em vez de compactar linhas
  */
 export async function parseAlquimiaCSV(file: File): Promise<AlquimiaParseResult> {
   const content = await file.text();
   const rawRows = parseCSVContent(content);
   
-  // Compactar todas as linhas (remover células vazias)
-  const compactedRows = rawRows.map(compactAlquimiaRow);
-  
-  // Encontrar linha de cabeçalho nos dados compactados
-  const headerRowIndex = compactedRows.findIndex(row => {
-    const joined = row.join(' ').toLowerCase();
-    return joined.includes('nome do produto') || 
-           (row.some(c => c.toLowerCase() === 'nome') && row.some(c => c.toLowerCase() === 'venda'));
-  });
-  
-  if (headerRowIndex === -1) {
-    console.warn('Cabeçalho não encontrado, usando padrão Alquimia');
+  // Encontrar linha de cabeçalho nos dados originais (NÃO compactados)
+  let headerRowIndex = -1;
+  for (let i = 0; i < Math.min(rawRows.length, 30); i++) {
+    const row = rawRows[i];
+    if (!row) continue;
+    
+    const joinedRow = row.join(' ').toLowerCase();
+    const hasNomeColumn = row.some(cell => {
+      const cellStr = String(cell || '').toLowerCase().trim();
+      return cellStr.includes('nome do produto') || 
+             (cellStr === 'nome' && joinedRow.includes('venda'));
+    });
+    
+    if (hasNomeColumn) {
+      headerRowIndex = i;
+      break;
+    }
   }
   
-  const headers = compactedRows[headerRowIndex] || ['Nome do Produto', 'Apresentacao', 'Laboratorio', 'Cla', 'Qtde', 'Custo', 'Total Custo', 'Venda', 'Total Venda'];
+  if (headerRowIndex === -1) {
+    console.warn('Cabeçalho não encontrado, tentando fallback...');
+    headerRowIndex = 9; // Fallback padrão Alquimia
+  }
   
-  // Mapear índices das colunas no formato compactado
-  // Formato Alquimia compactado: [Nome, Apresentacao, Laboratorio, Cla, Qtde, Custo, TotalCusto, Venda, TotalVenda]
-  const cols = {
-    nome: 0,
-    apresentacao: 1,
-    laboratorio: 2,
-    cla: 3,
-    qtde: 4,
-    custo: 5,
-    totalCusto: 6,
-    venda: 7,
-    totalVenda: 8,
-  };
+  const headerRow = rawRows[headerRowIndex] || [];
+  console.log('[Alquimia] Header encontrado na linha', headerRowIndex, ':', headerRow.filter(c => c).join(' | '));
+  
+  // Detectar índices das colunas dinamicamente
+  const cols = detectColumnIndices(headerRow);
+  console.log('[Alquimia] Índices detectados:', cols);
   
   // Extrair dados (pulando cabeçalho e metadados)
-  const dataRows = compactedRows.slice(headerRowIndex + 1);
+  const dataRows = rawRows.slice(headerRowIndex + 1);
   
   let skippedRows = 0;
   const rawProducts: AlquimiaRawProduct[] = [];
@@ -421,7 +471,7 @@ export async function parseAlquimiaCSV(file: File): Promise<AlquimiaParseResult>
   return {
     products,
     rawProducts,
-    headers,
+    headers: headerRow.filter(c => c && c.trim()),
     totalRows: rawRows.length,
     validRows: products.length,
     skippedRows,

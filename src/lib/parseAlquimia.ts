@@ -151,7 +151,8 @@ function isValidProductRow(row: string[], nomeIndex: number): boolean {
 }
 
 /**
- * Parse CSV content into rows
+ * Parse CSV content into rows - OTIMIZADO para formato Alquimia
+ * O Alquimia usa múltiplos separadores (;;;) entre colunas
  */
 function parseCSVContent(content: string): string[][] {
   const lines = content.split(/\r?\n/);
@@ -180,62 +181,112 @@ function parseCSVContent(content: string): string[][] {
 }
 
 /**
+ * Compacta array removendo células vazias consecutivas do Alquimia
+ * Transforma [, , , Nome, , , , , , Apresentacao, ...] em [Nome, Apresentacao, ...]
+ */
+function compactAlquimiaRow(row: string[]): string[] {
+  return row.filter(cell => cell !== null && cell !== undefined && cell.trim() !== '');
+}
+
+/**
+ * Verifica se a linha é metadado do Alquimia (cabeçalho técnico)
+ */
+function isAlquimiaMetadataLine(compactedRow: string[]): boolean {
+  if (compactedRow.length === 0) return true;
+  
+  const firstCell = compactedRow[0]?.toLowerCase() || '';
+  const joinedRow = compactedRow.join(' ').toLowerCase();
+  
+  // Ignora linhas de metadados conhecidas
+  if (firstCell.includes('relatorio') ||
+      firstCell.includes('estoque ate') ||
+      firstCell.includes('loja') ||
+      firstCell.includes('pag') ||
+      joinedRow.includes('relatorio de produtos') ||
+      joinedRow.includes('estoque ate o dia') ||
+      joinedRow.includes('farma bella')) {
+    return true;
+  }
+  
+  // Ignora linhas que parecem ser data/hora (ex: "21/01/2026")
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(firstCell)) {
+    return true;
+  }
+  
+  return false;
+}
+
+/**
  * Processa arquivo CSV e retorna produtos formatados
  */
 export async function parseAlquimiaCSV(file: File): Promise<AlquimiaParseResult> {
   const content = await file.text();
   const rawRows = parseCSVContent(content);
   
-  // Encontrar linha de cabeçalho
-  const headerRowIndex = findDataStartRow(rawRows);
-  const headers = rawRows[headerRowIndex] || [];
+  // Compactar todas as linhas (remover células vazias)
+  const compactedRows = rawRows.map(compactAlquimiaRow);
   
-  // Identificar índices das colunas (pode variar ligeiramente)
-  const nomeIndex = headers.findIndex(h => 
-    h.toLowerCase().includes('nome') || h.toLowerCase().includes('produto')
-  );
-  const claIndex = headers.findIndex(h => 
-    h.toLowerCase() === 'cla' || h.toLowerCase().includes('classif')
-  );
-  const qtdeIndex = headers.findIndex(h => 
-    h.toLowerCase().includes('qtde') || h.toLowerCase().includes('quantidade')
-  );
-  const vendaIndex = headers.findIndex(h => 
-    h.toLowerCase() === 'venda' || h.toLowerCase().includes('preço venda')
-  );
-  const custoIndex = headers.findIndex(h => 
-    h.toLowerCase() === 'custo' || h.toLowerCase().includes('preço custo')
-  );
+  // Encontrar linha de cabeçalho nos dados compactados
+  const headerRowIndex = compactedRows.findIndex(row => {
+    const joined = row.join(' ').toLowerCase();
+    return joined.includes('nome do produto') || 
+           (row.some(c => c.toLowerCase() === 'nome') && row.some(c => c.toLowerCase() === 'venda'));
+  });
   
-  // Usar índices padrão se não encontrar
+  if (headerRowIndex === -1) {
+    console.warn('Cabeçalho não encontrado, usando padrão Alquimia');
+  }
+  
+  const headers = compactedRows[headerRowIndex] || ['Nome do Produto', 'Apresentacao', 'Laboratorio', 'Cla', 'Qtde', 'Custo', 'Total Custo', 'Venda', 'Total Venda'];
+  
+  // Mapear índices das colunas no formato compactado
+  // Formato Alquimia compactado: [Nome, Apresentacao, Laboratorio, Cla, Qtde, Custo, TotalCusto, Venda, TotalVenda]
   const cols = {
-    nome: nomeIndex >= 0 ? nomeIndex : 0,
-    cla: claIndex >= 0 ? claIndex : 3,
-    qtde: qtdeIndex >= 0 ? qtdeIndex : 4,
-    venda: vendaIndex >= 0 ? vendaIndex : 7,
-    custo: custoIndex >= 0 ? custoIndex : 5,
+    nome: 0,
+    apresentacao: 1,
+    laboratorio: 2,
+    cla: 3,
+    qtde: 4,
+    custo: 5,
+    totalCusto: 6,
+    venda: 7,
+    totalVenda: 8,
   };
   
-  // Extrair dados (pulando cabeçalho)
-  const dataRows = rawRows.slice(headerRowIndex + 1);
-  
-  // Filtrar linhas vazias (CRÍTICO - dica do Gemini)
-  const validDataRows = filterEmptyRows(dataRows);
+  // Extrair dados (pulando cabeçalho e metadados)
+  const dataRows = compactedRows.slice(headerRowIndex + 1);
   
   let skippedRows = 0;
   const rawProducts: AlquimiaRawProduct[] = [];
   const products: AlquimiaProduct[] = [];
   const categoriesSet = new Set<string>();
   
-  validDataRows.forEach((row, index) => {
-    const actualRowIndex = headerRowIndex + 2 + index; // +2 para 1-indexed e pular header
+  dataRows.forEach((row, index) => {
+    const actualRowIndex = headerRowIndex + 2 + index;
     
-    if (!isValidProductRow(row, cols.nome)) {
+    // Pular linhas vazias ou de metadados
+    if (row.length === 0 || isAlquimiaMetadataLine(row)) {
+      skippedRows++;
+      return;
+    }
+    
+    // Pular linhas que não parecem produtos (menos de 5 colunas)
+    if (row.length < 5) {
       skippedRows++;
       return;
     }
     
     const nomeOriginal = String(row[cols.nome] || '').trim();
+    
+    // Validar se é um produto real
+    if (!nomeOriginal || 
+        nomeOriginal.toLowerCase().includes('total') ||
+        nomeOriginal.toLowerCase().includes('subtotal') ||
+        nomeOriginal.toLowerCase() === 'nome do produto') {
+      skippedRows++;
+      return;
+    }
+    
     const claOriginal = String(row[cols.cla] || '').trim();
     const qtde = parseInt(String(row[cols.qtde] || '0')) || 0;
     const vendaStr = String(row[cols.venda] || '0');
@@ -244,14 +295,14 @@ export async function parseAlquimiaCSV(file: File): Promise<AlquimiaParseResult>
     // Produto raw (dados originais)
     const rawProduct: AlquimiaRawProduct = {
       nomeOriginal,
-      apresentacao: String(row[1] || '').trim(),
-      laboratorio: String(row[2] || '').trim(),
+      apresentacao: String(row[cols.apresentacao] || '').trim(),
+      laboratorio: String(row[cols.laboratorio] || '').trim(),
       classificacao: claOriginal,
       quantidade: qtde,
       custo: parseBrazilianPrice(custoStr),
-      totalCusto: parseBrazilianPrice(String(row[6] || '0')),
+      totalCusto: parseBrazilianPrice(String(row[cols.totalCusto] || '0')),
       venda: parseBrazilianPrice(vendaStr),
-      totalVenda: parseBrazilianPrice(String(row[8] || '0')),
+      totalVenda: parseBrazilianPrice(String(row[cols.totalVenda] || '0')),
       rowIndex: actualRowIndex,
     };
     rawProducts.push(rawProduct);

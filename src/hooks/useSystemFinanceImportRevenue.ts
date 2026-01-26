@@ -7,10 +7,17 @@ export type SystemFinanceImportSourceType =
   | 'external_invoices'
   | 'payment_approvals';
 
+export interface ImportRevenueSources {
+  subscription_invoices?: boolean;
+  external_invoices?: boolean;
+  payment_approvals?: boolean;
+}
+
 export interface ImportRevenueParams {
   startDate?: string; // YYYY-MM-DD
   endDate?: string; // YYYY-MM-DD
   dryRun?: boolean;
+  sources?: ImportRevenueSources;
 }
 
 export interface ImportRevenueResult {

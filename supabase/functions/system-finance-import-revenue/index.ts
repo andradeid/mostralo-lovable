@@ -9,11 +9,18 @@ const corsHeaders = {
 type SourceType = "subscription_invoice" | "external_invoice" | "payment_approval";
 type TxType = "income" | "expense";
 
+interface SourcesSelection {
+  subscription_invoices?: boolean;
+  external_invoices?: boolean;
+  payment_approvals?: boolean;
+}
+
 interface ImportPayload {
   action: "import";
   startDate?: string; // YYYY-MM-DD
   endDate?: string; // YYYY-MM-DD
   dryRun?: boolean;
+  sources?: SourcesSelection;
 }
 
 type RequestPayload = ImportPayload;
@@ -212,6 +219,13 @@ serve(async (req) => {
     const endDate = payload.endDate ?? defaultEnd;
     const dryRun = !!payload.dryRun;
 
+    // Fontes selecionadas (default: todas habilitadas para retrocompatibilidade)
+    const sources: SourcesSelection = payload.sources ?? {
+      subscription_invoices: true,
+      external_invoices: true,
+      payment_approvals: true,
+    };
+
     const startAt = toIsoStart(startDate);
     const endAt = toIsoEnd(endDate);
 
@@ -222,39 +236,49 @@ serve(async (req) => {
         ensureCategoryId(supabaseAdmin, "Approvals", "income"),
       ]);
 
-    const { data: subscriptionInvoices, error: subError } = await supabaseAdmin
-      .from("subscription_invoices")
-      .select("id, store_id, plan_id, amount, paid_at, payment_method, notes")
-      .eq("payment_status", "paid")
-      .not("paid_at", "is", null)
-      .gte("paid_at", startAt)
-      .lte("paid_at", endAt)
-      .limit(2000);
-    if (subError) throw subError;
+    // Buscar apenas as fontes selecionadas
+    let subRows: SubscriptionInvoiceRow[] = [];
+    let extRows: ExternalInvoiceRow[] = [];
+    let appRows: PaymentApprovalRow[] = [];
 
-    const { data: externalInvoices, error: extError } = await supabaseAdmin
-      .from("external_invoices")
-      .select("id, invoice_number, client_id, service_id, amount, paid_at, payment_method, notes")
-      .eq("payment_status", "paid")
-      .not("paid_at", "is", null)
-      .gte("paid_at", startAt)
-      .lte("paid_at", endAt)
-      .limit(2000);
-    if (extError) throw extError;
+    if (sources.subscription_invoices) {
+      const { data: subscriptionInvoices, error: subError } = await supabaseAdmin
+        .from("subscription_invoices")
+        .select("id, store_id, plan_id, amount, paid_at, payment_method, notes")
+        .eq("payment_status", "paid")
+        .not("paid_at", "is", null)
+        .gte("paid_at", startAt)
+        .lte("paid_at", endAt)
+        .limit(2000);
+      if (subError) throw subError;
+      subRows = (subscriptionInvoices ?? []) as SubscriptionInvoiceRow[];
+    }
 
-    const { data: paymentApprovals, error: appError } = await supabaseAdmin
-      .from("payment_approvals")
-      .select("id, store_id, plan_id, status, payment_amount, approved_at, payment_method, notes")
-      .eq("status", "approved")
-      .not("approved_at", "is", null)
-      .gte("approved_at", startAt)
-      .lte("approved_at", endAt)
-      .limit(2000);
-    if (appError) throw appError;
+    if (sources.external_invoices) {
+      const { data: externalInvoices, error: extError } = await supabaseAdmin
+        .from("external_invoices")
+        .select("id, invoice_number, client_id, service_id, amount, paid_at, payment_method, notes")
+        .eq("payment_status", "paid")
+        .not("paid_at", "is", null)
+        .gte("paid_at", startAt)
+        .lte("paid_at", endAt)
+        .limit(2000);
+      if (extError) throw extError;
+      extRows = (externalInvoices ?? []) as ExternalInvoiceRow[];
+    }
 
-    const subRows = (subscriptionInvoices ?? []) as SubscriptionInvoiceRow[];
-    const extRows = (externalInvoices ?? []) as ExternalInvoiceRow[];
-    const appRows = (paymentApprovals ?? []) as PaymentApprovalRow[];
+    if (sources.payment_approvals) {
+      const { data: paymentApprovals, error: appError } = await supabaseAdmin
+        .from("payment_approvals")
+        .select("id, store_id, plan_id, status, payment_amount, approved_at, payment_method, notes")
+        .eq("status", "approved")
+        .not("approved_at", "is", null)
+        .gte("approved_at", startAt)
+        .lte("approved_at", endAt)
+        .limit(2000);
+      if (appError) throw appError;
+      appRows = (paymentApprovals ?? []) as PaymentApprovalRow[];
+    }
 
     // Anti-dupla-contabilização (heurística): se existir subscription_invoice pago muito próximo
     // com mesmo store_id/plan_id/valor, não importar o approval.

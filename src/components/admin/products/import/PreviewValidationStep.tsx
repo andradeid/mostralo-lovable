@@ -100,9 +100,9 @@ export function PreviewValidationStep({
       {validationResult && (
         <div className="space-y-4">
           {validationResult.success ? (
-            <Alert className="border-green-200 bg-green-50">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-800">
+            <Alert className="border-primary/20 bg-primary/5">
+              <CheckCircle className="h-4 w-4 text-primary" />
+              <AlertDescription className="text-foreground">
                 Todos os {validationResult.summary.totalRows} produtos estão válidos!
                 {validationResult.missingCategories.length > 0 && (
                   <> Serão criadas {validationResult.missingCategories.length} novas categorias.</>

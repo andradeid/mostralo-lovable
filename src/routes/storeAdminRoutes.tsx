@@ -15,6 +15,7 @@ const StoreConfigurationPage = lazy(() => import("@/pages/admin/StoreConfigurati
 const CategoriesPage = lazy(() => import("@/pages/admin/CategoriesPage"));
 const ProductsPage = lazy(() => import("@/pages/admin/ProductsPage"));
 const ProductFormPage = lazy(() => import("@/pages/admin/ProductFormPage"));
+const ProductImportPage = lazy(() => import("@/pages/admin/ProductImportPage"));
 const AddonCategoriesPage = lazy(() => import("@/pages/admin/AddonCategoriesPage"));
 const AddonsPage = lazy(() => import("@/pages/admin/AddonsPage"));
 const PromotionsPage = lazy(() => import("@/pages/admin/PromotionsPage"));
@@ -162,6 +163,13 @@ export const storeAdminRoutes = (
           <AttendantPermissionGate permissionKey="produtos">
             <LazyRoute><ProductFormPage /></LazyRoute>
           </AttendantPermissionGate>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/products/import" element={
+      <ProtectedRoute allowedRoles={['store_admin', 'master_admin']}>
+        <AdminLayout pageTitle="Importar Produtos">
+          <LazyRoute><ProductImportPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

@@ -1,5 +1,4 @@
-import Papa from 'papaparse';
-import * as XLSX from 'xlsx';
+// Native CSV/XLSX parser without external dependencies
 
 export interface ParsedRow {
   nome: string;
@@ -169,62 +168,82 @@ function parseNumber(value: unknown): number | undefined {
   return isNaN(num) ? undefined : num;
 }
 
-export function parseCSV(file: File): Promise<{ headers: string[]; data: Record<string, unknown>[] }> {
-  return new Promise((resolve, reject) => {
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      encoding: 'UTF-8',
-      complete: (results) => {
-        const headers = results.meta.fields || [];
-        resolve({
-          headers,
-          data: results.data as Record<string, unknown>[],
-        });
-      },
-      error: (error) => {
-        reject(new Error(`Erro ao parsear CSV: ${error.message}`));
-      },
+// Native CSV parser
+function parseCSVContent(content: string): { headers: string[]; data: Record<string, unknown>[] } {
+  const lines = content.split(/\r?\n/).filter(line => line.trim());
+  if (lines.length === 0) return { headers: [], data: [] };
+
+  // Parse header
+  const headers = parseCSVLine(lines[0]);
+  const data: Record<string, unknown>[] = [];
+
+  // Parse data rows
+  for (let i = 1; i < lines.length; i++) {
+    const values = parseCSVLine(lines[i]);
+    if (values.length === 0 || values.every(v => !v.trim())) continue;
+
+    const row: Record<string, unknown> = {};
+    headers.forEach((header, index) => {
+      row[header] = values[index] || '';
     });
-  });
+    data.push(row);
+  }
+
+  return { headers, data };
 }
 
-export function parseXLSX(file: File): Promise<{ headers: string[]; data: Record<string, unknown>[] }> {
+function parseCSVLine(line: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    const nextChar = line[i + 1];
+
+    if (inQuotes) {
+      if (char === '"') {
+        if (nextChar === '"') {
+          current += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        current += char;
+      }
+    } else {
+      if (char === '"') {
+        inQuotes = true;
+      } else if (char === ',' || char === ';') {
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+  }
+  result.push(current.trim());
+
+  return result;
+}
+
+export function parseCSV(file: File): Promise<{ headers: string[]; data: Record<string, unknown>[] }> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     
     reader.onload = (e) => {
       try {
-        const data = new Uint8Array(e.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: 'array' });
-        
-        // Get first sheet
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        
-        // Convert to JSON with headers
-        const jsonData = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, { 
-          defval: '',
-          raw: false,
-        });
-        
-        // Get headers from first row
-        const headers = jsonData.length > 0 ? Object.keys(jsonData[0]) : [];
-        
-        resolve({
-          headers,
-          data: jsonData,
-        });
+        const content = e.target?.result as string;
+        const result = parseCSVContent(content);
+        resolve(result);
       } catch (error) {
-        reject(new Error(`Erro ao parsear Excel: ${error}`));
+        reject(new Error(`Erro ao parsear CSV: ${error}`));
       }
     };
     
-    reader.onerror = () => {
-      reject(new Error('Erro ao ler arquivo'));
-    };
-    
-    reader.readAsArrayBuffer(file);
+    reader.onerror = () => reject(new Error('Erro ao ler arquivo'));
+    reader.readAsText(file, 'UTF-8');
   });
 }
 
@@ -235,22 +254,17 @@ export async function parseSpreadsheet(file: File): Promise<{
 }> {
   const extension = file.name.split('.').pop()?.toLowerCase();
   
-  let result: { headers: string[]; data: Record<string, unknown>[] };
-  
   if (extension === 'csv') {
-    result = await parseCSV(file);
-  } else if (['xlsx', 'xls'].includes(extension || '')) {
-    result = await parseXLSX(file);
-  } else {
-    throw new Error('Formato de arquivo não suportado. Use CSV ou Excel (.xlsx, .xls)');
+    const result = await parseCSV(file);
+    const detectedMapping = detectColumnMapping(result.headers);
+    return { ...result, detectedMapping };
   }
   
-  const detectedMapping = detectColumnMapping(result.headers);
+  if (['xlsx', 'xls'].includes(extension || '')) {
+    throw new Error('Arquivos Excel (.xlsx, .xls) não são suportados ainda. Por favor, salve como CSV.');
+  }
   
-  return {
-    ...result,
-    detectedMapping,
-  };
+  throw new Error('Formato de arquivo não suportado. Use CSV.');
 }
 
 export function mapRowToProduct(
@@ -269,7 +283,7 @@ export function mapRowToProduct(
       case 'descricao':
       case 'imagem_url':
       case 'variante_nome':
-        mappedRow[targetField] = value ? String(value).trim() : undefined;
+        (mappedRow as Record<string, unknown>)[targetField] = value ? String(value).trim() : undefined;
         break;
         
       case 'preco':
@@ -277,13 +291,13 @@ export function mapRowToProduct(
       case 'alerta_estoque':
       case 'preco_oferta':
       case 'variante_preco':
-        mappedRow[targetField] = parseNumber(value);
+        (mappedRow as Record<string, unknown>)[targetField] = parseNumber(value);
         break;
         
       case 'disponivel':
       case 'mostrar_menu':
       case 'controlar_estoque':
-        mappedRow[targetField] = parseBoolean(value);
+        (mappedRow as Record<string, unknown>)[targetField] = parseBoolean(value);
         break;
     }
   });

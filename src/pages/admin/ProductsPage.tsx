@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { usePageSEO } from '@/hooks/useSEO';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Package, Plus, Search, Edit, Trash2, Grid, ArrowUp, ArrowDown, GripVertical, AlertCircle, ArrowDownAZ, PackageX } from 'lucide-react';
+import { Loader2, Package, Plus, Search, Edit, Trash2, Grid, ArrowUp, ArrowDown, GripVertical, AlertCircle, ArrowDownAZ, PackageX, Upload } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
@@ -546,6 +546,16 @@ const ProductsPage = () => {
           <p className="text-sm text-muted-foreground">Gerencie os produtos da sua loja</p>
         </div>
           <div className="flex flex-col sm:flex-row gap-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="flex-1 sm:flex-none"
+            onClick={() => navigate('/dashboard/products/import')}
+          >
+            <Upload className="w-4 h-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Importar</span>
+            <span className="sm:hidden">Importar</span>
+          </Button>
           <Button 
             variant="outline" 
             size="sm"

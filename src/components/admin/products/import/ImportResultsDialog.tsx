@@ -38,9 +38,9 @@ export function ImportResultsDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {hasErrors ? (
-              <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              <AlertTriangle className="h-5 w-5 text-destructive" />
             ) : (
-              <CheckCircle className="h-5 w-5 text-green-500" />
+              <CheckCircle className="h-5 w-5 text-primary" />
             )}
             {hasErrors ? 'Importação Parcial' : 'Importação Concluída!'}
           </DialogTitle>
@@ -50,13 +50,13 @@ export function ImportResultsDialog({
           {/* Success Stats */}
           <div className="grid grid-cols-2 gap-4">
             <div className="border rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-2xl font-bold text-primary">
                 {result.summary.productsCreated || 0}
               </p>
               <p className="text-sm text-muted-foreground">Produtos criados</p>
             </div>
             <div className="border rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold text-blue-600">
+              <p className="text-2xl font-bold text-primary">
                 {result.summary.variantsCreated || 0}
               </p>
               <p className="text-sm text-muted-foreground">Variantes</p>
@@ -64,8 +64,8 @@ export function ImportResultsDialog({
           </div>
 
           {hasErrors && (
-            <div className="border border-yellow-200 rounded-lg p-3 bg-yellow-50">
-              <p className="text-sm text-yellow-800">
+            <div className="border border-destructive/20 rounded-lg p-3 bg-destructive/5">
+              <p className="text-sm text-destructive">
                 {result.summary.errors} produtos não foram importados devido a erros.
               </p>
             </div>

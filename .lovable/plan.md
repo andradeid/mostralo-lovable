@@ -1,144 +1,232 @@
 
-# Plano de Implementação
+# Plano: Paginação Inteligente na Loja
 
-## Resumo
-Este plano aborda duas melhorias solicitadas:
-1. **Correção do mapeamento de categorias** no import do Alquimia
-2. **Funcionalidade de exclusão em massa** de produtos e categorias com verificação de senha do admin da loja
+## Problema Atual
+A página da loja (`Store.tsx`) carrega **todos os produtos** de uma vez na memória:
+```typescript
+supabase
+  .from('products')
+  .select('...')
+  .eq('store_id', storeData.id)
+  .eq('is_available', true)
+  .order('display_order')
+// Sem limit! Carrega tudo.
+```
 
----
-
-## Parte 1: Correção do Mapeamento de Categorias
-
-### Diagnóstico
-O problema está na lógica de compactação das linhas do CSV. A função `compactAlquimiaRow` remove todas as células vazias, o que pode desalinhar as colunas quando o CSV original tem posições fixas (mesmo com células vazias intermediárias).
-
-### Solução
-Manter as posições originais das colunas em vez de compactar, usando os índices corretos do formato Alquimia padrão.
-
-### Arquivos Afetados
-- `src/lib/parseAlquimia.ts`
-
-### Mudanças Técnicas
-1. Modificar a lógica de parsing para usar índices fixos baseados no cabeçalho detectado
-2. Adicionar mapeamento dinâmico de colunas baseado nos headers encontrados
-3. Remover a compactação que desalinha as colunas
+Para uma loja com 10.000 produtos, isso causa:
+- Download de ~5-10MB de dados
+- Tempo de carregamento de 10-30 segundos
+- Consumo excessivo de memória do navegador
+- Experiência ruim para o cliente
 
 ---
 
-## Parte 2: Exclusão em Massa com Verificação de Senha
+## Solução Proposta: Infinite Scroll com Paginação
 
-### Funcionalidade
-- Botão "Limpar Tudo" na página de produtos (somente para store_admin)
-- Modal de confirmação com 3 camadas de segurança:
-  1. Checkbox de confirmação
-  2. Digitar o nome da loja
-  3. Digitar a senha do admin para verificação
-- Edge Function segura para executar a exclusão no backend
+Recomendo **Infinite Scroll** (carregar mais ao rolar) em vez de paginação tradicional com números. Motivos:
 
-### Fluxo de Segurança
+| Aspecto | Infinite Scroll | Paginação Numérica |
+|---------|-----------------|-------------------|
+| UX Mobile | Excelente (natural) | Ruim (cliques extras) |
+| Descoberta de produtos | Fluida | Interrompida |
+| Performance inicial | 50 produtos | 50 produtos |
+| Implementação | Simples | Simples |
+
+### Comportamento Esperado
+1. Página carrega com os **primeiros 50 produtos**
+2. Ao rolar até o final, carrega mais 50 automaticamente
+3. Indicador visual mostrando "Carregando mais produtos..."
+4. Contador mostrando "Exibindo X de Y produtos"
+5. Funciona junto com filtros de categoria e busca
+
+---
+
+## Arquitetura da Solução
+
 ```text
 ┌─────────────────────────────────────────────────────────────────┐
-│                    MODAL DE EXCLUSÃO                            │
+│                    CARREGAMENTO INICIAL                         │
 ├─────────────────────────────────────────────────────────────────┤
-│  ⚠️ ATENÇÃO: Esta ação é irreversível!                         │
+│  1. Buscar contagem total de produtos                           │
+│     SELECT count(*) FROM products WHERE store_id = X            │
 │                                                                 │
-│  Serão excluídos:                                               │
-│  • 150 produtos                                                 │
-│  • 12 categorias                                                │
-│  • Variantes de produtos                                        │
+│  2. Buscar primeiros 50 produtos                                │
+│     SELECT * FROM products WHERE store_id = X                   │
+│     ORDER BY display_order LIMIT 50 OFFSET 0                    │
 │                                                                 │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │ [  ] Confirmo que desejo excluir TODOS os produtos      │   │
-│  └─────────────────────────────────────────────────────────┘   │
+│  3. Renderizar página com contador: "50 de 10.000 produtos"     │
+└─────────────────────────────────────────────────────────────────┘
+          │
+          ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    INFINITE SCROLL                              │
+├─────────────────────────────────────────────────────────────────┤
+│  Ao rolar 80% da página:                                        │
 │                                                                 │
-│  Digite o nome da loja para confirmar:                          │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │ Farmácia Exemplo                                        │   │
-│  └─────────────────────────────────────────────────────────┘   │
+│  1. Mostrar loader "Carregando mais..."                         │
+│  2. Buscar próximos 50 produtos (OFFSET = 50, 100, 150...)      │
+│  3. Buscar variantes dos novos produtos                         │
+│  4. Adicionar ao array existente                                │
+│  5. Atualizar contador: "100 de 10.000 produtos"                │
 │                                                                 │
-│  Digite sua senha para autorizar:                               │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │ ••••••••                                                │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│                                                                 │
-│  [Cancelar]                            [🗑️ Excluir Tudo]       │
+│  Parar quando: offset >= total de produtos                      │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Arquivos a Criar/Modificar
+---
 
-#### Novos Arquivos
-1. **`src/components/admin/products/DeleteAllProductsDialog.tsx`**
-   - Modal com confirmação tripla
-   - Input para nome da loja
-   - Input para senha do admin
-   - Contador de produtos/categorias a serem excluídos
+## Compatibilidade com Filtros
 
-2. **`supabase/functions/delete-all-products/index.ts`**
-   - Verificação de autenticação (JWT)
-   - Verificação de role (store_admin ou master_admin)
-   - Verificação de senha via Supabase Auth
-   - Exclusão de:
-     - `product_variants` (por product_id da loja)
-     - `product_addons` (por product_id da loja)
-     - `products` (por store_id)
-     - `categories` (por store_id)
-   - Registro de auditoria
+### Categoria Selecionada
+Quando o usuário filtra por categoria, a paginação reinicia:
+- Buscar contagem de produtos **da categoria**
+- Carregar primeiros 50 da categoria
+- Infinite scroll continua dentro da categoria
 
-#### Arquivos Modificados
-3. **`src/pages/admin/ProductsPage.tsx`**
-   - Adicionar botão "Limpar Tudo" no header
-   - Importar e usar o novo dialog
+### Busca por Texto
+Para busca, temos duas opções:
 
-### Detalhes Técnicos da Edge Function
+**Opção A (Recomendada)**: Busca no servidor
+- Enviar termo de busca para o Supabase via `ilike`
+- Paginação funciona igual
 
-```text
-POST /delete-all-products
-Headers: Authorization: Bearer {jwt}
-Body: {
-  storeId: string,
-  confirmationName: string,
-  password: string
-}
+**Opção B**: Busca híbrida
+- Se poucos produtos carregados (<200), filtrar localmente
+- Se muitos, buscar no servidor
 
-Fluxo:
-1. Validar JWT → extrair user_id
-2. Verificar role em user_roles (store_admin + store_id OU master_admin)
-3. Validar senha via signInWithPassword
-4. Contar e deletar em ordem:
-   - product_variants
-   - product_addons  
-   - products
-   - categories
-5. Registrar em admin_audit_log
-6. Retornar estatísticas de exclusão
+---
+
+## Detalhes Técnicos
+
+### Novos States no Store.tsx
+```typescript
+const [page, setPage] = useState(0);
+const [totalProducts, setTotalProducts] = useState(0);
+const [hasMore, setHasMore] = useState(true);
+const [loadingMore, setLoadingMore] = useState(false);
+const PRODUCTS_PER_PAGE = 50;
 ```
 
-### Verificação de Senha (Segura no Backend)
-A senha é verificada chamando `supabase.auth.signInWithPassword` na Edge Function, garantindo que:
-- A senha nunca é armazenada
-- Usa a autenticação nativa do Supabase
-- Falha imediatamente se a senha estiver errada
+### Hook de Detecção de Scroll
+Usar Intersection Observer para detectar quando o usuário chegou no final:
+```typescript
+const observerRef = useRef<HTMLDivElement>(null);
+
+useEffect(() => {
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+      if (entry.isIntersecting && hasMore && !loadingMore) {
+        loadMoreProducts();
+      }
+    },
+    { threshold: 0.1 }
+  );
+  
+  if (observerRef.current) observer.observe(observerRef.current);
+  return () => observer.disconnect();
+}, [hasMore, loadingMore]);
+```
+
+### Query Modificada
+```typescript
+// Contagem total (rápida, sem dados)
+const { count } = await supabase
+  .from('products')
+  .select('id', { count: 'exact', head: true })
+  .eq('store_id', storeId)
+  .eq('is_available', true);
+
+// Produtos paginados
+const { data } = await supabase
+  .from('products')
+  .select('id, name, ...')
+  .eq('store_id', storeId)
+  .eq('is_available', true)
+  .order('display_order')
+  .range(page * PRODUCTS_PER_PAGE, (page + 1) * PRODUCTS_PER_PAGE - 1);
+```
+
+---
+
+## Arquivos a Modificar
+
+| Arquivo | Alteração |
+|---------|-----------|
+| `src/pages/Store.tsx` | Adicionar paginação, estados, Intersection Observer |
+| `src/components/store/LoadMoreIndicator.tsx` | Novo componente de loading |
+| `src/components/store/ProductsCounter.tsx` | Contador "X de Y produtos" |
+
+---
+
+## Componente Visual: Contador de Produtos
+
+Exibido acima da grade de produtos:
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│  📦 Exibindo 50 de 10.000 produtos                              │
+│  ▓▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 0.5%       │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Componente Visual: Loader de Mais Produtos
+
+Exibido no final da lista quando carregando:
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│  ⏳ Carregando mais produtos...                                 │
+│  [===      ] (loader animado)                                   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Reset de Paginação
+
+A paginação deve reiniciar quando:
+- Usuário muda de categoria
+- Usuário digita na busca
+- Usuário limpa filtros
+
+```typescript
+useEffect(() => {
+  setPage(0);
+  setProducts([]);
+  setHasMore(true);
+  fetchProducts(0); // Recarregar primeira página
+}, [selectedCategory, debouncedSearchTerm]);
+```
 
 ---
 
 ## Ordem de Implementação
 
-| Ordem | Tarefa | Prioridade |
-|-------|--------|------------|
-| 1 | Corrigir parsing de categorias no `parseAlquimia.ts` | Alta |
-| 2 | Criar Edge Function `delete-all-products` | Alta |
-| 3 | Criar componente `DeleteAllProductsDialog.tsx` | Alta |
-| 4 | Integrar botão na `ProductsPage.tsx` | Média |
-| 5 | Testar fluxo completo | Alta |
+1. **Adicionar estados de paginação** no `Store.tsx`
+2. **Modificar query inicial** para incluir limit/offset
+3. **Criar função `loadMoreProducts`** para carregar próximas páginas
+4. **Adicionar Intersection Observer** para detectar scroll
+5. **Criar componente `LoadMoreIndicator`** para feedback visual
+6. **Criar componente `ProductsCounter`** para mostrar progresso
+7. **Ajustar lógica de filtros** para resetar paginação
+8. **Testar** com diferentes quantidades de produtos
 
 ---
 
-## Considerações de Segurança
+## Benefícios Esperados
 
-- **Senha verificada no servidor**: Nunca no frontend
-- **Role verificada via user_roles**: Não via profile ou localStorage
-- **Auditoria**: Toda exclusão é registrada com timestamp e user_id
-- **Dupla confirmação**: Nome da loja + senha
-- **Scope por loja**: store_admin só pode excluir da própria loja
+| Métrica | Antes | Depois |
+|---------|-------|--------|
+| Dados iniciais | ~5-10MB | ~500KB |
+| Tempo de carregamento | 10-30s | 1-3s |
+| Produtos na memória | 10.000 | 50-200 |
+| Experiência do usuário | Travando | Fluida |
+
+---
+
+## Considerações Extras
+
+1. **Cache de produtos**: Produtos já carregados ficam em memória durante a sessão
+2. **Debounce na busca**: Evitar requisições excessivas ao digitar
+3. **Skeleton loading**: Mostrar placeholders enquanto carrega
+4. **Retry automático**: Se falhar ao carregar mais, permitir tentar novamente

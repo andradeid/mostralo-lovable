@@ -7,13 +7,14 @@ import { Switch } from '@/components/ui/switch';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { CategoryForm } from '@/components/admin/CategoryForm';
 import { ProductForm } from '@/components/admin/ProductForm';
+import { DeleteAllProductsDialog } from '@/components/admin/products/DeleteAllProductsDialog';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { usePageSEO } from '@/hooks/useSEO';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Package, Plus, Search, Edit, Trash2, Grid, ArrowUp, ArrowDown, GripVertical, AlertCircle, ArrowDownAZ, PackageX, Upload, ChevronDown, FileSpreadsheet } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
@@ -60,7 +61,7 @@ const ProductsPage = () => {
   });
 
   // Hook de segurança - valida acesso à loja
-  const { storeId: validatedStoreId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
+  const { storeId: validatedStoreId, storeName, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
 
   const [categories, setCategories] = useState<CategoryData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,7 +70,8 @@ const ProductsPage = () => {
   const [categoryFormOpen, setCategoryFormOpen] = useState(false);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [showEditForm, setShowEditForm] = useState(false);
-  const { user } = useAuth();
+  const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
+  const { user, userRole } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -565,6 +567,18 @@ const ProductsPage = () => {
                 <FileSpreadsheet className="w-4 h-4 mr-2" />
                 Importar do Alquimia
               </DropdownMenuItem>
+              {(userRole === 'store_admin' || userRole === 'master_admin') && totalProducts > 0 && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={() => setShowDeleteAllDialog(true)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Limpar Tudo
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
           <Button 
@@ -1047,6 +1061,19 @@ const ProductsPage = () => {
             />
           </div>
         </div>
+      )}
+
+      {/* Modal de exclusão em massa */}
+      {validatedStoreId && storeName && (
+        <DeleteAllProductsDialog
+          open={showDeleteAllDialog}
+          onOpenChange={setShowDeleteAllDialog}
+          storeId={validatedStoreId}
+          storeName={storeName}
+          productsCount={totalProducts}
+          categoriesCount={categories.filter(c => c.id !== 'uncategorized').length}
+          onSuccess={fetchCategoriesAndProducts}
+        />
       )}
     </div>
   );

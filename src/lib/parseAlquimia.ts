@@ -86,16 +86,28 @@ export function parseBrazilianPrice(value: string | number | null | undefined): 
 
 /**
  * Mapeia código de classificação Alquimia para categoria Mostralo
+ * Baseado no padrão do sistema Alquimia para farmácias
  */
 export function mapAlquimiaCategory(cla: string | null | undefined): string {
   if (!cla) return 'Outros';
   
   const code = String(cla).toUpperCase().trim();
   
-  if (code === 'PER') return 'Higiene e Beleza';
-  if (['GEN', 'MON', 'BON'].includes(code)) return 'Medicamentos';
+  const categoryMap: Record<string, string> = {
+    'GEN': 'Medicamentos Genéricos',
+    'MON': 'Medicamentos',
+    'BON': 'Medicamentos',
+    'PER': 'Higiene e Perfumaria',
+    'HOS': 'Primeiros Socorros e Materiais',
+    'NAT': 'Produtos Naturais',
+    'SUP': 'Suplementos e Vitaminas',
+    'VAR': 'Conveniência',
+    'PSI': 'Medicamentos Controlados',
+    'DER': 'Dermocosméticos',
+    'BEB': 'Bebês e Mamães',
+  };
   
-  return 'Outros';
+  return categoryMap[code] || 'Outros';
 }
 
 /**

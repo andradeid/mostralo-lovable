@@ -1,123 +1,89 @@
 
-# Plano: Modal de Pagamento Maior com Layout em Colunas + Scrollbar Visível no Carrinho
+# Plano: Corrigir Layout PDV - Scroll Interno no Carrinho + Remover Scroll da Página
 
-## Problemas Atuais
+## Problema Identificado
 
-### Modal de Pagamento (Imagem 1)
-- Modal muito pequeno (`max-w-md`)
-- Lista de itens limitada a `max-h-40` (160px) - mostra apenas 2 itens
-- Tudo em uma única coluna, difícil de conferir
+Na imagem, você marcou com setas vermelhas:
+1. **Seta superior**: Mostra que existe scroll na PÁGINA TODA (não deveria existir)
+2. **Seta na lateral do carrinho**: O carrinho NÃO tem scroll interno
 
-### Card do Carrinho (Imagem 2)
-- ScrollArea existe, mas scrollbar não aparece visível
-- A linha vermelha indica onde deveria ter scrollbar
+**Causa raiz no código (linha 328 do PDVPage.tsx):**
+```tsx
+<div className="w-80 lg:w-96 flex-shrink-0 self-start sticky top-0">
+```
 
----
+O problema é:
+- `self-start` → Faz o carrinho encolher para o tamanho do conteúdo ao invés de preencher a altura
+- `sticky top-0` → Comportamento para scroll de página (não queremos scroll de página!)
 
 ## Solução Proposta
 
-### Parte 1: Modal de Pagamento Expandido com 2 Colunas
+### Alteração 1: `PDVPage.tsx` (linha 328)
 
-**Layout Desktop (lado a lado):**
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                       Finalizar Venda                             │
-├─────────────────────────────────┬────────────────────────────────┤
-│     COLUNA ESQUERDA             │     COLUNA DIREITA             │
-│     (Itens da Venda)            │     (Pagamento)                │
-│                                 │                                │
-│  ┌─────────────────────────┐    │  Subtotal         R$ 152,00   │
-│  │ [📷] Produto A   R$4,00 │    │  Desconto              [0]    │
-│  │ [📷] Produto B  R$50,00 │    │  ─────────────────────────    │
-│  │ [📷] Produto C   R$5,00 │    │  Total            R$ 152,00   │
-│  │ [📷] Produto D   R$5,00 │    │                                │
-│  │ [📷] Produto E   R$9,00 │    │  Forma de Pagamento            │
-│  │ [📷] Produto F  R$18,00 │    │  [Dinheiro] [Crédito]          │
-│  │ ...                     │ ←ScrollArea│  [Débito]   [PIX]      │
-│  └─────────────────────────┘    │  [Outros]                      │
-│                                 │                                │
-│                                 │  [Confirmar R$ 152,00]         │
-│                                 │  [Cancelar]                    │
-└─────────────────────────────────┴────────────────────────────────┘
-```
-
-**Layout Mobile (coluna única com área de itens maior):**
-- Lista de itens ocupa mais espaço (`max-h-60` ao invés de `max-h-40`)
-- Scrollbar sempre visível
-
-### Alterações Técnicas
-
-**Arquivo: `src/components/pdv/PDVPaymentModal.tsx`**
-
-1. **Aumentar tamanho do modal**:
-   - Desktop: `max-w-4xl` ao invés de `max-w-md`
-   - Mobile: manter Drawer mas com mais espaço para itens
-
-2. **Layout em 2 colunas no desktop**:
-   - Coluna esquerda: Lista de itens com ScrollArea grande
-   - Coluna direita: Resumo financeiro + formas de pagamento + botões
-
-3. **ScrollArea dos itens expandida**:
-   - Desktop: `h-[400px]` para mostrar mais itens
-   - Mobile: `max-h-60` (240px)
-
-**Código da estrutura:**
+**Antes:**
 ```tsx
-// Desktop: 2 colunas
-<div className="grid grid-cols-2 gap-6">
-  {/* Coluna Esquerda - Itens */}
-  <div className="space-y-4">
-    <Label>Itens da Venda ({items.length})</Label>
-    <ScrollArea className="h-[400px] border rounded-lg">
-      {/* Lista de itens */}
-    </ScrollArea>
-  </div>
-  
-  {/* Coluna Direita - Pagamento */}
-  <div className="space-y-4">
-    {/* Resumo */}
-    {/* Formas de pagamento */}
-    {/* Botões */}
-  </div>
-</div>
+<div className="w-80 lg:w-96 flex-shrink-0 self-start sticky top-0">
 ```
 
-### Parte 2: Scrollbar Visível no Card do Carrinho
-
-**Arquivo: `src/components/pdv/PDVCart.tsx`**
-
-Adicionar classe customizada para forçar visibilidade da scrollbar:
-
+**Depois:**
 ```tsx
-<ScrollArea className="h-full [&>div>div[style]]:!block">
+<div className="w-80 lg:w-96 flex-shrink-0 h-full overflow-hidden">
 ```
 
-Ou usar CSS inline para garantir que a scrollbar apareça:
+- Remove `self-start sticky top-0` (comportamento de scroll de página)
+- Adiciona `h-full` (carrinho ocupa 100% da altura disponível)
+- Adiciona `overflow-hidden` (garante que scroll seja interno)
 
+### Alteração 2: `PDVCart.tsx` (linha 37)
+
+**Antes:**
 ```tsx
-<ScrollArea 
-  className="h-full"
-  scrollbarProps={{ className: "opacity-100" }}
->
+<Card className="flex flex-col h-full max-h-[calc(100dvh-80px)]">
 ```
 
----
+**Depois:**
+```tsx
+<Card className="flex flex-col h-full">
+```
 
-## Resumo das Alterações
+- Remove `max-h-[calc(100dvh-80px)]` pois agora o container pai (`h-full overflow-hidden`) já controla a altura máxima
+- O `h-full` faz o Card preencher todo o espaço do wrapper
 
-| Arquivo | Alteração |
-|---------|-----------|
-| `PDVPaymentModal.tsx` | Aumentar modal para `max-w-4xl` |
-| `PDVPaymentModal.tsx` | Criar layout de 2 colunas (desktop) |
-| `PDVPaymentModal.tsx` | Expandir área de itens para `h-[400px]` (desktop) / `max-h-60` (mobile) |
-| `PDVPaymentModal.tsx` | Separar itens do resumo/pagamento |
-| `PDVCart.tsx` | Adicionar classe para scrollbar sempre visível |
+## Resultado Visual Esperado
 
----
+```
+┌──────────────────────────────────────────────────────────────┐
+│  [PDV] [Comandas] [Histórico]                    [Tela Cheia]│
+├────────────────────────────────────┬─────────────────────────┤
+│                                    │  🛒 Carrinho (9)  Limpar│
+│   Grid de Produtos                 │  ┌────────────────────┐ │
+│   ┌─────────────────────────────┐  │  │ Produto A   R$4    │ │
+│   │  [Produto] [Produto] ...    │  │  │ Produto B   R$50   │ │
+│   │                             │  │  │ Produto C   R$5    │ │
+│   │          SCROLL             │  │  │      SCROLL        │ │← SCROLL AQUI
+│   │             ↓               │  │  │        ↓           │ │
+│   │                             │  │  │ Produto D   R$18   │ │
+│   └─────────────────────────────┘  │  └────────────────────┘ │
+│                                    │  Subtotal     R$125,00  │
+│                                    │  Total        R$125,00  │
+│                                    │  [Finalizar Venda]      │
+├────────────────────────────────────┴─────────────────────────┤
+│                       FOOTER VISÍVEL                          │← Footer aparece
+└──────────────────────────────────────────────────────────────┘
 
-## Benefícios
+SEM SCROLL NA PÁGINA ✓
+```
 
-1. **Conferência completa**: Operador vê todos os 8+ itens sem precisar rolar muito
-2. **Layout organizado**: Itens de um lado, pagamento do outro
-3. **Scrollbar visível**: Indica claramente que há mais conteúdo
-4. **UX profissional**: Similar a sistemas de PDV tradicionais
+## Arquivos a Modificar
+
+| Arquivo | Linha | Alteração |
+|---------|-------|-----------|
+| `PDVPage.tsx` | 328 | Trocar `self-start sticky top-0` por `h-full overflow-hidden` |
+| `PDVCart.tsx` | 37 | Remover `max-h-[calc(100dvh-80px)]`, manter `h-full` |
+
+## Resumo
+
+- Scroll de página: **REMOVIDO**
+- Scroll de produtos: **MANTIDO** ✓
+- Scroll do carrinho: **ATIVADO** (agora vai funcionar!)
+- Footer visível: **SIM** (sem scroll de página)

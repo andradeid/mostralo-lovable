@@ -99,12 +99,12 @@ export default function PDVPage() {
   const { isEnabled: isPdvEnabled, message: channelMessage } = useCheckSalesChannel(storeId, 'pdv_enabled');
   const salesPaused = !isPdvEnabled;
 
-  const handleFinalize = async (paymentMethod: string, discount: number, paymentDetails?: Record<string, any>) => {
+  const handleFinalize = async (paymentMethod: string, discount: number, paymentDetails?: Record<string, any>, shouldPrint: boolean = true) => {
     const result = await finalizeSale(paymentMethod, discount, paymentDetails);
     setPaymentModalOpen(false);
     
-    // Impressão automática após finalizar venda de balcão
-    if (result?.comanda && result?.items) {
+    // Impressão automática após finalizar venda de balcão (se habilitada)
+    if (shouldPrint && result?.comanda && result?.items) {
       printComanda(
         result.comanda,
         result.items,

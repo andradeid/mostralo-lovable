@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatCurrency } from '@/lib/utils';
-import { CreditCard, Banknote, QrCode, Wallet, Loader2, X, Package } from 'lucide-react';
+import { CreditCard, Banknote, QrCode, Wallet, Loader2, X, Package, Printer } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Dialog,
@@ -28,7 +28,7 @@ interface PDVPaymentModalProps {
   onOpenChange: (open: boolean) => void;
   subtotal: number;
   items: CartItem[];
-  onConfirm: (paymentMethod: string, discount: number, paymentDetails?: Record<string, any>) => void;
+  onConfirm: (paymentMethod: string, discount: number, paymentDetails?: Record<string, any>, shouldPrint?: boolean) => void;
   isProcessing?: boolean;
 }
 
@@ -51,6 +51,7 @@ export function PDVPaymentModal({
   const [selectedMethod, setSelectedMethod] = useState('dinheiro');
   const [discount, setDiscount] = useState(0);
   const [receivedAmount, setReceivedAmount] = useState(0);
+  const [shouldPrint, setShouldPrint] = useState(true);
   const isMobile = useIsMobile();
 
   const total = subtotal - discount;
@@ -64,7 +65,7 @@ export function PDVPaymentModal({
       paymentDetails.change = change;
     }
 
-    onConfirm(selectedMethod, discount, paymentDetails);
+    onConfirm(selectedMethod, discount, paymentDetails, shouldPrint);
   };
 
   const handleClose = () => {
@@ -183,31 +184,49 @@ export function PDVPaymentModal({
   );
 
   const footer = (
-    <div className={`flex gap-2 ${isMobile ? 'flex-col' : 'sm:flex-row sm:justify-end'}`}>
-      <Button
-        size={isMobile ? "lg" : "default"}
-        className={`${isMobile ? 'h-14 text-lg' : ''}`}
-        onClick={handleConfirm}
-        disabled={isProcessing}
+    <div className={`flex gap-2 ${isMobile ? 'flex-col' : 'sm:flex-row sm:justify-between sm:items-center'}`}>
+      {/* Toggle de impressão */}
+      <button
+        type="button"
+        onClick={() => setShouldPrint(!shouldPrint)}
+        className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+          shouldPrint 
+            ? 'bg-primary/10 text-primary border border-primary/30' 
+            : 'bg-muted text-muted-foreground border border-border'
+        } ${isMobile ? 'justify-center h-12' : ''}`}
       >
-        {isProcessing ? (
-          <>
-            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-            Processando...
-          </>
-        ) : (
-          `Confirmar ${formatCurrency(total)}`
-        )}
-      </Button>
-      <Button 
-        variant="outline" 
-        size={isMobile ? "lg" : "default"}
-        onClick={handleClose} 
-        disabled={isProcessing}
-        className={isMobile ? 'h-12' : ''}
-      >
-        Cancelar
-      </Button>
+        <Printer className="h-4 w-4" />
+        <span className="text-sm font-medium">
+          {shouldPrint ? 'Imprimir recibo' : 'Sem impressão'}
+        </span>
+      </button>
+      
+      <div className={`flex gap-2 ${isMobile ? 'flex-col' : ''}`}>
+        <Button
+          size={isMobile ? "lg" : "default"}
+          className={`${isMobile ? 'h-14 text-lg' : ''}`}
+          onClick={handleConfirm}
+          disabled={isProcessing}
+        >
+          {isProcessing ? (
+            <>
+              <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+              Processando...
+            </>
+          ) : (
+            `Confirmar ${formatCurrency(total)}`
+          )}
+        </Button>
+        <Button 
+          variant="outline" 
+          size={isMobile ? "lg" : "default"}
+          onClick={handleClose} 
+          disabled={isProcessing}
+          className={isMobile ? 'h-12' : ''}
+        >
+          Cancelar
+        </Button>
+      </div>
     </div>
   );
 
@@ -246,20 +265,20 @@ export function PDVPaymentModal({
   // Desktop: Modal grande com 2 colunas
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="max-w-5xl max-h-[85vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="text-xl">Finalizar Venda</DialogTitle>
         </DialogHeader>
         
-        <div className="grid grid-cols-2 gap-6 overflow-hidden">
+        <div className="grid grid-cols-2 gap-8 overflow-hidden">
           {/* Coluna Esquerda - Lista de Itens */}
           <div className="space-y-3 overflow-hidden">
             <Label className="text-base font-semibold">Itens da Venda ({items.length})</Label>
-            <ItemsList maxHeight="h-[400px]" />
+            <ItemsList maxHeight="h-[500px]" />
           </div>
 
           {/* Coluna Direita - Pagamento */}
-          <div className="space-y-4 overflow-auto max-h-[450px] pr-2">
+          <div className="space-y-4 overflow-auto max-h-[550px] pr-2">
             <PaymentSection />
           </div>
         </div>

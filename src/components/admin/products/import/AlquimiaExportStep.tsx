@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   ArrowLeft, 
   Download, 
@@ -11,16 +12,20 @@ import {
   CheckCircle2, 
   Package,
   Tags,
-  AlertCircle
+  AlertCircle,
+  Search,
+  Image,
+  Info
 } from 'lucide-react';
 import { AlquimiaProduct, exportToMostraloCSV, downloadCSV } from '@/lib/parseAlquimia';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AlquimiaExportStepProps {
   products: AlquimiaProduct[];
   categories: string[];
   fileName: string;
   onBack: () => void;
-  onSaveToDatabase: (createCategories: boolean) => Promise<void>;
+  onSaveToDatabase: (createCategories: boolean, searchImages: boolean) => Promise<void>;
   isImporting: boolean;
 }
 
@@ -33,9 +38,35 @@ export function AlquimiaExportStep({
   isImporting,
 }: AlquimiaExportStepProps) {
   const [createMissingCategories, setCreateMissingCategories] = useState(true);
+  const [searchImagesEnabled, setSearchImagesEnabled] = useState(false);
+  const [imageSearchConfigured, setImageSearchConfigured] = useState(false);
+  const [checkingConfig, setCheckingConfig] = useState(true);
 
   const validProducts = products.filter(p => p.isValid);
   const invalidProducts = products.filter(p => !p.isValid);
+
+  useEffect(() => {
+    checkImageSearchConfig();
+  }, []);
+
+  const checkImageSearchConfig = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('image_search_config' as any)
+        .select('is_active, api_key, search_engine_id')
+        .eq('is_active', true)
+        .single();
+
+      if (!error && data) {
+        const config = data as any;
+        setImageSearchConfigured(!!(config.api_key && config.search_engine_id));
+      }
+    } catch {
+      setImageSearchConfigured(false);
+    } finally {
+      setCheckingConfig(false);
+    }
+  };
 
   const handleDownloadCSV = () => {
     const csvContent = exportToMostraloCSV(products);
@@ -44,7 +75,7 @@ export function AlquimiaExportStep({
   };
 
   const handleSaveToDatabase = async () => {
-    await onSaveToDatabase(createMissingCategories);
+    await onSaveToDatabase(createMissingCategories, searchImagesEnabled);
   };
 
   return (
@@ -144,48 +175,100 @@ export function AlquimiaExportStep({
               <Database className="h-5 w-5 text-primary" />
               Salvar no Mostralo
             </CardTitle>
-            <CardDescription>
-              Importe diretamente para o banco de dados da sua loja
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
+          <CardDescription>
+            Importe diretamente para o banco de dados da sua loja
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="create-categories">Criar categorias novas</Label>
+              <p className="text-xs text-muted-foreground">
+                Cria categorias que ainda não existem na loja
+              </p>
+            </div>
+            <Switch
+              id="create-categories"
+              checked={createMissingCategories}
+              onCheckedChange={setCreateMissingCategories}
+            />
+          </div>
+
+          {/* Toggle de Busca de Imagens */}
+          <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-full bg-primary/10">
+                <Search className="h-4 w-4 text-primary" />
+              </div>
               <div className="space-y-0.5">
-                <Label htmlFor="create-categories">Criar categorias novas</Label>
+                <Label htmlFor="search-images" className="flex items-center gap-2">
+                  Buscar imagens automaticamente
+                  {!imageSearchConfigured && !checkingConfig && (
+                    <span className="text-xs text-amber-600">(não configurado)</span>
+                  )}
+                </Label>
                 <p className="text-xs text-muted-foreground">
-                  Cria categorias que ainda não existem na loja
+                  Busca e salva imagens do Google para cada produto
                 </p>
               </div>
-              <Switch
-                id="create-categories"
-                checked={createMissingCategories}
-                onCheckedChange={setCreateMissingCategories}
-              />
             </div>
+            <Switch
+              id="search-images"
+              checked={searchImagesEnabled}
+              onCheckedChange={setSearchImagesEnabled}
+              disabled={!imageSearchConfigured || checkingConfig}
+            />
+          </div>
 
-            <Button 
-              className="w-full"
-              onClick={handleSaveToDatabase}
-              disabled={validProducts.length === 0 || isImporting}
-            >
-              {isImporting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Importando...
-                </>
-              ) : (
-                <>
+          {searchImagesEnabled && imageSearchConfigured && (
+            <Alert className="border-blue-500/30 bg-blue-500/5">
+              <Info className="h-4 w-4 text-blue-500" />
+              <AlertDescription className="text-xs">
+                A busca de imagens processa em lotes de 50 produtos. Para {validProducts.length} produtos, 
+                o tempo estimado é de ~{Math.ceil(validProducts.length / 50)} minuto(s).
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {!imageSearchConfigured && !checkingConfig && (
+            <Alert className="border-amber-500/30 bg-amber-500/5">
+              <AlertCircle className="h-4 w-4 text-amber-500" />
+              <AlertDescription className="text-xs">
+                Configure a API de busca de imagens em <strong>Dashboard → Busca de Imagens</strong> para habilitar esta função.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <Button 
+            className="w-full"
+            onClick={handleSaveToDatabase}
+            disabled={validProducts.length === 0 || isImporting}
+          >
+            {isImporting ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                {searchImagesEnabled ? 'Buscando imagens...' : 'Importando...'}
+              </>
+            ) : (
+              <>
+                {searchImagesEnabled ? (
+                  <Image className="h-4 w-4 mr-2" />
+                ) : (
                   <Database className="h-4 w-4 mr-2" />
-                  Importar {validProducts.length} Produtos
-                </>
-              )}
-            </Button>
-            <p className="text-xs text-muted-foreground text-center">
-              Recomendado para importação direta
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+                )}
+                Importar {validProducts.length} Produtos
+                {searchImagesEnabled && ' com Imagens'}
+              </>
+            )}
+          </Button>
+          <p className="text-xs text-muted-foreground text-center">
+            {searchImagesEnabled 
+              ? 'Produtos serão importados com imagens buscadas automaticamente'
+              : 'Recomendado para importação direta'}
+          </p>
+        </CardContent>
+      </Card>
+    </div>
 
       {/* Aviso sobre produtos inválidos */}
       {invalidProducts.length > 0 && (

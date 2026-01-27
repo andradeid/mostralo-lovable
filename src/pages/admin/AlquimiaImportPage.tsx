@@ -6,11 +6,13 @@ import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, Upload, Eye, Download as DownloadIcon, CheckCircle } from 'lucide-react';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useProductImport } from '@/hooks/useProductImport';
+import { useImageSearch } from '@/hooks/useImageSearch';
 import { useToast } from '@/hooks/use-toast';
 import { AlquimiaUploadStep } from '@/components/admin/products/import/AlquimiaUploadStep';
 import { AlquimiaPreviewStep } from '@/components/admin/products/import/AlquimiaPreviewStep';
 import { AlquimiaExportStep } from '@/components/admin/products/import/AlquimiaExportStep';
 import { ImportResultsDialog } from '@/components/admin/products/import/ImportResultsDialog';
+import { ImageSearchProgress } from '@/components/admin/products/import/ImageSearchProgress';
 import { 
   parseAlquimiaCSV, 
   AlquimiaProduct,
@@ -36,12 +38,20 @@ export default function AlquimiaImportPage() {
     reset: resetImport,
   } = useProductImport(storeId);
 
+  const {
+    isSearching,
+    progress: searchProgress,
+    searchImages,
+    cancelSearch,
+  } = useImageSearch();
+
   const [currentStep, setCurrentStep] = useState<ImportStep>('upload');
   const [file, setFile] = useState<File | null>(null);
   const [products, setProducts] = useState<AlquimiaProduct[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [skipImageSearch, setSkipImageSearch] = useState(false);
 
   const currentStepIndex = STEPS.findIndex(s => s.key === currentStep);
   const progress = ((currentStepIndex + 1) / STEPS.length) * 100;
@@ -81,13 +91,33 @@ export default function AlquimiaImportPage() {
     setCategories(newCategories);
   }, []);
 
-  const handleSaveToDatabase = useCallback(async (createMissingCategories: boolean) => {
-    if (!file) return;
+  const handleSaveToDatabase = useCallback(async (createMissingCategories: boolean, searchImagesEnabled: boolean) => {
+    if (!file || !storeId) return;
     
     // Converter produtos Alquimia para o formato esperado pelo importador (ProductWithVariants)
     const validProducts = products.filter(p => p.isValid);
     
-    const productsForImport: ProductWithVariants[] = validProducts.map(p => ({
+    let productsWithImages = validProducts;
+    
+    // Se busca de imagens está habilitada e não foi pulada
+    if (searchImagesEnabled && !skipImageSearch) {
+      // Buscar imagens para os produtos
+      const imageResults = await searchImages(
+        validProducts.map(p => ({ nome: p.nome, laboratorio: p.laboratorio })),
+        storeId
+      );
+      
+      // Aplicar URLs de imagem aos produtos
+      productsWithImages = validProducts.map((p, index) => {
+        const imageResult = imageResults.find(r => r.productIndex === index);
+        return {
+          ...p,
+          image_url: imageResult?.imageUrl || undefined,
+        };
+      });
+    }
+    
+    const productsForImport: ProductWithVariants[] = productsWithImages.map(p => ({
       nome: p.nome,
       preco: p.preco,
       categoria: p.categoria,
@@ -96,6 +126,7 @@ export default function AlquimiaImportPage() {
       controlar_estoque: p.controlar_estoque,
       quantidade_estoque: p.quantidade_estoque,
       alerta_estoque: p.alerta_estoque,
+      image_url: (p as any).image_url,
       variantes: [], // Sem variantes na importação Alquimia
     }));
     
@@ -104,7 +135,12 @@ export default function AlquimiaImportPage() {
     if (result) {
       setShowResults(true);
     }
-  }, [file, products, importProducts]);
+  }, [file, products, importProducts, storeId, searchImages, skipImageSearch]);
+
+  const handleSkipImageSearch = useCallback(() => {
+    setSkipImageSearch(true);
+    cancelSearch();
+  }, [cancelSearch]);
 
   const handleReset = useCallback(() => {
     setCurrentStep('upload');
@@ -112,6 +148,7 @@ export default function AlquimiaImportPage() {
     setProducts([]);
     setCategories([]);
     setShowResults(false);
+    setSkipImageSearch(false);
     resetImport();
   }, [resetImport]);
 
@@ -207,14 +244,22 @@ export default function AlquimiaImportPage() {
             />
           )}
 
-          {currentStep === 'export' && (
+          {currentStep === 'export' && !isSearching && (
             <AlquimiaExportStep
               products={products}
               categories={categories}
               fileName={file?.name || 'alquimia'}
               onBack={handleBack}
               onSaveToDatabase={handleSaveToDatabase}
-              isImporting={isImporting}
+              isImporting={isImporting || isSearching}
+            />
+          )}
+
+          {isSearching && (
+            <ImageSearchProgress
+              progress={searchProgress}
+              onCancel={cancelSearch}
+              onSkip={handleSkipImageSearch}
             />
           )}
         </CardContent>

@@ -59,6 +59,7 @@ const ProposalBuilderPage = lazy(() => import("@/pages/admin/ProposalBuilderPage
 const NicheTemplatesPage = lazy(() => import("@/pages/admin/NicheTemplatesPage"));
 const CompanySettingsPage = lazy(() => import("@/pages/admin/CompanySettingsPage"));
 const GoogleAppsConfigPage = lazy(() => import("@/pages/admin/GoogleAppsConfigPage"));
+const ImageSearchConfigPage = lazy(() => import("@/pages/admin/ImageSearchConfigPage"));
 const SystemFinancePage = lazy(() => import("@/pages/admin/SystemFinancePage"));
 
 export const masterRoutes = (
@@ -445,6 +446,13 @@ export const masterRoutes = (
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Configurações Google Apps">
           <LazyRoute><GoogleAppsConfigPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/image-search-config" element={
+      <ProtectedRoute allowedRoles={['master_admin']}>
+        <AdminLayout pageTitle="Busca de Imagens">
+          <LazyRoute><ImageSearchConfigPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

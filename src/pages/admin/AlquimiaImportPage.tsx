@@ -95,7 +95,8 @@ export default function AlquimiaImportPage() {
   const handleSaveToDatabase = useCallback(async (
     createMissingCategories: boolean, 
     searchImagesEnabled: boolean,
-    importLimit: number | 'all'
+    importLimit: number | 'all',
+    duplicateAction: 'skip' | 'update' | 'create' = 'skip'
   ) => {
     if (!file || !storeId) return;
     
@@ -145,7 +146,12 @@ export default function AlquimiaImportPage() {
       variantes: [], // Sem variantes na importação Alquimia
     }));
     
-    const result = await importProducts(productsForImport, createMissingCategories, file.name);
+    const result = await importProducts(
+      productsForImport, 
+      createMissingCategories, 
+      file.name, 
+      duplicateAction
+    );
     
     if (result) {
       setShowResults(true);
@@ -274,6 +280,7 @@ export default function AlquimiaImportPage() {
               onSaveToDatabase={handleSaveToDatabase}
               isImporting={isImporting || isSearching}
               onlyWithStock={onlyWithStock}
+              storeId={storeId}
             />
           )}
 

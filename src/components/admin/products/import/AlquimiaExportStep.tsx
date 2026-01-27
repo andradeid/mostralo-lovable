@@ -5,6 +5,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Slider } from '@/components/ui/slider';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { 
   Select,
   SelectContent,
@@ -26,10 +27,14 @@ import {
   Info,
   DollarSign,
   Calculator,
-  Lightbulb
+  Lightbulb,
+  Copy,
+  RefreshCw,
+  SkipForward
 } from 'lucide-react';
 import { AlquimiaProduct, exportToMostraloCSV, downloadCSV } from '@/lib/parseAlquimia';
 import { supabase } from '@/integrations/supabase/client';
+import { DuplicateAction, DuplicateCheckResult } from '@/hooks/useProductImport';
 
 // Custo por busca baseado no plano Production SerpAPI
 const COST_PER_SEARCH_BRL = 0.055;
@@ -40,9 +45,10 @@ interface AlquimiaExportStepProps {
   categories: string[];
   fileName: string;
   onBack: () => void;
-  onSaveToDatabase: (createCategories: boolean, searchImages: boolean, importLimit: number | 'all') => Promise<void>;
+  onSaveToDatabase: (createCategories: boolean, searchImages: boolean, importLimit: number | 'all', duplicateAction: DuplicateAction) => Promise<void>;
   isImporting: boolean;
   onlyWithStock: boolean;
+  storeId: string | null;
 }
 
 export function AlquimiaExportStep({
@@ -53,12 +59,17 @@ export function AlquimiaExportStep({
   onSaveToDatabase,
   isImporting,
   onlyWithStock,
+  storeId,
 }: AlquimiaExportStepProps) {
   const [createMissingCategories, setCreateMissingCategories] = useState(true);
   const [searchImagesEnabled, setSearchImagesEnabled] = useState(false);
   const [imageSearchConfigured, setImageSearchConfigured] = useState(false);
   const [checkingConfig, setCheckingConfig] = useState(true);
   const [importLimit, setImportLimit] = useState<number | 'all'>(500);
+  const [duplicateAction, setDuplicateAction] = useState<DuplicateAction>('skip');
+  const [duplicateCheckResult, setDuplicateCheckResult] = useState<DuplicateCheckResult | null>(null);
+  const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
+  const [duplicatesChecked, setDuplicatesChecked] = useState(false);
 
   // Filtrar produtos com base na opção de estoque
   const validProducts = useMemo(() => {
@@ -100,6 +111,60 @@ export function AlquimiaExportStep({
     checkImageSearchConfig();
   }, []);
 
+  // Verificar duplicatas quando o componente carrega ou limite muda
+  useEffect(() => {
+    if (storeId && validProducts.length > 0) {
+      checkDuplicates();
+    }
+  }, [storeId, validProducts.length, importLimit]);
+
+  const checkDuplicates = async () => {
+    if (!storeId) return;
+    
+    setIsCheckingDuplicates(true);
+    setDuplicatesChecked(false);
+
+    try {
+      const productsToCheck = importLimit === 'all' 
+        ? validProducts 
+        : validProducts.slice(0, typeof importLimit === 'number' ? importLimit : validProducts.length);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const response = await supabase.functions.invoke('import-products', {
+        body: {
+          action: 'check-duplicates',
+          storeId,
+          createMissingCategories,
+          products: productsToCheck.map(p => ({
+            nome: p.nome,
+            preco: p.preco,
+            categoria: p.categoria,
+            disponivel: p.disponivel,
+            mostrar_menu: p.mostrar_menu,
+            controlar_estoque: p.controlar_estoque,
+            quantidade_estoque: p.quantidade_estoque,
+            alerta_estoque: p.alerta_estoque,
+            variantes: [],
+          })),
+          fileName: 'check-duplicates',
+        },
+      });
+
+      if (response.error) {
+        console.error('Erro ao verificar duplicatas:', response.error);
+      } else {
+        setDuplicateCheckResult(response.data as DuplicateCheckResult);
+      }
+    } catch (error) {
+      console.error('Erro ao verificar duplicatas:', error);
+    } finally {
+      setIsCheckingDuplicates(false);
+      setDuplicatesChecked(true);
+    }
+  };
+
   const checkImageSearchConfig = async () => {
     try {
       const { data, error } = await supabase
@@ -130,7 +195,7 @@ export function AlquimiaExportStep({
   };
 
   const handleSaveToDatabase = async () => {
-    await onSaveToDatabase(createMissingCategories, searchImagesEnabled, importLimit);
+    await onSaveToDatabase(createMissingCategories, searchImagesEnabled, importLimit, duplicateAction);
   };
 
   const presetQuantities = [100, 250, 500, 1000];
@@ -195,6 +260,96 @@ export function AlquimiaExportStep({
           </div>
         </CardContent>
       </Card>
+
+      {/* Aviso de Duplicatas */}
+      {isCheckingDuplicates && (
+        <Card className="border-blue-500/30 bg-blue-500/5">
+          <CardContent className="py-4">
+            <div className="flex items-center gap-3">
+              <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+              <span className="text-sm text-blue-600">Verificando produtos duplicados...</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {duplicatesChecked && duplicateCheckResult && duplicateCheckResult.existingProducts > 0 && (
+        <Card className="border-amber-500/50 bg-amber-500/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Copy className="h-5 w-5 text-amber-600" />
+              Produtos Duplicados Encontrados
+            </CardTitle>
+            <CardDescription>
+              {duplicateCheckResult.existingProducts} de {productsToImport} produtos já existem na loja
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center p-3 rounded-lg bg-emerald-500/10">
+                <p className="text-2xl font-bold text-emerald-600">{duplicateCheckResult.newProducts}</p>
+                <p className="text-xs text-muted-foreground">Produtos Novos</p>
+              </div>
+              <div className="text-center p-3 rounded-lg bg-amber-500/10">
+                <p className="text-2xl font-bold text-amber-600">{duplicateCheckResult.existingProducts}</p>
+                <p className="text-xs text-muted-foreground">Já Existem</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">O que fazer com os duplicados?</Label>
+              <RadioGroup value={duplicateAction} onValueChange={(v) => setDuplicateAction(v as DuplicateAction)} className="space-y-2">
+                <div className="flex items-center space-x-3 p-3 rounded-lg border bg-background hover:bg-muted/50 transition-colors">
+                  <RadioGroupItem value="skip" id="dup-skip" />
+                  <Label htmlFor="dup-skip" className="flex items-center gap-2 cursor-pointer flex-1">
+                    <SkipForward className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium">Pular duplicados</p>
+                      <p className="text-xs text-muted-foreground">Mantém os produtos existentes inalterados</p>
+                    </div>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-3 p-3 rounded-lg border bg-background hover:bg-muted/50 transition-colors">
+                  <RadioGroupItem value="update" id="dup-update" />
+                  <Label htmlFor="dup-update" className="flex items-center gap-2 cursor-pointer flex-1">
+                    <RefreshCw className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium">Atualizar existentes</p>
+                      <p className="text-xs text-muted-foreground">Atualiza preço e estoque dos produtos existentes</p>
+                    </div>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-3 p-3 rounded-lg border bg-background hover:bg-muted/50 transition-colors">
+                  <RadioGroupItem value="create" id="dup-create" />
+                  <Label htmlFor="dup-create" className="flex items-center gap-2 cursor-pointer flex-1">
+                    <Copy className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium">Criar duplicatas</p>
+                      <p className="text-xs text-muted-foreground text-destructive">Cria novos produtos mesmo que já existam</p>
+                    </div>
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {duplicateCheckResult.duplicates.length > 0 && duplicateCheckResult.duplicates.length <= 5 && (
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground">Exemplos de duplicados:</p>
+                <div className="space-y-1 max-h-32 overflow-y-auto">
+                  {duplicateCheckResult.duplicates.slice(0, 5).map((dup, idx) => (
+                    <div key={idx} className="text-xs p-2 rounded bg-muted/50 flex justify-between">
+                      <span className="truncate flex-1">{dup.productName}</span>
+                      <span className="text-amber-600 ml-2">
+                        R$ {dup.existingPrice.toFixed(2)} → R$ {dup.newPrice.toFixed(2)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Opções de Exportação */}
       <div className="grid md:grid-cols-2 gap-4">

@@ -82,15 +82,17 @@ export function PDVPaymentModal({
     }
   };
 
-  // Componente de lista de itens reutilizável
-  const ItemsList = ({ maxHeight }: { maxHeight: string }) => (
+  // IMPORTANTE: evite declarar componentes (funções JSX usadas como <Component />)
+  // dentro de outro componente, pois isso pode causar remount a cada render e
+  // roubar o foco de inputs controlados.
+  const renderItemsList = (maxHeight: string) => (
     <ScrollArea className={`${maxHeight} border rounded-lg`}>
       <div className="p-2 space-y-2">
         {items.map((item) => (
           <div key={item.id} className="flex items-center gap-3 p-2 bg-muted rounded-lg">
             {item.image_url ? (
-              <img 
-                src={item.image_url} 
+              <img
+                src={item.image_url}
                 alt={item.product_name}
                 className="w-12 h-12 object-cover rounded flex-shrink-0"
               />
@@ -114,8 +116,8 @@ export function PDVPaymentModal({
     </ScrollArea>
   );
 
-  // Componente de resumo e pagamento
-  const PaymentSection = () => (
+  // Seção de resumo e pagamento (render function para não remount)
+  const renderPaymentSection = () => (
     <div className="space-y-4">
       {/* Resumo */}
       <div className="bg-muted rounded-lg p-4 space-y-3">
@@ -268,10 +270,10 @@ export function PDVPaymentModal({
               {items.length > 0 && (
                 <div className="space-y-2">
                   <Label className="text-base">Itens da Venda ({items.length})</Label>
-                  <ItemsList maxHeight="max-h-60" />
+                  {renderItemsList("max-h-60")}
                 </div>
               )}
-              <PaymentSection />
+              {renderPaymentSection()}
             </div>
           </div>
           <DrawerFooter className="pt-2">
@@ -313,12 +315,12 @@ export function PDVPaymentModal({
           {/* Coluna Esquerda - Lista de Itens */}
           <div className="space-y-3 overflow-hidden">
             <Label className="text-base font-semibold">Itens da Venda ({items.length})</Label>
-            <ItemsList maxHeight="h-[500px]" />
+            {renderItemsList("h-[500px]")}
           </div>
 
           {/* Coluna Direita - Pagamento */}
           <div className="space-y-4 overflow-auto max-h-[550px] pr-2">
-            <PaymentSection />
+            {renderPaymentSection()}
           </div>
         </div>
 

@@ -18,6 +18,14 @@ interface SearchResponse {
   error?: string;
 }
 
+function isNoResultsError(message: string): boolean {
+  return (
+    /nenhuma imagem/i.test(message) ||
+    /no images?/i.test(message) ||
+    /no results?/i.test(message)
+  );
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -118,9 +126,12 @@ serve(async (req) => {
       .eq('id', config.id);
 
     if (searchError) {
+      // IMPORTANT: "no results" is an expected outcome, not an application error.
+      // Return HTTP 200 so supabase.functions.invoke doesn't surface it as an exception.
+      const status = isNoResultsError(searchError) ? 200 : 400;
       return new Response(
         JSON.stringify({ success: false, error: searchError }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status }
       );
     }
 

@@ -1,170 +1,72 @@
 
+# Plano: Aba "Destaques" como Padrão ao Abrir a Loja
 
-# Plano: Sistema de Produtos em Destaque com Aba "Destaques" em Primeiro
+## Problema Identificado
 
-## Resumo
-
-Criar uma nova aba "Destaques" na loja pública que aparece **em primeiro lugar** na navegação, seguida por "Todas" e depois as categorias. Isso permite que o cliente veja imediatamente os produtos curados pelo lojista.
+Atualmente, a loja sempre abre na aba "Todas" (linha 134: `selectedCategory` inicia como `null`). A lógica para abrir automaticamente na aba "Destaques" quando há produtos em destaque **não foi implementada**.
 
 ---
 
-## Ordem das Abas
+## Solução Proposta
 
-```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          NAVEGAÇÃO DA LOJA                                  │
-│                                                                             │
-│  [⭐ Destaques] [Todas] [Medicamentos] [Higiene] [Vitaminas] ...           │
-│       ↑           ↑              ↑                                          │
-│    PRIMEIRO    SEGUNDO      CATEGORIAS                                      │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+Adicionar um `useEffect` que monitora quando os produtos são carregados e define a categoria inicial:
 
-**Comportamento:**
-- **Destaques** → Mostra APENAS produtos marcados como destaque (página inicial padrão)
-- **Todas** → Mostra todos os produtos disponíveis
-- **Categoria X** → Mostra produtos da categoria específica
+- **Se houver produtos em destaque** → Abre na aba "Destaques" (`selectedCategory = 'featured'`)
+- **Se NÃO houver produtos em destaque** → Permanece na aba "Todas" (`selectedCategory = null`)
 
 ---
 
 ## Implementação
 
-### 1. Banco de Dados - Adicionar Coluna `is_featured`
+### Arquivo: `src/pages/Store.tsx`
 
-**Nova migração SQL:**
-
-```sql
-ALTER TABLE public.products
-ADD COLUMN IF NOT EXISTS is_featured BOOLEAN DEFAULT false;
-
-CREATE INDEX IF NOT EXISTS idx_products_is_featured 
-ON public.products(is_featured) WHERE is_featured = true;
-
-CREATE INDEX IF NOT EXISTS idx_products_store_featured 
-ON public.products(store_id, is_featured) WHERE is_featured = true;
-```
-
----
-
-### 2. Formulário de Produto (Admin)
-
-**Arquivo:** `src/components/admin/ProductForm.tsx`
-
-Adicionar toggle na seção de configurações:
-
-- Campo: `is_featured` (boolean, default: false)
-- Label: "Produto em Destaque"
-- Descrição: "Este produto aparecerá na aba Destaques da loja"
-- Ícone: Estrela (Star)
-- Localização: Junto ao toggle de disponibilidade
-
----
-
-### 3. Lista de Produtos (Admin)
-
-**Arquivo:** `src/pages/admin/ProductsPage.tsx`
-
-- Badge visual (estrela) nos produtos em destaque
-- Botão de ação rápida para marcar/desmarcar destaque
-- Filtro "Em Destaque" no dropdown de filtros
-
----
-
-### 4. Página da Loja (Store.tsx)
-
-**Arquivo:** `src/pages/Store.tsx`
-
-#### 4.1 Estado Inicial
-
-O estado `selectedCategory` iniciará como `"featured"` para que a aba Destaques seja a página inicial:
+Adicionar um novo `useEffect` após o `hasFeaturedProducts` (após linha 692):
 
 ```typescript
-const [selectedCategory, setSelectedCategory] = useState<string | null>('featured');
-```
-
-#### 4.2 Ordem de Renderização das Abas
-
-```typescript
-{/* 1. PRIMEIRO - Aba Destaques */}
-{hasFeaturedProducts && (
-  <Button 
-    variant={selectedCategory === 'featured' ? "default" : "outline"}
-    onClick={() => setSelectedCategory('featured')}
-  >
-    <Star className="w-4 h-4 mr-1" />
-    Destaques
-  </Button>
-)}
-
-{/* 2. SEGUNDO - Aba Todas */}
-<Button 
-  variant={selectedCategory === null ? "default" : "outline"}
-  onClick={() => setSelectedCategory(null)}
->
-  Todas
-</Button>
-
-{/* 3. TERCEIRO - Categorias */}
-{categories.map((category) => (
-  <Button onClick={() => setSelectedCategory(category.id)}>
-    {category.name}
-  </Button>
-))}
-```
-
-#### 4.3 Lógica de Filtragem
-
-```typescript
-const getProductsByCategory = (categoryId: string | null) => {
-  // Aba "Destaques" selecionada
-  if (categoryId === 'featured') {
-    return products.filter(p => p.is_featured === true);
+// Definir aba inicial baseado em produtos em destaque
+useEffect(() => {
+  // Só executa quando os produtos foram carregados pela primeira vez
+  // e nenhuma categoria foi selecionada manualmente ainda
+  if (products.length > 0 && selectedCategory === null && !loadingProducts) {
+    if (hasFeaturedProducts) {
+      setSelectedCategory('featured');
+    }
   }
-  
-  // Aba "Todas" selecionada
-  if (categoryId === null) {
-    return products;
+}, [products.length, hasFeaturedProducts, loadingProducts]);
+
+// Se não houver destaques e estiver na aba featured, voltar para Todas
+useEffect(() => {
+  if (!hasFeaturedProducts && selectedCategory === 'featured') {
+    setSelectedCategory(null);
   }
-  
-  // Categoria específica
-  return products.filter(p => p.category_id === categoryId);
-};
+}, [hasFeaturedProducts, selectedCategory]);
 ```
 
 ---
 
-## Interface Visual
+## Lógica Detalhada
 
-### Na Loja (Navegação):
 ```text
-┌─────────────────────────────────────────────────────────────────┐
-│  [⭐ Destaques] [Todas] [Medicamentos] [Higiene] [Vitaminas]   │
-│       ↑                                                         │
-│  Selecionada por padrão ao entrar na loja                      │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     FLUXO DE ABERTURA DA LOJA                               │
+│                                                                             │
+│  1. Usuário acessa /loja/farmacia-exemplo                                  │
+│  2. Página carrega produtos do banco                                       │
+│  3. useEffect verifica se há produtos com is_featured = true               │
+│  4. SE houver → selectedCategory = 'featured' (aba Destaques)             │
+│  5. SE NÃO houver → selectedCategory = null (aba Todas)                   │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### No Formulário de Produto (Admin):
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│ Configurações                                                   │
-├─────────────────────────────────────────────────────────────────┤
-│ [●───] Produto disponível para venda                            │
-│                                                                 │
-│ [○───] Produto em Destaque ⭐                                   │
-│   Este produto aparecerá na aba "Destaques" da loja            │
-└─────────────────────────────────────────────────────────────────┘
-```
+---
 
-### Na Lista de Produtos (Admin):
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│ [Imagem] Dipirona 500mg                          R$ 12,90      │
-│          Categoria: Medicamentos                                │
-│          ⭐ Destaque | ✓ Disponível                             │
-│          [Editar] [⭐ Toggle] [🗑️]                              │
-└─────────────────────────────────────────────────────────────────┘
-```
+## Por que esta abordagem é eficiente?
+
+1. **Não bloqueia o carregamento inicial** - O estado começa como `null` e é atualizado após os produtos carregarem
+2. **Evita flicker visual** - A mudança ocorre antes do usuário ver a lista de produtos
+3. **Fallback automático** - Se o lojista remover todos os destaques, automaticamente volta para "Todas"
+4. **Preserva seleção manual** - Se o usuário clicar em outra aba, a escolha é respeitada
+5. **Funciona com infinite scroll** - Ao carregar mais produtos com destaque, não altera a seleção atual
 
 ---
 
@@ -172,43 +74,13 @@ const getProductsByCategory = (categoryId: string | null) => {
 
 | Arquivo | Alteração |
 |---------|-----------|
-| `supabase/migrations/` | Nova migração para coluna `is_featured` |
-| `src/components/admin/ProductForm.tsx` | Adicionar toggle de destaque |
-| `src/pages/admin/ProductsPage.tsx` | Badge, filtro e ação rápida |
-| `src/pages/Store.tsx` | Nova aba "Destaques" em primeiro, estado inicial |
+| `src/pages/Store.tsx` | Adicionar `useEffect` para definir aba inicial baseado em `hasFeaturedProducts` |
 
 ---
 
-## Detalhes Técnicos
+## Resultado Esperado
 
-### Schema Zod (ProductForm.tsx)
-```typescript
-const productSchema = z.object({
-  // ... campos existentes
-  is_featured: z.boolean().default(false),
-});
-```
-
-### Verificação de Produtos em Destaque
-```typescript
-// Verificar se há produtos em destaque para mostrar a aba
-const hasFeaturedProducts = products.some(p => p.is_featured === true);
-
-// Se não houver destaques, iniciar na aba "Todas"
-useEffect(() => {
-  if (!hasFeaturedProducts && selectedCategory === 'featured') {
-    setSelectedCategory(null);
-  }
-}, [hasFeaturedProducts]);
-```
-
----
-
-## Benefícios
-
-1. **Primeira Impressão**: Cliente vê os melhores produtos ao entrar na loja
-2. **Curadoria**: Lojista controla o que aparece na vitrine principal
-3. **Performance**: Com 14.000 produtos, a aba Destaques carrega apenas os selecionados
-4. **Flexibilidade**: Cliente pode ver todos os produtos na aba "Todas" quando quiser
-5. **Promoções**: Ideal para destacar ofertas, lançamentos ou produtos sazonais
-
+- Loja com produtos em destaque → Abre na aba "Destaques"
+- Loja sem produtos em destaque → Abre na aba "Todas"
+- Usuário pode navegar livremente entre as abas
+- Se todos os destaques forem removidos (admin), volta automaticamente para "Todas"

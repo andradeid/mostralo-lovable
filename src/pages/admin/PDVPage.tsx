@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePDV } from '@/hooks/usePDV';
 import { useComandas, Comanda } from '@/hooks/useComandas';
@@ -12,13 +12,15 @@ import { CloseComandaModal } from '@/components/comandas/CloseComandaModal';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ShoppingCart, Package, History, ClipboardList } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ShoppingCart, Package, History, ClipboardList, Minimize2, Maximize2 } from 'lucide-react';
 import { ModuleGate } from '@/components/admin/ModuleGate';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { printComanda } from '@/utils/printComanda';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { SalesChannelPausedBanner } from '@/components/shared/SalesChannelPausedBanner';
+import { useSidebar } from '@/components/ui/sidebar';
 
 export default function PDVPage() {
   const navigate = useNavigate();
@@ -29,6 +31,52 @@ export default function PDVPage() {
   const [closeModalOpen, setCloseModalOpen] = useState(false);
   const [selectedComanda, setSelectedComanda] = useState<Comanda | null>(null);
   const isMobile = useIsMobile();
+  
+  // Estado e controle de tela cheia (similar à página de pedidos)
+  const { setOpen: setSidebarOpen } = useSidebar();
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(true);
+
+  // Função para alternar modo tela cheia
+  const toggleFullscreen = useCallback(() => {
+    const newState = !isFullscreen;
+    setIsFullscreen(newState);
+    
+    // Dispara evento para AdminLayout ocultar/mostrar header
+    window.dispatchEvent(new CustomEvent('kanbanFullscreenChange', { 
+      detail: { isFullscreen: newState } 
+    }));
+    
+    // Colapsa ou expande sidebar
+    setSidebarOpen(!newState);
+  }, [isFullscreen, setSidebarOpen]);
+
+  // Sincronizar ao montar - inicia em modo tela cheia
+  useEffect(() => {
+    // Aplica o estado inicial de fullscreen
+    window.dispatchEvent(new CustomEvent('kanbanFullscreenChange', { 
+      detail: { isFullscreen: true } 
+    }));
+    setSidebarOpen(false);
+    
+    // Cleanup ao desmontar - restaura header e sidebar
+    return () => {
+      window.dispatchEvent(new CustomEvent('kanbanFullscreenChange', { 
+        detail: { isFullscreen: false } 
+      }));
+    };
+  }, [setSidebarOpen]);
+
+  // Atalho Escape para sair do modo tela cheia
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        toggleFullscreen();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFullscreen, toggleFullscreen]);
 
   // Query para nome da loja (impressão)
   const { data: storeData } = useQuery({
@@ -90,7 +138,22 @@ export default function PDVPage() {
   if (isMobile) {
     return (
       <ModuleGate moduleKey="pdv_comandas" storeId={storeId}>
-        <div className="flex flex-col flex-1 min-h-0">
+        <div className="flex flex-col flex-1 min-h-0 relative">
+          {/* Botão flutuante para sair do modo tela cheia - Mobile */}
+          <div className="absolute top-2 right-2 z-10">
+            <Button
+              variant={isFullscreen ? "default" : "outline"}
+              size="sm"
+              onClick={toggleFullscreen}
+              className="gap-1 shadow-md"
+            >
+              {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+              <span className="sr-only">
+                {isFullscreen ? "Sair da tela cheia" : "Modo tela cheia"}
+              </span>
+            </Button>
+          </div>
+          
           {salesPaused && (
             <SalesChannelPausedBanner message={channelMessage} className="mx-2 mt-2" />
           )}
@@ -201,25 +264,48 @@ export default function PDVPage() {
           <SalesChannelPausedBanner message={channelMessage} className="mb-4" />
         )}
         <Tabs defaultValue="pdv" className="flex-1 flex flex-col">
-          <TabsList className="w-fit mb-4">
-            <TabsTrigger value="pdv" className="gap-2">
-              <Package className="h-4 w-4" />
-              PDV
-            </TabsTrigger>
-            <TabsTrigger value="comandas" className="gap-2 relative">
-              <ClipboardList className="h-4 w-4" />
-              Comandas
-              {openComandasCount > 0 && (
-                <span className="ml-1 bg-orange-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                  {openComandasCount}
-                </span>
+          <div className="flex items-center justify-between mb-4">
+            <TabsList className="w-fit">
+              <TabsTrigger value="pdv" className="gap-2">
+                <Package className="h-4 w-4" />
+                PDV
+              </TabsTrigger>
+              <TabsTrigger value="comandas" className="gap-2 relative">
+                <ClipboardList className="h-4 w-4" />
+                Comandas
+                {openComandasCount > 0 && (
+                  <span className="ml-1 bg-orange-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                    {openComandasCount}
+                  </span>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="history" className="gap-2">
+                <History className="h-4 w-4" />
+                Histórico
+              </TabsTrigger>
+            </TabsList>
+            
+            {/* Botão para alternar modo tela cheia - Desktop */}
+            <Button
+              variant={isFullscreen ? "default" : "outline"}
+              size="sm"
+              onClick={toggleFullscreen}
+              title={isFullscreen ? "Sair da tela cheia (Esc)" : "Modo tela cheia"}
+              className="gap-1"
+            >
+              {isFullscreen ? (
+                <>
+                  <Minimize2 className="h-4 w-4" />
+                  <span>Sair</span>
+                </>
+              ) : (
+                <>
+                  <Maximize2 className="h-4 w-4" />
+                  <span>Tela Cheia</span>
+                </>
               )}
-            </TabsTrigger>
-            <TabsTrigger value="history" className="gap-2">
-              <History className="h-4 w-4" />
-              Histórico
-            </TabsTrigger>
-          </TabsList>
+            </Button>
+          </div>
 
           <TabsContent value="pdv" className="flex-1 overflow-hidden mt-0">
             <div className="h-full flex gap-4">

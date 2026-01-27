@@ -24,7 +24,8 @@ import {
   Tag, 
   Image, 
   Percent,
-  Boxes
+  Boxes,
+  Star
 } from 'lucide-react';
 import { ProductFiltersSheet } from './ProductFiltersSheet';
 
@@ -35,6 +36,7 @@ export interface ProductFilters {
   categories: string[];
   promotion: 'all' | 'on_sale' | 'regular';
   hasImage: 'all' | 'with_image' | 'without_image';
+  featured: 'all' | 'featured' | 'not_featured';
 }
 
 export const defaultFilters: ProductFilters = {
@@ -43,7 +45,8 @@ export const defaultFilters: ProductFilters = {
   priceRange: { min: null, max: null },
   categories: [],
   promotion: 'all',
-  hasImage: 'all'
+  hasImage: 'all',
+  featured: 'all'
 };
 
 interface CategoryOption {
@@ -85,6 +88,7 @@ export const ProductFiltersComponent = ({
     if (filters.categories.length > 0) count++;
     if (filters.promotion !== 'all') count++;
     if (filters.hasImage !== 'all') count++;
+    if (filters.featured !== 'all') count++;
     return count;
   };
 
@@ -325,6 +329,22 @@ export const ProductFiltersComponent = ({
           </div>
         </PopoverContent>
       </Popover>
+
+      {/* Destaque */}
+      <Select 
+        value={filters.featured} 
+        onValueChange={(v) => updateFilter('featured', v as ProductFilters['featured'])}
+      >
+        <SelectTrigger className="w-[130px] h-8 text-xs">
+          <Star className="w-3 h-3 mr-1" />
+          <SelectValue placeholder="Destaque" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Todos</SelectItem>
+          <SelectItem value="featured">Em destaque</SelectItem>
+          <SelectItem value="not_featured">Sem destaque</SelectItem>
+        </SelectContent>
+      </Select>
 
       {/* Imagem */}
       <Select 

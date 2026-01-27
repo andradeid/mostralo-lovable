@@ -43,6 +43,12 @@ const imageLabels: Record<ProductFilters['hasImage'], string> = {
   without_image: 'Sem imagem'
 };
 
+const featuredLabels: Record<ProductFilters['featured'], string> = {
+  all: '',
+  featured: 'Em destaque',
+  not_featured: 'Sem destaque'
+};
+
 export const ActiveFiltersBar = ({
   filters,
   onFiltersChange,
@@ -57,7 +63,8 @@ export const ActiveFiltersBar = ({
     filters.priceRange.max !== null ||
     filters.categories.length > 0 ||
     filters.promotion !== 'all' ||
-    filters.hasImage !== 'all';
+    filters.hasImage !== 'all' ||
+    filters.featured !== 'all';
 
   if (!hasActiveFilters) return null;
 
@@ -184,6 +191,18 @@ export const ActiveFiltersBar = ({
             onClick={() => removeFilter('hasImage')}
           >
             {imageLabels[filters.hasImage]}
+            <X className="w-3 h-3 ml-1" />
+          </Badge>
+        )}
+
+        {/* Destaque */}
+        {filters.featured !== 'all' && (
+          <Badge 
+            variant="secondary" 
+            className="cursor-pointer hover:bg-secondary/80 pr-1"
+            onClick={() => removeFilter('featured')}
+          >
+            {featuredLabels[filters.featured]}
             <X className="w-3 h-3 ml-1" />
           </Badge>
         )}

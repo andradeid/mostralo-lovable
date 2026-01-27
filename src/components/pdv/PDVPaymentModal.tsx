@@ -76,43 +76,41 @@ export function PDVPaymentModal({
     }
   };
 
-  const content = (
-    <div className={`space-y-4 ${isMobile ? 'px-4' : ''}`}>
-      {/* Lista de itens para conferência */}
-      {items.length > 0 && (
-        <div className="space-y-2">
-          <Label className={isMobile ? 'text-base' : ''}>Itens da Venda ({items.length})</Label>
-          <ScrollArea className="max-h-40 border rounded-lg">
-            <div className="p-2 space-y-2">
-              {items.map((item) => (
-                <div key={item.id} className="flex items-center gap-3 p-2 bg-muted rounded-lg">
-                  {item.image_url ? (
-                    <img 
-                      src={item.image_url} 
-                      alt={item.product_name}
-                      className="w-12 h-12 object-cover rounded flex-shrink-0"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 bg-muted-foreground/20 rounded flex items-center justify-center flex-shrink-0">
-                      <Package className="h-6 w-6 text-muted-foreground" />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm break-words leading-tight">{item.product_name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {item.quantity}× {formatCurrency(item.unit_price)}
-                    </p>
-                  </div>
-                  <p className="font-bold text-sm whitespace-nowrap min-w-[70px] text-right">
-                    {formatCurrency(item.total_price)}
-                  </p>
-                </div>
-              ))}
+  // Componente de lista de itens reutilizável
+  const ItemsList = ({ maxHeight }: { maxHeight: string }) => (
+    <ScrollArea className={`${maxHeight} border rounded-lg`}>
+      <div className="p-2 space-y-2">
+        {items.map((item) => (
+          <div key={item.id} className="flex items-center gap-3 p-2 bg-muted rounded-lg">
+            {item.image_url ? (
+              <img 
+                src={item.image_url} 
+                alt={item.product_name}
+                className="w-12 h-12 object-cover rounded flex-shrink-0"
+              />
+            ) : (
+              <div className="w-12 h-12 bg-muted-foreground/20 rounded flex items-center justify-center flex-shrink-0">
+                <Package className="h-6 w-6 text-muted-foreground" />
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-sm break-words leading-tight">{item.product_name}</p>
+              <p className="text-xs text-muted-foreground">
+                {item.quantity}× {formatCurrency(item.unit_price)}
+              </p>
             </div>
-          </ScrollArea>
-        </div>
-      )}
+            <p className="font-bold text-sm whitespace-nowrap min-w-[70px] text-right">
+              {formatCurrency(item.total_price)}
+            </p>
+          </div>
+        ))}
+      </div>
+    </ScrollArea>
+  );
 
+  // Componente de resumo e pagamento
+  const PaymentSection = () => (
+    <div className="space-y-4">
       {/* Resumo */}
       <div className="bg-muted rounded-lg p-4 space-y-3">
         <div className={`flex justify-between ${isMobile ? 'text-base' : ''}`}>
@@ -137,10 +135,10 @@ export function PDVPaymentModal({
         </div>
       </div>
 
-      {/* Método de pagamento - botões grandes no mobile */}
+      {/* Método de pagamento */}
       <div className="space-y-3">
         <Label className={isMobile ? 'text-base' : ''}>Forma de Pagamento</Label>
-        <div className={`grid gap-2 ${isMobile ? 'grid-cols-2' : 'grid-cols-2'}`}>
+        <div className="grid grid-cols-2 gap-2">
           {paymentMethods.map((method) => (
             <Button
               key={method.value}
@@ -213,7 +211,7 @@ export function PDVPaymentModal({
     </div>
   );
 
-  // Usar Drawer no mobile, Dialog no desktop
+  // Usar Drawer no mobile, Dialog expandido no desktop
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={handleClose}>
@@ -227,7 +225,15 @@ export function PDVPaymentModal({
             </DrawerClose>
           </DrawerHeader>
           <div className="overflow-auto max-h-[60vh] pb-4">
-            {content}
+            <div className="space-y-4 px-4">
+              {items.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-base">Itens da Venda ({items.length})</Label>
+                  <ItemsList maxHeight="max-h-60" />
+                </div>
+              )}
+              <PaymentSection />
+            </div>
           </div>
           <DrawerFooter className="pt-2">
             {footer}
@@ -237,14 +243,28 @@ export function PDVPaymentModal({
     );
   }
 
+  // Desktop: Modal grande com 2 colunas
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
-          <DialogTitle>Finalizar Venda</DialogTitle>
+          <DialogTitle className="text-xl">Finalizar Venda</DialogTitle>
         </DialogHeader>
-        {content}
-        <DialogFooter className="gap-2">
+        
+        <div className="grid grid-cols-2 gap-6 overflow-hidden">
+          {/* Coluna Esquerda - Lista de Itens */}
+          <div className="space-y-3 overflow-hidden">
+            <Label className="text-base font-semibold">Itens da Venda ({items.length})</Label>
+            <ItemsList maxHeight="h-[400px]" />
+          </div>
+
+          {/* Coluna Direita - Pagamento */}
+          <div className="space-y-4 overflow-auto max-h-[450px] pr-2">
+            <PaymentSection />
+          </div>
+        </div>
+
+        <DialogFooter className="gap-2 pt-4 border-t">
           {footer}
         </DialogFooter>
       </DialogContent>

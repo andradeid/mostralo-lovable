@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { CategoryForm } from '@/components/admin/CategoryForm';
 import { ProductForm } from '@/components/admin/ProductForm';
 import { DeleteAllProductsDialog } from '@/components/admin/products/DeleteAllProductsDialog';
+import { ProductFiltersComponent, ProductFilters, defaultFilters } from '@/components/admin/products/ProductFilters';
+import { ActiveFiltersBar } from '@/components/admin/products/ActiveFiltersBar';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { usePageSEO } from '@/hooks/useSEO';
@@ -71,6 +73,7 @@ const ProductsPage = () => {
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [showEditForm, setShowEditForm] = useState(false);
   const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
+  const [filters, setFilters] = useState<ProductFilters>(defaultFilters);
   const { user, userRole } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -465,9 +468,59 @@ const ProductsPage = () => {
     }
   };
 
+  // Função para aplicar filtros aos produtos
+  const applyProductFilters = (products: ProductData[]): ProductData[] => {
+    return products.filter(product => {
+      // Filtro por status
+      if (filters.status === 'available' && !product.is_available) return false;
+      if (filters.status === 'unavailable' && product.is_available) return false;
+      if (filters.status === 'hidden' && (product.show_in_menu ?? true)) return false;
+      
+      // Filtro por estoque
+      if (filters.stock === 'out_of_stock') {
+        if (!product.track_stock || (product.stock_quantity ?? 0) > 0) return false;
+      }
+      if (filters.stock === 'low_stock') {
+        if (!product.track_stock) return false;
+        const threshold = product.stock_alert_threshold ?? 5;
+        if ((product.stock_quantity ?? 0) === 0 || (product.stock_quantity ?? 0) > threshold) return false;
+      }
+      if (filters.stock === 'normal') {
+        if (!product.track_stock) return false;
+        const threshold = product.stock_alert_threshold ?? 5;
+        if ((product.stock_quantity ?? 0) <= threshold) return false;
+      }
+      if (filters.stock === 'no_tracking') {
+        if (product.track_stock) return false;
+      }
+      
+      // Filtro por faixa de preço
+      const productPrice = product.is_on_offer && product.offer_price 
+        ? product.offer_price 
+        : product.price;
+      if (filters.priceRange.min !== null && productPrice < filters.priceRange.min) return false;
+      if (filters.priceRange.max !== null && productPrice > filters.priceRange.max) return false;
+      
+      // Filtro por promoção
+      if (filters.promotion === 'on_sale' && !product.is_on_offer) return false;
+      if (filters.promotion === 'regular' && product.is_on_offer) return false;
+      
+      // Filtro por categorias
+      if (filters.categories.length > 0) {
+        if (!product.category_id || !filters.categories.includes(product.category_id)) return false;
+      }
+      
+      // Filtro por imagem
+      if (filters.hasImage === 'with_image' && !product.image_url) return false;
+      if (filters.hasImage === 'without_image' && product.image_url) return false;
+      
+      return true;
+    });
+  };
+
   const filteredCategories = categories.map(category => ({
     ...category,
-    products: category.products
+    products: applyProductFilters(category.products)
       .filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -484,9 +537,27 @@ const ProductsPage = () => {
     category.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Calcular totais para o contador
   const totalProducts = categories.reduce((total, category) => total + category.products.length, 0);
+  const filteredProductsCount = filteredCategories.reduce((total, category) => total + category.products.length, 0);
   const activeProducts = categories.reduce((total, category) => 
     total + category.products.filter(p => p.is_available).length, 0);
+
+  // Calcular preço máximo para o slider de filtro
+  const maxPrice = useMemo(() => {
+    const allPrices = categories.flatMap(c => c.products.map(p => 
+      p.is_on_offer && p.offer_price ? p.offer_price : p.price
+    ));
+    return Math.ceil(Math.max(...allPrices, 100) / 10) * 10;
+  }, [categories]);
+
+  // Lista de categorias para o filtro
+  const categoryOptions = useMemo(() => 
+    categories
+      .filter(c => c.id !== 'uncategorized')
+      .map(c => ({ id: c.id, name: c.name })),
+    [categories]
+  );
 
   const statsCards = [
     {
@@ -654,6 +725,23 @@ const ProductsPage = () => {
           </SelectContent>
         </Select>
       </div>
+
+      {/* Filtros */}
+      <ProductFiltersComponent
+        filters={filters}
+        onFiltersChange={setFilters}
+        categories={categoryOptions}
+        maxPrice={maxPrice}
+      />
+
+      {/* Barra de Filtros Ativos */}
+      <ActiveFiltersBar
+        filters={filters}
+        onFiltersChange={setFilters}
+        categories={categoryOptions}
+        totalProducts={totalProducts}
+        filteredCount={filteredProductsCount}
+      />
 
       {/* Lista de Produtos por Categoria */}
       <div className="space-y-4">

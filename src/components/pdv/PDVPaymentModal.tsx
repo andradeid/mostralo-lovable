@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatCurrency } from '@/lib/utils';
-import { CreditCard, Banknote, QrCode, Wallet, Loader2, X, Package, Printer } from 'lucide-react';
+import { CreditCard, Banknote, QrCode, Wallet, Loader2, X, Package, Printer, Store } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Dialog,
@@ -30,6 +30,8 @@ interface PDVPaymentModalProps {
   items: CartItem[];
   onConfirm: (paymentMethod: string, discount: number, paymentDetails?: Record<string, any>, shouldPrint?: boolean) => void;
   isProcessing?: boolean;
+  storeName?: string;
+  storeLogo?: string;
 }
 
 const paymentMethods = [
@@ -47,6 +49,8 @@ export function PDVPaymentModal({
   items,
   onConfirm,
   isProcessing = false,
+  storeName,
+  storeLogo,
 }: PDVPaymentModalProps) {
   const [selectedMethod, setSelectedMethod] = useState('dinheiro');
   const [discount, setDiscount] = useState(0);
@@ -235,8 +239,27 @@ export function PDVPaymentModal({
     return (
       <Drawer open={open} onOpenChange={handleClose}>
         <DrawerContent className="max-h-[90vh]">
-          <DrawerHeader className="text-left">
-            <DrawerTitle className="text-xl">Finalizar Venda</DrawerTitle>
+          <DrawerHeader className="text-left border-b pb-4">
+            <div className="flex items-center gap-3">
+              {/* Logo da loja (mobile) */}
+              {storeLogo ? (
+                <img 
+                  src={storeLogo} 
+                  alt={storeName || 'Logo'}
+                  className="w-10 h-10 rounded-lg object-cover border flex-shrink-0"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Store className="h-5 w-5 text-primary" />
+                </div>
+              )}
+              <div>
+                {storeName && (
+                  <p className="text-xs text-muted-foreground font-medium">{storeName}</p>
+                )}
+                <DrawerTitle className="text-xl">Finalizar Venda</DrawerTitle>
+              </div>
+            </div>
             <DrawerClose asChild>
               <Button variant="ghost" size="icon" className="absolute right-4 top-4">
                 <X className="h-5 w-5" />
@@ -266,8 +289,27 @@ export function PDVPaymentModal({
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-5xl max-h-[85vh] overflow-hidden">
-        <DialogHeader>
-          <DialogTitle className="text-xl">Finalizar Venda</DialogTitle>
+        <DialogHeader className="pb-4 border-b">
+          <div className="flex items-center gap-4">
+            {/* Logo da loja */}
+            {storeLogo ? (
+              <img 
+                src={storeLogo} 
+                alt={storeName || 'Logo'}
+                className="w-12 h-12 rounded-lg object-cover border flex-shrink-0"
+              />
+            ) : (
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Store className="h-6 w-6 text-primary" />
+              </div>
+            )}
+            <div>
+              {storeName && (
+                <p className="text-sm text-muted-foreground font-medium">{storeName}</p>
+              )}
+              <DialogTitle className="text-xl">Finalizar Venda</DialogTitle>
+            </div>
+          </div>
         </DialogHeader>
         
         <div className="grid grid-cols-2 gap-8 overflow-hidden">

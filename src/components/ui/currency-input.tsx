@@ -48,7 +48,10 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
     };
 
     return (
-      <div className="relative">
+      <div 
+        className="relative"
+        onPointerDownCapture={(e) => e.stopPropagation()}
+      >
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
           R$
         </span>
@@ -62,6 +65,7 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
           ref={ref}
           value={displayValue}
           onChange={handleChange}
+          onFocus={(e) => e.stopPropagation()}
           placeholder="0,00"
           {...props}
         />

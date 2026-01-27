@@ -147,7 +147,7 @@ export default function PDVPage() {
   if (isMobile) {
     return (
       <ModuleGate moduleKey="pdv_comandas" storeId={storeId}>
-        <div className="flex flex-col flex-1 min-h-0 relative">
+        <div className="flex flex-col flex-1 min-h-0 h-[100dvh] overflow-hidden relative">
           {/* Botão flutuante para sair do modo tela cheia - Mobile */}
           <div className="absolute top-2 right-2 z-10">
             <Button
@@ -166,7 +166,7 @@ export default function PDVPage() {
           {salesPaused && (
             <SalesChannelPausedBanner message={channelMessage} className="mx-2 mt-2" />
           )}
-          <Tabs defaultValue="products" className="flex-1 flex flex-col">
+          <Tabs defaultValue="products" className="flex-1 flex flex-col min-h-0">
             <TabsList className="grid grid-cols-2 gap-2 h-auto mx-2 mb-2 p-2">
               <TabsTrigger value="products" className="h-12 text-sm gap-1.5">
                 <Package className="h-5 w-5" />
@@ -196,11 +196,11 @@ export default function PDVPage() {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="products" className="flex-1 overflow-auto px-2 pb-2 mt-0">
+            <TabsContent value="products" className="flex-1 min-h-0 overflow-auto px-2 pb-2 mt-0">
               <PDVProductGrid onAddProduct={addToCart} />
             </TabsContent>
 
-            <TabsContent value="cart" className="flex-1 overflow-hidden px-2 pb-2 mt-0">
+            <TabsContent value="cart" className="flex-1 min-h-0 overflow-hidden px-2 pb-2 mt-0">
               <PDVCart
                 items={cart}
                 subtotal={subtotal}
@@ -213,7 +213,7 @@ export default function PDVPage() {
               />
             </TabsContent>
 
-            <TabsContent value="comandas" className="flex-1 overflow-hidden px-2 pb-2 mt-0">
+            <TabsContent value="comandas" className="flex-1 min-h-0 overflow-hidden px-2 pb-2 mt-0">
               <ScrollArea className="h-full">
                 {openComandasCount === 0 ? (
                   <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
@@ -237,7 +237,7 @@ export default function PDVPage() {
               </ScrollArea>
             </TabsContent>
 
-            <TabsContent value="history" className="flex-1 overflow-hidden px-2 pb-2 mt-0">
+            <TabsContent value="history" className="flex-1 min-h-0 overflow-hidden px-2 pb-2 mt-0">
               <PDVHistory />
             </TabsContent>
           </Tabs>
@@ -269,11 +269,11 @@ export default function PDVPage() {
   // Layout Desktop com Tabs
   return (
     <ModuleGate moduleKey="pdv_comandas" storeId={storeId}>
-      <div className="flex flex-col flex-1 min-h-0">
+      <div className="flex flex-col flex-1 min-h-0 h-[100dvh] overflow-hidden">
         {salesPaused && (
           <SalesChannelPausedBanner message={channelMessage} className="mb-4" />
         )}
-        <Tabs defaultValue="pdv" className="flex-1 flex flex-col">
+        <Tabs defaultValue="pdv" className="flex-1 flex flex-col min-h-0">
           <div className="flex items-center justify-between mb-4">
             <TabsList className="w-fit">
               <TabsTrigger value="pdv" className="gap-2">
@@ -317,10 +317,10 @@ export default function PDVPage() {
             </Button>
           </div>
 
-          <TabsContent value="pdv" className="flex-1 overflow-hidden mt-0">
+          <TabsContent value="pdv" className="flex-1 min-h-0 overflow-hidden mt-0">
             <div className="h-full flex gap-4">
               {/* Grid de produtos */}
-              <div className="flex-1 overflow-auto">
+              <div className="flex-1 min-h-0 overflow-auto">
                 <PDVProductGrid onAddProduct={addToCart} />
               </div>
 
@@ -340,7 +340,7 @@ export default function PDVPage() {
             </div>
           </TabsContent>
 
-          <TabsContent value="comandas" className="flex-1 overflow-hidden mt-0">
+          <TabsContent value="comandas" className="flex-1 min-h-0 overflow-hidden mt-0">
             <ScrollArea className="h-full">
               {openComandasCount === 0 ? (
                 <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
@@ -364,7 +364,7 @@ export default function PDVPage() {
             </ScrollArea>
           </TabsContent>
 
-          <TabsContent value="history" className="flex-1 overflow-hidden mt-0">
+          <TabsContent value="history" className="flex-1 min-h-0 overflow-hidden mt-0">
             <PDVHistory />
           </TabsContent>
         </Tabs>

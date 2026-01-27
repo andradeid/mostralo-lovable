@@ -19,6 +19,7 @@ export interface PDVProduct {
 interface UsePDVProductsOptions {
   storeId: string | null;
   pageSize?: number;
+  externalSearchTerm?: string;
 }
 
 interface UsePDVProductsReturn {
@@ -38,7 +39,7 @@ interface UsePDVProductsReturn {
 
 const PAGE_SIZE = 50;
 
-export function usePDVProducts({ storeId, pageSize = PAGE_SIZE }: UsePDVProductsOptions): UsePDVProductsReturn {
+export function usePDVProducts({ storeId, pageSize = PAGE_SIZE, externalSearchTerm = '' }: UsePDVProductsOptions): UsePDVProductsReturn {
   const [products, setProducts] = useState<PDVProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -46,10 +47,13 @@ export function usePDVProducts({ storeId, pageSize = PAGE_SIZE }: UsePDVProducts
   const [totalProducts, setTotalProducts] = useState(0);
   
   // Filtros
-  const [searchTerm, setSearchTerm] = useState('');
+  const [internalSearchTerm, setInternalSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+  
+  // Usa o termo externo se fornecido, senão usa o interno
+  const searchTerm = externalSearchTerm || internalSearchTerm;
   
   // Refs para controle de paginação
   const currentPageRef = useRef(0);
@@ -63,12 +67,20 @@ export function usePDVProducts({ storeId, pageSize = PAGE_SIZE }: UsePDVProducts
 
   // Quando o usuário digita, marca como buscando e debounce
   const handleSearchChange = useCallback((term: string) => {
-    setSearchTerm(term);
+    setInternalSearchTerm(term);
     if (term !== debouncedSearchTerm) {
       setIsSearching(true);
     }
     debouncedSetSearch(term);
   }, [debouncedSetSearch, debouncedSearchTerm]);
+
+  // Sincroniza termo externo com debounce
+  useEffect(() => {
+    if (externalSearchTerm !== undefined) {
+      setIsSearching(true);
+      debouncedSetSearch(externalSearchTerm);
+    }
+  }, [externalSearchTerm, debouncedSetSearch]);
 
   // Fetch total count
   const fetchTotalCount = useCallback(async () => {

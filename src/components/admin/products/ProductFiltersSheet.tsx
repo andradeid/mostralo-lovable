@@ -16,7 +16,8 @@ import {
 } from '@/components/ui/sheet';
 import { 
   Filter, 
-  X
+  X,
+  Star
 } from 'lucide-react';
 import { ProductFilters, defaultFilters } from './ProductFilters';
 import { useState } from 'react';
@@ -292,6 +293,34 @@ export const ProductFiltersSheet = ({
                 </div>
               ))}
             </div>
+          </div>
+
+          <Separator />
+
+          {/* Destaque */}
+          <div className="space-y-3">
+            <Label className="text-sm font-semibold">Destaque</Label>
+            <RadioGroup 
+              value={localFilters.featured} 
+              onValueChange={(v) => updateLocalFilter('featured', v as ProductFilters['featured'])}
+              className="grid grid-cols-3 gap-2"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="all" id="feat-all" />
+                <Label htmlFor="feat-all" className="text-sm">Todos</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="featured" id="feat-yes" />
+                <Label htmlFor="feat-yes" className="text-sm flex items-center gap-1">
+                  <Star className="w-3 h-3 text-yellow-500" />
+                  Destaque
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="not_featured" id="feat-no" />
+                <Label htmlFor="feat-no" className="text-sm">Normal</Label>
+              </div>
+            </RadioGroup>
           </div>
 
           <Separator />

@@ -274,6 +274,40 @@ const ProductsPage = () => {
     }
   };
 
+  const handleToggleFeatured = async (productId: string, currentStatus: boolean | null) => {
+    try {
+      const { error } = await supabase
+        .from('products')
+        .update({ is_featured: !currentStatus })
+        .eq('id', productId);
+
+      if (error) {
+        toast({
+          title: 'Erro',
+          description: 'Erro ao atualizar destaque do produto.',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      toast({
+        title: 'Sucesso',
+        description: !currentStatus 
+          ? 'Produto marcado como destaque' 
+          : 'Produto removido dos destaques',
+      });
+
+      fetchCategoriesAndProducts();
+    } catch (error) {
+      console.error('Erro ao atualizar destaque:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao atualizar destaque.',
+        variant: 'destructive'
+      });
+    }
+  };
+
   const onDragEnd = async (result: DropResult) => {
     const { destination, source, draggableId } = result;
 
@@ -514,6 +548,10 @@ const ProductsPage = () => {
       // Filtro por imagem
       if (filters.hasImage === 'with_image' && !product.image_url) return false;
       if (filters.hasImage === 'without_image' && product.image_url) return false;
+      
+      // Filtro por destaque
+      if (filters.featured === 'featured' && !product.is_featured) return false;
+      if (filters.featured === 'not_featured' && product.is_featured) return false;
       
       return true;
     });
@@ -1093,6 +1131,18 @@ const ProductsPage = () => {
                                               />
                                               <span className="text-xs text-muted-foreground">
                                                 {!(product.show_in_menu ?? true) ? 'Oculto' : 'Cardápio'}
+                                              </span>
+                                            </div>
+
+                                            <div className="flex items-center gap-1.5">
+                                              <Switch
+                                                checked={product.is_featured ?? false}
+                                                onCheckedChange={() => handleToggleFeatured(product.id, product.is_featured)}
+                                                className="scale-90"
+                                              />
+                                              <span className="text-xs text-muted-foreground flex items-center gap-0.5">
+                                                <Star className={`w-3 h-3 ${product.is_featured ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                                                Destaque
                                               </span>
                                             </div>
                                           </div>

@@ -269,7 +269,7 @@ export default function PDVPage() {
   // Layout Desktop com Tabs
   return (
     <ModuleGate moduleKey="pdv_comandas" storeId={storeId}>
-      <div className="flex flex-col flex-1 min-h-0 h-[100dvh] overflow-hidden">
+      <div className="flex flex-col h-[calc(100dvh-theme(spacing.16)-theme(spacing.12)-theme(spacing.12))] overflow-hidden">
         {salesPaused && (
           <SalesChannelPausedBanner message={channelMessage} className="mb-4" />
         )}

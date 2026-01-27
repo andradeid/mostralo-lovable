@@ -90,6 +90,7 @@ serve(async (req) => {
 
     const payload: ImportPayload = await req.json();
     const { action, storeId, createMissingCategories, products, fileName, duplicateAction, imageOptions } = payload;
+    const safeFileName = (fileName && String(fileName).trim()) ? String(fileName).trim() : 'import';
 
     console.log(`[import-products] Action: ${action}, Store: ${storeId}, Products: ${products.length}`);
 
@@ -211,8 +212,7 @@ serve(async (req) => {
       }
       const existingMap = new Map<string, ExistingProduct>();
       existingProducts?.forEach(p => {
-        const categoryName = categoryIdToName.get(p.category_id) || '';
-        const key = `${p.name.toLowerCase().trim()}|${categoryName.toLowerCase().trim()}`;
+        const key = `${p.name.toLowerCase().trim()}|${p.category_id}`;
         existingMap.set(key, p);
       });
 
@@ -223,8 +223,14 @@ serve(async (req) => {
 
       products.forEach(product => {
         const categoryKey = product.categoria.toLowerCase().trim();
-        const key = `${product.nome.toLowerCase().trim()}|${categoryKey}`;
-        
+        const categoryId = categoryMap.get(categoryKey);
+        // Se a categoria não existe ainda (será criada), não há como ser duplicata agora.
+        if (!categoryId) {
+          newCount++;
+          return;
+        }
+
+        const key = `${product.nome.toLowerCase().trim()}|${categoryId}`;
         const existing = existingMap.get(key);
         if (existing) {
           existingCount++;
@@ -272,7 +278,7 @@ serve(async (req) => {
       .insert({
         store_id: storeId,
         imported_by: user.id,
-        file_name: fileName,
+        file_name: safeFileName,
         total_rows: products.length,
         status: 'processing',
       })
@@ -319,8 +325,7 @@ serve(async (req) => {
     }
     const existingProductsMap = new Map<string, ExistingProductInfo>();
     existingProducts?.forEach(p => {
-      const categoryName = categoryIdToName.get(p.category_id) || '';
-      const key = `${p.name.toLowerCase().trim()}|${categoryName.toLowerCase().trim()}`;
+      const key = `${p.name.toLowerCase().trim()}|${p.category_id}`;
       existingProductsMap.set(key, p);
     });
 
@@ -331,12 +336,15 @@ serve(async (req) => {
     let variantsCreated = 0;
     const importErrors: ImportError[] = [];
 
-    const effectiveDuplicateAction = duplicateAction || 'create';
+    // Segurança: se o frontend não mandar, evitar gerar duplicatas por padrão.
+    const effectiveDuplicateAction = duplicateAction || 'update';
     const effectiveImageOptions = imageOptions || { 
       updateFromSpreadsheet: true, 
       searchMissing: false, 
       replaceAll: false 
     };
+
+    console.log(`[import-products] Duplicate action: ${effectiveDuplicateAction}`);
 
     for (let i = 0; i < products.length; i++) {
       const product = products[i];
@@ -350,7 +358,7 @@ serve(async (req) => {
           continue;
         }
 
-        const productKey = `${product.nome.toLowerCase().trim()}|${product.categoria.toLowerCase().trim()}`;
+        const productKey = `${product.nome.toLowerCase().trim()}|${categoryId}`;
         const existingProduct = existingProductsMap.get(productKey);
 
         const hasOfferPrice = product.preco_oferta !== undefined && product.preco_oferta !== null && product.preco_oferta > 0;

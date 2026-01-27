@@ -1,134 +1,118 @@
 
-# Plano: Melhorias no PDV - Carrinho Fixo e Impressão de Venda
+# Plano: Correção do Card do Carrinho PDV - Textos Completos e Scroll Funcional
 
-## Problema Identificado
+## Problemas Identificados nas Imagens
 
-### 1. Botão "Finalizar" some ao rolar
-Na imagem fornecida, o carrinho está à direita da tela como um `Card` normal. Quando há muitos produtos na lista de produtos (à esquerda), o usuário rola a página e o botão "Finalizar Venda" no rodapé do carrinho pode ficar invisível.
-
-### 2. Impressão no PDV
-Analisando o código atual:
-- **Comandas** têm impressão implementada via `printComanda()` ✅
-- **Vendas de balcão (PDV)** NÃO têm impressão ❌
-
-O fluxo atual do `finalizeSale` no `usePDV.ts`:
-1. Cria comanda tipo "balcão"
-2. Adiciona itens
-3. Fecha comanda
-4. Limpa carrinho
-5. **Não imprime nada!**
-
----
+1. **Valores truncados**: Os preços como "R$ 59,0" estão sendo cortados (deveria ser "R$ 59,00")
+2. **Nomes longos cortados**: Produtos com nomes extensos ficam truncados
+3. **Footer desaparece**: Ao adicionar muitos produtos, o botão "Finalizar Venda" some para baixo
 
 ## Solução Proposta
 
-### Parte 1: Carrinho Sticky (Sempre Visível)
+### Estrutura de Layout Corrigida
 
-**Abordagem técnica**: Usar `position: sticky` com `top: 0` no container do carrinho no layout Desktop.
-
-**Alterações em `PDVPage.tsx`**:
 ```text
-Antes:
-<div className="w-80 lg:w-96 flex-shrink-0">
-  <PDVCart ... />
-</div>
-
-Depois:
-<div className="w-80 lg:w-96 flex-shrink-0 self-start sticky top-0">
-  <PDVCart ... />
-</div>
+┌─────────────────────────────────┐
+│  HEADER (fixo)                  │  ← CardHeader com altura fixa
+│  🛒 Carrinho [5]        Limpar  │
+├─────────────────────────────────┤
+│                                 │
+│  ÁREA ROLÁVEL                   │  ← ScrollArea com altura calculada
+│  ┌─────────────────────────────┐│
+│  │ Item 1         R$ 50,00     ││
+│  │ Item 2         R$ 19,00     ││  ← Barra de rolagem lateral visível
+│  │ Item 3         R$ 59,00     ││
+│  │ Item 4         R$ 23,00     ││
+│  │ ...                         ││
+│  └─────────────────────────────┘│
+├─────────────────────────────────┤
+│  FOOTER (fixo)                  │  ← CardFooter sempre visível
+│  Subtotal            R$ 153,00  │
+│  Total               R$ 153,00  │
+│  [ Finalizar Venda ]            │
+└─────────────────────────────────┘
 ```
 
-**Alterações em `PDVCart.tsx`**:
-- Ajustar a altura máxima do carrinho para `max-h-[calc(100vh-120px)]` para evitar que ultrapasse a viewport
-- O `CardFooter` com o botão "Finalizar" já está dentro do Card, então ficará visível com o sticky
+### Alterações Técnicas
 
-### Parte 2: Impressão Automática de Venda PDV
+#### 1. PDVCart.tsx - Estrutura Flexbox Corrigida
 
-**Fluxo proposto**:
-1. Após `finalizeSale`, retornar a comanda criada com seus itens
-2. Chamar `printComanda()` automaticamente
-3. Opção: Adicionar botão "Imprimir" no modal de pagamento ou imprimir automaticamente após confirmação
+**Mudanças principais:**
+- Remover `truncate` do nome do produto para exibir texto completo
+- Usar `break-words` para quebrar linhas em nomes longos
+- Ajustar o layout dos preços para não serem cortados
+- Definir altura fixa para Header e Footer
+- Calcular altura da ScrollArea dinamicamente
 
-**Alterações necessárias**:
-
-1. **`usePDV.ts`**: Modificar `finalizeSale` para retornar a comanda completa com itens
-   
-2. **`PDVPage.tsx`**: 
-   - Após `handleFinalize`, chamar `printComanda()` com a comanda retornada
-   - Usar o `printComanda` que já existe e está funcionando para comandas
-
-3. **`PDVPaymentModal.tsx`** (opcional):
-   - Adicionar checkbox "Imprimir cupom após finalizar"
-   - Ou adicionar botão "Imprimir" no modal de sucesso
-
----
-
-## Detalhes Técnicos
-
-### Modificação 1: PDVPage.tsx (Sticky Cart)
+**Código do nome do produto:**
 ```tsx
-// Linha ~318 - Desktop layout
-<div className="w-80 lg:w-96 flex-shrink-0 self-start sticky top-0 max-h-[calc(100vh-80px)]">
-  <PDVCart ... />
-</div>
+// Antes (trunca):
+<p className="font-medium truncate text-base">{item.product_name}</p>
+
+// Depois (quebra linha):
+<p className="font-medium break-words leading-tight text-base">{item.product_name}</p>
 ```
 
-### Modificação 2: PDVCart.tsx (Altura máxima)
+**Código do preço (garantir espaço):**
 ```tsx
-// Linha ~37
-<Card className="flex flex-col h-full max-h-[calc(100vh-100px)] overflow-hidden">
+// Antes:
+<p className="font-bold text-primary whitespace-nowrap text-base">
+  {formatCurrency(item.total_price)}
+</p>
+
+// Depois (largura mínima para valores):
+<p className="font-bold text-primary whitespace-nowrap text-base min-w-[80px] text-right">
+  {formatCurrency(item.total_price)}
+</p>
 ```
 
-### Modificação 3: usePDV.ts (Retornar dados para impressão)
+#### 2. Estrutura de Altura do Card
+
+**Card principal:**
 ```tsx
-// finalizeSale retorna { comanda, items } para permitir impressão
-const finalizeSale = async (...) => {
-  // ... código existente ...
-  
-  // Buscar itens criados para impressão
-  const { data: createdItems } = await supabase
-    .from('comanda_items')
-    .select('*')
-    .eq('comanda_id', comanda.id);
-  
-  return { comanda, items: createdItems || [] };
-};
+<Card className="flex flex-col max-h-[calc(100vh-80px)]">
 ```
 
-### Modificação 4: PDVPage.tsx (Impressão automática)
+**CardHeader - altura automática, não encolhe:**
 ```tsx
-const handleFinalize = async (paymentMethod, discount, paymentDetails) => {
-  const result = await finalizeSale(paymentMethod, discount, paymentDetails);
-  setPaymentModalOpen(false);
-  
-  // Imprimir automaticamente
-  if (result?.comanda && result?.items) {
-    printComanda(
-      result.comanda, 
-      result.items, 
-      storeData?.name || 'Estabelecimento'
-    );
-  }
-};
+<CardHeader className="pb-3 flex-shrink-0">
 ```
 
----
+**CardContent - área flexível com overflow:**
+```tsx
+<CardContent className="flex-1 min-h-0 overflow-hidden px-3">
+  <ScrollArea className="h-full">
+    <div className="space-y-3 pr-3">
+      {/* Itens do carrinho */}
+    </div>
+  </ScrollArea>
+</CardContent>
+```
 
-## Resumo das Alterações
+**CardFooter - altura automática, não encolhe:**
+```tsx
+<CardFooter className="flex-shrink-0 flex-col gap-3 pt-3 border-t">
+```
+
+#### 3. Melhorias UX Adicionais
+
+- **Padding no conteúdo**: Adicionar `pr-3` para não sobrepor a scrollbar
+- **Espaço visual**: Garantir separação clara entre itens
+- **Feedback visual**: Scrollbar mais visível com cor de contraste
+
+### Resumo das Alterações
 
 | Arquivo | Alteração |
 |---------|-----------|
-| `PDVPage.tsx` | Adicionar classes `self-start sticky top-0 max-h-[calc(100vh-80px)]` no container do carrinho |
-| `PDVCart.tsx` | Adicionar `max-h-[calc(100vh-100px)] overflow-hidden` no Card principal |
-| `usePDV.ts` | Modificar `finalizeSale` para retornar comanda + itens |
-| `PDVPage.tsx` | Chamar `printComanda()` após finalização bem-sucedida |
+| `PDVCart.tsx` | Trocar `truncate` por `break-words leading-tight` no nome do produto |
+| `PDVCart.tsx` | Adicionar `min-w-[80px] text-right` nos valores para garantir espaço |
+| `PDVCart.tsx` | Adicionar `flex-shrink-0` no CardHeader e CardFooter |
+| `PDVCart.tsx` | Adicionar `min-h-0` no CardContent (fix flexbox) |
+| `PDVCart.tsx` | Adicionar `pr-3` na lista de itens para não sobrepor scrollbar |
 
----
+### Benefícios
 
-## Benefícios
-
-1. **UX melhorada**: Operador sempre vê o botão "Finalizar" sem precisar rolar
-2. **Fluxo profissional**: Impressão automática do cupom como em PDVs tradicionais
-3. **Reutilização**: Usa o sistema de impressão já existente (`printComanda`)
-4. **Consistência**: Mesmo formato de impressão entre comandas e vendas balcão
+1. **Textos completos**: Nomes de produtos e valores nunca serão cortados
+2. **Scroll funcional**: Barra de rolagem lateral aparece quando necessário
+3. **Footer fixo**: Botão "Finalizar Venda" sempre visível na tela
+4. **Melhor UX**: Operador consegue ver todas as informações sem esforço

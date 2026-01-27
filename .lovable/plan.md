@@ -1,163 +1,258 @@
 
-# Plano: Sistema de Filtros Avançados para Produtos do Admin
+# Plano: Modo Tela Cheia no PDV (Similar aos Pedidos)
 
-## Visão Geral
+## Objetivo
 
-Adicionar uma barra de filtros abaixo da busca existente, permitindo ao administrador encontrar produtos rapidamente usando múltiplos critérios.
+Implementar o mesmo comportamento da página de pedidos no PDV:
+1. Abrir com menu lateral minimizado (sidebar colapsada)
+2. Header oculto para tela mais limpa
+3. Botão "Sair" para restaurar o menu lateral e header
+4. Atalho `Escape` para sair do modo tela cheia
 
-## Filtros Sugeridos
+## Análise do Comportamento Atual
 
-### 1. Filtro por Status de Disponibilidade
-| Opção | Descrição |
-|-------|-----------|
-| Todos | Sem filtro |
-| Disponíveis | `is_available = true` |
-| Indisponíveis | `is_available = false` |
-| Ocultos do cardápio | `show_in_menu = false` |
+### Página de Pedidos (OrdersPage):
+- Estado `isFullscreen` inicia como `true`
+- Dispara evento customizado `kanbanFullscreenChange` para o `AdminLayout`
+- O `AdminLayout` escuta esse evento e oculta o header
+- Usa hook `useSidebar` para colapsar/expandir a sidebar
+- Botão "Sair" com ícones `Minimize2`/`Maximize2`
+- Atalho `Escape` para sair do modo tela cheia
 
-### 2. Filtro por Status de Estoque
-| Opção | Descrição |
-|-------|-----------|
-| Todos | Sem filtro |
-| Sem estoque | `stock_quantity = 0` e `track_stock = true` |
-| Estoque baixo | `stock_quantity <= stock_alert_threshold` |
-| Estoque normal | Acima do alerta |
-| Sem controle | `track_stock = false` ou `null` |
+### Página do PDV (PDVPage) - Atual:
+- Não tem controle de fullscreen
+- Sempre mostra header e sidebar expandida
+- Sem otimização para uso como frente de caixa
 
-### 3. Filtro por Faixa de Preço
-- Slider duplo para definir preço mínimo e máximo
-- Ou presets rápidos: "Até R$ 50", "R$ 50 - R$ 100", "Acima de R$ 100"
+## Modificações Necessárias
 
-### 4. Filtro por Categoria (Multi-seleção)
-- Chips clicáveis com as categorias
-- Permite selecionar múltiplas categorias
-- Badge mostrando quantidade selecionada
+### Arquivo: `src/pages/admin/PDVPage.tsx`
 
-### 5. Filtro por Promoção
-| Opção | Descrição |
-|-------|-----------|
-| Todos | Sem filtro |
-| Em promoção | `is_on_offer = true` |
-| Preço normal | `is_on_offer = false` |
+**Adicionar imports:**
+```typescript
+import { useSidebar } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import { Minimize2, Maximize2 } from "lucide-react";
+```
 
-### 6. Filtro por Imagem
-| Opção | Descrição |
-|-------|-----------|
-| Todos | Sem filtro |
-| Com imagem | `image_url IS NOT NULL` |
-| Sem imagem | `image_url IS NULL` |
+**Adicionar lógica de fullscreen:**
+1. Estado `isFullscreen` iniciando como `true` (igual OrdersPage)
+2. Hook `useSidebar` para controlar a sidebar
+3. Função `toggleFullscreen` que:
+   - Alterna o estado
+   - Dispara evento `kanbanFullscreenChange`
+   - Colapsa/expande sidebar
+4. Effect para sincronizar ao montar (enviar evento de fullscreen)
+5. Effect para cleanup ao desmontar (restaurar sidebar/header)
+6. Effect para atalho `Escape`
 
-## Design da UI
+**Adicionar botão "Sair" na UI:**
+- Desktop: No header dos tabs (ao lado do TabsList)
+- Mobile: Botão flutuante no canto superior direito
+
+## Fluxo de Funcionamento
 
 ```text
 ┌─────────────────────────────────────────────────────────────────┐
-│  [🔍 Buscar produtos...                    ] [Ordenar: Manual ▼]│
+│  ABERTURA DO PDV                                                │
 ├─────────────────────────────────────────────────────────────────┤
-│  Filtros: [Status ▼] [Estoque ▼] [Preço ▼] [Promoção ▼]         │
-│           [Categorias ▼] [Imagem ▼]         [✕ Limpar filtros]  │
+│                                                                 │
+│  1. PDVPage monta com isFullscreen = true                       │
+│                                                                 │
+│  2. useEffect dispara evento kanbanFullscreenChange:            │
+│     → AdminLayout oculta header                                 │
+│     → setSidebarOpen(false) colapsa menu lateral                │
+│                                                                 │
+│  3. UI renderiza botão "Sair" (ícone Minimize2)                 │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│  CLIQUE NO BOTÃO "SAIR" ou TECLA ESCAPE                        │
 ├─────────────────────────────────────────────────────────────────┤
-│  📊 Mostrando 45 de 1.234 produtos                              │
-│  ┌─────────────────────────────────────────────────────────────┐│
-│  │ Filtros ativos: [Sem estoque ✕] [Em promoção ✕]             ││
-│  └─────────────────────────────────────────────────────────────┘│
+│                                                                 │
+│  1. toggleFullscreen() é chamado                                │
+│                                                                 │
+│  2. isFullscreen = false                                        │
+│                                                                 │
+│  3. Dispara evento kanbanFullscreenChange { isFullscreen: false }│
+│     → AdminLayout mostra header novamente                       │
+│                                                                 │
+│  4. setSidebarOpen(true) expande menu lateral                   │
+│                                                                 │
+│  5. Botão muda para "Tela Cheia" (ícone Maximize2)              │
+│                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Componentes Mobile
-- Filtros em popover/sheet em vez de dropdowns
-- Botão "Filtros" com badge mostrando quantidade de filtros ativos
-- Sheet deslizante com todos os filtros quando clicado
+## Design da UI
 
-## Arquivos a Criar
+### Desktop:
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│  [PDV] [Comandas (2)] [Histórico]              [Sair 🗕]        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────────────────────────┐  ┌─────────────────────────┐  │
+│  │     Grid de Produtos        │  │    Carrinho Lateral     │  │
+│  │                             │  │                         │  │
+│  │                             │  │                         │  │
+│  └─────────────────────────────┘  └─────────────────────────┘  │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-| Arquivo | Descrição |
-|---------|-----------|
-| `src/components/admin/products/ProductFilters.tsx` | Componente principal com todos os filtros |
-| `src/components/admin/products/ProductFiltersSheet.tsx` | Versão mobile em sheet/drawer |
-| `src/components/admin/products/ActiveFiltersBar.tsx` | Barra de filtros ativos com botão de remover |
+### Mobile:
+```text
+┌─────────────────────────────────────────┐
+│                               [🗕 Sair] │  ← Botão flutuante
+├─────────────────────────────────────────┤
+│  ┌─────────┐ ┌─────────┐                │
+│  │Produtos │ │Carrinho │                │
+│  └─────────┘ └─────────┘                │
+│  ┌─────────┐ ┌─────────┐                │
+│  │Comandas │ │Histórico│                │
+│  └─────────┘ └─────────┘                │
+├─────────────────────────────────────────┤
+│          [Grid de Produtos]             │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+## Código a Implementar
+
+### Imports adicionais:
+```typescript
+import { useEffect, useState } from 'react';
+import { useSidebar } from "@/components/ui/sidebar";
+import { Minimize2, Maximize2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+```
+
+### Estados e hooks:
+```typescript
+// Hook do sidebar
+const { setOpen: setSidebarOpen } = useSidebar();
+
+// Estado para modo tela cheia (inicia como true)
+const [isFullscreen, setIsFullscreen] = useState<boolean>(true);
+```
+
+### Função toggleFullscreen:
+```typescript
+const toggleFullscreen = () => {
+  const newState = !isFullscreen;
+  setIsFullscreen(newState);
+  
+  // Dispara evento para AdminLayout ocultar/mostrar header
+  window.dispatchEvent(new CustomEvent('kanbanFullscreenChange', { 
+    detail: { isFullscreen: newState } 
+  }));
+  
+  // Colapsa ou expande sidebar
+  setSidebarOpen(!newState);
+};
+```
+
+### Effects:
+```typescript
+// Sincronizar ao montar
+useEffect(() => {
+  if (isFullscreen) {
+    window.dispatchEvent(new CustomEvent('kanbanFullscreenChange', { 
+      detail: { isFullscreen: true } 
+    }));
+    setSidebarOpen(false);
+  }
+  
+  // Cleanup ao desmontar
+  return () => {
+    window.dispatchEvent(new CustomEvent('kanbanFullscreenChange', { 
+      detail: { isFullscreen: false } 
+    }));
+  };
+}, []);
+
+// Atalho Escape
+useEffect(() => {
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && isFullscreen) {
+      toggleFullscreen();
+    }
+  };
+  
+  window.addEventListener('keydown', handleKeyDown);
+  return () => window.removeEventListener('keydown', handleKeyDown);
+}, [isFullscreen]);
+```
+
+### Botão na UI (Desktop):
+```typescript
+<div className="flex items-center justify-between mb-4">
+  <TabsList className="w-fit">
+    {/* tabs existentes */}
+  </TabsList>
+  
+  <Button
+    variant={isFullscreen ? "default" : "outline"}
+    size="sm"
+    onClick={toggleFullscreen}
+    title={isFullscreen ? "Sair da tela cheia (Esc)" : "Modo tela cheia"}
+    className="gap-1"
+  >
+    {isFullscreen ? (
+      <>
+        <Minimize2 className="h-4 w-4" />
+        <span>Sair</span>
+      </>
+    ) : (
+      <>
+        <Maximize2 className="h-4 w-4" />
+        <span>Tela Cheia</span>
+      </>
+    )}
+  </Button>
+</div>
+```
+
+### Botão na UI (Mobile):
+```typescript
+{/* Botão flutuante no mobile */}
+<div className="absolute top-2 right-2 z-10">
+  <Button
+    variant={isFullscreen ? "default" : "outline"}
+    size="sm"
+    onClick={toggleFullscreen}
+    className="gap-1 shadow-md"
+  >
+    {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+    <span className="sr-only">
+      {isFullscreen ? "Sair da tela cheia" : "Modo tela cheia"}
+    </span>
+  </Button>
+</div>
+```
+
+## Benefícios
+
+1. **Mais espaço**: Sem header e com sidebar colapsada, a área útil aumenta significativamente
+2. **Foco**: Interface limpa para operações de caixa
+3. **Consistência**: Mesmo padrão usado na página de pedidos
+4. **Flexibilidade**: Usuário pode alternar entre modos conforme necessidade
+5. **Atalho**: Tecla Escape oferece forma rápida de sair
+
+## Estimativa
+
+| Tarefa | Tempo |
+|--------|-------|
+| Adicionar lógica de fullscreen | 15 min |
+| Ajustar UI desktop | 10 min |
+| Ajustar UI mobile | 10 min |
+| Testes | 5 min |
+| **Total** | ~40 min |
 
 ## Arquivo a Modificar
 
 | Arquivo | Alteração |
 |---------|-----------|
-| `src/pages/admin/ProductsPage.tsx` | Adicionar estado dos filtros, integrar componentes, aplicar lógica de filtragem |
-
-## Detalhes Técnicos
-
-### Estado dos Filtros
-
-```typescript
-interface ProductFilters {
-  status: 'all' | 'available' | 'unavailable' | 'hidden';
-  stock: 'all' | 'out_of_stock' | 'low_stock' | 'normal' | 'no_tracking';
-  priceRange: { min: number | null; max: number | null };
-  categories: string[]; // IDs das categorias selecionadas
-  promotion: 'all' | 'on_sale' | 'regular';
-  hasImage: 'all' | 'with_image' | 'without_image';
-}
-```
-
-### Lógica de Filtragem
-
-```typescript
-const applyFilters = (products: ProductData[], filters: ProductFilters) => {
-  return products.filter(product => {
-    // Status
-    if (filters.status === 'available' && !product.is_available) return false;
-    if (filters.status === 'unavailable' && product.is_available) return false;
-    if (filters.status === 'hidden' && product.show_in_menu) return false;
-    
-    // Estoque
-    if (filters.stock === 'out_of_stock') {
-      if (!product.track_stock || product.stock_quantity !== 0) return false;
-    }
-    if (filters.stock === 'low_stock') {
-      if (!product.track_stock) return false;
-      if (product.stock_quantity > (product.stock_alert_threshold || 0)) return false;
-    }
-    // ... demais filtros
-    
-    return true;
-  });
-};
-```
-
-### Contador de Resultados
-
-```typescript
-const filteredCount = filteredProducts.length;
-const totalCount = allProducts.length;
-const hasActiveFilters = Object.values(filters).some(v => v !== 'all' && v !== null);
-
-// Exibir: "Mostrando 45 de 1.234 produtos"
-```
-
-## UX/Comportamento
-
-1. **Filtros persistem** durante a sessão (não salva após refresh)
-2. **Combináveis**: todos os filtros funcionam juntos (AND)
-3. **Busca + Filtros**: a busca por texto combina com os filtros
-4. **Feedback visual**: 
-   - Badge no botão "Filtros" mostra quantidade de filtros ativos
-   - Barra de filtros ativos mostra chips removíveis
-5. **Reset rápido**: botão "Limpar filtros" remove todos de uma vez
-6. **Accordions respeitam filtros**: categorias vazias (após filtro) são ocultadas
-
-## Estimativas
-
-| Tarefa | Tempo |
-|--------|-------|
-| ProductFilters.tsx (desktop) | 30 min |
-| ProductFiltersSheet.tsx (mobile) | 20 min |
-| ActiveFiltersBar.tsx | 15 min |
-| Integrar em ProductsPage.tsx | 25 min |
-| Testes e ajustes | 15 min |
-| **Total** | ~1.5 horas |
-
-## Benefícios
-
-1. **Produtividade**: Encontrar produtos específicos instantaneamente
-2. **Gestão de estoque**: Identificar rapidamente produtos sem estoque ou em baixa
-3. **Qualidade do catálogo**: Filtrar produtos sem imagem para completar cadastros
-4. **Análise de preços**: Ver distribuição de preços por faixa
-5. **Controle de promoções**: Gerenciar ofertas ativas facilmente
+| `src/pages/admin/PDVPage.tsx` | Adicionar fullscreen logic, botão sair, effects |

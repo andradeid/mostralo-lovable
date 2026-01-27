@@ -1,14 +1,15 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, Upload, Columns, CheckCircle, Download as DownloadIcon } from 'lucide-react';
+import { ArrowLeft, Upload, Columns, CheckCircle, Download as DownloadIcon, Search } from 'lucide-react';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
-import { useProductImport } from '@/hooks/useProductImport';
+import { useProductImport, DuplicateAction, ImageOptions } from '@/hooks/useProductImport';
 import { FileUploadStep } from '@/components/admin/products/import/FileUploadStep';
 import { ColumnMappingStep } from '@/components/admin/products/import/ColumnMappingStep';
 import { PreviewValidationStep } from '@/components/admin/products/import/PreviewValidationStep';
+import { DuplicateAnalysisStep } from '@/components/admin/products/import/DuplicateAnalysisStep';
 import { ImportConfirmationStep } from '@/components/admin/products/import/ImportConfirmationStep';
 import { ImportResultsDialog } from '@/components/admin/products/import/ImportResultsDialog';
 import { 
@@ -16,16 +17,16 @@ import {
   mapRowToProduct, 
   groupProductsWithVariants,
   validateMapping,
-  ParsedRow,
   ProductWithVariants,
 } from '@/lib/parseSpreadsheet';
 
-type ImportStep = 'upload' | 'mapping' | 'preview' | 'confirmation';
+type ImportStep = 'upload' | 'mapping' | 'preview' | 'duplicates' | 'confirmation';
 
 const STEPS: { key: ImportStep; label: string; icon: React.ElementType }[] = [
   { key: 'upload', label: 'Upload', icon: Upload },
   { key: 'mapping', label: 'Mapeamento', icon: Columns },
   { key: 'preview', label: 'Validação', icon: CheckCircle },
+  { key: 'duplicates', label: 'Duplicatas', icon: Search },
   { key: 'confirmation', label: 'Importar', icon: DownloadIcon },
 ];
 
@@ -34,10 +35,13 @@ export default function ProductImportPage() {
   const { storeId } = useStoreAccess();
   const { 
     isValidating, 
+    isCheckingDuplicates,
     isImporting, 
-    validationResult, 
+    validationResult,
+    duplicateCheckResult,
     importResult,
-    validateProducts, 
+    validateProducts,
+    checkDuplicates,
     importProducts,
     reset: resetImport,
   } = useProductImport(storeId);
@@ -47,10 +51,17 @@ export default function ProductImportPage() {
   const [headers, setHeaders] = useState<string[]>([]);
   const [rawData, setRawData] = useState<Record<string, unknown>[]>([]);
   const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
-  const [parsedRows, setParsedRows] = useState<ParsedRow[]>([]);
   const [products, setProducts] = useState<ProductWithVariants[]>([]);
   const [createMissingCategories, setCreateMissingCategories] = useState(true);
   const [showResults, setShowResults] = useState(false);
+  
+  // Duplicate handling state
+  const [duplicateAction, setDuplicateAction] = useState<DuplicateAction>('update');
+  const [imageOptions, setImageOptions] = useState<ImageOptions>({
+    updateFromSpreadsheet: true,
+    searchMissing: false,
+    replaceAll: false,
+  });
 
   const currentStepIndex = STEPS.findIndex(s => s.key === currentStep);
   const progress = ((currentStepIndex + 1) / STEPS.length) * 100;
@@ -80,7 +91,6 @@ export default function ProductImportPage() {
     const mapped = rawData.map((row, index) => 
       mapRowToProduct(row, columnMapping, index + 2)
     );
-    setParsedRows(mapped);
 
     // Group by product name to handle variants
     const grouped = groupProductsWithVariants(mapped);
@@ -93,15 +103,34 @@ export default function ProductImportPage() {
     await validateProducts(products, createMissingCategories);
   }, [products, createMissingCategories, validateProducts]);
 
+  const handleGoToDuplicates = useCallback(async () => {
+    // Trigger duplicate check when entering the step
+    await checkDuplicates(products, createMissingCategories);
+    setCurrentStep('duplicates');
+  }, [products, createMissingCategories, checkDuplicates]);
+
+  // Auto-check duplicates when entering the step
+  useEffect(() => {
+    if (currentStep === 'duplicates' && !duplicateCheckResult && !isCheckingDuplicates) {
+      checkDuplicates(products, createMissingCategories);
+    }
+  }, [currentStep, duplicateCheckResult, isCheckingDuplicates, products, createMissingCategories, checkDuplicates]);
+
   const handleImport = useCallback(async () => {
     if (!file) return;
     
-    const result = await importProducts(products, createMissingCategories, file.name);
+    const result = await importProducts(
+      products, 
+      createMissingCategories, 
+      file.name,
+      duplicateAction,
+      imageOptions
+    );
     
     if (result) {
       setShowResults(true);
     }
-  }, [file, products, createMissingCategories, importProducts]);
+  }, [file, products, createMissingCategories, duplicateAction, imageOptions, importProducts]);
 
   const handleReset = useCallback(() => {
     setCurrentStep('upload');
@@ -109,10 +138,15 @@ export default function ProductImportPage() {
     setHeaders([]);
     setRawData([]);
     setColumnMapping({});
-    setParsedRows([]);
     setProducts([]);
     setCreateMissingCategories(true);
     setShowResults(false);
+    setDuplicateAction('update');
+    setImageOptions({
+      updateFromSpreadsheet: true,
+      searchMissing: false,
+      replaceAll: false,
+    });
     resetImport();
   }, [resetImport]);
 
@@ -153,12 +187,12 @@ export default function ProductImportPage() {
                     key={step.key}
                     className={`flex items-center gap-2 ${
                       isActive ? 'text-primary font-medium' : 
-                      isCompleted ? 'text-green-600' : 'text-muted-foreground'
+                      isCompleted ? 'text-primary/70' : 'text-muted-foreground'
                     }`}
                   >
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                       isActive ? 'bg-primary text-primary-foreground' :
-                      isCompleted ? 'bg-green-100 text-green-600' : 'bg-muted'
+                      isCompleted ? 'bg-primary/20 text-primary' : 'bg-muted'
                     }`}>
                       <StepIcon className="h-4 w-4" />
                     </div>
@@ -179,12 +213,14 @@ export default function ProductImportPage() {
             {currentStep === 'upload' && 'Selecione a Planilha'}
             {currentStep === 'mapping' && 'Mapeie as Colunas'}
             {currentStep === 'preview' && 'Valide os Dados'}
+            {currentStep === 'duplicates' && 'Análise de Duplicatas'}
             {currentStep === 'confirmation' && 'Confirme a Importação'}
           </CardTitle>
           <CardDescription>
             {currentStep === 'upload' && 'Faça upload de um arquivo CSV ou Excel (.xlsx, .xls)'}
             {currentStep === 'mapping' && 'Verifique se as colunas estão mapeadas corretamente'}
             {currentStep === 'preview' && 'Revise os produtos e corrija erros antes de importar'}
+            {currentStep === 'duplicates' && 'Escolha como tratar produtos já existentes na loja'}
             {currentStep === 'confirmation' && 'Confirme os dados e inicie a importação'}
           </CardDescription>
         </CardHeader>
@@ -213,6 +249,19 @@ export default function ProductImportPage() {
               onCreateMissingCategoriesChange={setCreateMissingCategories}
               onValidate={handleValidate}
               onBack={handleBack}
+              onNext={handleGoToDuplicates}
+            />
+          )}
+
+          {currentStep === 'duplicates' && (
+            <DuplicateAnalysisStep
+              isChecking={isCheckingDuplicates}
+              checkResult={duplicateCheckResult}
+              duplicateAction={duplicateAction}
+              imageOptions={imageOptions}
+              onDuplicateActionChange={setDuplicateAction}
+              onImageOptionsChange={setImageOptions}
+              onBack={handleBack}
               onNext={() => setCurrentStep('confirmation')}
             />
           )}
@@ -221,6 +270,8 @@ export default function ProductImportPage() {
             <ImportConfirmationStep
               products={products}
               validationResult={validationResult}
+              duplicateCheckResult={duplicateCheckResult}
+              duplicateAction={duplicateAction}
               createMissingCategories={createMissingCategories}
               fileName={file?.name || ''}
               isImporting={isImporting}

@@ -28,12 +28,20 @@ interface ProductImportData {
   variantes?: ProductVariant[];
 }
 
+interface ImageOptions {
+  updateFromSpreadsheet: boolean;
+  searchMissing: boolean;
+  replaceAll: boolean;
+}
+
 interface ImportPayload {
-  action: 'import' | 'validate';
+  action: 'import' | 'validate' | 'check-duplicates';
   storeId: string;
   createMissingCategories: boolean;
   products: ProductImportData[];
   fileName: string;
+  duplicateAction?: 'skip' | 'update' | 'create';
+  imageOptions?: ImageOptions;
 }
 
 interface ImportError {
@@ -41,6 +49,14 @@ interface ImportError {
   field: string;
   message: string;
   value?: string | number | null;
+}
+
+interface DuplicateInfo {
+  productName: string;
+  category: string;
+  existingId: string;
+  existingPrice: number;
+  newPrice: number;
 }
 
 serve(async (req) => {
@@ -73,7 +89,7 @@ serve(async (req) => {
     }
 
     const payload: ImportPayload = await req.json();
-    const { action, storeId, createMissingCategories, products, fileName } = payload;
+    const { action, storeId, createMissingCategories, products, fileName, duplicateAction, imageOptions } = payload;
 
     console.log(`[import-products] Action: ${action}, Store: ${storeId}, Products: ${products.length}`);
 
@@ -108,8 +124,10 @@ serve(async (req) => {
       .eq('store_id', storeId);
 
     const categoryMap = new Map<string, string>();
+    const categoryIdToName = new Map<string, string>();
     existingCategories?.forEach(cat => {
       categoryMap.set(cat.name.toLowerCase().trim(), cat.id);
+      categoryIdToName.set(cat.id, cat.name);
     });
 
     // Validate products
@@ -173,6 +191,65 @@ serve(async (req) => {
       });
     }
 
+    // =============================================
+    // CHECK DUPLICATES ACTION
+    // =============================================
+    if (action === 'check-duplicates') {
+      // Fetch existing products
+      const { data: existingProducts } = await supabase
+        .from('products')
+        .select('id, name, category_id, price, image_url')
+        .eq('store_id', storeId);
+
+      // Create lookup map: lowercase(name)|lowercase(category) -> product
+      interface ExistingProduct {
+        id: string;
+        name: string;
+        category_id: string;
+        price: number;
+        image_url: string | null;
+      }
+      const existingMap = new Map<string, ExistingProduct>();
+      existingProducts?.forEach(p => {
+        const categoryName = categoryIdToName.get(p.category_id) || '';
+        const key = `${p.name.toLowerCase().trim()}|${categoryName.toLowerCase().trim()}`;
+        existingMap.set(key, p);
+      });
+
+      // Classify each product from spreadsheet
+      const duplicates: DuplicateInfo[] = [];
+      let newCount = 0;
+      let existingCount = 0;
+
+      products.forEach(product => {
+        const categoryKey = product.categoria.toLowerCase().trim();
+        const key = `${product.nome.toLowerCase().trim()}|${categoryKey}`;
+        
+        const existing = existingMap.get(key);
+        if (existing) {
+          existingCount++;
+          duplicates.push({
+            productName: product.nome,
+            category: product.categoria,
+            existingId: existing.id,
+            existingPrice: existing.price,
+            newPrice: product.preco,
+          });
+        } else {
+          newCount++;
+        }
+      });
+
+      return new Response(JSON.stringify({
+        success: true,
+        newProducts: newCount,
+        existingProducts: existingCount,
+        duplicates,
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // If there are critical errors, don't import
     if (errors.length > 0) {
       return new Response(JSON.stringify({
@@ -184,6 +261,10 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    // =============================================
+    // IMPORT ACTION
+    // =============================================
 
     // Create import log
     const { data: importLog, error: logError } = await supabase
@@ -218,14 +299,44 @@ serve(async (req) => {
 
       if (!catError && newCat) {
         categoryMap.set(categoryName.toLowerCase().trim(), newCat.id);
+        categoryIdToName.set(newCat.id, categoryName);
         createdCategories.push(categoryName);
       }
     }
 
+    // Fetch existing products for duplicate handling
+    const { data: existingProducts } = await supabase
+      .from('products')
+      .select('id, name, category_id, price, image_url')
+      .eq('store_id', storeId);
+
+    interface ExistingProductInfo {
+      id: string;
+      name: string;
+      category_id: string;
+      price: number;
+      image_url: string | null;
+    }
+    const existingProductsMap = new Map<string, ExistingProductInfo>();
+    existingProducts?.forEach(p => {
+      const categoryName = categoryIdToName.get(p.category_id) || '';
+      const key = `${p.name.toLowerCase().trim()}|${categoryName.toLowerCase().trim()}`;
+      existingProductsMap.set(key, p);
+    });
+
     // Import products
     let successCount = 0;
+    let updatedCount = 0;
+    let skippedCount = 0;
     let variantsCreated = 0;
     const importErrors: ImportError[] = [];
+
+    const effectiveDuplicateAction = duplicateAction || 'create';
+    const effectiveImageOptions = imageOptions || { 
+      updateFromSpreadsheet: true, 
+      searchMissing: false, 
+      replaceAll: false 
+    };
 
     for (let i = 0; i < products.length; i++) {
       const product = products[i];
@@ -239,8 +350,66 @@ serve(async (req) => {
           continue;
         }
 
-        // Insert product
+        const productKey = `${product.nome.toLowerCase().trim()}|${product.categoria.toLowerCase().trim()}`;
+        const existingProduct = existingProductsMap.get(productKey);
+
         const hasOfferPrice = product.preco_oferta !== undefined && product.preco_oferta !== null && product.preco_oferta > 0;
+
+        if (existingProduct) {
+          // Product already exists
+          if (effectiveDuplicateAction === 'skip') {
+            skippedCount++;
+            continue;
+          }
+
+          if (effectiveDuplicateAction === 'update') {
+            // Determine image URL
+            let imageUrl = existingProduct.image_url;
+            
+            if (effectiveImageOptions.replaceAll && product.imagem_url) {
+              // Replace all: use new image if provided
+              imageUrl = product.imagem_url;
+            } else if (effectiveImageOptions.updateFromSpreadsheet && product.imagem_url) {
+              // Update from spreadsheet if provided
+              imageUrl = product.imagem_url;
+            } else if (effectiveImageOptions.searchMissing && !existingProduct.image_url) {
+              // Would search for image here (placeholder - not implemented in this PR)
+              // imageUrl = await searchProductImage(product.nome, storeId);
+            }
+
+            // UPDATE existing product
+            const { error: updateError } = await supabase
+              .from('products')
+              .update({
+                description: product.descricao?.trim() || null,
+                price: product.preco,
+                original_price: hasOfferPrice ? product.preco : null,
+                offer_price: hasOfferPrice ? product.preco_oferta : null,
+                is_on_offer: hasOfferPrice,
+                is_available: product.disponivel !== false,
+                show_in_menu: product.mostrar_menu !== false,
+                track_stock: product.controlar_estoque || false,
+                stock_quantity: product.quantidade_estoque || 0,
+                stock_alert_threshold: product.alerta_estoque || 5,
+                image_url: imageUrl,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', existingProduct.id);
+
+            if (updateError) {
+              console.error(`[import-products] Error updating product at row ${row}:`, updateError);
+              importErrors.push({ row, field: 'produto', message: updateError.message });
+              continue;
+            }
+
+            updatedCount++;
+            continue;
+          }
+
+          // effectiveDuplicateAction === 'create' - fall through to create new
+        }
+
+        // Insert new product
         const { data: newProduct, error: productError } = await supabase
           .from('products')
           .insert({
@@ -298,7 +467,7 @@ serve(async (req) => {
       await supabase
         .from('product_import_logs')
         .update({
-          success_count: successCount,
+          success_count: successCount + updatedCount,
           error_count: importErrors.length,
           errors: importErrors,
           status: importErrors.length > 0 ? 'completed_with_errors' : 'completed',
@@ -307,7 +476,7 @@ serve(async (req) => {
         .eq('id', importLog.id);
     }
 
-    console.log(`[import-products] Completed: ${successCount} products, ${variantsCreated} variants, ${importErrors.length} errors`);
+    console.log(`[import-products] Completed: ${successCount} created, ${updatedCount} updated, ${skippedCount} skipped, ${variantsCreated} variants, ${importErrors.length} errors`);
 
     return new Response(JSON.stringify({
       success: true,
@@ -315,6 +484,8 @@ serve(async (req) => {
       summary: {
         totalRows: products.length,
         productsCreated: successCount,
+        productsUpdated: updatedCount,
+        productsSkipped: skippedCount,
         categoriesCreated: createdCategories.length,
         variantsCreated,
         errors: importErrors.length,

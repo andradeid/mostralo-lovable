@@ -691,6 +691,24 @@ const Store = () => {
     return products.some(p => p.is_featured === true);
   }, [products]);
 
+  // Definir aba inicial baseado em produtos em destaque
+  useEffect(() => {
+    // Só executa quando os produtos foram carregados pela primeira vez
+    // e nenhuma categoria foi selecionada manualmente ainda
+    if (products.length > 0 && selectedCategory === null && !loadingProducts) {
+      if (hasFeaturedProducts) {
+        setSelectedCategory('featured');
+      }
+    }
+  }, [products.length, hasFeaturedProducts, loadingProducts]);
+
+  // Se não houver destaques e estiver na aba featured, voltar para Todas
+  useEffect(() => {
+    if (!hasFeaturedProducts && selectedCategory === 'featured') {
+      setSelectedCategory(null);
+    }
+  }, [hasFeaturedProducts, selectedCategory]);
+
   const getProductsByCategory = (categoryId: string | null) => {
     // Aba "Destaques" selecionada
     if (categoryId === 'featured') {

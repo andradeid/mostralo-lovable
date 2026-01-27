@@ -19,6 +19,7 @@ export interface AlquimiaProduct {
   precoOriginal: string;
   categoria: string;
   categoriaOriginal: string;
+  laboratorio: string; // Adicionado para busca de imagens
   quantidade_estoque: number;
   disponivel: boolean;
   mostrar_menu: boolean;
@@ -406,6 +407,7 @@ export async function parseAlquimiaCSV(file: File): Promise<AlquimiaParseResult>
     const nome = toTitleCase(nomeOriginal);
     const preco = parseBrazilianPrice(vendaStr);
     const categoria = mapAlquimiaCategory(claOriginal);
+    const laboratorio = toTitleCase(String(row[cols.laboratorio] || '').trim());
     
     // DEBUG: Log do mapeamento de categoria
     console.log(`[Alquimia] Mapeamento: "${claOriginal}" -> "${categoria}"`);
@@ -423,6 +425,7 @@ export async function parseAlquimiaCSV(file: File): Promise<AlquimiaParseResult>
       precoOriginal: vendaStr,
       categoria,
       categoriaOriginal: claOriginal,
+      laboratorio,
       quantidade_estoque: qtde,
       disponivel: true,
       mostrar_menu: true,

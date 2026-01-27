@@ -4292,6 +4292,45 @@ export type Database = {
           },
         ]
       }
+      image_search_config: {
+        Row: {
+          api_key: string
+          created_at: string | null
+          daily_limit: number | null
+          id: string
+          is_active: boolean | null
+          last_reset_date: string | null
+          provider: string
+          search_engine_id: string | null
+          searches_today: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          api_key: string
+          created_at?: string | null
+          daily_limit?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_reset_date?: string | null
+          provider?: string
+          search_engine_id?: string | null
+          searches_today?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          api_key?: string
+          created_at?: string | null
+          daily_limit?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_reset_date?: string | null
+          provider?: string
+          search_engine_id?: string | null
+          searches_today?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       lead_follow_up_reminders: {
         Row: {
           created_at: string | null

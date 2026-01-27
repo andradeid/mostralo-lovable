@@ -1,266 +1,134 @@
 
-# Plano: Sistema de Detecção de Duplicatas com Atualização Inteligente
+# Plano: Melhorias no PDV - Carrinho Fixo e Impressão de Venda
 
-## Resumo
+## Problema Identificado
 
-Criar um sistema robusto que detecta produtos já existentes durante a importação, oferece opções de ação (pular, atualizar ou criar mesmo assim), e permite atualização inteligente de imagens via busca automática.
+### 1. Botão "Finalizar" some ao rolar
+Na imagem fornecida, o carrinho está à direita da tela como um `Card` normal. Quando há muitos produtos na lista de produtos (à esquerda), o usuário rola a página e o botão "Finalizar Venda" no rodapé do carrinho pode ficar invisível.
+
+### 2. Impressão no PDV
+Analisando o código atual:
+- **Comandas** têm impressão implementada via `printComanda()` ✅
+- **Vendas de balcão (PDV)** NÃO têm impressão ❌
+
+O fluxo atual do `finalizeSale` no `usePDV.ts`:
+1. Cria comanda tipo "balcão"
+2. Adiciona itens
+3. Fecha comanda
+4. Limpa carrinho
+5. **Não imprime nada!**
 
 ---
 
-## Estratégia de Identificação de Duplicatas
+## Solução Proposta
 
-**Chave Composta:** `store_id` + `LOWER(name)` + `category_id`
+### Parte 1: Carrinho Sticky (Sempre Visível)
 
+**Abordagem técnica**: Usar `position: sticky` com `top: 0` no container do carrinho no layout Desktop.
+
+**Alterações em `PDVPage.tsx`**:
 ```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                    LÓGICA DE DETECÇÃO DE DUPLICATAS                        │
-│                                                                             │
-│  Produto da Planilha:                                                      │
-│    Nome: "Dipirona 500mg"                                                  │
-│    Categoria: "Medicamentos"                                               │
-│                                                                             │
-│  Busca no Banco:                                                           │
-│    SELECT * FROM products                                                  │
-│    WHERE store_id = 'loja-123'                                             │
-│    AND LOWER(name) = LOWER('Dipirona 500mg')                               │
-│    AND category_id = 'cat-medicamentos'                                    │
-│                                                                             │
-│  Resultado: ✓ Encontrado → É DUPLICATA                                     │
-└─────────────────────────────────────────────────────────────────────────────┘
+Antes:
+<div className="w-80 lg:w-96 flex-shrink-0">
+  <PDVCart ... />
+</div>
+
+Depois:
+<div className="w-80 lg:w-96 flex-shrink-0 self-start sticky top-0">
+  <PDVCart ... />
+</div>
 ```
+
+**Alterações em `PDVCart.tsx`**:
+- Ajustar a altura máxima do carrinho para `max-h-[calc(100vh-120px)]` para evitar que ultrapasse a viewport
+- O `CardFooter` com o botão "Finalizar" já está dentro do Card, então ficará visível com o sticky
+
+### Parte 2: Impressão Automática de Venda PDV
+
+**Fluxo proposto**:
+1. Após `finalizeSale`, retornar a comanda criada com seus itens
+2. Chamar `printComanda()` automaticamente
+3. Opção: Adicionar botão "Imprimir" no modal de pagamento ou imprimir automaticamente após confirmação
+
+**Alterações necessárias**:
+
+1. **`usePDV.ts`**: Modificar `finalizeSale` para retornar a comanda completa com itens
+   
+2. **`PDVPage.tsx`**: 
+   - Após `handleFinalize`, chamar `printComanda()` com a comanda retornada
+   - Usar o `printComanda` que já existe e está funcionando para comandas
+
+3. **`PDVPaymentModal.tsx`** (opcional):
+   - Adicionar checkbox "Imprimir cupom após finalizar"
+   - Ou adicionar botão "Imprimir" no modal de sucesso
 
 ---
 
-## Opções de Ação para Duplicatas
+## Detalhes Técnicos
 
-| Modo | Comportamento | Caso de Uso |
-|------|--------------|-------------|
-| **Pular** | Ignora produtos já existentes | Adicionar APENAS novos produtos |
-| **Atualizar** | Sobrescreve preço, descrição, estoque, imagem | Sincronizar catálogo atualizado |
-| **Criar mesmo assim** | Cria duplicatas (atual) | Importação de teste/backup |
-
----
-
-## Interface do Usuário
-
-### Novo Passo: Análise de Duplicatas (entre Validação e Confirmação)
-
-```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  📊 Análise de Duplicatas                                                   │
-│                                                                             │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐                           │
-│  │    150      │ │     42      │ │    108      │                           │
-│  │  Produtos   │ │   Novos     │ │  Existentes │                           │
-│  │   Total     │ │   🆕        │ │   ⚠️        │                           │
-│  └─────────────┘ └─────────────┘ └─────────────┘                           │
-│                                                                             │
-│  🔧 Como deseja tratar os 108 produtos existentes?                         │
-│                                                                             │
-│  ○ Pular - Importar apenas os 42 novos produtos                           │
-│  ● Atualizar - Atualizar dados dos 108 existentes + criar 42 novos        │
-│  ○ Criar mesmo assim - Importar todos (pode gerar duplicatas)             │
-│                                                                             │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ [✓] Atualizar imagens dos produtos existentes que não têm imagem   │   │
-│  │ [✓] Buscar imagens automaticamente para produtos sem imagem        │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                                                             │
-│  [← Voltar]                                    [Continuar →]               │
-└─────────────────────────────────────────────────────────────────────────────┘
+### Modificação 1: PDVPage.tsx (Sticky Cart)
+```tsx
+// Linha ~318 - Desktop layout
+<div className="w-80 lg:w-96 flex-shrink-0 self-start sticky top-0 max-h-[calc(100vh-80px)]">
+  <PDVCart ... />
+</div>
 ```
 
-### Preview com Badges de Status
-
-```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  Produto                    │ Categoria      │ Preço     │ Status          │
-├─────────────────────────────┼────────────────┼───────────┼─────────────────┤
-│  Dipirona 500mg             │ Medicamentos   │ R$ 12,90  │ 🆕 Novo         │
-│  Paracetamol 750mg          │ Medicamentos   │ R$ 8,50   │ ⚠️ Existente    │
-│  Vitamina C 1000mg          │ Vitaminas      │ R$ 25,00  │ ⚠️ Atualizar    │
-│  Protetor Solar FPS 50      │ Beleza         │ R$ 45,00  │ 🆕 Novo         │
-└─────────────────────────────────────────────────────────────────────────────┘
+### Modificação 2: PDVCart.tsx (Altura máxima)
+```tsx
+// Linha ~37
+<Card className="flex flex-col h-full max-h-[calc(100vh-100px)] overflow-hidden">
 ```
 
----
-
-## Atualização Inteligente de Imagens
-
-### Cenários de Atualização
-
-1. **Produto existente sem imagem** → Buscar automaticamente (se opção marcada)
-2. **Planilha traz nova imagem_url** → Substituir imagem existente
-3. **Produto existente com imagem válida** → Manter (não sobrescrever)
-
-### Opções de Imagem na Importação
-
-```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  🖼️ Opções de Imagem                                                       │
-│                                                                             │
-│  [✓] Atualizar imagens quando a planilha trouxer nova URL                 │
-│  [✓] Buscar imagens automaticamente para produtos SEM imagem              │
-│  [ ] Substituir TODAS as imagens dos produtos atualizados                 │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Fluxo de Importação Atualizado
-
-```text
-┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐
-│  Upload  │ → │ Mapeamento│ → │ Validação│ → │ Duplicatas│ → │ Importar │
-│          │   │          │   │          │   │          │   │          │
-│  📄      │   │  🔗      │   │  ✓       │   │  🔍      │   │  ⬇️      │
-└──────────┘   └──────────┘   └──────────┘   └──────────┘   └──────────┘
-                                              NOVO PASSO
-```
-
----
-
-## Implementação Técnica
-
-### 1. Edge Function: Detectar Duplicatas
-
-Nova action `check-duplicates` na edge function `import-products`:
-
-```typescript
-// Consulta para encontrar duplicatas
-const { data: existingProducts } = await supabase
-  .from('products')
-  .select('id, name, category_id, price, image_url')
-  .eq('store_id', storeId);
-
-// Criar mapa de lookup por chave composta
-const existingMap = new Map();
-existingProducts?.forEach(p => {
-  const key = `${p.name.toLowerCase().trim()}|${categoryIdToName[p.category_id]?.toLowerCase()}`;
-  existingMap.set(key, p);
-});
-
-// Classificar cada produto da planilha
-products.forEach(product => {
-  const key = `${product.nome.toLowerCase().trim()}|${product.categoria.toLowerCase().trim()}`;
-  if (existingMap.has(key)) {
-    duplicates.push({ 
-      product, 
-      existingProduct: existingMap.get(key),
-      status: 'existing' 
-    });
-  } else {
-    newProducts.push({ product, status: 'new' });
-  }
-});
-```
-
-### 2. Edge Function: Importar com Upsert
-
-```typescript
-// Modo "update" - usar upsert com chave composta
-if (duplicateAction === 'update') {
-  // Buscar produto existente pelo nome + categoria
-  const existing = existingMap.get(key);
+### Modificação 3: usePDV.ts (Retornar dados para impressão)
+```tsx
+// finalizeSale retorna { comanda, items } para permitir impressão
+const finalizeSale = async (...) => {
+  // ... código existente ...
   
-  if (existing) {
-    // Determinar se deve atualizar imagem
-    let imageUrl = existing.image_url;
-    
-    if (imageOptions.updateFromSpreadsheet && product.imagem_url) {
-      // Planilha traz nova URL
-      imageUrl = product.imagem_url;
-    } else if (imageOptions.searchMissing && !existing.image_url) {
-      // Buscar imagem automaticamente
-      imageUrl = await searchProductImage(product.nome, storeId);
-    }
-    
-    // UPDATE do produto existente
-    await supabase
-      .from('products')
-      .update({
-        price: product.preco,
-        description: product.descricao,
-        offer_price: product.preco_oferta,
-        is_on_offer: hasOfferPrice,
-        stock_quantity: product.quantidade_estoque,
-        image_url: imageUrl,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', existing.id);
-      
-    updatedCount++;
+  // Buscar itens criados para impressão
+  const { data: createdItems } = await supabase
+    .from('comanda_items')
+    .select('*')
+    .eq('comanda_id', comanda.id);
+  
+  return { comanda, items: createdItems || [] };
+};
+```
+
+### Modificação 4: PDVPage.tsx (Impressão automática)
+```tsx
+const handleFinalize = async (paymentMethod, discount, paymentDetails) => {
+  const result = await finalizeSale(paymentMethod, discount, paymentDetails);
+  setPaymentModalOpen(false);
+  
+  // Imprimir automaticamente
+  if (result?.comanda && result?.items) {
+    printComanda(
+      result.comanda, 
+      result.items, 
+      storeData?.name || 'Estabelecimento'
+    );
   }
-} else if (duplicateAction === 'skip') {
-  // Pular produtos existentes
-  skippedCount++;
-} else {
-  // Criar mesmo assim (comportamento atual)
-  await supabase.from('products').insert({...});
-}
-```
-
-### 3. Novo Componente: DuplicateAnalysisStep
-
-Campos:
-- `duplicateAction`: 'skip' | 'update' | 'create'
-- `imageOptions.updateFromSpreadsheet`: boolean
-- `imageOptions.searchMissing`: boolean
-- `imageOptions.replaceAll`: boolean
-
-### 4. Atualizar Interface ImportPayload
-
-```typescript
-interface ImportPayload {
-  action: 'validate' | 'check-duplicates' | 'import';
-  storeId: string;
-  createMissingCategories: boolean;
-  products: ProductImportData[];
-  fileName: string;
-  // Novos campos
-  duplicateAction?: 'skip' | 'update' | 'create';
-  imageOptions?: {
-    updateFromSpreadsheet: boolean;
-    searchMissing: boolean;
-    replaceAll: boolean;
-  };
-}
+};
 ```
 
 ---
 
-## Arquivos a Modificar/Criar
+## Resumo das Alterações
 
-| Arquivo | Tipo | Alteração |
-|---------|------|-----------|
-| `supabase/functions/import-products/index.ts` | Modificar | Adicionar action `check-duplicates`, lógica de upsert e opções de imagem |
-| `src/components/admin/products/import/DuplicateAnalysisStep.tsx` | Criar | UI para análise e opções de duplicatas |
-| `src/pages/admin/ProductImportPage.tsx` | Modificar | Adicionar novo passo no wizard |
-| `src/hooks/useProductImport.ts` | Modificar | Adicionar função `checkDuplicates` e parâmetros de opções |
-
----
-
-## Resumo das Estatísticas de Importação
-
-```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  📊 Resultado da Importação                                                 │
-│                                                                             │
-│  ✅ 42 produtos criados                                                     │
-│  🔄 95 produtos atualizados                                                 │
-│  ⏭️ 13 produtos pulados (já existentes)                                    │
-│  🖼️ 28 imagens buscadas automaticamente                                    │
-│  ❌ 2 erros                                                                 │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+| Arquivo | Alteração |
+|---------|-----------|
+| `PDVPage.tsx` | Adicionar classes `self-start sticky top-0 max-h-[calc(100vh-80px)]` no container do carrinho |
+| `PDVCart.tsx` | Adicionar `max-h-[calc(100vh-100px)] overflow-hidden` no Card principal |
+| `usePDV.ts` | Modificar `finalizeSale` para retornar comanda + itens |
+| `PDVPage.tsx` | Chamar `printComanda()` após finalização bem-sucedida |
 
 ---
 
 ## Benefícios
 
-1. **Evita duplicatas acidentais** - Nunca mais subir a mesma planilha duas vezes
-2. **Atualização em massa** - Sincronizar preços e estoque de fornecedores
-3. **Imagens inteligentes** - Buscar automaticamente apenas quando necessário
-4. **Flexibilidade** - Escolher comportamento por importação
-5. **Rastreabilidade** - Log detalhado de criações vs atualizações
-6. **Performance** - Usar chave composta indexada para busca rápida
+1. **UX melhorada**: Operador sempre vê o botão "Finalizar" sem precisar rolar
+2. **Fluxo profissional**: Impressão automática do cupom como em PDVs tradicionais
+3. **Reutilização**: Usa o sistema de impressão já existente (`printComanda`)
+4. **Consistência**: Mesmo formato de impressão entre comandas e vendas balcão

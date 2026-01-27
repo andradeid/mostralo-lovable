@@ -375,9 +375,9 @@ export default function ImageSearchConfigPage() {
             {testResult && (
               <div className="mt-4">
                 {testResult.success ? (
-                  <Alert className="border-green-500/30 bg-green-500/5">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <AlertTitle className="text-green-600">Sucesso!</AlertTitle>
+                  <Alert className="border-primary/30 bg-primary/5">
+                    <CheckCircle className="h-4 w-4 text-primary" />
+                    <AlertTitle>Sucesso!</AlertTitle>
                     <AlertDescription className="space-y-3">
                       <p className="text-sm">Imagem encontrada com sucesso.</p>
                       {testResult.imageUrl && (
@@ -385,7 +385,7 @@ export default function ImageSearchConfigPage() {
                           <img 
                             src={testResult.imageUrl} 
                             alt="Imagem encontrada"
-                            className="w-32 h-32 object-contain rounded-lg border bg-white"
+                            className="w-32 h-32 object-contain rounded-lg border bg-background"
                             onError={(e) => {
                               (e.target as HTMLImageElement).src = '/placeholder.svg';
                             }}
@@ -414,7 +414,7 @@ export default function ImageSearchConfigPage() {
                     <AlertDescription>
                       <p className="text-sm">{testResult.error}</p>
                       <p className="text-xs mt-2 opacity-80">
-                        Verifique se a API Key está correta e se a Custom Search API está ativada no Google Cloud Console.
+                        Se persistir, verifique se a API está ativada no mesmo projeto da chave e considere que o Google pode bloquear novos projetos nessa API.
                       </p>
                     </AlertDescription>
                   </Alert>

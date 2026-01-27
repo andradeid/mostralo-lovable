@@ -101,6 +101,26 @@ serve(async (req) => {
     if (!searchResponse.ok) {
       const errorText = await searchResponse.text();
       console.error('[search-product-image] Google API error:', errorText);
+      let googleMessage = 'Erro na API do Google';
+      try {
+        const parsed = JSON.parse(errorText);
+        const msg = parsed?.error?.message;
+        if (typeof msg === 'string' && msg.trim()) {
+          googleMessage = msg;
+        }
+      } catch {
+        // keep default
+      }
+
+      // Friendly message for a common blocker
+      if (
+        searchResponse.status === 403 &&
+        googleMessage.toLowerCase().includes('custom search json api') &&
+        googleMessage.toLowerCase().includes('access')
+      ) {
+        googleMessage =
+          'Sem acesso à Custom Search JSON API neste projeto/chave. Se o projeto é novo, o Google pode bloquear novos clientes nessa API; use um projeto antigo que já tinha acesso ou troque o provedor de busca.';
+      }
       
       // Increment counter even on API error
       await supabaseAdmin
@@ -109,8 +129,8 @@ serve(async (req) => {
         .eq('id', config.id);
 
       return new Response(
-        JSON.stringify({ success: false, error: 'Erro na API do Google' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        JSON.stringify({ success: false, error: googleMessage }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: searchResponse.status }
       );
     }
 

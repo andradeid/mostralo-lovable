@@ -84,108 +84,53 @@ serve(async (req) => {
       searchQuery = `${productName} ${laboratory} medicamento`;
     }
 
-    console.log(`[search-product-image] Buscando: "${searchQuery}"`);
+    console.log(`[search-product-image] Provider: ${config.provider || 'google'}, Buscando: "${searchQuery}"`);
 
-    // Search Google Custom Search API
-    const googleApiUrl = new URL('https://www.googleapis.com/customsearch/v1');
-    googleApiUrl.searchParams.set('key', config.api_key);
-    googleApiUrl.searchParams.set('cx', config.search_engine_id);
-    googleApiUrl.searchParams.set('q', searchQuery);
-    googleApiUrl.searchParams.set('searchType', 'image');
-    googleApiUrl.searchParams.set('num', '1');
-    googleApiUrl.searchParams.set('safe', 'active');
-    googleApiUrl.searchParams.set('imgSize', 'medium');
+    // Choose provider
+    const provider = config.provider || 'google';
+    let imageUrl: string | null = null;
+    let searchError: string | null = null;
 
-    const searchResponse = await fetch(googleApiUrl.toString());
-    
-    if (!searchResponse.ok) {
-      const errorText = await searchResponse.text();
-      console.error('[search-product-image] Google API error:', errorText);
-      let googleMessage = 'Erro na API do Google';
-      try {
-        const parsed = JSON.parse(errorText);
-        const msg = parsed?.error?.message;
-        if (typeof msg === 'string' && msg.trim()) {
-          googleMessage = msg;
-        }
-      } catch {
-        // keep default
+    if (provider === 'serpapi') {
+      // Use SerpAPI
+      const result = await searchWithSerpAPI(config.serpapi_key, searchQuery);
+      if (result.success) {
+        imageUrl = result.imageUrl!;
+      } else {
+        searchError = result.error!;
       }
-
-      // Friendly message for a common blocker
-      if (
-        searchResponse.status === 403 &&
-        googleMessage.toLowerCase().includes('custom search json api') &&
-        googleMessage.toLowerCase().includes('access')
-      ) {
-        googleMessage =
-          'Sem acesso à Custom Search JSON API neste projeto/chave. Se o projeto é novo, o Google pode bloquear novos clientes nessa API; use um projeto antigo que já tinha acesso ou troque o provedor de busca.';
+    } else {
+      // Use Google Custom Search API
+      const result = await searchWithGoogle(config.api_key, config.search_engine_id, searchQuery, laboratory, productName);
+      if (result.success) {
+        imageUrl = result.imageUrl!;
+      } else {
+        searchError = result.error!;
       }
-      
-      // Increment counter even on API error
-      await supabaseAdmin
-        .from('image_search_config')
-        .update({ searches_today: searchesToday + 1 })
-        .eq('id', config.id);
-
-      return new Response(
-        JSON.stringify({ success: false, error: googleMessage }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: searchResponse.status }
-      );
     }
 
-    const searchData = await searchResponse.json();
-    
     // Increment search counter
     await supabaseAdmin
       .from('image_search_config')
       .update({ searches_today: searchesToday + 1 })
       .eq('id', config.id);
 
-    // Check if we found any images
-    if (!searchData.items || searchData.items.length === 0) {
-      // Try fallback search without laboratory
-      if (laboratory) {
-        console.log('[search-product-image] Tentando fallback sem laboratório...');
-        
-        googleApiUrl.searchParams.set('q', `${productName} medicamento`);
-        const fallbackResponse = await fetch(googleApiUrl.toString());
-        
-        if (fallbackResponse.ok) {
-          const fallbackData = await fallbackResponse.json();
-          
-          // Increment counter for fallback search
-          await supabaseAdmin
-            .from('image_search_config')
-            .update({ searches_today: searchesToday + 2 })
-            .eq('id', config.id);
+    if (searchError) {
+      return new Response(
+        JSON.stringify({ success: false, error: searchError }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
 
-          if (fallbackData.items && fallbackData.items.length > 0) {
-            const externalUrl = fallbackData.items[0].link;
-            const internalUrl = await downloadAndSaveImage(supabaseAdmin, externalUrl, storeId);
-            
-            if (internalUrl) {
-              return new Response(
-                JSON.stringify({ success: true, imageUrl: internalUrl }),
-                { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-              );
-            }
-          }
-        }
-      }
-
+    if (!imageUrl) {
       return new Response(
         JSON.stringify({ success: false, error: 'Nenhuma imagem encontrada' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Get the first image URL
-    const externalUrl = searchData.items[0].link;
-    console.log(`[search-product-image] Imagem encontrada: ${externalUrl}`);
-
     // Download and save image to Supabase Storage
-    const internalUrl = await downloadAndSaveImage(supabaseAdmin, externalUrl, storeId);
+    const internalUrl = await downloadAndSaveImage(supabaseAdmin, imageUrl, storeId);
 
     if (!internalUrl) {
       return new Response(
@@ -210,6 +155,137 @@ serve(async (req) => {
     );
   }
 });
+
+// Search using SerpAPI
+async function searchWithSerpAPI(
+  apiKey: string,
+  query: string
+): Promise<{ success: boolean; imageUrl?: string; error?: string }> {
+  try {
+    if (!apiKey) {
+      return { success: false, error: 'SerpAPI Key não configurada' };
+    }
+
+    const serpApiUrl = new URL('https://serpapi.com/search.json');
+    serpApiUrl.searchParams.set('api_key', apiKey);
+    serpApiUrl.searchParams.set('engine', 'google_images');
+    serpApiUrl.searchParams.set('q', query);
+    serpApiUrl.searchParams.set('num', '1');
+    serpApiUrl.searchParams.set('safe', 'active');
+
+    console.log(`[searchWithSerpAPI] Buscando: "${query}"`);
+
+    const response = await fetch(serpApiUrl.toString());
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[searchWithSerpAPI] Error:', errorText);
+      
+      let errorMessage = 'Erro na SerpAPI';
+      try {
+        const parsed = JSON.parse(errorText);
+        if (parsed?.error) {
+          errorMessage = parsed.error;
+        }
+      } catch {
+        // keep default
+      }
+
+      return { success: false, error: errorMessage };
+    }
+
+    const data = await response.json();
+    
+    // Check for images_results
+    if (data.images_results && data.images_results.length > 0) {
+      const imageUrl = data.images_results[0].original || data.images_results[0].thumbnail;
+      console.log(`[searchWithSerpAPI] Imagem encontrada: ${imageUrl}`);
+      return { success: true, imageUrl };
+    }
+
+    return { success: false, error: 'Nenhuma imagem encontrada na SerpAPI' };
+  } catch (error) {
+    console.error('[searchWithSerpAPI] Exception:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Erro na SerpAPI' };
+  }
+}
+
+// Search using Google Custom Search API
+async function searchWithGoogle(
+  apiKey: string,
+  searchEngineId: string,
+  query: string,
+  laboratory?: string,
+  productName?: string
+): Promise<{ success: boolean; imageUrl?: string; error?: string }> {
+  try {
+    const googleApiUrl = new URL('https://www.googleapis.com/customsearch/v1');
+    googleApiUrl.searchParams.set('key', apiKey);
+    googleApiUrl.searchParams.set('cx', searchEngineId);
+    googleApiUrl.searchParams.set('q', query);
+    googleApiUrl.searchParams.set('searchType', 'image');
+    googleApiUrl.searchParams.set('num', '1');
+    googleApiUrl.searchParams.set('safe', 'active');
+    googleApiUrl.searchParams.set('imgSize', 'medium');
+
+    const searchResponse = await fetch(googleApiUrl.toString());
+    
+    if (!searchResponse.ok) {
+      const errorText = await searchResponse.text();
+      console.error('[searchWithGoogle] Google API error:', errorText);
+      
+      let googleMessage = 'Erro na API do Google';
+      try {
+        const parsed = JSON.parse(errorText);
+        const msg = parsed?.error?.message;
+        if (typeof msg === 'string' && msg.trim()) {
+          googleMessage = msg;
+        }
+      } catch {
+        // keep default
+      }
+
+      // Friendly message for a common blocker
+      if (
+        searchResponse.status === 403 &&
+        googleMessage.toLowerCase().includes('custom search json api') &&
+        googleMessage.toLowerCase().includes('access')
+      ) {
+        googleMessage =
+          'Sem acesso à Custom Search JSON API neste projeto/chave. Se o projeto é novo, o Google pode bloquear novos clientes nessa API; use um projeto antigo que já tinha acesso ou troque o provedor de busca.';
+      }
+
+      return { success: false, error: googleMessage };
+    }
+
+    const searchData = await searchResponse.json();
+
+    // Check if we found any images
+    if (!searchData.items || searchData.items.length === 0) {
+      // Try fallback search without laboratory
+      if (laboratory && productName) {
+        console.log('[searchWithGoogle] Tentando fallback sem laboratório...');
+        
+        googleApiUrl.searchParams.set('q', `${productName} medicamento`);
+        const fallbackResponse = await fetch(googleApiUrl.toString());
+        
+        if (fallbackResponse.ok) {
+          const fallbackData = await fallbackResponse.json();
+          if (fallbackData.items && fallbackData.items.length > 0) {
+            return { success: true, imageUrl: fallbackData.items[0].link };
+          }
+        }
+      }
+
+      return { success: false, error: 'Nenhuma imagem encontrada' };
+    }
+
+    return { success: true, imageUrl: searchData.items[0].link };
+  } catch (error) {
+    console.error('[searchWithGoogle] Exception:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Erro no Google' };
+  }
+}
 
 async function downloadAndSaveImage(
   supabaseClient: any,

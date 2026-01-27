@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -21,6 +22,7 @@ interface ImageSearchConfig {
   provider: string;
   api_key: string;
   search_engine_id: string;
+  serpapi_key: string;
   is_active: boolean;
   daily_limit: number;
   searches_today: number;
@@ -32,6 +34,7 @@ export default function ImageSearchConfigPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
+  const [showSerpApiKey, setShowSerpApiKey] = useState(false);
   const [hasConfig, setHasConfig] = useState(false);
   
   // Test section state
@@ -46,9 +49,10 @@ export default function ImageSearchConfigPage() {
   
   const [config, setConfig] = useState<ImageSearchConfig>({
     id: '',
-    provider: 'google',
+    provider: 'serpapi',
     api_key: '',
     search_engine_id: '',
+    serpapi_key: '',
     is_active: true,
     daily_limit: 100,
     searches_today: 0,
@@ -71,9 +75,10 @@ export default function ImageSearchConfigPage() {
         const configData = data as any;
         setConfig({
           id: configData.id,
-          provider: configData.provider || 'google',
+          provider: configData.provider || 'serpapi',
           api_key: configData.api_key || '',
           search_engine_id: configData.search_engine_id || '',
+          serpapi_key: configData.serpapi_key || '',
           is_active: configData.is_active ?? true,
           daily_limit: configData.daily_limit || 100,
           searches_today: configData.searches_today || 0,
@@ -88,11 +93,20 @@ export default function ImageSearchConfigPage() {
     }
   };
 
+  const isConfigValid = () => {
+    if (config.provider === 'serpapi') {
+      return !!config.serpapi_key;
+    }
+    return !!config.api_key && !!config.search_engine_id;
+  };
+
   const handleSave = async () => {
-    if (!config.api_key || !config.search_engine_id) {
+    if (!isConfigValid()) {
       toast({
         title: "Erro",
-        description: "Preencha a API Key e o Search Engine ID",
+        description: config.provider === 'serpapi' 
+          ? "Preencha a SerpAPI Key" 
+          : "Preencha a API Key e o Search Engine ID",
         variant: "destructive",
       });
       return;
@@ -104,6 +118,7 @@ export default function ImageSearchConfigPage() {
         provider: config.provider,
         api_key: config.api_key.trim(),
         search_engine_id: config.search_engine_id.trim(),
+        serpapi_key: config.serpapi_key.trim(),
         is_active: config.is_active,
         daily_limit: config.daily_limit,
         updated_at: new Date().toISOString(),
@@ -161,10 +176,10 @@ export default function ImageSearchConfigPage() {
       return;
     }
 
-    if (!config.api_key || !config.search_engine_id) {
+    if (!isConfigValid()) {
       toast({
         title: "Erro",
-        description: "Configure a API Key e o Search Engine ID primeiro",
+        description: "Configure as credenciais primeiro",
         variant: "destructive",
       });
       return;
@@ -235,16 +250,16 @@ export default function ImageSearchConfigPage() {
           Busca de Imagens de Produtos
         </h1>
         <p className="text-xs md:text-sm text-muted-foreground mt-1">
-          Configure a API do Google para buscar imagens automaticamente na importação de produtos
+          Configure a API para buscar imagens automaticamente na importação de produtos
         </p>
       </div>
 
       {/* Status Badge */}
       <div className="flex items-center gap-2">
-        {hasConfig && config.api_key && config.search_engine_id ? (
+        {hasConfig && isConfigValid() ? (
           <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/30">
             <CheckCircle className="h-3 w-3 mr-1" />
-            Configurado
+            Configurado ({config.provider === 'serpapi' ? 'SerpAPI' : 'Google'})
           </Badge>
         ) : (
           <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/30">
@@ -274,7 +289,7 @@ export default function ImageSearchConfigPage() {
               <Search className="h-8 w-8 text-primary" />
               <div>
                 <h4 className="font-medium text-sm">Busca Automática</h4>
-                <p className="text-xs text-muted-foreground">Pesquisa imagens no Google</p>
+                <p className="text-xs text-muted-foreground">Pesquisa imagens via API</p>
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/20">
@@ -311,14 +326,16 @@ export default function ImageSearchConfigPage() {
             </div>
             <Progress value={usagePercentage} className="h-2" />
             <p className="text-xs text-muted-foreground">
-              O contador reseta automaticamente à meia-noite. As primeiras 100 buscas/dia são gratuitas no Google.
+              {config.provider === 'serpapi' 
+                ? 'O contador reseta automaticamente à meia-noite. SerpAPI: 100 buscas/mês grátis.'
+                : 'O contador reseta automaticamente à meia-noite. Google: 100 buscas/dia grátis.'}
             </p>
           </CardContent>
         </Card>
       )}
 
       {/* Área de Teste Manual */}
-      {hasConfig && config.api_key && config.search_engine_id && (
+      {hasConfig && isConfigValid() && (
         <Card className="border-primary/30">
           <CardHeader className="pb-3">
             <CardTitle className="text-base md:text-lg flex items-center gap-2">
@@ -414,7 +431,9 @@ export default function ImageSearchConfigPage() {
                     <AlertDescription>
                       <p className="text-sm">{testResult.error}</p>
                       <p className="text-xs mt-2 opacity-80">
-                        Se persistir, verifique se a API está ativada no mesmo projeto da chave e considere que o Google pode bloquear novos projetos nessa API.
+                        {config.provider === 'serpapi' 
+                          ? 'Verifique se a SerpAPI Key está correta e se você ainda tem buscas disponíveis.'
+                          : 'Se persistir, verifique se a API está ativada e considere trocar para SerpAPI.'}
                       </p>
                     </AlertDescription>
                   </Alert>
@@ -423,216 +442,362 @@ export default function ImageSearchConfigPage() {
             )}
 
             <p className="text-xs text-muted-foreground">
-              ⚠️ Cada teste conta como uma busca no limite diário.
+              ⚠️ Cada teste conta como uma busca no limite.
             </p>
           </CardContent>
         </Card>
       )}
 
-      {/* Formulário de Configuração */}
+      {/* Seleção de Provedor */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base md:text-lg flex items-center gap-2">
             <Key className="h-5 w-5" />
-            Credenciais Google Custom Search
+            Provedor de Busca
           </CardTitle>
           <CardDescription>
-            Insira as credenciais da API do Google Custom Search
+            Escolha o provedor de busca de imagens
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="api_key">API Key</Label>
-            <div className="relative">
-              <Input
-                id="api_key"
-                type={showApiKey ? "text" : "password"}
-                value={config.api_key}
-                onChange={(e) => setConfig(prev => ({ ...prev, api_key: e.target.value }))}
-                placeholder="AIzaSy..."
-                className="font-mono text-sm pr-10"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="absolute right-0 top-0 h-full px-3"
-                onClick={() => setShowApiKey(!showApiKey)}
-              >
-                {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </Button>
+          <RadioGroup
+            value={config.provider}
+            onValueChange={(value) => setConfig(prev => ({ ...prev, provider: value }))}
+            className="grid gap-4 md:grid-cols-2"
+          >
+            <div className={`flex items-start space-x-3 p-4 rounded-lg border-2 transition-colors ${
+              config.provider === 'serpapi' ? 'border-primary bg-primary/5' : 'border-muted'
+            }`}>
+              <RadioGroupItem value="serpapi" id="serpapi" className="mt-1" />
+              <div className="flex-1">
+                <Label htmlFor="serpapi" className="font-medium cursor-pointer">
+                  SerpAPI
+                  <Badge variant="outline" className="ml-2 bg-emerald-500/10 text-emerald-500 border-emerald-500/30">
+                    Recomendado
+                  </Badge>
+                </Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  100 buscas/mês grátis. Fácil configuração. Funciona sem bloqueios.
+                </p>
+              </div>
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="search_engine_id">Search Engine ID (cx)</Label>
-            <Input
-              id="search_engine_id"
-              value={config.search_engine_id}
-              onChange={(e) => setConfig(prev => ({ ...prev, search_engine_id: e.target.value }))}
-              placeholder="a1b2c3d4e5f6g7h8i"
-              className="font-mono text-sm"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="daily_limit">Limite Diário de Buscas</Label>
-            <Input
-              id="daily_limit"
-              type="number"
-              min={1}
-              max={10000}
-              value={config.daily_limit}
-              onChange={(e) => setConfig(prev => ({ ...prev, daily_limit: parseInt(e.target.value) || 100 }))}
-              className="w-32"
-            />
-            <p className="text-xs text-muted-foreground">
-              Primeiras 100/dia são gratuitas. Acima disso: ~$5 por 1.000 buscas.
-            </p>
-          </div>
-
-          <Separator />
-
-          <Button onClick={handleSave} disabled={saving} className="w-full md:w-auto">
-            {saving ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Salvando...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                Salvar Configurações
-              </>
-            )}
-          </Button>
+            
+            <div className={`flex items-start space-x-3 p-4 rounded-lg border-2 transition-colors ${
+              config.provider === 'google' ? 'border-primary bg-primary/5' : 'border-muted'
+            }`}>
+              <RadioGroupItem value="google" id="google" className="mt-1" />
+              <div className="flex-1">
+                <Label htmlFor="google" className="font-medium cursor-pointer">
+                  Google Custom Search
+                </Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  100 buscas/dia grátis. Configuração complexa. Pode bloquear novos projetos.
+                </p>
+              </div>
+            </div>
+          </RadioGroup>
         </CardContent>
       </Card>
 
-      {/* Instruções Passo a Passo */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base md:text-lg flex items-center gap-2">
-            <BookOpen className="h-5 w-5" />
-            Como Configurar
-          </CardTitle>
-          <CardDescription>
-            Siga o passo a passo para obter as credenciais do Google Custom Search
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="step-1">
-              <AccordionTrigger className="text-sm md:text-base">
-                <span className="flex items-center gap-2">
-                  <Badge variant="outline" className="shrink-0">1</Badge>
-                  Criar Projeto no Google Cloud Console
-                </span>
-              </AccordionTrigger>
-              <AccordionContent className="space-y-3 text-sm">
-                <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
-                  <li>Acesse o <a href="https://console.cloud.google.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1">Google Cloud Console <ExternalLink className="h-3 w-3" /></a></li>
-                  <li>Clique em <strong>"Selecionar projeto"</strong> no topo da página</li>
-                  <li>Clique em <strong>"Novo Projeto"</strong></li>
-                  <li>Nome sugerido: <code className="bg-muted px-1 rounded">Mostralo Image Search</code></li>
-                  <li>Clique em <strong>"Criar"</strong></li>
-                </ol>
-              </AccordionContent>
-            </AccordionItem>
+      {/* Formulário SerpAPI */}
+      {config.provider === 'serpapi' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base md:text-lg flex items-center gap-2">
+              <Key className="h-5 w-5" />
+              Credenciais SerpAPI
+            </CardTitle>
+            <CardDescription>
+              Insira sua API Key da SerpAPI
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="serpapi_key">SerpAPI Key</Label>
+              <div className="relative">
+                <Input
+                  id="serpapi_key"
+                  type={showSerpApiKey ? "text" : "password"}
+                  value={config.serpapi_key}
+                  onChange={(e) => setConfig(prev => ({ ...prev, serpapi_key: e.target.value }))}
+                  placeholder="Sua API Key da SerpAPI"
+                  className="font-mono text-sm pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full px-3"
+                  onClick={() => setShowSerpApiKey(!showSerpApiKey)}
+                >
+                  {showSerpApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
 
-            <AccordionItem value="step-2">
-              <AccordionTrigger className="text-sm md:text-base">
-                <span className="flex items-center gap-2">
-                  <Badge variant="outline" className="shrink-0">2</Badge>
-                  Ativar a Custom Search API
-                </span>
-              </AccordionTrigger>
-              <AccordionContent className="space-y-3 text-sm">
-                <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
-                  <li>No menu lateral, vá em <strong>"APIs e Serviços"</strong> → <strong>"Biblioteca"</strong></li>
-                  <li>Pesquise por <strong>"Custom Search API"</strong></li>
-                  <li>Clique na API e depois em <strong>"Ativar"</strong></li>
-                </ol>
-              </AccordionContent>
-            </AccordionItem>
+            <div className="space-y-2">
+              <Label htmlFor="daily_limit">Limite Diário de Buscas</Label>
+              <Input
+                id="daily_limit"
+                type="number"
+                min={1}
+                max={10000}
+                value={config.daily_limit}
+                onChange={(e) => setConfig(prev => ({ ...prev, daily_limit: parseInt(e.target.value) || 100 }))}
+                className="w-32"
+              />
+              <p className="text-xs text-muted-foreground">
+                Plano gratuito: 100 buscas/mês. Plano pago: a partir de $50/mês.
+              </p>
+            </div>
 
-            <AccordionItem value="step-3">
-              <AccordionTrigger className="text-sm md:text-base">
-                <span className="flex items-center gap-2">
-                  <Badge variant="outline" className="shrink-0">3</Badge>
-                  Criar Credenciais (API Key)
-                </span>
-              </AccordionTrigger>
-              <AccordionContent className="space-y-3 text-sm">
-                <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
-                  <li>No menu, vá em <strong>"APIs e Serviços"</strong> → <strong>"Credenciais"</strong></li>
-                  <li>Clique em <strong>"+ Criar Credenciais"</strong> → <strong>"Chave de API"</strong></li>
-                  <li>Uma janela mostrará a chave gerada</li>
-                  <li>Copie a chave e cole no campo <strong>"API Key"</strong> acima</li>
-                  <li>(Opcional) Clique em <strong>"Editar chave de API"</strong> para restringir à Custom Search API</li>
-                </ol>
-              </AccordionContent>
-            </AccordionItem>
+            <Separator />
 
-            <AccordionItem value="step-4">
-              <AccordionTrigger className="text-sm md:text-base">
-                <span className="flex items-center gap-2">
-                  <Badge variant="outline" className="shrink-0">4</Badge>
-                  Criar Search Engine (Mecanismo de Pesquisa)
-                </span>
-              </AccordionTrigger>
-              <AccordionContent className="space-y-3 text-sm">
-                <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
-                  <li>Acesse <a href="https://programmablesearchengine.google.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1">Programmable Search Engine <ExternalLink className="h-3 w-3" /></a></li>
-                  <li>Clique em <strong>"Novo mecanismo de pesquisa"</strong></li>
-                  <li>Em "O que pesquisar", marque <strong>"Pesquisar toda a web"</strong></li>
-                  <li>Nome do mecanismo: <code className="bg-muted px-1 rounded">Mostralo Product Images</code></li>
-                  <li>Clique em <strong>"Criar"</strong></li>
-                  <li>Vá em <strong>"Painel de controle"</strong> do mecanismo criado</li>
-                  <li>Copie o <strong>"ID do mecanismo de pesquisa"</strong> (cx)</li>
-                  <li>Cole no campo <strong>"Search Engine ID"</strong> acima</li>
-                </ol>
-                <Alert className="mt-3">
-                  <Info className="h-4 w-4" />
-                  <AlertTitle>Importante</AlertTitle>
-                  <AlertDescription className="text-xs">
-                    No painel do Search Engine, certifique-se de que <strong>"Pesquisa de imagens"</strong> está ativada nas configurações.
-                  </AlertDescription>
-                </Alert>
-              </AccordionContent>
-            </AccordionItem>
+            <Button onClick={handleSave} disabled={saving} className="w-full md:w-auto">
+              {saving ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Salvar Configuração
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
-            <AccordionItem value="step-5">
-              <AccordionTrigger className="text-sm md:text-base">
-                <span className="flex items-center gap-2">
-                  <Badge variant="outline" className="shrink-0">5</Badge>
-                  Testar e Usar na Importação
-                </span>
-              </AccordionTrigger>
-              <AccordionContent className="space-y-3 text-sm">
-                <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
-                  <li>Após salvar as configurações acima, vá para <strong>Produtos → Importar do Alquimia</strong></li>
-                  <li>Faça upload do arquivo CSV normalmente</li>
-                  <li>Na etapa de exportação, ative o toggle <strong>"Buscar imagens automaticamente"</strong></li>
-                  <li>Clique em <strong>"Importar Produtos"</strong></li>
-                  <li>O sistema buscará as imagens em lotes de 50 produtos</li>
-                </ol>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </CardContent>
-      </Card>
+      {/* Formulário Google */}
+      {config.provider === 'google' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base md:text-lg flex items-center gap-2">
+              <Key className="h-5 w-5" />
+              Credenciais Google Custom Search
+            </CardTitle>
+            <CardDescription>
+              Insira as credenciais da API do Google Custom Search
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="api_key">API Key</Label>
+              <div className="relative">
+                <Input
+                  id="api_key"
+                  type={showApiKey ? "text" : "password"}
+                  value={config.api_key}
+                  onChange={(e) => setConfig(prev => ({ ...prev, api_key: e.target.value }))}
+                  placeholder="AIzaSy..."
+                  className="font-mono text-sm pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full px-3"
+                  onClick={() => setShowApiKey(!showApiKey)}
+                >
+                  {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
 
-      {/* Alerta de Custo */}
-      <Alert variant="default" className="border-amber-500/30 bg-amber-500/10">
-        <AlertTriangle className="h-4 w-4 text-amber-500" />
-        <AlertTitle className="text-amber-700">Custos da API</AlertTitle>
-        <AlertDescription className="text-xs text-muted-foreground">
-          O Google Custom Search oferece <strong>100 buscas gratuitas por dia</strong>. 
-          Acima desse limite, o custo é de aproximadamente <strong>$5 por 1.000 buscas</strong>. 
-          Para importar 1.000 produtos/dia além do limite gratuito, o custo seria de ~R$25/dia.
-        </AlertDescription>
-      </Alert>
+            <div className="space-y-2">
+              <Label htmlFor="search_engine_id">Search Engine ID (cx)</Label>
+              <Input
+                id="search_engine_id"
+                value={config.search_engine_id}
+                onChange={(e) => setConfig(prev => ({ ...prev, search_engine_id: e.target.value }))}
+                placeholder="a1b2c3d4e5f6g7h8i"
+                className="font-mono text-sm"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="daily_limit_google">Limite Diário de Buscas</Label>
+              <Input
+                id="daily_limit_google"
+                type="number"
+                min={1}
+                max={10000}
+                value={config.daily_limit}
+                onChange={(e) => setConfig(prev => ({ ...prev, daily_limit: parseInt(e.target.value) || 100 }))}
+                className="w-32"
+              />
+              <p className="text-xs text-muted-foreground">
+                Primeiras 100/dia são gratuitas. Acima disso: ~$5 por 1.000 buscas.
+              </p>
+            </div>
+
+            <Separator />
+
+            <Button onClick={handleSave} disabled={saving} className="w-full md:w-auto">
+              {saving ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Salvar Configuração
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Instruções SerpAPI */}
+      {config.provider === 'serpapi' && (
+        <Accordion type="single" collapsible className="w-full">
+          <AccordionItem value="instructions">
+            <AccordionTrigger className="text-base">
+              <div className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                Como configurar a SerpAPI
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="space-y-4">
+              <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
+                <div>
+                  <h4 className="font-semibold mb-2">1. Criar conta na SerpAPI</h4>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Acesse serpapi.com e crie uma conta gratuita. Não precisa de cartão de crédito.
+                  </p>
+                  <Button variant="outline" size="sm" asChild>
+                    <a href="https://serpapi.com/users/sign_up" target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Criar Conta
+                    </a>
+                  </Button>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <h4 className="font-semibold mb-2">2. Copiar a API Key</h4>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Após criar a conta, vá no Dashboard e copie sua API Key.
+                  </p>
+                  <Button variant="outline" size="sm" asChild>
+                    <a href="https://serpapi.com/dashboard" target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Acessar Dashboard
+                    </a>
+                  </Button>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <h4 className="font-semibold mb-2">3. Colar a API Key aqui</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Cole a API Key no campo acima e clique em "Salvar Configuração".
+                  </p>
+                </div>
+              </div>
+
+              <Alert>
+                <Info className="h-4 w-4" />
+                <AlertTitle>Limites do plano gratuito</AlertTitle>
+                <AlertDescription>
+                  O plano gratuito inclui 100 buscas por mês. Para mais buscas, 
+                  considere um plano pago a partir de $50/mês (5.000 buscas).
+                </AlertDescription>
+              </Alert>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      )}
+
+      {/* Instruções Google */}
+      {config.provider === 'google' && (
+        <Accordion type="single" collapsible className="w-full">
+          <AccordionItem value="instructions">
+            <AccordionTrigger className="text-base">
+              <div className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                Como configurar o Google Custom Search
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="space-y-4">
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Aviso</AlertTitle>
+                <AlertDescription>
+                  O Google pode bloquear o acesso à Custom Search API para novos projetos. 
+                  Se você encontrar erros 403, considere usar a SerpAPI como alternativa.
+                </AlertDescription>
+              </Alert>
+
+              <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
+                <div>
+                  <h4 className="font-semibold mb-2">1. Acessar Google Cloud Console</h4>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Entre no Google Cloud Console e selecione ou crie um projeto.
+                  </p>
+                  <Button variant="outline" size="sm" asChild>
+                    <a href="https://console.cloud.google.com/" target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Abrir Google Cloud Console
+                    </a>
+                  </Button>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <h4 className="font-semibold mb-2">2. Ativar Custom Search API</h4>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Vá em "APIs e Serviços" &gt; "Biblioteca" e ative a "Custom Search API".
+                  </p>
+                  <Button variant="outline" size="sm" asChild>
+                    <a href="https://console.cloud.google.com/apis/library/customsearch.googleapis.com" target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Ativar Custom Search API
+                    </a>
+                  </Button>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <h4 className="font-semibold mb-2">3. Criar API Key</h4>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Vá em "APIs e Serviços" &gt; "Credenciais" &gt; "Criar Credenciais" &gt; "Chave de API".
+                  </p>
+                  <Button variant="outline" size="sm" asChild>
+                    <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Criar API Key
+                    </a>
+                  </Button>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <h4 className="font-semibold mb-2">4. Criar Programmable Search Engine</h4>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Crie um mecanismo de busca personalizado e obtenha o Search Engine ID.
+                  </p>
+                  <Button variant="outline" size="sm" asChild>
+                    <a href="https://programmablesearchengine.google.com/controlpanel/create" target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Criar Search Engine
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      )}
     </div>
   );
 }

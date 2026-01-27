@@ -98,8 +98,17 @@ export default function PDVPage() {
   const salesPaused = !isPdvEnabled;
 
   const handleFinalize = async (paymentMethod: string, discount: number, paymentDetails?: Record<string, any>) => {
-    await finalizeSale(paymentMethod, discount, paymentDetails);
+    const result = await finalizeSale(paymentMethod, discount, paymentDetails);
     setPaymentModalOpen(false);
+    
+    // Impressão automática após finalizar venda de balcão
+    if (result?.comanda && result?.items) {
+      printComanda(
+        result.comanda,
+        result.items,
+        storeData?.name || 'Estabelecimento'
+      );
+    }
   };
 
   const handleCloseComanda = (comanda: Comanda) => {
@@ -314,8 +323,8 @@ export default function PDVPage() {
                 <PDVProductGrid onAddProduct={addToCart} />
               </div>
 
-              {/* Carrinho lateral */}
-              <div className="w-80 lg:w-96 flex-shrink-0">
+              {/* Carrinho lateral - sticky para manter visível ao rolar */}
+              <div className="w-80 lg:w-96 flex-shrink-0 self-start sticky top-0">
                 <PDVCart
                   items={cart}
                   subtotal={subtotal}

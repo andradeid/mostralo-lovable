@@ -34,7 +34,7 @@ export function PDVCart({
   const isMobile = useIsMobile();
 
   return (
-    <Card className="flex flex-col h-full">
+    <Card className="flex flex-col h-full max-h-[calc(100vh-100px)] overflow-hidden">
       <CardHeader className={`pb-3 ${isMobile ? 'px-4' : ''}`}>
         <div className="flex items-center justify-between">
           <CardTitle className={`flex items-center gap-2 ${isMobile ? 'text-xl' : 'text-lg'}`}>

@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
-import { useComandas, CreateComandaInput, AddItemInput, CloseComandaInput } from './useComandas';
+import { useComandas, CreateComandaInput, AddItemInput, CloseComandaInput, Comanda, ComandaItem } from './useComandas';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface CartItem {
   id: string;
@@ -63,8 +64,14 @@ export function usePDV() {
   // Calcular subtotal
   const subtotal = cart.reduce((acc, item) => acc + item.total_price, 0);
 
+  // Tipo de retorno para impressão
+  interface FinalizeSaleResult {
+    comanda: Comanda;
+    items: ComandaItem[];
+  }
+
   // Finalizar venda (venda rápida de balcão)
-  const finalizeSale = useCallback(async (paymentMethod: string, discount: number = 0, paymentDetails?: Record<string, any>) => {
+  const finalizeSale = useCallback(async (paymentMethod: string, discount: number = 0, paymentDetails?: Record<string, any>): Promise<FinalizeSaleResult | null> => {
     if (cart.length === 0) {
       toast({
         title: 'Carrinho vazio',
@@ -105,7 +112,20 @@ export function usePDV() {
         discount,
       });
 
-      // 4. Limpar carrinho
+      // 4. Buscar a comanda atualizada com totais corretos
+      const { data: updatedComanda } = await supabase
+        .from('comandas')
+        .select('*')
+        .eq('id', comanda.id)
+        .single();
+
+      // 5. Buscar itens criados para impressão
+      const { data: createdItems } = await supabase
+        .from('comanda_items')
+        .select('*')
+        .eq('comanda_id', comanda.id);
+
+      // 6. Limpar carrinho
       clearCart();
 
       toast({
@@ -113,7 +133,10 @@ export function usePDV() {
         description: `Venda #${comanda.number} concluída com sucesso!`,
       });
 
-      return comanda;
+      return {
+        comanda: (updatedComanda || comanda) as Comanda,
+        items: (createdItems || []) as ComandaItem[],
+      };
     } catch (error) {
       console.error('Erro ao finalizar venda:', error);
       toast({

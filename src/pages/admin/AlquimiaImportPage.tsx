@@ -112,7 +112,7 @@ export default function AlquimiaImportPage() {
         const imageResult = imageResults.find(r => r.productIndex === index);
         return {
           ...p,
-          image_url: imageResult?.imageUrl || undefined,
+          imagem_url: imageResult?.imageUrl || undefined,
         };
       });
     }
@@ -126,7 +126,7 @@ export default function AlquimiaImportPage() {
       controlar_estoque: p.controlar_estoque,
       quantidade_estoque: p.quantidade_estoque,
       alerta_estoque: p.alerta_estoque,
-      image_url: (p as any).image_url,
+      imagem_url: (p as any).imagem_url,
       variantes: [], // Sem variantes na importação Alquimia
     }));
     

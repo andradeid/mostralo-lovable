@@ -324,8 +324,8 @@ export default function PDVPage() {
                 <PDVProductGrid onAddProduct={addToCart} />
               </div>
 
-              {/* Carrinho lateral - sticky para manter visível ao rolar */}
-              <div className="w-80 lg:w-96 flex-shrink-0 self-start sticky top-0">
+              {/* Carrinho lateral - altura fixa com scroll interno */}
+              <div className="w-80 lg:w-96 flex-shrink-0 h-full overflow-hidden">
                 <PDVCart
                   items={cart}
                   subtotal={subtotal}

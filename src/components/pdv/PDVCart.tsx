@@ -34,8 +34,8 @@ export function PDVCart({
   const isMobile = useIsMobile();
 
   return (
-    <Card className="flex flex-col h-full max-h-[calc(100vh-100px)] overflow-hidden">
-      <CardHeader className={`pb-3 ${isMobile ? 'px-4' : ''}`}>
+    <Card className="flex flex-col max-h-[calc(100vh-80px)]">
+      <CardHeader className={`pb-3 flex-shrink-0 ${isMobile ? 'px-4' : ''}`}>
         <div className="flex items-center justify-between">
           <CardTitle className={`flex items-center gap-2 ${isMobile ? 'text-xl' : 'text-lg'}`}>
             <ShoppingCart className={isMobile ? "h-6 w-6" : "h-5 w-5"} />
@@ -59,7 +59,7 @@ export function PDVCart({
         </div>
       </CardHeader>
       
-      <CardContent className={`flex-1 overflow-hidden ${isMobile ? 'px-4' : 'px-3'}`}>
+      <CardContent className={`flex-1 min-h-0 overflow-hidden ${isMobile ? 'px-4' : 'px-3'}`}>
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-8">
             <ShoppingCart className={`mb-2 opacity-20 ${isMobile ? 'h-16 w-16' : 'h-12 w-12'}`} />
@@ -67,18 +67,20 @@ export function PDVCart({
             <p className={isMobile ? 'text-sm' : 'text-xs'}>Adicione produtos para começar</p>
           </div>
         ) : (
-          <ScrollArea className="h-full pr-2">
-            <div className={`space-y-3 ${isMobile ? 'pb-4' : ''}`}>
+          <ScrollArea className="h-full">
+            <div className={`space-y-3 pr-4 ${isMobile ? 'pb-4' : ''}`}>
               {items.map((item) => (
                 <div key={item.id} className={`bg-muted/50 rounded-lg ${isMobile ? 'p-4' : 'p-3'}`}>
-                  <div className="flex justify-between items-start gap-2">
+                  <div className="flex justify-between items-start gap-3">
                     <div className="flex-1 min-w-0">
-                      <p className={`font-medium truncate ${isMobile ? 'text-base' : 'text-sm'}`}>{item.product_name}</p>
+                      <p className={`font-medium break-words leading-tight ${isMobile ? 'text-base' : 'text-sm'}`}>
+                        {item.product_name}
+                      </p>
                       <p className={`text-muted-foreground ${isMobile ? 'text-sm' : 'text-xs'}`}>
                         {formatCurrency(item.unit_price)} cada
                       </p>
                     </div>
-                    <p className={`font-bold text-primary whitespace-nowrap ${isMobile ? 'text-base' : 'text-sm'}`}>
+                    <p className={`font-bold text-primary whitespace-nowrap min-w-[80px] text-right ${isMobile ? 'text-base' : 'text-sm'}`}>
                       {formatCurrency(item.total_price)}
                     </p>
                   </div>
@@ -129,22 +131,22 @@ export function PDVCart({
       </CardContent>
 
       {items.length > 0 && (
-        <CardFooter className={`flex-col gap-3 pt-3 border-t ${isMobile ? 'px-4 pb-4' : ''}`}>
+        <CardFooter className={`flex-shrink-0 flex-col gap-3 pt-3 border-t ${isMobile ? 'px-4 pb-4' : ''}`}>
           <div className="w-full space-y-1">
             <div className={`flex justify-between ${isMobile ? 'text-base' : 'text-sm'}`}>
               <span className="text-muted-foreground">Subtotal</span>
-              <span>{formatCurrency(subtotal)}</span>
+              <span className="min-w-[80px] text-right">{formatCurrency(subtotal)}</span>
             </div>
             {discount > 0 && (
               <div className={`flex justify-between text-green-600 ${isMobile ? 'text-base' : 'text-sm'}`}>
                 <span>Desconto</span>
-                <span>-{formatCurrency(discount)}</span>
+                <span className="min-w-[80px] text-right">-{formatCurrency(discount)}</span>
               </div>
             )}
             <Separator />
             <div className={`flex justify-between font-bold ${isMobile ? 'text-xl' : 'text-lg'}`}>
               <span>Total</span>
-              <span className="text-primary">{formatCurrency(total)}</span>
+              <span className="text-primary min-w-[80px] text-right">{formatCurrency(total)}</span>
             </div>
           </div>
 

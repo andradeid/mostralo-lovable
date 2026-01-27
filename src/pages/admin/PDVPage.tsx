@@ -80,14 +80,14 @@ export default function PDVPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isFullscreen, toggleFullscreen]);
 
-  // Query para dados da loja (nome + logo)
+  // Query para dados da loja (nome + logo + endereço + telefone)
   const { data: storeData } = useQuery({
     queryKey: ['store-data', storeId],
     queryFn: async () => {
       if (!storeId) return null;
       const { data } = await supabase
         .from('stores')
-        .select('name, logo_url')
+        .select('name, logo_url, address, phone, city, state')
         .eq('id', storeId)
         .single();
       return data;
@@ -108,7 +108,14 @@ export default function PDVPage() {
       printComanda(
         result.comanda,
         result.items,
-        storeData?.name || 'Estabelecimento'
+        {
+          name: storeData?.name || 'Estabelecimento',
+          address: storeData?.address,
+          phone: storeData?.phone,
+          city: storeData?.city,
+          state: storeData?.state,
+          logo_url: storeData?.logo_url,
+        }
       );
     }
   };

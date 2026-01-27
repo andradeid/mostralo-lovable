@@ -8,6 +8,15 @@ interface PrintComandaConfig {
   boldTitles: boolean;
 }
 
+export interface StoreInfo {
+  name: string;
+  address?: string | null;
+  phone?: string | null;
+  city?: string | null;
+  state?: string | null;
+  logo_url?: string | null;
+}
+
 const defaultConfig: PrintComandaConfig = {
   printType: 'thermal_80mm',
   fontSize: 'medium',
@@ -53,10 +62,15 @@ export interface PrintComandaOptions {
 export function generateComandaHTML(
   comanda: Comanda,
   items: ComandaItem[],
-  storeName: string = "Estabelecimento",
+  storeInfo: StoreInfo | string = { name: "Estabelecimento" },
   config: PrintComandaConfig = defaultConfig,
   viaType: 'cliente' | 'estabelecimento' = 'cliente'
 ): string {
+  // Compatibilidade: se receber string, converter para StoreInfo
+  const store: StoreInfo = typeof storeInfo === 'string' 
+    ? { name: storeInfo } 
+    : storeInfo;
+
   // Definir largura baseado no tipo de impressora
   let maxWidth = '210mm';
   if (config.printType === 'thermal_58mm') {
@@ -65,119 +79,264 @@ export function generateComandaHTML(
     maxWidth = '80mm';
   }
 
-  // Tamanho da fonte
-  const fontSizeMap = {
-    small: '10px',
-    medium: '12px',
-    large: '14px'
-  };
-  const fontSize = fontSizeMap[config.fontSize] || '12px';
-
-  const separator = config.showSeparators ? '<div style="border-top: 1px dashed #000; margin: 10px 0;"></div>' : '';
-  const titleStyle = config.boldTitles ? 'font-weight: bold;' : '';
-
   const viaName = viaType === 'cliente' ? 'CLIENTE' : 'ESTABELECIMENTO';
+
+  // Labels de pagamento
+  const paymentLabels: Record<string, string> = {
+    'dinheiro': 'Dinheiro',
+    'credito': 'Cartão de Crédito',
+    'debito': 'Cartão de Débito',
+    'pix': 'PIX',
+    'outros': 'Outros'
+  };
+
+  const paymentMethod = comanda.payment_method || '';
+  const paymentLabel = paymentLabels[paymentMethod] || paymentMethod;
+  const receivedAmount = comanda.payment_details?.received_amount || comanda.total;
+  const change = comanda.payment_details?.change || 0;
 
   let html = `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Comanda #${comanda.number} - Via ${viaName}</title>
+  <title>Cupom #${comanda.number} - Via ${viaName}</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Courier New', monospace;
-      font-size: ${fontSize};
+      font-size: 12px;
       line-height: 1.4;
       color: #000;
       background: #fff;
-      padding: 10px;
+      padding: 8px;
       max-width: ${maxWidth};
       margin: 0 auto;
     }
-    .separator { border-top: 1px dashed #000; margin: 10px 0; }
-    .bold { font-weight: bold; }
-    .text-center { text-align: center; }
-    .text-right { text-align: right; }
-    .item { margin: 5px 0; }
-    .via-header { 
-      text-align: center; 
-      font-weight: bold; 
-      font-size: 1.2em; 
-      margin-bottom: 10px;
-      padding: 5px;
-      border: 2px solid #000;
+    
+    .via-badge {
+      text-align: center;
+      font-weight: bold;
+      font-size: 10px;
+      margin-bottom: 8px;
+      padding: 3px;
+      border: 1px solid #000;
       background: #f0f0f0;
     }
-    .section { margin-bottom: 10px; }
+    
+    .header {
+      text-align: center;
+      padding-bottom: 10px;
+      border-bottom: 1px dashed #000;
+    }
+    
+    .header h1 {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+    
+    .header p {
+      font-size: 10px;
+      margin: 2px 0;
+    }
+    
+    .sale-number {
+      text-align: center;
+      padding: 10px 0;
+      border-bottom: 1px dashed #000;
+    }
+    
+    .sale-number strong {
+      font-size: 14px;
+      display: block;
+      margin-bottom: 4px;
+    }
+    
+    .sale-number p {
+      font-size: 10px;
+    }
+    
+    .items-section {
+      padding: 8px 0;
+    }
+    
+    .items-header {
+      display: flex;
+      justify-content: space-between;
+      font-weight: bold;
+      font-size: 10px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #000;
+      margin-bottom: 6px;
+    }
+    
+    .items-header span:first-child { width: 40%; }
+    .items-header span:nth-child(2) { width: 15%; text-align: center; }
+    .items-header span:nth-child(3) { width: 20%; text-align: right; }
+    .items-header span:last-child { width: 25%; text-align: right; }
+    
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      padding: 3px 0;
+      border-bottom: 1px dotted #ccc;
+    }
+    
+    .item-row span:first-child { 
+      width: 40%; 
+      word-break: break-word;
+    }
+    .item-row span:nth-child(2) { width: 15%; text-align: center; }
+    .item-row span:nth-child(3) { width: 20%; text-align: right; }
+    .item-row span:last-child { width: 25%; text-align: right; }
+    
+    .item-notes {
+      font-size: 9px;
+      font-style: italic;
+      color: #555;
+      padding-left: 10px;
+      margin-bottom: 4px;
+    }
+    
+    .totals {
+      padding: 10px 0;
+      border-top: 1px dashed #000;
+    }
+    
+    .total-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      padding: 2px 0;
+    }
+    
+    .total-line.discount {
+      color: #006600;
+    }
+    
+    .grand-total {
+      font-size: 16px;
+      font-weight: bold;
+      border-top: 2px solid #000;
+      margin-top: 6px;
+      padding-top: 6px;
+    }
+    
+    .payment {
+      padding: 10px 0;
+      border-top: 1px dashed #000;
+    }
+    
+    .payment-title {
+      font-weight: bold;
+      font-size: 11px;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+    
+    .payment-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      padding: 2px 0;
+    }
+    
+    .footer {
+      text-align: center;
+      padding-top: 12px;
+      border-top: 1px dashed #000;
+      margin-top: 10px;
+    }
+    
+    .footer p {
+      margin: 4px 0;
+    }
+    
+    .footer .thanks {
+      font-size: 12px;
+      font-weight: bold;
+    }
+    
+    .footer .legal {
+      font-size: 9px;
+      font-style: italic;
+      color: #666;
+      margin-top: 8px;
+    }
+    
+    .footer .credit {
+      font-size: 8px;
+      color: #888;
+      margin-top: 10px;
+    }
+    
     @media print {
       body { padding: 0; }
       @page { 
-        margin: 10mm; 
+        margin: 5mm; 
         size: ${maxWidth} auto;
       }
     }
   </style>
 </head>
 <body>
-  <div class="via-header">═══ VIA ${viaName} ═══</div>
-  ${separator}
-`;
-
-  // Header
-  html += `
-  <div class="section text-center" style="${titleStyle}">
-    <h2>${storeName}</h2>
-    <p style="font-size: 0.9em; margin-top: 5px;">COMANDA</p>
+  <div class="via-badge">═══ VIA ${viaName} ═══</div>
+  
+  <!-- HEADER DA LOJA -->
+  <div class="header">
+    <h1>${store.name}</h1>
+    ${store.address ? `<p>${store.address}</p>` : ''}
+    ${store.city && store.state ? `<p>${store.city} - ${store.state}</p>` : ''}
+    ${store.phone ? `<p>Tel: ${store.phone}</p>` : ''}
   </div>
-  ${separator}
-`;
-
-  // Info da Comanda
-  html += `
-  <div class="section" style="${titleStyle}">
-    <p style="font-size: 1.5em; font-weight: bold; text-align: center;">COMANDA #${comanda.number}</p>
-    <p>Data/Hora: ${formatDateTime(comanda.opened_at)}</p>
-    <p>Tipo: ${comanda.type === 'mesa' ? `Mesa ${comanda.table_number}` : 'Balcão'}</p>
+  
+  <!-- NÚMERO DA VENDA -->
+  <div class="sale-number">
+    <strong>CUPOM DE VENDA #${comanda.number}</strong>
+    <p>${formatDateTime(comanda.opened_at)}</p>
+    ${comanda.type === 'mesa' && comanda.table_number ? `<p>Mesa: ${comanda.table_number}</p>` : ''}
     ${comanda.customer_name ? `<p>Cliente: ${comanda.customer_name}</p>` : ''}
-    <p>Status: ${comanda.status === 'open' ? 'ABERTA' : comanda.status === 'closed' ? 'FECHADA' : 'CANCELADA'}</p>
   </div>
-  ${separator}
+  
+  <!-- ITENS -->
+  <div class="items-section">
+    <div class="items-header">
+      <span>ITEM</span>
+      <span>QTD</span>
+      <span>VL UN</span>
+      <span>VL ITEM</span>
+    </div>
 `;
 
-  // Itens
-  html += `
-  <div class="section">
-    <p class="bold" style="margin-bottom: 8px;">ITENS:</p>
-`;
-
+  // Renderizar itens
   if (items.length === 0) {
-    html += `<p style="text-align: center; font-style: italic;">Nenhum item adicionado</p>`;
+    html += `<p style="text-align: center; font-style: italic; padding: 10px 0;">Nenhum item</p>`;
   } else {
     items.forEach(item => {
       html += `
-    <div class="item" style="margin-bottom: 8px;">
-      <div style="display: flex; justify-content: space-between;">
-        <span>${item.quantity}x ${item.product_name}</span>
-        <span>${formatCurrency(item.total_price)}</span>
-      </div>
-      ${item.notes ? `<div style="font-size: 0.85em; font-style: italic; margin-left: 15px;">Obs: ${item.notes}</div>` : ''}
+    <div class="item-row">
+      <span>${item.product_name}</span>
+      <span>${item.quantity}</span>
+      <span>${formatCurrency(item.unit_price)}</span>
+      <span>${formatCurrency(item.total_price)}</span>
     </div>
 `;
+      if (item.notes) {
+        html += `<div class="item-notes">Obs: ${item.notes}</div>`;
+      }
     });
   }
 
   html += `
   </div>
-  ${separator}
-`;
-
-  // Totais
-  html += `
-  <div class="section">
-    <div style="display: flex; justify-content: space-between;">
-      <span>Subtotal:</span>
+  
+  <!-- TOTAIS -->
+  <div class="totals">
+    <div class="total-line">
+      <span>Subtotal</span>
       <span>${formatCurrency(comanda.subtotal)}</span>
     </div>
 `;
@@ -185,8 +344,8 @@ export function generateComandaHTML(
   if (comanda.service_fee > 0) {
     const percentage = comanda.subtotal > 0 ? ((comanda.service_fee / comanda.subtotal) * 100).toFixed(0) : '10';
     html += `
-    <div style="display: flex; justify-content: space-between;">
-      <span>Taxa de Serviço (${percentage}%):</span>
+    <div class="total-line">
+      <span>Taxa de Serviço (${percentage}%)</span>
       <span>${formatCurrency(comanda.service_fee)}</span>
     </div>
 `;
@@ -194,57 +353,60 @@ export function generateComandaHTML(
 
   if (comanda.discount > 0) {
     html += `
-    <div style="display: flex; justify-content: space-between; color: green;">
-      <span>Desconto:</span>
+    <div class="total-line discount">
+      <span>Desconto</span>
       <span>-${formatCurrency(comanda.discount)}</span>
     </div>
 `;
   }
 
   html += `
-    <div style="display: flex; justify-content: space-between; font-size: 1.3em; font-weight: bold; margin-top: 8px; padding-top: 8px; border-top: 1px solid #000;">
-      <span>TOTAL:</span>
+    <div class="total-line grand-total">
+      <span>TOTAL R$</span>
       <span>${formatCurrency(comanda.total)}</span>
     </div>
   </div>
-  ${separator}
 `;
 
-  // Pagamento (se fechada)
+  // Seção de pagamento (se fechada)
   if (comanda.status === 'closed' && comanda.payment_method) {
-    const paymentLabels: Record<string, string> = {
-      'dinheiro': 'Dinheiro',
-      'credito': 'Cartão de Crédito',
-      'debito': 'Cartão de Débito',
-      'pix': 'PIX',
-      'outros': 'Outros'
-    };
     html += `
-  <div class="section">
-    <p class="bold">PAGAMENTO:</p>
-    <p>Forma: ${paymentLabels[comanda.payment_method] || comanda.payment_method}</p>
+  <!-- PAGAMENTO -->
+  <div class="payment">
+    <div class="payment-title">FORMA DE PAGAMENTO</div>
+    <div class="payment-line">
+      <span>${paymentLabel}</span>
+      <span>${formatCurrency(receivedAmount)}</span>
+    </div>
 `;
-    if (comanda.payment_details?.received_amount) {
+    if (change > 0) {
       html += `
-    <p>Recebido: ${formatCurrency(comanda.payment_details.received_amount)}</p>
-    <p>Troco: ${formatCurrency(comanda.payment_details.change || 0)}</p>
+    <div class="payment-line">
+      <span>Troco</span>
+      <span>${formatCurrency(change)}</span>
+    </div>
 `;
     }
     if (comanda.closed_at) {
-      html += `<p>Fechada em: ${formatDateTime(comanda.closed_at)}</p>`;
+      html += `
+    <div class="payment-line" style="font-size: 9px; color: #666;">
+      <span>Fechada em:</span>
+      <span>${formatDateTime(comanda.closed_at)}</span>
+    </div>
+`;
     }
     html += `
   </div>
-  ${separator}
 `;
   }
 
   // Footer
   html += `
-  <div class="section text-center" style="margin-top: 15px;">
-    <p style="font-size: 0.9em;">Obrigado pela preferência!</p>
-    <p style="font-size: 0.8em; margin-top: 5px;">${new Date().toLocaleString('pt-BR')}</p>
-    <p style="font-size: 0.65em; margin-top: 10px; color: #666;">Feito por Mostralo - 2026</p>
+  <!-- FOOTER -->
+  <div class="footer">
+    <p class="thanks">Obrigado pela preferência!</p>
+    <p class="legal">Documento sem valor fiscal</p>
+    <p class="credit">Feito por Mostralo - 2026</p>
   </div>
 </body>
 </html>
@@ -256,7 +418,7 @@ export function generateComandaHTML(
 export async function printComanda(
   comanda: Comanda,
   items: ComandaItem[],
-  storeName: string = "Estabelecimento",
+  storeInfo: StoreInfo | string = { name: "Estabelecimento" },
   options: PrintComandaOptions = {}
 ) {
   try {
@@ -270,7 +432,7 @@ export async function printComanda(
     let combinedHTML = '';
 
     if (viaType === 'ambas' || viaType === 'cliente') {
-      combinedHTML += generateComandaHTML(comanda, items, storeName, config, 'cliente');
+      combinedHTML += generateComandaHTML(comanda, items, storeInfo, config, 'cliente');
     }
 
     if (viaType === 'ambas') {
@@ -278,7 +440,7 @@ export async function printComanda(
     }
 
     if (viaType === 'ambas' || viaType === 'estabelecimento') {
-      combinedHTML += generateComandaHTML(comanda, items, storeName, config, 'estabelecimento');
+      combinedHTML += generateComandaHTML(comanda, items, storeInfo, config, 'estabelecimento');
     }
 
     // Se modo preview, retornar HTML

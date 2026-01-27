@@ -21,6 +21,10 @@ import {
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
+import { printComanda, StoreInfo } from '@/utils/printComanda';
+import { useStoreAccess } from '@/hooks/useStoreAccess';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 
 interface PDVHistoryDetailProps {
   item: PDVHistoryItem | null;
@@ -54,6 +58,22 @@ const paymentInfo: Record<string, { icon: React.ReactNode; label: string; color:
 
 export function PDVHistoryDetail({ item, open, onOpenChange, onActionComplete }: PDVHistoryDetailProps) {
   const { toast } = useToast();
+  const { storeId } = useStoreAccess();
+
+  // Query para dados da loja (para impressão)
+  const { data: storeData } = useQuery({
+    queryKey: ['store-print-data', storeId],
+    queryFn: async () => {
+      if (!storeId) return null;
+      const { data } = await supabase
+        .from('stores')
+        .select('name, logo_url, address, phone, city, state')
+        .eq('id', storeId)
+        .single();
+      return data;
+    },
+    enabled: !!storeId,
+  });
 
   if (!item) return null;
 
@@ -70,96 +90,70 @@ export function PDVHistoryDetail({ item, open, onOpenChange, onActionComplete }:
     color: 'text-muted-foreground'
   };
 
-  const handlePrint = () => {
-    // Criar conteúdo para impressão
-    const printContent = `
-      <html>
-        <head>
-          <title>Cupom #${item.number}</title>
-          <style>
-            body { 
-              font-family: 'Courier New', monospace; 
-              max-width: 300px; 
-              margin: 0 auto; 
-              padding: 20px;
-              font-size: 12px;
-            }
-            .header { text-align: center; margin-bottom: 20px; }
-            .header h1 { margin: 0; font-size: 16px; }
-            .header p { margin: 5px 0; color: #666; }
-            .divider { border-top: 1px dashed #000; margin: 10px 0; }
-            .item { display: flex; justify-content: space-between; margin: 5px 0; }
-            .item-name { flex: 1; }
-            .item-qty { width: 30px; text-align: center; }
-            .item-price { width: 80px; text-align: right; }
-            .total { font-weight: bold; font-size: 14px; }
-            .footer { text-align: center; margin-top: 20px; font-size: 10px; color: #666; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>CUPOM NÃO FISCAL</h1>
-            <p>Venda #${item.number}</p>
-            <p>${format(new Date(item.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
-          </div>
-          
-          <div class="divider"></div>
-          
-          ${item.items.map(i => `
-            <div class="item">
-              <span class="item-name">${i.product_name}</span>
-              <span class="item-qty">${i.quantity}x</span>
-              <span class="item-price">${formatCurrency(i.total_price)}</span>
-            </div>
-          `).join('')}
-          
-          <div class="divider"></div>
-          
-          <div class="item">
-            <span>Subtotal</span>
-            <span>${formatCurrency(item.subtotal)}</span>
-          </div>
-          
-          ${item.discount > 0 ? `
-            <div class="item" style="color: green;">
-              <span>Desconto</span>
-              <span>-${formatCurrency(item.discount)}</span>
-            </div>
-          ` : ''}
-          
-          <div class="item total">
-            <span>TOTAL</span>
-            <span>${formatCurrency(item.total)}</span>
-          </div>
-          
-          <div class="divider"></div>
-          
-          <div class="item">
-            <span>Pagamento</span>
-            <span>${payment.label}</span>
-          </div>
-          
-          ${item.payment_details?.troco ? `
-            <div class="item">
-              <span>Troco</span>
-              <span>${formatCurrency(item.payment_details.troco)}</span>
-            </div>
-          ` : ''}
-          
-          <div class="footer">
-            <p>Obrigado pela preferência!</p>
-          </div>
-        </body>
-      </html>
-    `;
+  // Extrair dados de pagamento (suporta ambos os formatos)
+  const receivedAmount = item.payment_details?.received_amount || item.payment_details?.valorRecebido || 0;
+  const change = item.payment_details?.change || item.payment_details?.troco || 0;
 
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(printContent);
-      printWindow.document.close();
-      printWindow.print();
-      printWindow.close();
-    }
+  const handlePrint = async () => {
+    // Converter item do histórico para formato de Comanda
+    const comanda = {
+      id: item.id,
+      number: item.number,
+      created_at: item.created_at,
+      opened_at: item.created_at,
+      closed_at: item.closed_at,
+      total: item.total,
+      subtotal: item.subtotal,
+      discount: item.discount,
+      service_fee: 0,
+      payment_method: item.payment_method,
+      payment_details: {
+        received_amount: receivedAmount,
+        change: change,
+      },
+      status: item.status as 'open' | 'closed' | 'cancelled',
+      customer_name: item.customer_name,
+      customer_id: null,
+      store_id: storeId || '',
+      type: 'balcao' as const,
+      table_number: null,
+      notes: null,
+      source: 'pdv' as const,
+      updated_at: item.created_at,
+      opened_by: null,
+      closed_by: null,
+    };
+
+    const items = item.items.map(i => ({
+      id: i.id,
+      comanda_id: item.id,
+      product_id: null,
+      product_name: i.product_name,
+      quantity: i.quantity,
+      unit_price: i.unit_price,
+      total_price: i.total_price,
+      notes: i.notes,
+      addons: null,
+      added_at: item.created_at,
+      added_by: null,
+      requires_approval: false,
+      approved_at: null,
+      approved_by: null,
+      preparation_status: 'ready' as const,
+      preparation_started_at: null,
+      prepared_at: null,
+    }));
+
+    const storeInfo: StoreInfo = {
+      name: storeData?.name || 'Estabelecimento',
+      address: storeData?.address,
+      phone: storeData?.phone,
+      city: storeData?.city,
+      state: storeData?.state,
+      logo_url: storeData?.logo_url,
+    };
+
+    await printComanda(comanda, items, storeInfo, { viaType: 'cliente' });
 
     toast({
       title: 'Cupom enviado para impressão',
@@ -249,16 +243,17 @@ export function PDVHistoryDetail({ item, open, onOpenChange, onActionComplete }:
               <span className="font-medium">{payment.label}</span>
             </div>
             
-            {item.payment_details?.valorRecebido && (
-              <div className="mt-3 space-y-1 text-sm">
+            {/* Mostrar valor recebido e troco para pagamentos em dinheiro */}
+            {item.payment_method === 'dinheiro' && receivedAmount > 0 && (
+              <div className="mt-3 p-3 bg-muted/50 rounded-lg space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Valor recebido</span>
-                  <span>{formatCurrency(item.payment_details.valorRecebido)}</span>
+                  <span className="font-medium">{formatCurrency(receivedAmount)}</span>
                 </div>
-                {item.payment_details.troco > 0 && (
+                {change > 0 && (
                   <div className="flex justify-between text-green-600">
                     <span>Troco</span>
-                    <span>{formatCurrency(item.payment_details.troco)}</span>
+                    <span className="font-medium">{formatCurrency(change)}</span>
                   </div>
                 )}
               </div>

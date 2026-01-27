@@ -1,206 +1,104 @@
 
-# Plano: Carrinho PDV com Scrollbar Visível + Produtos com Foto na Finalização
+# Plano: Modal de Pagamento Maior com Layout em Colunas + Scrollbar Visível no Carrinho
 
-## Problemas Identificados
+## Problemas Atuais
 
-### 1. Barra de rolagem não aparece no carrinho
-Na imagem fornecida, o carrinho exibe 6 produtos mas não mostra a scrollbar. O problema é que o `ScrollArea` do Radix UI só mostra a scrollbar quando o mouse está sobre o componente (comportamento padrão).
+### Modal de Pagamento (Imagem 1)
+- Modal muito pequeno (`max-w-md`)
+- Lista de itens limitada a `max-h-40` (160px) - mostra apenas 2 itens
+- Tudo em uma única coluna, difícil de conferir
 
-**Solução:** Modificar o componente `ScrollArea` para exibir a scrollbar **sempre visível** quando há conteúdo a rolar.
-
-### 2. Modal de finalização não mostra os produtos
-O modal `PDVPaymentModal` (imagem 1) mostra apenas:
-- Subtotal
-- Desconto
-- Total
-- Forma de pagamento
-
-**Não exibe** a lista de produtos para conferência antes de confirmar.
+### Card do Carrinho (Imagem 2)
+- ScrollArea existe, mas scrollbar não aparece visível
+- A linha vermelha indica onde deveria ter scrollbar
 
 ---
 
 ## Solução Proposta
 
-### Parte 1: Scrollbar Sempre Visível
+### Parte 1: Modal de Pagamento Expandido com 2 Colunas
 
-**Arquivo:** `src/components/ui/scroll-area.tsx`
-
-Modificar o `ScrollBar` para ter a classe `opacity-100` sempre, removendo o comportamento de fade que oculta a barra.
-
-```text
-Antes:
-<ScrollAreaPrimitive.ScrollAreaThumb className="relative flex-1 rounded-full bg-border" />
-
-Depois:
-<ScrollAreaPrimitive.ScrollAreaThumb className="relative flex-1 rounded-full bg-border/80" />
-
-E no ScrollBar:
-Adicionar classe para sempre mostrar: "data-[state=visible]:opacity-100 opacity-100"
+**Layout Desktop (lado a lado):**
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                       Finalizar Venda                             │
+├─────────────────────────────────┬────────────────────────────────┤
+│     COLUNA ESQUERDA             │     COLUNA DIREITA             │
+│     (Itens da Venda)            │     (Pagamento)                │
+│                                 │                                │
+│  ┌─────────────────────────┐    │  Subtotal         R$ 152,00   │
+│  │ [📷] Produto A   R$4,00 │    │  Desconto              [0]    │
+│  │ [📷] Produto B  R$50,00 │    │  ─────────────────────────    │
+│  │ [📷] Produto C   R$5,00 │    │  Total            R$ 152,00   │
+│  │ [📷] Produto D   R$5,00 │    │                                │
+│  │ [📷] Produto E   R$9,00 │    │  Forma de Pagamento            │
+│  │ [📷] Produto F  R$18,00 │    │  [Dinheiro] [Crédito]          │
+│  │ ...                     │ ←ScrollArea│  [Débito]   [PIX]      │
+│  └─────────────────────────┘    │  [Outros]                      │
+│                                 │                                │
+│                                 │  [Confirmar R$ 152,00]         │
+│                                 │  [Cancelar]                    │
+└─────────────────────────────────┴────────────────────────────────┘
 ```
 
-### Parte 2: Lista de Produtos no Modal de Pagamento
+**Layout Mobile (coluna única com área de itens maior):**
+- Lista de itens ocupa mais espaço (`max-h-60` ao invés de `max-h-40`)
+- Scrollbar sempre visível
 
-**Arquivo:** `src/components/pdv/PDVPaymentModal.tsx`
+### Alterações Técnicas
 
-Adicionar uma seção com os itens do carrinho **antes** do resumo financeiro:
-- Exibir imagem em miniatura (se existir)
-- Nome do produto
-- Quantidade × Preço unitário = Total
+**Arquivo: `src/components/pdv/PDVPaymentModal.tsx`**
 
-**Fluxo de dados:**
-1. O `PDVPaymentModal` atualmente recebe apenas `subtotal`
-2. Precisa receber também `items: CartItem[]` do `usePDV`
-3. Mas o `CartItem` não tem `image_url`!
+1. **Aumentar tamanho do modal**:
+   - Desktop: `max-w-4xl` ao invés de `max-w-md`
+   - Mobile: manter Drawer mas com mais espaço para itens
 
-**Solução para imagens:**
-- Modificar `CartItem` em `usePDV.ts` para incluir `image_url?: string`
-- Modificar `addToCart` para receber a URL da imagem
-- Modificar `PDVProductGrid` para passar a imagem ao adicionar
+2. **Layout em 2 colunas no desktop**:
+   - Coluna esquerda: Lista de itens com ScrollArea grande
+   - Coluna direita: Resumo financeiro + formas de pagamento + botões
 
----
+3. **ScrollArea dos itens expandida**:
+   - Desktop: `h-[400px]` para mostrar mais itens
+   - Mobile: `max-h-60` (240px)
 
-## Alterações Técnicas Detalhadas
-
-### Arquivo 1: `src/components/ui/scroll-area.tsx`
-
-Forçar scrollbar sempre visível:
-
+**Código da estrutura:**
 ```tsx
-<ScrollAreaPrimitive.ScrollAreaScrollbar
-  orientation={orientation}
-  className={cn(
-    "flex touch-none select-none transition-colors",
-    orientation === "vertical" &&
-      "h-full w-2.5 border-l border-l-transparent p-[1px]",
-    // Nova classe para manter sempre visível
-    "opacity-100",
-    className
-  )}
->
-  <ScrollAreaPrimitive.ScrollAreaThumb 
-    className="relative flex-1 rounded-full bg-muted-foreground/30 hover:bg-muted-foreground/50" 
-  />
-```
-
-### Arquivo 2: `src/hooks/usePDV.ts`
-
-Adicionar `image_url` ao tipo `CartItem`:
-
-```tsx
-export interface CartItem {
-  id: string;
-  product_id?: string;
-  product_name: string;
-  image_url?: string;  // NOVO
-  unit_price: number;
-  quantity: number;
-  total_price: number;
-  addons?: Record<string, any>;
-  notes?: string;
-}
-```
-
-### Arquivo 3: `src/components/pdv/PDVProductGrid.tsx`
-
-Passar `image_url` ao adicionar produto:
-
-```tsx
-const handleConfirmAdd = (product: PDVProduct, quantity: number, notes: string) => {
-  onAddProduct({
-    product_id: product.id,
-    product_name: product.name,
-    image_url: product.image_url,  // NOVO
-    unit_price: product.price,
-    quantity,
-    notes: notes || undefined,
-  });
-  // ...
-};
-```
-
-### Arquivo 4: `src/components/pdv/PDVPaymentModal.tsx`
-
-Adicionar props e lista de produtos:
-
-```tsx
-interface PDVPaymentModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  subtotal: number;
-  items: CartItem[];  // NOVO
-  onConfirm: (...) => void;
-  isProcessing?: boolean;
-}
-
-// No conteúdo, antes do resumo financeiro:
-<div className="space-y-2 max-h-40 overflow-auto">
-  <Label>Itens da Venda</Label>
-  {items.map((item) => (
-    <div key={item.id} className="flex items-center gap-3 p-2 bg-muted rounded-lg">
-      {item.image_url ? (
-        <img 
-          src={item.image_url} 
-          alt={item.product_name}
-          className="w-12 h-12 object-cover rounded"
-        />
-      ) : (
-        <div className="w-12 h-12 bg-muted-foreground/20 rounded flex items-center justify-center">
-          <Package className="h-6 w-6 text-muted-foreground" />
-        </div>
-      )}
-      <div className="flex-1 min-w-0">
-        <p className="font-medium text-sm truncate">{item.product_name}</p>
-        <p className="text-xs text-muted-foreground">
-          {item.quantity}× {formatCurrency(item.unit_price)}
-        </p>
-      </div>
-      <p className="font-bold text-sm">{formatCurrency(item.total_price)}</p>
-    </div>
-  ))}
+// Desktop: 2 colunas
+<div className="grid grid-cols-2 gap-6">
+  {/* Coluna Esquerda - Itens */}
+  <div className="space-y-4">
+    <Label>Itens da Venda ({items.length})</Label>
+    <ScrollArea className="h-[400px] border rounded-lg">
+      {/* Lista de itens */}
+    </ScrollArea>
+  </div>
+  
+  {/* Coluna Direita - Pagamento */}
+  <div className="space-y-4">
+    {/* Resumo */}
+    {/* Formas de pagamento */}
+    {/* Botões */}
+  </div>
 </div>
 ```
 
-### Arquivo 5: `src/pages/admin/PDVPage.tsx`
+### Parte 2: Scrollbar Visível no Card do Carrinho
 
-Passar `cart` para o modal:
+**Arquivo: `src/components/pdv/PDVCart.tsx`**
+
+Adicionar classe customizada para forçar visibilidade da scrollbar:
 
 ```tsx
-<PDVPaymentModal
-  open={paymentModalOpen}
-  onOpenChange={setPaymentModalOpen}
-  subtotal={subtotal}
-  items={cart}  // NOVO
-  onConfirm={handleFinalize}
-  isProcessing={isProcessing}
-/>
+<ScrollArea className="h-full [&>div>div[style]]:!block">
 ```
 
----
+Ou usar CSS inline para garantir que a scrollbar apareça:
 
-## Visualização do Resultado
-
-```text
-┌─────────────────────────────────────┐
-│          Finalizar Venda            │
-├─────────────────────────────────────┤
-│  Itens da Venda                     │
-│  ┌─────────────────────────────────┐│
-│  │ [📷] Produto A     2× R$5     R$10││
-│  │ [📷] Produto B     1× R$50    R$50││
-│  │ [📷] Produto C     3× R$10    R$30││  ← ScrollArea com scrollbar visível
-│  └─────────────────────────────────┘│
-│                                     │
-│  ┌─────────────────────────────────┐│
-│  │ Subtotal              R$ 90,00  ││
-│  │ Desconto                   [0]  ││
-│  │ Total                 R$ 90,00  ││
-│  └─────────────────────────────────┘│
-│                                     │
-│  [Dinheiro] [Crédito] [Débito]...   │
-│                                     │
-│  [        Confirmar R$ 90,00       ]│
-│  [            Cancelar             ]│
-└─────────────────────────────────────┘
+```tsx
+<ScrollArea 
+  className="h-full"
+  scrollbarProps={{ className: "opacity-100" }}
+>
 ```
 
 ---
@@ -209,17 +107,17 @@ Passar `cart` para o modal:
 
 | Arquivo | Alteração |
 |---------|-----------|
-| `scroll-area.tsx` | Adicionar classe `opacity-100` para scrollbar sempre visível |
-| `usePDV.ts` | Adicionar `image_url` ao tipo `CartItem` |
-| `PDVProductGrid.tsx` | Passar `image_url` no `handleConfirmAdd` e `handleUpsellAccept` |
-| `PDVPaymentModal.tsx` | Adicionar prop `items` e exibir lista de produtos com fotos |
-| `PDVPage.tsx` | Passar `cart` para `PDVPaymentModal` |
+| `PDVPaymentModal.tsx` | Aumentar modal para `max-w-4xl` |
+| `PDVPaymentModal.tsx` | Criar layout de 2 colunas (desktop) |
+| `PDVPaymentModal.tsx` | Expandir área de itens para `h-[400px]` (desktop) / `max-h-60` (mobile) |
+| `PDVPaymentModal.tsx` | Separar itens do resumo/pagamento |
+| `PDVCart.tsx` | Adicionar classe para scrollbar sempre visível |
 
 ---
 
 ## Benefícios
 
-1. **Conferência visual**: Operador vê todos os itens com fotos antes de confirmar
-2. **Scrollbar visível**: Usuário sabe que pode rolar para ver mais itens
-3. **Prevenção de erros**: Reduz chance de confirmar venda errada
-4. **UX profissional**: Comportamento similar a sistemas de PDV tradicionais
+1. **Conferência completa**: Operador vê todos os 8+ itens sem precisar rolar muito
+2. **Layout organizado**: Itens de um lado, pagamento do outro
+3. **Scrollbar visível**: Indica claramente que há mais conteúdo
+4. **UX profissional**: Similar a sistemas de PDV tradicionais

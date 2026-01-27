@@ -203,16 +203,21 @@ async function searchWithSerpAPI(
       const imageUrls: string[] = [];
       
       for (const result of data.images_results) {
-        // Prefer original, but also collect thumbnails as fallbacks
-        if (result.original) {
+        // Only add valid HTTP(S) URLs - filter out x-raw-image:// and other invalid schemes
+        if (result.original && (result.original.startsWith('http://') || result.original.startsWith('https://'))) {
           imageUrls.push(result.original);
         }
-        if (result.thumbnail) {
+        if (result.thumbnail && (result.thumbnail.startsWith('http://') || result.thumbnail.startsWith('https://'))) {
           imageUrls.push(result.thumbnail);
         }
       }
       
-      console.log(`[searchWithSerpAPI] ${imageUrls.length} URLs encontradas`);
+      if (imageUrls.length === 0) {
+        console.log('[searchWithSerpAPI] Nenhuma URL HTTP válida encontrada');
+        return { success: false, error: 'Nenhuma imagem válida encontrada' };
+      }
+      
+      console.log(`[searchWithSerpAPI] ${imageUrls.length} URLs válidas encontradas`);
       return { success: true, imageUrls };
     }
 

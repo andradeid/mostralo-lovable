@@ -34,30 +34,24 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
 
-    // Client with user token for auth verification
-    const supabaseUser = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } }
-    });
+    // Service client for privileged operations
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Extract token and verify using getClaims
+    // Extract token and verify user via admin client
     const token = authHeader.replace('Bearer ', '');
-    const { data: claimsData, error: claimsError } = await supabaseUser.auth.getClaims(token);
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
     
-    if (claimsError || !claimsData?.claims) {
-      console.error('Erro ao verificar usuário:', claimsError);
+    if (userError || !user) {
+      console.error('Erro ao verificar usuário:', userError);
       return new Response(
         JSON.stringify({ error: 'Sessão inválida' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const userId = claimsData.claims.sub as string;
+    const userId = user.id;
     console.log(`[delete-all-products] Usuário ${userId} solicitando exclusão da loja ${storeId}`);
-
-    // Service client for privileged operations
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
     // Verify user role - must be store_admin or master_admin
     const { data: roleData, error: roleError } = await supabaseAdmin

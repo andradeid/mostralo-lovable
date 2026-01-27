@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { 
   Table, 
   TableBody, 
@@ -19,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeft, ArrowRight, CheckCircle2, AlertCircle, Search, Package, Tags } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, AlertCircle, Search, Package, Tags, PackageCheck } from 'lucide-react';
 import { AlquimiaProduct } from '@/lib/parseAlquimia';
 import { cn } from '@/lib/utils';
 
@@ -28,7 +30,7 @@ interface AlquimiaPreviewStepProps {
   categories: string[];
   onProductsChange: (products: AlquimiaProduct[]) => void;
   onBack: () => void;
-  onNext: () => void;
+  onNext: (onlyWithStock: boolean) => void;
 }
 
 // Categorias alinhadas com o mapeamento em parseAlquimia.ts
@@ -56,9 +58,21 @@ export function AlquimiaPreviewStep({
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [onlyWithStock, setOnlyWithStock] = useState(false);
 
   const validCount = products.filter(p => p.isValid).length;
   const invalidCount = products.filter(p => !p.isValid).length;
+  
+  // Estatísticas de estoque
+  const stockStats = useMemo(() => {
+    const withStock = products.filter(p => p.isValid && p.quantidade_estoque > 0);
+    const withoutStock = products.filter(p => p.isValid && p.quantidade_estoque <= 0);
+    return {
+      withStock: withStock.length,
+      withoutStock: withoutStock.length,
+      percentage: validCount > 0 ? Math.round((withStock.length / validCount) * 100) : 0,
+    };
+  }, [products, validCount]);
 
   // Filtrar produtos
   const filteredProducts = products.filter(product => {
@@ -113,14 +127,14 @@ export function AlquimiaPreviewStep({
   return (
     <div className="space-y-6">
       {/* Estatísticas */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="pt-4 pb-4">
             <div className="flex items-center gap-3">
               <Package className="h-8 w-8 text-primary" />
               <div>
                 <p className="text-2xl font-bold">{products.length}</p>
-                <p className="text-xs text-muted-foreground">Total de Produtos</p>
+                <p className="text-xs text-muted-foreground">Total</p>
               </div>
             </div>
           </CardContent>
@@ -141,10 +155,22 @@ export function AlquimiaPreviewStep({
         <Card>
           <CardContent className="pt-4 pb-4">
             <div className="flex items-center gap-3">
+              <PackageCheck className="h-8 w-8 text-emerald-600" />
+              <div>
+                <p className="text-2xl font-bold">{stockStats.withStock}</p>
+                <p className="text-xs text-muted-foreground">Com Estoque</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-4 pb-4">
+            <div className="flex items-center gap-3">
               <AlertCircle className="h-8 w-8 text-destructive" />
               <div>
                 <p className="text-2xl font-bold">{invalidCount}</p>
-                <p className="text-xs text-muted-foreground">Com Erros</p>
+                <p className="text-xs text-muted-foreground">Erros</p>
               </div>
             </div>
           </CardContent>
@@ -162,6 +188,35 @@ export function AlquimiaPreviewStep({
           </CardContent>
         </Card>
       </div>
+
+      {/* Filtro de Estoque */}
+      <Card className="border-emerald-500/30 bg-emerald-500/5">
+        <CardContent className="pt-4 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Switch
+                id="only-with-stock"
+                checked={onlyWithStock}
+                onCheckedChange={setOnlyWithStock}
+              />
+              <div>
+                <Label htmlFor="only-with-stock" className="font-medium">
+                  Apenas produtos com estoque &gt; 0
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  {stockStats.withStock} de {validCount} produtos têm estoque válido ({stockStats.percentage}%)
+                </p>
+              </div>
+            </div>
+            {onlyWithStock && (
+              <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+                <PackageCheck className="h-3 w-3 mr-1" />
+                {stockStats.withStock} produtos selecionados
+              </Badge>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Filtros */}
       <Card>
@@ -305,8 +360,11 @@ export function AlquimiaPreviewStep({
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar
         </Button>
-        <Button onClick={onNext} disabled={validCount === 0}>
-          Continuar
+        <Button 
+          onClick={() => onNext(onlyWithStock)} 
+          disabled={onlyWithStock ? stockStats.withStock === 0 : validCount === 0}
+        >
+          Continuar ({onlyWithStock ? stockStats.withStock : validCount} produtos)
           <ArrowRight className="h-4 w-4 ml-2" />
         </Button>
       </div>

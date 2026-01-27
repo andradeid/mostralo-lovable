@@ -1,9 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Slider } from '@/components/ui/slider';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { 
   ArrowLeft, 
   Download, 
@@ -15,18 +23,26 @@ import {
   AlertCircle,
   Search,
   Image,
-  Info
+  Info,
+  DollarSign,
+  Calculator,
+  Lightbulb
 } from 'lucide-react';
 import { AlquimiaProduct, exportToMostraloCSV, downloadCSV } from '@/lib/parseAlquimia';
 import { supabase } from '@/integrations/supabase/client';
+
+// Custo por busca baseado no plano Production SerpAPI
+const COST_PER_SEARCH_BRL = 0.055;
+const USD_TO_BRL = 5.50;
 
 interface AlquimiaExportStepProps {
   products: AlquimiaProduct[];
   categories: string[];
   fileName: string;
   onBack: () => void;
-  onSaveToDatabase: (createCategories: boolean, searchImages: boolean) => Promise<void>;
+  onSaveToDatabase: (createCategories: boolean, searchImages: boolean, importLimit: number | 'all') => Promise<void>;
   isImporting: boolean;
+  onlyWithStock: boolean;
 }
 
 export function AlquimiaExportStep({
@@ -36,14 +52,49 @@ export function AlquimiaExportStep({
   onBack,
   onSaveToDatabase,
   isImporting,
+  onlyWithStock,
 }: AlquimiaExportStepProps) {
   const [createMissingCategories, setCreateMissingCategories] = useState(true);
   const [searchImagesEnabled, setSearchImagesEnabled] = useState(false);
   const [imageSearchConfigured, setImageSearchConfigured] = useState(false);
   const [checkingConfig, setCheckingConfig] = useState(true);
+  const [importLimit, setImportLimit] = useState<number | 'all'>(500);
 
-  const validProducts = products.filter(p => p.isValid);
+  // Filtrar produtos com base na opção de estoque
+  const validProducts = useMemo(() => {
+    const allValid = products.filter(p => p.isValid);
+    return onlyWithStock 
+      ? allValid.filter(p => p.quantidade_estoque > 0)
+      : allValid;
+  }, [products, onlyWithStock]);
+
   const invalidProducts = products.filter(p => !p.isValid);
+
+  // Quantidade a ser importada
+  const productsToImport = useMemo(() => {
+    return importLimit === 'all' 
+      ? validProducts.length 
+      : Math.min(importLimit, validProducts.length);
+  }, [importLimit, validProducts.length]);
+
+  // Cálculo de custos
+  const costEstimate = useMemo(() => {
+    const cost = productsToImport * COST_PER_SEARCH_BRL;
+    const costUSD = cost / USD_TO_BRL;
+    const remainingProducts = validProducts.length - productsToImport;
+    const remainingBatches = importLimit !== 'all' && typeof importLimit === 'number'
+      ? Math.ceil(remainingProducts / importLimit)
+      : 0;
+    
+    return {
+      costBRL: cost,
+      costUSD,
+      remainingProducts,
+      remainingBatches,
+      totalCostBRL: validProducts.length * COST_PER_SEARCH_BRL,
+      totalCostUSD: (validProducts.length * COST_PER_SEARCH_BRL) / USD_TO_BRL,
+    };
+  }, [productsToImport, validProducts.length, importLimit]);
 
   useEffect(() => {
     checkImageSearchConfig();
@@ -79,8 +130,10 @@ export function AlquimiaExportStep({
   };
 
   const handleSaveToDatabase = async () => {
-    await onSaveToDatabase(createMissingCategories, searchImagesEnabled);
+    await onSaveToDatabase(createMissingCategories, searchImagesEnabled, importLimit);
   };
+
+  const presetQuantities = [100, 250, 500, 1000];
 
   return (
     <div className="space-y-6">
@@ -100,7 +153,9 @@ export function AlquimiaExportStep({
             <div className="text-center p-4 rounded-lg bg-muted/50">
               <Package className="h-6 w-6 mx-auto mb-2 text-primary" />
               <p className="text-2xl font-bold">{validProducts.length}</p>
-              <p className="text-xs text-muted-foreground">Produtos Válidos</p>
+              <p className="text-xs text-muted-foreground">
+                {onlyWithStock ? 'Com Estoque' : 'Produtos Válidos'}
+              </p>
             </div>
             
             <div className="text-center p-4 rounded-lg bg-muted/50">
@@ -118,9 +173,9 @@ export function AlquimiaExportStep({
             </div>
             
             <div className="text-center p-4 rounded-lg bg-muted/50">
-              <AlertCircle className="h-6 w-6 mx-auto mb-2 text-destructive" />
-              <p className="text-2xl font-bold">{invalidProducts.length}</p>
-              <p className="text-xs text-muted-foreground">Com Erros</p>
+              <Calculator className="h-6 w-6 mx-auto mb-2 text-amber-600" />
+              <p className="text-2xl font-bold">{productsToImport}</p>
+              <p className="text-xs text-muted-foreground">A Importar</p>
             </div>
           </div>
 
@@ -184,6 +239,56 @@ export function AlquimiaExportStep({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Seletor de Quantidade */}
+          <div className="p-4 rounded-lg border bg-muted/30 space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="font-medium flex items-center gap-2">
+                <Package className="h-4 w-4" />
+                Quantidade a importar
+              </Label>
+              <Select
+                value={importLimit === 'all' ? 'all' : importLimit.toString()}
+                onValueChange={(val) => setImportLimit(val === 'all' ? 'all' : parseInt(val))}
+              >
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {presetQuantities.map(qty => (
+                    <SelectItem key={qty} value={qty.toString()}>
+                      {qty} produtos
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="all">Todos ({validProducts.length})</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {importLimit !== 'all' && validProducts.length > 0 && (
+              <div className="space-y-2">
+                <Slider
+                  value={[typeof importLimit === 'number' ? importLimit : validProducts.length]}
+                  onValueChange={(val) => setImportLimit(val[0])}
+                  min={50}
+                  max={Math.min(validProducts.length, 2000)}
+                  step={50}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>50</span>
+                  <span>{Math.min(validProducts.length, 2000)}</span>
+                </div>
+              </div>
+            )}
+
+            {costEstimate.remainingProducts > 0 && (
+              <p className="text-xs text-muted-foreground">
+                Restam {costEstimate.remainingProducts} produtos para próximas importações 
+                ({costEstimate.remainingBatches} lote{costEstimate.remainingBatches > 1 ? 's' : ''})
+              </p>
+            )}
+          </div>
+
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="create-categories">Criar categorias novas</Label>
@@ -224,12 +329,57 @@ export function AlquimiaExportStep({
             />
           </div>
 
+          {/* Painel de Custo Estimado */}
           {searchImagesEnabled && imageSearchConfigured && (
+            <Card className="border-amber-500/30 bg-amber-500/5">
+              <CardHeader className="pb-2 pt-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-amber-600" />
+                  Estimativa de Custo (SerpAPI)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0 space-y-3">
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <p className="text-muted-foreground text-xs">Este lote</p>
+                    <p className="font-bold text-lg">
+                      R$ {costEstimate.costBRL.toFixed(2)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      ~${costEstimate.costUSD.toFixed(2)} USD
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground text-xs">Total (todos)</p>
+                    <p className="font-bold text-lg text-muted-foreground">
+                      R$ {costEstimate.totalCostBRL.toFixed(2)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      ~${costEstimate.totalCostUSD.toFixed(2)} USD
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-2 p-2 rounded bg-amber-100/50 dark:bg-amber-900/20">
+                  <Lightbulb className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-amber-800 dark:text-amber-200">
+                    {validProducts.length > 5000 
+                      ? 'Recomendado: Plano Production ($150/mês = 15.000 buscas)'
+                      : validProducts.length > 1000
+                        ? 'Recomendado: Plano Developer ($75/mês = 5.000 buscas)'
+                        : 'Plano Starter ($25/mês) é suficiente para este volume'}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {searchImagesEnabled && imageSearchConfigured && !costEstimate.costBRL && (
             <Alert className="border-blue-500/30 bg-blue-500/5">
               <Info className="h-4 w-4 text-blue-500" />
               <AlertDescription className="text-xs">
-                A busca de imagens processa em lotes de 50 produtos. Para {validProducts.length} produtos, 
-                o tempo estimado é de ~{Math.ceil(validProducts.length / 50)} minuto(s).
+                A busca de imagens processa em lotes de 50 produtos. Para {productsToImport} produtos, 
+                o tempo estimado é de ~{Math.ceil(productsToImport / 50)} minuto(s).
               </AlertDescription>
             </Alert>
           )}
@@ -260,14 +410,14 @@ export function AlquimiaExportStep({
                 ) : (
                   <Database className="h-4 w-4 mr-2" />
                 )}
-                Importar {validProducts.length} Produtos
+                Importar {productsToImport} Produtos
                 {searchImagesEnabled && ' com Imagens'}
               </>
             )}
           </Button>
           <p className="text-xs text-muted-foreground text-center">
             {searchImagesEnabled 
-              ? 'Produtos serão importados com imagens buscadas automaticamente'
+              ? `Custo estimado: ~R$ ${costEstimate.costBRL.toFixed(2)} para ${productsToImport} produtos`
               : 'Recomendado para importação direta'}
           </p>
         </CardContent>

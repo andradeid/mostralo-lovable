@@ -1,127 +1,169 @@
 
-# Plano: Filtro de Estoque Válido + Importação em Lotes + Cálculo de Custo SerpAPI
+
+# Plano: Sistema de Produtos em Destaque com Aba "Destaques" em Primeiro
 
 ## Resumo
 
-Implementar funcionalidade para filtrar produtos por estoque válido antes da importação, permitir importação em lotes de 500 produtos, e exibir cálculo de custo estimado baseado nos planos SerpAPI.
+Criar uma nova aba "Destaques" na loja pública que aparece **em primeiro lugar** na navegação, seguida por "Todas" e depois as categorias. Isso permite que o cliente veja imediatamente os produtos curados pelo lojista.
 
 ---
 
-## Análise do Cenário Atual
+## Ordem das Abas
 
-### O que já existe:
-- O parser Alquimia captura `quantidade_estoque` de cada produto
-- Filtro de produtos "válidos" (nome e preço) já existe
-- Processamento em lotes de 50 para busca de imagens já implementado
-- Contador de requisições na tela de configuração
+```text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          NAVEGAÇÃO DA LOJA                                  │
+│                                                                             │
+│  [⭐ Destaques] [Todas] [Medicamentos] [Higiene] [Vitaminas] ...           │
+│       ↑           ↑              ↑                                          │
+│    PRIMEIRO    SEGUNDO      CATEGORIAS                                      │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
-### O que falta:
-- **Filtro de estoque > 0** antes de buscar imagens
-- **Seleção de quantidade para importar** (500 de cada vez)
-- **Cálculo de custo estimado** baseado no SerpAPI
-
----
-
-## Estimativa de Custos SerpAPI
-
-| Plano | Preço (USD/mês) | Buscas/mês | Custo por busca |
-|-------|-----------------|------------|-----------------|
-| Free | $0 | 250 | R$ 0,00 |
-| Starter | $25 | 1.000 | ~R$ 0,14 |
-| Developer | $75 | 5.000 | ~R$ 0,08 |
-| Production | $150 | 15.000 | ~R$ 0,055 |
-| Big Data | $275 | 30.000 | ~R$ 0,05 |
-
-### Para 14.000 produtos:
-- **Plano Production ($150)** = 15.000 buscas → suficiente
-- **Custo estimado: ~$150 USD (~R$ 825)** para toda a operação
-- **Se importar 500 de cada vez (28 lotes)**:
-  - Cada lote de 500 = ~$5 USD (~R$ 27,50)
-  - Pode distribuir ao longo de meses usando o plano mais barato
+**Comportamento:**
+- **Destaques** → Mostra APENAS produtos marcados como destaque (página inicial padrão)
+- **Todas** → Mostra todos os produtos disponíveis
+- **Categoria X** → Mostra produtos da categoria específica
 
 ---
 
 ## Implementação
 
-### 1. Adicionar Toggle "Apenas com Estoque" no Preview
+### 1. Banco de Dados - Adicionar Coluna `is_featured`
 
-**Arquivo:** `src/components/admin/products/import/AlquimiaPreviewStep.tsx`
+**Nova migração SQL:**
 
-- Adicionar switch para filtrar apenas produtos com `quantidade_estoque > 0`
-- Atualizar estatísticas em tempo real
-- Mostrar quantos produtos têm estoque válido vs sem estoque
+```sql
+ALTER TABLE public.products
+ADD COLUMN IF NOT EXISTS is_featured BOOLEAN DEFAULT false;
 
-### 2. Adicionar Seletor de Quantidade no Export
+CREATE INDEX IF NOT EXISTS idx_products_is_featured 
+ON public.products(is_featured) WHERE is_featured = true;
 
-**Arquivo:** `src/components/admin/products/import/AlquimiaExportStep.tsx`
-
-- Adicionar slider/input para selecionar quantos produtos importar (1 a N)
-- Presets: 100, 250, 500, 1000, Todos
-- Mostrar estimativa de tempo e custo em tempo real
-- Informar produtos restantes para próximas importações
-
-### 3. Passar Filtro de Estoque para a Página Principal
-
-**Arquivo:** `src/pages/admin/AlquimiaImportPage.tsx`
-
-- Receber configuração de "apenas com estoque"
-- Aplicar filtro antes de enviar para busca de imagens
-- Limitar quantidade de produtos baseado na seleção do usuário
-
-### 4. Exibir Painel de Custo Estimado
-
-**Arquivo:** `src/components/admin/products/import/AlquimiaExportStep.tsx`
-
-- Card com cálculo baseado no plano SerpAPI
-- Mostrar: Quantidade selecionada × Custo por busca
-- Sugerir melhor plano baseado no volume
-- Mostrar economias por filtrar produtos sem estoque
-
----
-
-## Fluxo do Usuário
-
-```text
-+-------------------+       +----------------------+       +-------------------------+
-|  1. Upload CSV    | ----> |  2. Preview + Filtro | ----> |  3. Configurar + Exportar|
-|  (14.000 prods)   |       |  [x] Apenas estoque  |       |  Qtd: [500]              |
-+-------------------+       |  8.000 com estoque   |       |  Custo: ~R$ 27,50        |
-                            +----------------------+       +-------------------------+
-                                                                      |
-                                                                      v
-                                                           +-------------------------+
-                                                           |  4. Importar Lote 1/28  |
-                                                           |  500 produtos           |
-                                                           +-------------------------+
+CREATE INDEX IF NOT EXISTS idx_products_store_featured 
+ON public.products(store_id, is_featured) WHERE is_featured = true;
 ```
 
 ---
 
-## Interface Proposta
+### 2. Formulário de Produto (Admin)
 
-### No Preview (Passo 2):
-```text
-┌─────────────────────────────────────────────────┐
-│ ☑ Apenas produtos com estoque > 0              │
-│   8.234 de 14.000 produtos têm estoque válido  │
-│   (57% dos produtos serão importados)          │
-└─────────────────────────────────────────────────┘
+**Arquivo:** `src/components/admin/ProductForm.tsx`
+
+Adicionar toggle na seção de configurações:
+
+- Campo: `is_featured` (boolean, default: false)
+- Label: "Produto em Destaque"
+- Descrição: "Este produto aparecerá na aba Destaques da loja"
+- Ícone: Estrela (Star)
+- Localização: Junto ao toggle de disponibilidade
+
+---
+
+### 3. Lista de Produtos (Admin)
+
+**Arquivo:** `src/pages/admin/ProductsPage.tsx`
+
+- Badge visual (estrela) nos produtos em destaque
+- Botão de ação rápida para marcar/desmarcar destaque
+- Filtro "Em Destaque" no dropdown de filtros
+
+---
+
+### 4. Página da Loja (Store.tsx)
+
+**Arquivo:** `src/pages/Store.tsx`
+
+#### 4.1 Estado Inicial
+
+O estado `selectedCategory` iniciará como `"featured"` para que a aba Destaques seja a página inicial:
+
+```typescript
+const [selectedCategory, setSelectedCategory] = useState<string | null>('featured');
 ```
 
-### No Export (Passo 3):
+#### 4.2 Ordem de Renderização das Abas
+
+```typescript
+{/* 1. PRIMEIRO - Aba Destaques */}
+{hasFeaturedProducts && (
+  <Button 
+    variant={selectedCategory === 'featured' ? "default" : "outline"}
+    onClick={() => setSelectedCategory('featured')}
+  >
+    <Star className="w-4 h-4 mr-1" />
+    Destaques
+  </Button>
+)}
+
+{/* 2. SEGUNDO - Aba Todas */}
+<Button 
+  variant={selectedCategory === null ? "default" : "outline"}
+  onClick={() => setSelectedCategory(null)}
+>
+  Todas
+</Button>
+
+{/* 3. TERCEIRO - Categorias */}
+{categories.map((category) => (
+  <Button onClick={() => setSelectedCategory(category.id)}>
+    {category.name}
+  </Button>
+))}
+```
+
+#### 4.3 Lógica de Filtragem
+
+```typescript
+const getProductsByCategory = (categoryId: string | null) => {
+  // Aba "Destaques" selecionada
+  if (categoryId === 'featured') {
+    return products.filter(p => p.is_featured === true);
+  }
+  
+  // Aba "Todas" selecionada
+  if (categoryId === null) {
+    return products;
+  }
+  
+  // Categoria específica
+  return products.filter(p => p.category_id === categoryId);
+};
+```
+
+---
+
+## Interface Visual
+
+### Na Loja (Navegação):
 ```text
-┌─────────────────────────────────────────────────┐
-│ 💰 Estimativa de Custo (SerpAPI)               │
-├─────────────────────────────────────────────────┤
-│ Produtos com estoque: 8.234                    │
-│ Quantidade a importar: [500    ] ▾             │
-│                                                 │
-│ Custo estimado: ~R$ 27,50 (500 buscas)         │
-│ Lotes restantes: 16 (para importar tudo)       │
-│                                                 │
-│ 💡 Dica: Use o plano Production ($150/mês)     │
-│    para importar todos de uma vez              │
-└─────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│  [⭐ Destaques] [Todas] [Medicamentos] [Higiene] [Vitaminas]   │
+│       ↑                                                         │
+│  Selecionada por padrão ao entrar na loja                      │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### No Formulário de Produto (Admin):
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│ Configurações                                                   │
+├─────────────────────────────────────────────────────────────────┤
+│ [●───] Produto disponível para venda                            │
+│                                                                 │
+│ [○───] Produto em Destaque ⭐                                   │
+│   Este produto aparecerá na aba "Destaques" da loja            │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Na Lista de Produtos (Admin):
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│ [Imagem] Dipirona 500mg                          R$ 12,90      │
+│          Categoria: Medicamentos                                │
+│          ⭐ Destaque | ✓ Disponível                             │
+│          [Editar] [⭐ Toggle] [🗑️]                              │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -130,49 +172,43 @@ Implementar funcionalidade para filtrar produtos por estoque válido antes da im
 
 | Arquivo | Alteração |
 |---------|-----------|
-| `src/components/admin/products/import/AlquimiaPreviewStep.tsx` | Adicionar toggle de filtro por estoque, callback |
-| `src/components/admin/products/import/AlquimiaExportStep.tsx` | Adicionar seletor de quantidade, card de custo |
-| `src/pages/admin/AlquimiaImportPage.tsx` | Gerenciar estado do filtro, aplicar limite de quantidade |
-| `src/lib/parseAlquimia.ts` | (Opcional) Adicionar flag `hasStock` para facilitar filtros |
+| `supabase/migrations/` | Nova migração para coluna `is_featured` |
+| `src/components/admin/ProductForm.tsx` | Adicionar toggle de destaque |
+| `src/pages/admin/ProductsPage.tsx` | Badge, filtro e ação rápida |
+| `src/pages/Store.tsx` | Nova aba "Destaques" em primeiro, estado inicial |
 
 ---
 
 ## Detalhes Técnicos
 
-### Estado para Filtro de Estoque
+### Schema Zod (ProductForm.tsx)
 ```typescript
-const [onlyWithStock, setOnlyWithStock] = useState(false);
-
-// Filtrar produtos
-const productsWithStock = products.filter(p => p.quantidade_estoque > 0);
-const displayProducts = onlyWithStock ? productsWithStock : products;
+const productSchema = z.object({
+  // ... campos existentes
+  is_featured: z.boolean().default(false),
+});
 ```
 
-### Estado para Limite de Quantidade
+### Verificação de Produtos em Destaque
 ```typescript
-const [importLimit, setImportLimit] = useState<number | 'all'>(500);
+// Verificar se há produtos em destaque para mostrar a aba
+const hasFeaturedProducts = products.some(p => p.is_featured === true);
 
-// Aplicar limite
-const productsToImport = importLimit === 'all' 
-  ? validProducts 
-  : validProducts.slice(0, importLimit);
-```
-
-### Cálculo de Custo
-```typescript
-const COST_PER_SEARCH_BRL = 0.055; // Baseado no plano Production
-
-const estimatedCost = productsToImport.length * COST_PER_SEARCH_BRL;
-const remainingProducts = validProducts.length - productsToImport.length;
-const remainingBatches = Math.ceil(remainingProducts / importLimit);
+// Se não houver destaques, iniciar na aba "Todas"
+useEffect(() => {
+  if (!hasFeaturedProducts && selectedCategory === 'featured') {
+    setSelectedCategory(null);
+  }
+}, [hasFeaturedProducts]);
 ```
 
 ---
 
 ## Benefícios
 
-1. **Economia**: Filtrar produtos sem estoque pode reduzir de 14.000 → ~8.000 buscas (43% de economia)
-2. **Controle**: Importar em lotes permite pausar e continuar depois
-3. **Transparência**: Usuário sabe exatamente quanto vai gastar
-4. **Flexibilidade**: Pode ajustar plano SerpAPI conforme volume mensal
+1. **Primeira Impressão**: Cliente vê os melhores produtos ao entrar na loja
+2. **Curadoria**: Lojista controla o que aparece na vitrine principal
+3. **Performance**: Com 14.000 produtos, a aba Destaques carrega apenas os selecionados
+4. **Flexibilidade**: Cliente pode ver todos os produtos na aba "Todas" quando quiser
+5. **Promoções**: Ideal para destacar ofertas, lançamentos ou produtos sazonais
 

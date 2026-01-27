@@ -6518,6 +6518,7 @@ export type Database = {
           image_gallery: string[] | null
           image_url: string | null
           is_available: boolean | null
+          is_featured: boolean | null
           is_on_offer: boolean | null
           name: string
           offer_price: number | null
@@ -6542,6 +6543,7 @@ export type Database = {
           image_gallery?: string[] | null
           image_url?: string | null
           is_available?: boolean | null
+          is_featured?: boolean | null
           is_on_offer?: boolean | null
           name: string
           offer_price?: number | null
@@ -6566,6 +6568,7 @@ export type Database = {
           image_gallery?: string[] | null
           image_url?: string | null
           is_available?: boolean | null
+          is_featured?: boolean | null
           is_on_offer?: boolean | null
           name?: string
           offer_price?: number | null

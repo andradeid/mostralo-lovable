@@ -244,6 +244,7 @@ export function generateComandaHTML(
   <div class="section text-center" style="margin-top: 15px;">
     <p style="font-size: 0.9em;">Obrigado pela preferência!</p>
     <p style="font-size: 0.8em; margin-top: 5px;">${new Date().toLocaleString('pt-BR')}</p>
+    <p style="font-size: 0.65em; margin-top: 10px; color: #666;">Feito por Mostralo - 2026</p>
   </div>
 </body>
 </html>

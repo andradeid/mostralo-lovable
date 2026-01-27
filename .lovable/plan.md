@@ -1,197 +1,256 @@
 
-# Plano: Busca Automática de Imagens na Importação Alquimia
+# Plano: Otimização do PDV com Busca Paginada
 
-## Análise de Impacto: Nada Quebra
+## Situação Atual
 
-### Verificação do Google Shopping Feed
-O feed do Google Shopping (`supabase/functions/google-shopping-feed/index.ts`) lê o campo `image_url` dos produtos (linha 63):
+### Como o PDV funciona hoje:
+
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│  PDV ATUAL - CARREGA TODOS OS PRODUTOS                         │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  1. Ao abrir PDV:                                               │
+│     → Busca TODOS os produtos da loja (sem limite)              │
+│     → 10.000 produtos = 10.000 objetos na memória               │
+│     → Tempo de carga: 5-15 segundos                             │
+│                                                                 │
+│  2. Ao digitar na busca:                                        │
+│     → Filtra 10.000 produtos no navegador (client-side)         │
+│     → A cada letra = novo loop em 10.000 itens                  │
+│     → Causa lag/travamento em mobile                            │
+│                                                                 │
+│  3. Ao trocar categoria:                                        │
+│     → Mesmo problema: filtro local em 10.000 itens              │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Código problemático (PDVProductGrid.tsx):
+
 ```typescript
-<g:image_link>${escapeXML(product.image_url || '')}</g:image_link>
+// PROBLEMA: Busca todos os produtos sem limite
+const { data: products = [] } = useQuery({
+  queryKey: ['pdv-products', storeId],
+  queryFn: async () => {
+    const { data } = await supabase
+      .from('products')
+      .select(`id, name, price, ...`)
+      .eq('store_id', storeId)
+      .eq('is_available', true)
+      .order('name');  // SEM .range() ou .limit()
+    return data;
+  },
+});
+
+// PROBLEMA: Filtro client-side em todos os produtos
+const filteredProducts = products.filter(product => {
+  const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+  const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
+  return matchesSearch && matchesCategory;
+});
 ```
 
-**Impacto**: NENHUM. A imagem será salva no Supabase Storage e o campo `image_url` receberá uma URL pública válida do nosso CDN:
+---
+
+## Solução: PDV Leve com Busca Server-Side
+
+### Arquitetura proposta:
+
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│  PDV OTIMIZADO - BUSCA PAGINADA + SERVER-SIDE                   │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  1. Ao abrir PDV:                                               │
+│     → Carrega apenas 50 produtos iniciais                       │
+│     → Tempo de carga: <1 segundo                                │
+│     → Memória: 50 objetos                                       │
+│                                                                 │
+│  2. Ao rolar a lista (Infinite Scroll):                         │
+│     → IntersectionObserver detecta final da lista               │
+│     → Carrega próximos 50 produtos automaticamente              │
+│     → Usa o hook useInfiniteScroll existente                    │
+│                                                                 │
+│  3. Ao digitar na busca (debounce 300ms):                       │
+│     → Envia busca para o Supabase                               │
+│     → Usa .ilike('name', '%termo%')                             │
+│     → Retorna apenas produtos que correspondem                  │
+│     → Mantém paginação na busca                                 │
+│                                                                 │
+│  4. Ao trocar categoria:                                        │
+│     → Nova query com filtro server-side                         │
+│     → Reseta paginação para 50 primeiros                        │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
-https://noshwvwpjtnvndokbfjx.supabase.co/storage/v1/object/public/store-images/products/uuid.jpg
+
+---
+
+## Componentes a Criar/Modificar
+
+### 1. Hook: `usePDVProducts` (novo)
+
+Hook dedicado para gerenciar produtos do PDV com paginação e busca server-side.
+
+**Funcionalidades:**
+- Carregamento inicial de 50 produtos
+- Infinite scroll para carregar mais
+- Busca server-side com debounce
+- Filtro por categoria server-side
+- Contador de total/carregados
+- Reset automático ao mudar filtros
+
+**Interface:**
+```typescript
+interface UsePDVProductsReturn {
+  products: Product[];
+  isLoading: boolean;
+  isLoadingMore: boolean;
+  hasMore: boolean;
+  totalProducts: number;
+  loadedCount: number;
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  selectedCategory: string | null;
+  setSelectedCategory: (categoryId: string | null) => void;
+  loadMore: () => void;
+  loadMoreRef: (node: HTMLDivElement | null) => void;
+}
 ```
 
-O Google Merchant Center vai receber uma URL funcional, permanente e rápida.
+### 2. Modificar: `PDVProductGrid.tsx`
 
-### Bucket de Storage
-Confirmado que o bucket `store-images` existe e é **público**, permitindo acesso direto às imagens.
+Refatorar para usar o novo hook:
+- Remover useQuery local de produtos
+- Usar `usePDVProducts` hook
+- Adicionar elemento trigger para infinite scroll
+- Adicionar indicador de "carregando mais..."
+- Manter UI atual (grid, categorias, etc.)
 
-### Compatibilidade com Sistema Existente
-- Tabela `products` continua igual (campo `image_url` recebe uma URL string)
-- Bucket `store-images` já existente será reutilizado
-- Caminho `products/` já é o padrão usado no sistema
-- Nenhum componente de exibição será alterado
+### 3. Componente: `PDVProductsCounter` (novo)
+
+Similar ao ProductsCounter da loja:
+- Mostra "50 de 10.000 produtos"
+- Barra de progresso sutil
+- Esconde durante busca ativa
+
+---
+
+## Detalhes Técnicos
+
+### Busca Server-Side com Debounce
+
+```typescript
+// Debounce de 300ms na busca
+const debouncedSearch = useMemo(
+  () => debounce((term: string) => {
+    setDebouncedSearchTerm(term);
+  }, 300),
+  []
+);
+
+// Query com filtro server-side
+const buildQuery = useCallback(() => {
+  let query = supabase
+    .from('products')
+    .select('id, name, price, description, image_url, category_id, categories(name)')
+    .eq('store_id', storeId)
+    .eq('is_available', true);
+  
+  // Filtro de busca server-side
+  if (debouncedSearchTerm) {
+    query = query.ilike('name', `%${debouncedSearchTerm}%`);
+  }
+  
+  // Filtro de categoria server-side
+  if (selectedCategory) {
+    query = query.eq('category_id', selectedCategory);
+  }
+  
+  return query.order('name').range(from, to);
+}, [storeId, debouncedSearchTerm, selectedCategory, from, to]);
+```
+
+### Infinite Scroll (reutilizando hook existente)
+
+```typescript
+// Usar o hook já existente
+const loadMoreRef = useInfiniteScroll({
+  hasMore,
+  isLoading: isLoadingMore,
+  onLoadMore: loadMore,
+  rootMargin: '100px', // PDV menor que loja
+});
+```
+
+### Reset ao mudar filtros
+
+```typescript
+// Resetar paginação quando busca ou categoria muda
+useEffect(() => {
+  currentPageRef.current = 0;
+  setProducts([]);
+  setHasMore(true);
+  // Trigger nova busca
+}, [debouncedSearchTerm, selectedCategory]);
+```
+
+---
+
+## Comparação: Antes vs Depois
+
+| Aspecto | Antes (Atual) | Depois (Otimizado) |
+|---------|---------------|-------------------|
+| Carga inicial | Todos os produtos | 50 produtos |
+| Tempo de abertura | 5-15s (10k produtos) | <1s |
+| Memória usada | ~10MB (10k objetos) | ~500KB (50 objetos) |
+| Busca | Client-side (lenta) | Server-side (rápida) |
+| Filtro categoria | Client-side | Server-side |
+| Scroll | Todos renderizados | Carrega sob demanda |
+| Mobile | Trava com muitos produtos | Fluido sempre |
+
+---
+
+## UX para Frente de Caixa
+
+### Considerações especiais para PDV:
+1. **Busca por código de barras**: Campo de busca aceita código/SKU
+2. **Atalhos de teclado**: Enter adiciona produto rapidamente
+3. **Produtos frequentes**: Cache local dos 20 mais vendidos
+4. **Modo offline**: Não implementar agora, mas arquitetura permite
+
+### UI mantida:
+- Grid de produtos com imagens
+- Scroll horizontal de categorias
+- Modal de confirmação de adição
+- Upsell após adicionar item
 
 ---
 
 ## Arquivos a Criar
 
-### 1. Migration: `image_search_config`
-Tabela para armazenar credenciais da API de busca de imagens.
-
-**Campos:**
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| id | uuid | Chave primária |
-| provider | text | 'google' ou 'bing' |
-| api_key | text | Chave da API (criptografada pelo RLS) |
-| search_engine_id | text | ID do Search Engine (Google cx) |
-| is_active | boolean | Se a busca está habilitada |
-| daily_limit | integer | Limite diário de buscas (default: 100) |
-| searches_today | integer | Contador do dia atual |
-| last_reset_date | date | Data do último reset |
-| created_at | timestamptz | Criação |
-| updated_at | timestamptz | Atualização |
-
-**RLS:** Apenas `master_admin` pode ler/escrever.
-
----
-
-### 2. Edge Function: `search-product-image`
-Função serverless que busca a imagem, faz download e salva no Storage.
-
-**Fluxo:**
-1. Receber nome do produto e laboratório
-2. Buscar credenciais na tabela `image_search_config`
-3. Verificar limite diário
-4. Chamar Google Custom Search API
-5. Fazer download da imagem encontrada
-6. Upload no bucket `store-images` (path: `products/{uuid}.jpg`)
-7. Incrementar contador de uso
-8. Retornar URL pública do Supabase Storage
-
-**Tratamento de erros:**
-- API não configurada → Retornar erro amigável
-- Limite atingido → Retornar erro com mensagem clara
-- Imagem não encontrada → Tentar fallback (sem laboratório)
-- Falha no download → Retornar null e continuar
-
----
-
-### 3. Página: `ImageSearchConfigPage.tsx`
-Interface no Master Admin para configurar a API de busca de imagens.
-
-**Localização:** `src/pages/admin/ImageSearchConfigPage.tsx`
-
-**UI baseada no GoogleAppsConfigPage:**
-- Badge de status (Configurado/Não Configurado)
-- Campo para API Key (com toggle mostrar/ocultar)
-- Campo para Search Engine ID
-- Toggle para ativar/desativar busca
-- Configuração de limite diário
-- Contador de uso do dia com barra de progresso
-- Instruções passo a passo em acordeão
-
----
-
-### 4. Hook: `useImageSearch`
-Gerenciador de buscas em lote.
-
-**Funcionalidades:**
-- Processar produtos em lotes de 50
-- Executar requisições em paralelo dentro do lote
-- Delay de 500ms entre lotes (evitar rate limit)
-- Controle de progresso e cancelamento
-- Retry automático em falhas pontuais
-- Retornar produtos com `imagem_url` preenchida
-
----
-
-### 5. Componente: `ImageSearchProgress.tsx`
-Indicador visual do progresso da busca.
-
-**Exibe:**
-- Lote atual (ex: "Lote 5 de 20")
-- Progresso total (ex: "250 de 1000 produtos")
-- Barra de progresso
-- Produto sendo processado
-- Taxa de sucesso (ex: "198 imagens encontradas")
-- Tempo estimado restante
-- Botões: Cancelar / Pular e Importar sem Imagens
-
----
+| Arquivo | Descrição |
+|---------|-----------|
+| `src/hooks/usePDVProducts.ts` | Hook com paginação, busca e filtros server-side |
+| `src/components/pdv/PDVProductsCounter.tsx` | Contador "50 de 10.000" |
 
 ## Arquivos a Modificar
 
-### 1. `src/routes/masterRoutes.tsx`
-Adicionar rota `/dashboard/image-search-config` com acesso restrito a `master_admin`.
-
-### 2. `src/components/admin/products/import/AlquimiaExportStep.tsx`
-Adicionar toggle "Buscar imagens automaticamente" com aviso sobre tempo adicional.
-
-### 3. `src/pages/admin/AlquimiaImportPage.tsx`
-Integrar hook `useImageSearch` antes do import:
-- Se toggle ativo: buscar imagens em lotes de 50
-- Mostrar componente de progresso
-- Após busca: passar produtos com URLs para `importProducts`
-
-### 4. `src/lib/parseAlquimia.ts`
-Expor o campo `laboratorio` no tipo `AlquimiaProduct` para melhorar a query de busca.
+| Arquivo | Alteração |
+|---------|-----------|
+| `src/components/pdv/PDVProductGrid.tsx` | Usar novo hook, adicionar infinite scroll trigger |
 
 ---
 
-## Instruções para o Master Admin Configurar a API
+## Benefícios Esperados
 
-### Passo 1: Criar Projeto no Google Cloud Console
-1. Acesse [console.cloud.google.com](https://console.cloud.google.com)
-2. Clique em **"Selecionar projeto"** → **"Novo Projeto"**
-3. Nome sugerido: `Mostralo Image Search`
-4. Clique em **"Criar"**
-
-### Passo 2: Ativar a Custom Search API
-1. No menu lateral, vá em **"APIs e Serviços"** → **"Biblioteca"**
-2. Pesquise por **"Custom Search API"**
-3. Clique na API e depois em **"Ativar"**
-
-### Passo 3: Criar Credenciais (API Key)
-1. Vá em **"APIs e Serviços"** → **"Credenciais"**
-2. Clique em **"+ Criar Credenciais"** → **"Chave de API"**
-3. Copie a chave gerada
-4. (Opcional) Clique em **"Editar chave de API"** para restringir à Custom Search API
-
-### Passo 4: Criar Search Engine
-1. Acesse [programmablesearchengine.google.com](https://programmablesearchengine.google.com/)
-2. Clique em **"Novo mecanismo de pesquisa"**
-3. Em "Sites para pesquisar", marque **"Pesquisar toda a web"**
-4. Nome: `Mostralo Product Images`
-5. Clique em **"Criar"**
-6. Vá em **"Painel de controle"** do mecanismo criado
-7. Copie o **ID do mecanismo de pesquisa** (cx)
-
-### Passo 5: Configurar no Mostralo
-1. Acesse `/dashboard/image-search-config`
-2. Cole a **API Key** no campo correspondente
-3. Cole o **Search Engine ID** no segundo campo
-4. Defina o **limite diário** (100 é gratuito/dia)
-5. Clique em **"Salvar Configurações"**
-
----
-
-## Fluxo Completo na Importação (1000 produtos)
-
-```text
-1. Upload do CSV Alquimia ✓
-2. Preview dos produtos ✓
-3. Ativar "Buscar imagens automaticamente"
-4. Clicar "Importar Produtos"
-
-   FASE 1: Busca de Imagens (lotes de 50)
-   ├─ Lote 1:  Produtos 1-50     → ~3 segundos
-   ├─ Lote 2:  Produtos 51-100   → ~3 segundos
-   ├─ ...
-   └─ Lote 20: Produtos 951-1000 → ~3 segundos
-   
-   Tempo total: ~60-90 segundos para 1000 produtos
-   
-   FASE 2: Importação no Banco
-   ├─ Produtos já têm imagem_url do nosso Storage
-   └─ Import normal via import-products
-
-5. Dialog de sucesso com estatísticas
-```
+1. **Performance**: PDV abre em <1 segundo independente do catálogo
+2. **Memória**: Usa 95% menos RAM no navegador
+3. **Mobile**: Funciona perfeitamente em dispositivos mais simples
+4. **Escalabilidade**: Suporta 100.000+ produtos sem impacto
+5. **Busca rápida**: Resultados instantâneos via índice do banco
+6. **Consistência**: Mesmo padrão usado na loja
 
 ---
 
@@ -199,38 +258,8 @@ Expor o campo `laboratorio` no tipo `AlquimiaProduct` para melhorar a query de b
 
 | Tarefa | Tempo |
 |--------|-------|
-| Migration (tabela + RLS) | 5 min |
-| Edge Function (busca + download + upload) | 30 min |
-| Página ImageSearchConfigPage | 25 min |
-| Hook useImageSearch (lotes de 50) | 20 min |
-| Componente ImageSearchProgress | 15 min |
-| Integração AlquimiaExportStep | 10 min |
-| Integração AlquimiaImportPage | 15 min |
-| Ajuste parseAlquimia | 5 min |
-| Rota masterRoutes | 5 min |
-| **Total** | ~2.5 horas |
-
----
-
-## Custos da API
-
-| Cenário | Buscas/dia | Custo |
-|---------|------------|-------|
-| Gratuito | Até 100 | $0 |
-| 500 buscas | 500 | ~$2.50 |
-| 1000 buscas | 1000 | ~$5.00 |
-
-Para importar 1000 produtos por dia, o custo seria de aproximadamente **$5/dia** ou **~R$25/dia** além do limite gratuito.
-
----
-
-## Resumo de Garantias
-
-| Aspecto | Status |
-|---------|--------|
-| Google Shopping Feed | Não afetado (URL válida do Storage) |
-| Campo image_url | Mesmo formato (string URL) |
-| Bucket store-images | Reutilizado (já existe e é público) |
-| Componentes de exibição | Não alterados |
-| Sistema de importação | Funciona com ou sem busca de imagens |
-| Segurança | API Key protegida no backend |
+| Hook usePDVProducts | 30 min |
+| Componente PDVProductsCounter | 10 min |
+| Refatorar PDVProductGrid | 25 min |
+| Testes e ajustes | 15 min |
+| **Total** | ~1.5 horas |

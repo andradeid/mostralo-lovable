@@ -247,6 +247,7 @@ export default function PDVPage() {
             open={paymentModalOpen}
             onOpenChange={setPaymentModalOpen}
             subtotal={subtotal}
+            items={cart}
             onConfirm={handleFinalize}
             isProcessing={isProcessing}
           />
@@ -373,6 +374,7 @@ export default function PDVPage() {
           open={paymentModalOpen}
           onOpenChange={setPaymentModalOpen}
           subtotal={subtotal}
+          items={cart}
           onConfirm={handleFinalize}
           isProcessing={isProcessing}
         />

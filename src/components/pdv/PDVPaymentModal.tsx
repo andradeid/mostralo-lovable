@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatCurrency } from '@/lib/utils';
-import { CreditCard, Banknote, QrCode, Wallet, Loader2, X } from 'lucide-react';
+import { CreditCard, Banknote, QrCode, Wallet, Loader2, X, Package } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
   Dialog,
@@ -20,11 +21,13 @@ import {
   DrawerFooter,
   DrawerClose,
 } from '@/components/ui/drawer';
+import { CartItem } from '@/hooks/usePDV';
 
 interface PDVPaymentModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   subtotal: number;
+  items: CartItem[];
   onConfirm: (paymentMethod: string, discount: number, paymentDetails?: Record<string, any>) => void;
   isProcessing?: boolean;
 }
@@ -41,6 +44,7 @@ export function PDVPaymentModal({
   open,
   onOpenChange,
   subtotal,
+  items,
   onConfirm,
   isProcessing = false,
 }: PDVPaymentModalProps) {
@@ -74,6 +78,41 @@ export function PDVPaymentModal({
 
   const content = (
     <div className={`space-y-4 ${isMobile ? 'px-4' : ''}`}>
+      {/* Lista de itens para conferência */}
+      {items.length > 0 && (
+        <div className="space-y-2">
+          <Label className={isMobile ? 'text-base' : ''}>Itens da Venda ({items.length})</Label>
+          <ScrollArea className="max-h-40 border rounded-lg">
+            <div className="p-2 space-y-2">
+              {items.map((item) => (
+                <div key={item.id} className="flex items-center gap-3 p-2 bg-muted rounded-lg">
+                  {item.image_url ? (
+                    <img 
+                      src={item.image_url} 
+                      alt={item.product_name}
+                      className="w-12 h-12 object-cover rounded flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 bg-muted-foreground/20 rounded flex items-center justify-center flex-shrink-0">
+                      <Package className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm break-words leading-tight">{item.product_name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {item.quantity}× {formatCurrency(item.unit_price)}
+                    </p>
+                  </div>
+                  <p className="font-bold text-sm whitespace-nowrap min-w-[70px] text-right">
+                    {formatCurrency(item.total_price)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
+      )}
+
       {/* Resumo */}
       <div className="bg-muted rounded-lg p-4 space-y-3">
         <div className={`flex justify-between ${isMobile ? 'text-base' : ''}`}>

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { formatCurrency } from '@/lib/utils';
 import { CreditCard, Banknote, QrCode, Wallet, Loader2, X, Package, Printer, Store } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -163,14 +164,10 @@ export function PDVPaymentModal({
         <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
           <div className="space-y-2">
             <Label htmlFor="received" className={isMobile ? 'text-base' : ''}>Valor Recebido</Label>
-            <Input
+            <CurrencyInput
               id="received"
-              type="number"
-              min={0}
-              step={0.01}
-              value={receivedAmount || ''}
-              onChange={(e) => setReceivedAmount(Number(e.target.value))}
-              placeholder="0,00"
+              value={receivedAmount}
+              onChange={(value) => setReceivedAmount(value)}
               className={`text-right ${isMobile ? 'h-14 text-xl' : 'text-lg'}`}
             />
           </div>

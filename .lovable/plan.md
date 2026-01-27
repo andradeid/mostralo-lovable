@@ -1,258 +1,178 @@
 
-# Plano: Modo Tela Cheia no PDV (Similar aos Pedidos)
+# Plano: Filtro de Estoque Válido + Importação em Lotes + Cálculo de Custo SerpAPI
 
-## Objetivo
+## Resumo
 
-Implementar o mesmo comportamento da página de pedidos no PDV:
-1. Abrir com menu lateral minimizado (sidebar colapsada)
-2. Header oculto para tela mais limpa
-3. Botão "Sair" para restaurar o menu lateral e header
-4. Atalho `Escape` para sair do modo tela cheia
+Implementar funcionalidade para filtrar produtos por estoque válido antes da importação, permitir importação em lotes de 500 produtos, e exibir cálculo de custo estimado baseado nos planos SerpAPI.
 
-## Análise do Comportamento Atual
+---
 
-### Página de Pedidos (OrdersPage):
-- Estado `isFullscreen` inicia como `true`
-- Dispara evento customizado `kanbanFullscreenChange` para o `AdminLayout`
-- O `AdminLayout` escuta esse evento e oculta o header
-- Usa hook `useSidebar` para colapsar/expandir a sidebar
-- Botão "Sair" com ícones `Minimize2`/`Maximize2`
-- Atalho `Escape` para sair do modo tela cheia
+## Análise do Cenário Atual
 
-### Página do PDV (PDVPage) - Atual:
-- Não tem controle de fullscreen
-- Sempre mostra header e sidebar expandida
-- Sem otimização para uso como frente de caixa
+### O que já existe:
+- O parser Alquimia captura `quantidade_estoque` de cada produto
+- Filtro de produtos "válidos" (nome e preço) já existe
+- Processamento em lotes de 50 para busca de imagens já implementado
+- Contador de requisições na tela de configuração
 
-## Modificações Necessárias
+### O que falta:
+- **Filtro de estoque > 0** antes de buscar imagens
+- **Seleção de quantidade para importar** (500 de cada vez)
+- **Cálculo de custo estimado** baseado no SerpAPI
 
-### Arquivo: `src/pages/admin/PDVPage.tsx`
+---
 
-**Adicionar imports:**
-```typescript
-import { useSidebar } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
-import { Minimize2, Maximize2 } from "lucide-react";
-```
+## Estimativa de Custos SerpAPI
 
-**Adicionar lógica de fullscreen:**
-1. Estado `isFullscreen` iniciando como `true` (igual OrdersPage)
-2. Hook `useSidebar` para controlar a sidebar
-3. Função `toggleFullscreen` que:
-   - Alterna o estado
-   - Dispara evento `kanbanFullscreenChange`
-   - Colapsa/expande sidebar
-4. Effect para sincronizar ao montar (enviar evento de fullscreen)
-5. Effect para cleanup ao desmontar (restaurar sidebar/header)
-6. Effect para atalho `Escape`
+| Plano | Preço (USD/mês) | Buscas/mês | Custo por busca |
+|-------|-----------------|------------|-----------------|
+| Free | $0 | 250 | R$ 0,00 |
+| Starter | $25 | 1.000 | ~R$ 0,14 |
+| Developer | $75 | 5.000 | ~R$ 0,08 |
+| Production | $150 | 15.000 | ~R$ 0,055 |
+| Big Data | $275 | 30.000 | ~R$ 0,05 |
 
-**Adicionar botão "Sair" na UI:**
-- Desktop: No header dos tabs (ao lado do TabsList)
-- Mobile: Botão flutuante no canto superior direito
+### Para 14.000 produtos:
+- **Plano Production ($150)** = 15.000 buscas → suficiente
+- **Custo estimado: ~$150 USD (~R$ 825)** para toda a operação
+- **Se importar 500 de cada vez (28 lotes)**:
+  - Cada lote de 500 = ~$5 USD (~R$ 27,50)
+  - Pode distribuir ao longo de meses usando o plano mais barato
 
-## Fluxo de Funcionamento
+---
+
+## Implementação
+
+### 1. Adicionar Toggle "Apenas com Estoque" no Preview
+
+**Arquivo:** `src/components/admin/products/import/AlquimiaPreviewStep.tsx`
+
+- Adicionar switch para filtrar apenas produtos com `quantidade_estoque > 0`
+- Atualizar estatísticas em tempo real
+- Mostrar quantos produtos têm estoque válido vs sem estoque
+
+### 2. Adicionar Seletor de Quantidade no Export
+
+**Arquivo:** `src/components/admin/products/import/AlquimiaExportStep.tsx`
+
+- Adicionar slider/input para selecionar quantos produtos importar (1 a N)
+- Presets: 100, 250, 500, 1000, Todos
+- Mostrar estimativa de tempo e custo em tempo real
+- Informar produtos restantes para próximas importações
+
+### 3. Passar Filtro de Estoque para a Página Principal
+
+**Arquivo:** `src/pages/admin/AlquimiaImportPage.tsx`
+
+- Receber configuração de "apenas com estoque"
+- Aplicar filtro antes de enviar para busca de imagens
+- Limitar quantidade de produtos baseado na seleção do usuário
+
+### 4. Exibir Painel de Custo Estimado
+
+**Arquivo:** `src/components/admin/products/import/AlquimiaExportStep.tsx`
+
+- Card com cálculo baseado no plano SerpAPI
+- Mostrar: Quantidade selecionada × Custo por busca
+- Sugerir melhor plano baseado no volume
+- Mostrar economias por filtrar produtos sem estoque
+
+---
+
+## Fluxo do Usuário
 
 ```text
-┌─────────────────────────────────────────────────────────────────┐
-│  ABERTURA DO PDV                                                │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  1. PDVPage monta com isFullscreen = true                       │
-│                                                                 │
-│  2. useEffect dispara evento kanbanFullscreenChange:            │
-│     → AdminLayout oculta header                                 │
-│     → setSidebarOpen(false) colapsa menu lateral                │
-│                                                                 │
-│  3. UI renderiza botão "Sair" (ícone Minimize2)                 │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────────┐
-│  CLIQUE NO BOTÃO "SAIR" ou TECLA ESCAPE                        │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  1. toggleFullscreen() é chamado                                │
-│                                                                 │
-│  2. isFullscreen = false                                        │
-│                                                                 │
-│  3. Dispara evento kanbanFullscreenChange { isFullscreen: false }│
-│     → AdminLayout mostra header novamente                       │
-│                                                                 │
-│  4. setSidebarOpen(true) expande menu lateral                   │
-│                                                                 │
-│  5. Botão muda para "Tela Cheia" (ícone Maximize2)              │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
++-------------------+       +----------------------+       +-------------------------+
+|  1. Upload CSV    | ----> |  2. Preview + Filtro | ----> |  3. Configurar + Exportar|
+|  (14.000 prods)   |       |  [x] Apenas estoque  |       |  Qtd: [500]              |
++-------------------+       |  8.000 com estoque   |       |  Custo: ~R$ 27,50        |
+                            +----------------------+       +-------------------------+
+                                                                      |
+                                                                      v
+                                                           +-------------------------+
+                                                           |  4. Importar Lote 1/28  |
+                                                           |  500 produtos           |
+                                                           +-------------------------+
 ```
 
-## Design da UI
+---
 
-### Desktop:
+## Interface Proposta
+
+### No Preview (Passo 2):
 ```text
-┌─────────────────────────────────────────────────────────────────┐
-│  [PDV] [Comandas (2)] [Histórico]              [Sair 🗕]        │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ┌─────────────────────────────┐  ┌─────────────────────────┐  │
-│  │     Grid de Produtos        │  │    Carrinho Lateral     │  │
-│  │                             │  │                         │  │
-│  │                             │  │                         │  │
-│  └─────────────────────────────┘  └─────────────────────────┘  │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────┐
+│ ☑ Apenas produtos com estoque > 0              │
+│   8.234 de 14.000 produtos têm estoque válido  │
+│   (57% dos produtos serão importados)          │
+└─────────────────────────────────────────────────┘
 ```
 
-### Mobile:
+### No Export (Passo 3):
 ```text
-┌─────────────────────────────────────────┐
-│                               [🗕 Sair] │  ← Botão flutuante
-├─────────────────────────────────────────┤
-│  ┌─────────┐ ┌─────────┐                │
-│  │Produtos │ │Carrinho │                │
-│  └─────────┘ └─────────┘                │
-│  ┌─────────┐ ┌─────────┐                │
-│  │Comandas │ │Histórico│                │
-│  └─────────┘ └─────────┘                │
-├─────────────────────────────────────────┤
-│          [Grid de Produtos]             │
-│                                         │
-└─────────────────────────────────────────┘
+┌─────────────────────────────────────────────────┐
+│ 💰 Estimativa de Custo (SerpAPI)               │
+├─────────────────────────────────────────────────┤
+│ Produtos com estoque: 8.234                    │
+│ Quantidade a importar: [500    ] ▾             │
+│                                                 │
+│ Custo estimado: ~R$ 27,50 (500 buscas)         │
+│ Lotes restantes: 16 (para importar tudo)       │
+│                                                 │
+│ 💡 Dica: Use o plano Production ($150/mês)     │
+│    para importar todos de uma vez              │
+└─────────────────────────────────────────────────┘
 ```
 
-## Código a Implementar
+---
 
-### Imports adicionais:
-```typescript
-import { useEffect, useState } from 'react';
-import { useSidebar } from "@/components/ui/sidebar";
-import { Minimize2, Maximize2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-```
-
-### Estados e hooks:
-```typescript
-// Hook do sidebar
-const { setOpen: setSidebarOpen } = useSidebar();
-
-// Estado para modo tela cheia (inicia como true)
-const [isFullscreen, setIsFullscreen] = useState<boolean>(true);
-```
-
-### Função toggleFullscreen:
-```typescript
-const toggleFullscreen = () => {
-  const newState = !isFullscreen;
-  setIsFullscreen(newState);
-  
-  // Dispara evento para AdminLayout ocultar/mostrar header
-  window.dispatchEvent(new CustomEvent('kanbanFullscreenChange', { 
-    detail: { isFullscreen: newState } 
-  }));
-  
-  // Colapsa ou expande sidebar
-  setSidebarOpen(!newState);
-};
-```
-
-### Effects:
-```typescript
-// Sincronizar ao montar
-useEffect(() => {
-  if (isFullscreen) {
-    window.dispatchEvent(new CustomEvent('kanbanFullscreenChange', { 
-      detail: { isFullscreen: true } 
-    }));
-    setSidebarOpen(false);
-  }
-  
-  // Cleanup ao desmontar
-  return () => {
-    window.dispatchEvent(new CustomEvent('kanbanFullscreenChange', { 
-      detail: { isFullscreen: false } 
-    }));
-  };
-}, []);
-
-// Atalho Escape
-useEffect(() => {
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape' && isFullscreen) {
-      toggleFullscreen();
-    }
-  };
-  
-  window.addEventListener('keydown', handleKeyDown);
-  return () => window.removeEventListener('keydown', handleKeyDown);
-}, [isFullscreen]);
-```
-
-### Botão na UI (Desktop):
-```typescript
-<div className="flex items-center justify-between mb-4">
-  <TabsList className="w-fit">
-    {/* tabs existentes */}
-  </TabsList>
-  
-  <Button
-    variant={isFullscreen ? "default" : "outline"}
-    size="sm"
-    onClick={toggleFullscreen}
-    title={isFullscreen ? "Sair da tela cheia (Esc)" : "Modo tela cheia"}
-    className="gap-1"
-  >
-    {isFullscreen ? (
-      <>
-        <Minimize2 className="h-4 w-4" />
-        <span>Sair</span>
-      </>
-    ) : (
-      <>
-        <Maximize2 className="h-4 w-4" />
-        <span>Tela Cheia</span>
-      </>
-    )}
-  </Button>
-</div>
-```
-
-### Botão na UI (Mobile):
-```typescript
-{/* Botão flutuante no mobile */}
-<div className="absolute top-2 right-2 z-10">
-  <Button
-    variant={isFullscreen ? "default" : "outline"}
-    size="sm"
-    onClick={toggleFullscreen}
-    className="gap-1 shadow-md"
-  >
-    {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-    <span className="sr-only">
-      {isFullscreen ? "Sair da tela cheia" : "Modo tela cheia"}
-    </span>
-  </Button>
-</div>
-```
-
-## Benefícios
-
-1. **Mais espaço**: Sem header e com sidebar colapsada, a área útil aumenta significativamente
-2. **Foco**: Interface limpa para operações de caixa
-3. **Consistência**: Mesmo padrão usado na página de pedidos
-4. **Flexibilidade**: Usuário pode alternar entre modos conforme necessidade
-5. **Atalho**: Tecla Escape oferece forma rápida de sair
-
-## Estimativa
-
-| Tarefa | Tempo |
-|--------|-------|
-| Adicionar lógica de fullscreen | 15 min |
-| Ajustar UI desktop | 10 min |
-| Ajustar UI mobile | 10 min |
-| Testes | 5 min |
-| **Total** | ~40 min |
-
-## Arquivo a Modificar
+## Arquivos a Modificar
 
 | Arquivo | Alteração |
 |---------|-----------|
-| `src/pages/admin/PDVPage.tsx` | Adicionar fullscreen logic, botão sair, effects |
+| `src/components/admin/products/import/AlquimiaPreviewStep.tsx` | Adicionar toggle de filtro por estoque, callback |
+| `src/components/admin/products/import/AlquimiaExportStep.tsx` | Adicionar seletor de quantidade, card de custo |
+| `src/pages/admin/AlquimiaImportPage.tsx` | Gerenciar estado do filtro, aplicar limite de quantidade |
+| `src/lib/parseAlquimia.ts` | (Opcional) Adicionar flag `hasStock` para facilitar filtros |
+
+---
+
+## Detalhes Técnicos
+
+### Estado para Filtro de Estoque
+```typescript
+const [onlyWithStock, setOnlyWithStock] = useState(false);
+
+// Filtrar produtos
+const productsWithStock = products.filter(p => p.quantidade_estoque > 0);
+const displayProducts = onlyWithStock ? productsWithStock : products;
+```
+
+### Estado para Limite de Quantidade
+```typescript
+const [importLimit, setImportLimit] = useState<number | 'all'>(500);
+
+// Aplicar limite
+const productsToImport = importLimit === 'all' 
+  ? validProducts 
+  : validProducts.slice(0, importLimit);
+```
+
+### Cálculo de Custo
+```typescript
+const COST_PER_SEARCH_BRL = 0.055; // Baseado no plano Production
+
+const estimatedCost = productsToImport.length * COST_PER_SEARCH_BRL;
+const remainingProducts = validProducts.length - productsToImport.length;
+const remainingBatches = Math.ceil(remainingProducts / importLimit);
+```
+
+---
+
+## Benefícios
+
+1. **Economia**: Filtrar produtos sem estoque pode reduzir de 14.000 → ~8.000 buscas (43% de economia)
+2. **Controle**: Importar em lotes permite pausar e continuar depois
+3. **Transparência**: Usuário sabe exatamente quanto vai gastar
+4. **Flexibilidade**: Pode ajustar plano SerpAPI conforme volume mensal
+

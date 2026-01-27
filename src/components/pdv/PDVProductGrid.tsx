@@ -15,7 +15,7 @@ import { UpsellModal } from '@/components/upsell/UpsellModal';
 import { PDVProductsCounter } from './PDVProductsCounter';
 
 interface PDVProductGridProps {
-  onAddProduct: (product: { product_id: string; product_name: string; unit_price: number; quantity: number; notes?: string }) => void;
+  onAddProduct: (product: { product_id: string; product_name: string; image_url?: string; unit_price: number; quantity: number; notes?: string }) => void;
   isAdding?: boolean;
 }
 
@@ -90,6 +90,7 @@ export function PDVProductGrid({ onAddProduct, isAdding = false }: PDVProductGri
     onAddProduct({
       product_id: product.id,
       product_name: product.name,
+      image_url: product.image_url || undefined,
       unit_price: product.price,
       quantity,
       notes: notes || undefined,
@@ -106,6 +107,7 @@ export function PDVProductGrid({ onAddProduct, isAdding = false }: PDVProductGri
     onAddProduct({
       product_id: upsellProduct.id,
       product_name: upsellProduct.name,
+      image_url: upsellProduct.image_url || undefined,
       unit_price: upsellProduct.price,
       quantity: upsellProduct.quantity,
     });

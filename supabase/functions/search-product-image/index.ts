@@ -91,11 +91,13 @@ serve(async (req) => {
     let imageUrl: string | null = null;
     let searchError: string | null = null;
 
+    let imageUrls: string[] = [];
+
     if (provider === 'serpapi') {
       // Use SerpAPI
       const result = await searchWithSerpAPI(config.serpapi_key, searchQuery);
-      if (result.success) {
-        imageUrl = result.imageUrl!;
+      if (result.success && result.imageUrls) {
+        imageUrls = result.imageUrls;
       } else {
         searchError = result.error!;
       }
@@ -103,7 +105,7 @@ serve(async (req) => {
       // Use Google Custom Search API
       const result = await searchWithGoogle(config.api_key, config.search_engine_id, searchQuery, laboratory, productName);
       if (result.success) {
-        imageUrl = result.imageUrl!;
+        imageUrls = [result.imageUrl!];
       } else {
         searchError = result.error!;
       }
@@ -122,19 +124,19 @@ serve(async (req) => {
       );
     }
 
-    if (!imageUrl) {
+    if (imageUrls.length === 0) {
       return new Response(
         JSON.stringify({ success: false, error: 'Nenhuma imagem encontrada' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Download and save image to Supabase Storage
-    const internalUrl = await downloadAndSaveImage(supabaseAdmin, imageUrl, storeId);
+    // Download and save image to Supabase Storage (with fallbacks)
+    const internalUrl = await downloadWithFallbacks(supabaseAdmin, imageUrls, storeId);
 
     if (!internalUrl) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Falha ao salvar imagem no storage' }),
+        JSON.stringify({ success: false, error: 'Nenhuma das imagens pôde ser baixada. Tente outro produto.' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -156,11 +158,11 @@ serve(async (req) => {
   }
 });
 
-// Search using SerpAPI
+// Search using SerpAPI - returns multiple image URLs to try
 async function searchWithSerpAPI(
   apiKey: string,
   query: string
-): Promise<{ success: boolean; imageUrl?: string; error?: string }> {
+): Promise<{ success: boolean; imageUrls?: string[]; error?: string }> {
   try {
     if (!apiKey) {
       return { success: false, error: 'SerpAPI Key não configurada' };
@@ -170,7 +172,7 @@ async function searchWithSerpAPI(
     serpApiUrl.searchParams.set('api_key', apiKey);
     serpApiUrl.searchParams.set('engine', 'google_images');
     serpApiUrl.searchParams.set('q', query);
-    serpApiUrl.searchParams.set('num', '1');
+    serpApiUrl.searchParams.set('num', '5'); // Get more results to have fallbacks
     serpApiUrl.searchParams.set('safe', 'active');
 
     console.log(`[searchWithSerpAPI] Buscando: "${query}"`);
@@ -196,11 +198,22 @@ async function searchWithSerpAPI(
 
     const data = await response.json();
     
-    // Check for images_results
+    // Collect all available image URLs (original + thumbnail as fallbacks)
     if (data.images_results && data.images_results.length > 0) {
-      const imageUrl = data.images_results[0].original || data.images_results[0].thumbnail;
-      console.log(`[searchWithSerpAPI] Imagem encontrada: ${imageUrl}`);
-      return { success: true, imageUrl };
+      const imageUrls: string[] = [];
+      
+      for (const result of data.images_results) {
+        // Prefer original, but also collect thumbnails as fallbacks
+        if (result.original) {
+          imageUrls.push(result.original);
+        }
+        if (result.thumbnail) {
+          imageUrls.push(result.thumbnail);
+        }
+      }
+      
+      console.log(`[searchWithSerpAPI] ${imageUrls.length} URLs encontradas`);
+      return { success: true, imageUrls };
     }
 
     return { success: false, error: 'Nenhuma imagem encontrada na SerpAPI' };
@@ -293,19 +306,28 @@ async function downloadAndSaveImage(
   storeId: string
 ): Promise<string | null> {
   try {
-    // Download the image
+    // Download the image with browser-like headers
     const imageResponse = await fetch(externalUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; MostraloBot/1.0)'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+        'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Referer': 'https://www.google.com/',
       }
     });
 
     if (!imageResponse.ok) {
-      console.error(`[downloadAndSaveImage] Falha ao baixar: ${imageResponse.status}`);
+      console.error(`[downloadAndSaveImage] Falha ao baixar: ${imageResponse.status} - ${externalUrl}`);
       return null;
     }
 
     const imageBuffer = await imageResponse.arrayBuffer();
+    
+    // Validate minimum size (at least 1KB to avoid placeholder images)
+    if (imageBuffer.byteLength < 1024) {
+      console.error(`[downloadAndSaveImage] Imagem muito pequena: ${imageBuffer.byteLength} bytes`);
+      return null;
+    }
     
     // Detect content type and extension
     const contentType = imageResponse.headers.get('content-type') || 'image/jpeg';
@@ -322,9 +344,9 @@ async function downloadAndSaveImage(
     // Generate unique filename
     const fileName = `products/${storeId}/${crypto.randomUUID()}.${extension}`;
 
-    // Upload to Supabase Storage
+    // Upload to Supabase Storage (product-images bucket)
     const { error: uploadError } = await supabaseClient.storage
-      .from('store-images')
+      .from('product-images')
       .upload(fileName, imageBuffer, {
         contentType,
         upsert: false
@@ -337,7 +359,7 @@ async function downloadAndSaveImage(
 
     // Get public URL
     const { data: urlData } = supabaseClient.storage
-      .from('store-images')
+      .from('product-images')
       .getPublicUrl(fileName);
 
     return urlData.publicUrl;
@@ -346,4 +368,19 @@ async function downloadAndSaveImage(
     console.error('[downloadAndSaveImage] Error:', error);
     return null;
   }
+}
+
+// Try downloading from multiple URLs until one succeeds
+async function downloadWithFallbacks(
+  supabaseClient: any,
+  imageUrls: string[],
+  storeId: string
+): Promise<string | null> {
+  for (const url of imageUrls) {
+    const result = await downloadAndSaveImage(supabaseClient, url, storeId);
+    if (result) {
+      return result;
+    }
+  }
+  return null;
 }

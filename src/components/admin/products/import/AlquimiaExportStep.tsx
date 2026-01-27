@@ -53,13 +53,17 @@ export function AlquimiaExportStep({
     try {
       const { data, error } = await supabase
         .from('image_search_config' as any)
-        .select('is_active, api_key, search_engine_id')
+        .select('is_active, provider, api_key, search_engine_id, serpapi_key')
         .eq('is_active', true)
         .single();
 
       if (!error && data) {
         const config = data as any;
-        setImageSearchConfigured(!!(config.api_key && config.search_engine_id));
+        // Check based on provider: SerpAPI only needs serpapi_key, Google needs both keys
+        const isConfigured = config.provider === 'serpapi' 
+          ? !!config.serpapi_key 
+          : !!(config.api_key && config.search_engine_id);
+        setImageSearchConfigured(isConfigured);
       }
     } catch {
       setImageSearchConfigured(false);

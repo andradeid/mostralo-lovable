@@ -35,7 +35,8 @@ export function PreviewValidationStep({
   onBack,
   onNext,
 }: PreviewValidationStepProps) {
-  const canProceed = validationResult?.success || (validationResult && validationResult.errors.length === 0);
+  // Só permite avançar se validação foi feita E passou
+  const canProceed = validationResult !== null && validationResult.success;
 
   return (
     <div className="space-y-6">

@@ -52,6 +52,7 @@ export default function AlquimiaImportPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [skipImageSearch, setSkipImageSearch] = useState(false);
+  const [onlyWithStock, setOnlyWithStock] = useState(false);
 
   const currentStepIndex = STEPS.findIndex(s => s.key === currentStep);
   const progress = ((currentStepIndex + 1) / STEPS.length) * 100;
@@ -91,24 +92,38 @@ export default function AlquimiaImportPage() {
     setCategories(newCategories);
   }, []);
 
-  const handleSaveToDatabase = useCallback(async (createMissingCategories: boolean, searchImagesEnabled: boolean) => {
+  const handleSaveToDatabase = useCallback(async (
+    createMissingCategories: boolean, 
+    searchImagesEnabled: boolean,
+    importLimit: number | 'all'
+  ) => {
     if (!file || !storeId) return;
     
-    // Converter produtos Alquimia para o formato esperado pelo importador (ProductWithVariants)
-    const validProducts = products.filter(p => p.isValid);
+    // Filtrar produtos válidos
+    let validProducts = products.filter(p => p.isValid);
     
-    let productsWithImages = validProducts;
+    // Aplicar filtro de estoque se ativado
+    if (onlyWithStock) {
+      validProducts = validProducts.filter(p => p.quantidade_estoque > 0);
+    }
+    
+    // Aplicar limite de quantidade
+    const productsToProcess = importLimit === 'all' 
+      ? validProducts 
+      : validProducts.slice(0, importLimit);
+    
+    let productsWithImages = productsToProcess;
     
     // Se busca de imagens está habilitada e não foi pulada
     if (searchImagesEnabled && !skipImageSearch) {
       // Buscar imagens para os produtos
       const imageResults = await searchImages(
-        validProducts.map(p => ({ nome: p.nome, laboratorio: p.laboratorio })),
+        productsToProcess.map(p => ({ nome: p.nome, laboratorio: p.laboratorio })),
         storeId
       );
       
       // Aplicar URLs de imagem aos produtos
-      productsWithImages = validProducts.map((p, index) => {
+      productsWithImages = productsToProcess.map((p, index) => {
         const imageResult = imageResults.find(r => r.productIndex === index);
         return {
           ...p,
@@ -135,7 +150,7 @@ export default function AlquimiaImportPage() {
     if (result) {
       setShowResults(true);
     }
-  }, [file, products, importProducts, storeId, searchImages, skipImageSearch]);
+  }, [file, products, importProducts, storeId, searchImages, skipImageSearch, onlyWithStock]);
 
   const handleSkipImageSearch = useCallback(() => {
     setSkipImageSearch(true);
@@ -149,8 +164,14 @@ export default function AlquimiaImportPage() {
     setCategories([]);
     setShowResults(false);
     setSkipImageSearch(false);
+    setOnlyWithStock(false);
     resetImport();
   }, [resetImport]);
+
+  const handlePreviewNext = useCallback((stockFilter: boolean) => {
+    setOnlyWithStock(stockFilter);
+    setCurrentStep('export');
+  }, []);
 
   const handleBack = useCallback(() => {
     const stepIndex = STEPS.findIndex(s => s.key === currentStep);
@@ -240,7 +261,7 @@ export default function AlquimiaImportPage() {
               categories={categories}
               onProductsChange={handleProductsChange}
               onBack={handleBack}
-              onNext={() => setCurrentStep('export')}
+              onNext={handlePreviewNext}
             />
           )}
 
@@ -252,6 +273,7 @@ export default function AlquimiaImportPage() {
               onBack={handleBack}
               onSaveToDatabase={handleSaveToDatabase}
               isImporting={isImporting || isSearching}
+              onlyWithStock={onlyWithStock}
             />
           )}
 

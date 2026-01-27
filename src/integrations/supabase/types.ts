@@ -4303,6 +4303,7 @@ export type Database = {
           provider: string
           search_engine_id: string | null
           searches_today: number | null
+          serpapi_key: string | null
           updated_at: string | null
         }
         Insert: {
@@ -4315,6 +4316,7 @@ export type Database = {
           provider?: string
           search_engine_id?: string | null
           searches_today?: number | null
+          serpapi_key?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -4327,6 +4329,7 @@ export type Database = {
           provider?: string
           search_engine_id?: string | null
           searches_today?: number | null
+          serpapi_key?: string | null
           updated_at?: string | null
         }
         Relationships: []

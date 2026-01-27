@@ -13,7 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { 
   Loader2, Save, Key, CheckCircle, Eye, EyeOff, 
   ExternalLink, Copy, Info, Search, Image,
-  BookOpen, Shield, AlertTriangle
+  BookOpen, Shield, AlertTriangle, FlaskConical, XCircle
 } from "lucide-react";
 
 interface ImageSearchConfig {
@@ -33,6 +33,16 @@ export default function ImageSearchConfigPage() {
   const [saving, setSaving] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
   const [hasConfig, setHasConfig] = useState(false);
+  
+  // Test section state
+  const [testProductName, setTestProductName] = useState('');
+  const [testLaboratory, setTestLaboratory] = useState('');
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{
+    success: boolean;
+    imageUrl?: string;
+    error?: string;
+  } | null>(null);
   
   const [config, setConfig] = useState<ImageSearchConfig>({
     id: '',
@@ -141,6 +151,69 @@ export default function ImageSearchConfigPage() {
     toast({ title: "Copiado!", description: `${label} copiado para a área de transferência` });
   };
 
+  const handleTestSearch = async () => {
+    if (!testProductName.trim()) {
+      toast({
+        title: "Erro",
+        description: "Digite o nome do produto para testar",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!config.api_key || !config.search_engine_id) {
+      toast({
+        title: "Erro",
+        description: "Configure a API Key e o Search Engine ID primeiro",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setTesting(true);
+    setTestResult(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('search-product-image', {
+        body: {
+          productName: testProductName.trim(),
+          laboratory: testLaboratory.trim() || undefined,
+          storeId: 'test-config',
+        },
+      });
+
+      if (error) {
+        setTestResult({
+          success: false,
+          error: error.message || 'Erro ao chamar a função',
+        });
+        return;
+      }
+
+      if (data?.success) {
+        setTestResult({
+          success: true,
+          imageUrl: data.imageUrl,
+        });
+        // Refresh config to update counter
+        fetchConfig();
+      } else {
+        setTestResult({
+          success: false,
+          error: data?.error || 'Nenhuma imagem encontrada',
+        });
+      }
+    } catch (err: any) {
+      console.error('Erro no teste:', err);
+      setTestResult({
+        success: false,
+        error: err.message || 'Erro desconhecido',
+      });
+    } finally {
+      setTesting(false);
+    }
+  };
+
   const usagePercentage = config.daily_limit > 0 
     ? Math.min(100, (config.searches_today / config.daily_limit) * 100) 
     : 0;
@@ -239,6 +312,118 @@ export default function ImageSearchConfigPage() {
             <Progress value={usagePercentage} className="h-2" />
             <p className="text-xs text-muted-foreground">
               O contador reseta automaticamente à meia-noite. As primeiras 100 buscas/dia são gratuitas no Google.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Área de Teste Manual */}
+      {hasConfig && config.api_key && config.search_engine_id && (
+        <Card className="border-primary/30">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base md:text-lg flex items-center gap-2">
+              <FlaskConical className="h-5 w-5 text-primary" />
+              Testar Configuração
+            </CardTitle>
+            <CardDescription>
+              Teste a busca de imagens com um nome de produto para verificar se a API está funcionando
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="test_product">Nome do Produto *</Label>
+                <Input
+                  id="test_product"
+                  value={testProductName}
+                  onChange={(e) => setTestProductName(e.target.value)}
+                  placeholder="Ex: Dipirona 500mg"
+                  disabled={testing}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="test_lab">Laboratório (opcional)</Label>
+                <Input
+                  id="test_lab"
+                  value={testLaboratory}
+                  onChange={(e) => setTestLaboratory(e.target.value)}
+                  placeholder="Ex: EMS"
+                  disabled={testing}
+                />
+              </div>
+            </div>
+
+            <Button 
+              onClick={handleTestSearch} 
+              disabled={testing || !testProductName.trim()}
+              className="w-full md:w-auto"
+            >
+              {testing ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Buscando...
+                </>
+              ) : (
+                <>
+                  <Search className="h-4 w-4 mr-2" />
+                  Testar Busca
+                </>
+              )}
+            </Button>
+
+            {/* Resultado do teste */}
+            {testResult && (
+              <div className="mt-4">
+                {testResult.success ? (
+                  <Alert className="border-green-500/30 bg-green-500/5">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <AlertTitle className="text-green-600">Sucesso!</AlertTitle>
+                    <AlertDescription className="space-y-3">
+                      <p className="text-sm">Imagem encontrada com sucesso.</p>
+                      {testResult.imageUrl && (
+                        <div className="mt-3 flex flex-col md:flex-row gap-4 items-start">
+                          <img 
+                            src={testResult.imageUrl} 
+                            alt="Imagem encontrada"
+                            className="w-32 h-32 object-contain rounded-lg border bg-white"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/placeholder.svg';
+                            }}
+                          />
+                          <div className="flex-1 space-y-2">
+                            <p className="text-xs text-muted-foreground break-all">
+                              <strong>URL:</strong> {testResult.imageUrl}
+                            </p>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => copyToClipboard(testResult.imageUrl!, 'URL da imagem')}
+                            >
+                              <Copy className="h-3 w-3 mr-1" />
+                              Copiar URL
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <Alert variant="destructive">
+                    <XCircle className="h-4 w-4" />
+                    <AlertTitle>Erro na Busca</AlertTitle>
+                    <AlertDescription>
+                      <p className="text-sm">{testResult.error}</p>
+                      <p className="text-xs mt-2 opacity-80">
+                        Verifique se a API Key está correta e se a Custom Search API está ativada no Google Cloud Console.
+                      </p>
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+            )}
+
+            <p className="text-xs text-muted-foreground">
+              ⚠️ Cada teste conta como uma busca no limite diário.
             </p>
           </CardContent>
         </Card>

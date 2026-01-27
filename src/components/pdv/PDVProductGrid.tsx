@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
+import { usePDVProducts, PDVProduct } from '@/hooks/usePDVProducts';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,19 +12,7 @@ import { formatCurrency } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AddItemConfirmModal } from '@/components/comandas/AddItemConfirmModal';
 import { UpsellModal } from '@/components/upsell/UpsellModal';
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  description: string | null;
-  image_url: string | null;
-  is_available: boolean;
-  category_id: string | null;
-  categories?: {
-    name: string;
-  };
-}
+import { PDVProductsCounter } from './PDVProductsCounter';
 
 interface PDVProductGridProps {
   onAddProduct: (product: { product_id: string; product_name: string; unit_price: number; quantity: number; notes?: string }) => void;
@@ -32,43 +21,31 @@ interface PDVProductGridProps {
 
 export function PDVProductGrid({ onAddProduct, isAdding = false }: PDVProductGridProps) {
   const { storeId } = useStoreAccess();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const isMobile = useIsMobile();
+  
+  // Estados do modal
+  const [selectedProduct, setSelectedProduct] = useState<PDVProduct | null>(null);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [showUpsellModal, setShowUpsellModal] = useState(false);
   const [upsellTriggerProductId, setUpsellTriggerProductId] = useState<string | null>(null);
-  const isMobile = useIsMobile();
 
-  // Buscar produtos da loja
-  const { data: products = [], isLoading: loadingProducts } = useQuery({
-    queryKey: ['pdv-products', storeId],
-    queryFn: async () => {
-      if (!storeId) return [];
-      
-      const { data, error } = await supabase
-        .from('products')
-        .select(`
-          id,
-          name,
-          price,
-          description,
-          image_url,
-          is_available,
-          category_id,
-          categories (name)
-        `)
-        .eq('store_id', storeId)
-        .eq('is_available', true)
-        .order('name');
+  // Hook otimizado com paginação server-side
+  const {
+    products,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    totalProducts,
+    loadedCount,
+    searchTerm,
+    setSearchTerm,
+    selectedCategory,
+    setSelectedCategory,
+    loadMoreRef,
+    isSearching,
+  } = usePDVProducts({ storeId });
 
-      if (error) throw error;
-      return data as Product[];
-    },
-    enabled: !!storeId,
-  });
-
-  // Buscar categorias
+  // Buscar categorias (mantido separado pois não precisa paginação)
   const { data: categories = [] } = useQuery({
     queryKey: ['pdv-categories', storeId],
     queryFn: async () => {
@@ -104,19 +81,12 @@ export function PDVProductGrid({ onAddProduct, isAdding = false }: PDVProductGri
 
   const primaryColor = (storeColors?.theme_colors as any)?.primary || '#3B82F6';
 
-  // Filtrar produtos
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
-
-  const handleProductClick = (product: Product) => {
+  const handleProductClick = (product: PDVProduct) => {
     setSelectedProduct(product);
     setConfirmModalOpen(true);
   };
 
-  const handleConfirmAdd = (product: Product, quantity: number, notes: string) => {
+  const handleConfirmAdd = (product: PDVProduct, quantity: number, notes: string) => {
     onAddProduct({
       product_id: product.id,
       product_name: product.name,
@@ -146,7 +116,7 @@ export function PDVProductGrid({ onAddProduct, isAdding = false }: PDVProductGri
     setUpsellTriggerProductId(null);
   };
 
-  if (loadingProducts) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -165,6 +135,9 @@ export function PDVProductGrid({ onAddProduct, isAdding = false }: PDVProductGri
           onChange={(e) => setSearchTerm(e.target.value)}
           className={`pl-11 ${isMobile ? 'h-12 text-base' : ''}`}
         />
+        {isSearching && (
+          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+        )}
       </div>
 
       {/* Filtros de categoria - scroll horizontal no mobile */}
@@ -215,13 +188,20 @@ export function PDVProductGrid({ onAddProduct, isAdding = false }: PDVProductGri
         </div>
       )}
 
+      {/* Contador de produtos */}
+      <PDVProductsCounter
+        loaded={loadedCount}
+        total={totalProducts}
+        isSearching={isSearching || !!searchTerm}
+      />
+
       {/* Grid de produtos - 2 colunas no mobile, mais no desktop */}
       <div className={`grid gap-3 ${
         isMobile 
           ? 'grid-cols-2' 
           : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'
       }`}>
-        {filteredProducts.map((product) => (
+        {products.map((product) => (
           <Card 
             key={product.id}
             className="cursor-pointer hover:border-primary transition-colors overflow-hidden active:scale-[0.98]"
@@ -262,7 +242,19 @@ export function PDVProductGrid({ onAddProduct, isAdding = false }: PDVProductGri
         ))}
       </div>
 
-      {filteredProducts.length === 0 && (
+      {/* Trigger de infinite scroll */}
+      {hasMore && !isLoading && (
+        <div 
+          ref={loadMoreRef} 
+          className="h-10 flex items-center justify-center"
+        >
+          {isLoadingMore && (
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          )}
+        </div>
+      )}
+
+      {products.length === 0 && !isLoading && (
         <div className="text-center py-8 text-muted-foreground">
           {searchTerm 
             ? 'Nenhum produto encontrado com essa busca.' 

@@ -13,7 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Upload, X, Plus, HelpCircle } from 'lucide-react';
+import { Loader2, Upload, X, Plus, HelpCircle, Star } from 'lucide-react';
 import { ProductUpsellSelector } from '@/components/admin/products/ProductUpsellSelector';
 import { useAuth } from '@/hooks/use-auth';
 import { CurrencyInput } from '@/components/ui/currency-input';
@@ -29,6 +29,7 @@ const productSchema = z.object({
   price: z.number().min(0.01, 'Preço deve ser maior que zero'),
   category_id: z.string().min(1, 'Categoria é obrigatória'),
   is_available: z.boolean(),
+  is_featured: z.boolean(),
   display_order: z.number().min(0),
   image_url: z.string().optional(),
   button_text: z.string().min(1, 'Texto do botão é obrigatório'),
@@ -96,6 +97,7 @@ export function ProductForm({
       price: 0,
       category_id: '',
       is_available: true,
+      is_featured: false,
       display_order: 0,
       image_url: '',
       button_text: 'Comprar',
@@ -197,6 +199,7 @@ export function ProductForm({
         price: Number(data.price),
         category_id: data.category_id || '',
         is_available: data.is_available,
+        is_featured: data.is_featured || false,
         display_order: data.display_order,
         image_url: data.image_url || '',
         button_text: data.button_text || 'Comprar',
@@ -344,6 +347,7 @@ export function ProductForm({
         price: data.price,
         category_id: data.category_id,
         is_available: data.is_available,
+        is_featured: data.is_featured || false,
         display_order: data.display_order,
         image_url: data.image_url || null,
         button_text: data.button_text || 'Comprar',
@@ -909,6 +913,19 @@ export function ProductForm({
                 <Switch id="is_available" checked={form.watch('is_available')} onCheckedChange={checked => form.setValue('is_available', checked)} />
                 <Label htmlFor="is_available">Produto disponível</Label>
               </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch id="is_featured" checked={form.watch('is_featured')} onCheckedChange={checked => form.setValue('is_featured', checked)} />
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="is_featured" className="flex items-center gap-2">
+                    <Star className="w-4 h-4 text-yellow-500" />
+                    Produto em Destaque
+                  </Label>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground ml-8 -mt-2">
+                Este produto aparecerá na aba "Destaques" da loja
+              </p>
             </div>
 
             {/* Botões */}

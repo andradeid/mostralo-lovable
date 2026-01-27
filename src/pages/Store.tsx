@@ -42,7 +42,8 @@ import {
   Package,
   LogOut,
   AlertCircle,
-  Calendar
+  Calendar,
+  Sparkles
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -108,6 +109,7 @@ interface Product {
   is_on_offer?: boolean;
   original_price?: number;
   offer_price?: number;
+  is_featured?: boolean;
 }
 
 interface Banner {
@@ -461,7 +463,7 @@ const Store = () => {
         // Primeira página de produtos (50 produtos)
         supabase
           .from('products')
-          .select('id, name, description, price, image_url, image_gallery, category_id, display_order, button_text, slug, is_on_offer, original_price, offer_price')
+          .select('id, name, description, price, image_url, image_gallery, category_id, display_order, button_text, slug, is_on_offer, original_price, offer_price, is_featured')
           .eq('store_id', storeData.id)
           .eq('is_available', true)
           .order('display_order')
@@ -612,7 +614,7 @@ const Store = () => {
     try {
       const { data: newProducts, error } = await supabase
         .from('products')
-        .select('id, name, description, price, image_url, image_gallery, category_id, display_order, button_text, slug, is_on_offer, original_price, offer_price')
+        .select('id, name, description, price, image_url, image_gallery, category_id, display_order, button_text, slug, is_on_offer, original_price, offer_price, is_featured')
         .eq('store_id', store.id)
         .eq('is_available', true)
         .order('display_order')
@@ -684,7 +686,24 @@ const Store = () => {
     onLoadMore: loadMoreProducts,
   });
 
+  // Verificar se há produtos em destaque
+  const hasFeaturedProducts = useMemo(() => {
+    return products.some(p => p.is_featured === true);
+  }, [products]);
+
   const getProductsByCategory = (categoryId: string | null) => {
+    // Aba "Destaques" selecionada
+    if (categoryId === 'featured') {
+      let featuredProducts = products.filter(p => p.is_featured === true);
+      if (searchTerm) {
+        featuredProducts = featuredProducts.filter(p => 
+          p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (p.description && p.description.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
+      }
+      return featuredProducts.sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
+    }
+    
     let filteredProducts = categoryId ? products.filter(p => p.category_id === categoryId) : products;
     
     if (searchTerm) {
@@ -1301,15 +1320,30 @@ const Store = () => {
       {!searchTerm && categories.length > 0 && (
         <div className={`sticky bg-white border-b px-4 py-2 z-40 shadow-sm transition-all duration-200 ${showStickyHeader ? 'top-[48px]' : 'top-0'}`}>
           <div className="flex gap-2 overflow-x-auto scrollbar-hide max-w-[1080px] mx-auto pb-1">
+            {/* 1. PRIMEIRO - Aba Destaques */}
+            {hasFeaturedProducts && (
+              <Button
+                variant={selectedCategory === 'featured' ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory('featured')}
+                className="whitespace-nowrap"
+                style={selectedCategory === 'featured' ? { backgroundColor: primaryColor, color: 'white' } : { borderColor: primaryColor, color: primaryColor }}
+              >
+                <Sparkles className="w-4 h-4 mr-1" />
+                Destaques
+              </Button>
+            )}
+            {/* 2. SEGUNDO - Aba Todas */}
             <Button
-              variant={!selectedCategory ? "default" : "outline"}
+              variant={selectedCategory === null ? "default" : "outline"}
               size="sm"
               onClick={() => setSelectedCategory(null)}
               className="whitespace-nowrap"
-              style={!selectedCategory ? { backgroundColor: primaryColor, color: 'white' } : { borderColor: primaryColor, color: primaryColor }}
+              style={selectedCategory === null ? { backgroundColor: primaryColor, color: 'white' } : { borderColor: primaryColor, color: primaryColor }}
             >
               Todas
             </Button>
+            {/* 3. TERCEIRO - Categorias */}
             {categories.map((category) => (
               <Button
                 key={category.id}

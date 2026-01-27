@@ -15,7 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { usePageSEO } from '@/hooks/useSEO';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Package, Plus, Search, Edit, Trash2, Grid, ArrowUp, ArrowDown, GripVertical, AlertCircle, ArrowDownAZ, PackageX, Upload, ChevronDown, FileSpreadsheet } from 'lucide-react';
+import { Loader2, Package, Plus, Search, Edit, Trash2, Grid, ArrowUp, ArrowDown, GripVertical, AlertCircle, ArrowDownAZ, PackageX, Upload, ChevronDown, FileSpreadsheet, Star } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
@@ -30,6 +30,7 @@ interface ProductData {
   image_gallery: string[] | null;
   button_text: string | null;
   is_available: boolean;
+  is_featured: boolean | null;
   show_in_menu: boolean;
   display_order: number;
   created_at: string;
@@ -106,7 +107,7 @@ const ProductsPage = () => {
       // Buscar produtos
       const { data: productsData, error: productsError } = await supabase
         .from('products')
-        .select('*, is_on_offer, original_price, offer_price, track_stock, stock_quantity, stock_alert_threshold')
+        .select('*, is_on_offer, original_price, offer_price, track_stock, stock_quantity, stock_alert_threshold, is_featured')
         .eq('store_id', storeId)
         .order('display_order', { ascending: true });
 
@@ -940,7 +941,13 @@ const ProductsPage = () => {
                                             {/* Info mobile - ao lado da imagem */}
                                             <div className="flex-1 sm:hidden">
                                               <h4 className="font-semibold text-sm leading-tight">{product.name}</h4>
-                                              <div className="flex items-center gap-1 mt-1">
+                                              <div className="flex items-center gap-1 mt-1 flex-wrap">
+                                                {/* Badge de Destaque Mobile */}
+                                                {product.is_featured && (
+                                                  <Badge variant="outline" className="text-[10px] border-yellow-400 text-yellow-600 bg-yellow-50">
+                                                    <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" />
+                                                  </Badge>
+                                                )}
                                                 {product.is_on_offer && product.offer_price && (
                                                   <Badge variant="destructive" className="text-[10px]">
                                                     {Math.round((1 - product.offer_price / product.price) * 100)}% OFF
@@ -992,6 +999,13 @@ const ProductsPage = () => {
                                               <div className="min-w-0 flex-1">
                                                 <div className="flex items-center gap-1">
                                                   <h4 className="font-semibold text-base">{product.name}</h4>
+                                                  {/* Badge de Destaque */}
+                                                  {product.is_featured && (
+                                                    <Badge variant="outline" className="text-xs border-yellow-400 text-yellow-600 bg-yellow-50">
+                                                      <Star className="w-3 h-3 mr-1 fill-yellow-400 text-yellow-400" />
+                                                      Destaque
+                                                    </Badge>
+                                                  )}
                                                   {product.is_on_offer && product.offer_price && (
                                                     <Badge variant="destructive" className="text-xs">
                                                       {Math.round((1 - product.offer_price / product.price) * 100)}%

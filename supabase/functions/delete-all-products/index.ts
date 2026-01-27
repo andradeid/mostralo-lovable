@@ -41,18 +41,19 @@ serve(async (req) => {
       global: { headers: { Authorization: authHeader } }
     });
 
-    // Get user from token
-    const { data: { user }, error: userError } = await supabaseUser.auth.getUser();
+    // Extract token and verify using getClaims
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabaseUser.auth.getClaims(token);
     
-    if (userError || !user) {
-      console.error('Erro ao verificar usuário:', userError);
+    if (claimsError || !claimsData?.claims) {
+      console.error('Erro ao verificar usuário:', claimsError);
       return new Response(
         JSON.stringify({ error: 'Sessão inválida' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const userId = user.id;
+    const userId = claimsData.claims.sub as string;
     console.log(`[delete-all-products] Usuário ${userId} solicitando exclusão da loja ${storeId}`);
 
     // Service client for privileged operations

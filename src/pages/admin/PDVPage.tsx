@@ -80,14 +80,14 @@ export default function PDVPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isFullscreen, toggleFullscreen]);
 
-  // Query para nome da loja (impressão)
+  // Query para dados da loja (nome + logo)
   const { data: storeData } = useQuery({
-    queryKey: ['store-name', storeId],
+    queryKey: ['store-data', storeId],
     queryFn: async () => {
       if (!storeId) return null;
       const { data } = await supabase
         .from('stores')
-        .select('name')
+        .select('name, logo_url')
         .eq('id', storeId)
         .single();
       return data;
@@ -252,6 +252,8 @@ export default function PDVPage() {
             items={cart}
             onConfirm={handleFinalize}
             isProcessing={isProcessing}
+            storeName={storeData?.name}
+            storeLogo={storeData?.logo_url}
           />
 
           {/* Modal de fechamento de comanda */}
@@ -392,6 +394,8 @@ export default function PDVPage() {
           items={cart}
           onConfirm={handleFinalize}
           isProcessing={isProcessing}
+          storeName={storeData?.name}
+          storeLogo={storeData?.logo_url}
         />
 
         {/* Modal de fechamento de comanda */}

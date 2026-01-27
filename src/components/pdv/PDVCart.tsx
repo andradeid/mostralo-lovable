@@ -67,7 +67,7 @@ export function PDVCart({
             <p className={isMobile ? 'text-sm' : 'text-xs'}>Adicione produtos para começar</p>
           </div>
         ) : (
-          <ScrollArea className="h-full">
+          <ScrollArea className="h-full [&>div>div[style]]:!block">
             <div className={`space-y-3 pr-4 ${isMobile ? 'pb-4' : ''}`}>
               {items.map((item) => (
                 <div key={item.id} className={`bg-muted/50 rounded-lg ${isMobile ? 'p-4' : 'p-3'}`}>

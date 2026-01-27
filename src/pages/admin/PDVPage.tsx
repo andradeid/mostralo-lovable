@@ -13,7 +13,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, Package, History, ClipboardList, Minimize2, Maximize2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { ShoppingCart, Package, History, ClipboardList, Minimize2, Maximize2, Search } from 'lucide-react';
 import { ModuleGate } from '@/components/admin/ModuleGate';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { printComanda } from '@/utils/printComanda';
@@ -31,6 +32,7 @@ export default function PDVPage() {
   const [closeModalOpen, setCloseModalOpen] = useState(false);
   const [selectedComanda, setSelectedComanda] = useState<Comanda | null>(null);
   const isMobile = useIsMobile();
+  const [pdvSearchTerm, setPdvSearchTerm] = useState('');
   
   // Estado e controle de tela cheia (similar à página de pedidos)
   const { setOpen: setSidebarOpen } = useSidebar();
@@ -274,7 +276,18 @@ export default function PDVPage() {
           <SalesChannelPausedBanner message={channelMessage} className="mb-4" />
         )}
         <Tabs defaultValue="pdv" className="flex-1 flex flex-col min-h-0">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-4 mb-4">
+            {/* Barra de busca primeiro */}
+            <div className="relative w-64 lg:w-80">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar produto..."
+                value={pdvSearchTerm}
+                onChange={(e) => setPdvSearchTerm(e.target.value)}
+                className="pl-10 h-9"
+              />
+            </div>
+            
             <TabsList className="w-fit">
               <TabsTrigger value="pdv" className="gap-2">
                 <Package className="h-4 w-4" />
@@ -294,6 +307,8 @@ export default function PDVPage() {
                 Histórico
               </TabsTrigger>
             </TabsList>
+            
+            <div className="flex-1" />
             
             {/* Botão para alternar modo tela cheia - Desktop */}
             <Button
@@ -321,7 +336,7 @@ export default function PDVPage() {
             <div className="h-full flex gap-4">
               {/* Grid de produtos */}
               <div className="flex-1 min-h-0 overflow-auto">
-                <PDVProductGrid onAddProduct={addToCart} />
+                <PDVProductGrid onAddProduct={addToCart} externalSearchTerm={pdvSearchTerm} />
               </div>
 
               {/* Carrinho lateral - altura fixa com scroll interno */}

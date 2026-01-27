@@ -17,9 +17,10 @@ import { PDVProductsCounter } from './PDVProductsCounter';
 interface PDVProductGridProps {
   onAddProduct: (product: { product_id: string; product_name: string; image_url?: string; unit_price: number; quantity: number; notes?: string }) => void;
   isAdding?: boolean;
+  externalSearchTerm?: string;
 }
 
-export function PDVProductGrid({ onAddProduct, isAdding = false }: PDVProductGridProps) {
+export function PDVProductGrid({ onAddProduct, isAdding = false, externalSearchTerm = '' }: PDVProductGridProps) {
   const { storeId } = useStoreAccess();
   const isMobile = useIsMobile();
   
@@ -43,7 +44,7 @@ export function PDVProductGrid({ onAddProduct, isAdding = false }: PDVProductGri
     setSelectedCategory,
     loadMoreRef,
     isSearching,
-  } = usePDVProducts({ storeId });
+  } = usePDVProducts({ storeId, externalSearchTerm });
 
   // Buscar categorias (mantido separado pois não precisa paginação)
   const { data: categories = [] } = useQuery({
@@ -128,19 +129,21 @@ export function PDVProductGrid({ onAddProduct, isAdding = false }: PDVProductGri
 
   return (
     <div className="space-y-3">
-      {/* Busca - sticky no mobile */}
-      <div className={`relative ${isMobile ? 'sticky top-0 z-10 bg-background pb-2' : ''}`}>
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-        <Input
-          placeholder="Buscar produto..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className={`pl-11 ${isMobile ? 'h-12 text-base' : ''}`}
-        />
-        {isSearching && (
-          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
-        )}
-      </div>
+      {/* Busca - apenas no mobile (no desktop está na header) */}
+      {isMobile && (
+        <div className="relative sticky top-0 z-10 bg-background pb-2">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Input
+            placeholder="Buscar produto..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-11 h-12 text-base"
+          />
+          {isSearching && (
+            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+          )}
+        </div>
+      )}
 
       {/* Filtros de categoria - scroll horizontal no mobile */}
       {isMobile ? (

@@ -76,7 +76,7 @@ function generatePersonalityInstructions(settings: PersonalitySettings): string 
 - Sugira produtos baseado no perfil do cliente
 - Explique benefícios e diferenciais
 - Guie o cliente na melhor escolha
-- Demonstre conhecimento profundo do cardápio`
+- Demonstre conhecimento profundo dos produtos`
   };
 
   const emojiInstructions: Record<EmojiLevel, string> = {
@@ -239,7 +239,7 @@ INFORMAÇÕES DA LOJA:
 - Descrição: ${store.description || 'Delivery de qualidade'}
 - Endereço: ${store.address || 'Não informado'}
 - WhatsApp: ${store.whatsapp || 'Não informado'}
-- Link do cardápio: ${storeLink}
+- Link da loja: ${storeLink}
 ${locationSection}
 ${paymentSection}
 ${deliverySection}
@@ -254,17 +254,17 @@ ${productList || 'Não há produtos cadastrados'}
 INSTRUÇÕES DE SAUDAÇÃO:
 1. Seja sempre acolhedor e educado
 2. Se o cliente informar o nome, USE o nome nas respostas seguintes
-3. **SEMPRE envie o link do cardápio na primeira mensagem**
+3. **SEMPRE envie o link da loja na primeira mensagem**
 4. Se perguntarem se está aberto, consulte o horário de funcionamento acima
 
 INSTRUÇÕES GERAIS:
 1. Apresente os produtos quando perguntado
 2. Informe preços corretamente
 3. SEMPRE inclua o link do produto quando falar sobre ele
-4. Direcione o cliente para o cardápio online: ${storeLink}
-5. Para finalizar pedido, peça para acessar o link do produto ou cardápio
+4. Direcione o cliente para a loja online: ${storeLink}
+5. Para finalizar pedido, peça para acessar o link do produto ou da loja
 6. Não invente produtos ou preços
-7. Se não souber algo, direcione ao link do cardápio
+7. Se não souber algo, direcione ao link da loja
 8. Responda sempre em português brasileiro
 9. Mencione promoções se houver
 10. Quando pedirem localização, envie o link do Google Maps se disponível
@@ -369,7 +369,7 @@ INFORMAÇÕES DA LOJA:
 - Descrição: ${store.description || 'Delivery de qualidade'}
 - Endereço: ${store.address || 'Não informado'}
 - WhatsApp: ${store.whatsapp || 'Não informado'}
-- Link do cardápio: ${storeLink}
+- Link da loja: ${storeLink}
 ${locationSection}
 ${paymentSection}
 ${deliverySection}
@@ -381,7 +381,7 @@ INSTRUÇÕES GERAIS:
 3. Informe formas de pagamento quando perguntado
 4. Responda sempre em português brasileiro
 5. Seja acolhedor e prestativo
-6. **SEMPRE envie o link do cardápio na primeira mensagem**
+6. **SEMPRE envie o link da loja na primeira mensagem**
 
 ENCERRAMENTO:
 - Quando o cliente digitar a palavra de encerramento, agradeça e finalize
@@ -1118,7 +1118,7 @@ serve(async (req) => {
 
       // 4. Montar saudação fixa (sem horário dinâmico)
       const greeting = personalitySettings.customGreeting || `Olá! 👋 Seja bem-vindo(a) à ${store.name}!`;
-      const fixedGreeting = `${greeting}\n\n📱 Confira nosso cardápio: ${storeLink}`;
+      const fixedGreeting = `${greeting}\n\n📱 Confira nossa loja: ${storeLink}`;
 
       // 5. Montar payload do bot
       const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
@@ -1140,7 +1140,7 @@ serve(async (req) => {
         expire: config.expireMinutes === 0 ? 0 : (config.expireMinutes || 0),
         keywordFinish: config.keywordFinish || '#SAIR',
         delayMessage: config.delayMessage || 4000,
-        unknownMessage: config.unknownMessage || 'Desculpe, não entendi. Digite #SAIR para encerrar ou acesse nosso cardápio online.',
+        unknownMessage: config.unknownMessage || 'Desculpe, não entendi. Digite #SAIR para encerrar ou acesse nossa loja online.',
         listeningFromMe: config.listeningFromMe || false,
         stopBotFromMe: config.stopBotFromMe !== undefined ? config.stopBotFromMe : true,
         // IMPORTANTE: keepOpen=true mantém a thread aberta entre mensagens

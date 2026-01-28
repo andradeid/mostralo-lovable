@@ -59,6 +59,13 @@ export interface BotPromptData {
   productsCount: number;
   categoriesCount: number;
   storeLink: string;
+  navigationLink?: string;
+}
+
+// Interface para store completo usado no prompt v2
+interface StoreV2 extends Store {
+  latitude?: number;
+  longitude?: number;
 }
 
 export type PersonalityType = 'professional' | 'friendly' | 'fun' | 'consultive';
@@ -318,5 +325,115 @@ ENCERRAMENTO:
     productsCount: availableProducts.length,
     categoriesCount: activeCategories.length,
     storeLink,
+  };
+}
+
+// ============================================
+// GERADOR DE PROMPT V2 - ASSISTENTE INTELIGENTE
+// Com Function Calling e link de navegação
+// ============================================
+
+function generateNavigationLink(store: StoreV2): string | undefined {
+  if (!store.latitude || !store.longitude || !store.slug) return undefined;
+  
+  const baseUrl = getPreviewBaseUrl(store);
+  const address = encodeURIComponent(store.address || '');
+  
+  return `${baseUrl}/navegar?lat=${store.latitude}&lng=${store.longitude}&store=${store.slug}&address=${address}`;
+}
+
+export function generateBotPromptV2(
+  store: StoreV2,
+  botName: string,
+  customPromptInstructions?: string,
+  settings: PromptSettings = defaultSettings
+): BotPromptData {
+  const baseUrl = getPreviewBaseUrl(store);
+  const storeLink = `${baseUrl}/loja/${store.slug}`;
+  const navigationLink = generateNavigationLink(store);
+
+  // Seção de localização com link de navegação
+  const locationSection = settings.includeLocation
+    ? `\nLOCALIZAÇÃO E NAVEGAÇÃO:
+- Endereço: ${store.address || 'Não informado'}
+- Cidade/Estado: ${store.city || ''}${store.city && store.state ? '/' : ''}${store.state || ''}
+${navigationLink ? `- 📍 Link para navegação: ${navigationLink}
+- Quando cliente pedir localização/endereço, ENVIE o link de navegação
+- O cliente poderá escolher: Google Maps, Waze ou Uber` : (store.google_maps_link ? `- 📍 Link do Google Maps: ${store.google_maps_link}` : '')}`
+    : '';
+
+  const paymentSection = settings.includePaymentMethods 
+    ? `\nFORMAS DE PAGAMENTO:
+${formatPaymentMethods(store)}`
+    : '';
+
+  const deliverySection = (settings.includeDeliveryFee || settings.includeMinOrder)
+    ? `\nDELIVERY:${settings.includeDeliveryFee ? `
+- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}` : ''}${settings.includeMinOrder ? `
+- Pedido mínimo: ${store.min_order_value ? `R$ ${store.min_order_value.toFixed(2)}` : 'Sem valor mínimo'}` : ''}`
+    : '';
+
+  const hoursSection = settings.includeBusinessHours 
+    ? `\nHORÁRIO DE FUNCIONAMENTO:
+${formatBusinessHours(store.business_hours)}`
+    : '';
+
+  const personalityInstructions = generatePersonalityInstructions(settings.personalitySettings);
+
+  // Prompt enxuto para modo Inteligente v2 (sem lista de produtos!)
+  const prompt = `Você é ${botName}, assistente virtual da ${store.name || 'loja'}.
+
+Quando o cliente perguntar seu nome, responda: "Meu nome é ${botName}!"
+
+${personalityInstructions}
+
+CAPACIDADES (use as funções disponíveis):
+- Buscar produtos: search_products("termo")
+- Verificar estoque: check_stock("nome produto")
+- Ver detalhes: get_product_details("slug")
+- Listar categorias: list_categories()
+- Mostrar promoções: get_promotions()
+- Recomendar produtos: get_recommendations()
+
+REGRAS CRÍTICAS:
+1. SEMPRE use search_products antes de falar sobre produtos
+2. Se perguntarem "tem X?", verifique estoque real com check_stock
+3. NÃO invente produtos - só use dados retornados pelas funções
+4. SEMPRE inclua o LINK do produto nas respostas
+5. Se pedirem sugestão/recomendação, use get_recommendations()
+6. Se não encontrar, sugira buscar com outros termos
+
+${customPromptInstructions ? `INSTRUÇÕES PERSONALIZADAS DA LOJA:
+${customPromptInstructions}
+` : ''}
+INFORMAÇÕES DA LOJA:
+- Nome: ${store.name || 'Loja'}
+- Descrição: ${store.description || 'Delivery de qualidade'}
+- Endereço: ${store.address || 'Não informado'}
+- WhatsApp: ${store.whatsapp || 'Não informado'}
+- Link do cardápio: ${storeLink}
+${locationSection}
+${paymentSection}
+${deliverySection}
+${hoursSection}
+
+INSTRUÇÕES GERAIS:
+1. Quando pedirem localização, envie o link de navegação
+2. Informe horários quando perguntado
+3. Informe formas de pagamento quando perguntado
+4. Responda sempre em português brasileiro
+5. Seja acolhedor e prestativo
+6. **SEMPRE envie o link do cardápio na primeira mensagem**
+
+ENCERRAMENTO:
+- Quando o cliente digitar a palavra de encerramento, agradeça e finalize
+- Sempre deseje uma boa experiência ao cliente`;
+
+  return {
+    prompt,
+    productsCount: 0, // v2 não carrega produtos no prompt
+    categoriesCount: 0, // v2 não carrega categorias no prompt
+    storeLink,
+    navigationLink,
   };
 }

@@ -1,6 +1,6 @@
 import { Store } from "lucide-react";
 export function DashboardFooter() {
-  return <footer className="border-t border-slate-800 bg-slate-950 py-4 mt-auto">
+  return <footer className="border-t border-border bg-background py-4 mt-auto">
       <div className="container mx-auto px-6">
         <div className="flex flex-col sm:flex-row justify-center items-center gap-1 sm:gap-2">
           <a href="https://mostralo.app" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:opacity-80 transition-opacity">

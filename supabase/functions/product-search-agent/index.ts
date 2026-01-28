@@ -31,7 +31,10 @@ serve(async (req) => {
     const url = new URL(req.url);
     let storeId = url.searchParams.get('storeId');
     
-    const body = await req.json() as FunctionCallRequest;
+    const body = await req.json();
+    
+    // Log do payload recebido para debug
+    console.log(`[product-search-agent] Payload recebido:`, JSON.stringify(body, null, 2));
     
     if (!storeId && body.storeId) {
       storeId = body.storeId;
@@ -46,9 +49,41 @@ serve(async (req) => {
       });
     }
 
-    const { function: functionName, args } = body;
+    // Extrair nome da função - suporta múltiplos formatos da Evolution/OpenAI
+    // Formatos possíveis:
+    // - body.function (nosso formato)
+    // - body.name (formato OpenAI function calling)
+    // - body.tool_calls[0].function.name (formato OpenAI tool calls)
+    // - body.function_call.name (formato OpenAI legacy)
+    let functionName = 
+      body.function || 
+      body.name || 
+      body.function_call?.name ||
+      body.tool_calls?.[0]?.function?.name ||
+      body.action ||
+      body.method;
+    
+    // Extrair argumentos - suporta múltiplos formatos
+    let args = 
+      body.args || 
+      body.arguments ||
+      body.parameters ||
+      body.input ||
+      body.function_call?.arguments ||
+      body.tool_calls?.[0]?.function?.arguments ||
+      {};
+    
+    // Se args for string (JSON), parsear
+    if (typeof args === 'string') {
+      try {
+        args = JSON.parse(args);
+      } catch (e) {
+        console.warn('[product-search-agent] Erro ao parsear args:', args);
+        args = {};
+      }
+    }
 
-    console.log(`[product-search-agent] Função: ${functionName}, Args:`, args);
+    console.log(`[product-search-agent] Função extraída: ${functionName}, Args:`, args);
 
     // Buscar dados da loja para construir links
     const { data: store, error: storeError } = await supabase

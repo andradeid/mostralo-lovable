@@ -124,6 +124,7 @@ export default function WhatsAppInstancePage() {
     hasUnsyncedChanges,
     hasOpenAIKey,
     promptSettings,
+    productCount,
     updateConfig: updateBotConfig,
     updatePromptSettings,
     syncWithEvolution,
@@ -1293,7 +1294,7 @@ export default function WhatsAppInstancePage() {
                 <BotModeSelector
                   mode={botConfig.bot_mode || 'chat_completion'}
                   onModeChange={(mode) => updateBotConfig({ bot_mode: mode })}
-                  productCount={promptData.productsCount}
+                  productCount={productCount}
                   disabled={!isConnected}
                 />
 

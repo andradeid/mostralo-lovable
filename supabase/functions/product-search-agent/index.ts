@@ -17,6 +17,9 @@ interface FunctionCallRequest {
 }
 
 serve(async (req) => {
+  const startTime = Date.now();
+  console.log(`[product-search-agent] ⏱️ Requisição iniciada: ${new Date().toISOString()}`);
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -31,16 +34,30 @@ serve(async (req) => {
     const url = new URL(req.url);
     let storeId = url.searchParams.get('storeId');
     
-    const body = await req.json();
+    let body: any = {};
+    const contentType = req.headers.get('content-type') || '';
+    
+    // Tentar ler o body de forma segura
+    try {
+      const rawBody = await req.text();
+      console.log(`[product-search-agent] 📥 Raw body recebido:`, rawBody.slice(0, 500));
+      
+      if (rawBody && rawBody.trim()) {
+        body = JSON.parse(rawBody);
+      }
+    } catch (parseError) {
+      console.error(`[product-search-agent] ⚠️ Erro ao parsear body:`, parseError);
+    }
     
     // Log do payload recebido para debug
-    console.log(`[product-search-agent] Payload recebido:`, JSON.stringify(body, null, 2));
+    console.log(`[product-search-agent] 📦 Payload processado:`, JSON.stringify(body, null, 2));
     
     if (!storeId && body.storeId) {
       storeId = body.storeId;
     }
 
     if (!storeId) {
+      console.error(`[product-search-agent] ❌ storeId não fornecido`);
       return new Response(JSON.stringify({ 
         error: 'storeId é obrigatório' 
       }), {
@@ -48,6 +65,8 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+    
+    console.log(`[product-search-agent] 🏪 storeId: ${storeId}`);
 
     // Extrair nome da função - suporta múltiplos formatos da Evolution/OpenAI
     // Formato Evolution: functionName, functionArguments
@@ -389,16 +408,22 @@ serve(async (req) => {
         };
     }
 
-    console.log(`[product-search-agent] Resultado:`, result);
+    const elapsedMs = Date.now() - startTime;
+    console.log(`[product-search-agent] ✅ Resultado (${elapsedMs}ms):`, JSON.stringify(result).slice(0, 500));
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('[product-search-agent] Erro:', error);
+    const elapsedMs = Date.now() - startTime;
+    console.error(`[product-search-agent] ❌ Erro (${elapsedMs}ms):`, error);
     return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : 'Erro interno' 
+      error: error instanceof Error ? error.message : 'Erro interno',
+      debug: {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack?.slice(0, 200) : undefined,
+      }
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

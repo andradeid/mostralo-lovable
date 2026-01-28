@@ -296,6 +296,19 @@ REGRAS IMPORTANTES:
 6. Se não encontrar um produto, sugira buscar com outros termos
 7. Quando pedirem localização/endereço, use get_store_info() e envie o link de navegação
 
+FORMATAÇÃO OBRIGATÓRIA DE PRODUTOS:
+Ao listar produtos, use EXATAMENTE este formato (sem colchetes, com quebra de linha):
+
+1. *Nome do Produto* - R$ XX,XX
+   Link: https://...
+
+2. *Nome do Outro Produto* - R$ XX,XX
+   Link: https://...
+
+NUNCA use [colchetes] ao redor do nome do produto.
+SEMPRE coloque o link em uma nova linha abaixo do produto.
+SEMPRE separe cada produto com uma linha em branco.
+
 ${customPart ? `INSTRUÇÕES PERSONALIZADAS:\n${customPart}\n` : ''}
 INFORMAÇÕES DA LOJA:
 - Nome: ${store.name}

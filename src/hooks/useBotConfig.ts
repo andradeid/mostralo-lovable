@@ -149,6 +149,7 @@ export function useBotConfig(storeId: string | null) {
           // Novos campos do Assistente Inteligente v2
           bot_mode: dbData.bot_mode ?? 'chat_completion',
           openai_assistant_id: dbData.openai_assistant_id,
+          custom_prompt_instructions: dbData.custom_prompt_instructions,
         };
         setConfig(loadedConfig);
         lastSyncedConfig.current = { ...loadedConfig };
@@ -301,6 +302,10 @@ export function useBotConfig(storeId: string | null) {
         include_payment_methods: settingsToSave.includePaymentMethods,
         include_delivery_fee: settingsToSave.includeDeliveryFee,
         include_min_order: settingsToSave.includeMinOrder,
+        // Campos do Assistente Inteligente v2
+        bot_mode: updatedConfig.bot_mode,
+        openai_assistant_id: updatedConfig.openai_assistant_id,
+        custom_prompt_instructions: updatedConfig.custom_prompt_instructions,
       };
       
       // Marcar needs_sync se houve alteração em campos críticos
@@ -412,6 +417,9 @@ export function useBotConfig(storeId: string | null) {
             ignoreJids: config.ignore_jids,
             splitMessages: config.split_messages,
             timePerChar: config.time_per_char,
+            // Campos do Assistente Inteligente v2
+            botMode: config.bot_mode,
+            customPromptInstructions: config.custom_prompt_instructions,
           },
         },
       });

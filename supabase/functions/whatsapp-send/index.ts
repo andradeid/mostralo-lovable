@@ -194,6 +194,18 @@ serve(async (req) => {
 
     console.log('[whatsapp-send] Evolution response:', sendData);
 
+    // Detectar erro de número sem WhatsApp
+    let userFriendlyError = 'Erro ao enviar mensagem';
+    let errorCode = 'SEND_ERROR';
+    
+    if (sendData?.response?.message) {
+      const messageArray = sendData.response.message;
+      if (Array.isArray(messageArray) && messageArray.some((m: any) => m.exists === false)) {
+        userFriendlyError = `O número ${formattedPhone} não possui WhatsApp cadastrado. Verifique se o número está correto e inclui o 9º dígito (ex: 11 9XXXX-XXXX).`;
+        errorCode = 'NUMBER_NOT_ON_WHATSAPP';
+      }
+    }
+
     // Registrar mensagem no log
     const messageLog = {
       store_id: storeId,
@@ -224,7 +236,8 @@ serve(async (req) => {
     if (!sendResponse.ok) {
       return new Response(JSON.stringify({
         success: false,
-        error: 'Erro ao enviar mensagem',
+        error: userFriendlyError,
+        errorCode: errorCode,
         details: sendData,
       }), {
         status: sendResponse.status || 400,

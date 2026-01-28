@@ -1061,7 +1061,7 @@ serve(async (req) => {
         // Modo v2: Prompt enxuto com function calling
         const customInstructions = existingBotConfig?.custom_prompt_instructions || config.customPromptInstructions || '';
         const navigationLink = store.latitude && store.longitude && store.slug
-          ? `${baseUrl}/navegar?lat=${store.latitude}&lng=${store.longitude}&store=${store.slug}&address=${encodeURIComponent(store.address || '')}`
+          ? `${baseUrl}/navegar?lat=${store.latitude}&lng=${store.longitude}&store=${store.slug}`
           : store.google_maps_link || '';
 
         systemPrompt = generateAssistantModePrompt(

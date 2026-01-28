@@ -233,11 +233,10 @@ serve(async (req) => {
 
     const storeLink = `${baseUrl}/loja/${store.slug}`;
 
-    // Construir link de navegação
+    // Construir link de navegação (sem address para encurtar)
     let navigationLink = '';
     if (store.latitude && store.longitude) {
-      const address = encodeURIComponent(store.address || '');
-      navigationLink = `${baseUrl}/navegar?lat=${store.latitude}&lng=${store.longitude}&store=${store.slug}&address=${address}`;
+      navigationLink = `${baseUrl}/navegar?lat=${store.latitude}&lng=${store.longitude}&store=${store.slug}`;
     }
 
     // Formatar horários

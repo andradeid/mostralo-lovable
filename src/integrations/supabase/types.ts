@@ -8701,6 +8701,36 @@ export type Database = {
           },
         ]
       }
+      short_links: {
+        Row: {
+          address: string | null
+          clicks: number | null
+          created_at: string
+          id: string
+          lat: number
+          lng: number
+          store_slug: string
+        }
+        Insert: {
+          address?: string | null
+          clicks?: number | null
+          created_at?: string
+          id: string
+          lat: number
+          lng: number
+          store_slug: string
+        }
+        Update: {
+          address?: string | null
+          clicks?: number | null
+          created_at?: string
+          id?: string
+          lat?: number
+          lng?: number
+          store_slug?: string
+        }
+        Relationships: []
+      }
       store_bot_config: {
         Row: {
           auto_reactivate_minutes: number | null

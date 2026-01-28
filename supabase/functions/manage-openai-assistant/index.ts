@@ -127,6 +127,17 @@ const ASSISTANT_TOOLS = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'check_store_status',
+      description: 'Verifica em tempo real se a loja está aberta ou fechada agora, considerando o fuso horário da loja. Use SEMPRE quando o cliente perguntar "está aberto?", "vocês estão funcionando?", "posso fazer pedido agora?" ou similares.',
+      parameters: {
+        type: 'object',
+        properties: {},
+      },
+    },
+  },
 ];
 
 serve(async (req) => {
@@ -285,6 +296,7 @@ CAPACIDADES (use as funções disponíveis):
 - Mostrar promoções: get_promotions()
 - Recomendar produtos: get_recommendations()
 - Informações da loja: get_store_info()
+- Verificar se está aberto: check_store_status()
 
 REGRAS IMPORTANTES:
 1. SEMPRE use search_products antes de falar sobre produtos específicos
@@ -294,6 +306,7 @@ REGRAS IMPORTANTES:
 5. Se pedirem sugestão/recomendação, use get_recommendations()
 6. Se não encontrar um produto, sugira buscar com outros termos
 7. Quando pedirem localização/endereço, use get_store_info() e envie o link de navegação
+8. Se perguntarem "está aberto?", "vocês estão funcionando?", "posso fazer pedido agora?", SEMPRE use check_store_status() para verificar em tempo real
 
 FORMATAÇÃO OBRIGATÓRIA DE PRODUTOS:
 Ao listar produtos, use EXATAMENTE este formato limpo:

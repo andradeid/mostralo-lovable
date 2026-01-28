@@ -43,6 +43,20 @@ interface PersonalitySettings {
   customGreeting: string;
 }
 
+// Mapeamento de timezones brasileiros para descrições legíveis
+const TIMEZONE_MAP: Record<string, { label: string; offset: string }> = {
+  'America/Sao_Paulo': { label: 'Brasília', offset: 'UTC-3' },
+  'America/Manaus': { label: 'Manaus', offset: 'UTC-4' },
+  'America/Cuiaba': { label: 'Cuiabá', offset: 'UTC-4' },
+  'America/Rio_Branco': { label: 'Rio Branco', offset: 'UTC-5' },
+  'America/Noronha': { label: 'Fernando de Noronha', offset: 'UTC-2' },
+};
+
+function getTimezoneDescription(timezone: string | null): string {
+  const tz = TIMEZONE_MAP[timezone || 'America/Sao_Paulo'] || TIMEZONE_MAP['America/Sao_Paulo'];
+  return `${tz.label} ${tz.offset}`;
+}
+
 // Função para gerar instruções de personalidade
 function generatePersonalityInstructions(settings: PersonalitySettings): string {
   const personalities: Record<PersonalityType, string> = {
@@ -238,7 +252,7 @@ PERSONALIZAÇÃO COM NOME DO CLIENTE E SAUDAÇÃO DINÂMICA (MUITO IMPORTANTE):
 - Durante a conversa, chame o cliente pelo nome ocasionalmente de forma natural
 - Se o pushName não estiver disponível, use "você" de forma amigável
 
-SAUDAÇÃO BASEADA NO HORÁRIO (Fuso: Brasília UTC-3):
+SAUDAÇÃO BASEADA NO HORÁRIO (Fuso: ${getTimezoneDescription(store.timezone)}):
 - 05:00 às 11:59 → "Bom dia, [Nome]! ☀️"
 - 12:00 às 17:59 → "Boa tarde, [Nome]! 🌤️"
 - 18:00 às 23:59 → "Boa noite, [Nome]! 🌙"
@@ -353,7 +367,7 @@ PERSONALIZAÇÃO COM NOME DO CLIENTE E SAUDAÇÃO DINÂMICA (MUITO IMPORTANTE):
 - Durante a conversa, chame o cliente pelo nome ocasionalmente de forma natural
 - Se o pushName não estiver disponível, use "você" de forma amigável
 
-SAUDAÇÃO BASEADA NO HORÁRIO (Fuso: Brasília UTC-3):
+SAUDAÇÃO BASEADA NO HORÁRIO (Fuso: ${getTimezoneDescription(store.timezone)}):
 - 05:00 às 11:59 → "Bom dia, [Nome]! ☀️"
 - 12:00 às 17:59 → "Boa tarde, [Nome]! 🌤️"
 - 18:00 às 23:59 → "Boa noite, [Nome]! 🌙"

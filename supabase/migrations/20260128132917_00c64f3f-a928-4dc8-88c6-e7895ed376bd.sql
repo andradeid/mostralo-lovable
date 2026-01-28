@@ -1,0 +1,1 @@
+DELETE FROM system_updates WHERE id = 'ff9e5b01-a1ae-466c-9193-9b133b5ceaff';

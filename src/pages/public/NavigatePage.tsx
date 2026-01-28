@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { MapPin, Navigation, ExternalLink } from 'lucide-react';
+import { MapPin, Navigation, ExternalLink, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,17 +8,50 @@ import { supabase } from '@/integrations/supabase/client';
 interface StoreData {
   name: string;
   logo_url: string | null;
+  address: string | null;
 }
 
 export default function NavigatePage() {
   const [searchParams] = useSearchParams();
   const [store, setStore] = useState<StoreData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [resolvingShortLink, setResolvingShortLink] = useState(false);
+  
+  // Parâmetros do link (podem vir diretamente ou de um short link)
+  const [lat, setLat] = useState<string | null>(searchParams.get('lat'));
+  const [lng, setLng] = useState<string | null>(searchParams.get('lng'));
+  const [storeSlug, setStoreSlug] = useState<string | null>(searchParams.get('store'));
+  const [address, setAddress] = useState<string | null>(searchParams.get('address'));
+  
+  // ID de short link
+  const shortLinkId = searchParams.get('id');
 
-  const lat = searchParams.get('lat');
-  const lng = searchParams.get('lng');
-  const storeSlug = searchParams.get('store');
-  const address = searchParams.get('address');
+  // Resolver short link se presente
+  useEffect(() => {
+    async function resolveShortLink() {
+      if (!shortLinkId) return;
+      
+      setResolvingShortLink(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('short-link', {
+          body: { action: 'resolve', id: shortLinkId }
+        });
+        
+        if (data?.success) {
+          setLat(String(data.lat));
+          setLng(String(data.lng));
+          setStoreSlug(data.storeSlug);
+          setAddress(data.address || null);
+        }
+      } catch (err) {
+        console.error('Erro ao resolver short link:', err);
+      } finally {
+        setResolvingShortLink(false);
+      }
+    }
+
+    resolveShortLink();
+  }, [shortLinkId]);
 
   useEffect(() => {
     async function fetchStore() {
@@ -29,18 +62,22 @@ export default function NavigatePage() {
 
       const { data } = await supabase
         .from('stores')
-        .select('name, logo_url')
+        .select('name, logo_url, address')
         .eq('slug', storeSlug)
         .single();
 
       if (data) {
         setStore(data);
+        // Se não tiver endereço no parâmetro, usar o endereço da loja
+        if (!address && data.address) {
+          setAddress(data.address);
+        }
       }
       setLoading(false);
     }
 
     fetchStore();
-  }, [storeSlug]);
+  }, [storeSlug, address]);
 
   const openGoogleMaps = () => {
     if (lat && lng) {
@@ -53,6 +90,35 @@ export default function NavigatePage() {
       window.open(`https://waze.com/ul?ll=${lat},${lng}&navigate=yes`, '_blank');
     }
   };
+
+  const openUber = () => {
+    if (lat && lng) {
+      // Deep link do Uber com destino definido
+      // O address pode vir encodado da URL ou plain do banco de dados
+      const dropoffAddress = address || '';
+      const uberUrl = `https://m.uber.com/ul/?action=setPickup&dropoff[latitude]=${lat}&dropoff[longitude]=${lng}&dropoff[nickname]=${encodeURIComponent(store?.name || 'Destino')}&dropoff[formatted_address]=${encodeURIComponent(dropoffAddress)}`;
+      window.open(uberUrl, '_blank');
+    }
+  };
+
+  // Loading do short link
+  if (resolvingShortLink) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6 text-center">
+            <Loader2 className="h-12 w-12 text-primary mx-auto mb-4 animate-spin" />
+            <h1 className="text-xl font-semibold text-foreground mb-2">
+              Carregando...
+            </h1>
+            <p className="text-muted-foreground">
+              Preparando sua navegação
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (!lat || !lng) {
     return (
@@ -114,15 +180,15 @@ export default function NavigatePage() {
             Selecione o aplicativo de navegação
           </p>
 
-          {/* Endereço do cliente */}
+          {/* Endereço de destino */}
           {address && (
             <div className="bg-muted/50 rounded-lg p-3 mb-6">
               <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
                 <MapPin className="h-3 w-3" />
-                Endereço de entrega:
+                Endereço de destino:
               </p>
               <p className="text-sm font-medium text-foreground">
-                {decodeURIComponent(address)}
+                {address}
               </p>
             </div>
           )}
@@ -148,6 +214,17 @@ export default function NavigatePage() {
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
               </svg>
               Waze
+              <ExternalLink className="h-4 w-4 ml-auto opacity-70" />
+            </Button>
+
+            <Button
+              onClick={openUber}
+              className="w-full h-14 text-base font-semibold bg-[#000000] hover:bg-[#1a1a1a] text-white"
+            >
+              <svg className="h-6 w-6 mr-3" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 12.5h6v-2H3v2zm0 4h10v-2H3v2zm0-8h10v-2H3v2zm14 4.5v6h2v-6h6v-2h-6V5h-2v6H5v2h12z"/>
+              </svg>
+              Uber
               <ExternalLink className="h-4 w-4 ml-auto opacity-70" />
             </Button>
           </div>

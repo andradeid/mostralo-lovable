@@ -708,6 +708,9 @@ const Auth = () => {
         <div className="container max-w-md mx-auto px-4 py-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <Link to="/gestao-360" className="hover:text-foreground transition-colors">
+                Página Inicial
+              </Link>
               <Link to="/termos" className="hover:text-foreground transition-colors">
                 Termos
               </Link>

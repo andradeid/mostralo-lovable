@@ -1,112 +1,110 @@
 
+# Plano: Adicionar Novidade do Assistente Inteligente v2
 
-# Plano: Reformular HeroSection com Abordagem Estratégica
-
-## Problema Identificado
-A mensagem atual "PARE DE PAGAR PARA O iFOOD CRESCER" é agressiva e gera resistência em quem usa iFood. Precisamos de uma abordagem que destaque os benefícios do Mostralo sem atacar concorrentes diretamente.
+## Objetivo
+Adicionar um novo registro na tabela `system_updates` para informar os usuários sobre a nova funcionalidade do **Assistente Inteligente v2**.
 
 ---
 
-## Estratégia de Comunicação
+## O que será feito
 
-### Mensagem Atual (Agressiva)
-```text
-Badge: "A Verdade que Ninguém Conta"
-Título: "PARE DE PAGAR PARA O iFOOD CRESCER COM SEUS CLIENTES"
-Subtítulo: "A cada pedido, você financia a expansão do marketplace..."
+### Inserir nova atualização via SQL
+
+Executar uma migração SQL para inserir um novo registro na tabela `system_updates` com as seguintes informações:
+
+| Campo | Valor |
+|-------|-------|
+| **version** | `3.2.0` |
+| **title** | `Assistente Inteligente v2` |
+| **category** | `feature` (Nova Funcionalidade) |
+| **importance** | `important` (Importante) |
+| **is_published** | `true` |
+| **release_date** | Data atual (28/01/2026) |
+
+**Conteúdo da descrição (Markdown):**
+
+```markdown
+## 🤖 Assistente Inteligente v2
+
+O bot de WhatsApp da sua loja agora conta com uma versão muito mais inteligente e econômica!
+
+### ⚡ O que mudou?
+
+**Antes (v1):**
+- Limite de até 200 produtos no catálogo
+- Consumia até 20.000 tokens por conversa
+- Custo elevado para lojas com muitos produtos
+
+**Agora (v2):**
+- Catálogo ilimitado de produtos
+- Consulta em tempo real ao estoque
+- Apenas 800-1.500 tokens por conversa
+- Redução de até 90% nos custos de IA
+
+### 🎯 Novos Recursos
+
+- **Busca inteligente**: O assistente consulta o banco de dados em tempo real
+- **Verificação de estoque**: Informa disponibilidade instantânea
+- **Recomendações personalizadas**: Sugere produtos com base nas preferências
+- **Links diretos**: Envia link do produto para o cliente visualizar
+- **Navegação com Uber**: Opção de chamar Uber além do Waze e Google Maps
+
+### 🔧 Como ativar?
+
+1. Acesse o painel do WhatsApp
+2. Na seção "Modo do Assistente", selecione "Inteligente v2"
+3. Clique em "Sincronizar Bot"
+
+### 💡 Dica
+
+Você pode personalizar as instruções do assistente e definir produtos prioritários para recomendação!
 ```
 
-### Nova Mensagem (Positiva e Estratégica)
-```text
-Badge: "Você no Controle Total"
-Título: "SEUS CLIENTES. SEUS DADOS. SEU LUCRO."
-Subtítulo: "Tenha seu próprio canal de vendas com 0% de taxa por pedido"
-```
-
 ---
 
-## Mudanças Específicas no Arquivo
+## Resultado esperado
 
-### Arquivo: `src/components/landing/HeroSection.tsx`
-
-| Elemento | Antes | Depois |
-|----------|-------|--------|
-| **Badge** | "A Verdade que Ninguém Conta" (tom alarmista) | "Você no Controle Total" (tom empoderador) |
-| **Ícone Badge** | AlertTriangle (vermelho) | Crown ou Shield (positivo) |
-| **Título Principal** | "PARE DE PAGAR PARA O iFOOD CRESCER" | "SEUS CLIENTES. SEUS DADOS. SEU LUCRO." |
-| **Subtítulo** | "A cada pedido, você financia a expansão..." | "Tenha seu próprio canal de vendas digital..." |
-| **Parágrafo de apoio** | Menciona 0% taxa + SENTINELA | Foca em autonomia + assistente IA 24h |
-| **Seção verde (Marketing)** | "Marketing Digital Incluso" + SENTINELA | **Removida completamente** |
-| **Botões** | "Calcular Minha Economia" | "Começar Agora" / "Ver na Prática" |
-
----
-
-## Nova Estrutura Visual
-
-```text
-┌─────────────────────────────────────────────────────────────┐
-│                    [👑 Você no Controle Total]              │
-│                                                             │
-│            SEUS CLIENTES. SEUS DADOS. SEU LUCRO.            │
-│                                                             │
-│   Tenha seu próprio canal de vendas digital com             │
-│   0% de taxa por pedido. Cada cliente é 100% seu.           │
-│                                                             │
-│   Sistema completo com Assistente IA no WhatsApp            │
-│   que atende seus clientes 24 horas por dia.                │
-│                                                             │
-│   [ 🚀 Começar Agora ]    [ 📺 Ver na Prática ]             │
-│                                                             │
-│              [Banner de Cupons Promocionais]                │
-└─────────────────────────────────────────────────────────────┘
-```
-
----
-
-## O Que Será Removido
-
-1. **Menção ao iFood** - Removida completamente
-2. **Tom de "verdade oculta"** - Substituído por empoderamento
-3. **Badge "Marketing Digital Incluso"** - Removida
-4. **Seção verde inteira** - Removida (era sobre marketing + SENTINELA)
-5. **Ícone AlertTriangle** - Substituído por ícone positivo (Crown)
-
----
-
-## O Que Será Mantido
-
-1. **Destaque do 0% de taxa** - Continua como diferencial
-2. **100% seus clientes** - Mensagem central
-3. **Banner de Cupons Promocionais** - Funcionalidade ativa
-4. **Botões de ação** - Ajustados para CTAs mais diretos
-
----
-
-## Benefícios da Nova Abordagem
-
-| Aspecto | Antes | Depois |
-|---------|-------|--------|
-| **Tom** | Negativo/Ataque | Positivo/Empoderamento |
-| **Reação esperada** | Defensiva | Curiosidade |
-| **Foco** | O que você perde (iFood) | O que você ganha (autonomia) |
-| **Emoção** | Medo/Raiva | Controle/Confiança |
+Após a execução:
+- A novidade aparecerá automaticamente na página `/dashboard/novidades`
+- Será exibida com o ícone 🚀 (categoria: feature)
+- Terá destaque amarelo (importância: important)
+- Usuários que não leram verão a notificação de "não lida"
 
 ---
 
 ## Detalhes Técnicos
 
-### Dependências de Ícones (Lucide)
-- Remover: `AlertTriangle`
-- Adicionar: `Crown` ou `Shield` (já usado em outros lugares)
+**Arquivo a ser criado:**
+- `supabase/migrations/[timestamp]_add_intelligent_assistant_v2_update.sql`
 
-### Classes Tailwind
-- Manter gradiente de fundo atual
-- Remover cores de alerta (vermelho agressivo)
-- Usar cores mais neutras/positivas (laranja/verde)
+**Query SQL:**
+```sql
+INSERT INTO system_updates (
+  version,
+  title,
+  description,
+  category,
+  importance,
+  is_published,
+  release_date
+) VALUES (
+  '3.2.0',
+  'Assistente Inteligente v2',
+  '## 🤖 Assistente Inteligente v2...',
+  'feature',
+  'important',
+  true,
+  NOW()
+);
+```
 
 ---
 
-## Observação Importante
+## Resumo
 
-Como a página `/` agora redireciona automaticamente para `/gestao-360`, esta HeroSection só será vista se alguém acessar a rota antiga diretamente. Ainda assim, é importante manter consistência na mensagem do produto em todas as páginas.
-
+| Item | Descrição |
+|------|-----------|
+| **Tipo** | Inserção de dados |
+| **Tabela** | `system_updates` |
+| **Arquivos** | 1 migração SQL |
+| **Impacto** | Nenhum código alterado, apenas dados |

@@ -21,7 +21,9 @@ const BRAZIL_TIMEZONES = [
 ];
 
 function getGreetingFromHour(hour: number): { greeting: string; icon: React.ReactNode } {
-  if (hour >= 5 && hour < 12) {
+  if (hour >= 0 && hour < 5) {
+    return { greeting: 'Boa madrugada', icon: <Moon className="h-4 w-4 text-indigo-400" /> };
+  } else if (hour >= 5 && hour < 12) {
     return { greeting: 'Bom dia', icon: <Sunrise className="h-4 w-4 text-amber-500" /> };
   } else if (hour >= 12 && hour < 18) {
     return { greeting: 'Boa tarde', icon: <Sun className="h-4 w-4 text-orange-500" /> };

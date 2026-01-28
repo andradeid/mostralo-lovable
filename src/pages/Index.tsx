@@ -31,7 +31,7 @@ const Index = () => {
   const { user, userRole, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
-  // 🎯 Capturar código de referência do vendedor e redirecionar para Gestão 360°
+  // 🎯 Capturar código de referência do vendedor
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const refCode = params.get('ref');
@@ -40,12 +40,7 @@ const Index = () => {
       localStorage.setItem('mostralo_referral_code', refCode);
       localStorage.setItem('mostralo_referral_timestamp', Date.now().toString());
     }
-    
-    // 🚀 Redirecionar para Gestão 360° (nova página inicial)
-    // Preserva parâmetros de referência na URL
-    const searchParams = window.location.search;
-    navigate(`/gestao-360${searchParams}`, { replace: true });
-  }, [navigate]);
+  }, []);
 
   // 🔒 PROTEÇÃO: Cliente NUNCA deve ver dashboard - apenas lojistas
   useEffect(() => {

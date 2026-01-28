@@ -1,34 +1,110 @@
 
-## Plano: Tornar a página Gestão 360° a página inicial
+# Plano: Adicionar Novidade do Assistente Inteligente v2
 
-### Objetivo
-Fazer com que a rota `/` (página inicial) exiba o conteúdo da página **Gestão 360°** ao invés da landing atual focada em delivery/iFood.
+## Objetivo
+Adicionar um novo registro na tabela `system_updates` para informar os usuários sobre a nova funcionalidade do **Assistente Inteligente v2**.
 
-### Estratégia Escolhida
-Vou implementar um **redirecionamento automático** - a forma mais segura que não quebra nenhuma funcionalidade existente.
+---
 
-### O que vai acontecer:
-1. Ao acessar `/` (raiz), o usuário será redirecionado automaticamente para `/gestao-360`
-2. Toda a lógica de captura de referência de vendedores (`?ref=codigo`) será preservada
-3. A página antiga de landing focada em delivery continua disponível caso precise no futuro
+## O que será feito
 
-### Alterações Técnicas
+### Inserir nova atualização via SQL
 
-#### Arquivo: `src/pages/Index.tsx`
-- Adicionar redirecionamento automático para `/gestao-360` no início do componente
-- Preservar a lógica de captura do código de referência antes do redirect
-- Manter a lógica de redirecionamento para usuários logados (store_admin → dashboard, delivery_driver → delivery-panel)
+Executar uma migração SQL para inserir um novo registro na tabela `system_updates` com as seguintes informações:
 
+| Campo | Valor |
+|-------|-------|
+| **version** | `3.2.0` |
+| **title** | `Assistente Inteligente v2` |
+| **category** | `feature` (Nova Funcionalidade) |
+| **importance** | `important` (Importante) |
+| **is_published** | `true` |
+| **release_date** | Data atual (28/01/2026) |
+
+**Conteúdo da descrição (Markdown):**
+
+```markdown
+## 🤖 Assistente Inteligente v2
+
+O bot de WhatsApp da sua loja agora conta com uma versão muito mais inteligente e econômica!
+
+### ⚡ O que mudou?
+
+**Antes (v1):**
+- Limite de até 200 produtos no catálogo
+- Consumia até 20.000 tokens por conversa
+- Custo elevado para lojas com muitos produtos
+
+**Agora (v2):**
+- Catálogo ilimitado de produtos
+- Consulta em tempo real ao estoque
+- Apenas 800-1.500 tokens por conversa
+- Redução de até 90% nos custos de IA
+
+### 🎯 Novos Recursos
+
+- **Busca inteligente**: O assistente consulta o banco de dados em tempo real
+- **Verificação de estoque**: Informa disponibilidade instantânea
+- **Recomendações personalizadas**: Sugere produtos com base nas preferências
+- **Links diretos**: Envia link do produto para o cliente visualizar
+- **Navegação com Uber**: Opção de chamar Uber além do Waze e Google Maps
+
+### 🔧 Como ativar?
+
+1. Acesse o painel do WhatsApp
+2. Na seção "Modo do Assistente", selecione "Inteligente v2"
+3. Clique em "Sincronizar Bot"
+
+### 💡 Dica
+
+Você pode personalizar as instruções do assistente e definir produtos prioritários para recomendação!
 ```
-Fluxo atual:  / → Landing delivery/iFood
-Novo fluxo:   / → Redireciona para /gestao-360 → Landing Gestão 360°
+
+---
+
+## Resultado esperado
+
+Após a execução:
+- A novidade aparecerá automaticamente na página `/dashboard/novidades`
+- Será exibida com o ícone 🚀 (categoria: feature)
+- Terá destaque amarelo (importância: important)
+- Usuários que não leram verão a notificação de "não lida"
+
+---
+
+## Detalhes Técnicos
+
+**Arquivo a ser criado:**
+- `supabase/migrations/[timestamp]_add_intelligent_assistant_v2_update.sql`
+
+**Query SQL:**
+```sql
+INSERT INTO system_updates (
+  version,
+  title,
+  description,
+  category,
+  importance,
+  is_published,
+  release_date
+) VALUES (
+  '3.2.0',
+  'Assistente Inteligente v2',
+  '## 🤖 Assistente Inteligente v2...',
+  'feature',
+  'important',
+  true,
+  NOW()
+);
 ```
 
-### Preservação de Funcionalidades
-- Links com `?ref=codigo` continuarão funcionando (referência de vendedores)
-- Usuários logados serão redirecionados para seus dashboards normalmente
-- Página `/gestao-360` permanece funcionando independentemente
-- Nenhuma rota existente será quebrada
+---
 
-### Benefício da abordagem
-Se no futuro quiser reverter ou usar a landing antiga, basta remover uma linha de código.
+## Resumo
+
+| Item | Descrição |
+|------|-----------|
+| **Tipo** | Inserção de dados |
+| **Tabela** | `system_updates` |
+| **Arquivos** | 1 migração SQL |
+| **Impacto** | Nenhum código alterado, apenas dados |

@@ -1,5 +1,11 @@
 project_id = "noshwvwpjtnvndokbfjx"
 
+[functions.product-search-agent]
+verify_jwt = false
+
+[functions.manage-openai-assistant]
+verify_jwt = false
+
 [functions.google-calendar-list-calendars]
 verify_jwt = false
 

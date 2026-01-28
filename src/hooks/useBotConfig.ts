@@ -13,6 +13,8 @@ const defaultPersonalitySettings: PersonalitySettings = {
   customGreeting: '',
 };
 
+export type BotModeType = 'chat_completion' | 'assistant';
+
 export interface BotConfig {
   id?: string;
   store_id: string;
@@ -37,6 +39,10 @@ export interface BotConfig {
   evolution_bot_status?: string;
   openai_creds_id?: string; // ID da credencial OpenAI na Evolution
   updated_at?: string; // Data da última atualização
+  // Novos campos do Assistente Inteligente v2
+  bot_mode: BotModeType;
+  openai_assistant_id?: string;
+  custom_prompt_instructions?: string;
 }
 
 const defaultBotConfig: Omit<BotConfig, 'store_id'> = {
@@ -57,6 +63,10 @@ const defaultBotConfig: Omit<BotConfig, 'store_id'> = {
   split_messages: true,
   time_per_char: 0,
   auto_reactivate_minutes: 0, // 0 = manual por padrão
+  // Novos campos do Assistente Inteligente v2
+  bot_mode: 'chat_completion',
+  openai_assistant_id: undefined,
+  custom_prompt_instructions: undefined,
 };
 
 const defaultPromptSettings: PromptSettings = {
@@ -78,6 +88,7 @@ export function useBotConfig(storeId: string | null) {
   const [hasUnsyncedChanges, setHasUnsyncedChanges] = useState(false);
   const [promptSettings, setPromptSettings] = useState<PromptSettings>(defaultPromptSettings);
   const [hasOpenAIKey, setHasOpenAIKey] = useState<boolean | null>(null);
+  const [productCount, setProductCount] = useState<number>(0);
   
   // Guardar config sincronizada para comparar
   const lastSyncedConfig = useRef<BotConfig | null>(null);
@@ -87,14 +98,22 @@ export function useBotConfig(storeId: string | null) {
     
     setLoading(true);
     try {
-      // Verificar se a loja tem chave OpenAI configurada
-      const { data: storeData } = await supabase
-        .from('stores')
-        .select('openai_api_key')
-        .eq('id', storeId)
-        .single();
+      // Buscar loja e contar produtos em paralelo
+      const [storeRes, productCountRes] = await Promise.all([
+        supabase
+          .from('stores')
+          .select('openai_api_key')
+          .eq('id', storeId)
+          .single(),
+        supabase
+          .from('products')
+          .select('id', { count: 'exact', head: true })
+          .eq('store_id', storeId)
+          .eq('is_available', true),
+      ]);
       
-      setHasOpenAIKey(!!storeData?.openai_api_key);
+      setHasOpenAIKey(!!storeRes.data?.openai_api_key);
+      setProductCount(productCountRes.count || 0);
 
       const { data, error } = await supabase
         .from('store_bot_config')
@@ -127,6 +146,9 @@ export function useBotConfig(storeId: string | null) {
           auto_reactivate_minutes: dbData.auto_reactivate_minutes ?? 0, // NOVO
           evolution_bot_id: dbData.evolution_bot_id,
           evolution_bot_status: dbData.evolution_bot_status,
+          // Novos campos do Assistente Inteligente v2
+          bot_mode: dbData.bot_mode ?? 'chat_completion',
+          openai_assistant_id: dbData.openai_assistant_id,
         };
         setConfig(loadedConfig);
         lastSyncedConfig.current = { ...loadedConfig };
@@ -432,6 +454,7 @@ export function useBotConfig(storeId: string | null) {
     hasUnsyncedChanges,
     hasOpenAIKey,
     promptSettings,
+    productCount,
     updateConfig,
     updatePromptSettings,
     syncWithEvolution,

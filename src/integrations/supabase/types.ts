@@ -8704,11 +8704,13 @@ export type Database = {
       store_bot_config: {
         Row: {
           auto_reactivate_minutes: number | null
+          bot_mode: string | null
           bot_name: string | null
           bot_split_messages: boolean | null
           bot_time_per_char: number | null
           created_at: string | null
           custom_greeting: string | null
+          custom_prompt_instructions: string | null
           debounce_time: number | null
           delay_message: number | null
           emoji_level: string | null
@@ -8729,6 +8731,7 @@ export type Database = {
           last_synced_at: string | null
           listening_from_me: boolean | null
           needs_sync: boolean | null
+          openai_assistant_id: string | null
           openai_creds_id: string | null
           personality: string | null
           stop_bot_from_me: boolean | null
@@ -8742,11 +8745,13 @@ export type Database = {
         }
         Insert: {
           auto_reactivate_minutes?: number | null
+          bot_mode?: string | null
           bot_name?: string | null
           bot_split_messages?: boolean | null
           bot_time_per_char?: number | null
           created_at?: string | null
           custom_greeting?: string | null
+          custom_prompt_instructions?: string | null
           debounce_time?: number | null
           delay_message?: number | null
           emoji_level?: string | null
@@ -8767,6 +8772,7 @@ export type Database = {
           last_synced_at?: string | null
           listening_from_me?: boolean | null
           needs_sync?: boolean | null
+          openai_assistant_id?: string | null
           openai_creds_id?: string | null
           personality?: string | null
           stop_bot_from_me?: boolean | null
@@ -8780,11 +8786,13 @@ export type Database = {
         }
         Update: {
           auto_reactivate_minutes?: number | null
+          bot_mode?: string | null
           bot_name?: string | null
           bot_split_messages?: boolean | null
           bot_time_per_char?: number | null
           created_at?: string | null
           custom_greeting?: string | null
+          custom_prompt_instructions?: string | null
           debounce_time?: number | null
           delay_message?: number | null
           emoji_level?: string | null
@@ -8805,6 +8813,7 @@ export type Database = {
           last_synced_at?: string | null
           listening_from_me?: boolean | null
           needs_sync?: boolean | null
+          openai_assistant_id?: string | null
           openai_creds_id?: string | null
           personality?: string | null
           stop_bot_from_me?: boolean | null

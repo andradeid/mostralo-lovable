@@ -155,6 +155,24 @@ export default function WhatsAppInstancePage() {
   // Estados para histórico de mensagens avulsas
   const [messageLogs, setMessageLogs] = useState<MessageLog[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
+
+  const getFriendlyLogErrorMessage = (log: MessageLog): string | null => {
+    if (!log.error_message) return null;
+
+    // error_message normalmente vem como JSON.stringify(sendData) do Evolution
+    try {
+      const parsed = JSON.parse(log.error_message);
+      const msgs = parsed?.response?.message;
+
+      if (Array.isArray(msgs) && msgs.some((m: any) => m?.exists === false)) {
+        return `O número ${log.phone_number} não possui WhatsApp ativo. Verifique se está correto e inclui o 9º dígito (ex: DDD + 9XXXX-XXXX).`;
+      }
+    } catch {
+      // Se não for JSON, manter mensagem original
+    }
+
+    return log.error_message;
+  };
   const [showAllLogs, setShowAllLogs] = useState(false);
 
   // Estados para estatísticas da instância
@@ -1271,7 +1289,7 @@ export default function WhatsAppInstancePage() {
                         
                         <p className="text-sm line-clamp-2 text-muted-foreground">
                           {log.status === 'failed' && log.error_message 
-                            ? <span className="text-destructive">Erro: {log.error_message}</span>
+                            ? <span className="text-destructive">Erro: {getFriendlyLogErrorMessage(log)}</span>
                             : log.content}
                         </p>
                       </div>

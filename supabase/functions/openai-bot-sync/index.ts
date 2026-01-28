@@ -1182,6 +1182,9 @@ serve(async (req) => {
         evolution_bot_status: 'active',
         openai_creds_id: openaiCredsId,
         updated_at: new Date().toISOString(),
+        // Campos do Assistente Inteligente v2
+        bot_mode: botMode,
+        custom_prompt_instructions: config.customPromptInstructions || existingBotConfig?.custom_prompt_instructions || null,
         // Flags de sincronização
         needs_sync: false,
         last_synced_at: new Date().toISOString(),

@@ -153,7 +153,7 @@ export function FAQ360() {
   }, []);
 
   return (
-    <section className="py-20 px-4 bg-gradient-to-b from-slate-950 to-slate-900">
+    <section id="faq" className="py-20 px-4 bg-gradient-to-b from-slate-950 to-slate-900">
       <div className="container mx-auto max-w-4xl">
         {/* Header */}
         <div className="text-center mb-12">

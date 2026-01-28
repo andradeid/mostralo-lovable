@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useTheme } from "next-themes";
 import { usePageSEO } from "@/hooks/useSEO";
-import { LandingHeader } from "@/components/landing/LandingHeader";
-import { DashboardFooter } from "@/components/admin/DashboardFooter";
+import { Header360 } from "@/components/gestao-360/Header360";
+import { Footer360 } from "@/components/gestao-360/Footer360";
 import { Hero360 } from "@/components/gestao-360/Hero360";
 import { PilaresValor } from "@/components/gestao-360/PilaresValor";
 import { SubscriptionClubSection } from "@/components/landing/SubscriptionClubSection";
@@ -32,7 +32,7 @@ export default function Gestao360Page() {
 
   return (
     <div className="min-h-screen bg-background font-sans w-full overflow-x-hidden">
-      <LandingHeader />
+      <Header360 />
       
       <main>
         {/* HERO - O Pitch de Elevador */}
@@ -60,7 +60,7 @@ export default function Gestao360Page() {
         <CTA360Section />
       </main>
 
-      <DashboardFooter />
+      <Footer360 />
       
       <CookieBanner />
       <WhatsAppLeadButton />

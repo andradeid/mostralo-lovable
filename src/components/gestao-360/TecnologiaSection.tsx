@@ -37,7 +37,7 @@ const diferenciais = [
 
 export function TecnologiaSection() {
   return (
-    <section className="py-20 bg-gradient-to-b from-slate-900 to-slate-950">
+    <section id="tecnologia" className="py-20 bg-gradient-to-b from-slate-900 to-slate-950">
       <div className="container mx-auto px-4">
         <div className="max-w-5xl mx-auto">
           {/* Header */}

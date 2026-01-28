@@ -511,7 +511,30 @@ export default function WhatsAppInstancePage() {
         },
       });
 
-      if (response.error) throw response.error;
+      // Em erros HTTP (ex: 400), o Supabase retorna error genérico.
+      // Aqui tentamos extrair a mensagem real do body (error.context.json()).
+      if (response.error) {
+        let errorMessage = response.error.message || 'Falha ao enviar mensagem de teste';
+
+        const errAny = response.error as unknown as { context?: { json?: () => Promise<any> } };
+        if (errAny?.context?.json) {
+          try {
+            const errorBody = await errAny.context.json();
+            if (errorBody?.error) errorMessage = errorBody.error;
+          } catch {
+            // ignora falha ao ler body
+          }
+        }
+
+        setTestResult({ success: false, message: errorMessage });
+        toast({
+          title: 'Erro no teste',
+          description: errorMessage,
+          variant: 'destructive',
+          duration: 8000,
+        });
+        return;
+      }
 
       if (response.data?.success) {
         setTestResult({ success: true, message: 'Conexão funcionando! Mensagem enviada com sucesso.' });

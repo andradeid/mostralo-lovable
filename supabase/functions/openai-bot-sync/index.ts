@@ -1,6 +1,5 @@
-// OpenAI Bot Sync - v3.1.0 - Limpeza final
-// Removido: crons automáticos, saudação dinâmica, lógica de chamada interna
-// Apenas autenticação via JWT do usuário
+// OpenAI Bot Sync - v3.2.0 - Suporte a Assistente Inteligente v2
+// Adicionado: modo 'assistant' com function calling para catálogos grandes
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -8,6 +7,9 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Tipos de modo do bot
+type BotModeType = 'chat_completion' | 'assistant';
 
 interface BotConfig {
   storeId: string;
@@ -27,6 +29,8 @@ interface BotConfig {
   ignoreJids: string[];
   splitMessages?: boolean;
   timePerChar?: number;
+  botMode?: BotModeType;
+  customPromptInstructions?: string;
 }
 
 // Tipos de personalidade do bot
@@ -270,6 +274,96 @@ INSTRUÇÕES GERAIS:
 LINKS DE PRODUTOS:
 - Quando o cliente perguntar sobre um produto específico, SEMPRE envie o link do produto
 - Use o formato: "Você pode ver mais detalhes e pedir aqui: [link]"
+
+ENCERRAMENTO:
+- Quando o cliente digitar a palavra de encerramento, agradeça e finalize
+- Sempre deseje uma boa experiência ao cliente`;
+}
+
+// ========================================
+// GERADOR DE PROMPT v2 - ASSISTENTE INTELIGENTE
+// Prompt enxuto com function calling
+// ========================================
+function generateAssistantModePrompt(
+  botName: string,
+  store: any,
+  storeLink: string,
+  navigationLink: string,
+  personalitySettings: PersonalitySettings,
+  customInstructions?: string
+): string {
+  const personalityInstructions = generatePersonalityInstructions(personalitySettings);
+
+  // Seção de localização
+  const locationSection = navigationLink 
+    ? `\nLOCALIZAÇÃO E NAVEGAÇÃO:
+- Endereço: ${store.address || 'Não informado'}
+- Cidade/Estado: ${store.city || ''}${store.city && store.state ? '/' : ''}${store.state || ''}
+- 📍 Link para navegação: ${navigationLink}
+- Quando cliente pedir localização/endereço, ENVIE o link de navegação
+- O cliente poderá escolher: Google Maps, Waze ou Uber`
+    : (store.google_maps_link 
+        ? `\nLOCALIZAÇÃO:
+- Endereço: ${store.address || 'Não informado'}
+- 📍 Link do Google Maps: ${store.google_maps_link}` 
+        : '');
+
+  // Seção de pagamento
+  const paymentSection = `\nFORMAS DE PAGAMENTO:
+${formatPaymentMethods(store)}`;
+
+  // Seção de delivery
+  const deliverySection = `\nDELIVERY:
+- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}
+- Pedido mínimo: ${store.min_order_value ? `R$ ${store.min_order_value.toFixed(2)}` : 'Sem valor mínimo'}`;
+
+  // Seção de horários
+  const hoursSection = `\nHORÁRIO DE FUNCIONAMENTO:
+${formatBusinessHours(store.business_hours)}`;
+
+  return `Você é ${botName}, assistente virtual da ${store.name || 'loja'}.
+
+Quando o cliente perguntar seu nome, responda: "Meu nome é ${botName}!"
+
+${personalityInstructions}
+
+CAPACIDADES (use as funções disponíveis):
+- Buscar produtos: search_products("termo")
+- Verificar estoque: check_stock("nome produto")
+- Ver detalhes: get_product_details("slug")
+- Listar categorias: list_categories()
+- Mostrar promoções: get_promotions()
+- Recomendar produtos: get_recommendations()
+
+REGRAS CRÍTICAS:
+1. SEMPRE use search_products antes de falar sobre produtos
+2. Se perguntarem "tem X?", verifique estoque real com check_stock
+3. NÃO invente produtos - só use dados retornados pelas funções
+4. SEMPRE inclua o LINK do produto nas respostas
+5. Se pedirem sugestão/recomendação, use get_recommendations()
+6. Se não encontrar, sugira buscar com outros termos
+
+${customInstructions ? `INSTRUÇÕES PERSONALIZADAS DA LOJA:
+${customInstructions}
+` : ''}
+INFORMAÇÕES DA LOJA:
+- Nome: ${store.name || 'Loja'}
+- Descrição: ${store.description || 'Delivery de qualidade'}
+- Endereço: ${store.address || 'Não informado'}
+- WhatsApp: ${store.whatsapp || 'Não informado'}
+- Link do cardápio: ${storeLink}
+${locationSection}
+${paymentSection}
+${deliverySection}
+${hoursSection}
+
+INSTRUÇÕES GERAIS:
+1. Quando pedirem localização, envie o link de navegação
+2. Informe horários quando perguntado
+3. Informe formas de pagamento quando perguntado
+4. Responda sempre em português brasileiro
+5. Seja acolhedor e prestativo
+6. **SEMPRE envie o link do cardápio na primeira mensagem**
 
 ENCERRAMENTO:
 - Quando o cliente digitar a palavra de encerramento, agradeça e finalize
@@ -902,6 +996,16 @@ serve(async (req) => {
         message: `Iniciando sincronização do bot...`,
       });
 
+      // Detectar modo do bot (v1 ou v2)
+      const botMode: BotModeType = (existingBotConfig?.bot_mode as BotModeType) || config.botMode || 'chat_completion';
+      const isAssistantMode = botMode === 'assistant';
+
+      steps.push({
+        step: 'bot_mode',
+        status: 'success',
+        message: `Modo: ${isAssistantMode ? 'Assistente Inteligente v2' : 'Simples (chat_completion)'}`,
+      });
+
       // 1. Garantir credenciais OpenAI
       const openaiCredsId = await ensureOpenAiCreds(config.instanceName);
       if (!openaiCredsId) {
@@ -917,7 +1021,7 @@ serve(async (req) => {
 
       console.log('Usando openaiCredsId:', openaiCredsId);
 
-      // 2. Gerar prompt com dados da loja (SEM contexto de horário dinâmico)
+      // 2. Gerar prompt com dados da loja
       const botName = config.botName || 'Assistente';
       
       // Buscar configurações de personalidade do banco
@@ -933,21 +1037,48 @@ serve(async (req) => {
       const baseUrl = getStoreBaseUrl(store, origin);
       const storeLink = `${baseUrl}/loja/${store.slug}`;
       
-      const systemPrompt = generateSystemPrompt(
-        botName, 
-        store, 
-        products || [], 
-        categories || [], 
-        origin,
-        personalitySettings
-      );
+      let systemPrompt: string;
+      
+      if (isAssistantMode) {
+        // Modo v2: Prompt enxuto com function calling
+        const customInstructions = existingBotConfig?.custom_prompt_instructions || config.customPromptInstructions || '';
+        const navigationLink = store.latitude && store.longitude && store.slug
+          ? `${baseUrl}/navegar?lat=${store.latitude}&lng=${store.longitude}&store=${store.slug}&address=${encodeURIComponent(store.address || '')}`
+          : store.google_maps_link || '';
 
-      steps.push({
-        step: 'prompt_generate',
-        status: 'success',
-        message: 'Prompt gerado com dados da loja',
-        details: `${products?.length || 0} produto(s), ${categories?.length || 0} categoria(s)`,
-      });
+        systemPrompt = generateAssistantModePrompt(
+          botName,
+          store,
+          storeLink,
+          navigationLink,
+          personalitySettings,
+          customInstructions
+        );
+
+        steps.push({
+          step: 'prompt_generate',
+          status: 'success',
+          message: 'Prompt v2 gerado (modo inteligente)',
+          details: 'Sem produtos no prompt - consultas em tempo real',
+        });
+      } else {
+        // Modo v1: Prompt com todos os produtos
+        systemPrompt = generateSystemPrompt(
+          botName, 
+          store, 
+          products || [], 
+          categories || [], 
+          origin,
+          personalitySettings
+        );
+
+        steps.push({
+          step: 'prompt_generate',
+          status: 'success',
+          message: 'Prompt gerado com dados da loja',
+          details: `${products?.length || 0} produto(s), ${categories?.length || 0} categoria(s)`,
+        });
+      }
 
       // 3. Validar modelo
       const validModels = ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-3.5-turbo', 'gpt-4'];
@@ -972,10 +1103,12 @@ serve(async (req) => {
       const fixedGreeting = `${greeting}\n\n📱 Confira nosso cardápio: ${storeLink}`;
 
       // 5. Montar payload do bot
+      const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+      
       const botPayload: any = {
         enabled: true,
         openaiCredsId: openaiCredsId,
-        botType: 'chatCompletion',
+        botType: isAssistantMode ? 'assistant' : 'chatCompletion',
         model: model,
         maxTokens: evolutionConfig.openai_max_tokens || 1000,
         systemMessages: [systemPrompt],
@@ -996,6 +1129,18 @@ serve(async (req) => {
         splitMessages: config.splitMessages !== undefined ? config.splitMessages : true,
         timePerChar: config.timePerChar || 0,
       };
+
+      // Se modo assistant, adicionar functionUrl para function calling
+      if (isAssistantMode) {
+        botPayload.functionUrl = `${supabaseUrl}/functions/v1/product-search-agent?storeId=${config.storeId}`;
+        
+        steps.push({
+          step: 'function_url',
+          status: 'success',
+          message: 'URL de funções configurada',
+          details: `product-search-agent para loja ${config.storeId.slice(0, 8)}...`,
+        });
+      }
 
       console.log('Payload do bot:', JSON.stringify(botPayload, null, 2));
 

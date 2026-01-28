@@ -73,6 +73,9 @@ import {
   BotTimezoneCard,
   BotTrainingExamplesCard,
   BotGreetingPreviewCard,
+  BotModeSelector,
+  BotCustomPromptCard,
+  BotRecommendationsCard,
 } from "@/components/admin/bot";
 import { WhatsAppStatusCardMobile } from "@/components/admin/whatsapp/WhatsAppStatusCardMobile";
 
@@ -1286,8 +1289,16 @@ export default function WhatsAppInstancePage() {
           ) : botConfig && (
               <>
 
+                {/* Seletor de Modo - Novo para v2 */}
+                <BotModeSelector
+                  mode={botConfig.bot_mode || 'chat_completion'}
+                  onModeChange={(mode) => updateBotConfig({ bot_mode: mode })}
+                  productCount={promptData.productsCount}
+                  disabled={!isConnected}
+                />
+
                 <div className="grid gap-3 sm:gap-6 lg:grid-cols-2">
-                  {/* Coluna Esquerda - 4 cards */}
+                  {/* Coluna Esquerda */}
                   <div className="space-y-3 sm:space-y-6 min-w-0">
                     <BotActivationCard
                       config={botConfig}
@@ -1316,7 +1327,7 @@ export default function WhatsAppInstancePage() {
                       disabled={!isConnected}
                     />
                   </div>
-                  {/* Coluna Direita - 3 cards */}
+                  {/* Coluna Direita */}
                   <div className="space-y-3 sm:space-y-6 min-w-0">
                     <BotBehaviorCard
                       config={botConfig}
@@ -1339,6 +1350,22 @@ export default function WhatsAppInstancePage() {
                     />
                   </div>
                 </div>
+
+                {/* Cards exclusivos do modo Inteligente v2 */}
+                {botConfig.bot_mode === 'assistant' && (
+                  <div className="grid gap-3 sm:gap-6 lg:grid-cols-2">
+                    <BotCustomPromptCard
+                      instructions={botConfig.custom_prompt_instructions || ''}
+                      onInstructionsChange={(instructions) => 
+                        updateBotConfig({ custom_prompt_instructions: instructions })
+                      }
+                      disabled={!isConnected}
+                    />
+                    <BotRecommendationsCard
+                      storeId={storeId}
+                    />
+                  </div>
+                )}
 
                 <BotGreetingPreviewCard
                   storeName={storeName}

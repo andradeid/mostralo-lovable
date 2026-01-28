@@ -155,7 +155,11 @@ export function SendMessageModal({
         setSelectedTemplate("custom");
         onOpenChange(false);
       } else {
-        throw new Error(data?.error || 'Erro ao enviar mensagem');
+        // Mostrar erro amigável da API
+        const errorMessage = data?.error || 'Erro ao enviar mensagem';
+        toast.error(errorMessage, {
+          duration: 6000, // Mais tempo para ler a mensagem
+        });
       }
     } catch (error: any) {
       console.error('Erro ao enviar mensagem:', error);

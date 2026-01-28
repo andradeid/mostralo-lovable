@@ -87,8 +87,8 @@ serve(async (req) => {
     // Helper para formatar produto
     const formatProduct = (p: any) => ({
       name: p.name,
-      price: p.price,
-      promotional_price: p.promotional_price,
+      price: p.is_on_offer && p.offer_price ? p.offer_price : p.price,
+      original_price: p.is_on_offer ? p.original_price || p.price : null,
       is_on_offer: p.is_on_offer || false,
       stock_quantity: p.track_stock ? p.stock_quantity : null,
       in_stock: p.track_stock ? (p.stock_quantity || 0) > 0 : true,
@@ -112,7 +112,7 @@ serve(async (req) => {
         const { data: products, error } = await supabase
           .from('products')
           .select(`
-            id, name, slug, price, promotional_price, description,
+            id, name, slug, price, original_price, offer_price, description,
             is_available, is_featured, is_on_offer,
             track_stock, stock_quantity,
             categories(name)
@@ -181,7 +181,7 @@ serve(async (req) => {
         const { data: product, error } = await supabase
           .from('products')
           .select(`
-            id, name, slug, price, promotional_price, description,
+            id, name, slug, price, original_price, offer_price, description,
             is_available, is_featured, is_on_offer,
             track_stock, stock_quantity, image_url,
             categories(name)
@@ -233,7 +233,7 @@ serve(async (req) => {
         const { data: products, error } = await supabase
           .from('products')
           .select(`
-            id, name, slug, price, promotional_price, description,
+            id, name, slug, price, original_price, offer_price, description,
             is_available, is_featured, is_on_offer,
             track_stock, stock_quantity,
             categories(name)
@@ -267,7 +267,7 @@ serve(async (req) => {
         const { data: products, error } = await supabase
           .from('products')
           .select(`
-            id, name, slug, price, promotional_price, description,
+            id, name, slug, price, original_price, offer_price, description,
             is_available, is_featured, is_on_offer,
             track_stock, stock_quantity,
             categories(name)

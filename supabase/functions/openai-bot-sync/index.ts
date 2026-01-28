@@ -343,6 +343,24 @@ REGRAS CRÍTICAS:
 5. Se pedirem sugestão/recomendação, use get_recommendations()
 6. Se não encontrar, sugira buscar com outros termos
 
+FORMATAÇÃO OBRIGATÓRIA DE PRODUTOS:
+Ao listar produtos, use EXATAMENTE este formato limpo:
+
+1. *Dipirona 1000mg 30cps* - R$ 37,80
+   👉 https://mostralo.com.br/loja/farmacia/produto/dipirona
+
+2. *Vitamina C 1g* - R$ 25,90
+   👉 https://mostralo.com.br/loja/farmacia/produto/vitamina-c
+
+REGRAS DE FORMATAÇÃO (OBRIGATÓRIO):
+- NÃO use colchetes [ ] em nenhuma parte do texto
+- NÃO use parênteses ( ) ao redor de links
+- NÃO use formato markdown de link como [texto](url) ou (url)
+- O link deve estar SOZINHO na linha, sem parênteses
+- Use asterisco simples *nome* para negrito (não duplo **)
+- Separe cada produto com uma linha em branco
+- Coloque um emoji 👉 antes do link para destacar
+
 ${customInstructions ? `INSTRUÇÕES PERSONALIZADAS DA LOJA:
 ${customInstructions}
 ` : ''}

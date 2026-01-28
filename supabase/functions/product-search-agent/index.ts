@@ -525,6 +525,74 @@ serve(async (req) => {
         break;
       }
 
+      // ========================================
+      // GET_CURRENT_GREETING - Saudação baseada no horário atual
+      // ========================================
+      case 'get_current_greeting': {
+        const { data: storeInfo, error } = await supabase
+          .from('stores')
+          .select('timezone, name')
+          .eq('id', storeId)
+          .single();
+
+        if (error || !storeInfo) {
+          result = { 
+            greeting: 'Olá',
+            emoji: '👋',
+            error: true 
+          };
+          break;
+        }
+
+        const timezone = storeInfo.timezone || 'America/Sao_Paulo';
+
+        // Obter hora atual no fuso horário da loja
+        const now = new Date();
+        const formatter = new Intl.DateTimeFormat('pt-BR', {
+          timeZone: timezone,
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        });
+        
+        const currentTime = formatter.format(now);
+        const hour = parseInt(currentTime.split(':')[0]);
+
+        // Determinar saudação baseada no horário
+        let greeting: string;
+        let emoji: string;
+        let period: string;
+
+        if (hour >= 0 && hour < 5) {
+          greeting = 'Boa madrugada';
+          emoji = '🌃';
+          period = 'madrugada';
+        } else if (hour >= 5 && hour < 12) {
+          greeting = 'Bom dia';
+          emoji = '☀️';
+          period = 'manhã';
+        } else if (hour >= 12 && hour < 18) {
+          greeting = 'Boa tarde';
+          emoji = '🌤️';
+          period = 'tarde';
+        } else {
+          greeting = 'Boa noite';
+          emoji = '🌙';
+          period = 'noite';
+        }
+
+        result = {
+          greeting,
+          emoji,
+          period,
+          current_time: currentTime,
+          timezone,
+          store_name: storeInfo.name,
+          formatted: `${greeting}! ${emoji}`,
+        };
+        break;
+      }
+
       default:
         result = { 
           error: `Função "${functionName}" não reconhecida`,
@@ -537,6 +605,7 @@ serve(async (req) => {
             'get_recommendations',
             'get_store_info',
             'check_store_status',
+            'get_current_greeting',
           ],
         };
     }

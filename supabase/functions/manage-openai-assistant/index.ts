@@ -138,6 +138,17 @@ const ASSISTANT_TOOLS = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'get_current_greeting',
+      description: 'Obtém a saudação correta baseada no horário atual da loja (Bom dia, Boa tarde, Boa noite ou Boa madrugada). Use SEMPRE na PRIMEIRA mensagem ao cliente para saudá-lo corretamente. Você DEVE chamar esta função antes de responder à primeira mensagem do cliente.',
+      parameters: {
+        type: 'object',
+        properties: {},
+      },
+    },
+  },
 ];
 
 serve(async (req) => {

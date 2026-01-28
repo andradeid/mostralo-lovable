@@ -147,7 +147,22 @@ export function SendMessageModal({
         }
       });
 
-      if (error) throw error;
+      // Em erros HTTP (ex: 400), o Supabase retorna um error genérico.
+      // Tentamos extrair a mensagem real do body via error.context.json().
+      if (error) {
+        let errorMessage = error.message || 'Erro ao enviar mensagem';
+        const errAny = error as unknown as { context?: { json?: () => Promise<any> } };
+        if (errAny?.context?.json) {
+          try {
+            const errorBody = await errAny.context.json();
+            if (errorBody?.error) errorMessage = errorBody.error;
+          } catch {
+            // ignora falha ao ler body
+          }
+        }
+        toast.error(errorMessage, { duration: 6000 });
+        return;
+      }
 
       if (data?.success) {
         toast.success('Mensagem enviada com sucesso!');

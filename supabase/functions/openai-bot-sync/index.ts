@@ -1130,16 +1130,213 @@ serve(async (req) => {
         timePerChar: config.timePerChar || 0,
       };
 
-      // Se modo assistant, adicionar functionUrl para function calling
+      // Se modo assistant, criar/atualizar OpenAI Assistant e adicionar ao payload
+      let openaiAssistantId: string | null = existingBotConfig?.openai_assistant_id || null;
+      
       if (isAssistantMode) {
-        botPayload.functionUrl = `${supabaseUrl}/functions/v1/product-search-agent?storeId=${config.storeId}`;
-        
+        // Criar/atualizar OpenAI Assistant
         steps.push({
-          step: 'function_url',
+          step: 'openai_assistant_check',
           status: 'success',
-          message: 'URL de funções configurada',
-          details: `product-search-agent para loja ${config.storeId.slice(0, 8)}...`,
+          message: 'Verificando OpenAI Assistant...',
+          details: openaiAssistantId ? `ID existente: ${openaiAssistantId.slice(0, 12)}...` : 'Criando novo...',
         });
+
+        try {
+          const assistantTools = [
+            {
+              type: 'function',
+              function: {
+                name: 'search_products',
+                description: 'Busca produtos no catálogo por nome ou termo.',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    query: { type: 'string', description: 'Termo de busca' },
+                    limit: { type: 'number', description: 'Quantidade máxima de resultados' },
+                  },
+                  required: ['query'],
+                },
+              },
+            },
+            {
+              type: 'function',
+              function: {
+                name: 'check_stock',
+                description: 'Verifica disponibilidade de um produto.',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    product_name: { type: 'string', description: 'Nome do produto' },
+                  },
+                  required: ['product_name'],
+                },
+              },
+            },
+            {
+              type: 'function',
+              function: {
+                name: 'get_product_details',
+                description: 'Obtém detalhes de um produto pelo slug.',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    slug: { type: 'string', description: 'Slug do produto' },
+                  },
+                  required: ['slug'],
+                },
+              },
+            },
+            {
+              type: 'function',
+              function: {
+                name: 'list_categories',
+                description: 'Lista categorias disponíveis.',
+                parameters: { type: 'object', properties: {} },
+              },
+            },
+            {
+              type: 'function',
+              function: {
+                name: 'get_promotions',
+                description: 'Retorna produtos em promoção.',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    limit: { type: 'number', description: 'Quantidade máxima' },
+                  },
+                },
+              },
+            },
+            {
+              type: 'function',
+              function: {
+                name: 'get_recommendations',
+                description: 'Retorna produtos recomendados.',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    limit: { type: 'number', description: 'Quantidade máxima' },
+                  },
+                },
+              },
+            },
+            {
+              type: 'function',
+              function: {
+                name: 'get_store_info',
+                description: 'Obtém informações da loja.',
+                parameters: { type: 'object', properties: {} },
+              },
+            },
+          ];
+
+          const assistantPayload = {
+            name: `${config.botName || 'Assistente'} - ${store.name}`,
+            instructions: systemPrompt,
+            tools: assistantTools,
+            model: model,
+          };
+
+          if (openaiAssistantId) {
+            // Atualizar Assistant existente
+            const updateResp = await fetch(
+              `https://api.openai.com/v1/assistants/${openaiAssistantId}`,
+              {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${openaiApiKey}`,
+                  'Content-Type': 'application/json',
+                  'OpenAI-Beta': 'assistants=v2',
+                },
+                body: JSON.stringify(assistantPayload),
+              }
+            );
+
+            if (updateResp.ok) {
+              const assistant = await updateResp.json();
+              openaiAssistantId = assistant.id;
+              steps.push({
+                step: 'openai_assistant_updated',
+                status: 'success',
+                message: 'OpenAI Assistant atualizado',
+                details: `ID: ${openaiAssistantId?.slice(0, 12)}...`,
+              });
+            } else {
+              // Se falhou (404 ou outro), criar novo
+              console.log('Update do Assistant falhou, criando novo...');
+              openaiAssistantId = null;
+            }
+          }
+
+          if (!openaiAssistantId) {
+            // Criar novo Assistant
+            const createResp = await fetch('https://api.openai.com/v1/assistants', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${openaiApiKey}`,
+                'Content-Type': 'application/json',
+                'OpenAI-Beta': 'assistants=v2',
+              },
+              body: JSON.stringify(assistantPayload),
+            });
+
+            if (!createResp.ok) {
+              const errorText = await createResp.text();
+              console.error('Erro ao criar Assistant:', errorText);
+              steps.push({
+                step: 'openai_assistant_create',
+                status: 'error',
+                message: 'Falha ao criar OpenAI Assistant',
+                details: errorText.slice(0, 100),
+              });
+              return new Response(JSON.stringify({
+                success: false,
+                error: 'Falha ao criar OpenAI Assistant',
+                steps,
+              }), {
+                status: 500,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              });
+            }
+
+            const assistant = await createResp.json();
+            openaiAssistantId = assistant.id;
+            steps.push({
+              step: 'openai_assistant_created',
+              status: 'success',
+              message: 'OpenAI Assistant criado',
+              details: `ID: ${openaiAssistantId?.slice(0, 12)}...`,
+            });
+          }
+
+          // Adicionar assistantId ao payload do bot
+          botPayload.assistantId = openaiAssistantId;
+          botPayload.functionUrl = `${supabaseUrl}/functions/v1/product-search-agent?storeId=${config.storeId}`;
+          
+          steps.push({
+            step: 'function_url',
+            status: 'success',
+            message: 'URL de funções configurada',
+            details: `product-search-agent para loja ${config.storeId.slice(0, 8)}...`,
+          });
+        } catch (assistantError) {
+          console.error('Erro ao gerenciar OpenAI Assistant:', assistantError);
+          steps.push({
+            step: 'openai_assistant_error',
+            status: 'error',
+            message: 'Erro ao gerenciar OpenAI Assistant',
+            details: String(assistantError).slice(0, 100),
+          });
+          return new Response(JSON.stringify({
+            success: false,
+            error: 'Erro ao criar/atualizar OpenAI Assistant',
+            steps,
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
       }
 
       console.log('Payload do bot:', JSON.stringify(botPayload, null, 2));
@@ -1184,6 +1381,7 @@ serve(async (req) => {
         updated_at: new Date().toISOString(),
         // Campos do Assistente Inteligente v2
         bot_mode: botMode,
+        openai_assistant_id: openaiAssistantId || existingBotConfig?.openai_assistant_id || null,
         custom_prompt_instructions: config.customPromptInstructions || existingBotConfig?.custom_prompt_instructions || null,
         // Flags de sincronização
         needs_sync: false,

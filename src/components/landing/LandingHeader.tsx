@@ -45,7 +45,7 @@ export const LandingHeader = () => {
   };
 
   return (
-    <header className="border-b bg-card/50 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full">
+    <header className="border-b border-slate-800 bg-slate-950 sticky top-0 z-50 w-full">
       <div className="container flex h-16 items-center justify-between px-3 sm:px-4 md:px-6 max-w-full overflow-hidden">
         {/* Logo */}
         <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0 min-w-0">

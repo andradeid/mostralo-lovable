@@ -520,13 +520,22 @@ export default function WhatsAppInstancePage() {
           description: "Mensagem de teste enviada com sucesso",
         });
       } else {
-        throw new Error(response.data?.error || 'Falha no envio');
+        // Mostrar erro amigável da API
+        const errorMessage = response.data?.error || 'Falha no envio';
+        setTestResult({ success: false, message: errorMessage });
+        toast({
+          title: "Erro no teste",
+          description: errorMessage,
+          variant: "destructive",
+          duration: 8000, // Mais tempo para ler
+        });
       }
     } catch (error: any) {
-      setTestResult({ success: false, message: error.message || 'Erro ao enviar mensagem de teste' });
+      const errorMessage = error.message || 'Erro ao enviar mensagem de teste';
+      setTestResult({ success: false, message: errorMessage });
       toast({
         title: "Erro no teste",
-        description: error.message || "Falha ao enviar mensagem de teste",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

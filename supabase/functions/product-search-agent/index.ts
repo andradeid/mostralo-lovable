@@ -50,12 +50,10 @@ serve(async (req) => {
     }
 
     // Extrair nome da função - suporta múltiplos formatos da Evolution/OpenAI
-    // Formatos possíveis:
-    // - body.function (nosso formato)
-    // - body.name (formato OpenAI function calling)
-    // - body.tool_calls[0].function.name (formato OpenAI tool calls)
-    // - body.function_call.name (formato OpenAI legacy)
+    // Formato Evolution: functionName, functionArguments
+    // Formato OpenAI: function, args / name / tool_calls
     let functionName = 
+      body.functionName ||  // Evolution API format
       body.function || 
       body.name || 
       body.function_call?.name ||
@@ -65,6 +63,7 @@ serve(async (req) => {
     
     // Extrair argumentos - suporta múltiplos formatos
     let args = 
+      body.functionArguments ||  // Evolution API format
       body.args || 
       body.arguments ||
       body.parameters ||

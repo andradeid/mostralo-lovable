@@ -13,4 +13,10 @@ export { BotPausedContactsCard } from './BotPausedContactsCard';
 export { BotActiveSessionsCard } from './BotActiveSessionsCard';
 export { ConversationsTab } from './ConversationsTab';
 
+// Novos componentes do Assistente Inteligente v2
+export { BotModeSelector } from './BotModeSelector';
+export { BotCustomPromptCard } from './BotCustomPromptCard';
+export { BotRecommendationsCard } from './BotRecommendationsCard';
+
 export type { PersonalitySettings, PersonalityType, EmojiLevel } from './BotPersonalityCard';
+export type { BotModeType } from './BotModeSelector';

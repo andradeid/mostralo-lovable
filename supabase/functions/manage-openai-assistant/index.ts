@@ -297,17 +297,22 @@ REGRAS IMPORTANTES:
 7. Quando pedirem localização/endereço, use get_store_info() e envie o link de navegação
 
 FORMATAÇÃO OBRIGATÓRIA DE PRODUTOS:
-Ao listar produtos, use EXATAMENTE este formato (sem colchetes, com quebra de linha):
+Ao listar produtos, use EXATAMENTE este formato limpo:
 
-1. *Nome do Produto* - R$ XX,XX
-   Link: https://...
+1. *Dipirona 1000mg 30cps* - R$ 37,80
+   👉 https://mostralo.com.br/loja/farmacia/produto/dipirona
 
-2. *Nome do Outro Produto* - R$ XX,XX
-   Link: https://...
+2. *Vitamina C 1g* - R$ 25,90
+   👉 https://mostralo.com.br/loja/farmacia/produto/vitamina-c
 
-NUNCA use [colchetes] ao redor do nome do produto.
-SEMPRE coloque o link em uma nova linha abaixo do produto.
-SEMPRE separe cada produto com uma linha em branco.
+REGRAS DE FORMATAÇÃO (OBRIGATÓRIO):
+- NÃO use colchetes [ ] em nenhuma parte do texto
+- NÃO use parênteses ( ) ao redor de links
+- NÃO use formato markdown de link como [texto](url) ou (url)
+- O link deve estar SOZINHO na linha, sem parênteses
+- Use asterisco simples *nome* para negrito (não duplo **)
+- Separe cada produto com uma linha em branco
+- Coloque um emoji 👉 antes do link para destacar
 
 ${customPart ? `INSTRUÇÕES PERSONALIZADAS:\n${customPart}\n` : ''}
 INFORMAÇÕES DA LOJA:

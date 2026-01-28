@@ -1135,13 +1135,17 @@ serve(async (req) => {
         triggerType: config.triggerType || 'all',
         triggerOperator: config.triggerOperator || 'contains',
         triggerValue: config.triggerValue || '',
-        expire: config.expireMinutes || 20,
+        // IMPORTANTE: expire=0 = sessão nunca expira (mantém bot sempre ativo)
+        // Anteriormente era 20min o que causava "travamentos" do bot
+        expire: config.expireMinutes === 0 ? 0 : (config.expireMinutes || 0),
         keywordFinish: config.keywordFinish || '#SAIR',
         delayMessage: config.delayMessage || 4000,
         unknownMessage: config.unknownMessage || 'Desculpe, não entendi. Digite #SAIR para encerrar ou acesse nosso cardápio online.',
         listeningFromMe: config.listeningFromMe || false,
         stopBotFromMe: config.stopBotFromMe !== undefined ? config.stopBotFromMe : true,
-        keepOpen: config.keepOpen || false,
+        // IMPORTANTE: keepOpen=true mantém a thread aberta entre mensagens
+        // Isso evita que o bot "trave" e pare de responder
+        keepOpen: config.keepOpen !== undefined ? config.keepOpen : true,
         debounceTime: config.debounceTime || 10,
         ignoreJids: config.ignoreJids || [],
         splitMessages: config.splitMessages !== undefined ? config.splitMessages : true,

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,7 +30,8 @@ import {
   Snowflake,
   Save,
   AlertTriangle,
-  Brain
+  Brain,
+  CloudCog
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -47,6 +48,15 @@ import { generateRecruitmentPrompt, RecruitmentPromptType, BonusTier } from "@/u
 import { Database } from "@/integrations/supabase/types";
 
 type Plan = Database['public']['Tables']['plans']['Row'];
+
+// Interface para prompt real da IA
+interface RealPromptInfo {
+  prompt: string | null;
+  model: string | null;
+  botId: string | null;
+  exists: boolean;
+  botName: string | null;
+}
 
 // Labels para exibição
 const salesApproachLabels: Record<SalesApproach, string> = {
@@ -274,6 +284,81 @@ export function MasterBotConfigTab({
   const [plans, setPlans] = useState<Plan[]>([]);
   const [bonusTiers, setBonusTiers] = useState<BonusTier[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+  
+  // Estados para prompts reais da IA
+  const [realPrompts, setRealPrompts] = useState<{
+    sales: RealPromptInfo | null;
+    recruitment: RealPromptInfo | null;
+    support: RealPromptInfo | null;
+  }>({ sales: null, recruitment: null, support: null });
+  const [loadingRealPrompts, setLoadingRealPrompts] = useState(false);
+  const [syncingAll, setSyncingAll] = useState(false);
+
+  // Buscar prompts reais da Evolution API
+  const fetchRealPrompts = useCallback(async () => {
+    if (!config.id || !config.instance_name) return;
+    
+    setLoadingRealPrompts(true);
+    try {
+      const response = await supabase.functions.invoke('master-bot-fetch-prompt', {
+        body: { configId: config.id }
+      });
+
+      if (response.error) {
+        console.error('Erro ao buscar prompts reais:', response.error);
+        toast.error('Erro ao buscar prompts da IA');
+        return;
+      }
+
+      if (response.data?.success && response.data?.prompts) {
+        setRealPrompts(response.data.prompts);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar prompts reais:', error);
+    } finally {
+      setLoadingRealPrompts(false);
+    }
+  }, [config.id, config.instance_name]);
+
+  // Sincronizar todos os bots ativos
+  const syncAllBots = useCallback(async () => {
+    setSyncingAll(true);
+    
+    const botsToSync: ('sales' | 'recruitment' | 'support')[] = [];
+    if (config.sales_bot_enabled) botsToSync.push('sales');
+    if (config.recruitment_bot_enabled) botsToSync.push('recruitment');
+    if (config.support_bot_enabled) botsToSync.push('support');
+
+    if (botsToSync.length === 0) {
+      toast.warning('Nenhum bot está ativo para sincronizar');
+      setSyncingAll(false);
+      return;
+    }
+
+    let successCount = 0;
+    for (const botType of botsToSync) {
+      const success = await syncBots(botType);
+      if (success) successCount++;
+    }
+
+    // Atualizar prompts reais após sincronização
+    await fetchRealPrompts();
+
+    if (successCount === botsToSync.length) {
+      toast.success(`Todos os ${successCount} bots sincronizados com sucesso!`);
+    } else {
+      toast.warning(`${successCount} de ${botsToSync.length} bots sincronizados`);
+    }
+
+    setSyncingAll(false);
+  }, [config.sales_bot_enabled, config.recruitment_bot_enabled, config.support_bot_enabled, syncBots, fetchRealPrompts]);
+
+  // Buscar prompts reais ao carregar e quando config mudar
+  useEffect(() => {
+    if (config.id && config.instance_name) {
+      fetchRealPrompts();
+    }
+  }, [config.id, config.instance_name, fetchRealPrompts]);
 
   // Buscar dados do banco para geração de prompts
   useEffect(() => {
@@ -377,24 +462,43 @@ export function MasterBotConfigTab({
             </TabsTrigger>
           </TabsList>
           
-          {/* Seletor de Modelo de IA */}
-          <div className="flex items-center gap-2">
-            <Brain className="w-4 h-4 text-muted-foreground" />
-            <Label className="text-sm whitespace-nowrap">Modelo IA:</Label>
-            <Select
-              value={config.openai_model || 'gpt-4o-mini'}
-              onValueChange={updateOpenAIModel}
+          {/* Seletor de Modelo de IA e Botão Sincronizar Todos */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Botão Sincronizar Todos */}
+            <Button
+              variant="default"
+              size="sm"
+              onClick={syncAllBots}
+              disabled={syncing || syncingAll}
+              className="gap-1.5"
             >
-              <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="Modelo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="gpt-4o-mini">GPT-4o Mini</SelectItem>
-                <SelectItem value="gpt-4o">GPT-4o</SelectItem>
-                <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
-                <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
-              </SelectContent>
-            </Select>
+              {syncingAll ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <CloudCog className="w-4 h-4" />
+              )}
+              <span className="hidden sm:inline">Sincronizar Todos</span>
+              <span className="sm:hidden">Sync All</span>
+            </Button>
+            
+            <div className="flex items-center gap-2">
+              <Brain className="w-4 h-4 text-muted-foreground" />
+              <Label className="text-sm whitespace-nowrap hidden sm:inline">Modelo IA:</Label>
+              <Select
+                value={config.openai_model || 'gpt-4o-mini'}
+                onValueChange={updateOpenAIModel}
+              >
+                <SelectTrigger className="w-[140px] sm:w-[160px]">
+                  <SelectValue placeholder="Modelo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="gpt-4o-mini">GPT-4o Mini</SelectItem>
+                  <SelectItem value="gpt-4o">GPT-4o</SelectItem>
+                  <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
+                  <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
@@ -463,6 +567,9 @@ export function MasterBotConfigTab({
                 }
                 isSynced={!hasUnsyncedChanges('sales')}
                 lastSyncedAt={lastSyncedAt.sales || undefined}
+                realPrompt={realPrompts.sales}
+                onRefreshRealPrompt={fetchRealPrompts}
+                loadingRealPrompt={loadingRealPrompts}
               />
 
               <div className="flex justify-end">
@@ -554,6 +661,9 @@ export function MasterBotConfigTab({
                 }
                 isSynced={!hasUnsyncedChanges('recruitment')}
                 lastSyncedAt={lastSyncedAt.recruitment || undefined}
+                realPrompt={realPrompts.recruitment}
+                onRefreshRealPrompt={fetchRealPrompts}
+                loadingRealPrompt={loadingRealPrompts}
               />
 
               <div className="flex justify-end">
@@ -648,6 +758,9 @@ export function MasterBotConfigTab({
                 approachVariant={supportPrompt.trim() ? "default" : "secondary"}
                 isSynced={!hasUnsyncedChanges('support')}
                 lastSyncedAt={lastSyncedAt.support || undefined}
+                realPrompt={realPrompts.support}
+                onRefreshRealPrompt={fetchRealPrompts}
+                loadingRealPrompt={loadingRealPrompts}
               />
 
               <div className="flex justify-end gap-2">

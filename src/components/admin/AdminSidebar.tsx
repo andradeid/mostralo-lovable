@@ -641,12 +641,24 @@ export function AdminSidebar() {
         );
       }
 
-      // PDV e Comandas - verifica módulo
+      // PDV e Comandas - verifica módulo pdv_comandas
       if (hasModule('pdv_comandas')) {
         menuItems.push(
           { title: 'PDV', url: '/dashboard/pdv', icon: Monitor, group: 'Vendas Presenciais' },
-          { title: 'Comandas', url: '/dashboard/comandas', icon: Receipt, group: 'Vendas Presenciais' },
-          { title: 'Cozinha (KDS)', url: '/dashboard/cozinha', icon: UtensilsCrossed, group: 'Vendas Presenciais' },
+          { title: 'Comandas', url: '/dashboard/comandas', icon: Receipt, group: 'Vendas Presenciais' }
+        );
+      }
+
+      // Cozinha (KDS) - verifica módulo kds SEPARADAMENTE
+      if (hasModule('kds')) {
+        menuItems.push(
+          { title: 'Cozinha (KDS)', url: '/dashboard/cozinha', icon: UtensilsCrossed, group: 'Vendas Presenciais' }
+        );
+      }
+
+      // Totem Autoatendimento - verifica módulo self_service_totem SEPARADAMENTE
+      if (hasModule('self_service_totem')) {
+        menuItems.push(
           { title: 'Totem Autoatendimento', url: '/dashboard/totem-config', icon: Smartphone, group: 'Vendas Presenciais' }
         );
       }

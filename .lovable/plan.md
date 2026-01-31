@@ -1,63 +1,88 @@
 
-# Plano: Remover Numero WhatsApp e Ajustar Instrucao de Escalacao
+# Plano: Corrigir Status dos Bots para Refletir o Assistente Unificado
 
 ## Problema
 
-O prompt unificado ainda contem o numero de WhatsApp comercial na secao de contato:
+Após a unificação dos 3 bots em 1 assistente dinâmico:
+- A Edge Function salva o ID do bot unificado **apenas** em `sales_bot_evolution_id`
+- Seta `recruitment_bot_evolution_id` e `support_bot_evolution_id` como `null`
+- A interface verifica cada coluna separadamente, resultando em:
+  - Vendas: "Conectado" (tem o ID)
+  - Recrutamento: "Não criado" (está null)
+  - Suporte: "Não criado" (está null)
 
-```
-## CONTATO
-WhatsApp Comercial: (61) 99555-0099
-Site: https://mostralo.com.br
-Email: suporte@mostralo.com.br
-```
+## Solução
 
-Como o cliente ja esta em contato pelo WhatsApp, nao faz sentido passar outro numero.
-
----
-
-## Solucao
-
-Modificar a secao de contato para:
-1. Remover o numero de WhatsApp Comercial
-2. Adicionar instrucao para quando nao conseguir responder
+Ajustar a interface para usar o **mesmo ID** (o do bot unificado) para todas as abas, já que na realidade é um único assistente que atende os 3 contextos.
 
 ---
 
-## Alteracao no Arquivo
+## Alterações
 
-**Arquivo:** `supabase/functions/master-bot-sync/index.ts`
+### 1. Hook useMasterWhatsAppConfig
 
-**Linhas 324-330 - De:**
+Adicionar `unified_openai_assistant_id` à interface `MasterWhatsAppConfig`:
+
+```typescript
+export interface MasterWhatsAppConfig {
+  // ... campos existentes ...
+  unified_openai_assistant_id: string | null; // NOVO
+}
 ```
+
+### 2. Componente MasterBotConfigTab
+
+Modificar as 3 chamadas do `BotSyncStatusBadge` para usar o mesmo ID:
+
+**Bot de Vendas (linha 513-518):**
+```typescript
+<BotSyncStatusBadge
+  evolutionId={config.unified_openai_assistant_id || config.sales_bot_evolution_id}
+  botEnabled={config.sales_bot_enabled}
+  hasUnsyncedChanges={hasUnsyncedChanges('sales')}
+  syncing={syncing}
+/>
+```
+
+**Bot de Recrutamento (linha 611-616):**
+```typescript
+<BotSyncStatusBadge
+  evolutionId={config.unified_openai_assistant_id || config.sales_bot_evolution_id}
+  botEnabled={config.recruitment_bot_enabled}
+  hasUnsyncedChanges={hasUnsyncedChanges('recruitment')}
+  syncing={syncing}
+/>
+```
+
+**Bot de Suporte (linha 705-710):**
+```typescript
+<BotSyncStatusBadge
+  evolutionId={config.unified_openai_assistant_id || config.sales_bot_evolution_id}
+  botEnabled={config.support_bot_enabled}
+  hasUnsyncedChanges={hasUnsyncedChanges('support')}
+  syncing={syncing}
+/>
+```
+
+### 3. Atualizar BotSyncStatusBadge (opcional)
+
+Melhorar o tooltip para refletir que é um bot unificado:
+
+```typescript
+synced: {
+  label: 'Conectado',
+  tooltip: 'Integrado ao assistente unificado Mostralo'
+}
+```
+
 ---
 
-## CONTATO
+## Resultado Esperado
 
-WhatsApp Comercial: (61) 99555-0099
-Site: https://mostralo.com.br
-Email: suporte@mostralo.com.br
-```
+| Aba | Antes | Depois |
+|-----|-------|--------|
+| Vendas | Conectado ✓ | Conectado ✓ |
+| Recrutamento | Não criado ✗ | Conectado ✓ |
+| Suporte | Não criado ✗ | Conectado ✓ |
 
-**Para:**
-```
----
-
-## CONTATO E ESCALACAO
-
-Site: https://mostralo.com.br
-Email: suporte@mostralo.com.br
-
-**IMPORTANTE:** Quando nao souber responder ou a duvida for muito especifica, diga:
-"Vou encaminhar sua solicitacao para um de nossos especialistas. Em breve um assistente entrara em contato para ajudar voce com mais detalhes!"
-```
-
----
-
-## Resultado
-
-| Antes | Depois |
-|-------|--------|
-| Passa numero de WhatsApp redundante | Sem numero de WhatsApp |
-| Sem instrucao de escalacao | Instrucao clara para encaminhar |
-| Cliente fica perdido | Cliente sabe que sera atendido por humano |
+Todos os badges mostrarão "Conectado" quando o assistente unificado existir, refletindo corretamente que é um único bot atendendo os 3 contextos.

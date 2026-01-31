@@ -102,7 +102,6 @@ ESTILO:
 - Use emojis moderadamente
 
 CONTATO HUMANO:
-WhatsApp: (61) 99555-0099
 Email: suporte@mostralo.com.br`;
 }
 

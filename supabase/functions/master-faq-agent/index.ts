@@ -582,14 +582,12 @@ function calculateCommission(
 function getStoreInfo(): {
   name: string;
   description: string;
-  whatsapp: string;
   website: string;
   features: string[];
 } {
   return {
     name: 'Mostralo',
     description: 'Plataforma completa de Delivery + Marketing Digital + Gestão Financeira',
-    whatsapp: '(61) 99555-0099',
     website: 'https://mostralo.com.br',
     features: [
       '0% de taxa por pedido',

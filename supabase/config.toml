@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.master-faq-agent]
 verify_jwt = false
+
+[functions.master-bot-fetch-prompt]
+verify_jwt = false

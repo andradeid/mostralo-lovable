@@ -1,127 +1,108 @@
 
+# Plano: Corrigir Links Legais e Atualizar Informações Empresariais
 
-# Plano: Criar Footer Completo e Reutilizável
+## Situação Atual
 
-## Visão Geral
+### Links do Footer (MainFooter.tsx)
+| Link Atual | Rota Correta | Status |
+|------------|--------------|--------|
+| `/privacy` | `/privacidade` | CORRIGIR |
+| `/terms` | `/termos` | CORRIGIR |
+| `/lgpd` | - | CRIAR PÁGINA |
+| `/cookies` | - | CRIAR PÁGINA |
 
-Criar um componente `MainFooter.tsx` completo, profissional e reutilizável, inspirado no exemplo enviado, adaptado para a marca Mostralo.
+### Informações Empresariais
+- CNPJ: XX.XXX.XXX/0001-XX (placeholder)
+- Responsável: Mostralo Tecnologia LTDA (genérico)
+- Localização: apenas "Brasil"
 
 ---
 
-## Estrutura do Novo Footer
+## Alterações Planejadas
 
-```text
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                                                                                 │
-│   MOSTRALO              REDES SOCIAIS      INFORMAÇÕES        INFORMAÇÕES       │
-│   Sistema All-in-One    📱 LinkedIn        LEGAIS              EMPRESARIAIS     │
-│   para delivery e       📸 Instagram       • Privacidade       CNPJ: XX.XXX...  │
-│   gestão de negócios    💬 WhatsApp        • Termos de Uso     Responsável      │
-│                                            • Aviso Legal       Localização      │
-│   📞 WhatsApp Comercial                    • LGPD              Especialidade    │
-│   ✉️ contato@mostralo                      • Cookies                            │
-│   📍 Brasil                                                                     │
-│                                                                                 │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│ ⚠️ Aviso Legal Importante                                                       │
-│                                                                                 │
-│ Este site apresenta funcionalidades e resultados baseados em experiências       │
-│ reais de clientes. Os resultados podem variar dependendo do segmento,           │
-│ tamanho do negócio e implementação das estratégias.                             │
-│                                                                                 │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│                                                                                 │
-│              © 2026 Mostralo. Todos os direitos reservados.                     │
-│         Plataforma completa para delivery e gestão de negócios locais           │
-│                                                                                 │
-└─────────────────────────────────────────────────────────────────────────────────┘
+### 1. Corrigir MainFooter.tsx
+
+**Links Legais:**
+- `/privacy` → `/privacidade`
+- `/terms` → `/termos`
+- `/lgpd` → `/lgpd` (nova página)
+- `/cookies` → `/cookies` (nova página)
+
+**Informações Empresariais:**
+- CNPJ: 51.691.995/0001-15
+- Responsável: Marcos Henrique da Silva Andrade
+- Localização: Brasília - DF, Brasil
+- Adicionar: Experiência Internacional (Brasil, Estados Unidos e Suíça)
+
+---
+
+### 2. Criar Página LGPD (`src/pages/LGPD.tsx`)
+
+Conteúdo sobre:
+- O que é a LGPD
+- Base legal para tratamento de dados
+- Direitos do titular (acesso, correção, exclusão, portabilidade)
+- Como exercer seus direitos
+- Encarregado de Dados (DPO)
+- Canal de atendimento
+
+---
+
+### 3. Criar Página Cookies (`src/pages/Cookies.tsx`)
+
+Conteúdo sobre:
+- O que são cookies
+- Tipos de cookies utilizados (essenciais, funcionais, analíticos)
+- Como gerenciar cookies no navegador
+- Cookies de terceiros
+- Validade dos cookies
+
+---
+
+### 4. Registrar Novas Rotas (`src/routes/publicRoutes.tsx`)
+
+Adicionar:
+```
+/lgpd → LGPD.tsx
+/cookies → Cookies.tsx
 ```
 
 ---
 
-## Arquivo a Criar
+## Arquivos a Criar
 
 | Arquivo | Descrição |
 |---------|-----------|
-| `src/components/MainFooter.tsx` | Footer completo e reutilizável para todas as páginas públicas |
+| `src/pages/LGPD.tsx` | Página sobre proteção de dados LGPD |
+| `src/pages/Cookies.tsx` | Página sobre política de cookies |
 
-## Arquivo a Modificar
+## Arquivos a Modificar
 
 | Arquivo | Alteração |
 |---------|-----------|
-| `src/pages/Index.tsx` | Substituir `DashboardFooter` por `MainFooter` |
+| `src/components/MainFooter.tsx` | Corrigir links + atualizar dados empresariais |
+| `src/routes/publicRoutes.tsx` | Adicionar rotas /lgpd e /cookies |
 
 ---
 
-## Detalhes Técnicos do MainFooter
+## Resultado Final
 
-### Colunas do Footer
+**Informações Empresariais no Footer:**
+```
+CNPJ: 51.691.995/0001-15
 
-**Coluna 1 - Mostralo (Sobre)**
-- Logo com ícone Store (laranja) + nome "Mostralo"
-- Descrição curta da plataforma
-- Telefone/WhatsApp comercial com ícone
-- Email de contato com ícone
-- Localização: "Brasil" com ícone
+Responsável:
+Marcos Henrique da Silva Andrade
 
-**Coluna 2 - Redes Sociais**
-- LinkedIn (com ícone)
-- Instagram (com ícone)
-- WhatsApp (com ícone)
-- Cada link abre em nova aba
+Localização:
+Brasília - DF, Brasil
 
-**Coluna 3 - Informações Legais**
-- Política de Privacidade → `/privacy`
-- Termos de Uso → `/terms`
-- Aviso Legal → (anchor ou modal)
-- Política de Cookies → `/cookies` ou modal
-- LGPD - Proteção de Dados → `/lgpd`
-
-**Coluna 4 - Informações Empresariais**
-- CNPJ (placeholder para futura atualização)
-- Nome do responsável
-- Localização completa
-- Especialidade/Descrição
-
-### Seção de Aviso Legal (Disclaimer)
-
-- Background levemente diferente (`bg-slate-800/50` ou `bg-muted/50`)
-- Borda à esquerda em laranja (cor da marca)
-- Título em laranja: "Aviso Legal Importante"
-- Texto de disclaimer padrão sobre resultados
-
-### Copyright Final
-
-- Linha de copyright com ano dinâmico
-- Tagline da plataforma
-- Fundo mais escuro para separar visualmente
-
----
-
-## Características do Componente
-
-1. **Responsivo**: Grid de 1 coluna (mobile) → 2 colunas (tablet) → 4 colunas (desktop)
-2. **Tema adaptável**: Funciona tanto em light mode quanto dark mode
-3. **Reutilizável**: Pode ser usado em qualquer página pública
-4. **Acessível**: Links com aria-labels, contraste adequado
-5. **Props opcionais**: Possibilidade de ocultar seções específicas se necessário
-
-### Props do Componente
-
-```typescript
-interface MainFooterProps {
-  showDisclaimer?: boolean;  // Mostrar aviso legal (default: true)
-  variant?: 'light' | 'dark' | 'auto';  // Variante de cor
-}
+Experiência Internacional:
+Brasil, Estados Unidos e Suíça
 ```
 
----
-
-## Benefícios
-
-1. **Profissionalismo**: Footer completo transmite credibilidade
-2. **SEO**: Links internos melhoram a navegação e indexação
-3. **Legal**: Informações empresariais e links de compliance visíveis
-4. **Reutilização**: Um único componente para todas as páginas públicas
-5. **Manutenção**: Centraliza informações em um só lugar
-
+**Links Funcionais:**
+- Política de Privacidade → `/privacidade` ✓
+- Termos de Uso → `/termos` ✓
+- LGPD - Proteção de Dados → `/lgpd` (nova)
+- Política de Cookies → `/cookies` (nova)

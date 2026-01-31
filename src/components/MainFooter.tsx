@@ -101,14 +101,14 @@ export function MainFooter({ showDisclaimer = true, variant = 'auto' }: MainFoot
             <h3 className={`font-semibold ${headingClass}`}>Informações Legais</h3>
             <div className="space-y-3">
               <Link 
-                to="/privacy" 
+                to="/privacidade" 
                 className={`flex items-center gap-2 text-sm ${textClass} hover:text-primary transition-colors`}
               >
                 <Shield className="w-4 h-4" />
                 <span>Política de Privacidade</span>
               </Link>
               <Link 
-                to="/terms" 
+                to="/termos" 
                 className={`flex items-center gap-2 text-sm ${textClass} hover:text-primary transition-colors`}
               >
                 <FileText className="w-4 h-4" />
@@ -137,15 +137,19 @@ export function MainFooter({ showDisclaimer = true, variant = 'auto' }: MainFoot
             <div className="space-y-3">
               <div className={`text-sm ${mutedClass}`}>
                 <span className="font-medium">CNPJ:</span>
-                <p>XX.XXX.XXX/0001-XX</p>
+                <p>51.691.995/0001-15</p>
               </div>
               <div className={`text-sm ${mutedClass}`}>
                 <span className="font-medium">Responsável:</span>
-                <p>Mostralo Tecnologia LTDA</p>
+                <p>Marcos Henrique da Silva Andrade</p>
               </div>
               <div className={`text-sm ${mutedClass}`}>
-                <span className="font-medium">Especialidade:</span>
-                <p>Soluções SaaS para Negócios Locais</p>
+                <span className="font-medium">Localização:</span>
+                <p>Brasília - DF, Brasil</p>
+              </div>
+              <div className={`text-sm ${mutedClass}`}>
+                <span className="font-medium">Experiência Internacional:</span>
+                <p>Brasil, Estados Unidos e Suíça</p>
               </div>
             </div>
           </div>

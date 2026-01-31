@@ -84,6 +84,8 @@ const AboutPage = lazy(() => import("@/pages/public/AboutPage"));
 const GestaoTotalPage = lazy(() => import("@/pages/public/GestaoTotalPage"));
 const Gestao360Page = lazy(() => import("@/pages/public/Gestao360Page"));
 const PublicProposalPage = lazy(() => import("@/pages/public/PublicProposalPage"));
+const LGPD = lazy(() => import("@/pages/LGPD"));
+const Cookies = lazy(() => import("@/pages/Cookies"));
 
 export const publicRoutes = (
   <>
@@ -188,6 +190,8 @@ export const publicRoutes = (
     <Route path="/verificar-contrato" element={<LazyRoute><VerifyContractPage /></LazyRoute>} />
     <Route path="/termos" element={<LazyRoute><TermsOfUse /></LazyRoute>} />
     <Route path="/privacidade" element={<LazyRoute><Privacy /></LazyRoute>} />
+    <Route path="/lgpd" element={<LazyRoute><LGPD /></LazyRoute>} />
+    <Route path="/cookies" element={<LazyRoute><Cookies /></LazyRoute>} />
     <Route path="/suporte" element={<LazyRoute><Support /></LazyRoute>} />
     
     {/* Novidades - Redirecionamento */}

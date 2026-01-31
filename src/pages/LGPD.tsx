@@ -146,8 +146,8 @@ export default function LGPD() {
                   <Mail className="w-5 h-5 text-primary" />
                   <div>
                     <span className="font-medium">E-mail:</span>
-                    <a href="mailto:privacidade@mostralo.app" className="ml-2 text-primary hover:underline">
-                      privacidade@mostralo.app
+                    <a href="mailto:privacidade@mostralo.com.br" className="ml-2 text-primary hover:underline">
+                      privacidade@mostralo.com.br
                     </a>
                   </div>
                 </div>
@@ -182,7 +182,7 @@ export default function LGPD() {
               <div className="border-l-4 border-primary pl-4">
                 <p className="font-semibold">Marcos Henrique da Silva Andrade</p>
                 <p className="text-sm text-muted-foreground">Encarregado de Proteção de Dados</p>
-                <p className="text-sm text-muted-foreground">E-mail: dpo@mostralo.app</p>
+                <p className="text-sm text-muted-foreground">E-mail: dpo@mostralo.com.br</p>
               </div>
             </div>
           </section>

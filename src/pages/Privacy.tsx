@@ -1,3 +1,6 @@
+import { Store, Shield, User, Database, Mail, ArrowLeft, CheckCircle, FileText, Lock, Eye, Server, Users, Cookie, Clock, Bell } from "lucide-react";
+import { Link } from "react-router-dom";
+import { MainFooter } from "@/components/MainFooter";
 import { usePageSEO } from "@/hooks/useSEO";
 
 export default function Privacy() {
@@ -9,171 +12,319 @@ export default function Privacy() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="space-y-8">
-          <div className="text-center">
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Política de Privacidade
-            </h1>
-            <p className="text-muted-foreground">
-              Última atualização: Dezembro de 2024
-            </p>
+      {/* Header */}
+      <header className="bg-slate-900 text-white py-6">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between">
+            <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <Store className="w-8 h-8 text-primary" />
+              <span className="text-xl font-bold">Mostralo</span>
+            </Link>
+            <Link 
+              to="/" 
+              className="flex items-center gap-2 text-sm text-slate-300 hover:text-white transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Voltar ao início
+            </Link>
           </div>
+        </div>
+      </header>
 
-          <div className="prose prose-neutral dark:prose-invert max-w-none">
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">1. Introdução</h2>
+      {/* Hero Section */}
+      <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white py-16">
+        <div className="container mx-auto px-4 text-center">
+          <div className="flex justify-center mb-6">
+            <div className="p-4 bg-primary/20 rounded-full">
+              <Shield className="w-12 h-12 text-primary" />
+            </div>
+          </div>
+          <h1 className="text-3xl md:text-4xl font-bold mb-4">
+            Política de Privacidade
+          </h1>
+          <p className="text-lg text-slate-300 max-w-2xl mx-auto">
+            Saiba como coletamos, usamos e protegemos suas informações na plataforma Mostralo
+          </p>
+        </div>
+      </section>
+
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto space-y-12">
+          
+          {/* Introdução */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-3">
+              <FileText className="w-6 h-6 text-primary" />
+              <h2 className="text-2xl font-bold">1. Introdução</h2>
+            </div>
+            <div className="bg-muted/50 rounded-lg p-6">
               <p className="text-muted-foreground leading-relaxed">
                 Esta Política de Privacidade descreve como coletamos, usamos, armazenamos e protegemos suas informações 
                 quando você usa a plataforma Mostralo. Estamos comprometidos com a proteção da sua privacidade e 
                 cumprimos a Lei Geral de Proteção de Dados (LGPD).
               </p>
-            </section>
+            </div>
+          </section>
 
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">2. Informações que Coletamos</h2>
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-xl font-medium mb-3">Informações de Cadastro:</h3>
-                  <ul className="list-disc list-inside space-y-2 ml-4 text-muted-foreground">
-                    <li>Nome completo</li>
-                    <li>Endereço de email</li>
-                    <li>Telefone</li>
-                    <li>Informações da empresa/restaurante</li>
-                  </ul>
+          {/* Informações que Coletamos */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-3">
+              <Database className="w-6 h-6 text-primary" />
+              <h2 className="text-2xl font-bold">2. Informações que Coletamos</h2>
+            </div>
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="bg-card border rounded-lg p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <User className="w-5 h-5 text-primary" />
+                  <h3 className="font-semibold">Informações de Cadastro</h3>
                 </div>
-                
-                <div>
-                  <h3 className="text-xl font-medium mb-3">Informações de Uso:</h3>
-                  <ul className="list-disc list-inside space-y-2 ml-4 text-muted-foreground">
-                    <li>Dados de navegação e interação</li>
-                    <li>Endereço IP e informações do dispositivo</li>
-                    <li>Cookies e tecnologias similares</li>
-                    <li>Logs de sistema e segurança</li>
-                  </ul>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>• Nome completo</li>
+                  <li>• Endereço de email</li>
+                  <li>• Telefone</li>
+                  <li>• Informações da empresa</li>
+                </ul>
+              </div>
+              <div className="bg-card border rounded-lg p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Server className="w-5 h-5 text-primary" />
+                  <h3 className="font-semibold">Informações de Uso</h3>
                 </div>
-
-                <div>
-                  <h3 className="text-xl font-medium mb-3">Conteúdo da Loja:</h3>
-                  <ul className="list-disc list-inside space-y-2 ml-4 text-muted-foreground">
-                    <li>Informações dos produtos</li>
-                    <li>Imagens e descrições</li>
-                    <li>Configurações da loja</li>
-                    <li>Dados de pedidos e clientes</li>
-                  </ul>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>• Dados de navegação</li>
+                  <li>• Endereço IP</li>
+                  <li>• Cookies</li>
+                  <li>• Logs de sistema</li>
+                </ul>
+              </div>
+              <div className="bg-card border rounded-lg p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Store className="w-5 h-5 text-primary" />
+                  <h3 className="font-semibold">Conteúdo da Loja</h3>
                 </div>
-              </div>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">3. Como Usamos suas Informações</h2>
-              <div className="space-y-4 text-muted-foreground">
-                <p>Utilizamos suas informações para:</p>
-                <ul className="list-disc list-inside space-y-2 ml-4">
-                  <li>Fornecer e manter nossos serviços</li>
-                  <li>Processar transações e pagamentos</li>
-                  <li>Comunicar sobre atualizações e suporte</li>
-                  <li>Melhorar a experiência do usuário</li>
-                  <li>Garantir a segurança da plataforma</li>
-                  <li>Cumprir obrigações legais</li>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>• Informações dos produtos</li>
+                  <li>• Imagens e descrições</li>
+                  <li>• Configurações</li>
+                  <li>• Dados de pedidos</li>
                 </ul>
               </div>
-            </section>
+            </div>
+          </section>
 
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">4. Compartilhamento de Informações</h2>
-              <div className="space-y-4 text-muted-foreground">
-                <p>Não vendemos suas informações pessoais. Podemos compartilhar dados apenas nas seguintes situações:</p>
-                <ul className="list-disc list-inside space-y-2 ml-4">
-                  <li>Com seu consentimento explícito</li>
-                  <li>Para cumprir obrigações legais</li>
-                  <li>Com prestadores de serviços essenciais (processamento de pagamento, hospedagem)</li>
-                  <li>Em caso de fusão ou aquisição da empresa</li>
-                  <li>Para proteger direitos, propriedade e segurança</li>
-                </ul>
+          {/* Como Usamos */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-3">
+              <Eye className="w-6 h-6 text-primary" />
+              <h2 className="text-2xl font-bold">3. Como Usamos suas Informações</h2>
+            </div>
+            <div className="bg-muted/50 rounded-lg p-6">
+              <p className="text-muted-foreground mb-4">Utilizamos suas informações para:</p>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {[
+                  "Fornecer e manter nossos serviços",
+                  "Processar transações e pagamentos",
+                  "Comunicar sobre atualizações e suporte",
+                  "Melhorar a experiência do usuário",
+                  "Garantir a segurança da plataforma",
+                  "Cumprir obrigações legais"
+                ].map((item, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    <span className="text-sm text-muted-foreground">{item}</span>
+                  </div>
+                ))}
               </div>
-            </section>
+            </div>
+          </section>
 
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibond mb-4">5. Segurança dos Dados</h2>
-              <div className="space-y-4 text-muted-foreground">
-                <p>Implementamos medidas de segurança técnicas e organizacionais, incluindo:</p>
-                <ul className="list-disc list-inside space-y-2 ml-4">
-                  <li>Criptografia de dados em trânsito e em repouso</li>
-                  <li>Controle de acesso baseado em funções</li>
-                  <li>Monitoramento contínuo de segurança</li>
-                  <li>Backups regulares e seguros</li>
-                  <li>Treinamento de equipe em proteção de dados</li>
-                </ul>
+          {/* Compartilhamento */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-3">
+              <Users className="w-6 h-6 text-primary" />
+              <h2 className="text-2xl font-bold">4. Compartilhamento de Informações</h2>
+            </div>
+            <div className="bg-card border rounded-lg p-6 space-y-4">
+              <p className="text-muted-foreground font-medium">
+                Não vendemos suas informações pessoais. Podemos compartilhar dados apenas nas seguintes situações:
+              </p>
+              <ul className="space-y-2 text-muted-foreground">
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
+                  <span>Com seu consentimento explícito</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
+                  <span>Para cumprir obrigações legais</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
+                  <span>Com prestadores de serviços essenciais (processamento de pagamento, hospedagem)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
+                  <span>Em caso de fusão ou aquisição da empresa</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500 mt-1 flex-shrink-0" />
+                  <span>Para proteger direitos, propriedade e segurança</span>
+                </li>
+              </ul>
+            </div>
+          </section>
+
+          {/* Segurança */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-3">
+              <Lock className="w-6 h-6 text-primary" />
+              <h2 className="text-2xl font-bold">5. Segurança dos Dados</h2>
+            </div>
+            <div className="bg-muted/50 rounded-lg p-6">
+              <p className="text-muted-foreground mb-4">Implementamos medidas de segurança técnicas e organizacionais:</p>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {[
+                  "Criptografia de dados em trânsito e em repouso",
+                  "Controle de acesso baseado em funções",
+                  "Monitoramento contínuo de segurança",
+                  "Backups regulares e seguros",
+                  "Treinamento de equipe em proteção de dados"
+                ].map((item, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-primary flex-shrink-0" />
+                    <span className="text-sm text-muted-foreground">{item}</span>
+                  </div>
+                ))}
               </div>
-            </section>
+            </div>
+          </section>
 
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">6. Seus Direitos (LGPD)</h2>
-              <div className="space-y-4 text-muted-foreground">
-                <p>De acordo com a LGPD, você tem direito a:</p>
-                <ul className="list-disc list-inside space-y-2 ml-4">
-                  <li>Confirmação da existência de tratamento de dados</li>
-                  <li>Acesso aos seus dados pessoais</li>
-                  <li>Correção de dados incompletos ou inexatos</li>
-                  <li>Anonimização, bloqueio ou eliminação de dados</li>
-                  <li>Portabilidade dos dados</li>
-                  <li>Eliminação dos dados tratados com consentimento</li>
-                  <li>Revogação do consentimento</li>
-                </ul>
-                <p className="mt-4">
-                  Para exercer seus direitos, entre em contato através do email: privacidade@mostralo.com.br
-                </p>
-              </div>
-            </section>
+          {/* Direitos LGPD */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-3">
+              <User className="w-6 h-6 text-primary" />
+              <h2 className="text-2xl font-bold">6. Seus Direitos (LGPD)</h2>
+            </div>
+            <p className="text-muted-foreground">
+              De acordo com a LGPD, você tem direito a:
+            </p>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {[
+                "Confirmação da existência de tratamento de dados",
+                "Acesso aos seus dados pessoais",
+                "Correção de dados incompletos ou inexatos",
+                "Anonimização, bloqueio ou eliminação de dados",
+                "Portabilidade dos dados",
+                "Eliminação dos dados tratados com consentimento",
+                "Revogação do consentimento"
+              ].map((item, index) => (
+                <div key={index} className="bg-muted/30 rounded-lg p-3 flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                  <span className="text-sm text-muted-foreground">{item}</span>
+                </div>
+              ))}
+            </div>
+          </section>
 
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">7. Cookies e Tecnologias Similares</h2>
+          {/* Cookies */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-3">
+              <Cookie className="w-6 h-6 text-primary" />
+              <h2 className="text-2xl font-bold">7. Cookies e Tecnologias Similares</h2>
+            </div>
+            <div className="bg-card border rounded-lg p-6">
               <p className="text-muted-foreground leading-relaxed">
                 Utilizamos cookies essenciais para o funcionamento da plataforma, cookies de desempenho para melhorar 
                 a experiência e cookies de funcionalidade para lembrar suas preferências. Você pode gerenciar suas 
                 preferências de cookies através das configurações do seu navegador.
               </p>
-            </section>
+              <Link 
+                to="/cookies" 
+                className="inline-flex items-center gap-2 mt-4 text-primary hover:underline text-sm"
+              >
+                Saiba mais sobre nossa Política de Cookies →
+              </Link>
+            </div>
+          </section>
 
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">8. Retenção de Dados</h2>
+          {/* Retenção */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-3">
+              <Clock className="w-6 h-6 text-primary" />
+              <h2 className="text-2xl font-bold">8. Retenção de Dados</h2>
+            </div>
+            <div className="bg-muted/50 rounded-lg p-6">
               <p className="text-muted-foreground leading-relaxed">
                 Mantemos seus dados pessoais apenas pelo tempo necessário para cumprir as finalidades descritas nesta política, 
                 exceto quando exigido por lei. Dados de contas inativas são automaticamente excluídos após 2 anos de inatividade.
               </p>
-            </section>
+            </div>
+          </section>
 
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">9. Alterações na Política</h2>
+          {/* Alterações */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-3">
+              <Bell className="w-6 h-6 text-primary" />
+              <h2 className="text-2xl font-bold">9. Alterações na Política</h2>
+            </div>
+            <div className="bg-card border rounded-lg p-6">
               <p className="text-muted-foreground leading-relaxed">
                 Podemos atualizar esta Política de Privacidade periodicamente. Notificaremos sobre alterações significativas 
                 por email ou através da plataforma. A data da última atualização sempre estará indicada no início do documento.
               </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">10. Contato</h2>
-              <div className="space-y-2 text-muted-foreground">
-                <p>Para questões sobre privacidade e proteção de dados:</p>
-                <p>Email: <span className="text-primary">privacidade@mostralo.com.br</span></p>
-                <p>Encarregado de Dados (DPO): <span className="text-primary">dpo@mostralo.com.br</span></p>
-              </div>
-            </section>
-          </div>
-
-          <div className="pt-8 border-t">
-            <div className="text-center">
-              <a 
-                href="/" 
-                className="inline-flex items-center text-primary hover:text-primary/80 transition-colors"
-              >
-                ← Voltar para o início
-              </a>
             </div>
-          </div>
+          </section>
+
+          {/* Contato */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-3">
+              <Mail className="w-6 h-6 text-primary" />
+              <h2 className="text-2xl font-bold">10. Contato</h2>
+            </div>
+            <div className="bg-primary/10 border border-primary/20 rounded-lg p-6 space-y-4">
+              <p className="text-foreground leading-relaxed">
+                Para questões sobre privacidade e proteção de dados:
+              </p>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Mail className="w-5 h-5 text-primary" />
+                  <div>
+                    <span className="font-medium">E-mail:</span>
+                    <a href="mailto:privacidade@mostralo.com.br" className="ml-2 text-primary hover:underline">
+                      privacidade@mostralo.com.br
+                    </a>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <User className="w-5 h-5 text-primary" />
+                  <div>
+                    <span className="font-medium">Encarregado de Dados (DPO):</span>
+                    <a href="mailto:dpo@mostralo.com.br" className="ml-2 text-primary hover:underline">
+                      dpo@mostralo.com.br
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Última Atualização */}
+          <section className="text-center pt-8 border-t">
+            <p className="text-sm text-muted-foreground">
+              Esta página foi atualizada pela última vez em <strong>31 de janeiro de 2026</strong>.
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Para mais informações, consulte nossa{" "}
+              <Link to="/lgpd" className="text-primary hover:underline">
+                Página sobre LGPD
+              </Link>
+              .
+            </p>
+          </section>
         </div>
-      </div>
+      </main>
+
+      <MainFooter showDisclaimer={false} />
     </div>
   );
 }

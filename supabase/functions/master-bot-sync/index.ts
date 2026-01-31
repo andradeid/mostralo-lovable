@@ -535,6 +535,135 @@ function getBotBehaviorConfig(config: any, botType: string): BotBehaviorConfig {
 }
 
 // =====================================================
+// TOOLS DO OPENAI ASSISTANT POR TIPO DE BOT
+// =====================================================
+
+const MASTER_BOT_TOOLS: Record<string, any[]> = {
+  sales: [
+    {
+      type: 'function',
+      function: {
+        name: 'get_plans',
+        description: 'Retorna lista de planos disponíveis com preços atualizados',
+        parameters: { type: 'object', properties: {} }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'calculate_savings',
+        description: 'Calcula economia vs iFood baseado no faturamento mensal',
+        parameters: {
+          type: 'object',
+          properties: {
+            monthly_revenue: { type: 'number', description: 'Faturamento mensal em reais' }
+          },
+          required: ['monthly_revenue']
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'get_testimonials',
+        description: 'Retorna depoimentos de clientes satisfeitos',
+        parameters: { type: 'object', properties: {} }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'get_modules',
+        description: 'Lista módulos e funcionalidades disponíveis',
+        parameters: { type: 'object', properties: {} }
+      }
+    }
+  ],
+  recruitment: [
+    {
+      type: 'function',
+      function: {
+        name: 'get_bonus_tiers',
+        description: 'Retorna tiers de bônus para vendedores/parceiros',
+        parameters: { type: 'object', properties: {} }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'get_plans',
+        description: 'Retorna lista de planos para cálculo de comissão',
+        parameters: { type: 'object', properties: {} }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'calculate_commission',
+        description: 'Calcula comissão baseada em vendas',
+        parameters: {
+          type: 'object',
+          properties: {
+            sales: { type: 'number', description: 'Número de vendas' },
+            plan_value: { type: 'number', description: 'Valor do plano' },
+            is_pj: { type: 'boolean', description: 'Se é parceiro PJ' }
+          },
+          required: ['sales']
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'get_recruitment_link',
+        description: 'Retorna link de cadastro para parceiros',
+        parameters: { type: 'object', properties: {} }
+      }
+    }
+  ],
+  support: [
+    {
+      type: 'function',
+      function: {
+        name: 'search_faq',
+        description: 'Busca perguntas frequentes por termo',
+        parameters: {
+          type: 'object',
+          properties: {
+            query: { type: 'string', description: 'Termo de busca' }
+          },
+          required: ['query']
+        }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'get_store_info',
+        description: 'Retorna informações da plataforma Mostralo',
+        parameters: { type: 'object', properties: {} }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'get_system_status',
+        description: 'Verifica status dos sistemas',
+        parameters: { type: 'object', properties: {} }
+      }
+    },
+    {
+      type: 'function',
+      function: {
+        name: 'get_modules',
+        description: 'Lista módulos disponíveis na plataforma',
+        parameters: { type: 'object', properties: {} }
+      }
+    }
+  ]
+};
+
+// =====================================================
 // HANDLER PRINCIPAL
 // =====================================================
 
@@ -954,10 +1083,85 @@ serve(async (req) => {
           support: 'Bot de Suporte - Atendimento ao cliente e suporte técnico da plataforma Mostralo'
         };
 
-        const botPayload = {
+        // ========================================
+        // CRIAR/ATUALIZAR OPENAI ASSISTANT
+        // ========================================
+        const assistantIdField = `${bt}_openai_assistant_id`;
+        let openaiAssistantId = config[assistantIdField] as string | null;
+        
+        console.log(`🤖 [${bt}] Verificando OpenAI Assistant...`);
+        
+        try {
+          const assistantTools = MASTER_BOT_TOOLS[bt] || [];
+          const assistantPayload = {
+            name: `${botName} - Mostralo`,
+            instructions: prompt,
+            tools: assistantTools,
+            model: config.openai_model || evolutionConfig.openai_default_model || 'gpt-4o-mini',
+          };
+
+          if (openaiAssistantId) {
+            // Atualizar Assistant existente
+            console.log(`📝 [${bt}] Atualizando Assistant existente: ${openaiAssistantId}`);
+            const updateResp = await fetch(
+              `https://api.openai.com/v1/assistants/${openaiAssistantId}`,
+              {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${openaiApiKey}`,
+                  'Content-Type': 'application/json',
+                  'OpenAI-Beta': 'assistants=v2',
+                },
+                body: JSON.stringify(assistantPayload),
+              }
+            );
+
+            if (updateResp.ok) {
+              const assistant = await updateResp.json();
+              openaiAssistantId = assistant.id;
+              console.log(`✅ [${bt}] OpenAI Assistant atualizado: ${openaiAssistantId}`);
+            } else {
+              // Se falhou (404 ou outro), criar novo
+              console.log(`⚠️ [${bt}] Update falhou, criando novo Assistant...`);
+              openaiAssistantId = null;
+            }
+          }
+
+          if (!openaiAssistantId) {
+            // Criar novo Assistant
+            console.log(`🆕 [${bt}] Criando novo OpenAI Assistant...`);
+            const createResp = await fetch('https://api.openai.com/v1/assistants', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${openaiApiKey}`,
+                'Content-Type': 'application/json',
+                'OpenAI-Beta': 'assistants=v2',
+              },
+              body: JSON.stringify(assistantPayload),
+            });
+
+            if (!createResp.ok) {
+              const errorText = await createResp.text();
+              console.error(`❌ [${bt}] Erro ao criar Assistant:`, errorText);
+              throw new Error(`Falha ao criar OpenAI Assistant: ${errorText.slice(0, 100)}`);
+            }
+
+            const assistant = await createResp.json();
+            openaiAssistantId = assistant.id;
+            console.log(`✅ [${bt}] OpenAI Assistant criado: ${openaiAssistantId}`);
+          }
+        } catch (assistantError) {
+          console.error(`❌ [${bt}] Erro ao gerenciar OpenAI Assistant:`, assistantError);
+          throw assistantError;
+        }
+
+        // URL da function para processar tool calls
+        const functionUrl = `${supabaseUrl}/functions/v1/master-faq-agent`;
+
+        const botPayload: Record<string, any> = {
           enabled: true,
           openaiCredsId: openaiCredsId,
-          botType: 'chatCompletion',
+          botType: 'assistant',  // MUDANÇA: era 'chatCompletion'
           model: config.openai_model || evolutionConfig.openai_default_model || 'gpt-4o-mini',
           maxTokens: evolutionConfig.openai_max_tokens || 1000,
           description: botDescriptions[bt] || `Bot ${botName} - Mostralo`,
@@ -980,7 +1184,17 @@ serve(async (req) => {
           ignoreJids: [],
           splitMessages: behaviorConfig.split_messages !== undefined ? behaviorConfig.split_messages : true,
           timePerChar: behaviorConfig.time_per_char || 0,
+          // NOVOS CAMPOS para tipo 'assistant'
+          assistantId: openaiAssistantId,
+          functionUrl: functionUrl,
         };
+
+        console.log(`🔧 [${bt}] Payload do bot:`, JSON.stringify({
+          botType: botPayload.botType,
+          assistantId: botPayload.assistantId,
+          functionUrl: botPayload.functionUrl,
+          model: botPayload.model,
+        }, null, 2));
 
         // 🔥 ESTRATÉGIA DELETE + CREATE (igual ao lojista)
         // A Evolution API permite apenas 1 bot ativo por instância, então:
@@ -1080,17 +1294,19 @@ serve(async (req) => {
 
         const newBotId = responseData.id || responseData.openaiBot?.id || responseData.openai?.id;
         if (newBotId) {
-          // Atualizar o botId E o primary_bot_type automaticamente
+          // Atualizar o botId, primary_bot_type E assistantId
+          const assistantIdField = `${bt}_openai_assistant_id`;
           await supabase
             .from('master_whatsapp_config')
             .update({ 
               [existingBotIdField]: newBotId,
-              primary_bot_type: bt  // Atualiza automaticamente o bot principal
+              [assistantIdField]: openaiAssistantId,
+              primary_bot_type: bt
             })
             .eq('id', configId);
 
           results[bt] = { success: true, botId: newBotId };
-          console.log(`✅ Bot ${bt} criado com ID: ${newBotId} - primary_bot_type atualizado para "${bt}"`);
+          console.log(`✅ Bot ${bt} criado com ID: ${newBotId}, AssistantID: ${openaiAssistantId}`);
         } else {
           results[bt] = { success: true, botId: undefined };
           console.log(`⚠️ Bot ${bt} criado mas sem ID retornado`);

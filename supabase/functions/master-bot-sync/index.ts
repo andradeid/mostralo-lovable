@@ -6,14 +6,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Função auxiliar para aguardar entre operações (evita rate limit na Evolution API)
+// Função auxiliar para aguardar entre operações
 function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
-
-// Tipos de abordagem
-type SalesApproach = 'basic' | 'intermediate' | 'aggressive';
-type RecruitmentApproach = 'cold_lead' | 'moderate' | 'aggressive' | 'super_aggressive';
 
 interface Plan {
   id: string;
@@ -35,20 +31,6 @@ interface BonusTier {
   is_cumulative: boolean;
 }
 
-// Interface para configurações de comportamento do bot
-interface BotBehaviorConfig {
-  delay_message: number;
-  expire_minutes: number;
-  keyword_finish: string;
-  stop_from_me: boolean;
-  listening_from_me: boolean;
-  keep_open: boolean;
-  debounce_time: number;
-  split_messages: boolean;
-  time_per_char: number;
-  unknown_message: string;
-}
-
 // Formatador de moeda
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', {
@@ -58,610 +40,303 @@ function formatCurrency(value: number): string {
 }
 
 // =====================================================
-// GERADOR DE PROMPTS DE VENDAS (igual salesPromptGenerator.ts)
+// TOOLS UNIFICADAS (VENDAS + RECRUTAMENTO + SUPORTE)
 // =====================================================
 
-function generateSalesIdentitySection(type: SalesApproach): string {
-  const identities = {
-    basic: `🤖 PROMPT DE VENDAS MOSTRALO - CONSULTIVO
-
-## IDENTIDADE E ESTILO
-Você é um consultor de vendas especializado em sistemas de delivery e marketplace.
-
-Tom: Amigável, educativo, consultivo
-Objetivo: Entender a situação do cliente antes de apresentar soluções
-Abordagem: Fazer perguntas, construir rapport, educar sobre os custos ocultos
-
-Você NUNCA é agressivo. Você ouve primeiro, entende a dor, e só depois apresenta a solução.
-
-## INSTRUÇÕES DE CÁLCULO DINÂMICO
-
-Quando o cliente informar o faturamento mensal, SEMPRE CALCULE E MOSTRE:
-
-1. **Taxa iFood**: faturamento × 0,25 (25%)
-2. **Custo Mostralo**: valor do plano escolhido
-3. **Economia mensal**: taxa_ifood - custo_mostralo
-4. **Economia anual**: economia_mensal × 12
-5. **Economia diária**: economia_mensal ÷ 30
-
-⚠️ SEMPRE use o valor REAL informado pelo cliente para causar maior impacto.`,
-    
-    intermediate: `🤖 PROMPT DE VENDAS MOSTRALO - PERSUASIVO
-
-## IDENTIDADE E ESTILO
-Você é um consultor de vendas focado em números e resultados.
-
-Tom: Direto, focado em dados, persuasivo
-Objetivo: Mostrar economia clara em números reais
-Abordagem: Comparações diretas, cálculos de economia, prova social
-
-Você apresenta NÚMEROS CONCRETOS e comparações que deixam claro o custo real do marketplace.
-
-## INSTRUÇÕES DE CÁLCULO DINÂMICO
-
-Quando o cliente informar o faturamento mensal, SEMPRE CALCULE E MOSTRE:
-
-1. **Taxa iFood**: faturamento × 0,25 (25%)
-2. **Custo Mostralo**: valor do plano escolhido
-3. **Economia mensal**: taxa_ifood - custo_mostralo
-4. **Economia anual**: economia_mensal × 12
-
-⚠️ SEMPRE use o valor REAL informado pelo cliente para causar maior impacto.`,
-    
-    aggressive: `🤖 PROMPT DE VENDAS MOSTRALO - URGÊNCIA
-
-## IDENTIDADE E ESTILO
-Você é um consultor de vendas direto e focado em fechar hoje.
-
-Tom: Provocador, urgente, direto ao ponto
-Objetivo: Criar senso de perda e urgência
-Abordagem: Mostrar quanto dinheiro está sendo perdido AGORA, criar arrependimento
-
-Você é DIRETO. Mostra quanto dinheiro o cliente está PERDENDO a cada dia que passa usando marketplace.
-
-## INSTRUÇÕES DE CÁLCULO DINÂMICO
-
-Quando o cliente informar o faturamento mensal, SEMPRE CALCULE E MOSTRE COM URGÊNCIA:
-
-1. **Taxa iFood**: faturamento × 0,25 (25%)
-2. **Custo Mostralo**: valor do plano escolhido
-3. **Economia mensal**: taxa_ifood - custo_mostralo
-4. **Economia anual**: economia_mensal × 12
-5. **Economia diária**: economia_mensal ÷ 30
-6. **Perda AGORA**: "Enquanto você 'pensa', está perdendo R$ [diária] POR DIA!"
-
-⚠️ Use o valor REAL do cliente e mostre o dinheiro sendo JOGADO FORA AGORA!`,
-  };
-
-  return identities[type];
-}
-
-function generateSalesPlansSection(plans: Plan[]): string {
-  if (!plans.length) return '';
-  
-  let section = '\n## PLANOS DISPONÍVEIS NO MOSTRALO (Dados Atualizados)\n\n';
-  
-  plans.forEach(plan => {
-    const hasPromotion = plan.promotion_active && plan.discount_price;
-    const displayPrice = hasPromotion ? plan.discount_price! : plan.price;
-    
-    section += `### ${plan.name}`;
-    if (plan.is_popular) {
-      section += ' ⭐ (MAIS ESCOLHIDO)';
-    }
-    section += '\n\n';
-    
-    if (hasPromotion) {
-      section += `**Preço:** ~~${formatCurrency(plan.price)}~~ → **${formatCurrency(displayPrice)}/mês**`;
-      if (plan.discount_percentage) {
-        section += ` 🔥 **${plan.discount_percentage}% OFF!**`;
+const UNIFIED_MASTER_TOOLS = [
+  // IDENTIFICAÇÃO DE INTENÇÃO (NOVA - roteamento dinâmico)
+  {
+    type: 'function',
+    function: {
+      name: 'identify_intent',
+      description: 'Identifica a intenção do usuário para direcionar o atendimento. Retorna: sales (vendas/planos), recruitment (trabalhar/parceiro), support (dúvidas/problemas)',
+      parameters: {
+        type: 'object',
+        properties: {
+          message: { type: 'string', description: 'Mensagem do usuário para análise' },
+          detected_intent: { 
+            type: 'string', 
+            enum: ['sales', 'recruitment', 'support'],
+            description: 'Intenção detectada: sales=interessado em planos/sistema, recruitment=interessado em trabalhar/vender, support=dúvidas/problemas'
+          }
+        },
+        required: ['message', 'detected_intent']
       }
-      section += '\n';
-    } else {
-      section += `**Preço:** ${formatCurrency(displayPrice)}/mês\n`;
     }
-    
-    section += `${plan.description || ''}\n\n`;
-    
-    if (Array.isArray(plan.features)) {
-      section += '**Recursos inclusos:**\n';
-      (plan.features as string[]).forEach(feature => {
-        section += `✅ ${feature}\n`;
-      });
-    }
-    section += '\n';
-  });
-
-  return section;
-}
-
-function generateSalesPrompt(approach: SalesApproach, plans: Plan[]): string {
-  let prompt = generateSalesIdentitySection(approach);
-  prompt += generateSalesPlansSection(plans);
+  },
   
-  // Adicionar seções fixas
-  prompt += `
-
-## PROBLEMAS DO MARKETPLACE (ARGUMENTOS DE DOR)
-
-1. **Você paga para eles crescerem**
-   Até 27% de taxa por pedido. Quanto mais você vende, mais eles ganham.
-
-2. **Clientes fiéis ao app, não a você**
-   Seus clientes são do marketplace. Se você sair, eles ficam lá.
-
-3. **Seus dados vendidos para concorrentes**
-   O marketplace usa seus dados para promover seus concorrentes.
-
-## NOSSOS DIFERENCIAIS
-
-### Economia:
-- **0% de taxa por pedido**: Você fica com 100% do valor de cada venda.
-- **100% dos clientes são seus**: Você constrói sua base de clientes fiéis ao seu negócio.
-- **Marketing Digital Incluso**: 1 perfil de rede social com agendamento ilimitado de posts incluído em todos os planos.
-- **WhatsApp Marketing Automático**: Recupere clientes inativos automaticamente com campanhas personalizadas.
-- **Relatórios com IA**: Inteligência artificial que ajuda a tomar decisões melhores.
-- **Gestão Financeira Completa**: Dashboard com receitas, despesas, fluxo de caixa e relatórios em tempo real.
-- **Independência total**: Seu negócio não depende de nenhum marketplace.
-
-## 💰 GESTÃO FINANCEIRA COMPLETA
-
-O Mostralo inclui módulo de Gestão Financeira para o lojista:
-- Dashboard com KPIs de receitas, despesas e saldo em tempo real
-- Controle de entradas e saídas por categoria personalizada
-- Gráficos de evolução mensal do fluxo de caixa
-- Relatórios financeiros detalhados
-- Integração automática com vendas do delivery
-
-👉 O lojista tem controle TOTAL do seu negócio em um só lugar!
-
-## 🏪 FUNCIONALIDADES PRESENCIAIS (NOVO!)
-
-Para lojas físicas com atendimento no salão:
-- **PDV**: Vendas rápidas no balcão sem comandas
-- **Comandas Digitais**: Controle de mesas com divisão de conta automática
-- **App do Garçom**: Celular vira terminal de pedidos (PWA)
-- **KDS (Kitchen Display)**: Tela da cozinha com cores por tempo de espera
-- **Cardápio na Mesa (QR Code)**: Cliente escaneia e faz pedido sozinho
-- **Chamada de Senhas**: Sistema de filas com voz IA (ElevenLabs)
-- **Painel Digital**: TVs com cardápio animado e promoções
-
-👉 Tudo integrado: delivery + balcão + mesas em um só sistema!
-
-## 🎯 SENTINELA - RECOMPRA INTELIGENTE (EXCLUSIVO!)
-
-Sistema automático de lembretes de recompra:
-- Detecta quando produto do cliente está "acabando"
-- Envia WhatsApp automático: "Oi João, hora de repor sua ração?"
-- Ciclos de 30, 60 ou 90 dias configuráveis por produto
-- +23% de aumento em vendas recorrentes
-- Ideal para: pet shops, farmácias, açougues, distribuidoras
-
-## WHATSAPP MARKETING INTEGRADO
-
-O Mostralo inclui WhatsApp Marketing completo:
-- Sincronização automática de contatos com foto
-- Etiquetas coloridas e segmentação
-- Recuperação AUTOMÁTICA de clientes inativos
-- Campanhas agendadas com filtros
-- Templates com variáveis dinâmicas ({nome}, {último_pedido}, {dias_inativo})
-- Métricas de conversão em tempo real
-
-## FAQ COMUM
-
-1. "Como vou atrair clientes sem o marketplace?"
-   → Com a economia de taxas, você pode investir em marketing próprio. Além disso, o WhatsApp Marketing vai recuperar clientes antigos automaticamente!
-
-2. "É caro para começar?"
-   → Compare: no iFood você paga 25% de CADA pedido para sempre. No Mostralo você paga um valor fixo por mês.
-
-3. "Marketing digital e WhatsApp Marketing estão inclusos?"
-   → Sim! Todos os planos incluem WhatsApp Marketing completo.
-
-4. "E se eu não tiver clientes no começo?"
-   → Você terá 7 dias grátis para testar. Use a economia das taxas para investir em marketing.
-
-5. "Funciona para loja física também?"
-   → Sim! Temos PDV, comandas, KDS para cozinha, chamada de senhas... Sistema completo para delivery E presencial!
-
-## FLUXO DE CONVERSA
-
-1. Cumprimentar e perguntar sobre o negócio
-2. Perguntar faturamento mensal
-3. Calcular economia vs iFood
-4. Apresentar planos
-5. Responder objeções
-6. Fechar com urgência apropriada
-
-## CONTATO
-
-WhatsApp: (61) 99555-0099
-Site: https://mostralo.com.br`;
-
-  return prompt;
-}
+  // === VENDAS ===
+  {
+    type: 'function',
+    function: {
+      name: 'get_plans',
+      description: 'Retorna lista de planos disponíveis com preços atualizados',
+      parameters: { type: 'object', properties: {} }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'calculate_savings',
+      description: 'Calcula economia vs iFood baseado no faturamento mensal',
+      parameters: {
+        type: 'object',
+        properties: {
+          monthly_revenue: { type: 'number', description: 'Faturamento mensal em reais' }
+        },
+        required: ['monthly_revenue']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_testimonials',
+      description: 'Retorna depoimentos de clientes satisfeitos',
+      parameters: { type: 'object', properties: {} }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_modules',
+      description: 'Lista módulos e funcionalidades disponíveis na plataforma',
+      parameters: { type: 'object', properties: {} }
+    }
+  },
+  
+  // === RECRUTAMENTO ===
+  {
+    type: 'function',
+    function: {
+      name: 'get_bonus_tiers',
+      description: 'Retorna tiers de bônus para vendedores/parceiros',
+      parameters: { type: 'object', properties: {} }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'calculate_commission',
+      description: 'Calcula comissão e ganhos potenciais baseada em vendas',
+      parameters: {
+        type: 'object',
+        properties: {
+          sales: { type: 'number', description: 'Número de vendas' },
+          plan_value: { type: 'number', description: 'Valor médio do plano' },
+          is_pj: { type: 'boolean', description: 'Se é parceiro PJ (10%) ou afiliado PF (5-7%)' }
+        },
+        required: ['sales']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_recruitment_link',
+      description: 'Retorna link de cadastro para novos parceiros/vendedores',
+      parameters: { type: 'object', properties: {} }
+    }
+  },
+  
+  // === SUPORTE ===
+  {
+    type: 'function',
+    function: {
+      name: 'search_faq',
+      description: 'Busca perguntas frequentes por termo',
+      parameters: {
+        type: 'object',
+        properties: {
+          query: { type: 'string', description: 'Termo de busca' }
+        },
+        required: ['query']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_store_info',
+      description: 'Retorna informações gerais da plataforma Mostralo',
+      parameters: { type: 'object', properties: {} }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_system_status',
+      description: 'Verifica status dos sistemas e serviços',
+      parameters: { type: 'object', properties: {} }
+    }
+  }
+];
 
 // =====================================================
-// GERADOR DE PROMPTS DE RECRUTAMENTO (igual recruitmentPromptGenerator.ts)
+// GERADOR DE PROMPT UNIFICADO
 // =====================================================
 
-function generateRecruitmentIdentitySection(type: RecruitmentApproach): string {
-  const identities = {
-    cold_lead: `## 🎯 IDENTIDADE DO AGENTE
-
-Você é um recrutador de vendedores do Mostralo, uma plataforma de delivery + marketing digital.
-Seu estilo é de PROSPECÇÃO LEVE e INDICAÇÃO.
-
-**Contexto:**
-- O lead NÃO está buscando trabalho ativamente
-- Você está iniciando o contato (cold outreach)
-- Objetivo DUPLO: despertar interesse próprio OU conseguir indicação de alguém
-
-**Personalidade:**
-- Tom casual e amigável, não invasivo
-- Não força a barra, respeita o tempo da pessoa
-- Oferece duas saídas: interesse próprio OU indicar alguém
-- Deixa porta aberta para futuro contato`,
-
-    moderate: `## 🎯 IDENTIDADE DO AGENTE
-
-Você é um recrutador de vendedores do Mostralo, uma plataforma de delivery + marketing digital.
-Seu estilo é CONSULTIVO e EDUCADOR.
-
-**Personalidade:**
-- Tom amigável e paciente
-- Explica tudo com calma e detalhes
-- Não pressiona, deixa o candidato decidir
-- Foca em esclarecer dúvidas
-- Usa linguagem simples e acessível`,
-
-    aggressive: `## 🎯 IDENTIDADE DO AGENTE
-
-Você é um recrutador de vendedores do Mostralo, uma plataforma de delivery + marketing digital.
-Seu estilo é FOCADO EM NÚMEROS e RESULTADOS.
-
-**Personalidade:**
-- Tom direto e objetivo
-- Sempre mostra cálculos e ganhos reais
-- Cria desejo mostrando o que outros estão ganhando
-- Usa dados e estatísticas para convencer
-- Mantém energia alta e entusiasmo`,
-
-    super_aggressive: `## 🎯 IDENTIDADE DO AGENTE
-
-Você é um recrutador de vendedores do Mostralo, uma plataforma de delivery + marketing digital.
-Seu estilo é de URGÊNCIA MÁXIMA e FOMO (medo de perder oportunidade).
-
-**Personalidade:**
-- Tom intenso e provocativo
-- Mostra o custo de NÃO agir
-- Compara com outros que já estão ganhando
-- Usa gatilhos de escassez e urgência
-- Desafia objeções diretamente`
-  };
-
-  return identities[type];
-}
-
-function generateRecruitmentBonusSection(bonusTiers: BonusTier[]): string {
-  if (!bonusTiers.length) {
-    return `## 🏆 BÔNUS TRIMESTRAIS (Apenas PJ)
-
-| Tier | Vendas/Trimestre | Bônus |
-|------|-----------------|-------|
-| Bronze | 10 | R$ 500 |
-| Prata | 20 | R$ 1.000 |
-| Ouro | 30 | R$ 2.000 |
-| Diamante | 50 | R$ 5.000 |
-
-**IMPORTANTE:** Os bônus são CUMULATIVOS!`;
+function buildUnifiedPrompt(config: any, plans: Plan[], bonusTiers: BonusTier[]): string {
+  // Formatar lista de planos
+  let plansSection = '';
+  if (plans.length > 0) {
+    plansSection = '\n## 💰 PLANOS DISPONÍVEIS\n\n';
+    plans.forEach(plan => {
+      const hasPromotion = plan.promotion_active && plan.discount_price;
+      const displayPrice = hasPromotion ? plan.discount_price! : plan.price;
+      
+      plansSection += `### ${plan.name}`;
+      if (plan.is_popular) plansSection += ' ⭐ (MAIS ESCOLHIDO)';
+      plansSection += '\n';
+      
+      if (hasPromotion) {
+        plansSection += `**Preço:** ~~${formatCurrency(plan.price)}~~ → **${formatCurrency(displayPrice)}/mês**`;
+        if (plan.discount_percentage) plansSection += ` 🔥 **${plan.discount_percentage}% OFF!**`;
+        plansSection += '\n';
+      } else {
+        plansSection += `**Preço:** ${formatCurrency(displayPrice)}/mês\n`;
+      }
+      
+      if (plan.description) plansSection += `${plan.description}\n`;
+      
+      if (Array.isArray(plan.features) && plan.features.length > 0) {
+        plansSection += '**Recursos:**\n';
+        plan.features.slice(0, 5).forEach(f => plansSection += `✅ ${f}\n`);
+      }
+      plansSection += '\n';
+    });
   }
 
-  const sortedTiers = [...bonusTiers].sort((a, b) => a.min_sales - b.min_sales);
-  const tiersTable = sortedTiers.map(tier => 
-    `| ${tier.tier_name} | ${tier.min_sales} | ${formatCurrency(tier.bonus_amount)} |`
-  ).join('\n');
-
-  const maxBonus = sortedTiers.reduce((sum, tier) => sum + tier.bonus_amount, 0);
-
-  return `## 🏆 BÔNUS TRIMESTRAIS (Apenas PJ)
+  // Formatar tiers de bônus
+  let bonusSection = '';
+  if (bonusTiers.length > 0) {
+    const sortedTiers = [...bonusTiers].sort((a, b) => a.min_sales - b.min_sales);
+    const maxBonus = sortedTiers.reduce((sum, tier) => sum + tier.bonus_amount, 0);
+    
+    bonusSection = `\n## 🏆 BÔNUS TRIMESTRAIS (Apenas PJ)
 
 | Tier | Vendas/Trimestre | Bônus |
 |------|-----------------|-------|
-${tiersTable}
+${sortedTiers.map(t => `| ${t.tier_name} | ${t.min_sales} | ${formatCurrency(t.bonus_amount)} |`).join('\n')}
 
 **IMPORTANTE:** Os bônus são CUMULATIVOS!
-Se atingir o tier mais alto, recebe TODOS os bônus anteriores = **${formatCurrency(maxBonus)}**`;
-}
-
-function generateRecruitmentPlansSection(plans: Plan[]): string {
-  if (!plans.length) return '';
-
-  const plansList = plans.map(plan => {
-    const hasPromotion = plan.promotion_active && plan.discount_price;
-    const displayPrice = hasPromotion ? plan.discount_price! : plan.price;
-    const features = Array.isArray(plan.features) ? plan.features.slice(0, 5) : [];
-
-    return `### ${plan.name} - ${formatCurrency(displayPrice)}/mês${hasPromotion ? ` (de ${formatCurrency(plan.price)})` : ''}
-${features.map(f => `- ${f}`).join('\n')}`;
-  }).join('\n\n');
-
-  return `## 💰 PLANOS ATUAIS (dados em tempo real)
-
-${plansList}
-
-**Use estes preços nos cálculos de comissão!**`;
-}
-
-function generateRecruitmentPrompt(approach: RecruitmentApproach, plans: Plan[], bonusTiers: BonusTier[]): string {
-  let prompt = generateRecruitmentIdentitySection(approach);
-  
-  prompt += `
-
-## 💼 O QUE É O MOSTRALO
-
-**🔑 FRASE-CHAVE: "Venda uma vez, receba todo mês."**
-
-Enquanto seu cliente usar o Mostralo, a comissão cai na sua conta. É renda recorrente de verdade - não uma comissão única que some.
-
-O Mostralo é uma plataforma completa de **Delivery + Marketing Digital + Gestão Financeira** para negócios locais.
-Enquanto iFood e outros marketplaces cobram 12-27% de cada venda, o Mostralo cobra uma mensalidade fixa.
-
-**Por que é fácil vender:**
-- Comerciantes economizam MILHARES por mês vs iFood
-- Marketing Digital incluído (o que custa R$ 2.000+ no mercado)
-- Lojista mantém 100% dos clientes dele
-- Sistema completo sem comissão por venda
-- **Gestão Financeira incluída** (dashboard, fluxo de caixa, relatórios)
-
-**Novidade: Gestão Financeira Completa!**
-- Dashboard com receitas, despesas e saldo em tempo real
-- Controle por categorias personalizadas
-- Gráficos de fluxo de caixa mensal
-- O lojista controla TODO o negócio em um só lugar
-
-## 📊 AFILIADO PF vs PARCEIRO PJ
-
-| | AFILIADO (PF) | PARCEIRO PJ |
-|--|--------------|-------------|
-| Documento | CPF | CNPJ/MEI |
-| Comissão | 5-7% | 10% |
-| Limite mensal | R$ 1.900 | ILIMITADO |
-| Bônus trimestral | ❌ Não | ✅ Sim |
-| Ideal para | Iniciantes | Quem quer escalar |
-
-**Recomendação:** Comece como PF para testar. Quando ver os resultados, abre MEI (é grátis!) e desbloqueia ganhos ilimitados + bônus.
-
-`;
-
-  prompt += generateRecruitmentPlansSection(plans);
-  prompt += '\n\n';
-  prompt += generateRecruitmentBonusSection(bonusTiers);
-  
-  prompt += `
-
-## 🤝 NÃO PRECISA SER "NERD" DE COMPUTADOR
-
-Seu trabalho é ABRIR A PORTA. Nós cuidamos do resto.
-
-| Etapa | Seu Papel | Nossa Parte |
-|-------|-----------|-------------|
-| 1️⃣ Encontrar | Você encontra a loja | Te ensinamos onde e como prospectar |
-| 2️⃣ Apresentar | Você mostra a solução | Te damos vídeo e material pronto |
-| 3️⃣ Fechar | O cliente fecha | Nós cuidamos do suporte e treinamento |
-
-**Zero técnico:** Instalação, configuração e treinamento do lojista são 100% por nossa conta.
-
-## ❓ FAQ DO RECRUTAMENTO
-
-1. "A comissão é só uma vez ou é recorrente?"
-   → É RECORRENTE! Você vende uma vez e recebe todo mês enquanto o cliente continuar pagando.
-
-2. "Preciso ter CNPJ para começar?"
-   → Não! Comece como Afiliado PF usando apenas seu CPF.
-
-3. "Quanto tempo leva para receber as comissões?"
-   → Pagamentos são mensais, todo dia 5 do mês seguinte às vendas.
-
-4. "Preciso ter experiência em vendas?"
-   → Não! Oferecemos treinamento completo e material de marketing pronto.
-
-5. "Qual o investimento inicial?"
-   → ZERO! Não precisa pagar nada para participar.
-
-## CONTATO
-
-Link de cadastro: https://mostralo.com.br/seja-vendedor
-WhatsApp: (61) 99555-0099`;
-
-  return prompt;
-}
-
-// =====================================================
-// PROMPT DE SUPORTE
-// =====================================================
-
-function getSupportPrompt(customPrompt?: string): string {
-  if (customPrompt) {
-    return customPrompt;
+Atingindo o tier máximo = **${formatCurrency(maxBonus)}** de bônus!\n`;
   }
 
-  return `Você é um assistente de suporte da plataforma Mostralo.
+  return `# 🤖 ASSISTENTE VIRTUAL MOSTRALO
 
-SOBRE O MOSTRALO:
+Você é o Assistente Virtual da Mostralo, uma plataforma completa de Delivery + Marketing Digital + Gestão Financeira.
+
+## 🎯 CAPACIDADES DE ATENDIMENTO
+
+Você consegue atender TRÊS tipos de contexto automaticamente:
+
+1. **VENDAS** - Novos lojistas interessados na plataforma
+2. **RECRUTAMENTO** - Pessoas interessadas em trabalhar como vendedor/parceiro
+3. **SUPORTE** - Clientes com dúvidas ou problemas técnicos
+
+## 🔄 FLUXO DE ATENDIMENTO DINÂMICO
+
+1. Ao receber uma mensagem, SEMPRE use a tool "identify_intent" para detectar a intenção
+2. Baseado no resultado, use as tools apropriadas:
+   - Se **intent="sales"**: use get_plans, calculate_savings, get_modules, get_testimonials
+   - Se **intent="recruitment"**: use get_bonus_tiers, calculate_commission, get_recruitment_link
+   - Se **intent="support"**: use search_faq, get_store_info, get_system_status
+
+3. Responda de forma contextualizada de acordo com a intenção detectada
+
+## 🛒 CONTEXTO: VENDAS
+
+### Problemas do Marketplace (Argumentos de Dor)
+1. **Você paga para eles crescerem** - Até 27% de taxa por pedido
+2. **Clientes fiéis ao app, não a você** - Seus clientes são do marketplace
+3. **Seus dados vendidos para concorrentes** - O marketplace usa seus dados
+
+### Diferenciais Mostralo
+- **0% de taxa por pedido**: Você fica com 100% do valor
+- **100% dos clientes são seus**: Base própria de clientes fiéis
+- **Marketing Digital Incluso**: Gestão de redes sociais
+- **WhatsApp Marketing**: Recuperação automática de clientes inativos
+- **Relatórios com IA**: Inteligência para decisões
+- **Gestão Financeira Completa**: Dashboard, fluxo de caixa, relatórios
+
+### Funcionalidades Presenciais
+- PDV, Comandas Digitais, App do Garçom
+- KDS (Kitchen Display), Cardápio QR Code
+- Chamada de Senhas, Painel Digital
+
+### Cálculo de Economia
+Quando o cliente informar faturamento mensal, CALCULE:
+1. Taxa iFood: faturamento × 0,25 (25%)
+2. Custo Mostralo: valor do plano
+3. Economia mensal: taxa_ifood - custo_mostralo
+4. Economia anual: economia_mensal × 12
+
+${plansSection}
+
+---
+
+## 👔 CONTEXTO: RECRUTAMENTO
+
+### O que é o Mostralo
+**Frase-chave: "Venda uma vez, receba todo mês."**
+
+Enquanto seu cliente usar o Mostralo, a comissão cai na sua conta. É renda RECORRENTE!
+
+### Comparativo PF vs PJ
+
+| Tipo | Documento | Comissão | Limite Mensal | Bônus |
+|------|-----------|----------|---------------|-------|
+| AFILIADO (PF) | CPF | 5-7% | R$ 1.900 | ❌ |
+| PARCEIRO (PJ) | CNPJ/MEI | 10% | ILIMITADO | ✅ |
+
+**Recomendação:** Comece como PF para testar. Quando ver resultados, abra MEI!
+
+${bonusSection}
+
+### FAQ Recrutamento
+1. "A comissão é só uma vez?" → É RECORRENTE! Vende uma vez, recebe todo mês.
+2. "Preciso de CNPJ?" → Não! Comece como Afiliado PF usando CPF.
+3. "Preciso de experiência?" → Não! Oferecemos treinamento completo.
+4. "Qual investimento inicial?" → ZERO! Não paga nada para participar.
+
+**Link de cadastro:** https://mostralo.com.br/seja-vendedor
+
+---
+
+## 🛠️ CONTEXTO: SUPORTE
+
+### Sobre o Mostralo
 - Sistema completo de delivery e vendas online
 - Para restaurantes, lojas, farmácias, açougues, etc.
 - 0% de taxa por pedido
 - WhatsApp Marketing integrado
-- Relatórios com IA
-- Gestão Financeira completa (receitas, despesas, fluxo de caixa)
-- Dashboard com KPIs em tempo real
+- Gestão Financeira completa
 
-FAQ COMUM:
-1. "Como funciona o pagamento?" → Assinatura mensal, paga via PIX ou cartão
-2. "Quanto custa?" → Planos a partir de R$ 197,90/mês
-3. "Tem taxa por pedido?" → NÃO! 0% de taxa
-4. "Posso testar?" → Sim, oferecemos período de teste gratuito
-5. "Funciona no meu celular?" → Sim, é um sistema web/app
-6. "Preciso de CNPJ?" → Pode ser PF ou PJ
-7. "Como recebo os pedidos?" → WhatsApp, app ou painel web
+### FAQ Comum
+1. "Como funciona o pagamento?" → Assinatura mensal via PIX ou cartão
+2. "Tem taxa por pedido?" → NÃO! 0% de taxa
+3. "Posso testar?" → Sim, período de teste gratuito
+4. "Funciona no celular?" → Sim, sistema web/app
+5. "Preciso de CNPJ?" → Pode ser PF ou PJ
+6. "Como recebo pedidos?" → WhatsApp, app ou painel web
 
-ESTILO:
-- Seja prestativo e paciente
+---
+
+## 📞 CONTATO
+
+WhatsApp Comercial: (61) 99555-0099
+Site: https://mostralo.com.br
+Email: suporte@mostralo.com.br
+
+## 🎨 ESTILO DE COMUNICAÇÃO
+
+- Seja prestativo, amigável e profissional
+- Use emojis moderadamente para dar vida às mensagens
 - Responda de forma clara e objetiva
-- Se não souber, encaminhe para suporte humano
-- Use emojis moderadamente
-
-CONTATO HUMANO:
-WhatsApp: (61) 99555-0099
-Email: suporte@mostralo.com.br`;
+- Sempre identifique a intenção antes de responder
+- Adapte o tom conforme o contexto (vendas=persuasivo, recrutamento=motivacional, suporte=paciente)`;
 }
-
-// Helper para extrair configuração de comportamento de um bot
-function getBotBehaviorConfig(config: any, botType: string): BotBehaviorConfig {
-  const prefix = `${botType}_bot_`;
-  return {
-    delay_message: config[`${prefix}delay_message`] ?? 1500,
-    expire_minutes: config[`${prefix}expire_minutes`] ?? 60,
-    keyword_finish: config[`${prefix}keyword_finish`] ?? '#sair',
-    stop_from_me: config[`${prefix}stop_from_me`] ?? true,
-    listening_from_me: config[`${prefix}listening_from_me`] ?? false,
-    keep_open: config[`${prefix}keep_open`] ?? false,
-    debounce_time: config[`${prefix}debounce_time`] ?? 3,
-    split_messages: config[`${prefix}split_messages`] ?? true,
-    time_per_char: config[`${prefix}time_per_char`] ?? 50,
-    unknown_message: config[`${prefix}unknown_message`] ?? 'Desculpe, não entendi. Pode reformular?',
-  };
-}
-
-// =====================================================
-// TOOLS DO OPENAI ASSISTANT POR TIPO DE BOT
-// =====================================================
-
-const MASTER_BOT_TOOLS: Record<string, any[]> = {
-  sales: [
-    {
-      type: 'function',
-      function: {
-        name: 'get_plans',
-        description: 'Retorna lista de planos disponíveis com preços atualizados',
-        parameters: { type: 'object', properties: {} }
-      }
-    },
-    {
-      type: 'function',
-      function: {
-        name: 'calculate_savings',
-        description: 'Calcula economia vs iFood baseado no faturamento mensal',
-        parameters: {
-          type: 'object',
-          properties: {
-            monthly_revenue: { type: 'number', description: 'Faturamento mensal em reais' }
-          },
-          required: ['monthly_revenue']
-        }
-      }
-    },
-    {
-      type: 'function',
-      function: {
-        name: 'get_testimonials',
-        description: 'Retorna depoimentos de clientes satisfeitos',
-        parameters: { type: 'object', properties: {} }
-      }
-    },
-    {
-      type: 'function',
-      function: {
-        name: 'get_modules',
-        description: 'Lista módulos e funcionalidades disponíveis',
-        parameters: { type: 'object', properties: {} }
-      }
-    }
-  ],
-  recruitment: [
-    {
-      type: 'function',
-      function: {
-        name: 'get_bonus_tiers',
-        description: 'Retorna tiers de bônus para vendedores/parceiros',
-        parameters: { type: 'object', properties: {} }
-      }
-    },
-    {
-      type: 'function',
-      function: {
-        name: 'get_plans',
-        description: 'Retorna lista de planos para cálculo de comissão',
-        parameters: { type: 'object', properties: {} }
-      }
-    },
-    {
-      type: 'function',
-      function: {
-        name: 'calculate_commission',
-        description: 'Calcula comissão baseada em vendas',
-        parameters: {
-          type: 'object',
-          properties: {
-            sales: { type: 'number', description: 'Número de vendas' },
-            plan_value: { type: 'number', description: 'Valor do plano' },
-            is_pj: { type: 'boolean', description: 'Se é parceiro PJ' }
-          },
-          required: ['sales']
-        }
-      }
-    },
-    {
-      type: 'function',
-      function: {
-        name: 'get_recruitment_link',
-        description: 'Retorna link de cadastro para parceiros',
-        parameters: { type: 'object', properties: {} }
-      }
-    }
-  ],
-  support: [
-    {
-      type: 'function',
-      function: {
-        name: 'search_faq',
-        description: 'Busca perguntas frequentes por termo',
-        parameters: {
-          type: 'object',
-          properties: {
-            query: { type: 'string', description: 'Termo de busca' }
-          },
-          required: ['query']
-        }
-      }
-    },
-    {
-      type: 'function',
-      function: {
-        name: 'get_store_info',
-        description: 'Retorna informações da plataforma Mostralo',
-        parameters: { type: 'object', properties: {} }
-      }
-    },
-    {
-      type: 'function',
-      function: {
-        name: 'get_system_status',
-        description: 'Verifica status dos sistemas',
-        parameters: { type: 'object', properties: {} }
-      }
-    },
-    {
-      type: 'function',
-      function: {
-        name: 'get_modules',
-        description: 'Lista módulos disponíveis na plataforma',
-        parameters: { type: 'object', properties: {} }
-      }
-    }
-  ]
-};
 
 // =====================================================
 // HANDLER PRINCIPAL
@@ -706,7 +381,7 @@ serve(async (req) => {
       throw new Error('Only master admins can sync bots');
     }
 
-    const { configId, botType } = await req.json();
+    const { configId } = await req.json();
     
     if (!configId) {
       throw new Error('configId is required');
@@ -723,7 +398,7 @@ serve(async (req) => {
       throw new Error('Config not found');
     }
 
-    // Buscar Evolution Config (para URL e API key da Evolution)
+    // Buscar Evolution Config
     const { data: evolutionConfig } = await supabase
       .from('evolution_config')
       .select('*')
@@ -734,7 +409,6 @@ serve(async (req) => {
       throw new Error('Evolution config not found');
     }
 
-    // Usar openai_api_key do master_whatsapp_config (não mais do evolution_config)
     const openaiApiKey = config.openai_api_key;
     if (!openaiApiKey) {
       throw new Error('Configure a OpenAI API Key no painel WhatsApp Master');
@@ -743,20 +417,14 @@ serve(async (req) => {
     const evolutionUrl = evolutionConfig.api_url.replace(/\/$/, '');
 
     // ========================================
-    // FUNÇÃO: Garantir credenciais OpenAI na Evolution
-    // Usando credencial ÚNICA compartilhada entre todos os bots
+    // FUNÇÃO: Garantir credenciais OpenAI
     // ========================================
-    type BotType = 'sales' | 'recruitment' | 'support';
-    
-    // Credencial única para todos os bots (mesma API Key = mesma credencial)
     const MASTER_CRED_NAME = 'master_whatsapp_openai';
     
     async function ensureOpenAiCreds(instanceName: string): Promise<string | null> {
-      console.log(`🔑 [Master] Verificando credenciais OpenAI "${MASTER_CRED_NAME}" para instância:`, instanceName);
+      console.log(`🔑 Verificando credenciais OpenAI para instância:`, instanceName);
 
-      // 1) Listar credenciais existentes desta instância
       let existingCreds: any[] = [];
-
       try {
         const listResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
           method: 'GET',
@@ -767,27 +435,17 @@ serve(async (req) => {
           const data = await listResp.json();
           existingCreds = Array.isArray(data) ? data : (data?.creds || data?.data || []);
         }
-
-        console.log(`📋 [Master] Credenciais encontradas:`, existingCreds.length);
       } catch (e) {
-        console.log('⚠️ [Master] Erro ao listar credenciais:', e);
+        console.log('⚠️ Erro ao listar credenciais:', e);
       }
 
-      // 2) Procurar credencial com nome único
       const masterCredential = existingCreds.find((c) => c.name === MASTER_CRED_NAME);
       if (masterCredential?.id) {
-        console.log(`✅ [Master] Credencial "${MASTER_CRED_NAME}" existente encontrada:`, masterCredential.id);
+        console.log(`✅ Credencial existente encontrada:`, masterCredential.id);
         return masterCredential.id;
       }
 
-      // 3) Criar nova credencial única
-      if (!openaiApiKey) {
-        console.error('❌ [Master] openai_api_key ausente; não dá para criar credencial.');
-        return null;
-      }
-
-      console.log(`🆕 [Master] Criando nova credencial OpenAI: ${MASTER_CRED_NAME}`);
-
+      console.log(`🆕 Criando nova credencial OpenAI...`);
       try {
         const createResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
           method: 'POST',
@@ -802,31 +460,21 @@ serve(async (req) => {
         });
 
         const createText = await createResp.text();
-        console.log(`📥 [Master] Resposta criação credencial "${MASTER_CRED_NAME}":`, createResp.status, createText);
+        console.log(`📥 Resposta criação credencial:`, createResp.status);
 
         if (!createResp.ok) {
-          // Se "already registered", tentar buscar novamente
           if (createText.includes('already')) {
-            console.log(`⚠️ [Master] Credencial "${MASTER_CRED_NAME}" já registrada, tentando localizar...`);
-            
             const retryResp = await fetch(`${evolutionUrl}/openai/creds/${instanceName}`, {
               method: 'GET',
               headers: { 'apikey': evolutionConfig.api_key },
             });
-
             if (retryResp.ok) {
               const retryData = await retryResp.json();
-              const retryCreds = Array.isArray(retryData) ? retryData : (retryData?.creds || retryData?.data || []);
+              const retryCreds = Array.isArray(retryData) ? retryData : (retryData?.creds || []);
               const found = retryCreds.find((c: any) => c.name === MASTER_CRED_NAME);
-              
-              if (found?.id) {
-                console.log(`✅ [Master] Credencial "${MASTER_CRED_NAME}" localizada após retry:`, found.id);
-                return found.id;
-              }
+              if (found?.id) return found.id;
             }
           }
-
-          console.error(`❌ [Master] Falha ao criar credencial "${MASTER_CRED_NAME}":`, createText);
           return null;
         }
 
@@ -834,29 +482,19 @@ serve(async (req) => {
         try {
           const data = JSON.parse(createText);
           createdId = data?.id || data?.openaiCredsId || data?.creds?.id || null;
-        } catch {
-          createdId = null;
-        }
+        } catch {}
 
-        if (!createdId) {
-          console.error(`❌ [Master] ID da credencial "${MASTER_CRED_NAME}" não retornado:`, createText);
-          return null;
-        }
-
-        console.log(`✅ [Master] Nova credencial "${MASTER_CRED_NAME}" criada:`, createdId);
         return createdId;
       } catch (e) {
-        console.error(`❌ [Master] Erro ao criar credencial "${MASTER_CRED_NAME}":`, e);
+        console.error('❌ Erro ao criar credencial:', e);
         return null;
       }
     }
 
     // ========================================
-    // FUNÇÃO: Buscar bots existentes na Evolution
+    // FUNÇÃO: Buscar e deletar bots existentes
     // ========================================
     async function findExistingBots(instanceName: string): Promise<any[]> {
-      console.log('🔍 Consultando bots existentes para instância:', instanceName);
-      
       try {
         const findResp = await fetch(`${evolutionUrl}/openai/find/${instanceName}`, {
           method: 'GET',
@@ -865,42 +503,29 @@ serve(async (req) => {
 
         if (findResp.ok) {
           const data = await findResp.json();
-          const bots = Array.isArray(data) ? data : (data?.bots || data?.data || []);
-          console.log('📋 Bots encontrados:', bots.length);
-          return bots;
+          return Array.isArray(data) ? data : (data?.bots || data?.data || []);
         }
-        
-        console.log('⚠️ Falha ao buscar bots:', findResp.status);
         return [];
-      } catch (e) {
-        console.log('⚠️ Erro ao buscar bots:', e);
+      } catch {
         return [];
       }
     }
 
-    // ========================================
-    // FUNÇÃO: Deletar bot existente na Evolution
-    // ========================================
     async function deleteExistingBot(instanceName: string, botId: string): Promise<boolean> {
       try {
-        console.log('🗑️ Deletando bot:', botId, 'da instância:', instanceName);
         const deleteResp = await fetch(`${evolutionUrl}/openai/delete/${botId}/${instanceName}`, {
           method: 'DELETE',
           headers: { 'apikey': evolutionConfig.api_key },
         });
-        
-        const deleteText = await deleteResp.text();
-        console.log('📥 Resposta delete bot:', deleteResp.status, deleteText);
-        
         return deleteResp.ok || deleteResp.status === 404;
-      } catch (e) {
-        console.log('⚠️ Erro ao deletar bot:', e);
+      } catch {
         return false;
       }
     }
 
-
-    // 🔥 BUSCAR DADOS REAIS DO BANCO
+    // ========================================
+    // BUSCAR DADOS DO BANCO
+    // ========================================
     console.log('📊 Buscando planos e bônus do banco...');
     
     const { data: plans } = await supabase
@@ -936,398 +561,205 @@ serve(async (req) => {
 
     console.log(`✅ Encontrados ${plansForPrompt.length} planos e ${bonusTiers.length} tiers de bônus`);
 
-    const results: Record<string, { success: boolean; error?: string; botId?: string }> = {};
-
-    // Determinar bot principal (apenas 1 bot pode estar ativo por limitação da Evolution API)
-    const primaryBotType: BotType = config.primary_bot_type || 'sales';
-    console.log(`🎯 Bot principal configurado: ${primaryBotType}`);
-
-    // Se botType foi especificado, usar ele; senão usar apenas o bot principal
-    const botsToSync: BotType[] = botType ? [botType as BotType] : [primaryBotType];
-
-    // Função para configurar settings de OpenAI na instância
-    async function ensureOpenAiSettings(instanceName: string, credsId: string): Promise<boolean> {
-      console.log('⚙️ Configurando OpenAI settings para instância:', instanceName);
-      
-      try {
-        const settingsUrl = `${evolutionUrl}/openai/settings/${instanceName}`;
-        const settingsPayload = {
-          openaiCredsId: credsId,
-          expire: 0,
-          keywordFinish: '',
-          delayMessage: 1000,
-          unknownMessage: '',
-          listeningFromMe: false,
-          stopBotFromMe: false,
-          keepOpen: false,
-          debounceTime: 0,
-          ignoreJids: [],
-          triggerType: 'none',
-          triggerOperator: 'equals',
-          triggerValue: ''
-        };
-        
-        const response = await fetch(settingsUrl, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json', 
-            'apikey': evolutionConfig.api_key 
-          },
-          body: JSON.stringify(settingsPayload)
-        });
-        
-        const responseText = await response.text();
-        console.log('📥 Resposta settings:', response.status, responseText);
-        
-        return response.ok;
-      } catch (e) {
-        console.error('❌ Erro ao configurar settings:', e);
-        return false;
-      }
-    }
-
     // ========================================
-    // OBTER CREDENCIAL ÚNICA ANTES DE PROCESSAR OS BOTS
+    // OBTER CREDENCIAL OPENAI
     // ========================================
-    console.log('🔑 Obtendo credencial OpenAI única para todos os bots...');
-    
     const openaiCredsId = await ensureOpenAiCreds(config.instance_name);
     if (!openaiCredsId) {
-      throw new Error('Falha ao obter credenciais OpenAI. Verifique se a API Key está configurada corretamente.');
-    }
-    console.log(`✅ Credencial OpenAI obtida: ${openaiCredsId}`);
-
-    // Configurar settings UMA VEZ para a instância
-    const settingsOk = await ensureOpenAiSettings(config.instance_name, openaiCredsId);
-    if (!settingsOk) {
-      console.log('⚠️ Settings não configurados, mas continuando...');
+      throw new Error('Falha ao obter credenciais OpenAI');
     }
 
     // ========================================
-    // PROCESSAR BOTS SEQUENCIALMENTE COM DELAY
+    // LIMPAR BOTS EXISTENTES
     // ========================================
-    for (const bt of botsToSync) {
-      try {
-        let prompt: string;
-        let botName: string;
-        let triggerKeywords: string[];
-        let behaviorConfig: BotBehaviorConfig;
-        const existingBotIdField = `${bt}_bot_evolution_id`;
-        const existingBotId = config[existingBotIdField];
+    console.log('🧹 Limpando bots existentes...');
+    
+    const botIdsToDelete = [
+      config.sales_bot_evolution_id,
+      config.recruitment_bot_evolution_id,
+      config.support_bot_evolution_id,
+    ].filter((id): id is string => typeof id === 'string' && id.length > 0);
 
-        switch (bt) {
-          case 'sales':
-            if (!config.sales_bot_enabled) {
-              results[bt] = { success: true, error: 'Bot disabled' };
-              continue;
-            }
-            prompt = generateSalesPrompt(config.sales_bot_approach, plansForPrompt);
-            botName = 'Mostralo Vendas';
-            triggerKeywords = config.sales_bot_keywords || [];
-            behaviorConfig = getBotBehaviorConfig(config, 'sales');
-            break;
+    for (const botId of botIdsToDelete) {
+      await deleteExistingBot(config.instance_name, botId);
+    }
 
-          case 'recruitment':
-            if (!config.recruitment_bot_enabled) {
-              results[bt] = { success: true, error: 'Bot disabled' };
-              continue;
-            }
-            prompt = generateRecruitmentPrompt(config.recruitment_bot_approach, plansForPrompt, bonusTiers);
-            botName = 'Mostralo Recrutamento';
-            triggerKeywords = config.recruitment_bot_keywords || [];
-            behaviorConfig = getBotBehaviorConfig(config, 'recruitment');
-            break;
+    // Buscar e deletar bots fantasmas
+    const existingBots = await findExistingBots(config.instance_name);
+    for (const bot of existingBots) {
+      const botId = bot?.id || bot?.openaiBot?.id;
+      if (botId) await deleteExistingBot(config.instance_name, botId);
+    }
 
-          case 'support':
-            if (!config.support_bot_enabled) {
-              results[bt] = { success: true, error: 'Bot disabled' };
-              continue;
-            }
-            prompt = getSupportPrompt(config.support_bot_custom_prompt);
-            botName = 'Mostralo Suporte';
-            triggerKeywords = config.support_bot_keywords || [];
-            behaviorConfig = getBotBehaviorConfig(config, 'support');
-            break;
+    await delay(1500);
 
-          default:
-            continue;
-        }
+    // ========================================
+    // CRIAR/ATUALIZAR ASSISTANT UNIFICADO
+    // ========================================
+    console.log('🤖 Criando/Atualizando OpenAI Assistant UNIFICADO...');
+    
+    const unifiedPrompt = buildUnifiedPrompt(config, plansForPrompt, bonusTiers);
+    let unifiedAssistantId = config.unified_openai_assistant_id as string | null;
+    
+    const assistantPayload = {
+      name: 'Mostralo Master Bot',
+      instructions: unifiedPrompt,
+      tools: UNIFIED_MASTER_TOOLS,
+      model: config.openai_model || evolutionConfig.openai_default_model || 'gpt-4o-mini',
+    };
 
-        console.log(`🔑 Bot ${bt}: Usando credencial compartilhada: ${openaiCredsId}`);
-
-        // Usar trigger type e operator do banco de dados (ou fallback para lógica antiga)
-        const configTriggerType = config[`${bt}_bot_trigger_type`] as string || null;
-        const configTriggerOperator = config[`${bt}_bot_trigger_operator`] as string || 'contains';
-        
-        // Determinar triggerType final
-        let triggerType: string;
-        let triggerValue: string;
-        
-        if (configTriggerType) {
-          // Usar valor do banco de dados
-          triggerType = configTriggerType;
-          triggerValue = triggerKeywords.filter(k => k.trim()).join(',');
-        } else {
-          // Fallback: lógica antiga baseada em keywords
-          const hasKeywords = triggerKeywords && triggerKeywords.length > 0 && triggerKeywords.some(k => k.trim());
-          triggerType = hasKeywords ? 'keyword' : 'all';
-          triggerValue = hasKeywords ? triggerKeywords.filter(k => k.trim()).join(',') : '';
-        }
-
-        console.log(`🔑 Bot ${bt}: triggerType=${triggerType}, triggerOperator="${configTriggerOperator}", triggerValue="${triggerValue}"`);
-
-        // Gerar descrição baseada no tipo de bot
-        const botDescriptions: Record<string, string> = {
-          sales: 'Bot de Vendas - Atendimento e captação de novos lojistas para a plataforma Mostralo',
-          recruitment: 'Bot de Recrutamento - Captação de vendedores e afiliados para a rede Mostralo',
-          support: 'Bot de Suporte - Atendimento ao cliente e suporte técnico da plataforma Mostralo'
-        };
-
-        // ========================================
-        // CRIAR/ATUALIZAR OPENAI ASSISTANT
-        // ========================================
-        const assistantIdField = `${bt}_openai_assistant_id`;
-        let openaiAssistantId = config[assistantIdField] as string | null;
-        
-        console.log(`🤖 [${bt}] Verificando OpenAI Assistant...`);
-        
-        try {
-          const assistantTools = MASTER_BOT_TOOLS[bt] || [];
-          const assistantPayload = {
-            name: `${botName} - Mostralo`,
-            instructions: prompt,
-            tools: assistantTools,
-            model: config.openai_model || evolutionConfig.openai_default_model || 'gpt-4o-mini',
-          };
-
-          if (openaiAssistantId) {
-            // Atualizar Assistant existente
-            console.log(`📝 [${bt}] Atualizando Assistant existente: ${openaiAssistantId}`);
-            const updateResp = await fetch(
-              `https://api.openai.com/v1/assistants/${openaiAssistantId}`,
-              {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${openaiApiKey}`,
-                  'Content-Type': 'application/json',
-                  'OpenAI-Beta': 'assistants=v2',
-                },
-                body: JSON.stringify(assistantPayload),
-              }
-            );
-
-            if (updateResp.ok) {
-              const assistant = await updateResp.json();
-              openaiAssistantId = assistant.id;
-              console.log(`✅ [${bt}] OpenAI Assistant atualizado: ${openaiAssistantId}`);
-            } else {
-              // Se falhou (404 ou outro), criar novo
-              console.log(`⚠️ [${bt}] Update falhou, criando novo Assistant...`);
-              openaiAssistantId = null;
-            }
-          }
-
-          if (!openaiAssistantId) {
-            // Criar novo Assistant
-            console.log(`🆕 [${bt}] Criando novo OpenAI Assistant...`);
-            const createResp = await fetch('https://api.openai.com/v1/assistants', {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${openaiApiKey}`,
-                'Content-Type': 'application/json',
-                'OpenAI-Beta': 'assistants=v2',
-              },
-              body: JSON.stringify(assistantPayload),
-            });
-
-            if (!createResp.ok) {
-              const errorText = await createResp.text();
-              console.error(`❌ [${bt}] Erro ao criar Assistant:`, errorText);
-              throw new Error(`Falha ao criar OpenAI Assistant: ${errorText.slice(0, 100)}`);
-            }
-
-            const assistant = await createResp.json();
-            openaiAssistantId = assistant.id;
-            console.log(`✅ [${bt}] OpenAI Assistant criado: ${openaiAssistantId}`);
-          }
-        } catch (assistantError) {
-          console.error(`❌ [${bt}] Erro ao gerenciar OpenAI Assistant:`, assistantError);
-          throw assistantError;
-        }
-
-        // URL da function para processar tool calls
-        const functionUrl = `${supabaseUrl}/functions/v1/master-faq-agent`;
-
-        const botPayload: Record<string, any> = {
-          enabled: true,
-          openaiCredsId: openaiCredsId,
-          botType: 'assistant',  // MUDANÇA: era 'chatCompletion'
-          model: config.openai_model || evolutionConfig.openai_default_model || 'gpt-4o-mini',
-          maxTokens: evolutionConfig.openai_max_tokens || 1000,
-          description: botDescriptions[bt] || `Bot ${botName} - Mostralo`,
-          systemMessages: [prompt],
-          assistantMessages: [
-            `Olá! 👋 Sou o ${botName}, assistente virtual da Mostralo. Como posso ajudar você hoje?`
-          ],
-          userMessages: ['Oi', 'Olá', 'Boa tarde', 'Boa noite', 'Bom dia'],
-          triggerType: triggerType,
-          triggerOperator: configTriggerOperator,
-          triggerValue: triggerValue,
-          expire: behaviorConfig.expire_minutes || 20,
-          keywordFinish: behaviorConfig.keyword_finish || '#SAIR',
-          delayMessage: behaviorConfig.delay_message || 4000,
-          unknownMessage: behaviorConfig.unknown_message || 'Desculpe, não entendi.',
-          listeningFromMe: behaviorConfig.listening_from_me || false,
-          stopBotFromMe: behaviorConfig.stop_from_me !== undefined ? behaviorConfig.stop_from_me : true,
-          keepOpen: behaviorConfig.keep_open || false,
-          debounceTime: behaviorConfig.debounce_time || 10,
-          ignoreJids: [],
-          splitMessages: behaviorConfig.split_messages !== undefined ? behaviorConfig.split_messages : true,
-          timePerChar: behaviorConfig.time_per_char || 0,
-          // NOVOS CAMPOS para tipo 'assistant'
-          assistantId: openaiAssistantId,
-          functionUrl: functionUrl,
-        };
-
-        console.log(`🔧 [${bt}] Payload do bot:`, JSON.stringify({
-          botType: botPayload.botType,
-          assistantId: botPayload.assistantId,
-          functionUrl: botPayload.functionUrl,
-          model: botPayload.model,
-        }, null, 2));
-
-        // 🔥 ESTRATÉGIA DELETE + CREATE (igual ao lojista)
-        // A Evolution API permite apenas 1 bot ativo por instância, então:
-        // 1) Deleta qualquer bot existente (mesmo de outros tipos)
-        // 2) Zera IDs no banco
-        // 3) Cria o bot novo
-
-        const botIdFieldsToClear = [
-          'sales_bot_evolution_id',
-          'recruitment_bot_evolution_id',
-          'support_bot_evolution_id',
-        ] as const;
-
-        const botIdsToDelete = botIdFieldsToClear
-          .map((field) => config[field])
-          .filter((id): id is string => typeof id === 'string' && id.length > 0);
-
-        if (botIdsToDelete.length > 0) {
-          console.log(`🧹 Limpando bots existentes na instância antes de criar ${bt}...`, botIdsToDelete);
-
-          for (const botId of botIdsToDelete) {
-            await deleteExistingBot(config.instance_name, botId);
-          }
-
-          // Zerar IDs no banco (já que foram deletados)
-          await supabase
-            .from('master_whatsapp_config')
-            .update({
-              sales_bot_evolution_id: null,
-              recruitment_bot_evolution_id: null,
-              support_bot_evolution_id: null,
-            })
-            .eq('id', configId);
-
-          await delay(1000);
-        }
-
-        // Sempre criar novo bot
-        async function createBotOnce(): Promise<{ ok: boolean; status: number; text: string }> {
-          const resp = await fetch(`${evolutionUrl}/openai/create/${config.instance_name}`, {
+    try {
+      if (unifiedAssistantId) {
+        // Tentar atualizar existente
+        console.log(`📝 Atualizando Assistant existente: ${unifiedAssistantId}`);
+        const updateResp = await fetch(
+          `https://api.openai.com/v1/assistants/${unifiedAssistantId}`,
+          {
             method: 'POST',
             headers: {
+              'Authorization': `Bearer ${openaiApiKey}`,
               'Content-Type': 'application/json',
-              'apikey': evolutionConfig.api_key,
+              'OpenAI-Beta': 'assistants=v2',
             },
-            body: JSON.stringify(botPayload),
-          });
-
-          const text = await resp.text();
-          return { ok: resp.ok, status: resp.status, text };
-        }
-
-        console.log(`➕ Criando novo bot ${bt}...`);
-        let createResult = await createBotOnce();
-        console.log(`📥 Resposta create ${bt}:`, createResult.status, createResult.text);
-
-        // Se ainda assim existir bot "fantasma" na instância, descobrir e deletar via /openai/find
-        if (!createResult.ok && (createResult.text.includes('already exists') || createResult.text.includes('already') || createResult.status === 500)) {
-          console.log(`⚠️ Create ${bt} falhou com possível conflito de bot existente. Tentando localizar e deletar via find...`);
-
-          const existingBots = await findExistingBots(config.instance_name);
-          const foundIds = existingBots
-            .map((b: any) => b?.id || b?.openaiBot?.id || b?.openai?.id || b?.botId)
-            .filter((id: any): id is string => typeof id === 'string' && id.length > 0);
-
-          if (foundIds.length > 0) {
-            console.log('🗑️ Deletando bots encontrados via find:', foundIds);
-            for (const foundId of foundIds) {
-              await deleteExistingBot(config.instance_name, foundId);
-            }
-
-            await supabase
-              .from('master_whatsapp_config')
-              .update({
-                sales_bot_evolution_id: null,
-                recruitment_bot_evolution_id: null,
-                support_bot_evolution_id: null,
-              })
-              .eq('id', configId);
-
-            await delay(1200);
-          } else {
-            console.log('ℹ️ Nenhum bot retornado pelo find; seguindo sem deletar.');
+            body: JSON.stringify(assistantPayload),
           }
+        );
 
-          console.log(`🔁 Tentando criar o bot ${bt} novamente...`);
-          createResult = await createBotOnce();
-          console.log(`📥 Resposta create retry ${bt}:`, createResult.status, createResult.text);
-        }
-
-        if (!createResult.ok) {
-          throw new Error(`Falha ao criar bot: ${createResult.text}`);
-        }
-
-        let responseData: any = {};
-        try { responseData = JSON.parse(createResult.text); } catch { responseData = {}; }
-
-        const newBotId = responseData.id || responseData.openaiBot?.id || responseData.openai?.id;
-        if (newBotId) {
-          // Atualizar o botId, primary_bot_type E assistantId
-          const assistantIdField = `${bt}_openai_assistant_id`;
-          await supabase
-            .from('master_whatsapp_config')
-            .update({ 
-              [existingBotIdField]: newBotId,
-              [assistantIdField]: openaiAssistantId,
-              primary_bot_type: bt
-            })
-            .eq('id', configId);
-
-          results[bt] = { success: true, botId: newBotId };
-          console.log(`✅ Bot ${bt} criado com ID: ${newBotId}, AssistantID: ${openaiAssistantId}`);
+        if (updateResp.ok) {
+          const assistant = await updateResp.json();
+          unifiedAssistantId = assistant.id;
+          console.log(`✅ Assistant atualizado: ${unifiedAssistantId}`);
         } else {
-          results[bt] = { success: true, botId: undefined };
-          console.log(`⚠️ Bot ${bt} criado mas sem ID retornado`);
+          console.log(`⚠️ Update falhou, criando novo...`);
+          unifiedAssistantId = null;
         }
-
-        // Aguardar 3 segundos antes do próximo bot para evitar rate limit na Evolution API
-        if (botsToSync.indexOf(bt) < botsToSync.length - 1) {
-          console.log(`⏳ Aguardando 3s antes do próximo bot...`);
-          await delay(3000);
-        }
-
-      } catch (botError) {
-        console.error(`❌ Erro no bot ${bt}:`, botError);
-        results[bt] = { 
-          success: false, 
-          error: botError instanceof Error ? botError.message : 'Unknown error' 
-        };
       }
+
+      if (!unifiedAssistantId) {
+        // Criar novo Assistant
+        console.log(`🆕 Criando novo OpenAI Assistant UNIFICADO...`);
+        const createResp = await fetch('https://api.openai.com/v1/assistants', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openaiApiKey}`,
+            'Content-Type': 'application/json',
+            'OpenAI-Beta': 'assistants=v2',
+          },
+          body: JSON.stringify(assistantPayload),
+        });
+
+        if (!createResp.ok) {
+          const errorText = await createResp.text();
+          throw new Error(`Falha ao criar Assistant: ${errorText.slice(0, 200)}`);
+        }
+
+        const assistant = await createResp.json();
+        unifiedAssistantId = assistant.id;
+        console.log(`✅ Assistant UNIFICADO criado: ${unifiedAssistantId}`);
+      }
+    } catch (assistantError) {
+      console.error('❌ Erro ao gerenciar Assistant:', assistantError);
+      throw assistantError;
     }
 
-    return new Response(JSON.stringify({ success: true, results }), {
+    // ========================================
+    // CRIAR BOT NA EVOLUTION API
+    // ========================================
+    console.log('📡 Criando bot na Evolution API...');
+    
+    const functionUrl = `${supabaseUrl}/functions/v1/master-faq-agent`;
+
+    const botPayload = {
+      enabled: true,
+      openaiCredsId: openaiCredsId,
+      botType: 'assistant',
+      model: config.openai_model || evolutionConfig.openai_default_model || 'gpt-4o-mini',
+      maxTokens: evolutionConfig.openai_max_tokens || 1000,
+      description: 'Mostralo Master Bot - Atendimento unificado de Vendas, Recrutamento e Suporte',
+      systemMessages: [unifiedPrompt],
+      assistantMessages: [
+        'Olá! 👋 Sou o Assistente Virtual da Mostralo. Posso ajudar com informações sobre nossa plataforma, oportunidades de parceria ou suporte técnico. Como posso ajudar você hoje?'
+      ],
+      userMessages: ['Oi', 'Olá', 'Boa tarde', 'Boa noite', 'Bom dia'],
+      triggerType: 'all',
+      triggerOperator: 'contains',
+      triggerValue: '',
+      expire: config.sales_bot_expire_minutes || 60,
+      keywordFinish: '#SAIR',
+      delayMessage: config.sales_bot_delay_message || 4000,
+      unknownMessage: 'Desculpe, não entendi. Pode reformular sua pergunta?',
+      listeningFromMe: false,
+      stopBotFromMe: true,
+      keepOpen: false,
+      debounceTime: 10,
+      ignoreJids: [],
+      splitMessages: true,
+      timePerChar: 0,
+      assistantId: unifiedAssistantId,
+      functionUrl: functionUrl,
+    };
+
+    console.log(`🔧 Payload do bot unificado:`, JSON.stringify({
+      botType: botPayload.botType,
+      assistantId: botPayload.assistantId,
+      functionUrl: botPayload.functionUrl,
+    }, null, 2));
+
+    const createBotResp = await fetch(`${evolutionUrl}/openai/create/${config.instance_name}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': evolutionConfig.api_key,
+      },
+      body: JSON.stringify(botPayload),
+    });
+
+    const createBotText = await createBotResp.text();
+    console.log(`📥 Resposta create bot:`, createBotResp.status, createBotText);
+
+    if (!createBotResp.ok) {
+      throw new Error(`Falha ao criar bot na Evolution: ${createBotText}`);
+    }
+
+    let newBotId: string | null = null;
+    try {
+      const responseData = JSON.parse(createBotText);
+      newBotId = responseData.id || responseData.openaiBot?.id || responseData.openai?.id;
+    } catch {}
+
+    // ========================================
+    // ATUALIZAR BANCO DE DADOS
+    // ========================================
+    console.log('💾 Atualizando banco de dados...');
+    
+    await supabase
+      .from('master_whatsapp_config')
+      .update({
+        unified_openai_assistant_id: unifiedAssistantId,
+        sales_bot_evolution_id: newBotId,
+        recruitment_bot_evolution_id: null,
+        support_bot_evolution_id: null,
+        sales_openai_assistant_id: null,
+        recruitment_openai_assistant_id: null,
+        support_openai_assistant_id: null,
+      })
+      .eq('id', configId);
+
+    console.log(`✅ Sincronização UNIFICADA concluída!`);
+    console.log(`   - Assistant ID: ${unifiedAssistantId}`);
+    console.log(`   - Evolution Bot ID: ${newBotId}`);
+
+    return new Response(JSON.stringify({ 
+      success: true, 
+      results: {
+        unified: {
+          success: true,
+          assistantId: unifiedAssistantId,
+          evolutionBotId: newBotId,
+        }
+      },
+      message: 'Bot unificado criado com sucesso! Vendas, Recrutamento e Suporte agora são atendidos por um único assistente dinâmico.'
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
 

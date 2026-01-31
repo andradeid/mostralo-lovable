@@ -68,13 +68,7 @@ export const LandingHeader = () => {
             Calculadora
           </a>
           <a 
-            href="#marketing-digital" 
-            className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
-          >
-            Marketing Digital
-          </a>
-          <a 
-            href="#whatsapp-marketing" 
+            href="#whatsapp-marketing"
             className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
           >
             WhatsApp
@@ -154,14 +148,7 @@ export const LandingHeader = () => {
                   Calculadora
                 </a>
                 <a 
-                  href="#marketing-digital" 
-                  className="text-sm font-medium text-muted-foreground hover:text-primary hover:bg-muted transition-colors py-2.5 px-3 rounded-md"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Marketing Digital
-                </a>
-                <a 
-                  href="#whatsapp-marketing" 
+                  href="#whatsapp-marketing"
                   className="text-sm font-medium text-muted-foreground hover:text-primary hover:bg-muted transition-colors py-2.5 px-3 rounded-md"
                   onClick={() => setMobileMenuOpen(false)}
                 >

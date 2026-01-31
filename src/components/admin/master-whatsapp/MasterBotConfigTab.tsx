@@ -511,7 +511,7 @@ export function MasterBotConfigTab({
                   <MessageSquare className="w-5 h-5 text-green-500" />
                   <CardTitle>Bot de Vendas</CardTitle>
                   <BotSyncStatusBadge
-                    evolutionId={config.sales_bot_evolution_id}
+                    evolutionId={config.unified_openai_assistant_id || config.sales_bot_evolution_id}
                     botEnabled={config.sales_bot_enabled}
                     hasUnsyncedChanges={hasUnsyncedChanges('sales')}
                     syncing={syncing}
@@ -609,7 +609,7 @@ export function MasterBotConfigTab({
                   <Users className="w-5 h-5 text-blue-500" />
                   <CardTitle>Bot de Recrutamento</CardTitle>
                   <BotSyncStatusBadge
-                    evolutionId={config.recruitment_bot_evolution_id}
+                    evolutionId={config.unified_openai_assistant_id || config.sales_bot_evolution_id}
                     botEnabled={config.recruitment_bot_enabled}
                     hasUnsyncedChanges={hasUnsyncedChanges('recruitment')}
                     syncing={syncing}
@@ -703,7 +703,7 @@ export function MasterBotConfigTab({
                   <HelpCircle className="w-5 h-5 text-purple-500" />
                   <CardTitle>Bot de Suporte</CardTitle>
                   <BotSyncStatusBadge
-                    evolutionId={config.support_bot_evolution_id}
+                    evolutionId={config.unified_openai_assistant_id || config.sales_bot_evolution_id}
                     botEnabled={config.support_bot_enabled}
                     hasUnsyncedChanges={hasUnsyncedChanges('support')}
                     syncing={syncing}

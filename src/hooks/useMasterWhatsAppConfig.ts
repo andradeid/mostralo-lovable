@@ -46,6 +46,8 @@ export interface MasterWhatsAppConfig {
   evolution_instance_id: string | null;
   // Bot Principal
   primary_bot_type: PrimaryBotType;
+  // Assistente Unificado
+  unified_openai_assistant_id: string | null;
   // Bot de Vendas
   sales_bot_enabled: boolean;
   sales_bot_approach: SalesApproach;

@@ -1,100 +1,247 @@
 
+# Plano: Preview Real do Prompt e Botao Sincronizar Todos
 
-# Plano: Melhorar Abas do WhatsApp Master com Icones e Descricoes
+## Problema Identificado
 
-## Objetivo
+Atualmente o "Preview do Prompt" no card de cada bot (Vendas, Recrutamento, Suporte) mostra o prompt **gerado localmente** usando funcoes como `generateSalesPrompt()`, nao o prompt que esta **realmente configurado** na Evolution API/OpenAI.
 
-Tornar as abas mais claras e intuitivas, com icones representativos, textos completos visiveis e tooltips explicando a funcao de cada aba.
+## Solucao
 
----
-
-## Abas Atuais vs Propostas
-
-| Aba | Atual | Proposto | Descricao (Tooltip) |
-|-----|-------|----------|---------------------|
-| 1 | Smartphone + "Conexao" | Smartphone + "Conexao WhatsApp" | Conecte e gerencie a instancia do WhatsApp Business |
-| 2 | Bot + "Configurar Bots" | Bot + "Configurar Bots" | Configure os bots de vendas, suporte e recrutamento |
-| 3 | BookOpen + "FAQ" | BookOpen + "Base de Conhecimento" | Gerencie perguntas e respostas que o bot utiliza |
-| 4 | MessageSquare + "Sessoes" | Users + "Sessoes de Atendimento" | Visualize conversas e sessoes ativas com clientes |
-| 5 | ExternalLink + "Links Paginas" | ExternalLink + "Links e Paginas" | Configure links do WhatsApp para paginas do site |
-
----
-
-## Layout Visual Proposto
+### Arquitetura Atual vs Proposta
 
 ```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           TABS COM TOOLTIPS                                 │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌────────────┐
-│  │ Smartphone   │ │ Bot          │ │ BookOpen     │ │ Users        │ │ ExternalLink│
-│  │ Conexao      │ │ Configurar   │ │ Base de      │ │ Sessoes de   │ │ Links e    │
-│  │ WhatsApp     │ │ Bots         │ │ Conhecimento │ │ Atendimento  │ │ Paginas    │
-│  └──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘ └────────────┘
-│        ↓                 ↓                ↓                ↓               ↓
-│    [Tooltip]        [Tooltip]        [Tooltip]        [Tooltip]       [Tooltip]
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
+ATUAL:
+Frontend gera prompt local → Mostra no preview → Usuario sincroniza → Prompt vai para Evolution
+
+PROPOSTO:
+Frontend busca prompt da Evolution → Mostra prompt REAL → Botao "Sincronizar Todos" atualiza tudo
 ```
 
 ---
 
-## Tooltips por Aba
+## FASE 1: Nova Edge Function para Buscar Prompts
 
-| Aba | Tooltip |
-|-----|---------|
-| Conexao WhatsApp | "Conecte sua instancia do WhatsApp, escaneie o QR Code e envie mensagens de teste" |
-| Configurar Bots | "Ative e configure os bots de vendas, recrutamento e suporte com prompts personalizados" |
-| Base de Conhecimento | "Adicione perguntas e respostas para o bot consultar durante os atendimentos" |
-| Sessoes de Atendimento | "Veja todas as conversas ativas, pausadas e o historico de mensagens" |
-| Links e Paginas | "Configure os links de WhatsApp que aparecem nas paginas do site" |
+### 1.1 Criar `master-bot-fetch-prompt`
+
+**Arquivo:** `supabase/functions/master-bot-fetch-prompt/index.ts`
+
+| Endpoint | Descricao |
+|----------|-----------|
+| POST | Busca prompt atual de um ou todos os bots na Evolution API |
+
+**Payload de entrada:**
+```json
+{
+  "configId": "uuid",
+  "botType": "sales" | "recruitment" | "support" | "all"
+}
+```
+
+**Retorno:**
+```json
+{
+  "success": true,
+  "prompts": {
+    "sales": {
+      "prompt": "texto do prompt...",
+      "model": "gpt-4o-mini",
+      "botId": "evolution-bot-id",
+      "exists": true
+    },
+    "recruitment": { ... },
+    "support": { ... }
+  }
+}
+```
+
+### 1.2 Registrar no config.toml
+
+```toml
+[functions.master-bot-fetch-prompt]
+verify_jwt = false
+```
 
 ---
 
-## Secao Tecnica
+## FASE 2: Atualizar Interface do MasterBotConfigTab
 
-### Arquivo a Modificar
+### 2.1 Novo Estado para Prompts Reais
+
+Adicionar estados para armazenar os prompts buscados da Evolution:
+
+```typescript
+const [realPrompts, setRealPrompts] = useState<{
+  sales: { prompt: string; model: string; exists: boolean } | null;
+  recruitment: { prompt: string; model: string; exists: boolean } | null;
+  support: { prompt: string; model: string; exists: boolean } | null;
+}>({ sales: null, recruitment: null, support: null });
+
+const [fetchingPrompts, setFetchingPrompts] = useState(false);
+```
+
+### 2.2 Funcao para Buscar Prompts Reais
+
+```typescript
+const fetchRealPrompts = async () => {
+  setFetchingPrompts(true);
+  // Chamar edge function master-bot-fetch-prompt
+  // Atualizar estado realPrompts
+  setFetchingPrompts(false);
+};
+```
+
+### 2.3 Atualizar PromptPreviewCard
+
+Modificar para mostrar:
+- **Tab "Configurado"**: Prompt que esta NA EVOLUTION (real)
+- **Tab "Preview Local"**: Prompt que SERA enviado se sincronizar
+
+---
+
+## FASE 3: Botao "Sincronizar Todos os Bots"
+
+### 3.1 Adicionar Botao no Header das Tabs
+
+```text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  [Vendas] [Recr.] [Suporte]                     [Sincronizar Todos] Modelo: │
+├─────────────────────────────────────────────────────────────────────────────┤
+```
+
+### 3.2 Funcao syncAllBots
+
+```typescript
+const syncAllBots = async () => {
+  setSyncingAll(true);
+  
+  // Sincronizar cada bot que estiver ativo
+  const botsToSync = ['sales', 'recruitment', 'support'].filter(
+    bot => config[`${bot}_bot_enabled`]
+  );
+  
+  for (const bot of botsToSync) {
+    await syncBots(bot);
+  }
+  
+  // Atualizar prompts reais apos sincronizacao
+  await fetchRealPrompts();
+  
+  setSyncingAll(false);
+};
+```
+
+---
+
+## FASE 4: Modificar PromptPreviewCard
+
+### 4.1 Nova Interface
+
+| Props Nova | Tipo | Descricao |
+|------------|------|-----------|
+| `realPrompt` | string | null | Prompt da Evolution (real) |
+| `localPrompt` | string | Prompt gerado localmente |
+| `onRefresh` | () => void | Callback para atualizar prompt real |
+| `loading` | boolean | Estado de carregamento |
+
+### 4.2 Layout com Tabs
+
+```text
+┌──────────────────────────────────────────────────────────────────┐
+│ 👁️ Preview do Prompt  [Persuasivo]  [✓ Sincronizado]           │
+├──────────────────────────────────────────────────────────────────┤
+│  [Configurado na IA]  [Preview Local]                    [🔄]   │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  🤖 PROMPT DE VENDAS MOSTRALO - PERSUASIVO                      │
+│                                                                  │
+│  ## IDENTIDADE E ESTILO                                         │
+│  Você é um consultor de vendas focado em números e resultados.  │
+│  ...                                                             │
+│                                                                  │
+├──────────────────────────────────────────────────────────────────┤
+│  22.691 caracteres  3.425 palavras        [📋 Copiar Prompt]    │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Arquivos a Criar
+
+| Arquivo | Descricao |
+|---------|-----------|
+| `supabase/functions/master-bot-fetch-prompt/index.ts` | Edge function para buscar prompts |
+
+## Arquivos a Modificar
 
 | Arquivo | Alteracao |
 |---------|-----------|
-| `src/pages/admin/MasterWhatsAppPage.tsx` | Adicionar TooltipProvider nas abas, textos completos e tooltips |
+| `supabase/config.toml` | Registrar nova edge function |
+| `src/components/admin/master-whatsapp/MasterBotConfigTab.tsx` | Adicionar botao "Sincronizar Todos", estados de prompts reais |
+| `src/components/admin/master-whatsapp/PromptPreviewCard.tsx` | Adicionar tabs "Configurado" vs "Preview Local" |
+| `src/hooks/useMasterWhatsAppConfig.ts` | Adicionar funcao fetchRealPrompts |
 
-### Implementacao
+## Arquivos que NAO serao alterados
 
-1. Envolver TabsList com TooltipProvider
-2. Cada TabsTrigger envolvido em Tooltip + TooltipTrigger
-3. Adicionar TooltipContent com descricao da aba
-4. Ajustar textos para serem mais descritivos
-5. Trocar icone de "Sessoes" de MessageSquare para Users (mais representativo)
+| Arquivo | Motivo |
+|---------|--------|
+| `supabase/functions/master-bot-sync/index.ts` | Continua funcionando igual |
+| `supabase/functions/openai-bot-sync/index.ts` | Bot das lojas intacto |
 
-### Codigo Exemplo
+---
 
-```tsx
-<TooltipProvider>
-  <TabsList className="w-full flex overflow-x-auto gap-1 p-1">
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <TabsTrigger value="connection" className="flex-shrink-0 gap-1.5">
-          <Smartphone className="w-4 h-4" />
-          Conexao WhatsApp
-        </TabsTrigger>
-      </TooltipTrigger>
-      <TooltipContent>
-        <p>Conecte sua instancia do WhatsApp e envie mensagens de teste</p>
-      </TooltipContent>
-    </Tooltip>
-    {/* ... demais abas */}
-  </TabsList>
-</TooltipProvider>
+## Ordem de Implementacao
+
+```text
+FASE 1: Edge Function
+   1.1 Criar master-bot-fetch-prompt/index.ts
+   1.2 Implementar busca na Evolution API
+   1.3 Registrar no config.toml
+   1.4 Deploy
+
+FASE 2: Hook
+   2.1 Adicionar fetchRealPrompts em useMasterWhatsAppConfig.ts
+   2.2 Adicionar estados realPrompts
+
+FASE 3: Interface
+   3.1 Atualizar MasterBotConfigTab com botao "Sincronizar Todos"
+   3.2 Atualizar PromptPreviewCard com tabs
+   3.3 Conectar tudo
+
+FASE 4: Teste
+   4.1 Testar busca de prompts
+   4.2 Testar sincronizacao de todos
+   4.3 Testar exibicao correta
 ```
 
 ---
 
 ## Resultado Esperado
 
-- Todas as abas com textos visiveis e claros
-- Icones representativos para cada funcao
-- Ao passar o mouse, aparece tooltip explicando a aba
-- Interface mais intuitiva para o administrador
+| Funcionalidade | Antes | Depois |
+|----------------|-------|--------|
+| Preview mostra | Prompt gerado localmente | Prompt REAL da Evolution |
+| Sincronizar | Um bot por vez | Botao "Sincronizar Todos" |
+| Identificar diferenca | Badge "Nao sincronizado" | Tabs mostrando ambos os prompts |
+| Atualizar preview | Manual | Botao de refresh busca da Evolution |
 
+---
+
+## Secao Tecnica: Como Funciona a Busca na Evolution
+
+A Evolution API tem endpoint `/openai/find/{instance}` que retorna:
+
+```json
+[
+  {
+    "id": "bot-uuid",
+    "openaiCredsId": "creds-uuid",
+    "botType": "chatCompletion",
+    "model": "gpt-4o-mini",
+    "systemMessages": ["prompt aqui..."],
+    "triggerType": "keyword",
+    "triggerValue": "preco,plano"
+  }
+]
+```
+
+O campo `systemMessages[0]` contem o prompt configurado.

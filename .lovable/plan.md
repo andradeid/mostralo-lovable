@@ -1,97 +1,55 @@
 
-# Plano: Atualizar Identidade Visual das Páginas Legais
+
+# Plano: WhatsApp Dinâmico no Footer + Correção de Email
 
 ## Problema Identificado
 
-| Página | Status Atual | Problema |
-|--------|--------------|----------|
-| `/lgpd` | Moderna | Emails com domínio errado (mostralo.app) |
-| `/cookies` | Moderna | OK |
-| `/privacidade` | Layout antigo | Sem header, hero, ícones e MainFooter |
-| `/termos` | Layout antigo | Sem header, hero, ícones e MainFooter |
+| Item | Valor Atual | Valor Correto |
+|------|-------------|---------------|
+| WhatsApp | Link fixo `5511999999999` | Dinâmico da instância master |
+| Email | `contato@mostralo.app` | `contato@mostralo.com.br` |
+| Fallback WhatsApp | `5511941941427` | `556194009368` (número pessoal) |
+
+---
+
+## Lógica de Prioridade do WhatsApp
+
+```text
+1º - Número da instância conectada (master_whatsapp_config.instance_phone)
+     Ex: 5511941941427 (se conectado)
+     
+2º - Número de fallback configurado (master_whatsapp_config.fallback_phone)
+     
+3º - Número pessoal padrão: 556194009368
+```
 
 ---
 
 ## Alterações Planejadas
 
-### 1. Corrigir Emails na Página LGPD
+### 1. Atualizar Fallback no Hook
 
-**Arquivo:** `src/pages/LGPD.tsx`
+**Arquivo:** `src/hooks/useMasterWhatsApp.ts`
+
+- Alterar `DEFAULT_FALLBACK_NUMBER` de `5511941941427` para `556194009368`
+
+---
+
+### 2. Integrar Hook no MainFooter
+
+**Arquivo:** `src/components/MainFooter.tsx`
+
+- Importar `useMasterWhatsApp`
+- Usar `getWhatsAppLink('default')` para gerar link dinâmico
+- Corrigir email para `contato@mostralo.com.br`
+
+**Mudanças específicas:**
 
 | Linha | Antes | Depois |
 |-------|-------|--------|
-| 149-150 | `privacidade@mostralo.app` | `privacidade@mostralo.com.br` |
-| 185 | `dpo@mostralo.app` | `dpo@mostralo.com.br` |
-
----
-
-### 2. Atualizar Página de Privacidade
-
-**Arquivo:** `src/pages/Privacy.tsx`
-
-**Nova estrutura (igual LGPD/Cookies):**
-
-- Header com logo Mostralo + link "Voltar ao início"
-- Hero Section com gradiente escuro e ícone Shield
-- Seções com ícones (FileText, User, Shield, Database, etc.)
-- Cards estilizados para cada tópico
-- Box de destaque para contato/direitos
-- MainFooter no final
-
-**Conteúdo mantido:** Todo o texto atual será preservado, apenas reorganizado visualmente.
-
----
-
-### 3. Atualizar Página de Termos de Uso
-
-**Arquivo:** `src/pages/TermsOfUse.tsx`
-
-**Nova estrutura (igual LGPD/Cookies):**
-
-- Header com logo Mostralo + link "Voltar ao início"
-- Hero Section com gradiente escuro e ícone FileText
-- Seções com ícones para cada tópico
-- Cards destacando direitos do usuário
-- Box especial para "Seus Direitos Garantidos"
-- MainFooter no final
-
-**Conteúdo mantido:** Todo o texto atual será preservado, apenas reorganizado visualmente.
-
----
-
-## Componentes Visuais da Nova Identidade
-
-```text
-┌─────────────────────────────────────────────────────┐
-│  [Logo] Mostralo              ← Voltar ao início    │  ← Header escuro
-├─────────────────────────────────────────────────────┤
-│                                                     │
-│         [Ícone Grande no Círculo]                   │
-│         Título da Página                            │  ← Hero com gradiente
-│         Descrição breve                             │
-│                                                     │
-├─────────────────────────────────────────────────────┤
-│                                                     │
-│  [Ícone] Seção 1                                    │
-│  ┌──────────────────────────────────────────────┐  │
-│  │  Conteúdo com background muted               │  │  ← Cards estilizados
-│  └──────────────────────────────────────────────┘  │
-│                                                     │
-│  [Ícone] Seção 2                                    │
-│  ┌─────────────┐  ┌─────────────┐                  │
-│  │  Card 1     │  │  Card 2     │                  │  ← Grid de cards
-│  └─────────────┘  └─────────────┘                  │
-│                                                     │
-│  ┌──────────────────────────────────────────────┐  │
-│  │  Box de destaque com borda primary           │  │  ← Contato/Direitos
-│  └──────────────────────────────────────────────┘  │
-│                                                     │
-│  Última atualização: 31 de janeiro de 2026          │
-│                                                     │
-├─────────────────────────────────────────────────────┤
-│                 [MainFooter]                        │
-└─────────────────────────────────────────────────────┘
-```
+| 40 | `href="https://wa.me/5511999999999"` | `href={whatsAppLink}` |
+| 49-53 | `contato@mostralo.app` | `contato@mostralo.com.br` |
+| 87 | `href="https://wa.me/5511999999999"` | `href={whatsAppLink}` |
 
 ---
 
@@ -99,18 +57,27 @@
 
 | Arquivo | Alteração |
 |---------|-----------|
-| `src/pages/LGPD.tsx` | Corrigir 3 emails de mostralo.app → mostralo.com.br |
-| `src/pages/Privacy.tsx` | Reescrever com nova identidade visual |
-| `src/pages/TermsOfUse.tsx` | Reescrever com nova identidade visual |
+| `src/hooks/useMasterWhatsApp.ts` | Alterar fallback para 556194009368 |
+| `src/components/MainFooter.tsx` | Integrar hook + corrigir email |
 
 ---
 
-## Resultado Final
+## Comportamento Final
 
-Todas as 4 páginas legais terão:
-- Identidade visual consistente
-- Header unificado
-- Hero section com gradiente
-- Seções com ícones
-- MainFooter
-- Emails corretos com domínio mostralo.com.br
+**Cenário 1 - Instância Conectada:**
+- Link WhatsApp aponta para número da instância (ex: 5511941941427)
+
+**Cenário 2 - Sem Instância:**
+- Link WhatsApp aponta para fallback configurado no banco
+
+**Cenário 3 - Sem Configuração:**
+- Link WhatsApp aponta para 556194009368 (número pessoal)
+
+---
+
+## Benefícios
+
+1. **Flexibilidade**: Mudança de número sem alterar código
+2. **Continuidade**: Sempre há um número disponível
+3. **Consistência**: Email com domínio oficial mostralo.com.br
+

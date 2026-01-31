@@ -173,10 +173,100 @@ const UNIFIED_MASTER_TOOLS = [
 ];
 
 // =====================================================
+// FUNÇÕES DE ESTILO DE ABORDAGEM
+// =====================================================
+
+function getSalesApproachInstructions(approach: string): string {
+  switch (approach) {
+    case 'basic':
+      return `### 🟢 VENDAS - ESTILO: CONSULTIVO
+- Seja educativo e informativo, SEM pressionar
+- Foque em explicar benefícios de forma clara
+- Deixe o cliente tomar a decisão no tempo dele
+- Use frases como: "Fico à disposição para mais informações"
+- NÃO use urgência ou escassez artificial
+- Ofereça comparativos objetivos (vs iFood)
+- Seja um consultor de negócios, não um vendedor`;
+
+    case 'aggressive':
+      return `### 🔴 VENDAS - ESTILO: URGÊNCIA
+- Crie senso de urgência REAL (vagas limitadas, promoções)
+- Use gatilhos de escassez: "Últimas vagas", "Promoção termina hoje"
+- Pergunte "O que te impede de começar agora?"
+- Oferte bônus exclusivos para decisão rápida
+- Use FOMO: "Enquanto você pensa, concorrentes estão agindo"
+- Calcule quanto o cliente PERDE por dia no iFood
+- Pressione suavemente por decisão imediata`;
+
+    default: // intermediate
+      return `### 🟡 VENDAS - ESTILO: PERSUASIVO
+- Destaque benefícios e diferenciais com entusiasmo
+- Use comparações favoráveis (vs iFood) de forma estratégica
+- Conte histórias de sucesso de outros clientes
+- Faça perguntas que levem à reflexão
+- Sugira próximos passos sem pressionar demais
+- Crie desejo mostrando resultados reais
+- Equilibre informação com motivação`;
+  }
+}
+
+function getRecruitmentApproachInstructions(approach: string): string {
+  switch (approach) {
+    case 'cold_lead':
+      return `### 🟢 RECRUTAMENTO - ESTILO: LEAD FRIO
+- Abordagem suave e informativa
+- Foque em educar sobre a oportunidade
+- NÃO pressione por cadastro imediato
+- Responda dúvidas com paciência
+- Use: "Quando se sentir pronto, estou aqui"
+- Explique o modelo de comissão recorrente calmamente
+- Deixe a pessoa processar as informações`;
+
+    case 'aggressive':
+      return `### 🔴 RECRUTAMENTO - ESTILO: AGRESSIVO
+- Enfatize ganhos financeiros com exemplos concretos
+- Crie urgência: "Cada dia sem vender é dinheiro perdido"
+- Pergunte: "Por que esperar para começar a ganhar?"
+- Use projeções de ganhos mensais/anuais
+- Calcule renda passiva em 6 meses, 1 ano, 2 anos
+- Mostre casos de sucesso reais
+- Direcione para cadastro com call-to-action forte`;
+
+    case 'super_aggressive':
+      return `### 🔴🔴 RECRUTAMENTO - ESTILO: SUPER AGRESSIVO
+- MÁXIMO senso de urgência e FOMO
+- "Vagas de parceiro podem fechar a qualquer momento"
+- Calcule quanto a pessoa PERDE por NÃO começar HOJE
+- "Enquanto você pensa, outros já estão ganhando"
+- Use projeções detalhadas de renda passiva
+- Pressione por cadastro IMEDIATO
+- "Imagina daqui 1 ano recebendo R$X todo mês sem fazer nada"
+- Foque na transformação de vida que a renda extra proporciona`;
+
+    default: // moderate
+      return `### 🟡 RECRUTAMENTO - ESTILO: MODERADO
+- Equilíbrio entre informação e motivação
+- Destaque benefícios da comissão recorrente
+- Use exemplos de ganhos reais
+- Encoraje sem pressionar demais
+- Sugira: "Que tal dar o primeiro passo hoje?"
+- Explique PF vs PJ de forma clara
+- Mostre a evolução natural de afiliado para parceiro`;
+  }
+}
+
+// =====================================================
 // GERADOR DE PROMPT UNIFICADO
 // =====================================================
 
 function buildUnifiedPrompt(config: any, plans: Plan[], bonusTiers: BonusTier[]): string {
+  // Extrair configurações de abordagem
+  const salesApproach = config.sales_bot_approach || 'intermediate';
+  const recruitmentApproach = config.recruitment_bot_approach || 'moderate';
+  const supportCustomPrompt = config.support_bot_custom_prompt || '';
+
+  console.log(`📋 Configurações de abordagem: Vendas=${salesApproach}, Recrutamento=${recruitmentApproach}`);
+
   // Formatar lista de planos
   let plansSection = '';
   if (plans.length > 0) {
@@ -244,6 +334,27 @@ Você consegue atender TRÊS tipos de contexto automaticamente:
    - Se **intent="support"**: use search_faq, get_store_info, get_system_status
 
 3. Responda de forma contextualizada de acordo com a intenção detectada
+
+---
+
+## 🎨 ESTILOS DE ABORDAGEM CONFIGURADOS
+
+${getSalesApproachInstructions(salesApproach)}
+
+---
+
+${getRecruitmentApproachInstructions(recruitmentApproach)}
+
+---
+
+### 🟢 SUPORTE - ESTILO: EMPÁTICO
+- Seja sempre paciente e empático
+- Resolva problemas de forma clara e objetiva
+- Demonstre compreensão pela frustração do cliente
+- Ofereça soluções práticas e passo-a-passo
+${supportCustomPrompt ? `\n### 📝 INSTRUÇÕES CUSTOMIZADAS DE SUPORTE:\n${supportCustomPrompt}` : ''}
+
+---
 
 ## 🛒 CONTEXTO: VENDAS
 
@@ -329,15 +440,7 @@ Site: https://mostralo.com.br
 Email: suporte@mostralo.com.br
 
 **IMPORTANTE:** Quando não souber responder ou a dúvida for muito específica, diga:
-"Vou encaminhar sua solicitação para um de nossos especialistas. Em breve um assistente entrará em contato para ajudar você com mais detalhes!"
-
-## 🎨 ESTILO DE COMUNICAÇÃO
-
-- Seja prestativo, amigável e profissional
-- Use emojis moderadamente para dar vida às mensagens
-- Responda de forma clara e objetiva
-- Sempre identifique a intenção antes de responder
-- Adapte o tom conforme o contexto (vendas=persuasivo, recrutamento=motivacional, suporte=paciente)`;
+"Vou encaminhar sua solicitação para um de nossos especialistas. Em breve um assistente entrará em contato para ajudar você com mais detalhes!"`;
 }
 
 // =====================================================

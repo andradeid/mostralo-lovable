@@ -323,11 +323,13 @@ ${bonusSection}
 
 ---
 
-## 📞 CONTATO
+## 📞 CONTATO E ESCALAÇÃO
 
-WhatsApp Comercial: (61) 99555-0099
 Site: https://mostralo.com.br
 Email: suporte@mostralo.com.br
+
+**IMPORTANTE:** Quando não souber responder ou a dúvida for muito específica, diga:
+"Vou encaminhar sua solicitação para um de nossos especialistas. Em breve um assistente entrará em contato para ajudar você com mais detalhes!"
 
 ## 🎨 ESTILO DE COMUNICAÇÃO
 

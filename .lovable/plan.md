@@ -1,247 +1,235 @@
 
-# Plano: Preview Real do Prompt e Botao Sincronizar Todos
 
-## Problema Identificado
+# Plano: Bot Tipo Assistant + Destaque Visual das Abas
 
-Atualmente o "Preview do Prompt" no card de cada bot (Vendas, Recrutamento, Suporte) mostra o prompt **gerado localmente** usando funcoes como `generateSalesPrompt()`, nao o prompt que esta **realmente configurado** na Evolution API/OpenAI.
+## Resumo dos Problemas
 
-## Solucao
+1. **Tipo de Bot Incorreto**: O `master-bot-sync` usa `botType: 'chatCompletion'` que NAO suporta function calling
+2. **Falta OpenAI Assistant**: O bot das lojas cria um Assistant na OpenAI com tools, o master nao faz isso
+3. **Falta Function URL**: O bot das lojas tem URL para processar chamadas de funcao
+4. **Abas sem Destaque**: Usuario nao consegue ver qual aba esta selecionada
 
-### Arquitetura Atual vs Proposta
+---
+
+## PARTE 1: Corrigir Tipo de Bot
+
+### Comparacao: Bot das Lojas vs Master
+
+| Caracteristica | openai-bot-sync (Lojas) | master-bot-sync (Atual) |
+|----------------|-------------------------|-------------------------|
+| botType | `assistant` | `chatCompletion` |
+| OpenAI Assistant | Cria via API | NAO cria |
+| assistantId | Inclui no payload | NAO tem |
+| functionUrl | Inclui no payload | NAO tem |
+| Tools/Functions | 7 funcoes de produto | NAO tem |
+| FAQ Dinamico | Funciona | NAO funciona |
+
+### Fluxo do Bot das Lojas (Modelo a Seguir)
 
 ```text
-ATUAL:
-Frontend gera prompt local → Mostra no preview → Usuario sincroniza → Prompt vai para Evolution
-
-PROPOSTO:
-Frontend busca prompt da Evolution → Mostra prompt REAL → Botao "Sincronizar Todos" atualiza tudo
+1. Recebe config do frontend
+        ↓
+2. Cria OpenAI Assistant via api.openai.com/v1/assistants
+   - Com tools: search_products, check_stock, get_promotions, etc
+   - Recebe assistantId
+        ↓
+3. Monta payload para Evolution API
+   - botType: 'assistant'
+   - assistantId: do passo 2
+   - functionUrl: URL da edge function que processa tools
+        ↓
+4. Envia para Evolution /openai/create/{instance}
+        ↓
+5. Quando usuario manda mensagem:
+   - Evolution chama OpenAI Assistant
+   - Se Assistant precisa de dados, chama functionUrl
+   - functionUrl executa e retorna dados
+   - Assistant responde com dados reais
 ```
+
+### Solucao para Master
+
+Seguir o MESMO fluxo do bot das lojas, adaptando para os bots master:
+
+| Bot | Tools Necessarias |
+|-----|-------------------|
+| Vendas | get_plans, calculate_savings, get_testimonials |
+| Recrutamento | get_bonus_tiers, get_plans, calculate_commission |
+| Suporte | search_faq, get_store_info, get_system_status |
 
 ---
 
-## FASE 1: Nova Edge Function para Buscar Prompts
+## PARTE 2: Arquivos a Criar/Modificar
 
-### 1.1 Criar `master-bot-fetch-prompt`
+### Criar: Edge Function para Processar Tools
 
-**Arquivo:** `supabase/functions/master-bot-fetch-prompt/index.ts`
+**Arquivo:** `supabase/functions/master-faq-agent/index.ts`
 
-| Endpoint | Descricao |
-|----------|-----------|
-| POST | Busca prompt atual de um ou todos os bots na Evolution API |
+Funcao que recebe chamadas de tools do OpenAI Assistant e retorna dados do banco:
 
-**Payload de entrada:**
-```json
-{
-  "configId": "uuid",
-  "botType": "sales" | "recruitment" | "support" | "all"
-}
-```
+| Tool | Descricao | Dados |
+|------|-----------|-------|
+| get_plans | Lista planos disponiveis | Tabela plans |
+| get_bonus_tiers | Lista tiers de bonus | Tabela affiliate_bonus_tiers |
+| search_faq | Busca FAQs | Tabela master_bot_faqs |
+| get_system_status | Status do sistema | Uptime, versao |
 
-**Retorno:**
-```json
-{
-  "success": true,
-  "prompts": {
-    "sales": {
-      "prompt": "texto do prompt...",
-      "model": "gpt-4o-mini",
-      "botId": "evolution-bot-id",
-      "exists": true
-    },
-    "recruitment": { ... },
-    "support": { ... }
+### Modificar: master-bot-sync/index.ts
+
+| Linha | De | Para |
+|-------|----|----|
+| 960 | `botType: 'chatCompletion'` | `botType: 'assistant'` |
+| Nova | - | Criar OpenAI Assistant via API |
+| Nova | - | Adicionar `assistantId` ao payload |
+| Nova | - | Adicionar `functionUrl` ao payload |
+
+### Modificar: src/components/ui/tabs.tsx
+
+| Linha | De | Para |
+|-------|----|----|
+| 30 | `data-[state=active]:bg-background data-[state=active]:text-foreground` | `data-[state=active]:bg-orange-500 data-[state=active]:text-white` |
+
+---
+
+## PARTE 3: Detalhamento Tecnico
+
+### 3.1 OpenAI Assistant Tools para Master
+
+```typescript
+const masterTools = [
+  {
+    type: 'function',
+    function: {
+      name: 'get_plans',
+      description: 'Retorna lista de planos disponiveis com precos atualizados',
+      parameters: { type: 'object', properties: {} }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_bonus_tiers',
+      description: 'Retorna tiers de bonus para vendedores',
+      parameters: { type: 'object', properties: {} }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'search_faq',
+      description: 'Busca perguntas frequentes',
+      parameters: {
+        type: 'object',
+        properties: {
+          query: { type: 'string', description: 'Termo de busca' }
+        },
+        required: ['query']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'calculate_savings',
+      description: 'Calcula economia vs iFood baseado no faturamento',
+      parameters: {
+        type: 'object',
+        properties: {
+          revenue: { type: 'number', description: 'Faturamento mensal' },
+          plan_id: { type: 'string', description: 'ID do plano' }
+        },
+        required: ['revenue']
+      }
+    }
   }
-}
+];
 ```
 
-### 1.2 Registrar no config.toml
-
-```toml
-[functions.master-bot-fetch-prompt]
-verify_jwt = false
-```
-
----
-
-## FASE 2: Atualizar Interface do MasterBotConfigTab
-
-### 2.1 Novo Estado para Prompts Reais
-
-Adicionar estados para armazenar os prompts buscados da Evolution:
+### 3.2 Payload Atualizado para Evolution
 
 ```typescript
-const [realPrompts, setRealPrompts] = useState<{
-  sales: { prompt: string; model: string; exists: boolean } | null;
-  recruitment: { prompt: string; model: string; exists: boolean } | null;
-  support: { prompt: string; model: string; exists: boolean } | null;
-}>({ sales: null, recruitment: null, support: null });
-
-const [fetchingPrompts, setFetchingPrompts] = useState(false);
-```
-
-### 2.2 Funcao para Buscar Prompts Reais
-
-```typescript
-const fetchRealPrompts = async () => {
-  setFetchingPrompts(true);
-  // Chamar edge function master-bot-fetch-prompt
-  // Atualizar estado realPrompts
-  setFetchingPrompts(false);
+const botPayload = {
+  enabled: true,
+  openaiCredsId: openaiCredsId,
+  botType: 'assistant',  // MUDANCA: era chatCompletion
+  model: config.openai_model || 'gpt-4o-mini',
+  maxTokens: 1000,
+  systemMessages: [prompt],
+  assistantMessages: [...],
+  assistantId: openaiAssistantId,  // NOVO: ID do Assistant criado
+  functionUrl: `${supabaseUrl}/functions/v1/master-faq-agent`,  // NOVO
+  // ... resto igual
 };
 ```
 
-### 2.3 Atualizar PromptPreviewCard
-
-Modificar para mostrar:
-- **Tab "Configurado"**: Prompt que esta NA EVOLUTION (real)
-- **Tab "Preview Local"**: Prompt que SERA enviado se sincronizar
-
----
-
-## FASE 3: Botao "Sincronizar Todos os Bots"
-
-### 3.1 Adicionar Botao no Header das Tabs
-
-```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  [Vendas] [Recr.] [Suporte]                     [Sincronizar Todos] Modelo: │
-├─────────────────────────────────────────────────────────────────────────────┤
-```
-
-### 3.2 Funcao syncAllBots
+### 3.3 Estilo das Abas
 
 ```typescript
-const syncAllBots = async () => {
-  setSyncingAll(true);
-  
-  // Sincronizar cada bot que estiver ativo
-  const botsToSync = ['sales', 'recruitment', 'support'].filter(
-    bot => config[`${bot}_bot_enabled`]
-  );
-  
-  for (const bot of botsToSync) {
-    await syncBots(bot);
-  }
-  
-  // Atualizar prompts reais apos sincronizacao
-  await fetchRealPrompts();
-  
-  setSyncingAll(false);
-};
+// De (atual):
+"data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+
+// Para (novo):
+"data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:shadow-sm"
 ```
 
 ---
 
-## FASE 4: Modificar PromptPreviewCard
+## PARTE 4: Arquivos Afetados
 
-### 4.1 Nova Interface
+| Arquivo | Acao | Descricao |
+|---------|------|-----------|
+| `supabase/functions/master-faq-agent/index.ts` | CRIAR | Edge function para processar tools |
+| `supabase/functions/master-bot-sync/index.ts` | MODIFICAR | Adicionar criacao de OpenAI Assistant |
+| `supabase/config.toml` | MODIFICAR | Registrar master-faq-agent |
+| `src/components/ui/tabs.tsx` | MODIFICAR | Adicionar destaque laranja |
+| `master_whatsapp_config` | ADICIONAR COLUNA | `openai_assistant_id` para cada bot |
 
-| Props Nova | Tipo | Descricao |
-|------------|------|-----------|
-| `realPrompt` | string | null | Prompt da Evolution (real) |
-| `localPrompt` | string | Prompt gerado localmente |
-| `onRefresh` | () => void | Callback para atualizar prompt real |
-| `loading` | boolean | Estado de carregamento |
+### Colunas Novas no Banco (se necessario)
 
-### 4.2 Layout com Tabs
-
-```text
-┌──────────────────────────────────────────────────────────────────┐
-│ 👁️ Preview do Prompt  [Persuasivo]  [✓ Sincronizado]           │
-├──────────────────────────────────────────────────────────────────┤
-│  [Configurado na IA]  [Preview Local]                    [🔄]   │
-├──────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  🤖 PROMPT DE VENDAS MOSTRALO - PERSUASIVO                      │
-│                                                                  │
-│  ## IDENTIDADE E ESTILO                                         │
-│  Você é um consultor de vendas focado em números e resultados.  │
-│  ...                                                             │
-│                                                                  │
-├──────────────────────────────────────────────────────────────────┤
-│  22.691 caracteres  3.425 palavras        [📋 Copiar Prompt]    │
-└──────────────────────────────────────────────────────────────────┘
+```sql
+ALTER TABLE master_whatsapp_config ADD COLUMN IF NOT EXISTS
+  sales_openai_assistant_id TEXT,
+  recruitment_openai_assistant_id TEXT,
+  support_openai_assistant_id TEXT;
 ```
 
 ---
 
-## Arquivos a Criar
-
-| Arquivo | Descricao |
-|---------|-----------|
-| `supabase/functions/master-bot-fetch-prompt/index.ts` | Edge function para buscar prompts |
-
-## Arquivos a Modificar
-
-| Arquivo | Alteracao |
-|---------|-----------|
-| `supabase/config.toml` | Registrar nova edge function |
-| `src/components/admin/master-whatsapp/MasterBotConfigTab.tsx` | Adicionar botao "Sincronizar Todos", estados de prompts reais |
-| `src/components/admin/master-whatsapp/PromptPreviewCard.tsx` | Adicionar tabs "Configurado" vs "Preview Local" |
-| `src/hooks/useMasterWhatsAppConfig.ts` | Adicionar funcao fetchRealPrompts |
-
-## Arquivos que NAO serao alterados
-
-| Arquivo | Motivo |
-|---------|--------|
-| `supabase/functions/master-bot-sync/index.ts` | Continua funcionando igual |
-| `supabase/functions/openai-bot-sync/index.ts` | Bot das lojas intacto |
-
----
-
-## Ordem de Implementacao
+## PARTE 5: Ordem de Implementacao
 
 ```text
-FASE 1: Edge Function
-   1.1 Criar master-bot-fetch-prompt/index.ts
-   1.2 Implementar busca na Evolution API
-   1.3 Registrar no config.toml
-   1.4 Deploy
+FASE 1: Estilo Visual (5 min)
+   1.1 Modificar tabs.tsx com destaque laranja
+   1.2 Testar visualizacao
 
-FASE 2: Hook
-   2.1 Adicionar fetchRealPrompts em useMasterWhatsAppConfig.ts
-   2.2 Adicionar estados realPrompts
+FASE 2: Edge Function (15 min)
+   2.1 Criar master-faq-agent/index.ts
+   2.2 Implementar handlers para tools
+   2.3 Registrar no config.toml
+   2.4 Deploy
 
-FASE 3: Interface
-   3.1 Atualizar MasterBotConfigTab com botao "Sincronizar Todos"
-   3.2 Atualizar PromptPreviewCard com tabs
-   3.3 Conectar tudo
+FASE 3: Atualizar master-bot-sync (20 min)
+   3.1 Adicionar criacao de OpenAI Assistant
+   3.2 Definir tools por tipo de bot
+   3.3 Atualizar botPayload
+   3.4 Salvar assistantId no banco
+   3.5 Deploy
 
-FASE 4: Teste
-   4.1 Testar busca de prompts
-   4.2 Testar sincronizacao de todos
-   4.3 Testar exibicao correta
+FASE 4: Testes (10 min)
+   4.1 Sincronizar bot de vendas
+   4.2 Verificar se Assistant foi criado na OpenAI
+   4.3 Testar function calling via WhatsApp
 ```
 
 ---
 
 ## Resultado Esperado
 
-| Funcionalidade | Antes | Depois |
-|----------------|-------|--------|
-| Preview mostra | Prompt gerado localmente | Prompt REAL da Evolution |
-| Sincronizar | Um bot por vez | Botao "Sincronizar Todos" |
-| Identificar diferenca | Badge "Nao sincronizado" | Tabs mostrando ambos os prompts |
-| Atualizar preview | Manual | Botao de refresh busca da Evolution |
+| Item | Antes | Depois |
+|------|-------|--------|
+| Tipo de bot | chatCompletion | assistant |
+| Function calling | NAO funciona | Funciona |
+| FAQ dinamico | NAO funciona | Consulta banco em tempo real |
+| Abas ativas | Fundo branco | Fundo laranja #f97316 |
+| Assistente OpenAI | Nao existe | Criado automaticamente |
 
----
-
-## Secao Tecnica: Como Funciona a Busca na Evolution
-
-A Evolution API tem endpoint `/openai/find/{instance}` que retorna:
-
-```json
-[
-  {
-    "id": "bot-uuid",
-    "openaiCredsId": "creds-uuid",
-    "botType": "chatCompletion",
-    "model": "gpt-4o-mini",
-    "systemMessages": ["prompt aqui..."],
-    "triggerType": "keyword",
-    "triggerValue": "preco,plano"
-  }
-]
-```
-
-O campo `systemMessages[0]` contem o prompt configurado.

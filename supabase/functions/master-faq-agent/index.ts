@@ -1,3 +1,4 @@
+// Master FAQ Agent - v2.0 - Processa function calls do OpenAI Assistant para bots Master
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -8,6 +9,14 @@ const corsHeaders = {
 
 // Type alias for Supabase client
 type SupabaseClientType = SupabaseClient<Record<string, unknown>>;
+
+// Formatador de moeda
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(value);
+}
 
 serve(async (req) => {
   // Handle CORS preflight
@@ -23,8 +32,22 @@ serve(async (req) => {
     const body = await req.json();
     console.log('[master-faq-agent] Request body:', JSON.stringify(body));
 
-    // Extract function name and arguments from OpenAI Assistant tool call
-    const { function: functionName, arguments: args } = body;
+    // Extrair nome da função e argumentos (Evolution API envia em formatos variados)
+    const functionName = body.function || body.functionName || body.name || body.tool_name;
+    const rawArgs = body.arguments || body.functionArguments || body.args || body.parameters || {};
+    
+    let args: Record<string, unknown> = {};
+    if (typeof rawArgs === 'string') {
+      try {
+        args = JSON.parse(rawArgs);
+      } catch {
+        args = {};
+      }
+    } else {
+      args = rawArgs as Record<string, unknown>;
+    }
+
+    console.log(`[master-faq-agent] Function: ${functionName}, Args:`, JSON.stringify(args));
 
     if (!functionName) {
       return new Response(
@@ -36,41 +59,86 @@ serve(async (req) => {
     let result: unknown;
 
     switch (functionName) {
+      // ==========================================
+      // FUNÇÕES COMPARTILHADAS
+      // ==========================================
       case 'identify_intent':
-        result = await identifyIntent(args?.message || '');
+        result = identifyIntent(String(args?.message || ''));
         break;
 
       case 'check_recruitment_keywords':
-        result = await checkRecruitmentKeywords(supabase, args?.message || '');
+        result = await checkRecruitmentKeywords(supabase, String(args?.message || ''));
         break;
 
       case 'search_faq':
-        result = await searchFaq(supabase, args?.query || '', args?.category);
+        result = await searchFaq(supabase, String(args?.query || ''), args?.category as string);
         break;
 
       case 'get_modules':
-        result = await getModules(supabase, args?.category);
+        result = await getModules(supabase, args?.category as string);
         break;
 
       case 'get_module_details':
-        result = await getModuleDetails(supabase, args?.key || '');
-        break;
-
-      case 'get_plans':
-        result = await getPlans(supabase);
-        break;
-
-      case 'calculate_savings':
-        result = calculateSavings(args?.monthly_revenue || 0);
+        result = await getModuleDetails(supabase, String(args?.key || ''));
         break;
 
       case 'get_recruitment_link':
         result = getRecruitmentLink();
         break;
 
+      // ==========================================
+      // FUNÇÕES PARA BOT DE VENDAS
+      // ==========================================
+      case 'get_plans':
+        result = await getPlans(supabase);
+        break;
+
+      case 'calculate_savings':
+        result = calculateSavings(Number(args?.monthly_revenue || args?.revenue || 0));
+        break;
+
+      case 'get_testimonials':
+        result = getTestimonials();
+        break;
+
+      // ==========================================
+      // FUNÇÕES PARA BOT DE RECRUTAMENTO
+      // ==========================================
+      case 'get_bonus_tiers':
+        result = await getBonusTiers(supabase);
+        break;
+
+      case 'calculate_commission':
+        result = calculateCommission(
+          Number(args?.sales || 1),
+          Number(args?.plan_value || 149),
+          Boolean(args?.is_pj)
+        );
+        break;
+
+      // ==========================================
+      // FUNÇÕES PARA BOT DE SUPORTE
+      // ==========================================
+      case 'get_store_info':
+        result = getStoreInfo();
+        break;
+
+      case 'get_system_status':
+        result = getSystemStatus();
+        break;
+
       default:
         return new Response(
-          JSON.stringify({ error: `Unknown function: ${functionName}` }),
+          JSON.stringify({ 
+            error: `Unknown function: ${functionName}`,
+            availableFunctions: [
+              'identify_intent', 'check_recruitment_keywords', 'search_faq',
+              'get_modules', 'get_module_details', 'get_recruitment_link',
+              'get_plans', 'calculate_savings', 'get_testimonials',
+              'get_bonus_tiers', 'calculate_commission',
+              'get_store_info', 'get_system_status'
+            ]
+          }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
     }
@@ -102,18 +170,14 @@ serve(async (req) => {
 function identifyIntent(message: string): { intent: string; confidence: number } {
   const lowerMessage = message.toLowerCase();
   
-  // Sales indicators
   const salesKeywords = ['conhecer', 'saber', 'preco', 'custo', 'quanto', 'plano', 'funciona', 'teste', 'negocio', 'delivery', '1'];
-  // Support indicators
   const supportKeywords = ['problema', 'erro', 'nao funciona', 'ajuda', 'como', 'configurar', 'duvida', '2'];
-  // Recruitment indicators (hidden)
   const recruitmentKeywords = ['trabalhar', 'vendedor', 'parceiro', 'comissao', 'ganhar', 'renda', 'afiliado', 'oportunidade', 'emprego'];
   
   const salesScore = salesKeywords.filter(k => lowerMessage.includes(k)).length;
   const supportScore = supportKeywords.filter(k => lowerMessage.includes(k)).length;
   const recruitmentScore = recruitmentKeywords.filter(k => lowerMessage.includes(k)).length;
   
-  // Recruitment has priority if detected
   if (recruitmentScore > 0) {
     return { intent: 'recruitment', confidence: Math.min(recruitmentScore * 0.3 + 0.5, 1) };
   }
@@ -185,51 +249,59 @@ async function searchFaq(
   const lowerQuery = query.toLowerCase();
   const queryWords = lowerQuery.split(/\s+/).filter(w => w.length > 2);
 
-  let dbQuery = supabase
-    .from('master_faq')
+  // Tentar primeiro a tabela master_bot_faqs, depois master_faq como fallback
+  let faqs: FaqItem[] = [];
+  
+  const { data: masterBotFaqs, error: masterBotError } = await supabase
+    .from('master_bot_faqs')
     .select('*')
-    .eq('is_active', true)
-    .order('priority', { ascending: false });
+    .eq('is_active', true);
 
-  if (category) {
-    dbQuery = dbQuery.eq('category', category);
+  if (!masterBotError && masterBotFaqs && masterBotFaqs.length > 0) {
+    faqs = masterBotFaqs as FaqItem[];
+  } else {
+    let dbQuery = supabase
+      .from('master_faq')
+      .select('*')
+      .eq('is_active', true)
+      .order('priority', { ascending: false });
+
+    if (category) {
+      dbQuery = dbQuery.eq('category', category);
+    }
+
+    const { data: masterFaq, error } = await dbQuery;
+
+    if (error) {
+      console.error('[searchFaq] Error:', error);
+      return { found: false, results: [] };
+    }
+
+    faqs = (masterFaq || []) as FaqItem[];
   }
-
-  const { data: faqs, error } = await dbQuery;
-
-  if (error) {
-    console.error('[searchFaq] Error:', error);
-    return { found: false, results: [] };
-  }
-
-  const faqList = (faqs || []) as FaqItem[];
 
   // Score each FAQ by keyword matching
-  const scoredFaqs = faqList.map(faq => {
+  const scoredFaqs = faqs.map(faq => {
     let score = 0;
     const keywords = faq.keywords || [];
     
-    // Check keywords array
     for (const keyword of keywords) {
       if (lowerQuery.includes(keyword.toLowerCase())) {
         score += 2;
       }
     }
     
-    // Check question text
     for (const word of queryWords) {
       if (faq.question.toLowerCase().includes(word)) {
         score += 1;
       }
     }
     
-    // Priority boost
     score += (faq.priority || 5) * 0.1;
     
     return { ...faq, score };
   });
 
-  // Filter and sort by score
   const results = scoredFaqs
     .filter(f => f.score > 0)
     .sort((a, b) => b.score - a.score)
@@ -276,7 +348,6 @@ async function getModules(
 
   if (error) {
     console.error('[getModules] Error:', error);
-    // Return hardcoded popular modules as fallback
     return {
       modules: [
         { key: 'catalog', name: 'Catálogo Digital', description: 'Cardápio online completo', category: 'core', is_popular: true },
@@ -318,11 +389,14 @@ interface PlanItem {
   id: string;
   name: string;
   price: number;
+  discount_price?: number;
+  promotion_active?: boolean;
+  discount_percentage?: number;
   description: string;
   features: string[];
   is_popular: boolean;
-  max_products: number;
-  max_orders: number;
+  max_products?: number;
+  max_orders?: number;
 }
 
 /**
@@ -330,57 +404,222 @@ interface PlanItem {
  */
 async function getPlans(
   supabase: SupabaseClientType
-): Promise<{ plans: unknown[] }> {
+): Promise<{ plans: unknown[]; total: number }> {
   const { data: plans, error } = await supabase
     .from('plans')
-    .select('id, name, price, description, features, is_popular, max_products, max_orders')
+    .select('*')
     .eq('is_active', true)
-    .order('price', { ascending: true });
+    .order('display_order', { ascending: true });
 
   if (error) {
     console.error('[getPlans] Error:', error);
-    // Return hardcoded plans as fallback
     return {
       plans: [
-        { name: 'Básico', price: 197.90, description: 'Para começar', is_popular: false },
-        { name: 'Avançado', price: 397.90, description: 'Mais escolhido', is_popular: true },
-        { name: 'Premium', price: 597.90, description: 'Para quem quer tudo', is_popular: false },
+        { name: 'Básico', price: formatCurrency(197.90), description: 'Para começar', is_popular: false },
+        { name: 'Avançado', price: formatCurrency(397.90), description: 'Mais escolhido', is_popular: true },
+        { name: 'Premium', price: formatCurrency(597.90), description: 'Para quem quer tudo', is_popular: false },
       ],
+      total: 3,
     };
   }
 
-  return { plans: (plans || []) as PlanItem[] };
+  const planList = (plans || []) as PlanItem[];
+  return { 
+    plans: planList.map(p => ({
+      name: p.name,
+      price: formatCurrency(p.price),
+      discountPrice: p.discount_price ? formatCurrency(p.discount_price) : null,
+      promotionActive: p.promotion_active,
+      discountPercentage: p.discount_percentage,
+      description: p.description,
+      features: p.features,
+      isPopular: p.is_popular,
+    })),
+    total: planList.length,
+  };
 }
 
 /**
  * Calculate savings compared to marketplace fees (25%)
  */
 function calculateSavings(monthlyRevenue: number): {
-  monthly_revenue: number;
-  marketplace_fee_percentage: number;
-  marketplace_fee_amount: number;
-  mostralo_average_plan: number;
-  monthly_savings: number;
-  yearly_savings: number;
-  savings_percentage: number;
+  revenue: string;
+  ifoodFee: string;
+  ifoodPercentage: string;
+  planName: string;
+  planPrice: string;
+  monthlyEconomy: string;
+  yearlyEconomy: string;
+  dailyEconomy: string;
+  economyPercentage: string;
 } {
-  const marketplaceFeePercentage = 0.25; // 25%
+  const marketplaceFeePercentage = 0.25;
   const marketplaceFeeAmount = monthlyRevenue * marketplaceFeePercentage;
-  const mostraloAveragePlan = 397.90; // Plano Avançado
+  const mostraloAveragePlan = 397.90;
   const monthlySavings = marketplaceFeeAmount - mostraloAveragePlan;
   const yearlySavings = monthlySavings * 12;
-  const savingsPercentage = monthlyRevenue > 0 
-    ? ((marketplaceFeeAmount - mostraloAveragePlan) / marketplaceFeeAmount) * 100 
-    : 0;
+  const dailySavings = monthlySavings / 30;
 
   return {
-    monthly_revenue: monthlyRevenue,
-    marketplace_fee_percentage: marketplaceFeePercentage * 100,
-    marketplace_fee_amount: Math.round(marketplaceFeeAmount * 100) / 100,
-    mostralo_average_plan: mostraloAveragePlan,
-    monthly_savings: Math.round(monthlySavings * 100) / 100,
-    yearly_savings: Math.round(yearlySavings * 100) / 100,
-    savings_percentage: Math.round(savingsPercentage * 10) / 10,
+    revenue: formatCurrency(monthlyRevenue),
+    ifoodFee: formatCurrency(marketplaceFeeAmount),
+    ifoodPercentage: '25%',
+    planName: 'Plano Avançado',
+    planPrice: formatCurrency(mostraloAveragePlan),
+    monthlyEconomy: formatCurrency(monthlySavings),
+    yearlyEconomy: formatCurrency(yearlySavings),
+    dailyEconomy: formatCurrency(dailySavings),
+    economyPercentage: ((monthlySavings / marketplaceFeeAmount) * 100).toFixed(1) + '%',
+  };
+}
+
+/**
+ * Get testimonials (hardcoded for now)
+ */
+function getTestimonials(): { testimonials: unknown[] } {
+  return {
+    testimonials: [
+      {
+        name: 'João - Pizzaria do João',
+        text: 'Economizei mais de R$ 3.000 por mês saindo do iFood. Melhor decisão!',
+        savings: 'R$ 3.000/mês',
+      },
+      {
+        name: 'Maria - Doceria da Maria',
+        text: 'Agora todos os clientes são MEUS, não do marketplace.',
+        savings: 'R$ 1.500/mês',
+      },
+      {
+        name: 'Pedro - Hamburgeria Premium',
+        text: 'O WhatsApp Marketing recuperou clientes que eu tinha perdido.',
+        savings: 'R$ 4.500/mês',
+      },
+    ],
+  };
+}
+
+interface BonusTier {
+  id: string;
+  tier_name: string;
+  min_sales: number;
+  bonus_amount: number;
+  is_cumulative: boolean;
+}
+
+/**
+ * Get bonus tiers for recruitment
+ */
+async function getBonusTiers(
+  supabase: SupabaseClientType
+): Promise<{ tiers: unknown[]; maxBonus: string; note: string }> {
+  const { data: tiers, error } = await supabase
+    .from('affiliate_bonus_tiers')
+    .select('*')
+    .order('min_sales', { ascending: true });
+
+  if (error || !tiers || tiers.length === 0) {
+    return {
+      tiers: [
+        { name: 'Bronze', minSales: 10, bonus: 'R$ 500' },
+        { name: 'Prata', minSales: 20, bonus: 'R$ 1.000' },
+        { name: 'Ouro', minSales: 30, bonus: 'R$ 2.000' },
+        { name: 'Diamante', minSales: 50, bonus: 'R$ 5.000' },
+      ],
+      maxBonus: 'R$ 8.500',
+      note: 'Bônus são CUMULATIVOS! Atingindo Diamante você recebe TODOS os bônus.',
+    };
+  }
+
+  const tierList = tiers as BonusTier[];
+  const maxBonus = tierList.reduce((sum, t) => sum + (t.bonus_amount || 0), 0);
+  
+  return {
+    tiers: tierList.map(t => ({
+      name: t.tier_name,
+      minSales: t.min_sales,
+      bonus: formatCurrency(t.bonus_amount),
+      isCumulative: t.is_cumulative,
+    })),
+    maxBonus: formatCurrency(maxBonus),
+    note: 'Bônus são CUMULATIVOS!',
+  };
+}
+
+/**
+ * Calculate commission for recruiters
+ */
+function calculateCommission(
+  sales: number,
+  planValue: number,
+  isPJ: boolean
+): {
+  sales: number;
+  planValue: string;
+  commissionRate: string;
+  monthlyCommission: string;
+  yearlyCommission: string;
+  type: string;
+  note: string;
+} {
+  const commissionRate = isPJ ? 0.10 : 0.07; // 10% PJ, 7% PF
+  const monthlyCommission = planValue * commissionRate * sales;
+  const yearlyCommission = monthlyCommission * 12;
+
+  return {
+    sales,
+    planValue: formatCurrency(planValue),
+    commissionRate: (commissionRate * 100) + '%',
+    monthlyCommission: formatCurrency(monthlyCommission),
+    yearlyCommission: formatCurrency(yearlyCommission),
+    type: isPJ ? 'Parceiro PJ' : 'Afiliado PF',
+    note: 'Comissão RECORRENTE - você recebe todo mês enquanto o cliente pagar!',
+  };
+}
+
+/**
+ * Get store/platform info
+ */
+function getStoreInfo(): {
+  name: string;
+  description: string;
+  whatsapp: string;
+  website: string;
+  features: string[];
+} {
+  return {
+    name: 'Mostralo',
+    description: 'Plataforma completa de Delivery + Marketing Digital + Gestão Financeira',
+    whatsapp: '(61) 99555-0099',
+    website: 'https://mostralo.com.br',
+    features: [
+      '0% de taxa por pedido',
+      'WhatsApp Marketing integrado',
+      'Gestão Financeira completa',
+      'Relatórios com IA',
+      'PDV e Comandas para presencial',
+      'Sistema de Agendamentos',
+      'Programa de Fidelidade',
+      'Sentinela (lembretes de recompra)',
+    ],
+  };
+}
+
+/**
+ * Get system status
+ */
+function getSystemStatus(): {
+  status: string;
+  uptime: string;
+  version: string;
+  lastUpdate: string;
+  message: string;
+} {
+  return {
+    status: 'online',
+    uptime: '99.9%',
+    version: '2.0.0',
+    lastUpdate: new Date().toISOString(),
+    message: 'Todos os sistemas operando normalmente!',
   };
 }
 

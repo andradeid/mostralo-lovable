@@ -4749,6 +4749,7 @@ export type Database = {
           recruitment_bot_trigger_operator: string | null
           recruitment_bot_trigger_type: string | null
           recruitment_bot_unknown_message: string | null
+          recruitment_openai_assistant_id: string | null
           sales_bot_approach: string | null
           sales_bot_auto_reactivate_minutes: number | null
           sales_bot_debounce_time: number | null
@@ -4766,6 +4767,7 @@ export type Database = {
           sales_bot_trigger_operator: string | null
           sales_bot_trigger_type: string | null
           sales_bot_unknown_message: string | null
+          sales_openai_assistant_id: string | null
           support_bot_auto_reactivate_minutes: number | null
           support_bot_custom_prompt: string | null
           support_bot_debounce_time: number | null
@@ -4783,6 +4785,7 @@ export type Database = {
           support_bot_trigger_operator: string | null
           support_bot_trigger_type: string | null
           support_bot_unknown_message: string | null
+          support_openai_assistant_id: string | null
           updated_at: string | null
           whatsapp_messages: Json | null
         }
@@ -4824,6 +4827,7 @@ export type Database = {
           recruitment_bot_trigger_operator?: string | null
           recruitment_bot_trigger_type?: string | null
           recruitment_bot_unknown_message?: string | null
+          recruitment_openai_assistant_id?: string | null
           sales_bot_approach?: string | null
           sales_bot_auto_reactivate_minutes?: number | null
           sales_bot_debounce_time?: number | null
@@ -4841,6 +4845,7 @@ export type Database = {
           sales_bot_trigger_operator?: string | null
           sales_bot_trigger_type?: string | null
           sales_bot_unknown_message?: string | null
+          sales_openai_assistant_id?: string | null
           support_bot_auto_reactivate_minutes?: number | null
           support_bot_custom_prompt?: string | null
           support_bot_debounce_time?: number | null
@@ -4858,6 +4863,7 @@ export type Database = {
           support_bot_trigger_operator?: string | null
           support_bot_trigger_type?: string | null
           support_bot_unknown_message?: string | null
+          support_openai_assistant_id?: string | null
           updated_at?: string | null
           whatsapp_messages?: Json | null
         }
@@ -4899,6 +4905,7 @@ export type Database = {
           recruitment_bot_trigger_operator?: string | null
           recruitment_bot_trigger_type?: string | null
           recruitment_bot_unknown_message?: string | null
+          recruitment_openai_assistant_id?: string | null
           sales_bot_approach?: string | null
           sales_bot_auto_reactivate_minutes?: number | null
           sales_bot_debounce_time?: number | null
@@ -4916,6 +4923,7 @@ export type Database = {
           sales_bot_trigger_operator?: string | null
           sales_bot_trigger_type?: string | null
           sales_bot_unknown_message?: string | null
+          sales_openai_assistant_id?: string | null
           support_bot_auto_reactivate_minutes?: number | null
           support_bot_custom_prompt?: string | null
           support_bot_debounce_time?: number | null
@@ -4933,6 +4941,7 @@ export type Database = {
           support_bot_trigger_operator?: string | null
           support_bot_trigger_type?: string | null
           support_bot_unknown_message?: string | null
+          support_openai_assistant_id?: string | null
           updated_at?: string | null
           whatsapp_messages?: Json | null
         }

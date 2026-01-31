@@ -1,95 +1,127 @@
 
 
-# Plano: Remover Referências a Gestão de Redes Sociais da Página Inicial
+# Plano: Criar Footer Completo e Reutilizável
 
-## Problema Identificado
+## Visão Geral
 
-A página inicial (`/`) contém várias referências à funcionalidade de "Gestão de Redes Sociais" e "Marketing Digital" que você deseja remover ou substituir por um contexto mais adequado.
+Criar um componente `MainFooter.tsx` completo, profissional e reutilizável, inspirado no exemplo enviado, adaptado para a marca Mostralo.
 
 ---
 
-## Arquivos que Serão Modificados
+## Estrutura do Novo Footer
+
+```text
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                                                                                 │
+│   MOSTRALO              REDES SOCIAIS      INFORMAÇÕES        INFORMAÇÕES       │
+│   Sistema All-in-One    📱 LinkedIn        LEGAIS              EMPRESARIAIS     │
+│   para delivery e       📸 Instagram       • Privacidade       CNPJ: XX.XXX...  │
+│   gestão de negócios    💬 WhatsApp        • Termos de Uso     Responsável      │
+│                                            • Aviso Legal       Localização      │
+│   📞 WhatsApp Comercial                    • LGPD              Especialidade    │
+│   ✉️ contato@mostralo                      • Cookies                            │
+│   📍 Brasil                                                                     │
+│                                                                                 │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ ⚠️ Aviso Legal Importante                                                       │
+│                                                                                 │
+│ Este site apresenta funcionalidades e resultados baseados em experiências       │
+│ reais de clientes. Os resultados podem variar dependendo do segmento,           │
+│ tamanho do negócio e implementação das estratégias.                             │
+│                                                                                 │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│              © 2026 Mostralo. Todos os direitos reservados.                     │
+│         Plataforma completa para delivery e gestão de negócios locais           │
+│                                                                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Arquivo a Criar
+
+| Arquivo | Descrição |
+|---------|-----------|
+| `src/components/MainFooter.tsx` | Footer completo e reutilizável para todas as páginas públicas |
+
+## Arquivo a Modificar
 
 | Arquivo | Alteração |
 |---------|-----------|
-| `src/pages/Index.tsx` | Remover importação e uso da `<MarketingDigitalSection />` |
-| `src/components/landing/LandingHeader.tsx` | Remover link "Marketing Digital" do menu de navegação (desktop e mobile) |
-| `src/components/landing/FAQSection.tsx` | Remover/ajustar 3 perguntas sobre gestão de redes sociais |
+| `src/pages/Index.tsx` | Substituir `DashboardFooter` por `MainFooter` |
 
 ---
 
-## Detalhes das Alterações
+## Detalhes Técnicos do MainFooter
 
-### 1. Index.tsx - Remover Seção de Marketing Digital
+### Colunas do Footer
 
-**Antes:**
-```
-<SavingsCalculator />
-<MarketingDigitalSection />   ← REMOVER
-<ComparisonSection />
-```
+**Coluna 1 - Mostralo (Sobre)**
+- Logo com ícone Store (laranja) + nome "Mostralo"
+- Descrição curta da plataforma
+- Telefone/WhatsApp comercial com ícone
+- Email de contato com ícone
+- Localização: "Brasil" com ícone
 
-**Depois:**
-```
-<SavingsCalculator />
-<ComparisonSection />
-```
+**Coluna 2 - Redes Sociais**
+- LinkedIn (com ícone)
+- Instagram (com ícone)
+- WhatsApp (com ícone)
+- Cada link abre em nova aba
 
-A seção inteira `MarketingDigitalSection` será removida da página inicial.
+**Coluna 3 - Informações Legais**
+- Política de Privacidade → `/privacy`
+- Termos de Uso → `/terms`
+- Aviso Legal → (anchor ou modal)
+- Política de Cookies → `/cookies` ou modal
+- LGPD - Proteção de Dados → `/lgpd`
 
----
+**Coluna 4 - Informações Empresariais**
+- CNPJ (placeholder para futura atualização)
+- Nome do responsável
+- Localização completa
+- Especialidade/Descrição
 
-### 2. LandingHeader.tsx - Remover Link de Navegação
+### Seção de Aviso Legal (Disclaimer)
 
-**Remover do menu desktop (linha 70-75):**
-```tsx
-<a href="#marketing-digital" ...>
-  Marketing Digital
-</a>
-```
+- Background levemente diferente (`bg-slate-800/50` ou `bg-muted/50`)
+- Borda à esquerda em laranja (cor da marca)
+- Título em laranja: "Aviso Legal Importante"
+- Texto de disclaimer padrão sobre resultados
 
-**Remover do menu mobile (linha 156-162):**
-```tsx
-<a href="#marketing-digital" ...>
-  Marketing Digital
-</a>
-```
+### Copyright Final
 
----
-
-### 3. FAQSection.tsx - Remover/Ajustar Perguntas
-
-**Perguntas que serão REMOVIDAS:**
-
-1. *"O marketing digital realmente está incluso no preço?"* - Faz referência direta à gestão de redes sociais inclusa
-
-2. *"Quantos perfis de redes sociais posso ter?"* - Específica sobre a funcionalidade que você quer ocultar
-
-3. *"Preciso entender de marketing para usar?"* - Menciona IA para criar legendas em redes sociais
-
-**Resultado:** O FAQ ficará com 7 perguntas focadas em delivery, sistema, WhatsApp e valores - sem mencionar gestão de redes sociais.
+- Linha de copyright com ano dinâmico
+- Tagline da plataforma
+- Fundo mais escuro para separar visualmente
 
 ---
 
-## O que NÃO será alterado (escopo limitado)
+## Características do Componente
 
-Os seguintes arquivos contêm referências mas são de outras áreas do sistema (não da página inicial):
+1. **Responsivo**: Grid de 1 coluna (mobile) → 2 colunas (tablet) → 4 colunas (desktop)
+2. **Tema adaptável**: Funciona tanto em light mode quanto dark mode
+3. **Reutilizável**: Pode ser usado em qualquer página pública
+4. **Acessível**: Links com aria-labels, contraste adequado
+5. **Props opcionais**: Possibilidade de ocultar seções específicas se necessário
 
-- Templates de compartilhamento comercial (CommercialPresentationTemplate)
-- Editor de cartão digital da loja (StoreDigitalCardEditorPage)
-- Drawer de informações da loja (StoreInfoDrawer)
-- Páginas de nichos específicos (SuplementosPage)
-- Dados de ideias/planos (ideasData.ts)
+### Props do Componente
 
-Se você quiser que eu remova também dessas áreas, posso fazer em um próximo passo.
+```typescript
+interface MainFooterProps {
+  showDisclaimer?: boolean;  // Mostrar aviso legal (default: true)
+  variant?: 'light' | 'dark' | 'auto';  // Variante de cor
+}
+```
 
 ---
 
-## Resultado Esperado
+## Benefícios
 
-Após as alterações:
-- A página inicial não terá mais a seção de "Gestão de Redes Sociais"
-- O menu de navegação não terá mais o link "Marketing Digital"
-- O FAQ não terá mais perguntas sobre redes sociais
-- O foco da página ficará em: Delivery, WhatsApp IA, Gestão Financeira, PDV e Automação
+1. **Profissionalismo**: Footer completo transmite credibilidade
+2. **SEO**: Links internos melhoram a navegação e indexação
+3. **Legal**: Informações empresariais e links de compliance visíveis
+4. **Reutilização**: Um único componente para todas as páginas públicas
+5. **Manutenção**: Centraliza informações em um só lugar
 

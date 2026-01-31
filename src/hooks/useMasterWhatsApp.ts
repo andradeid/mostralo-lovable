@@ -48,7 +48,7 @@ const DEFAULT_MESSAGES: WhatsAppMessages = {
   arena_esportiva: 'Olá! Tenho uma arena esportiva (Beach/Padel/Society) e quero saber mais sobre o Mostralo'
 };
 
-const DEFAULT_FALLBACK_NUMBER = '5511941941427';
+const DEFAULT_FALLBACK_NUMBER = '556194009368';
 
 export function useMasterWhatsApp() {
   const [config, setConfig] = useState<MasterWhatsAppConfig>({

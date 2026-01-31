@@ -1,5 +1,6 @@
 import { Store, Phone, Mail, MapPin, Linkedin, Instagram, MessageCircle, Shield, FileText, Cookie, Scale, AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useMasterWhatsApp } from "@/hooks/useMasterWhatsApp";
 
 interface MainFooterProps {
   showDisclaimer?: boolean;
@@ -8,6 +9,8 @@ interface MainFooterProps {
 
 export function MainFooter({ showDisclaimer = true, variant = 'auto' }: MainFooterProps) {
   const currentYear = new Date().getFullYear();
+  const { getWhatsAppLink } = useMasterWhatsApp();
+  const whatsAppLink = getWhatsAppLink('default');
   
   const bgClass = variant === 'dark' 
     ? 'bg-slate-900' 
@@ -37,7 +40,7 @@ export function MainFooter({ showDisclaimer = true, variant = 'auto' }: MainFoot
             </p>
             <div className="space-y-3 pt-2">
               <a 
-                href="https://wa.me/5511999999999" 
+                href={whatsAppLink}
                 target="_blank" 
                 rel="noopener noreferrer"
                 className={`flex items-center gap-2 text-sm ${textClass} hover:text-primary transition-colors`}
@@ -46,11 +49,11 @@ export function MainFooter({ showDisclaimer = true, variant = 'auto' }: MainFoot
                 <span>WhatsApp Comercial</span>
               </a>
               <a 
-                href="mailto:contato@mostralo.app" 
+                href="mailto:contato@mostralo.com.br" 
                 className={`flex items-center gap-2 text-sm ${textClass} hover:text-primary transition-colors`}
               >
                 <Mail className="w-4 h-4 text-primary" />
-                <span>contato@mostralo.app</span>
+                <span>contato@mostralo.com.br</span>
               </a>
               <div className={`flex items-center gap-2 text-sm ${mutedClass}`}>
                 <MapPin className="w-4 h-4 text-primary" />
@@ -84,7 +87,7 @@ export function MainFooter({ showDisclaimer = true, variant = 'auto' }: MainFoot
                 <span>Instagram</span>
               </a>
               <a 
-                href="https://wa.me/5511999999999" 
+                href={whatsAppLink}
                 target="_blank" 
                 rel="noopener noreferrer"
                 className={`flex items-center gap-2 text-sm ${textClass} hover:text-primary transition-colors`}

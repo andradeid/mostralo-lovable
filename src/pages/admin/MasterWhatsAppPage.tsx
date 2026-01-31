@@ -46,13 +46,15 @@ import {
   Calendar,
   ShoppingCart,
   Headphones,
-  Activity
+  Activity,
+  BookOpen
 } from "lucide-react";
 import { ptBR } from "date-fns/locale";
 import { MasterBotConfigTab } from "@/components/admin/master-whatsapp/MasterBotConfigTab";
 import { MasterSessionsTab } from "@/components/admin/master-whatsapp/MasterSessionsTab";
 import { MasterNotificationsCard } from "@/components/admin/master-whatsapp/MasterNotificationsCard";
 import { WhatsAppLinkConfigCard } from "@/components/admin/master-whatsapp/WhatsAppLinkConfigCard";
+import { MasterFaqTab } from "@/components/admin/master-whatsapp/MasterFaqTab";
 
 import { OpenAIConfigCard } from "@/components/shared/OpenAIConfigCard";
 
@@ -476,6 +478,10 @@ export default function MasterWhatsAppPage() {
           <TabsTrigger value="bots" className="flex-shrink-0 gap-1.5 text-xs sm:text-sm">
             <Bot className="w-4 h-4" />
             <span className="hidden xs:inline">Configurar</span> Bots
+          </TabsTrigger>
+          <TabsTrigger value="faq" className="flex-shrink-0 gap-1.5 text-xs sm:text-sm">
+            <BookOpen className="w-4 h-4" />
+            <span className="hidden xs:inline">FAQ</span>
           </TabsTrigger>
           <TabsTrigger value="sessions" className="flex-shrink-0 gap-1.5 text-xs sm:text-sm">
             <MessageSquare className="w-4 h-4" />
@@ -1277,6 +1283,11 @@ export default function MasterWhatsAppPage() {
             hasUnsyncedChanges={hasUnsyncedChanges}
             lastSyncedAt={lastSyncedAt}
           />
+        </TabsContent>
+
+        {/* Tab FAQ */}
+        <TabsContent value="faq">
+          <MasterFaqTab />
         </TabsContent>
 
         {/* Tab Sessões */}

@@ -1,88 +1,176 @@
 
-# Plano: Corrigir Status dos Bots para Refletir o Assistente Unificado
+# Plano: Aplicar Niveis de Abordagem ao Prompt Unificado
 
-## Problema
+## Problema Atual
 
-Após a unificação dos 3 bots em 1 assistente dinâmico:
-- A Edge Function salva o ID do bot unificado **apenas** em `sales_bot_evolution_id`
-- Seta `recruitment_bot_evolution_id` e `support_bot_evolution_id` como `null`
-- A interface verifica cada coluna separadamente, resultando em:
-  - Vendas: "Conectado" (tem o ID)
-  - Recrutamento: "Não criado" (está null)
-  - Suporte: "Não criado" (está null)
+Os campos de configuracao existem no banco:
+- `sales_bot_approach`: basic, intermediate, aggressive
+- `recruitment_bot_approach`: cold_lead, moderate, aggressive, super_aggressive
+- `support_bot_custom_prompt`: prompt customizado
 
-## Solução
-
-Ajustar a interface para usar o **mesmo ID** (o do bot unificado) para todas as abas, já que na realidade é um único assistente que atende os 3 contextos.
+Porem a funcao `buildUnifiedPrompt` ignora completamente esses valores, usando um estilo generico fixo.
 
 ---
 
-## Alterações
+## Solucao
 
-### 1. Hook useMasterWhatsAppConfig
+Modificar `buildUnifiedPrompt` para receber o config completo e gerar instrucoes especificas baseadas nos niveis de abordagem selecionados.
 
-Adicionar `unified_openai_assistant_id` à interface `MasterWhatsAppConfig`:
+---
 
+## Mapeamento de Abordagens
+
+### Vendas
+
+| Valor DB | Nome Interface | Estilo |
+|----------|----------------|--------|
+| basic | Consultivo | Educativo, sem pressao, foco em informar |
+| intermediate | Persuasivo | Destaca beneficios, cria desejo, usa gatilhos |
+| aggressive | Urgencia | Escassez, FOMO, pressao para decisao rapida |
+
+### Recrutamento
+
+| Valor DB | Nome Interface | Estilo |
+|----------|----------------|--------|
+| cold_lead | Lead Frio | Suave, informativo, sem pressao |
+| moderate | Moderado | Equilibrado, destaca beneficios |
+| aggressive | Agressivo | Enfatiza ganhos, cria urgencia |
+| super_aggressive | Super Agressivo | Maximo FOMO, pressao total |
+
+---
+
+## Alteracoes no Codigo
+
+### Arquivo: supabase/functions/master-bot-sync/index.ts
+
+**1. Modificar assinatura da funcao (linha 179):**
 ```typescript
-export interface MasterWhatsAppConfig {
-  // ... campos existentes ...
-  unified_openai_assistant_id: string | null; // NOVO
+// ANTES
+function buildUnifiedPrompt(config: any, plans: Plan[], bonusTiers: BonusTier[]): string {
+
+// DEPOIS - recebe config completo
+function buildUnifiedPrompt(config: any, plans: Plan[], bonusTiers: BonusTier[]): string {
+  const salesApproach = config.sales_bot_approach || 'intermediate';
+  const recruitmentApproach = config.recruitment_bot_approach || 'moderate';
+  const supportCustomPrompt = config.support_bot_custom_prompt || '';
+```
+
+**2. Adicionar funcao geradora de estilo de vendas:**
+```typescript
+function getSalesApproachInstructions(approach: string): string {
+  switch (approach) {
+    case 'basic':
+      return `### ESTILO: CONSULTIVO
+- Seja educativo e informativo, SEM pressionar
+- Foque em explicar beneficios de forma clara
+- Deixe o cliente tomar a decisao no tempo dele
+- Use frases como: "Fico a disposicao para mais informacoes"
+- NAO use urgencia ou escassez artificial`;
+
+    case 'aggressive':
+      return `### ESTILO: URGENCIA
+- Crie senso de urgencia REAL (vagas limitadas, promocoes)
+- Use gatilhos de escassez: "Ultimas vagas", "Promocao termina hoje"
+- Pergunte "O que te impede de comecar agora?"
+- Oferte bonus exclusivos para decisao rapida
+- Use FOMO: "Enquanto voce pensa, concorrentes estao agindo"`;
+
+    default: // intermediate
+      return `### ESTILO: PERSUASIVO
+- Destaque beneficios e diferenciais com entusiasmo
+- Use comparacoes favoraveis (vs iFood)
+- Conte historias de sucesso de outros clientes
+- Faca perguntas que levem a reflexao
+- Sugira proximos passos sem pressionar demais`;
+  }
 }
 ```
 
-### 2. Componente MasterBotConfigTab
-
-Modificar as 3 chamadas do `BotSyncStatusBadge` para usar o mesmo ID:
-
-**Bot de Vendas (linha 513-518):**
+**3. Adicionar funcao geradora de estilo de recrutamento:**
 ```typescript
-<BotSyncStatusBadge
-  evolutionId={config.unified_openai_assistant_id || config.sales_bot_evolution_id}
-  botEnabled={config.sales_bot_enabled}
-  hasUnsyncedChanges={hasUnsyncedChanges('sales')}
-  syncing={syncing}
-/>
-```
+function getRecruitmentApproachInstructions(approach: string): string {
+  switch (approach) {
+    case 'cold_lead':
+      return `### ESTILO: LEAD FRIO
+- Abordagem suave e informativa
+- Foque em educar sobre a oportunidade
+- NAO pressione por cadastro imediato
+- Responda duvidas com paciencia
+- Use: "Quando se sentir pronto, estou aqui"`;
 
-**Bot de Recrutamento (linha 611-616):**
-```typescript
-<BotSyncStatusBadge
-  evolutionId={config.unified_openai_assistant_id || config.sales_bot_evolution_id}
-  botEnabled={config.recruitment_bot_enabled}
-  hasUnsyncedChanges={hasUnsyncedChanges('recruitment')}
-  syncing={syncing}
-/>
-```
+    case 'aggressive':
+      return `### ESTILO: AGRESSIVO
+- Enfatize ganhos financeiros com exemplos
+- Crie urgencia: "Cada dia sem vender e dinheiro perdido"
+- Pergunte: "Por que esperar para comecar a ganhar?"
+- Use projecoes de ganhos mensais/anuais`;
 
-**Bot de Suporte (linha 705-710):**
-```typescript
-<BotSyncStatusBadge
-  evolutionId={config.unified_openai_assistant_id || config.sales_bot_evolution_id}
-  botEnabled={config.support_bot_enabled}
-  hasUnsyncedChanges={hasUnsyncedChanges('support')}
-  syncing={syncing}
-/>
-```
+    case 'super_aggressive':
+      return `### ESTILO: SUPER AGRESSIVO
+- MAXIMO senso de urgencia e FOMO
+- "Vagas de parceiro podem fechar a qualquer momento"
+- Calcule quanto a pessoa PERDE por NAO comecar HOJE
+- "Enquanto voce pensa, outros ja estao ganhando"
+- Pressione por cadastro IMEDIATO`;
 
-### 3. Atualizar BotSyncStatusBadge (opcional)
-
-Melhorar o tooltip para refletir que é um bot unificado:
-
-```typescript
-synced: {
-  label: 'Conectado',
-  tooltip: 'Integrado ao assistente unificado Mostralo'
+    default: // moderate
+      return `### ESTILO: MODERADO
+- Equilibrio entre informacao e motivacao
+- Destaque beneficios da comissao recorrente
+- Use exemplos de ganhos reais
+- Encoraje sem pressionar demais
+- Sugira: "Que tal dar o primeiro passo hoje?"`;
+  }
 }
+```
+
+**4. Integrar no prompt unificado:**
+
+Substituir a linha 340 (estilo generico) por:
+
+```typescript
+## ESTILOS DE ABORDAGEM CONFIGURADOS
+
+${getSalesApproachInstructions(salesApproach)}
+
+---
+
+${getRecruitmentApproachInstructions(recruitmentApproach)}
+
+---
+
+### SUPORTE
+- Seja sempre paciente e empático
+- Resolva problemas de forma clara e objetiva
+${supportCustomPrompt ? `\n### INSTRUCOES CUSTOMIZADAS DE SUPORTE:\n${supportCustomPrompt}` : ''}
 ```
 
 ---
 
 ## Resultado Esperado
 
-| Aba | Antes | Depois |
-|-----|-------|--------|
-| Vendas | Conectado ✓ | Conectado ✓ |
-| Recrutamento | Não criado ✗ | Conectado ✓ |
-| Suporte | Não criado ✗ | Conectado ✓ |
+| Configuracao | Antes | Depois |
+|--------------|-------|--------|
+| Vendas: Consultivo | Ignorado | Prompt educativo, sem pressao |
+| Vendas: Urgencia | Ignorado | Prompt com escassez e FOMO |
+| Recrutamento: Lead Frio | Ignorado | Prompt suave |
+| Recrutamento: Super Agressivo | Ignorado | Prompt com pressao maxima |
+| Suporte: Custom Prompt | Ignorado | Instrucoes customizadas aplicadas |
 
-Todos os badges mostrarão "Conectado" quando o assistente unificado existir, refletindo corretamente que é um único bot atendendo os 3 contextos.
+---
+
+## Arquivos a Modificar
+
+| Arquivo | Alteracao |
+|---------|-----------|
+| supabase/functions/master-bot-sync/index.ts | Adicionar funcoes de estilo e integrar ao prompt |
+
+---
+
+## Ordem de Implementacao
+
+1. Adicionar funcoes `getSalesApproachInstructions` e `getRecruitmentApproachInstructions`
+2. Modificar `buildUnifiedPrompt` para extrair valores do config
+3. Integrar estilos dinamicos no prompt final
+4. Deploy da Edge Function
+5. Sincronizar bot para aplicar mudancas

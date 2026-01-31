@@ -1,56 +1,97 @@
-# Plano: Bot Tipo Assistant + Destaque Visual das Abas
 
-## ✅ IMPLEMENTADO
+# Plano: Corrigir Estilo das Abas para Usar a Cor Primary
 
-### Resumo das Mudanças
+## Problema Identificado
 
-1. **Abas com destaque laranja** - `src/components/ui/tabs.tsx`
-   - Aba ativa agora tem fundo laranja (#f97316) e texto branco
+As abas (TabsTrigger) estao usando `bg-orange-500` do Tailwind enquanto o botao "Sincronizar Todos" usa `bg-primary` do sistema Mostralo. Isso causa uma inconsistencia visual.
 
-2. **master-faq-agent atualizado** - Edge function com todas as tools
-   - `get_plans`, `calculate_savings`, `get_testimonials` (Vendas)
-   - `get_bonus_tiers`, `calculate_commission` (Recrutamento)
-   - `search_faq`, `get_store_info`, `get_system_status` (Suporte)
+| Elemento | Cor Atual | Cor Desejada |
+|----------|-----------|--------------|
+| Abas ativas | `bg-orange-500` (Tailwind) | `bg-primary` (Mostralo) |
+| Botao Sincronizar | `bg-primary` (Mostralo) | Manter |
 
-3. **master-bot-sync atualizado** - Agora usa tipo `assistant`
-   - Cria OpenAI Assistant via API com tools específicas por bot
-   - Envia `assistantId` e `functionUrl` para Evolution API
-   - Salva `openai_assistant_id` no banco para cada bot
+---
 
-4. **Colunas no banco** - Migration executada
-   - `sales_openai_assistant_id`
-   - `recruitment_openai_assistant_id`
-   - `support_openai_assistant_id`
+## Solucao
 
-### Fluxo Atual (Igual ao Bot das Lojas)
+Modificar o componente `TabsTrigger` em `tabs.tsx` para usar a cor primary do sistema ao inves do orange-500 do Tailwind.
 
-```
-1. Frontend solicita sync
-       ↓
-2. master-bot-sync cria/atualiza OpenAI Assistant
-   - Com tools: get_plans, calculate_savings, etc.
-   - Recebe assistantId
-       ↓
-3. Monta payload para Evolution API
-   - botType: 'assistant'
-   - assistantId: do passo 2
-   - functionUrl: master-faq-agent
-       ↓
-4. Envia para Evolution /openai/create/{instance}
-       ↓
-5. Quando usuário manda mensagem:
-   - Evolution chama OpenAI Assistant
-   - Se precisa de dados, chama functionUrl
-   - master-faq-agent executa e retorna dados
-   - Assistant responde com dados reais
+---
+
+## Arquivo a Modificar
+
+**Arquivo:** `src/components/ui/tabs.tsx`
+
+**Linha 30 - De:**
+```css
+data-[state=active]:bg-orange-500 data-[state=active]:text-white
 ```
 
-### Arquivos Modificados
+**Para:**
+```css
+data-[state=active]:bg-primary data-[state=active]:text-primary-foreground
+```
 
-| Arquivo | Status |
-|---------|--------|
-| `src/components/ui/tabs.tsx` | ✅ Destaque laranja |
-| `supabase/functions/master-faq-agent/index.ts` | ✅ Tools completas |
-| `supabase/functions/master-bot-sync/index.ts` | ✅ Tipo assistant |
-| `supabase/config.toml` | ✅ Já registrado |
-| `master_whatsapp_config` | ✅ Colunas adicionadas |
+---
+
+## Resultado Visual
+
+```text
+ANTES (cores diferentes):
+┌─────────────────────────────────────────────────────────────────┐
+│  [Conexao]  [Config Bots]  [FAQ]  [Sessoes]  [Links]           │
+│               (orange-500)                                      │
+│                                                                 │
+│  [Vendas] [Recr.] [Suporte]          [Sincronizar Todos]       │
+│           (orange-500)                    (primary)            │
+└─────────────────────────────────────────────────────────────────┘
+
+DEPOIS (cores iguais):
+┌─────────────────────────────────────────────────────────────────┐
+│  [Conexao]  [Config Bots]  [FAQ]  [Sessoes]  [Links]           │
+│               (primary) ✓                                       │
+│                                                                 │
+│  [Vendas] [Recr.] [Suporte]          [Sincronizar Todos]       │
+│           (primary) ✓                     (primary) ✓          │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Secao Tecnica
+
+### Por que essa mudanca funciona?
+
+A cor `primary` esta definida no CSS global (`src/index.css`):
+
+```css
+:root {
+  --primary: 24 70% 50%;  /* Laranja Mostralo */
+  --primary-foreground: 0 0% 98%;  /* Branco */
+}
+```
+
+Ao usar `bg-primary` ao inves de `bg-orange-500`, as abas vao automaticamente seguir o tema do sistema, garantindo consistencia visual com todos os botoes e elementos primarios.
+
+### Impacto
+
+| Area | Impacto |
+|------|---------|
+| Abas principais (WhatsApp Master) | Cor unificada com botoes |
+| Abas internas (Vendas/Recr./Suporte) | Cor unificada com botoes |
+| Abas em outras paginas | Mesma cor primary |
+| Tema claro/escuro | Adapta automaticamente |
+
+---
+
+## Implementacao
+
+```text
+1. Modificar tabs.tsx (linha 30)
+   - Substituir bg-orange-500 → bg-primary
+   - Substituir text-white → text-primary-foreground
+2. Testar visualizacao
+   - Verificar abas principais
+   - Verificar abas internas
+   - Verificar consistencia com botao Sincronizar
+```

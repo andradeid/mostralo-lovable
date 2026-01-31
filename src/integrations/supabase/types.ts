@@ -4614,6 +4614,66 @@ export type Database = {
         }
         Relationships: []
       }
+      master_faq: {
+        Row: {
+          answer: string
+          category: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          keywords: string[] | null
+          metadata: Json | null
+          priority: number | null
+          question: string
+          updated_at: string | null
+        }
+        Insert: {
+          answer: string
+          category: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          keywords?: string[] | null
+          metadata?: Json | null
+          priority?: number | null
+          question: string
+          updated_at?: string | null
+        }
+        Update: {
+          answer?: string
+          category?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          keywords?: string[] | null
+          metadata?: Json | null
+          priority?: number | null
+          question?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      master_recruitment_keywords: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          keyword: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          keyword: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          keyword?: string
+        }
+        Relationships: []
+      }
       master_test_messages: {
         Row: {
           country_code: string

@@ -4786,6 +4786,7 @@ export type Database = {
           support_bot_trigger_type: string | null
           support_bot_unknown_message: string | null
           support_openai_assistant_id: string | null
+          unified_openai_assistant_id: string | null
           updated_at: string | null
           whatsapp_messages: Json | null
         }
@@ -4864,6 +4865,7 @@ export type Database = {
           support_bot_trigger_type?: string | null
           support_bot_unknown_message?: string | null
           support_openai_assistant_id?: string | null
+          unified_openai_assistant_id?: string | null
           updated_at?: string | null
           whatsapp_messages?: Json | null
         }
@@ -4942,6 +4944,7 @@ export type Database = {
           support_bot_trigger_type?: string | null
           support_bot_unknown_message?: string | null
           support_openai_assistant_id?: string | null
+          unified_openai_assistant_id?: string | null
           updated_at?: string | null
           whatsapp_messages?: Json | null
         }

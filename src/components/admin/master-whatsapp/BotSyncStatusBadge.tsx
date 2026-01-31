@@ -37,7 +37,7 @@ const statusConfig: Record<SyncStatus, {
     icon: CheckCircle,
     variant: 'default',
     className: 'bg-green-500/15 text-green-600 border-green-500/30 hover:bg-green-500/20',
-    tooltip: 'Bot sincronizado com a Evolution API'
+    tooltip: 'Integrado ao assistente unificado Mostralo'
   },
   pending: {
     label: 'Pendente',

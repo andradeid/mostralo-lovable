@@ -5,7 +5,6 @@ import { PromotionBanner } from '@/components/coupons/PromotionBanner';
 import { 
   AlertTriangle,
   Calculator,
-  Sparkles,
   MessageCircle
 } from 'lucide-react';
 
@@ -33,25 +32,21 @@ export const HeroSection = () => {
               Sistema completo com <strong>0% de taxa por pedido</strong> + <span className="text-orange-500 font-bold">SENTINELA:</span> <span className="text-green-600 dark:text-green-400 font-bold">WhatsApp Marketing automático</span> que recupera clientes inativos. Todos os clientes são 100% seus.
             </p>
 
-            {/* Novo destaque Marketing + WhatsApp */}
-            <div className="mt-6 p-6 bg-gradient-to-r from-blue-50 via-green-50 to-emerald-50 dark:from-blue-950/30 dark:via-green-950/30 dark:to-emerald-950/30 rounded-2xl border-2 border-green-300 dark:border-green-700 max-w-3xl mx-auto">
+            {/* Destaque SENTINELA WhatsApp */}
+            <div className="mt-6 p-6 bg-gradient-to-r from-orange-50 via-green-50 to-emerald-50 dark:from-orange-950/30 dark:via-green-950/30 dark:to-emerald-950/30 rounded-2xl border-2 border-green-300 dark:border-green-700 max-w-3xl mx-auto">
               <div className="flex items-center justify-center gap-2 mb-3">
-                <Sparkles className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 <MessageCircle className="w-6 h-6 text-green-500" />
                 <h3 className="text-xl md:text-2xl font-bold text-foreground">
-                  E o marketing? E os clientes inativos?
+                  E os clientes inativos?
                 </h3>
               </div>
               <p className="text-lg md:text-xl font-semibold text-foreground">
-                Nós cuidamos de <span className="text-green-600 dark:text-green-400">TUDO</span> pra você.
+                O <span className="text-orange-500 font-bold">SENTINELA</span> cuida disso pra você.
               </p>
               <p className="text-sm md:text-base text-muted-foreground mt-2">
-                Gestão de redes sociais + <strong className="text-orange-500">SENTINELA</strong> <span className="text-green-600 dark:text-green-400 font-semibold">(WhatsApp Marketing)</span> que recupera clientes inativos e aumenta suas vendas.
+                <strong className="text-orange-500">WhatsApp Marketing automático</strong> que recupera clientes inativos e aumenta suas vendas sem você fazer nada.
               </p>
               <div className="flex flex-wrap justify-center gap-2 mt-4">
-                <Badge className="bg-blue-600 hover:bg-blue-700 text-white">
-                  🔥 Marketing Digital Incluso
-                </Badge>
                 <Badge className="bg-gradient-to-r from-orange-500 to-green-600 hover:from-orange-600 hover:to-green-700 text-white">
                   🛡️ SENTINELA WhatsApp Incluso
                 </Badge>

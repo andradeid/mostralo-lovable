@@ -4,7 +4,7 @@ import { usePageSEO } from '@/hooks/useSEO';
 import { useAuth } from '@/hooks/use-auth';
 import { CookieBanner } from '@/components/CookieBanner';
 import { PrivacyConsent } from '@/components/PrivacyConsent';
-import { DashboardFooter } from '@/components/admin/DashboardFooter';
+import { MainFooter } from '@/components/MainFooter';
 import { WhatsAppLeadButton } from '@/components/leads/WhatsAppLeadButton';
 import { DiagnosticPopup } from '@/components/landing/DiagnosticPopup';
 
@@ -84,7 +84,7 @@ const Index = () => {
       <FAQSection />
       <PlansSection />
       <CTASection />
-      <DashboardFooter />
+      <MainFooter />
       <CookieBanner />
       <PrivacyConsent />
       <WhatsAppLeadButton />

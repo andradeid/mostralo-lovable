@@ -14,18 +14,6 @@ const faqItems = [
     answer: 'Sim! O módulo PDV e Comandas permite controlar mesas, balcão e garçons. Seu garçom usa o próprio celular como terminal de pedidos, com foto dos produtos e confirmação antes de enviar para a cozinha. Funciona offline (PWA) e integra automaticamente com seus relatórios financeiros.'
   },
   {
-    question: 'O marketing digital realmente está incluso no preço?',
-    answer: 'Sim! Todos os planos incluem gestão completa de redes sociais com 1 perfil, agendamento ilimitado de posts, IA para criar legendas profissionais, relatórios de performance e análise de concorrentes. Isso sozinho vale R$ 800-2.000/mês em agências.'
-  },
-  {
-    question: 'Quantos perfis de redes sociais posso ter?',
-    answer: '1 perfil de rede social está incluso em todos os planos com posts ilimitados. Você escolhe: Instagram, Facebook, TikTok, LinkedIn ou Google Meu Negócio. Precisa de mais perfis? Entre em contato com nosso comercial para condições especiais.'
-  },
-  {
-    question: 'Preciso entender de marketing para usar?',
-    answer: 'Não! Nossa IA cria legendas profissionais automaticamente, sugere os melhores horários para postar e até analisa o que seus concorrentes estão fazendo. Você só precisa aprovar e agendar. É tão simples quanto usar o Instagram.'
-  },
-  {
     question: 'Preciso ter conhecimento técnico?',
     answer: 'Zero conhecimento necessário. Sistema intuitivo, suporte 24/7, treinamento incluído. A IA faz o trabalho pesado. Você só precisa cadastrar seus produtos uma vez.'
   },

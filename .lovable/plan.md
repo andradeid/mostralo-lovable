@@ -1,108 +1,116 @@
 
-# Plano: Corrigir Links Legais e Atualizar Informações Empresariais
+# Plano: Atualizar Identidade Visual das Páginas Legais
 
-## Situação Atual
+## Problema Identificado
 
-### Links do Footer (MainFooter.tsx)
-| Link Atual | Rota Correta | Status |
-|------------|--------------|--------|
-| `/privacy` | `/privacidade` | CORRIGIR |
-| `/terms` | `/termos` | CORRIGIR |
-| `/lgpd` | - | CRIAR PÁGINA |
-| `/cookies` | - | CRIAR PÁGINA |
-
-### Informações Empresariais
-- CNPJ: XX.XXX.XXX/0001-XX (placeholder)
-- Responsável: Mostralo Tecnologia LTDA (genérico)
-- Localização: apenas "Brasil"
+| Página | Status Atual | Problema |
+|--------|--------------|----------|
+| `/lgpd` | Moderna | Emails com domínio errado (mostralo.app) |
+| `/cookies` | Moderna | OK |
+| `/privacidade` | Layout antigo | Sem header, hero, ícones e MainFooter |
+| `/termos` | Layout antigo | Sem header, hero, ícones e MainFooter |
 
 ---
 
 ## Alterações Planejadas
 
-### 1. Corrigir MainFooter.tsx
+### 1. Corrigir Emails na Página LGPD
 
-**Links Legais:**
-- `/privacy` → `/privacidade`
-- `/terms` → `/termos`
-- `/lgpd` → `/lgpd` (nova página)
-- `/cookies` → `/cookies` (nova página)
+**Arquivo:** `src/pages/LGPD.tsx`
 
-**Informações Empresariais:**
-- CNPJ: 51.691.995/0001-15
-- Responsável: Marcos Henrique da Silva Andrade
-- Localização: Brasília - DF, Brasil
-- Adicionar: Experiência Internacional (Brasil, Estados Unidos e Suíça)
+| Linha | Antes | Depois |
+|-------|-------|--------|
+| 149-150 | `privacidade@mostralo.app` | `privacidade@mostralo.com.br` |
+| 185 | `dpo@mostralo.app` | `dpo@mostralo.com.br` |
 
 ---
 
-### 2. Criar Página LGPD (`src/pages/LGPD.tsx`)
+### 2. Atualizar Página de Privacidade
 
-Conteúdo sobre:
-- O que é a LGPD
-- Base legal para tratamento de dados
-- Direitos do titular (acesso, correção, exclusão, portabilidade)
-- Como exercer seus direitos
-- Encarregado de Dados (DPO)
-- Canal de atendimento
+**Arquivo:** `src/pages/Privacy.tsx`
 
----
+**Nova estrutura (igual LGPD/Cookies):**
 
-### 3. Criar Página Cookies (`src/pages/Cookies.tsx`)
+- Header com logo Mostralo + link "Voltar ao início"
+- Hero Section com gradiente escuro e ícone Shield
+- Seções com ícones (FileText, User, Shield, Database, etc.)
+- Cards estilizados para cada tópico
+- Box de destaque para contato/direitos
+- MainFooter no final
 
-Conteúdo sobre:
-- O que são cookies
-- Tipos de cookies utilizados (essenciais, funcionais, analíticos)
-- Como gerenciar cookies no navegador
-- Cookies de terceiros
-- Validade dos cookies
+**Conteúdo mantido:** Todo o texto atual será preservado, apenas reorganizado visualmente.
 
 ---
 
-### 4. Registrar Novas Rotas (`src/routes/publicRoutes.tsx`)
+### 3. Atualizar Página de Termos de Uso
 
-Adicionar:
+**Arquivo:** `src/pages/TermsOfUse.tsx`
+
+**Nova estrutura (igual LGPD/Cookies):**
+
+- Header com logo Mostralo + link "Voltar ao início"
+- Hero Section com gradiente escuro e ícone FileText
+- Seções com ícones para cada tópico
+- Cards destacando direitos do usuário
+- Box especial para "Seus Direitos Garantidos"
+- MainFooter no final
+
+**Conteúdo mantido:** Todo o texto atual será preservado, apenas reorganizado visualmente.
+
+---
+
+## Componentes Visuais da Nova Identidade
+
+```text
+┌─────────────────────────────────────────────────────┐
+│  [Logo] Mostralo              ← Voltar ao início    │  ← Header escuro
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│         [Ícone Grande no Círculo]                   │
+│         Título da Página                            │  ← Hero com gradiente
+│         Descrição breve                             │
+│                                                     │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  [Ícone] Seção 1                                    │
+│  ┌──────────────────────────────────────────────┐  │
+│  │  Conteúdo com background muted               │  │  ← Cards estilizados
+│  └──────────────────────────────────────────────┘  │
+│                                                     │
+│  [Ícone] Seção 2                                    │
+│  ┌─────────────┐  ┌─────────────┐                  │
+│  │  Card 1     │  │  Card 2     │                  │  ← Grid de cards
+│  └─────────────┘  └─────────────┘                  │
+│                                                     │
+│  ┌──────────────────────────────────────────────┐  │
+│  │  Box de destaque com borda primary           │  │  ← Contato/Direitos
+│  └──────────────────────────────────────────────┘  │
+│                                                     │
+│  Última atualização: 31 de janeiro de 2026          │
+│                                                     │
+├─────────────────────────────────────────────────────┤
+│                 [MainFooter]                        │
+└─────────────────────────────────────────────────────┘
 ```
-/lgpd → LGPD.tsx
-/cookies → Cookies.tsx
-```
 
 ---
-
-## Arquivos a Criar
-
-| Arquivo | Descrição |
-|---------|-----------|
-| `src/pages/LGPD.tsx` | Página sobre proteção de dados LGPD |
-| `src/pages/Cookies.tsx` | Página sobre política de cookies |
 
 ## Arquivos a Modificar
 
 | Arquivo | Alteração |
 |---------|-----------|
-| `src/components/MainFooter.tsx` | Corrigir links + atualizar dados empresariais |
-| `src/routes/publicRoutes.tsx` | Adicionar rotas /lgpd e /cookies |
+| `src/pages/LGPD.tsx` | Corrigir 3 emails de mostralo.app → mostralo.com.br |
+| `src/pages/Privacy.tsx` | Reescrever com nova identidade visual |
+| `src/pages/TermsOfUse.tsx` | Reescrever com nova identidade visual |
 
 ---
 
 ## Resultado Final
 
-**Informações Empresariais no Footer:**
-```
-CNPJ: 51.691.995/0001-15
-
-Responsável:
-Marcos Henrique da Silva Andrade
-
-Localização:
-Brasília - DF, Brasil
-
-Experiência Internacional:
-Brasil, Estados Unidos e Suíça
-```
-
-**Links Funcionais:**
-- Política de Privacidade → `/privacidade` ✓
-- Termos de Uso → `/termos` ✓
-- LGPD - Proteção de Dados → `/lgpd` (nova)
-- Política de Cookies → `/cookies` (nova)
+Todas as 4 páginas legais terão:
+- Identidade visual consistente
+- Header unificado
+- Hero section com gradiente
+- Seções com ícones
+- MainFooter
+- Emails corretos com domínio mostralo.com.br

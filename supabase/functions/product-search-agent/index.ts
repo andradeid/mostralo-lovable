@@ -698,6 +698,7 @@ serve(async (req) => {
           console.log(`[product-search-agent] 📤 Enviando imagem para GPT-4o Vision (source: ${imageSource})`);
 
           // Prompt otimizado para LISTA LIMPA de produtos (sem metadados)
+          // Inclui classificação de tipo de documento (receita controlada, etc.)
           const systemPrompt = `Você é um assistente especializado em identificar medicamentos e produtos em imagens.
 
 INSTRUÇÕES CRÍTICAS:
@@ -707,20 +708,36 @@ INSTRUÇÕES CRÍTICAS:
 4. IGNORE completamente dados pessoais do paciente
 5. NUNCA faça diagnósticos ou dê orientações médicas
 
-FORMATO DE RESPOSTA OBRIGATÓRIO (apenas lista numerada):
+CLASSIFICAÇÃO DE DOCUMENTO (OBRIGATÓRIO na primeira linha):
+Identifique o tipo de documento na imagem e retorne uma das opções:
+- RECEITA_CONTROLADA: Se for receita com tarja preta (controlados especiais) ou que menciona medicamentos como: clonazepam, diazepam, alprazolam, lorazepam, zolpidem, bromazepam, rivotril, lexotan, frontal, midazolam, codeína, tramadol, morfina, fentanil, oxicodona, metilfenidato, ritalina, concerta, anfetamina, fenobarbital, clonazepam, fluoxetina, sertralina, escitalopram
+- RECEITA_RETIDA: Se for receita de antibiótico (amoxicilina, azitromicina, cefalexina, ciprofloxacino, levofloxacino, etc.) ou outros medicamentos com tarja vermelha que precisam de retenção de receita
+- RECEITA_SIMPLES: Se for receita médica comum sem necessidade de retenção
+- PRODUTO: Se for foto de embalagem, caixa ou medicamento (não é receita)
+
+FORMATO DE RESPOSTA OBRIGATÓRIO:
+[TIPO_DOCUMENTO: RECEITA_CONTROLADA|RECEITA_RETIDA|RECEITA_SIMPLES|PRODUTO]
+
 1. [Nome do medicamento] [dosagem]
 2. [Nome do medicamento] [dosagem]
 3. ...
 
-EXEMPLO CORRETO:
-1. Paracetamol 750mg
-2. Dipirona 500mg
-3. Amoxicilina 500mg
+EXEMPLO CORRETO (receita controlada):
+[TIPO_DOCUMENTO: RECEITA_CONTROLADA]
 
-EXEMPLO ERRADO (NÃO faça isso):
-- Nome: Paracetamol
-- Marca: EMS
-- Uso: Adulto
+1. Clonazepam 2mg
+2. Alprazolam 0,5mg
+
+EXEMPLO CORRETO (receita de antibiótico):
+[TIPO_DOCUMENTO: RECEITA_RETIDA]
+
+1. Amoxicilina 500mg
+2. Azitromicina 500mg
+
+EXEMPLO CORRETO (foto de produto):
+[TIPO_DOCUMENTO: PRODUTO]
+
+1. Paracetamol 750mg
 
 ${imageContext ? `Contexto adicional do cliente: ${imageContext}` : ''}`;
 
@@ -772,6 +789,19 @@ ${imageContext ? `Contexto adicional do cliente: ${imageContext}` : ''}`;
           const analysisContent = visionResult.choices?.[0]?.message?.content || '';
 
           console.log(`[product-search-agent] ✅ Análise recebida (${analysisContent.length} chars):`, analysisContent.slice(0, 300));
+
+          // Extrair tipo de documento da resposta
+          type DocumentType = 'RECEITA_CONTROLADA' | 'RECEITA_RETIDA' | 'RECEITA_SIMPLES' | 'PRODUTO';
+          let documentType: DocumentType = 'PRODUTO';
+          const docTypeMatch = analysisContent.match(/\[TIPO_DOCUMENTO:\s*(RECEITA_CONTROLADA|RECEITA_RETIDA|RECEITA_SIMPLES|PRODUTO)\]/i);
+          if (docTypeMatch) {
+            documentType = docTypeMatch[1].toUpperCase() as DocumentType;
+            console.log(`[product-search-agent] 📋 Tipo de documento identificado: ${documentType}`);
+          } else {
+            console.log(`[product-search-agent] ⚠️ Tipo de documento não identificado, usando padrão: PRODUTO`);
+          }
+          
+          const isControlledPrescription = documentType === 'RECEITA_CONTROLADA' || documentType === 'RECEITA_RETIDA';
 
           // Registrar uso de tokens
           const imageTokens = calculateImageTokens('high');
@@ -1005,6 +1035,8 @@ ${imageContext ? `Contexto adicional do cliente: ${imageContext}` : ''}`;
               : 'Imagem analisada',
             analysis: analysisContent,
             products: foundProducts,
+            document_type: documentType,
+            is_controlled_prescription: isControlledPrescription,
             summary: {
               identified: productNames.length,
               found_in_catalog: catalogProducts.length,

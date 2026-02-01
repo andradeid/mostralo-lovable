@@ -150,6 +150,9 @@ interface AnalysisResult {
     out_of_stock: number;
     not_found: number;
   };
+  // Novos campos para detecção de receitas controladas
+  document_type?: 'RECEITA_CONTROLADA' | 'RECEITA_RETIDA' | 'RECEITA_SIMPLES' | 'PRODUTO';
+  is_controlled_prescription?: boolean;
   message?: string;
   error?: string;
   hint?: string;
@@ -311,6 +314,20 @@ function formatResponseMessage(
   
   if (analysis.description) {
     message += `📋 ${analysis.description}\n\n`;
+  }
+
+  // NOVO: Aviso de receita controlada/retida (antes da lista de produtos)
+  if (analysis.is_controlled_prescription) {
+    if (analysis.document_type === 'RECEITA_CONTROLADA') {
+      message += `📋 *ATENÇÃO - Receita Controlada*\n`;
+      message += `Identifiquei que esta é uma receita de medicamento controlado (tarja preta).\n`;
+      message += `Por favor, tenha o documento *original* em mãos no momento da entrega, pois nosso entregador precisará *recolher a receita*.\n\n`;
+      message += `⏰ Lembre-se: receitas controladas têm validade de 30 dias.\n\n`;
+    } else if (analysis.document_type === 'RECEITA_RETIDA') {
+      message += `📋 *ATENÇÃO - Receita Retida*\n`;
+      message += `Identifiquei que esta receita contém antibiótico ou outro medicamento que precisa ficar retido na farmácia.\n`;
+      message += `Por favor, tenha o documento *original* em mãos no momento da entrega.\n\n`;
+    }
   }
 
   // Separar produtos por status

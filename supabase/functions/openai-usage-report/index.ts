@@ -73,11 +73,11 @@ serve(async (req) => {
       );
     }
 
-    // Parâmetros de filtro
-    const url = new URL(req.url);
-    const period = parseInt(url.searchParams.get('period') || '30');
-    const storeId = url.searchParams.get('store_id');
-    const usageType = url.searchParams.get('usage_type'); // 'text' | 'image' | null
+    // Parâmetros de filtro (do body JSON)
+    const body = await req.json().catch(() => ({}));
+    const period = parseInt(body.period || '30');
+    const storeId = body.store_id || null;
+    const usageType = body.usage_type || null; // 'text' | 'image' | null
 
     // Calcular data de início
     const startDate = new Date();

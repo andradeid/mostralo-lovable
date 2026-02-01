@@ -8,12 +8,14 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Search, KeyRound, Phone, Mail, MapPin, Calendar, ShoppingBag, Tags, Users, UserPlus } from 'lucide-react';
+import { Search, KeyRound, Phone, Mail, MapPin, Calendar, ShoppingBag, Tags, Users, UserPlus, Loader2 } from 'lucide-react';
 import { formatPhone } from '@/lib/utils';
 import { useCustomerLabels, useCustomerLabelAssignments } from '@/hooks/useCustomerLabels';
 import { CustomerLabelBadge } from '@/components/customers/CustomerLabelBadge';
 import { LabelFilterDropdown } from '@/components/customers/LabelFilterDropdown';
 import { LeadsList } from '@/components/customers/LeadsList';
+import { useStoreAccess } from '@/hooks/useStoreAccess';
+import { useAuth } from '@/hooks/use-auth';
 
 interface Customer {
   id: string;
@@ -151,19 +153,25 @@ export default function AdminCustomersPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [resetting, setResetting] = useState(false);
-  const [currentStoreId, setCurrentStoreId] = useState<string | null>(null);
   const [selectedLabelIds, setSelectedLabelIds] = useState<string[]>([]);
 
+  // ✅ Usar useStoreAccess para obter o storeId validado
+  const { storeId: validatedStoreId, isLoading: storeAccessLoading } = useStoreAccess();
+  const { profile } = useAuth();
+
   // Hook para buscar etiquetas disponíveis da loja
-  const { labels: availableLabels } = useCustomerLabels(currentStoreId);
+  const { labels: availableLabels } = useCustomerLabels(validatedStoreId);
 
   // Hook para buscar etiquetas dos clientes (para filtro)
   const customerIds = useMemo(() => customers.map(c => c.id), [customers]);
-  const { assignments: allAssignments } = useCustomerLabelAssignments(customerIds, currentStoreId);
+  const { assignments: allAssignments } = useCustomerLabelAssignments(customerIds, validatedStoreId);
 
+  // ✅ Buscar clientes quando storeId estiver disponível
   useEffect(() => {
-    fetchCustomers();
-  }, []);
+    if (!storeAccessLoading) {
+      fetchCustomers();
+    }
+  }, [storeAccessLoading, validatedStoreId]);
 
   useEffect(() => {
     let result = customers;
@@ -195,47 +203,8 @@ export default function AdminCustomersPage() {
     try {
       setLoading(true);
       
-      console.log('🔍 Buscando clientes...');
+      console.log('🔍 Buscando clientes...', { validatedStoreId, userType: profile?.user_type });
       
-      // Buscar store_id do usuário logado
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.error('❌ Usuário não autenticado');
-        toast.error('Usuário não autenticado');
-        return;
-      }
-
-      console.log('✅ Usuário:', user.id);
-
-      // Buscar perfil do usuário
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('user_type')
-        .eq('id', user.id)
-        .single();
-
-      if (profileError) {
-        console.error('❌ Erro ao buscar perfil:', profileError);
-        throw profileError;
-      }
-
-      // Buscar store_id do user_roles
-      const { data: roleData, error: roleError } = await supabase
-        .from('user_roles')
-        .select('store_id, role')
-        .eq('user_id', user.id)
-        .not('store_id', 'is', null)
-        .limit(1)
-        .maybeSingle();
-
-      if (roleError) {
-        console.error('❌ Erro ao buscar role:', roleError);
-      }
-
-      console.log('✅ Perfil:', { store_id: roleData?.store_id, role: roleData?.role, user_type: profile?.user_type });
-
-      const storeId = roleData?.store_id;
-      setCurrentStoreId(storeId || null);
       const userType = profile?.user_type;
 
       // Se for master_admin, mostra todos os clientes
@@ -278,19 +247,19 @@ export default function AdminCustomersPage() {
       }
 
       // Para store_admin, filtra por loja
-      if (!storeId) {
+      if (!validatedStoreId) {
         console.error('❌ Loja não identificada');
         toast.error('Loja não identificada');
         return;
       }
 
-      console.log('🏪 Store admin - buscando clientes da loja:', storeId);
+      console.log('🏪 Store admin - buscando clientes da loja:', validatedStoreId);
 
       // Buscar clientes de pedidos da loja
       const { data: orders, error: ordersError } = await supabase
         .from('orders')
         .select('customer_id')
-        .eq('store_id', storeId);
+        .eq('store_id', validatedStoreId);
 
       if (ordersError) {
         console.error('❌ Erro ao buscar pedidos:', ordersError);
@@ -303,7 +272,7 @@ export default function AdminCustomersPage() {
       const { data: bookings, error: bookingsError } = await supabase
         .from('bookings')
         .select('customer_id')
-        .eq('store_id', storeId)
+        .eq('store_id', validatedStoreId)
         .not('customer_id', 'is', null);
 
       if (bookingsError) {
@@ -355,12 +324,12 @@ export default function AdminCustomersPage() {
               .from('orders')
               .select('id', { count: 'exact', head: true })
               .eq('customer_id', customer.id)
-              .eq('store_id', storeId),
+              .eq('store_id', validatedStoreId),
             supabase
               .from('bookings')
               .select('id', { count: 'exact', head: true })
               .eq('customer_id', customer.id)
-              .eq('store_id', storeId)
+              .eq('store_id', validatedStoreId)
           ]);
 
           return {
@@ -459,10 +428,10 @@ export default function AdminCustomersPage() {
     setResetDialogOpen(true);
   };
 
-  if (loading) {
+  if (loading || storeAccessLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -553,7 +522,7 @@ export default function AdminCustomersPage() {
           {/* Lista de Clientes */}
           <CustomerList 
             customers={filteredCustomers} 
-            storeId={currentStoreId}
+            storeId={validatedStoreId}
             onResetPassword={openResetDialog} 
           />
 
@@ -568,7 +537,7 @@ export default function AdminCustomersPage() {
 
         {/* Aba Leads */}
         <TabsContent value="leads" className="mt-6">
-          <LeadsList storeId={currentStoreId} />
+          <LeadsList storeId={validatedStoreId} />
         </TabsContent>
       </Tabs>
 

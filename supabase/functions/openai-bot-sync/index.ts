@@ -539,7 +539,7 @@ serve(async (req) => {
         customPromptInstructions: existingConfig?.custom_prompt_instructions || '',
       };
 
-      action = 'sync';
+      action = 'update';
       steps.push({ step: 'fetch_config', status: 'success', message: 'Configuração carregada do banco' });
     }
 

@@ -1,9 +1,11 @@
-// Product Search Agent - v1.0.0
+// Product Search Agent - v2.0.0
 // Edge Function para consultas em tempo real ao banco de produtos
 // Usado pelo Assistente Inteligente v2 via Function Calling da OpenAI
+// Adicionado: Suporte a análise de imagens (AI Vision Plus) + Tracking de uso OpenAI
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { logOpenAIUsage, estimateTokens, calculateImageTokens } from "../_shared/openai-usage.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -593,6 +595,144 @@ serve(async (req) => {
         break;
       }
 
+      // ========================================
+      // ANALYZE_IMAGE - Análise de imagem com AI Vision
+      // ========================================
+      case 'analyze_image': {
+        const imageData = args.image_data || args.imageData;
+        const imageContext = args.image_context || args.context || '';
+
+        // Verificar se a loja tem o módulo ai_vision habilitado
+        const { data: visionAccess } = await supabase
+          .from('store_modules')
+          .select('is_enabled, modules!inner(key)')
+          .eq('store_id', storeId)
+          .eq('modules.key', 'ai_vision')
+          .single();
+
+        if (!visionAccess?.is_enabled) {
+          result = {
+            error: true,
+            message: 'O módulo de Visão por IA não está habilitado para esta loja.',
+            hint: 'Entre em contato com o suporte para ativar este recurso.',
+          };
+          break;
+        }
+
+        // Verificar se temos dados da imagem
+        if (!imageData?.base64 && !imageData?.url) {
+          result = {
+            error: true,
+            message: 'Dados da imagem não fornecidos',
+            hint: 'Por favor, envie a imagem novamente.',
+          };
+          break;
+        }
+
+        try {
+          // Obter credenciais OpenAI da loja
+          const { data: openaiCreds } = await supabase
+            .from('openai_credentials')
+            .select('api_key')
+            .eq('store_id', storeId)
+            .eq('is_active', true)
+            .single();
+
+          if (!openaiCreds?.api_key) {
+            result = {
+              error: true,
+              message: 'Credenciais da OpenAI não configuradas para esta loja',
+            };
+            break;
+          }
+
+          // Construir conteúdo da imagem
+          const imageContent = imageData.base64 
+            ? { url: `data:${imageData.mimetype || 'image/jpeg'};base64,${imageData.base64}` }
+            : { url: imageData.url };
+
+          // Prompt especializado baseado no segmento da loja
+          const systemPrompt = `Você é um assistente de identificação de produtos. Analise a imagem enviada e:
+1. Identifique o produto mostrado (nome, marca se visível, quantidade/tamanho)
+2. Se for uma receita médica, identifique os medicamentos prescritos (NUNCA faça diagnósticos médicos)
+3. Se for uma embalagem, leia as informações do produto
+4. Se não conseguir identificar claramente, diga o que você consegue ver e peça uma foto mais nítida
+
+Seja objetivo e forneça informações úteis para ajudar o cliente a encontrar o produto.
+${imageContext ? `Contexto adicional: ${imageContext}` : ''}`;
+
+          // Chamar GPT-4o Vision
+          const visionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${openaiCreds.api_key}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'gpt-4o',
+              messages: [
+                {
+                  role: 'user',
+                  content: [
+                    { type: 'image_url', image_url: imageContent },
+                    { type: 'text', text: systemPrompt }
+                  ]
+                }
+              ],
+              max_tokens: 500,
+            }),
+          });
+
+          if (!visionResponse.ok) {
+            const errorText = await visionResponse.text();
+            console.error('[product-search-agent] Erro OpenAI Vision:', errorText);
+            result = {
+              error: true,
+              message: 'Erro ao processar a imagem. Tente novamente.',
+            };
+            break;
+          }
+
+          const visionResult = await visionResponse.json();
+          const analysisContent = visionResult.choices?.[0]?.message?.content || '';
+
+          // Registrar uso de tokens (Vision usa mais tokens por causa da imagem)
+          const imageTokens = calculateImageTokens('high');
+          const promptTokens = estimateTokens(systemPrompt) + imageTokens;
+          const completionTokens = visionResult.usage?.completion_tokens || estimateTokens(analysisContent);
+
+          await logOpenAIUsage(supabase, storeId, {
+            promptTokens,
+            completionTokens,
+            usageType: 'image',
+            model: 'gpt-4o',
+            messageType: 'vision_analysis',
+            metadata: {
+              has_context: Boolean(imageContext),
+              image_source: imageData.base64 ? 'base64' : 'url',
+            }
+          });
+
+          console.log(`[product-search-agent] 📊 Vision usage logged: ${promptTokens + completionTokens} tokens`);
+
+          // Extrair informações do produto identificado
+          result = {
+            success: true,
+            analysis: analysisContent,
+            message: 'Imagem analisada com sucesso',
+            next_steps: 'Use search_products para buscar o produto identificado no catálogo',
+          };
+
+        } catch (visionError) {
+          console.error('[product-search-agent] Erro no Vision:', visionError);
+          result = {
+            error: true,
+            message: 'Não foi possível analisar a imagem no momento. Tente descrever o produto.',
+          };
+        }
+        break;
+      }
+
       default:
         result = { 
           error: `Função "${functionName}" não reconhecida`,
@@ -606,12 +746,33 @@ serve(async (req) => {
             'get_store_info',
             'check_store_status',
             'get_current_greeting',
+            'analyze_image',
           ],
         };
     }
 
     const elapsedMs = Date.now() - startTime;
     console.log(`[product-search-agent] ✅ Resultado (${elapsedMs}ms):`, JSON.stringify(result).slice(0, 500));
+
+    // Log de uso para todas as chamadas (exceto analyze_image que já faz log próprio)
+    if (functionName !== 'analyze_image' && result && !result.error) {
+      try {
+        const estimatedTokens = estimateTokens(JSON.stringify(result));
+        await logOpenAIUsage(supabase, storeId, {
+          promptTokens: 50, // Estimativa do prompt de function calling
+          completionTokens: estimatedTokens,
+          usageType: 'text',
+          model: 'gpt-4o-mini',
+          messageType: `function_${functionName}`,
+          metadata: {
+            function_name: functionName,
+            result_size: JSON.stringify(result).length,
+          }
+        });
+      } catch (logError) {
+        console.warn('[product-search-agent] Falha ao registrar uso:', logError);
+      }
+    }
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

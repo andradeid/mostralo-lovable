@@ -325,7 +325,7 @@ function formatResponseMessage(
   // CTA baseado no que foi encontrado
   const totalAvailable = exactInStock.length + similarInStock.length;
   if (totalAvailable > 0) {
-    message += `Deseja que eu adicione algum ao carrinho? 🛒`;
+    message += `Clique no link acima para ver mais detalhes e finalizar sua compra! 🛒`;
   } else if (outOfStockProducts.length > 0) {
     message += `Posso avisar quando os produtos estiverem disponíveis! 📲`;
   } else {

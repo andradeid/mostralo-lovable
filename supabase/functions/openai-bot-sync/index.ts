@@ -486,7 +486,69 @@ serve(async (req) => {
     
     const userId = user.id;
 
-    const { action, config, origin } = await req.json() as { action: string; config: BotConfig; origin?: string };
+    const requestBody = await req.json() as { action?: string; config?: BotConfig; origin?: string; storeId?: string; forceSync?: boolean };
+    
+    // Suporte a formato simplificado (apenas storeId) ou completo (action + config)
+    let action = requestBody.action;
+    let config = requestBody.config;
+    const origin = requestBody.origin;
+    
+    // Se recebeu apenas storeId (formato simplificado), buscar config do banco
+    if (requestBody.storeId && !config) {
+      const { data: existingConfig, error: configFetchError } = await supabaseClient
+        .from('store_bot_config')
+        .select('*')
+        .eq('store_id', requestBody.storeId)
+        .maybeSingle();
+
+      if (configFetchError) {
+        steps.push({ step: 'fetch_config', status: 'error', message: 'Erro ao buscar configuração' });
+        return new Response(JSON.stringify({ error: 'Erro ao buscar configuração do bot', steps }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Buscar instância WhatsApp
+      const { data: instance } = await supabaseClient
+        .from('whatsapp_instances')
+        .select('instance_name')
+        .eq('store_id', requestBody.storeId)
+        .maybeSingle();
+
+      // Construir config a partir dos dados do banco
+      config = {
+        storeId: requestBody.storeId,
+        instanceName: instance?.instance_name || existingConfig?.trigger_value || '',
+        botName: existingConfig?.bot_name || 'Assistente',
+        stopBotFromMe: existingConfig?.stop_bot_from_me ?? true,
+        listeningFromMe: existingConfig?.listening_from_me ?? false,
+        delayMessage: existingConfig?.delay_message ?? 1000,
+        expireMinutes: existingConfig?.expire_minutes ?? 20,
+        keywordFinish: existingConfig?.keyword_finish || '#sair',
+        unknownMessage: existingConfig?.unknown_message || '',
+        keepOpen: existingConfig?.keep_open ?? false,
+        debounceTime: existingConfig?.debounce_time ?? 10,
+        triggerType: existingConfig?.trigger_type || 'all',
+        triggerOperator: existingConfig?.trigger_operator || 'equals',
+        triggerValue: existingConfig?.trigger_value || '',
+        ignoreJids: existingConfig?.ignore_jids || [],
+        splitMessages: existingConfig?.bot_split_messages ?? true,
+        timePerChar: existingConfig?.bot_time_per_char ?? 50,
+        botMode: (existingConfig?.bot_mode as BotModeType) || 'assistant',
+        customPromptInstructions: existingConfig?.custom_prompt_instructions || '',
+      };
+
+      action = 'sync';
+      steps.push({ step: 'fetch_config', status: 'success', message: 'Configuração carregada do banco' });
+    }
+
+    if (!config || !config.storeId) {
+      return new Response(JSON.stringify({ error: 'storeId é obrigatório', steps }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     // Buscar loja do usuário com todos os campos necessários
     const { data: store, error: storeError } = await supabaseClient

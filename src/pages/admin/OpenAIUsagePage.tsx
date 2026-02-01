@@ -4,8 +4,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Bot, DollarSign, Zap, Image, MessageSquare, TrendingUp } from 'lucide-react';
+import { Loader2, Bot, DollarSign, Zap, Image, MessageSquare, TrendingUp, Clock } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface UsageSummary {
@@ -91,6 +92,10 @@ export default function OpenAIUsagePage() {
     { name: 'Imagem (Vision)', value: summary?.image_cost_usd || 0 }
   ].filter(d => d.value > 0);
 
+  // Verificar se há dados do dia atual
+  const today = new Date().toISOString().split('T')[0];
+  const hasTodayData = report?.daily_chart?.some(d => d.date === today);
+
   return (
     <div className="space-y-6">
       {/* Filtro de Período */}
@@ -111,6 +116,16 @@ export default function OpenAIUsagePage() {
           </SelectContent>
         </Select>
       </div>
+
+      {/* Aviso de dados em andamento */}
+      {hasTodayData && (
+        <Alert className="bg-muted/50 border-muted-foreground/20">
+          <Clock className="h-4 w-4" />
+          <AlertDescription>
+            Os dados incluem o consumo de <strong>hoje</strong>, que ainda está em andamento e pode aumentar ao longo do dia.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Cards de KPIs */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -187,9 +202,10 @@ export default function OpenAIUsagePage() {
                   <XAxis 
                     dataKey="date" 
                     tick={{ fontSize: 12 }}
-                    tickFormatter={(value) => {
-                      const date = new Date(value);
-                      return `${date.getDate()}/${date.getMonth() + 1}`;
+                    tickFormatter={(value: string) => {
+                      // Parsear data diretamente para evitar problemas de fuso horário
+                      const [year, month, day] = value.split('-');
+                      return `${parseInt(day)}/${parseInt(month)}`;
                     }}
                   />
                   <YAxis tick={{ fontSize: 12 }} />
@@ -199,9 +215,9 @@ export default function OpenAIUsagePage() {
                       if (name === 'tokens') return [value.toLocaleString('pt-BR'), 'Tokens'];
                       return [value, name];
                     }}
-                    labelFormatter={(label) => {
-                      const date = new Date(label);
-                      return date.toLocaleDateString('pt-BR');
+                    labelFormatter={(label: string) => {
+                      const [year, month, day] = label.split('-');
+                      return `${day}/${month}/${year}`;
                     }}
                   />
                   <Bar dataKey="tokens" fill="hsl(var(--primary))" name="tokens" radius={[4, 4, 0, 0]} />

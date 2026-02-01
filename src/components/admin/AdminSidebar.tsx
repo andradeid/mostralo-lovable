@@ -105,13 +105,14 @@ export function AdminSidebar() {
     storeId: userRole === 'attendant' ? (validatedStoreId ?? '') : ''
   });
   
-  // Hook de preferências de menu para master_admin
+  // Hook de preferências de menu para master_admin e store_admin
   const {
     preferences: menuPreferences,
     savePreferences: saveMenuPreferences,
     resetPreferences: resetMenuPreferences,
     saving: menuPrefsSaving,
-    isMasterAdmin
+    isMasterAdmin,
+    canEditMenu
   } = useAdminMenuPreferences();
   
   // Estado para modo de edição do menu
@@ -721,9 +722,9 @@ export function AdminSidebar() {
 
   const navigationItems = getNavigationItems();
   
-  // Aplicar preferências de menu para master_admin
+  // Aplicar preferências de menu para master_admin e store_admin
   const groupedItems = useMemo(() => {
-    if (isMasterAdmin && menuPreferences) {
+    if (canEditMenu && menuPreferences) {
       return applyMenuOrder(navigationItems, menuPreferences);
     }
     // Agrupamento padrão
@@ -734,7 +735,7 @@ export function AdminSidebar() {
       acc[item.group].push(item);
       return acc;
     }, {} as Record<string, typeof navigationItems>);
-  }, [navigationItems, menuPreferences, isMasterAdmin]);
+  }, [navigationItems, menuPreferences, canEditMenu]);
 
   const isActive = (path: string) => {
     if (path === "/dashboard") {
@@ -804,8 +805,8 @@ export function AdminSidebar() {
                 </div>
               )}
             </div>
-            {/* Botão de edição do menu - apenas para master_admin */}
-            {isMasterAdmin && (!collapsed || isMobile) && (
+            {/* Botão de edição do menu - para master_admin e store_admin */}
+            {canEditMenu && (!collapsed || isMobile) && (
               <Button
                 variant="ghost"
                 size="icon"
@@ -820,7 +821,7 @@ export function AdminSidebar() {
         </div>
 
         {/* Modo de Edição do Menu */}
-        {isEditingMenu && isMasterAdmin ? (
+        {isEditingMenu && canEditMenu ? (
           <MenuEditMode
             groupedItems={groupedItems}
             onSave={saveMenuPreferences}

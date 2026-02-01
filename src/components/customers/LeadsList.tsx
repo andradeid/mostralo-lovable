@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
-import { Search, Phone, Calendar, MessageSquare, User, RefreshCw } from 'lucide-react';
+import { Search, Phone, Calendar, MessageSquare, User, RefreshCw, ImageIcon } from 'lucide-react';
 import { normalizePhone } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-
 // Normaliza telefone para formato canônico (apenas dígitos, sem DDI, com 9 se celular)
 const normalizePhoneForComparison = (phone: string): string => {
   let digits = phone.replace(/\D/g, '');
@@ -91,6 +91,7 @@ interface Lead {
   created_at: string | null;
   last_synced_at: string | null;
   customer_id: string | null;
+  profile_picture_url: string | null;
 }
 
 interface LeadsListProps {
@@ -102,6 +103,8 @@ export function LeadsList({ storeId }: LeadsListProps) {
   const [filteredLeads, setFilteredLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [loadingPhotos, setLoadingPhotos] = useState<Set<string>>(new Set());
+  const [photoCache, setPhotoCache] = useState<Record<string, string | null>>({});
 
   useEffect(() => {
     if (storeId) {
@@ -217,7 +220,8 @@ export function LeadsList({ storeId }: LeadsListProps) {
           is_whatsapp_valid: true,
           created_at: msg.created_at,
           last_synced_at: msg.created_at,
-          customer_id: null
+          customer_id: null,
+          profile_picture_url: null
         };
         
         addLeadWithPriority(messageLead, 'message');
@@ -246,17 +250,65 @@ export function LeadsList({ storeId }: LeadsListProps) {
   const getSourceLabel = (source: string | null) => {
     switch (source) {
       case 'chat':
-        return { label: 'Mensagem', color: 'bg-blue-600' };
+        return { label: 'Mensagem', color: 'bg-primary' };
       case 'sync':
-        return { label: 'Sincronizado', color: 'bg-gray-600' };
+        return { label: 'Sincronizado', color: 'bg-muted-foreground' };
       case 'group':
         return { label: 'Grupo', color: 'bg-purple-600' };
       case 'import':
         return { label: 'Importado', color: 'bg-green-600' };
       default:
-        return { label: 'Desconhecido', color: 'bg-gray-500' };
+        return { label: 'Desconhecido', color: 'bg-muted' };
     }
   };
+
+  // Buscar foto de perfil do WhatsApp
+  const fetchProfilePicture = useCallback(async (leadId: string, phone: string) => {
+    if (!storeId || !phone || loadingPhotos.has(leadId) || photoCache[leadId] !== undefined) {
+      return;
+    }
+
+    setLoadingPhotos(prev => new Set(prev).add(leadId));
+
+    try {
+      const { data, error } = await supabase.functions.invoke('fetch-profile-picture', {
+        body: { phone, storeId }
+      });
+
+      if (!error && data?.pictureUrl) {
+        setPhotoCache(prev => ({ ...prev, [leadId]: data.pictureUrl }));
+        // Atualizar o lead na lista
+        setLeads(prev => prev.map(l => 
+          l.id === leadId ? { ...l, profile_picture_url: data.pictureUrl } : l
+        ));
+      } else {
+        setPhotoCache(prev => ({ ...prev, [leadId]: null }));
+      }
+    } catch (err) {
+      console.log('Erro ao buscar foto:', err);
+      setPhotoCache(prev => ({ ...prev, [leadId]: null }));
+    } finally {
+      setLoadingPhotos(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(leadId);
+        return newSet;
+      });
+    }
+  }, [storeId, loadingPhotos, photoCache]);
+
+  // Buscar fotos automaticamente para leads com WhatsApp válido
+  useEffect(() => {
+    const leadsWithoutPhoto = leads.filter(l => 
+      l.is_whatsapp_valid && 
+      !l.profile_picture_url && 
+      photoCache[l.id] === undefined &&
+      !loadingPhotos.has(l.id)
+    ).slice(0, 3); // Limitar a 3 por vez para não sobrecarregar
+
+    leadsWithoutPhoto.forEach(lead => {
+      fetchProfilePicture(lead.id, lead.phone_number);
+    });
+  }, [leads, photoCache, loadingPhotos, fetchProfilePicture]);
 
   if (loading) {
     return (
@@ -309,7 +361,7 @@ export function LeadsList({ storeId }: LeadsListProps) {
         <Card>
           <CardHeader className="pb-3">
             <CardDescription>Via Mensagem</CardDescription>
-            <CardTitle className="text-3xl text-blue-600">
+            <CardTitle className="text-3xl text-primary">
               {leads.filter(l => l.source === 'chat').length}
             </CardTitle>
           </CardHeader>
@@ -317,7 +369,7 @@ export function LeadsList({ storeId }: LeadsListProps) {
         <Card>
           <CardHeader className="pb-3">
             <CardDescription>Sincronizados</CardDescription>
-            <CardTitle className="text-3xl text-gray-600">
+            <CardTitle className="text-3xl text-muted-foreground">
               {leads.filter(l => l.source === 'sync').length}
             </CardTitle>
           </CardHeader>
@@ -330,39 +382,67 @@ export function LeadsList({ storeId }: LeadsListProps) {
           {filteredLeads.map((lead) => {
             const sourceInfo = getSourceLabel(lead.source);
             const displayName = lead.name || lead.push_name || 'Sem nome';
+            const photoUrl = lead.profile_picture_url || photoCache[lead.id];
+            const isLoadingPhoto = loadingPhotos.has(lead.id);
             
             return (
               <Card key={lead.id}>
                 <CardContent className="pt-6">
                   <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                    <div className="space-y-3 flex-1 min-w-0">
-                      {/* Nome e badges */}
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-lg font-semibold">{displayName}</h3>
-                        <Badge className={`${sourceInfo.color} text-white`}>
-                          {sourceInfo.label}
-                        </Badge>
-                        {lead.is_whatsapp_valid && (
-                          <Badge variant="outline" className="border-green-600 text-green-600">
-                            ✓ WhatsApp válido
-                          </Badge>
+                    {/* Avatar + Info */}
+                    <div className="flex gap-4 flex-1 min-w-0">
+                      {/* Avatar */}
+                      <div className="shrink-0">
+                        <Avatar className="h-14 w-14 border-2 border-border">
+                          {photoUrl ? (
+                            <AvatarImage src={photoUrl} alt={displayName} />
+                          ) : null}
+                          <AvatarFallback className={isLoadingPhoto ? 'animate-pulse' : ''}>
+                            {displayName.substring(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        {lead.is_whatsapp_valid && !photoUrl && !isLoadingPhoto && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full mt-1 text-xs h-6 px-1"
+                            onClick={() => fetchProfilePicture(lead.id, lead.phone_number)}
+                          >
+                            <ImageIcon className="h-3 w-3 mr-1" />
+                            Foto
+                          </Button>
                         )}
                       </div>
 
-                      {/* Nome do WhatsApp (se diferente) */}
-                      {lead.push_name && lead.name && lead.push_name !== lead.name && (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <User className="h-4 w-4" />
-                          <span>Nome no WhatsApp: {lead.push_name}</span>
+                      {/* Info */}
+                      <div className="space-y-3 flex-1 min-w-0">
+                        {/* Nome e badges */}
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="text-lg font-semibold">{displayName}</h3>
+                          <Badge className={`${sourceInfo.color} text-primary-foreground`}>
+                            {sourceInfo.label}
+                          </Badge>
+                          {lead.is_whatsapp_valid && (
+                            <Badge variant="secondary" className="border border-green-600/50 text-green-600 bg-green-600/10">
+                              ✓ WhatsApp válido
+                            </Badge>
+                          )}
                         </div>
-                      )}
 
-                      {/* Informações */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <Phone className="h-4 w-4 shrink-0" />
-                          <span className="truncate">{formatPhoneDisplay(lead.phone_number)}</span>
-                        </div>
+                        {/* Nome do WhatsApp (se diferente) */}
+                        {lead.push_name && lead.name && lead.push_name !== lead.name && (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <User className="h-4 w-4" />
+                            <span>Nome no WhatsApp: {lead.push_name}</span>
+                          </div>
+                        )}
+
+                        {/* Informações */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-4 w-4 shrink-0" />
+                            <span className="truncate">{formatPhoneDisplay(lead.phone_number)}</span>
+                          </div>
 
                         {lead.created_at && (
                           <div className="flex items-center gap-2">
@@ -381,11 +461,12 @@ export function LeadsList({ storeId }: LeadsListProps) {
                             </span>
                           </div>
                         )}
+                        </div>
                       </div>
                     </div>
 
                     {/* Ações */}
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 shrink-0">
                       <Button
                         variant="outline"
                         size="sm"

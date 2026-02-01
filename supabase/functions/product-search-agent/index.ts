@@ -631,17 +631,40 @@ serve(async (req) => {
 
         try {
           // Obter credenciais OpenAI da loja
-          const { data: openaiCreds } = await supabase
+          // Compatibilidade: algumas partes do sistema usam `stores.openai_api_key` (ex: openai-bot-sync)
+          // enquanto outros fluxos antigos podem ter usado `openai_credentials`.
+          let openaiApiKey: string | null = null;
+
+          // 1) Preferir `openai_credentials` se existir registro ativo
+          const { data: openaiCredsList, error: openaiCredsListError } = await supabase
             .from('openai_credentials')
             .select('api_key')
             .eq('store_id', storeId)
             .eq('is_active', true)
-            .single();
+            .limit(1);
 
-          if (!openaiCreds?.api_key) {
+          if (!openaiCredsListError && openaiCredsList?.[0]?.api_key) {
+            openaiApiKey = openaiCredsList[0].api_key;
+          }
+
+          // 2) Fallback: `stores.openai_api_key` (fonte principal usada pelo bot-sync)
+          if (!openaiApiKey) {
+            const { data: storeKeyData, error: storeKeyError } = await supabase
+              .from('stores')
+              .select('openai_api_key')
+              .eq('id', storeId)
+              .single();
+
+            if (!storeKeyError && storeKeyData?.openai_api_key) {
+              openaiApiKey = storeKeyData.openai_api_key;
+            }
+          }
+
+          if (!openaiApiKey) {
             result = {
               error: true,
               message: 'Credenciais da OpenAI não configuradas para esta loja',
+              hint: 'Configure a OpenAI API Key da loja e tente novamente.',
             };
             break;
           }
@@ -665,7 +688,7 @@ ${imageContext ? `Contexto adicional: ${imageContext}` : ''}`;
           const visionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${openaiCreds.api_key}`,
+              'Authorization': `Bearer ${openaiApiKey}`,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({

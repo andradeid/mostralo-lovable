@@ -5236,6 +5236,63 @@ export type Database = {
         }
         Relationships: []
       }
+      openai_usage_logs: {
+        Row: {
+          completion_tokens: number
+          created_at: string | null
+          estimated_cost_cents: number
+          id: string
+          message_type: string | null
+          metadata: Json | null
+          model: string
+          prompt_tokens: number
+          store_id: string
+          total_tokens: number | null
+          usage_type: string
+        }
+        Insert: {
+          completion_tokens?: number
+          created_at?: string | null
+          estimated_cost_cents?: number
+          id?: string
+          message_type?: string | null
+          metadata?: Json | null
+          model: string
+          prompt_tokens?: number
+          store_id: string
+          total_tokens?: number | null
+          usage_type?: string
+        }
+        Update: {
+          completion_tokens?: number
+          created_at?: string | null
+          estimated_cost_cents?: number
+          id?: string
+          message_type?: string | null
+          metadata?: Json | null
+          model?: string
+          prompt_tokens?: number
+          store_id?: string
+          total_tokens?: number | null
+          usage_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "openai_usage_logs_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "openai_usage_logs_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_addons: {
         Row: {
           addon_id: string | null

@@ -1,36 +1,23 @@
 
-# Plano: Remover Saudação Dinâmica do Assistente V2
+# Implementação: Remover Saudação Dinâmica do V2
 
-## Problema Identificado
+## Status Atual
+O código ainda contém instruções para usar `get_current_greeting()`, causando o erro de saudação incorreta.
 
-O bot V2 está enviando saudações com horário errado (ex: "Boa noite" às 10:29 da manhã). Isso acontece porque:
-1. A função `get_current_greeting()` pode não estar sendo chamada pela IA
-2. Mesmo quando chamada, pode haver inconsistência no fuso horário
+## Alterações Necessárias
 
-## Solução
+### Arquivo: `supabase/functions/openai-bot-sync/index.ts`
 
-Remover completamente a saudação baseada em horário (Bom dia/Boa tarde/Boa noite) do prompt V2 e usar uma saudação neutra.
+**Linhas 364-379** - Substituir seção de saudação dinâmica:
 
-## Arquivos a Modificar
-
-### `supabase/functions/openai-bot-sync/index.ts`
-
-#### 1. Remover instruções de saudação dinâmica do prompt V2 (linhas 364-379)
-
-**Antes:**
 ```typescript
+// ANTES (atual):
 PERSONALIZAÇÃO COM NOME DO CLIENTE E SAUDAÇÃO DINÂMICA (MUITO IMPORTANTE):
-- Você receberá o nome do cliente no campo "pushName" das mensagens
-- SEMPRE use o nome do cliente na primeira interação para criar conexão pessoal
-- Durante a conversa, chame o cliente pelo nome ocasionalmente de forma natural
-- Se o pushName não estiver disponível, use "você" de forma amigável
-
+...
 SAUDAÇÃO OBRIGATÓRIA - PRIMEIRA MENSAGEM (CRÍTICO):
 - Na PRIMEIRA mensagem de cada conversa, você DEVE chamar get_current_greeting()...
-```
 
-**Depois:**
-```typescript
+// DEPOIS (novo):
 PERSONALIZAÇÃO COM NOME DO CLIENTE (MUITO IMPORTANTE):
 - Você receberá o nome do cliente no campo "pushName" das mensagens
 - SEMPRE use o nome do cliente na primeira interação para criar conexão pessoal
@@ -43,43 +30,28 @@ SAUDAÇÃO NA PRIMEIRA MENSAGEM:
 - Seja acolhedor e direto
 ```
 
-#### 2. Atualizar regras críticas (linha 394)
-
-**Remover:**
+**Linha 384** - Remover capacidade:
 ```typescript
-1. NA PRIMEIRA MENSAGEM: Chame get_current_greeting() para saudar corretamente
-```
-
-**Substituir por:**
-```typescript
-1. NA PRIMEIRA MENSAGEM: Use saudação simples "Oi/Olá" + nome do cliente
-```
-
-#### 3. Remover `get_current_greeting` da lista de capacidades (linha 384)
-
-**Remover:**
-```typescript
+// REMOVER esta linha:
 - Obter saudação correta: get_current_greeting() - USE NA PRIMEIRA MENSAGEM!
 ```
 
-## Resultado Esperado
+**Linha 394** - Atualizar regra crítica:
+```typescript
+// ANTES:
+1. NA PRIMEIRA MENSAGEM: Chame get_current_greeting() para saudar corretamente
 
-```text
-Cliente: Olá
-
-Bot: Oi, Andrade! 😊 Seja bem-vindo à Drogaria Farma Bella! 
-Como posso te ajudar hoje?
+// DEPOIS:
+1. NA PRIMEIRA MENSAGEM: Use saudação simples "Oi/Olá" + nome do cliente
 ```
 
-## Observações Técnicas
-
-- A função `get_current_greeting` permanecerá disponível no `product-search-agent` para outros usos
-- Apenas o prompt do V2 será alterado - o modo simples não será afetado
-- A personalidade do bot (friendly, formal, etc.) continuará funcionando normalmente
-- O nome do cliente via `pushName` continuará sendo usado
+## Resultado Esperado
+```
+Cliente: Olá
+Bot: Oi, Andrade! 😊 Bem-vindo à Drogaria Farma Bella! Como posso te ajudar?
+```
 
 ## Deploy
-
-Após a modificação, será necessário:
-1. Deploy da edge function `openai-bot-sync`
-2. Re-sincronizar o bot da loja no painel admin
+1. Aplicar alterações no `openai-bot-sync`
+2. Deploy da edge function
+3. Re-sincronizar bot no painel admin

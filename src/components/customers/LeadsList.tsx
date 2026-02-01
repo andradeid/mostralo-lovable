@@ -62,19 +62,59 @@ export function LeadsList({ storeId }: LeadsListProps) {
       setLoading(true);
       console.log('🔍 LeadsList: Buscando leads para store:', storeId);
       
-      // Buscar contatos do WhatsApp que NÃO são clientes ainda (customer_id é null)
-      const { data, error } = await supabase
+      // 1. Buscar contatos do WhatsApp que NÃO são clientes ainda
+      const { data: contactsData, error: contactsError } = await supabase
         .from('whatsapp_contacts')
         .select('*')
         .eq('store_id', storeId)
         .is('customer_id', null)
         .order('last_synced_at', { ascending: false, nullsFirst: false });
 
-      if (error) throw error;
+      if (contactsError) throw contactsError;
 
-      console.log('✅ LeadsList: Leads encontrados:', data?.length || 0);
-      setLeads(data || []);
-      setFilteredLeads(data || []);
+      // 2. Buscar números únicos de whatsapp_messages que interagiram com a loja
+      // mas não estão em whatsapp_contacts
+      const { data: messagesData, error: messagesError } = await supabase
+        .from('whatsapp_messages')
+        .select('phone_number, customer_name, created_at')
+        .eq('store_id', storeId)
+        .not('phone_number', 'is', null)
+        .order('created_at', { ascending: false });
+
+      if (messagesError) throw messagesError;
+
+      // 3. Combinar os dados - criar leads a partir de mensagens que não estão em contatos
+      const contactPhones = new Set((contactsData || []).map(c => c.phone_number));
+      const messageLeadsMap = new Map<string, Lead>();
+      
+      (messagesData || []).forEach(msg => {
+        if (msg.phone_number && !contactPhones.has(msg.phone_number) && !messageLeadsMap.has(msg.phone_number)) {
+          messageLeadsMap.set(msg.phone_number, {
+            id: `msg-${msg.phone_number}`,
+            phone_number: msg.phone_number,
+            name: msg.customer_name,
+            push_name: null,
+            source: 'chat',
+            is_whatsapp_valid: true,
+            created_at: msg.created_at,
+            last_synced_at: msg.created_at,
+            customer_id: null
+          });
+        }
+      });
+
+      const allLeads = [...(contactsData || []), ...Array.from(messageLeadsMap.values())];
+      
+      // Ordenar por data mais recente
+      allLeads.sort((a, b) => {
+        const dateA = new Date(a.last_synced_at || a.created_at || 0).getTime();
+        const dateB = new Date(b.last_synced_at || b.created_at || 0).getTime();
+        return dateB - dateA;
+      });
+
+      console.log('✅ LeadsList: Leads encontrados:', allLeads.length, '(contatos:', contactsData?.length || 0, ', mensagens:', messageLeadsMap.size, ')');
+      setLeads(allLeads);
+      setFilteredLeads(allLeads);
     } catch (error) {
       console.error('Erro ao buscar leads:', error);
       toast.error('Erro ao carregar leads');

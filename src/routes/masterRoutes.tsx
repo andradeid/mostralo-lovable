@@ -62,6 +62,7 @@ const GoogleAppsConfigPage = lazy(() => import("@/pages/admin/GoogleAppsConfigPa
 const ImageSearchConfigPage = lazy(() => import("@/pages/admin/ImageSearchConfigPage"));
 const SystemFinancePage = lazy(() => import("@/pages/admin/SystemFinancePage"));
 const OpenAIUsagePage = lazy(() => import("@/pages/admin/OpenAIUsagePage"));
+const WhatsAppWebhookConfigPage = lazy(() => import("@/pages/dashboard/WhatsAppWebhookConfigPage"));
 
 export const masterRoutes = (
   <>
@@ -468,6 +469,13 @@ export const masterRoutes = (
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Custos OpenAI">
           <LazyRoute><OpenAIUsagePage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/whatsapp-webhooks" element={
+      <ProtectedRoute allowedRoles={['master_admin']}>
+        <AdminLayout pageTitle="Webhooks de Imagens">
+          <LazyRoute><WhatsAppWebhookConfigPage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

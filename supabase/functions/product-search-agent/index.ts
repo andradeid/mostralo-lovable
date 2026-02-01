@@ -697,28 +697,30 @@ serve(async (req) => {
 
           console.log(`[product-search-agent] 📤 Enviando imagem para GPT-4o Vision (source: ${imageSource})`);
 
-          // Prompt otimizado para receitas e identificação de produtos
-          const systemPrompt = `Você é um assistente especializado em identificar produtos a partir de imagens.
+          // Prompt otimizado para LISTA LIMPA de produtos (sem metadados)
+          const systemPrompt = `Você é um assistente especializado em identificar medicamentos e produtos em imagens.
 
-INSTRUÇÕES:
-1. Se for uma RECEITA MÉDICA:
-   - Extraia APENAS os medicamentos prescritos (nome comercial ou genérico + dosagem + quantidade se indicada)
-   - IGNORE dados pessoais do paciente (nome, endereço, etc.)
-   - NUNCA faça diagnósticos ou dê orientações médicas
-   - Retorne uma lista estruturada dos medicamentos
+INSTRUÇÕES CRÍTICAS:
+1. Identifique APENAS os nomes dos medicamentos/produtos visíveis
+2. Inclua a dosagem quando visível (ex: 500mg, 750mg)
+3. NÃO inclua: marca, fabricante, uso, indicação, tipo, quantidade de comprimidos
+4. IGNORE completamente dados pessoais do paciente
+5. NUNCA faça diagnósticos ou dê orientações médicas
 
-2. Se for uma EMBALAGEM de produto:
-   - Identifique o nome do produto, marca, e informações relevantes (tamanho, sabor, etc.)
+FORMATO DE RESPOSTA OBRIGATÓRIO (apenas lista numerada):
+1. [Nome do medicamento] [dosagem]
+2. [Nome do medicamento] [dosagem]
+3. ...
 
-3. Se for OUTRO tipo de imagem:
-   - Descreva o que você consegue identificar
-   - Sugira como posso ajudar
+EXEMPLO CORRETO:
+1. Paracetamol 750mg
+2. Dipirona 500mg
+3. Amoxicilina 500mg
 
-FORMATO DE RESPOSTA para receitas:
-Liste cada medicamento assim:
-- Nome: [nome do medicamento]
-- Dosagem: [dosagem se visível]
-- Quantidade: [quantidade se indicada]
+EXEMPLO ERRADO (NÃO faça isso):
+- Nome: Paracetamol
+- Marca: EMS
+- Uso: Adulto
 
 ${imageContext ? `Contexto adicional do cliente: ${imageContext}` : ''}`;
 
@@ -769,7 +771,7 @@ ${imageContext ? `Contexto adicional do cliente: ${imageContext}` : ''}`;
           const visionResult = await visionResponse.json();
           const analysisContent = visionResult.choices?.[0]?.message?.content || '';
 
-          console.log(`[product-search-agent] ✅ Análise recebida (${analysisContent.length} chars):`, analysisContent.slice(0, 200));
+          console.log(`[product-search-agent] ✅ Análise recebida (${analysisContent.length} chars):`, analysisContent.slice(0, 300));
 
           // Registrar uso de tokens
           const imageTokens = calculateImageTokens('high');
@@ -789,36 +791,61 @@ ${imageContext ? `Contexto adicional do cliente: ${imageContext}` : ''}`;
           });
 
           // Extrair nomes de medicamentos/produtos da análise
-          // Suporta múltiplos formatos: "Nome: X", "- X", "1. X", "* X", "Amoxicilina 500mg"
+          // FILTRAR METADADOS: ignorar linhas que são apenas informações secundárias
           const productNames: string[] = [];
           const lines = analysisContent.split('\n');
+          
+          // Palavras-chave de metadados que devem ser IGNORADAS
+          const metadataKeywords = [
+            'marca:', 'uso:', 'indicação:', 'indicacao:', 'tipo:', 'quantidade:', 
+            'apresentação:', 'apresentacao:', 'fabricante:', 'laboratório:', 'laboratorio:',
+            'posologia:', 'via:', 'administração:', 'administracao:'
+          ];
           
           for (const line of lines) {
             const trimmedLine = line.trim();
             if (!trimmedLine) continue;
             
-            // Padrão 1: "Nome: Amoxicilina 500mg"
-            let nameMatch = trimmedLine.match(/^(?:Nome|Medicamento|Produto):\s*(.+?)(?:\s*[-–]\s*(?:Dosagem|Quantidade|Qtd)|$)/i);
-            
-            // Padrão 2: "- Amoxicilina 500mg" ou "* Amoxicilina"
-            if (!nameMatch) {
-              nameMatch = trimmedLine.match(/^[-*•]\s+(.+?)(?:\s*[-–]\s*(?:Dosagem|Quantidade)|$)/i);
+            // IGNORAR linhas de metadados
+            const lowerLine = trimmedLine.toLowerCase();
+            if (metadataKeywords.some(keyword => lowerLine.startsWith(keyword))) {
+              console.log(`[product-search-agent] ⏭️ Ignorando metadado: "${trimmedLine}"`);
+              continue;
             }
             
-            // Padrão 3: "1. Amoxicilina 500mg" (lista numerada)
+            // Se a linha começa com "Nome:", extrair apenas o valor
+            if (lowerLine.startsWith('nome:') || lowerLine.startsWith('medicamento:') || lowerLine.startsWith('produto:')) {
+              const value = trimmedLine.replace(/^(?:nome|medicamento|produto):\s*/i, '').trim();
+              // Remover dosagem separada se vier junto
+              const cleanValue = value.replace(/\s*[-–]\s*(?:Dosagem|Quantidade|Qtd).*$/i, '').trim();
+              if (cleanValue.length > 2) {
+                productNames.push(cleanValue);
+                console.log(`[product-search-agent] ✅ Extraído de prefixo: "${cleanValue}"`);
+              }
+              continue;
+            }
+            
+            // Padrão 1: Lista numerada "1. Paracetamol 750mg"
+            let nameMatch = trimmedLine.match(/^\d+\.\s+(.+?)(?:\s*[-–]\s*(?:Dosagem|Quantidade)|$)/i);
+            
+            // Padrão 2: Lista com bullet "- Paracetamol 750mg" ou "* Paracetamol"
             if (!nameMatch) {
-              nameMatch = trimmedLine.match(/^\d+\.\s+(.+?)(?:\s*[-–]\s*(?:Dosagem|Quantidade)|$)/i);
+              nameMatch = trimmedLine.match(/^[-*•]\s+(.+?)(?:\s*[-–]\s*(?:Dosagem|Quantidade)|$)/i);
             }
             
             if (nameMatch && nameMatch[1]) {
               let name = nameMatch[1].trim();
               // Remover sufixos indesejados
               name = name.replace(/\s*[-–]\s*(Dosagem|Quantidade|Qtd).*$/i, '').trim();
-              
+              // Verificar se não é um metadado disfarçado
+              const nameLower = name.toLowerCase();
               if (name.length > 2 && 
-                  !name.toLowerCase().includes('dosagem:') && 
-                  !name.toLowerCase().includes('quantidade:')) {
+                  !nameLower.includes('dosagem:') && 
+                  !nameLower.includes('quantidade:') &&
+                  !nameLower.startsWith('marca') &&
+                  !nameLower.startsWith('uso')) {
                 productNames.push(name);
+                console.log(`[product-search-agent] ✅ Extraído de lista: "${name}"`);
               }
             }
           }
@@ -826,7 +853,7 @@ ${imageContext ? `Contexto adicional do cliente: ${imageContext}` : ''}`;
           console.log(`[product-search-agent] 📋 Produtos identificados na análise:`, productNames);
 
           // Buscar produtos no catálogo para cada item identificado (limite 5)
-          // Agora incluindo informações de estoque
+          // Agora incluindo informações de estoque e flag de similares
           const foundProducts: Array<{
             name: string;
             identified_name: string;
@@ -836,6 +863,8 @@ ${imageContext ? `Contexto adicional do cliente: ${imageContext}` : ''}`;
             in_stock?: boolean;
             stock_quantity?: number | string;
             found_in_catalog: boolean;
+            is_similar?: boolean;
+            original_search?: string;
           }> = [];
           
           for (const productName of productNames.slice(0, 5)) {
@@ -874,6 +903,43 @@ ${imageContext ? `Contexto adicional do cliente: ${imageContext}` : ''}`;
                 matchedProducts = partialMatch;
               }
             }
+            
+            // Busca 3: Se ainda não encontrou, tentar buscar SIMILARES pelo princípio ativo
+            // Extrair apenas a primeira palavra (geralmente é o princípio ativo)
+            if (matchedProducts.length === 0 && searchTerms.length > 0) {
+              const activeIngredient = searchTerms[0]; // Ex: "paracetamol" de "Paracetamol EMS 750mg"
+              
+              console.log(`[product-search-agent] 🔄 Buscando similares pelo princípio ativo: "${activeIngredient}"`);
+              
+              const { data: similarMatch } = await supabase
+                .from('products')
+                .select('id, name, slug, price, offer_price, is_on_offer, track_stock, stock_quantity, is_available')
+                .eq('store_id', storeId)
+                .eq('is_available', true)
+                .ilike('name', `%${activeIngredient}%`)
+                .limit(3);
+              
+              if (similarMatch && similarMatch.length > 0) {
+                console.log(`[product-search-agent] ✅ Encontrados ${similarMatch.length} produto(s) similar(es):`, similarMatch.map(p => p.name));
+                
+                // Marcar como "similar" (produto diferente do identificado, mas mesmo princípio ativo)
+                for (const p of similarMatch) {
+                  const inStock = p.track_stock ? (p.stock_quantity || 0) > 0 : true;
+                  foundProducts.push({
+                    name: p.name,
+                    identified_name: productName,
+                    slug: p.slug,
+                    price: p.is_on_offer && p.offer_price ? p.offer_price : p.price,
+                    link: buildProductLink(p.slug),
+                    in_stock: inStock,
+                    stock_quantity: p.track_stock ? p.stock_quantity : 'Disponível',
+                    found_in_catalog: true,
+                    is_similar: true, // Flag para indicar que é um produto similar
+                    original_search: productName, // O que foi buscado originalmente
+                  });
+                }
+              }
+            }
 
             console.log(`[product-search-agent] 🔍 Busca "${productName}":`, {
               searchTerms,
@@ -882,7 +948,7 @@ ${imageContext ? `Contexto adicional do cliente: ${imageContext}` : ''}`;
             });
 
             if (matchedProducts.length > 0) {
-              // Adicionar todos os produtos encontrados (para dar opções ao cliente)
+              // Adicionar produtos encontrados com match direto
               for (const p of matchedProducts) {
                 const inStock = p.track_stock ? (p.stock_quantity || 0) > 0 : true;
                 foundProducts.push({
@@ -894,10 +960,11 @@ ${imageContext ? `Contexto adicional do cliente: ${imageContext}` : ''}`;
                   in_stock: inStock,
                   stock_quantity: p.track_stock ? p.stock_quantity : 'Disponível',
                   found_in_catalog: true,
+                  is_similar: false,
                 });
               }
-            } else {
-              // Produto não encontrado no catálogo
+            } else if (!foundProducts.some(p => p.identified_name === productName)) {
+              // Produto não encontrado no catálogo (e não foi adicionado como similar)
               foundProducts.push({
                 name: productName,
                 identified_name: productName,
@@ -906,6 +973,7 @@ ${imageContext ? `Contexto adicional do cliente: ${imageContext}` : ''}`;
                 in_stock: undefined,
                 stock_quantity: undefined,
                 found_in_catalog: false,
+                is_similar: false,
               });
             }
           }

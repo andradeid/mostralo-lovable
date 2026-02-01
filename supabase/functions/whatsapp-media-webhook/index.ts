@@ -139,6 +139,8 @@ interface AnalysisResult {
     in_stock?: boolean;
     stock_quantity?: number | string;
     found_in_catalog?: boolean;
+    is_similar?: boolean;
+    original_search?: string;
   }>;
   summary?: {
     identified: number;
@@ -251,18 +253,47 @@ function formatResponseMessage(
   }
 
   // Separar produtos por status
-  const inStockProducts = analysis.products.filter(p => p.found_in_catalog && p.in_stock);
+  // Produtos exatos (não similares) disponíveis
+  const exactInStock = analysis.products.filter(p => p.found_in_catalog && p.in_stock && !p.is_similar);
+  // Produtos similares disponíveis
+  const similarInStock = analysis.products.filter(p => p.found_in_catalog && p.in_stock && p.is_similar);
+  // Produtos sem estoque
   const outOfStockProducts = analysis.products.filter(p => p.found_in_catalog && !p.in_stock);
+  // Produtos não encontrados
   const notFoundProducts = analysis.products.filter(p => !p.found_in_catalog);
 
-  // Produtos disponíveis em estoque
-  if (inStockProducts.length > 0) {
+  // Produtos EXATOS disponíveis em estoque
+  if (exactInStock.length > 0) {
     message += `✅ *Disponíveis em estoque:*\n\n`;
-    inStockProducts.forEach((product, index) => {
+    exactInStock.forEach((product, index) => {
       const price = product.price ? ` - ${formatCurrency(product.price)}` : '';
       message += `${index + 1}. *${product.name}*${price}\n`;
       
-      // Adicionar link do produto se tiver slug
+      if (product.link) {
+        message += `   👉 ${product.link}\n`;
+      } else if (storeSlug && product.slug) {
+        message += `   👉 https://mostralo.com.br/loja/${storeSlug}/produto/${product.slug}\n`;
+      }
+    });
+    message += '\n';
+  }
+
+  // Produtos SIMILARES disponíveis (mesmo princípio ativo)
+  if (similarInStock.length > 0) {
+    // Se não achou o exato mas achou similar
+    if (exactInStock.length === 0) {
+      message += `❌ O produto exato da imagem não foi encontrado.\n\n`;
+    }
+    
+    message += `🔄 *Produtos similares disponíveis:*\n\n`;
+    similarInStock.forEach((product, index) => {
+      const price = product.price ? ` - ${formatCurrency(product.price)}` : '';
+      // Mostrar o que foi buscado vs o que foi encontrado
+      const searchInfo = product.original_search && product.original_search !== product.name 
+        ? ` _(similar a ${product.original_search})_` 
+        : '';
+      message += `${index + 1}. *${product.name}*${price}${searchInfo}\n`;
+      
       if (product.link) {
         message += `   👉 ${product.link}\n`;
       } else if (storeSlug && product.slug) {
@@ -281,7 +312,7 @@ function formatResponseMessage(
     message += '\n';
   }
 
-  // Produtos não encontrados no catálogo
+  // Produtos não encontrados no catálogo (nem exato, nem similar)
   if (notFoundProducts.length > 0) {
     message += `❌ *Não encontrado no catálogo:*\n`;
     notFoundProducts.forEach((product) => {
@@ -292,12 +323,13 @@ function formatResponseMessage(
   }
 
   // CTA baseado no que foi encontrado
-  if (inStockProducts.length > 0) {
+  const totalAvailable = exactInStock.length + similarInStock.length;
+  if (totalAvailable > 0) {
     message += `Deseja que eu adicione algum ao carrinho? 🛒`;
   } else if (outOfStockProducts.length > 0) {
     message += `Posso avisar quando os produtos estiverem disponíveis! 📲`;
   } else {
-    message += `Posso ajudar a encontrar um produto similar? 🔍`;
+    message += `Posso ajudar a encontrar algo parecido? 🔍`;
   }
   
   return message;

@@ -28,9 +28,12 @@ export function useAdminMenuPreferences() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  // Verificar se o usuário pode editar o menu (master_admin ou store_admin)
+  const canEditMenu = profile?.user_type === 'master_admin' || profile?.user_type === 'store_admin';
+  
   // Buscar preferências do banco
   const fetchPreferences = useCallback(async () => {
-    if (!profile?.id || profile?.user_type !== 'master_admin') {
+    if (!profile?.id || !canEditMenu) {
       setLoading(false);
       return;
     }
@@ -55,7 +58,7 @@ export function useAdminMenuPreferences() {
     } finally {
       setLoading(false);
     }
-  }, [profile?.id, profile?.user_type]);
+  }, [profile?.id, canEditMenu]);
 
   useEffect(() => {
     fetchPreferences();
@@ -159,7 +162,8 @@ export function useAdminMenuPreferences() {
     saving,
     savePreferences,
     resetPreferences,
-    isMasterAdmin: profile?.user_type === 'master_admin'
+    isMasterAdmin: profile?.user_type === 'master_admin',
+    canEditMenu
   };
 }
 

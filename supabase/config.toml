@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.master-bot-fetch-prompt]
 verify_jwt = false
+
+[functions.openai-usage-report]
+verify_jwt = false

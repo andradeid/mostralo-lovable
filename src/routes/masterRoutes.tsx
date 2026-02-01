@@ -61,6 +61,7 @@ const CompanySettingsPage = lazy(() => import("@/pages/admin/CompanySettingsPage
 const GoogleAppsConfigPage = lazy(() => import("@/pages/admin/GoogleAppsConfigPage"));
 const ImageSearchConfigPage = lazy(() => import("@/pages/admin/ImageSearchConfigPage"));
 const SystemFinancePage = lazy(() => import("@/pages/admin/SystemFinancePage"));
+const OpenAIUsagePage = lazy(() => import("@/pages/admin/OpenAIUsagePage"));
 
 export const masterRoutes = (
   <>
@@ -460,6 +461,13 @@ export const masterRoutes = (
       <ProtectedRoute allowedRoles={['master_admin']}>
         <AdminLayout pageTitle="Finanças do Sistema">
           <LazyRoute><SystemFinancePage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
+    <Route path="/dashboard/openai-usage" element={
+      <ProtectedRoute allowedRoles={['master_admin']}>
+        <AdminLayout pageTitle="Custos OpenAI">
+          <LazyRoute><OpenAIUsagePage /></LazyRoute>
         </AdminLayout>
       </ProtectedRoute>
     } />

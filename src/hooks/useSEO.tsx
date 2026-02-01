@@ -110,12 +110,44 @@ const removeCustomMetaTags = () => {
   customTags.forEach(tag => tag.remove());
 };
 
+// Função de mapeamento SEO por segmento
+const getSegmentSEO = (segment?: string) => {
+  switch (segment) {
+    case 'alimentacao-e-bebidas':
+      return { 
+        titleSuffix: 'Cardápio Digital', 
+        descriptionPrefix: 'Conheça o cardápio',
+        keywords: 'cardápio digital, menu online, pedidos, delivery'
+      };
+    case 'saude-e-bem-estar':
+      return { 
+        titleSuffix: 'Loja Online', 
+        descriptionPrefix: 'Confira os produtos',
+        keywords: 'farmácia online, saúde, bem-estar, medicamentos'
+      };
+    case 'servicos':
+      return { 
+        titleSuffix: 'Catálogo de Serviços', 
+        descriptionPrefix: 'Veja nossos serviços',
+        keywords: 'serviços, catálogo, orçamento online'
+      };
+    default:
+      return { 
+        titleSuffix: 'Loja Online', 
+        descriptionPrefix: 'Confira os produtos',
+        keywords: 'loja online, produtos, compras, catálogo'
+      };
+  }
+};
+
 // Hook específico para páginas de loja (mantido para compatibilidade)
 export const useSEO = (store: any | null, slug?: string) => {
+  const seo = getSegmentSEO(store?.segment);
+  
   usePageSEO({
-    title: store ? `${store.name} - Cardápio Digital | Mostralo` : 'Carregando...',
-    description: store?.description || `Conheça o cardápio da ${store?.name || 'loja'}. Faça seu pedido online!`,
+    title: store ? `${store.name} - ${seo.titleSuffix} | Mostralo` : 'Carregando...',
+    description: store?.description || `${seo.descriptionPrefix} da ${store?.name || 'loja'}. Faça seu pedido online!`,
     image: store?.logo_url || '/favicon.png',
-    keywords: 'cardápio digital, menu online, pedidos, delivery'
+    keywords: seo.keywords
   });
 };

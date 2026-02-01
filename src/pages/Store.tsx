@@ -76,6 +76,7 @@ interface Store {
   theme_colors: any;
   latitude?: number;
   longitude?: number;
+  segment?: string;
   configuration?: {
     primary_color?: string;
     secondary_color?: string;

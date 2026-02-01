@@ -12387,6 +12387,7 @@ export type Database = {
           logo_url: string | null
           name: string | null
           phone: string | null
+          segment: string | null
           slug: string | null
           state: string | null
           status: Database["public"]["Enums"]["store_status"] | null
@@ -12403,6 +12404,7 @@ export type Database = {
           logo_url?: string | null
           name?: string | null
           phone?: string | null
+          segment?: string | null
           slug?: string | null
           state?: string | null
           status?: Database["public"]["Enums"]["store_status"] | null
@@ -12419,6 +12421,7 @@ export type Database = {
           logo_url?: string | null
           name?: string | null
           phone?: string | null
+          segment?: string | null
           slug?: string | null
           state?: string | null
           status?: Database["public"]["Enums"]["store_status"] | null

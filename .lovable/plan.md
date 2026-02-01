@@ -1,211 +1,185 @@
 
-# Plano: Detecção de Receitas Controladas no Módulo Vision Plus
+# Plano: Captura Automática de Leads via WhatsApp
 
-## Resumo
+## Resumo do Problema
 
-Adicionar inteligência ao módulo de análise de imagens para identificar automaticamente quando uma imagem é uma receita médica controlada, enviando uma mensagem profissional informando que o documento precisa estar em mãos para o entregador.
+Atualmente, quando alguém manda mensagem para o WhatsApp da loja:
+- O sistema processa a mensagem e responde
+- **MAS não salva o contato na base de dados**
+- Apenas clientes que já fizeram pedido aparecem na tabela `customers`
 
-## Escopo Funcional
+A tabela `whatsapp_contacts` existe mas só é populada quando o dono da loja clica em "Sincronizar Contatos" (puxa a agenda do WhatsApp).
 
-### O que será implementado:
-1. **Detecção automática de tipo de receita** - O GPT-4o Vision irá classificar a imagem como:
-   - Receita de Tarja Preta (controlados - Portaria 344)
-   - Receita de Tarja Vermelha (antibióticos, etc.)
-   - Receita Simples
-   - Não é uma receita (foto de medicamento/embalagem)
+## Solução Proposta
 
-2. **Mensagem automática profissional** - Quando detectar receita controlada:
-   > "📋 Identifiquei que você enviou uma receita de medicamento controlado. Por favor, tenha o documento original em mãos no momento da entrega, pois o entregador precisará recolhê-la."
-
-3. **Aviso de validade** - Incluir lembrete sobre prazo de validade da receita quando aplicável
+Implementar **captura automática de leads** em tempo real: toda pessoa que mandar mensagem para o WhatsApp da loja será salva automaticamente como contato/lead.
 
 ## Arquitetura da Solução
 
 ```text
 ┌─────────────────────┐
-│   WhatsApp Image    │
-│     (Cliente)       │
+│  Cliente manda msg  │
+│  pelo WhatsApp      │
 └──────────┬──────────┘
            │
            ▼
 ┌─────────────────────┐
-│  whatsapp-media-    │
-│     webhook         │
+│   whatsapp-webhook  │  ◄── Adicionar lógica de
+│     (modificar)     │      captura de contato
 └──────────┬──────────┘
+           │
+           ├────────────────────────────┐
+           │                            │
+           ▼                            ▼
+┌─────────────────────┐    ┌─────────────────────┐
+│  whatsapp_contacts  │    │  Processamento      │
+│  (upsert contato)   │    │  normal de msg      │
+│  source: 'chat'     │    └─────────────────────┘
+└─────────────────────┘
            │
            ▼
 ┌─────────────────────┐
-│  product-search-    │  ◄── Modificar prompt GPT-4o
-│     agent           │      para detectar receitas
-└──────────┬──────────┘
-           │
-           ▼
-┌─────────────────────┐
-│ formatResponseMsg   │  ◄── Adicionar aviso de
-│                     │      receita controlada
-└──────────┬──────────┘
-           │
-           ▼
-┌─────────────────────┐
-│   Resposta ao       │
-│     Cliente         │
+│  Painel da Loja     │
+│  /dashboard/customers│
+│  exibe o contato    │
 └─────────────────────┘
 ```
 
+## Funcionalidades a Implementar
+
+### 1. Captura Automática no Webhook
+Quando uma mensagem chegar via `whatsapp-webhook`:
+- Extrair: telefone (`remoteJid`), nome (`pushName`)
+- Verificar se já existe em `whatsapp_contacts` para esta loja
+- Se não existe: criar com `source: 'chat'`
+- Se existe: atualizar `last_synced_at` e `push_name` (se veio diferente)
+
+### 2. Diferenciação de Origem
+Criar campo `source` com valores:
+- `sync` = Sincronizado da agenda WhatsApp
+- `chat` = Veio por mensagem recebida (NOVO)
+- `group` = Extraído de grupo
+- `import` = Importado manualmente
+
+### 3. Pipeline Lead → Cliente
+- **Lead (whatsapp_contacts)**: pessoa que mandou mensagem
+- **Cliente (customers)**: pessoa que fez pedido
+- Vincular: quando lead fizer pedido, atualizar `customer_id` em `whatsapp_contacts`
+
 ## Tarefas de Implementação
 
-### Tarefa 1: Atualizar o prompt do GPT-4o Vision
-**Arquivo:** `supabase/functions/product-search-agent/index.ts`
+### Tarefa 1: Modificar whatsapp-webhook
+**Arquivo:** `supabase/functions/whatsapp-webhook/index.ts`
 
-Modificar o `systemPrompt` (linhas 701-725) para incluir instruções de classificação de receita:
-
-**Adicionar ao prompt:**
-```
-CLASSIFICAÇÃO DE DOCUMENTO:
-Identifique o tipo de documento na imagem:
-- RECEITA_CONTROLADA: Se for receita com tarja preta (controlados especiais) ou que menciona medicamentos como: clonazepam, diazepam, alprazolam, zolpidem, rivotril, etc.
-- RECEITA_RETIDA: Se for receita com tarja vermelha (antibióticos, etc.) que precisa ser retida
-- RECEITA_SIMPLES: Se for receita médica comum
-- PRODUTO: Se for foto de embalagem, caixa ou medicamento
-
-FORMATO DE RESPOSTA:
-[TIPO_DOCUMENTO: RECEITA_CONTROLADA|RECEITA_RETIDA|RECEITA_SIMPLES|PRODUTO]
-
-1. [Nome do medicamento] [dosagem]
-2. ...
-```
-
-### Tarefa 2: Processar classificação no resultado
-**Arquivo:** `supabase/functions/product-search-agent/index.ts`
-
-Após receber a resposta do GPT-4o (linha 772), extrair o tipo de documento:
+Adicionar após a linha ~244 (após extrair senderPhone e senderName):
 
 ```typescript
-// Extrair tipo de documento
-let documentType: 'RECEITA_CONTROLADA' | 'RECEITA_RETIDA' | 'RECEITA_SIMPLES' | 'PRODUTO' = 'PRODUTO';
-const docTypeMatch = analysisContent.match(/\[TIPO_DOCUMENTO:\s*(RECEITA_CONTROLADA|RECEITA_RETIDA|RECEITA_SIMPLES|PRODUTO)\]/i);
-if (docTypeMatch) {
-  documentType = docTypeMatch[1].toUpperCase() as typeof documentType;
-}
-```
-
-Incluir no objeto `result` (linha 1000+):
-```typescript
-result = {
-  success: true,
-  products: foundProducts,
-  document_type: documentType,  // NOVO CAMPO
-  is_controlled_prescription: documentType === 'RECEITA_CONTROLADA' || documentType === 'RECEITA_RETIDA',
-  // ... demais campos
-};
-```
-
-### Tarefa 3: Atualizar interface AnalysisResult
-**Arquivo:** `supabase/functions/whatsapp-media-webhook/index.ts`
-
-Adicionar novos campos na interface (linhas 100-120):
-```typescript
-interface AnalysisResult {
-  success: boolean;
-  // ... campos existentes
-  document_type?: 'RECEITA_CONTROLADA' | 'RECEITA_RETIDA' | 'RECEITA_SIMPLES' | 'PRODUTO';
-  is_controlled_prescription?: boolean;
-}
-```
-
-### Tarefa 4: Atualizar formatResponseMessage
-**Arquivo:** `supabase/functions/whatsapp-media-webhook/index.ts`
-
-Modificar a função `formatResponseMessage` (linhas 291-397) para incluir aviso de receita:
-
-```typescript
-function formatResponseMessage(
-  analysis: AnalysisResult,
-  customerName: string,
-  storeSlug?: string
-): string {
-  const greeting = customerName ? `Olá, ${customerName}! ` : '';
-  
-  // NOVO: Aviso de receita controlada
-  let prescriptionWarning = '';
-  if (analysis.is_controlled_prescription) {
-    if (analysis.document_type === 'RECEITA_CONTROLADA') {
-      prescriptionWarning = `\n\n📋 *ATENÇÃO - Receita Controlada*\nIdentifiquei que esta é uma receita de medicamento controlado (tarja preta). Por favor, tenha o documento *original* em mãos no momento da entrega, pois nosso entregador precisará *recolher a receita*.\n\n⏰ Lembre-se: receitas controladas têm validade de 30 dias.\n`;
-    } else if (analysis.document_type === 'RECEITA_RETIDA') {
-      prescriptionWarning = `\n\n📋 *ATENÇÃO - Receita Retida*\nIdentifiquei que esta receita precisa ficar retida na farmácia. Por favor, tenha o documento *original* em mãos no momento da entrega.\n`;
+// === CAPTURA AUTOMÁTICA DO LEAD/CONTATO ===
+const captureContact = async () => {
+  try {
+    // Verificar se telefone é válido (não é grupo)
+    if (remoteJid.includes('@g.us')) return;
+    
+    const phoneNormalized = senderPhone.replace(/\D/g, '');
+    if (phoneNormalized.length < 10 || phoneNormalized.length > 15) return;
+    
+    // Upsert na tabela whatsapp_contacts
+    const { error: contactError } = await supabase
+      .from('whatsapp_contacts')
+      .upsert({
+        store_id: instance.store_id,
+        phone_number: phoneNormalized,
+        push_name: senderName,
+        name: senderName,
+        is_whatsapp_valid: true,
+        source: 'chat',
+        last_synced_at: new Date().toISOString(),
+      }, {
+        onConflict: 'store_id,phone_number',
+        ignoreDuplicates: false,
+      });
+    
+    if (contactError) {
+      console.log('⚠️ Erro ao salvar contato:', contactError.message);
+    } else {
+      console.log(`📇 Contato salvo/atualizado: ${phoneNormalized} (${senderName})`);
     }
+  } catch (e) {
+    console.log('⚠️ Erro na captura de contato:', e);
   }
-  
-  // ... resto da função
-  
-  // Inserir aviso após a análise inicial
-  if (prescriptionWarning) {
-    message += prescriptionWarning;
-  }
-  
-  return message;
-}
+};
+
+// Executar captura em background (não bloqueia resposta)
+captureContact();
 ```
 
-## Exemplo de Fluxo Completo
+### Tarefa 2: Modificar whatsapp-media-webhook
+**Arquivo:** `supabase/functions/whatsapp-media-webhook/index.ts`
 
-**Cenário:** Cliente envia foto de receita com Clonazepam 2mg
+Adicionar mesma lógica após identificar a loja (linha ~557), para capturar contatos que enviam imagens também.
 
-**1. Resposta do GPT-4o:**
-```
-[TIPO_DOCUMENTO: RECEITA_CONTROLADA]
+### Tarefa 3: Atualizar Painel de Clientes (Opcional)
+**Arquivo:** Página de gerenciamento de clientes
 
-1. Clonazepam 2mg
-```
+Atualmente a página mostra apenas `customers`. Podemos:
+- Opção A: Exibir `whatsapp_contacts` com etiqueta "Lead" para quem não é cliente
+- Opção B: Criar aba separada "Leads" vs "Clientes"
+- Opção C: Manter como está, mas exibir contador de leads
 
-**2. Mensagem enviada ao cliente:**
-```
-Olá, Maria! 🔍 Analisei a imagem que você enviou!
+## Fluxo Completo
 
-📋 *ATENÇÃO - Receita Controlada*
-Identifiquei que esta é uma receita de medicamento controlado (tarja preta). 
-Por favor, tenha o documento *original* em mãos no momento da entrega, 
-pois nosso entregador precisará *recolher a receita*.
+**Cenário:** Você (556194009368) manda mensagem para a Drogaria Farma Bella
 
-⏰ Lembre-se: receitas controladas têm validade de 30 dias.
+1. Mensagem chega no `whatsapp-webhook`
+2. Sistema cria/atualiza registro em `whatsapp_contacts`:
+   - `store_id`: ID da Drogaria Farma Bella
+   - `phone_number`: 556194009368
+   - `push_name`: Seu nome do WhatsApp
+   - `source`: 'chat'
+   - `customer_id`: NULL (você ainda não é cliente)
+3. No painel, o contato aparece na lista
 
-✅ *Disponíveis em estoque:*
-
-1. *Clonazepam 2mg EMS* - R$ 25,90
-   👉 https://mostralo.com.br/loja/farmacia/produto/clonazepam-2mg
-
-Clique no link acima para ver mais detalhes e finalizar sua compra! 🛒
-```
+**Se você fizer um pedido:**
+4. Sistema cria registro em `customers`
+5. Atualiza `whatsapp_contacts.customer_id` com o ID do cliente
+6. No painel, aparece como "Cliente" ao invés de "Lead"
 
 ## Detalhes Técnicos
 
-### Lista de medicamentos controlados para detecção
-O prompt incluirá exemplos comuns de controlados:
-- **Tarja Preta (especiais):** Clonazepam, Diazepam, Alprazolam, Lorazepam, Zolpidem, Bromazepam, Rivotril, Lexotan, Frontal
-- **Tarja Vermelha (retida):** Antibióticos (Amoxicilina, Azitromicina, Cefalexina), Retinoides
+### Estrutura da tabela whatsapp_contacts (já existente)
+| Campo | Tipo | Uso |
+|-------|------|-----|
+| id | UUID | PK |
+| store_id | UUID | FK para stores |
+| phone_number | TEXT | Telefone normalizado |
+| name | TEXT | Nome editável |
+| push_name | TEXT | Nome do WhatsApp |
+| source | TEXT | 'sync', 'chat', 'group' |
+| customer_id | UUID | FK para customers (quando virar cliente) |
+| is_whatsapp_valid | BOOLEAN | Sempre true para quem mandou msg |
+| last_synced_at | TIMESTAMP | Última interação |
 
-### Validação de segurança
-- O sistema NÃO armazenará dados da receita médica (nome do paciente, CRM, etc.)
-- Apenas o tipo de documento será processado
-- Os medicamentos identificados são usados apenas para busca no catálogo
+### RLS já configurada
+A tabela `whatsapp_contacts` já tem RLS permitindo donos de loja gerenciarem seus contatos.
 
-## Arquivos a serem modificados
+## Arquivos a Modificar
 
 | Arquivo | Modificação |
 |---------|-------------|
-| `supabase/functions/product-search-agent/index.ts` | Atualizar prompt, extrair tipo de documento, incluir no resultado |
-| `supabase/functions/whatsapp-media-webhook/index.ts` | Atualizar interface, modificar formatResponseMessage |
-
-## Testes sugeridos
-
-1. Enviar foto de receita com medicamento controlado (ex: Clonazepam)
-2. Enviar foto de receita com antibiótico (ex: Amoxicilina)
-3. Enviar foto de embalagem de medicamento comum
-4. Verificar se o aviso aparece corretamente em cada cenário
+| `supabase/functions/whatsapp-webhook/index.ts` | Adicionar captura automática de contato |
+| `supabase/functions/whatsapp-media-webhook/index.ts` | Mesma captura para mensagens de imagem |
 
 ## Benefícios
 
-- **Profissionalização do atendimento** - Cliente sabe imediatamente o que precisa fazer
-- **Redução de problemas na entrega** - Entregador não perde viagem
-- **Conformidade legal** - Lembra o cliente das exigências regulatórias
-- **Experiência do cliente** - Informação clara e objetiva
+- **Base de leads em tempo real** - Todo mundo que interage vira lead automaticamente
+- **Pipeline claro** - Lead → Cliente (quando compra)
+- **Visibilidade** - Loja sabe quantas pessoas estão interagindo
+- **Marketing** - Possibilidade de enviar campanhas para leads
+- **Zero esforço** - Automático, sem necessidade de sincronização manual
+
+## Testes Sugeridos
+
+1. Mandar mensagem de um número novo para o WhatsApp da loja
+2. Verificar se aparece em `whatsapp_contacts` com `source: 'chat'`
+3. Verificar se aparece no painel de clientes/contatos da loja
+4. Fazer pedido e verificar se `customer_id` é atualizado

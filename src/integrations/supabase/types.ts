@@ -12037,6 +12037,51 @@ export type Database = {
           },
         ]
       }
+      whatsapp_session_context: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_message_at: string | null
+          phone_number: string | null
+          push_name: string | null
+          remote_jid: string
+          store_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_message_at?: string | null
+          phone_number?: string | null
+          push_name?: string | null
+          remote_jid: string
+          store_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_message_at?: string | null
+          phone_number?: string | null
+          push_name?: string | null
+          remote_jid?: string
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_session_context_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_session_context_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_sync_config: {
         Row: {
           auto_sync_enabled: boolean | null
@@ -12437,6 +12482,7 @@ export type Database = {
           usages_this_period: number
         }[]
       }
+      clean_old_session_context: { Args: never; Returns: undefined }
       cleanup_old_password_calls: { Args: never; Returns: undefined }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
       decrement_product_stock: {

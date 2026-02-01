@@ -597,10 +597,18 @@ serve(async (req) => {
 
       // ========================================
       // ANALYZE_IMAGE - Análise de imagem com AI Vision
+      // Retorna estrutura compatível com AnalysisResult do webhook
       // ========================================
       case 'analyze_image': {
         const imageData = args.image_data || args.imageData;
         const imageContext = args.image_context || args.context || '';
+
+        console.log(`[product-search-agent] 🖼️ analyze_image iniciado:`, {
+          hasBase64: !!imageData?.base64,
+          hasUrl: !!imageData?.url,
+          urlPreview: imageData?.url?.slice(0, 60),
+          context: imageContext?.slice(0, 50),
+        });
 
         // Verificar se a loja tem o módulo ai_vision habilitado
         const { data: visionAccess } = await supabase
@@ -612,6 +620,7 @@ serve(async (req) => {
 
         if (!visionAccess?.is_enabled) {
           result = {
+            success: false,
             error: true,
             message: 'O módulo de Visão por IA não está habilitado para esta loja.',
             hint: 'Entre em contato com o suporte para ativar este recurso.',
@@ -622,6 +631,7 @@ serve(async (req) => {
         // Verificar se temos dados da imagem
         if (!imageData?.base64 && !imageData?.url) {
           result = {
+            success: false,
             error: true,
             message: 'Dados da imagem não fornecidos',
             hint: 'Por favor, envie a imagem novamente.',
@@ -629,60 +639,88 @@ serve(async (req) => {
           break;
         }
 
+        // CRÍTICO: Se temos apenas URL do WhatsApp (mmg.whatsapp.net), não vai funcionar
+        // porque OpenAI não consegue baixar diretamente
+        if (!imageData.base64 && imageData.url?.includes('mmg.whatsapp.net')) {
+          console.error('[product-search-agent] ❌ URL do WhatsApp sem base64 - OpenAI não consegue acessar');
+          result = {
+            success: false,
+            error: true,
+            message: 'Não foi possível acessar a imagem. Por favor, envie novamente.',
+            hint: 'O webhook precisa enviar a imagem em base64. Verifique a configuração WEBHOOK_BASE64.',
+            debug: 'invalid_whatsapp_url',
+          };
+          break;
+        }
+
         try {
           // Obter credenciais OpenAI da loja
-          // Compatibilidade: algumas partes do sistema usam `stores.openai_api_key` (ex: openai-bot-sync)
-          // enquanto outros fluxos antigos podem ter usado `openai_credentials`.
           let openaiApiKey: string | null = null;
 
-          // 1) Preferir `openai_credentials` se existir registro ativo
-          const { data: openaiCredsList, error: openaiCredsListError } = await supabase
+          const { data: openaiCredsList } = await supabase
             .from('openai_credentials')
             .select('api_key')
             .eq('store_id', storeId)
             .eq('is_active', true)
             .limit(1);
 
-          if (!openaiCredsListError && openaiCredsList?.[0]?.api_key) {
+          if (openaiCredsList?.[0]?.api_key) {
             openaiApiKey = openaiCredsList[0].api_key;
           }
 
-          // 2) Fallback: `stores.openai_api_key` (fonte principal usada pelo bot-sync)
           if (!openaiApiKey) {
-            const { data: storeKeyData, error: storeKeyError } = await supabase
+            const { data: storeKeyData } = await supabase
               .from('stores')
               .select('openai_api_key')
               .eq('id', storeId)
               .single();
 
-            if (!storeKeyError && storeKeyData?.openai_api_key) {
+            if (storeKeyData?.openai_api_key) {
               openaiApiKey = storeKeyData.openai_api_key;
             }
           }
 
           if (!openaiApiKey) {
             result = {
+              success: false,
               error: true,
               message: 'Credenciais da OpenAI não configuradas para esta loja',
-              hint: 'Configure a OpenAI API Key da loja e tente novamente.',
             };
             break;
           }
 
           // Construir conteúdo da imagem
+          const imageSource = imageData.base64 ? 'base64' : 'url';
           const imageContent = imageData.base64 
             ? { url: `data:${imageData.mimetype || 'image/jpeg'};base64,${imageData.base64}` }
             : { url: imageData.url };
 
-          // Prompt especializado baseado no segmento da loja
-          const systemPrompt = `Você é um assistente de identificação de produtos. Analise a imagem enviada e:
-1. Identifique o produto mostrado (nome, marca se visível, quantidade/tamanho)
-2. Se for uma receita médica, identifique os medicamentos prescritos (NUNCA faça diagnósticos médicos)
-3. Se for uma embalagem, leia as informações do produto
-4. Se não conseguir identificar claramente, diga o que você consegue ver e peça uma foto mais nítida
+          console.log(`[product-search-agent] 📤 Enviando imagem para GPT-4o Vision (source: ${imageSource})`);
 
-Seja objetivo e forneça informações úteis para ajudar o cliente a encontrar o produto.
-${imageContext ? `Contexto adicional: ${imageContext}` : ''}`;
+          // Prompt otimizado para receitas e identificação de produtos
+          const systemPrompt = `Você é um assistente especializado em identificar produtos a partir de imagens.
+
+INSTRUÇÕES:
+1. Se for uma RECEITA MÉDICA:
+   - Extraia APENAS os medicamentos prescritos (nome comercial ou genérico + dosagem + quantidade se indicada)
+   - IGNORE dados pessoais do paciente (nome, endereço, etc.)
+   - NUNCA faça diagnósticos ou dê orientações médicas
+   - Retorne uma lista estruturada dos medicamentos
+
+2. Se for uma EMBALAGEM de produto:
+   - Identifique o nome do produto, marca, e informações relevantes (tamanho, sabor, etc.)
+
+3. Se for OUTRO tipo de imagem:
+   - Descreva o que você consegue identificar
+   - Sugira como posso ajudar
+
+FORMATO DE RESPOSTA para receitas:
+Liste cada medicamento assim:
+- Nome: [nome do medicamento]
+- Dosagem: [dosagem se visível]
+- Quantidade: [quantidade se indicada]
+
+${imageContext ? `Contexto adicional do cliente: ${imageContext}` : ''}`;
 
           // Chamar GPT-4o Vision
           const visionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -702,24 +740,38 @@ ${imageContext ? `Contexto adicional: ${imageContext}` : ''}`;
                   ]
                 }
               ],
-              max_tokens: 500,
+              max_tokens: 800,
             }),
           });
 
           if (!visionResponse.ok) {
             const errorText = await visionResponse.text();
-            console.error('[product-search-agent] Erro OpenAI Vision:', errorText);
-            result = {
-              error: true,
-              message: 'Erro ao processar a imagem. Tente novamente.',
-            };
+            console.error('[product-search-agent] ❌ Erro OpenAI Vision:', errorText);
+            
+            // Verificar se é erro de URL inválida
+            if (errorText.includes('invalid_image_url') || errorText.includes('Could not download')) {
+              result = {
+                success: false,
+                error: true,
+                message: 'Não foi possível acessar a imagem. Por favor, envie novamente.',
+                debug: 'invalid_image_url',
+              };
+            } else {
+              result = {
+                success: false,
+                error: true,
+                message: 'Erro ao processar a imagem. Tente novamente.',
+              };
+            }
             break;
           }
 
           const visionResult = await visionResponse.json();
           const analysisContent = visionResult.choices?.[0]?.message?.content || '';
 
-          // Registrar uso de tokens (Vision usa mais tokens por causa da imagem)
+          console.log(`[product-search-agent] ✅ Análise recebida (${analysisContent.length} chars):`, analysisContent.slice(0, 200));
+
+          // Registrar uso de tokens
           const imageTokens = calculateImageTokens('high');
           const promptTokens = estimateTokens(systemPrompt) + imageTokens;
           const completionTokens = visionResult.usage?.completion_tokens || estimateTokens(analysisContent);
@@ -732,23 +784,83 @@ ${imageContext ? `Contexto adicional: ${imageContext}` : ''}`;
             messageType: 'vision_analysis',
             metadata: {
               has_context: Boolean(imageContext),
-              image_source: imageData.base64 ? 'base64' : 'url',
+              image_source: imageSource,
             }
           });
 
-          console.log(`[product-search-agent] 📊 Vision usage logged: ${promptTokens + completionTokens} tokens`);
+          // Extrair nomes de medicamentos/produtos da análise
+          // Padrão: "Nome: Amoxicilina 500mg" ou "- Amoxicilina 500mg"
+          const productNames: string[] = [];
+          const lines = analysisContent.split('\n');
+          
+          for (const line of lines) {
+            // Padrão "Nome: X" ou "- X" para itens de lista
+            const nameMatch = line.match(/(?:Nome:|^-)\s*(.+?)(?:\s*-\s*Dosagem|\s*$)/i);
+            if (nameMatch && nameMatch[1]) {
+              const name = nameMatch[1].trim();
+              if (name.length > 2 && !name.toLowerCase().includes('dosagem') && !name.toLowerCase().includes('quantidade')) {
+                productNames.push(name);
+              }
+            }
+          }
 
-          // Extrair informações do produto identificado
+          console.log(`[product-search-agent] 📋 Produtos identificados na análise:`, productNames);
+
+          // Buscar produtos no catálogo para cada item identificado (limite 5)
+          const foundProducts: Array<{ name: string; slug?: string; price?: number; link?: string }> = [];
+          
+          for (const productName of productNames.slice(0, 5)) {
+            // Buscar por nome similar no catálogo
+            const searchTerms = productName.toLowerCase().split(/\s+/).filter(t => t.length > 2);
+            const searchQuery = searchTerms.slice(0, 2).join('%');
+
+            const { data: matchedProducts } = await supabase
+              .from('products')
+              .select('id, name, slug, price, offer_price, is_on_offer')
+              .eq('store_id', storeId)
+              .eq('is_available', true)
+              .ilike('name', `%${searchQuery}%`)
+              .limit(1);
+
+            if (matchedProducts && matchedProducts.length > 0) {
+              const p = matchedProducts[0];
+              foundProducts.push({
+                name: p.name,
+                slug: p.slug,
+                price: p.is_on_offer && p.offer_price ? p.offer_price : p.price,
+                link: buildProductLink(p.slug),
+              });
+            } else {
+              // Produto não encontrado no catálogo, mas foi identificado na imagem
+              foundProducts.push({
+                name: productName,
+                slug: undefined,
+                price: undefined,
+              });
+            }
+          }
+
+          // Construir resultado estruturado compatível com o webhook
+          const hasMatchedProducts = foundProducts.some(p => p.slug);
+          
           result = {
             success: true,
+            description: foundProducts.length > 0 
+              ? `Receita/imagem analisada - ${foundProducts.length} item(s) identificado(s)`
+              : 'Imagem analisada',
             analysis: analysisContent,
-            message: 'Imagem analisada com sucesso',
-            next_steps: 'Use search_products para buscar o produto identificado no catálogo',
+            products: foundProducts,
+            message: hasMatchedProducts
+              ? `Encontrei ${foundProducts.filter(p => p.slug).length} produto(s) no catálogo!`
+              : foundProducts.length > 0
+                ? `Identifiquei ${foundProducts.length} item(s), mas não encontrei correspondência exata no catálogo.`
+                : 'Não consegui identificar produtos específicos na imagem.',
           };
 
         } catch (visionError) {
-          console.error('[product-search-agent] Erro no Vision:', visionError);
+          console.error('[product-search-agent] ❌ Erro no Vision:', visionError);
           result = {
+            success: false,
             error: true,
             message: 'Não foi possível analisar a imagem no momento. Tente descrever o produto.',
           };

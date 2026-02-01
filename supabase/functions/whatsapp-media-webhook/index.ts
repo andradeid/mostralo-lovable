@@ -45,17 +45,101 @@ interface EvolutionWebhookPayload {
   apikey?: string;
 }
 
+// Função para obter base64 da imagem via Evolution API (fallback)
+async function getBase64FromEvolution(
+  supabase: any,
+  instanceName: string,
+  messageId: string,
+  correlationId: string
+): Promise<{ success: boolean; base64?: string; error?: string }> {
+  try {
+    console.log(`[${correlationId}] 🔄 Buscando base64 via Evolution API para mensagem ${messageId}`);
+
+    // Buscar configuração Evolution API
+    const { data: evolutionConfig, error: configError } = await supabase
+      .from('evolution_config')
+      .select('api_url, api_key')
+      .eq('is_active', true)
+      .single();
+
+    if (configError || !evolutionConfig) {
+      console.error(`[${correlationId}] ❌ Evolution API não configurada:`, configError);
+      return { success: false, error: 'Evolution API não configurada' };
+    }
+
+    // Normalizar api_url removendo / no final
+    const apiUrl = evolutionConfig.api_url.replace(/\/+$/, '');
+
+    // Chamar endpoint getBase64FromMediaMessage
+    const response = await fetch(
+      `${apiUrl}/chat/getBase64FromMediaMessage/${instanceName}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': evolutionConfig.api_key,
+        },
+        body: JSON.stringify({
+          message: { key: { id: messageId } },
+          convertToMp4: false,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[${correlationId}] ❌ Erro Evolution getBase64:`, errorText);
+      return { success: false, error: `Evolution API retornou ${response.status}: ${errorText.slice(0, 100)}` };
+    }
+
+    const result = await response.json();
+    console.log(`[${correlationId}] 📦 Resposta Evolution getBase64:`, JSON.stringify(result).slice(0, 200));
+
+    // Extrair base64 de forma tolerante (pode vir em diferentes formatos)
+    let base64 = 
+      result.base64 || 
+      result.data?.base64 || 
+      result.media?.base64 ||
+      result.message?.base64 ||
+      null;
+
+    if (!base64) {
+      console.warn(`[${correlationId}] ⚠️ Evolution não retornou base64. Response keys:`, Object.keys(result));
+      return { 
+        success: false, 
+        error: 'Evolution API não retornou base64. Habilite WEBHOOK_BASE64=true na instância.' 
+      };
+    }
+
+    // Remover prefixo data:image/... se existir
+    if (base64.startsWith('data:')) {
+      base64 = base64.replace(/^data:[^;]+;base64,/, '');
+    }
+
+    console.log(`[${correlationId}] ✅ Base64 obtido via Evolution API (${base64.length} chars)`);
+    return { success: true, base64 };
+
+  } catch (error) {
+    console.error(`[${correlationId}] ❌ Erro ao obter base64 da Evolution:`, error);
+    return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' };
+  }
+}
+
 interface AnalysisResult {
   success?: boolean;
   description?: string;
+  analysis?: string;
   products?: Array<{
     name: string;
     price?: number;
     id?: string;
     slug?: string;
+    link?: string;
   }>;
   message?: string;
   error?: string;
+  hint?: string;
+  debug?: string;
 }
 
 // Normalizar telefone para WhatsApp
@@ -184,17 +268,23 @@ serve(async (req) => {
   try {
     const payload: EvolutionWebhookPayload = await req.json();
     
-    console.log('📥 Webhook recebido:', {
+    // Identificar a instância primeiro para criar correlation ID
+    const instanceName = payload.instance || instanceFromQuery || 'unknown';
+    const messageId = payload.data?.key?.id || 'no-id';
+    const correlationId = `${instanceName}:${messageId.slice(-8)}`;
+    
+    console.log(`[${correlationId}] 📥 Webhook recebido:`, {
       event: payload.event,
-      instance: payload.instance || instanceFromQuery,
+      instance: instanceName,
       messageType: payload.data?.messageType,
       hasBase64: !!payload.data?.base64,
+      hasUrl: !!payload.data?.message?.imageMessage?.url,
       remoteJid: payload.data?.key?.remoteJid,
     });
 
     // Ignorar mensagens que não são de mídia ou que são enviadas por nós
     if (payload.event !== 'messages.upsert') {
-      console.log('⏭️ Evento ignorado:', payload.event);
+      console.log(`[${correlationId}] ⏭️ Evento ignorado:`, payload.event);
       return new Response(JSON.stringify({ status: 'ignored', reason: 'not_message_event' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -202,7 +292,7 @@ serve(async (req) => {
 
     // Ignorar mensagens enviadas por nós mesmos
     if (payload.data?.key?.fromMe) {
-      console.log('⏭️ Mensagem própria ignorada');
+      console.log(`[${correlationId}] ⏭️ Mensagem própria ignorada`);
       return new Response(JSON.stringify({ status: 'ignored', reason: 'from_me' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -214,33 +304,14 @@ serve(async (req) => {
                           !!payload.data?.message?.imageMessage;
 
     if (!isImageMessage) {
-      console.log('⏭️ Não é mensagem de imagem:', messageType);
+      console.log(`[${correlationId}] ⏭️ Não é mensagem de imagem:`, messageType);
       return new Response(JSON.stringify({ status: 'ignored', reason: 'not_image' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Obter dados da imagem
-    const imageData = payload.data?.message?.imageMessage;
-    const base64Data = payload.data?.base64;
-
-    if (!base64Data && !imageData?.url) {
-      console.error('❌ Sem dados de imagem (base64 ou URL)');
-      return new Response(JSON.stringify({ 
-        status: 'error', 
-        reason: 'no_image_data',
-        hint: 'Verifique se WEBHOOK_BASE64 está habilitado na Evolution API'
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Identificar a instância/loja
-    const instanceName = payload.instance || instanceFromQuery;
-    
-    if (!instanceName) {
-      console.error('❌ Instância não identificada');
+    if (!instanceName || instanceName === 'unknown') {
+      console.error(`[${correlationId}] ❌ Instância não identificada`);
       return new Response(JSON.stringify({ status: 'error', reason: 'no_instance' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -252,7 +323,7 @@ serve(async (req) => {
     const customerName = payload.data?.pushName || '';
 
     if (!remoteJid) {
-      console.error('❌ remoteJid não encontrado');
+      console.error(`[${correlationId}] ❌ remoteJid não encontrado`);
       return new Response(JSON.stringify({ status: 'error', reason: 'no_remote_jid' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -264,6 +335,48 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Obter dados da imagem
+    const imageData = payload.data?.message?.imageMessage;
+    let base64Data = payload.data?.base64;
+    let imageSource = base64Data ? 'webhook_base64' : 'none';
+
+    // Se não temos base64 no payload, tentar obter via Evolution API
+    if (!base64Data && imageData?.url) {
+      console.log(`[${correlationId}] ⚠️ Base64 não veio no webhook, tentando via Evolution API...`);
+      
+      const evolutionResult = await getBase64FromEvolution(
+        supabase,
+        instanceName,
+        messageId,
+        correlationId
+      );
+
+      if (evolutionResult.success && evolutionResult.base64) {
+        base64Data = evolutionResult.base64;
+        imageSource = 'evolution_getBase64';
+        console.log(`[${correlationId}] ✅ Base64 obtido via Evolution API`);
+      } else {
+        console.warn(`[${correlationId}] ⚠️ Fallback falhou: ${evolutionResult.error}`);
+        // Vamos tentar continuar mesmo assim, mas provavelmente vai falhar no OpenAI
+      }
+    }
+
+    // Verificar se temos alguma forma de acessar a imagem
+    if (!base64Data && (!imageData?.url || imageData.url.includes('mmg.whatsapp.net'))) {
+      console.error(`[${correlationId}] ❌ Sem dados de imagem válidos (base64 ou URL acessível)`);
+      return new Response(JSON.stringify({ 
+        status: 'error', 
+        reason: 'no_valid_image_data',
+        hint: 'Habilite WEBHOOK_BASE64=true na configuração do webhook da Evolution API',
+        correlationId,
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log(`[${correlationId}] 📸 Fonte da imagem: ${imageSource}`);
+
     // Buscar store_id e slug pelo instance_name na tabela whatsapp_instances
     const { data: instanceData, error: instanceError } = await supabase
       .from('whatsapp_instances')
@@ -272,11 +385,12 @@ serve(async (req) => {
       .single();
 
     if (instanceError || !instanceData) {
-      console.error('❌ Loja não encontrada para instância:', instanceName);
+      console.error(`[${correlationId}] ❌ Loja não encontrada para instância:`, instanceName);
       return new Response(JSON.stringify({ 
         status: 'error', 
         reason: 'store_not_found',
-        instance: instanceName
+        instance: instanceName,
+        correlationId,
       }), {
         status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -298,27 +412,34 @@ serve(async (req) => {
       .single();
 
     if (moduleError || !moduleAccess) {
-      console.log('⚠️ Módulo AI Vision não habilitado para loja:', storeId);
+      console.log(`[${correlationId}] ⚠️ Módulo AI Vision não habilitado para loja:`, storeId);
       return new Response(JSON.stringify({ 
         status: 'ignored', 
         reason: 'ai_vision_not_enabled',
-        storeId
+        storeId,
+        correlationId,
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    console.log('✅ Módulo AI Vision ativo - processando imagem para loja:', storeId);
+    console.log(`[${correlationId}] ✅ Módulo AI Vision ativo - processando imagem para loja:`, storeId);
 
-    // Preparar dados para o product-search-agent
+    // Preparar dados para o product-search-agent (sempre enviar base64 quando disponível)
     const imagePayload = {
       image_data: {
         base64: base64Data || null,
-        url: imageData?.url || null,
+        url: base64Data ? null : imageData?.url, // Não enviar URL se temos base64
         mimetype: imageData?.mimetype || 'image/jpeg',
       },
       image_context: imageData?.caption || 'Imagem enviada pelo cliente',
     };
+
+    console.log(`[${correlationId}] 📤 Chamando product-search-agent...`, {
+      hasBase64: !!imagePayload.image_data.base64,
+      hasUrl: !!imagePayload.image_data.url,
+      context: imagePayload.image_context?.slice(0, 50),
+    });
 
     // Chamar o product-search-agent para análise
     const searchAgentUrl = `${supabaseUrl}/functions/v1/product-search-agent`;
@@ -340,17 +461,19 @@ serve(async (req) => {
 
     if (!agentResponse.ok) {
       const errorText = await agentResponse.text();
-      console.error('❌ Erro no product-search-agent:', errorText);
+      console.error(`[${correlationId}] ❌ Erro no product-search-agent:`, errorText);
       agentResult = { success: false, error: errorText.slice(0, 200) };
     } else {
       agentResult = await agentResponse.json();
     }
     
-    console.log('📊 Resultado da análise:', {
+    console.log(`[${correlationId}] 📊 Resultado da análise:`, {
       storeId,
       instance: instanceName,
       success: agentResult.success,
       productsCount: agentResult.products?.length || 0,
+      hasAnalysis: !!agentResult.analysis,
+      imageSource,
     });
 
     // Formatar e enviar resposta para o cliente
@@ -365,7 +488,9 @@ serve(async (req) => {
     );
 
     if (!sendResult.success) {
-      console.error('❌ Falha ao enviar resposta:', sendResult.error);
+      console.error(`[${correlationId}] ❌ Falha ao enviar resposta:`, sendResult.error);
+    } else {
+      console.log(`[${correlationId}] ✅ Resposta enviada com sucesso para o cliente`);
     }
 
     // Retornar resultado
@@ -375,6 +500,8 @@ serve(async (req) => {
       instance: instanceName,
       analysis: agentResult,
       messageSent: sendResult.success,
+      imageSource,
+      correlationId,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

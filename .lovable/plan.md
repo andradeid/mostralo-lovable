@@ -1,116 +1,85 @@
 
+# Plano: Remover Saudação Dinâmica do Assistente V2
 
-# Plano: Enviar Imagem do Produto no WhatsApp
+## Problema Identificado
 
-## Visão Geral
+O bot V2 está enviando saudações com horário errado (ex: "Boa noite" às 10:29 da manhã). Isso acontece porque:
+1. A função `get_current_greeting()` pode não estar sendo chamada pela IA
+2. Mesmo quando chamada, pode haver inconsistência no fuso horário
 
-Quando o sistema identificar produtos no catálogo, enviará primeiro a **imagem do produto** com nome e preço como legenda, seguido da mensagem de texto com o link de compra.
+## Solução
 
-## Fluxo Proposto
+Remover completamente a saudação baseada em horário (Bom dia/Boa tarde/Boa noite) do prompt V2 e usar uma saudação neutra.
 
-```text
-Cliente envia foto → Sistema analisa → Encontra produto
-                                           ↓
-                               1️⃣ Envia IMAGEM do produto
-                                  Caption: "Nome + Preço"
-                                           ↓
-                               2️⃣ Envia TEXTO com link
-                                  "Clique para comprar..."
-```
+## Arquivos a Modificar
 
-## Implementação
+### `supabase/functions/openai-bot-sync/index.ts`
 
-### Arquivo: `whatsapp-media-webhook/index.ts`
+#### 1. Remover instruções de saudação dinâmica do prompt V2 (linhas 364-379)
 
-#### 1. Nova função para enviar imagem via Evolution API
-
-Criar função `sendWhatsAppImage` (similar à existente `sendWhatsAppMessage`):
-
+**Antes:**
 ```typescript
-async function sendWhatsAppImage(
-  supabase: any,
-  instanceName: string,
-  remoteJid: string,
-  imageUrl: string,
-  caption: string
-): Promise<{ success: boolean; error?: string }> {
-  // Buscar config Evolution API
-  // Chamar endpoint /message/sendMedia com mediatype: 'image'
-  // Retornar resultado
-}
+PERSONALIZAÇÃO COM NOME DO CLIENTE E SAUDAÇÃO DINÂMICA (MUITO IMPORTANTE):
+- Você receberá o nome do cliente no campo "pushName" das mensagens
+- SEMPRE use o nome do cliente na primeira interação para criar conexão pessoal
+- Durante a conversa, chame o cliente pelo nome ocasionalmente de forma natural
+- Se o pushName não estiver disponível, use "você" de forma amigável
+
+SAUDAÇÃO OBRIGATÓRIA - PRIMEIRA MENSAGEM (CRÍTICO):
+- Na PRIMEIRA mensagem de cada conversa, você DEVE chamar get_current_greeting()...
 ```
 
-#### 2. Atualizar interface `AnalysisResult`
-
-Adicionar campo `image_url` aos produtos:
-
+**Depois:**
 ```typescript
-products?: Array<{
-  // ... campos existentes
-  image_url?: string;  // URL da imagem do produto
-}>;
+PERSONALIZAÇÃO COM NOME DO CLIENTE (MUITO IMPORTANTE):
+- Você receberá o nome do cliente no campo "pushName" das mensagens
+- SEMPRE use o nome do cliente na primeira interação para criar conexão pessoal
+- Durante a conversa, chame o cliente pelo nome ocasionalmente de forma natural
+- Se o pushName não estiver disponível, use "você" de forma amigável
+
+SAUDAÇÃO NA PRIMEIRA MENSAGEM:
+- Use "Oi, [Nome]! 😊" ou "Olá, [Nome]! 👋" como saudação
+- NÃO use saudações baseadas em horário (Bom dia, Boa tarde, Boa noite)
+- Seja acolhedor e direto
 ```
 
-#### 3. Modificar fluxo de resposta (linhas 558-573)
+#### 2. Atualizar regras críticas (linha 394)
 
-Após obter `agentResult`:
-
+**Remover:**
 ```typescript
-// Enviar imagem do primeiro produto disponível (se tiver)
-const availableProducts = agentResult.products?.filter(
-  p => p.found_in_catalog && p.in_stock && p.image_url
-) || [];
-
-if (availableProducts.length > 0) {
-  const firstProduct = availableProducts[0];
-  const caption = `${firstProduct.name}${firstProduct.price ? ` - R$ ${firstProduct.price.toFixed(2)}` : ''}`;
-  
-  await sendWhatsAppImage(
-    supabase,
-    instanceName,
-    remoteJid,
-    firstProduct.image_url,
-    caption
-  );
-}
-
-// Depois envia o texto normal com links
-const responseMessage = formatResponseMessage(agentResult, customerName, storeSlug);
-await sendWhatsAppMessage(...);
+1. NA PRIMEIRA MENSAGEM: Chame get_current_greeting() para saudar corretamente
 ```
 
-### Arquivo: `product-search-agent/index.ts`
+**Substituir por:**
+```typescript
+1. NA PRIMEIRA MENSAGEM: Use saudação simples "Oi/Olá" + nome do cliente
+```
 
-Garantir que o campo `image_url` seja incluído na resposta dos produtos encontrados (já existe na query `select`, só precisa verificar se está sendo retornado).
+#### 3. Remover `get_current_greeting` da lista de capacidades (linha 384)
+
+**Remover:**
+```typescript
+- Obter saudação correta: get_current_greeting() - USE NA PRIMEIRA MENSAGEM!
+```
 
 ## Resultado Esperado
 
 ```text
-[IMAGEM DO PRODUTO]
-📸 Paracetamol 750mg - R$ 12,50
+Cliente: Olá
 
----
-
-🔍 Analisei a imagem que você enviou!
-
-✅ Disponíveis em estoque:
-1. Paracetamol 750mg - R$ 12,50
-   👉 https://mostralo.com.br/loja/.../produto/...
-
-Clique no link acima para ver mais detalhes e finalizar sua compra! 🛒
+Bot: Oi, Andrade! 😊 Seja bem-vindo à Drogaria Farma Bella! 
+Como posso te ajudar hoje?
 ```
 
-## Segurança
+## Observações Técnicas
 
-- Fallback silencioso: se não houver imagem ou der erro no envio, continua com texto normalmente
-- Não quebra fluxo existente
-- Sem autenticação extra necessária (webhook já é interno)
+- A função `get_current_greeting` permanecerá disponível no `product-search-agent` para outros usos
+- Apenas o prompt do V2 será alterado - o modo simples não será afetado
+- A personalidade do bot (friendly, formal, etc.) continuará funcionando normalmente
+- O nome do cliente via `pushName` continuará sendo usado
 
-## Tarefas
+## Deploy
 
-1. Criar função `sendWhatsAppImage` no webhook
-2. Verificar retorno de `image_url` no `product-search-agent`
-3. Adicionar lógica de envio de imagem antes do texto
-4. Deploy das edge functions
-5. Testar end-to-end
-
+Após a modificação, será necessário:
+1. Deploy da edge function `openai-bot-sync`
+2. Re-sincronizar o bot da loja no painel admin

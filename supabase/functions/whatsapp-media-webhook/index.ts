@@ -141,6 +141,7 @@ interface AnalysisResult {
     found_in_catalog?: boolean;
     is_similar?: boolean;
     original_search?: string;
+    image_url?: string; // URL da imagem do produto
   }>;
   summary?: {
     identified: number;
@@ -222,6 +223,66 @@ async function sendWhatsAppMessage(
     return { success: true };
   } catch (error) {
     console.error('[sendWhatsAppMessage] Erro:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' };
+  }
+}
+
+// Enviar imagem via Evolution API
+async function sendWhatsAppImage(
+  supabase: any,
+  instanceName: string,
+  remoteJid: string,
+  imageUrl: string,
+  caption: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Buscar configuração Evolution API
+    const { data: evolutionConfig, error: configError } = await supabase
+      .from('evolution_config')
+      .select('api_url, api_key')
+      .eq('is_active', true)
+      .single();
+
+    if (configError || !evolutionConfig) {
+      console.error('[sendWhatsAppImage] Evolution API não configurada:', configError);
+      return { success: false, error: 'Evolution API não configurada' };
+    }
+
+    const phone = normalizePhone(remoteJid);
+    console.log(`📸 Enviando imagem do produto para ${phone} via ${instanceName}`);
+
+    // Normalizar api_url removendo / no final
+    const apiUrl = evolutionConfig.api_url.replace(/\/+$/, '');
+
+    // Enviar imagem via Evolution API
+    const response = await fetch(
+      `${apiUrl}/message/sendMedia/${instanceName}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': evolutionConfig.api_key,
+        },
+        body: JSON.stringify({
+          number: phone,
+          mediatype: 'image',
+          media: imageUrl,
+          caption: caption,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[sendWhatsAppImage] Erro Evolution API:', errorText);
+      return { success: false, error: errorText };
+    }
+
+    const result = await response.json();
+    console.log('✅ Imagem enviada:', JSON.stringify(result).slice(0, 200));
+    return { success: true };
+  } catch (error) {
+    console.error('[sendWhatsAppImage] Erro:', error);
     return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' };
   }
 }
@@ -555,7 +616,35 @@ serve(async (req) => {
       imageSource,
     });
 
-    // Formatar e enviar resposta para o cliente
+    // Enviar imagem do primeiro produto disponível com imagem (se existir)
+    const availableProductsWithImage = agentResult.products?.filter(
+      p => p.found_in_catalog && p.in_stock && p.image_url
+    ) || [];
+
+    let imageSent = false;
+    if (availableProductsWithImage.length > 0) {
+      const firstProduct = availableProductsWithImage[0];
+      const caption = `📸 ${firstProduct.name}${firstProduct.price ? ` - R$ ${firstProduct.price.toFixed(2)}` : ''}`;
+      
+      console.log(`[${correlationId}] 📸 Enviando imagem do produto: ${firstProduct.name}`);
+      
+      const imageResult = await sendWhatsAppImage(
+        supabase,
+        instanceName,
+        remoteJid,
+        firstProduct.image_url!,
+        caption
+      );
+      
+      if (imageResult.success) {
+        imageSent = true;
+        console.log(`[${correlationId}] ✅ Imagem do produto enviada com sucesso`);
+      } else {
+        console.warn(`[${correlationId}] ⚠️ Falha ao enviar imagem (continuando com texto):`, imageResult.error);
+      }
+    }
+
+    // Formatar e enviar resposta de texto para o cliente
     const responseMessage = formatResponseMessage(agentResult, customerName, storeSlug);
     
     const sendResult = await sendWhatsAppMessage(
@@ -578,6 +667,7 @@ serve(async (req) => {
       storeId,
       instance: instanceName,
       analysis: agentResult,
+      imageSent,
       messageSent: sendResult.success,
       imageSource,
       correlationId,

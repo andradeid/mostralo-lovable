@@ -865,6 +865,7 @@ ${imageContext ? `Contexto adicional do cliente: ${imageContext}` : ''}`;
             found_in_catalog: boolean;
             is_similar?: boolean;
             original_search?: string;
+            image_url?: string; // URL da imagem do produto
           }> = [];
           
           for (const productName of productNames.slice(0, 5)) {
@@ -881,7 +882,7 @@ ${imageContext ? `Contexto adicional do cliente: ${imageContext}` : ''}`;
             // Busca 1: Nome completo
             const { data: exactMatch } = await supabase
               .from('products')
-              .select('id, name, slug, price, offer_price, is_on_offer, track_stock, stock_quantity, is_available')
+              .select('id, name, slug, price, offer_price, is_on_offer, track_stock, stock_quantity, is_available, image_url')
               .eq('store_id', storeId)
               .eq('is_available', true)
               .ilike('name', `%${productName}%`)
@@ -893,7 +894,7 @@ ${imageContext ? `Contexto adicional do cliente: ${imageContext}` : ''}`;
               // Busca 2: Termo principal (ex: "Amoxicilina" sem a dosagem)
               const { data: partialMatch } = await supabase
                 .from('products')
-                .select('id, name, slug, price, offer_price, is_on_offer, track_stock, stock_quantity, is_available')
+                .select('id, name, slug, price, offer_price, is_on_offer, track_stock, stock_quantity, is_available, image_url')
                 .eq('store_id', storeId)
                 .eq('is_available', true)
                 .ilike('name', `%${searchTerms[0]}%`)
@@ -913,7 +914,7 @@ ${imageContext ? `Contexto adicional do cliente: ${imageContext}` : ''}`;
               
               const { data: similarMatch } = await supabase
                 .from('products')
-                .select('id, name, slug, price, offer_price, is_on_offer, track_stock, stock_quantity, is_available')
+                .select('id, name, slug, price, offer_price, is_on_offer, track_stock, stock_quantity, is_available, image_url')
                 .eq('store_id', storeId)
                 .eq('is_available', true)
                 .ilike('name', `%${activeIngredient}%`)
@@ -936,6 +937,7 @@ ${imageContext ? `Contexto adicional do cliente: ${imageContext}` : ''}`;
                     found_in_catalog: true,
                     is_similar: true, // Flag para indicar que é um produto similar
                     original_search: productName, // O que foi buscado originalmente
+                    image_url: p.image_url || undefined, // URL da imagem do produto
                   });
                 }
               }
@@ -961,6 +963,7 @@ ${imageContext ? `Contexto adicional do cliente: ${imageContext}` : ''}`;
                   stock_quantity: p.track_stock ? p.stock_quantity : 'Disponível',
                   found_in_catalog: true,
                   is_similar: false,
+                  image_url: p.image_url || undefined, // URL da imagem do produto
                 });
               }
             } else if (!foundProducts.some(p => p.identified_name === productName)) {

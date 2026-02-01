@@ -45,6 +45,133 @@ interface EvolutionWebhookPayload {
   apikey?: string;
 }
 
+interface AnalysisResult {
+  success?: boolean;
+  description?: string;
+  products?: Array<{
+    name: string;
+    price?: number;
+    id?: string;
+    slug?: string;
+  }>;
+  message?: string;
+  error?: string;
+}
+
+// Normalizar telefone para WhatsApp
+function normalizePhone(jid: string): string {
+  // Extrair número do JID (5561999999999@s.whatsapp.net -> 5561999999999)
+  const phone = jid.replace(/@.*$/, '');
+  let cleaned = phone.replace(/\D/g, '');
+  if (!cleaned.startsWith('55') && cleaned.length <= 11) {
+    cleaned = '55' + cleaned;
+  }
+  return cleaned;
+}
+
+// Formatar valor monetário
+function formatCurrency(value: number): string {
+  return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+// Enviar mensagem via Evolution API
+async function sendWhatsAppMessage(
+  supabase: any,
+  storeId: string,
+  instanceName: string,
+  remoteJid: string,
+  message: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Buscar configuração Evolution API
+    const { data: evolutionConfig, error: configError } = await supabase
+      .from('evolution_config')
+      .select('api_url, api_key')
+      .eq('is_active', true)
+      .single();
+
+    if (configError || !evolutionConfig) {
+      console.error('[sendWhatsAppMessage] Evolution API não configurada:', configError);
+      return { success: false, error: 'Evolution API não configurada' };
+    }
+
+    const phone = normalizePhone(remoteJid);
+    console.log(`📤 Enviando resposta para ${phone} via ${instanceName}`);
+
+    // Enviar mensagem via Evolution API
+    const response = await fetch(
+      `${evolutionConfig.api_url}/message/sendText/${instanceName}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': evolutionConfig.api_key,
+        },
+        body: JSON.stringify({
+          number: phone,
+          text: message,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[sendWhatsAppMessage] Erro Evolution API:', errorText);
+      return { success: false, error: errorText };
+    }
+
+    const result = await response.json();
+    console.log('✅ Mensagem enviada:', JSON.stringify(result).slice(0, 200));
+    return { success: true };
+  } catch (error) {
+    console.error('[sendWhatsAppMessage] Erro:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' };
+  }
+}
+
+// Formatar mensagem de resposta com os produtos identificados
+function formatResponseMessage(
+  analysis: AnalysisResult,
+  customerName: string,
+  storeSlug?: string
+): string {
+  const greeting = customerName ? `Olá, ${customerName}! ` : '';
+  
+  // Se houve erro na análise
+  if (analysis.error || !analysis.success) {
+    return `${greeting}🔍 Recebi sua imagem, mas não consegui identificar os produtos claramente.\n\nPode me descrever o que você está procurando? 😊`;
+  }
+
+  // Se não identificou produtos
+  if (!analysis.products || analysis.products.length === 0) {
+    const desc = analysis.description || 'a imagem que você enviou';
+    return `${greeting}🔍 Analisei ${desc}.\n\n${analysis.message || 'Não encontrei produtos correspondentes no nosso catálogo. Pode me dar mais detalhes?'} 😊`;
+  }
+
+  // Formatar lista de produtos identificados
+  let message = `${greeting}🔍 Analisei a imagem que você enviou!\n\n`;
+  
+  if (analysis.description) {
+    message += `📋 ${analysis.description}\n\n`;
+  }
+  
+  message += `Identifiquei os seguintes itens:\n\n`;
+
+  analysis.products.forEach((product, index) => {
+    const price = product.price ? ` - ${formatCurrency(product.price)}` : '';
+    message += `${index + 1}. *${product.name}*${price}\n`;
+    
+    // Adicionar link do produto se tiver slug
+    if (storeSlug && product.slug) {
+      message += `   👉 https://mostralo.com.br/loja/${storeSlug}/produto/${product.slug}\n`;
+    }
+  });
+
+  message += `\nDeseja que eu adicione algum ao carrinho? 🛒`;
+  
+  return message;
+}
+
 serve(async (req) => {
   // CORS preflight
   if (req.method === 'OPTIONS') {
@@ -120,15 +247,27 @@ serve(async (req) => {
       });
     }
 
+    // Extrair dados do cliente
+    const remoteJid = payload.data?.key?.remoteJid;
+    const customerName = payload.data?.pushName || '';
+
+    if (!remoteJid) {
+      console.error('❌ remoteJid não encontrado');
+      return new Response(JSON.stringify({ status: 'error', reason: 'no_remote_jid' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Conectar ao Supabase para buscar a loja
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Buscar store_id pelo instance_name na tabela whatsapp_instances
+    // Buscar store_id e slug pelo instance_name na tabela whatsapp_instances
     const { data: instanceData, error: instanceError } = await supabase
       .from('whatsapp_instances')
-      .select('store_id')
+      .select('store_id, stores(slug)')
       .eq('instance_name', instanceName)
       .single();
 
@@ -145,6 +284,7 @@ serve(async (req) => {
     }
 
     const storeId = instanceData.store_id;
+    const storeSlug = (instanceData as any).stores?.slug;
 
     // Verificar se o módulo AI Vision está habilitado para esta loja
     const { data: moduleAccess, error: moduleError } = await supabase
@@ -196,33 +336,45 @@ serve(async (req) => {
       }),
     });
 
+    let agentResult: AnalysisResult = { success: false };
+
     if (!agentResponse.ok) {
       const errorText = await agentResponse.text();
       console.error('❌ Erro no product-search-agent:', errorText);
-      return new Response(JSON.stringify({ 
-        status: 'error', 
-        reason: 'agent_error',
-        details: errorText.slice(0, 200)
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      agentResult = { success: false, error: errorText.slice(0, 200) };
+    } else {
+      agentResult = await agentResponse.json();
     }
-
-    const agentResult = await agentResponse.json();
     
-    console.log('✅ Imagem processada com sucesso:', {
+    console.log('📊 Resultado da análise:', {
       storeId,
       instance: instanceName,
-      resultPreview: JSON.stringify(agentResult).slice(0, 200),
+      success: agentResult.success,
+      productsCount: agentResult.products?.length || 0,
     });
 
-    // Retornar resultado para a Evolution API/OpenAI Assistant
+    // Formatar e enviar resposta para o cliente
+    const responseMessage = formatResponseMessage(agentResult, customerName, storeSlug);
+    
+    const sendResult = await sendWhatsAppMessage(
+      supabase,
+      storeId,
+      instanceName,
+      remoteJid,
+      responseMessage
+    );
+
+    if (!sendResult.success) {
+      console.error('❌ Falha ao enviar resposta:', sendResult.error);
+    }
+
+    // Retornar resultado
     return new Response(JSON.stringify({
       status: 'success',
       storeId,
       instance: instanceName,
       analysis: agentResult,
+      messageSent: sendResult.success,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

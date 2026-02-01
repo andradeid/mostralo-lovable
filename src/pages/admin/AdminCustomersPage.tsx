@@ -220,14 +220,19 @@ export default function AdminCustomersPage() {
       }
 
       // Buscar store_id do user_roles
-      const { data: roleData } = await supabase
+      const { data: roleData, error: roleError } = await supabase
         .from('user_roles')
-        .select('store_id')
+        .select('store_id, role')
         .eq('user_id', user.id)
+        .not('store_id', 'is', null)
         .limit(1)
         .maybeSingle();
 
-      console.log('✅ Perfil:', { store_id: roleData?.store_id, user_type: profile?.user_type });
+      if (roleError) {
+        console.error('❌ Erro ao buscar role:', roleError);
+      }
+
+      console.log('✅ Perfil:', { store_id: roleData?.store_id, role: roleData?.role, user_type: profile?.user_type });
 
       const storeId = roleData?.store_id;
       setCurrentStoreId(storeId || null);

@@ -42,12 +42,18 @@ const normalizePhoneForComparison = (phone: string): string => {
 
 // Extrai apenas o número do assinante (últimos 8-9 dígitos) para deduplicação mais agressiva
 const getSubscriberNumber = (phone: string): string => {
-  const digits = phone.replace(/\D/g, '');
-  // O número do assinante no Brasil tem 8 ou 9 dígitos
-  if (digits.length >= 9) {
-    return digits.slice(-9); // Últimos 9 dígitos
-  }
-  return digits;
+  // IMPORTANTE: para deduplicação, precisamos comparar sempre a partir de um
+  // formato consistente (sem DDI e corrigindo casos como "5599..." sem DDD).
+  const normalized = normalizePhoneForComparison(phone);
+
+  // Assinante no Brasil: 9 dígitos (celular) ou 8 dígitos (fixo)
+  // - Se temos DDD+celular (11), pegar últimos 9
+  // - Se temos DDD+fixo (10), pegar últimos 8
+  // - Se vier sem DDD (8-9), usar o que tiver
+  if (normalized.length >= 11) return normalized.slice(-9);
+  if (normalized.length === 10) return normalized.slice(-8);
+  if (normalized.length >= 9) return normalized.slice(-9);
+  return normalized;
 };
 
 // Formata telefone brasileiro para exibição (55) XXXX-XXXX ou (XX) XXXXX-XXXX

@@ -22,14 +22,16 @@ interface AdminMenuPreference {
 }
 
 export function useAdminMenuPreferences() {
-  const { profile } = useAuth();
+  const { profile, userRole } = useAuth();
   const { toast } = useToast();
   const [preferences, setPreferences] = useState<MenuPreferences | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Verificar se o usuário pode editar o menu (master_admin ou store_admin)
-  const canEditMenu = profile?.user_type === 'master_admin' || profile?.user_type === 'store_admin';
+  // Verificar se o usuário pode editar o menu (master_admin, store_admin ou attendant)
+  const canEditMenu = profile?.user_type === 'master_admin' || 
+                      profile?.user_type === 'store_admin' || 
+                      userRole === 'attendant';
   
   // Buscar preferências do banco
   const fetchPreferences = useCallback(async () => {

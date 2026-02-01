@@ -125,14 +125,14 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Buscar store_id pelo instance_name
-    const { data: botConfig, error: configError } = await supabase
-      .from('store_bot_config')
+    // Buscar store_id pelo instance_name na tabela whatsapp_instances
+    const { data: instanceData, error: instanceError } = await supabase
+      .from('whatsapp_instances')
       .select('store_id')
       .eq('instance_name', instanceName)
       .single();
 
-    if (configError || !botConfig) {
+    if (instanceError || !instanceData) {
       console.error('❌ Loja não encontrada para instância:', instanceName);
       return new Response(JSON.stringify({ 
         status: 'error', 
@@ -144,7 +144,7 @@ serve(async (req) => {
       });
     }
 
-    const storeId = botConfig.store_id;
+    const storeId = instanceData.store_id;
 
     // Verificar se o módulo AI Vision está habilitado para esta loja
     const { data: moduleAccess, error: moduleError } = await supabase

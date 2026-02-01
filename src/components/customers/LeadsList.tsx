@@ -6,9 +6,56 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Search, Phone, Calendar, MessageSquare, User, RefreshCw } from 'lucide-react';
-import { formatPhone } from '@/lib/utils';
+import { normalizePhone } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+
+// Normaliza telefone para formato canônico (apenas dígitos, sem DDI, com 9 se celular)
+const normalizePhoneForComparison = (phone: string): string => {
+  let digits = phone.replace(/\D/g, '');
+  
+  // Remove DDI 55 se presente
+  if (digits.startsWith('55') && digits.length >= 12) {
+    digits = digits.substring(2);
+  }
+  
+  // Remove 0 à esquerda do DDD se presente
+  if (digits.startsWith('0') && digits.length === 12) {
+    digits = digits.substring(1);
+  }
+  
+  // Se tem 10 dígitos, adicionar o 9 após o DDD (celular brasileiro)
+  if (digits.length === 10) {
+    digits = digits.substring(0, 2) + '9' + digits.substring(2);
+  }
+  
+  return digits;
+};
+
+// Formata telefone brasileiro para exibição (55) XXXX-XXXX ou (XX) XXXXX-XXXX
+const formatPhoneDisplay = (phone: string): string => {
+  const normalized = normalizePhoneForComparison(phone);
+  
+  if (normalized.length === 11) {
+    // Formato: (XX) XXXXX-XXXX
+    return `(${normalized.slice(0, 2)}) ${normalized.slice(2, 7)}-${normalized.slice(7)}`;
+  }
+  if (normalized.length === 10) {
+    // Formato: (XX) XXXX-XXXX
+    return `(${normalized.slice(0, 2)}) ${normalized.slice(2, 6)}-${normalized.slice(6)}`;
+  }
+  
+  // Fallback: retorna o número original formatado
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length >= 12 && digits.startsWith('55')) {
+    // Com DDI: formatar sem o 55
+    const withoutDdi = digits.substring(2);
+    if (withoutDdi.length === 11) {
+      return `(${withoutDdi.slice(0, 2)}) ${withoutDdi.slice(2, 7)}-${withoutDdi.slice(7)}`;
+    }
+  }
+  return phone;
+};
 
 interface Lead {
   id: string;
@@ -83,14 +130,24 @@ export function LeadsList({ storeId }: LeadsListProps) {
 
       if (messagesError) throw messagesError;
 
-      // 3. Combinar os dados - criar leads a partir de mensagens que não estão em contatos
-      const contactPhones = new Set((contactsData || []).map(c => c.phone_number));
+      // 3. Combinar os dados usando telefone NORMALIZADO para deduplicação
+      // Cria Set com telefones normalizados dos contatos existentes
+      const normalizedContactPhones = new Set(
+        (contactsData || []).map(c => normalizePhoneForComparison(c.phone_number))
+      );
+      
+      // Map para deduplicar leads de mensagens usando telefone normalizado
       const messageLeadsMap = new Map<string, Lead>();
       
       (messagesData || []).forEach(msg => {
-        if (msg.phone_number && !contactPhones.has(msg.phone_number) && !messageLeadsMap.has(msg.phone_number)) {
-          messageLeadsMap.set(msg.phone_number, {
-            id: `msg-${msg.phone_number}`,
+        if (!msg.phone_number) return;
+        
+        const normalizedPhone = normalizePhoneForComparison(msg.phone_number);
+        
+        // Só adiciona se não existe em contatos E não foi adicionado ainda
+        if (!normalizedContactPhones.has(normalizedPhone) && !messageLeadsMap.has(normalizedPhone)) {
+          messageLeadsMap.set(normalizedPhone, {
+            id: `msg-${normalizedPhone}`,
             phone_number: msg.phone_number,
             name: msg.customer_name,
             push_name: null,
@@ -103,7 +160,21 @@ export function LeadsList({ storeId }: LeadsListProps) {
         }
       });
 
-      const allLeads = [...(contactsData || []), ...Array.from(messageLeadsMap.values())];
+      // Deduplicar contatos também (pode haver duplicados com formatos diferentes)
+      const deduplicatedContacts = new Map<string, Lead>();
+      (contactsData || []).forEach(contact => {
+        const normalizedPhone = normalizePhoneForComparison(contact.phone_number);
+        const existing = deduplicatedContacts.get(normalizedPhone);
+        
+        // Manter o mais recente ou o que tem mais informações
+        if (!existing || 
+            (contact.last_synced_at && (!existing.last_synced_at || 
+             new Date(contact.last_synced_at) > new Date(existing.last_synced_at)))) {
+          deduplicatedContacts.set(normalizedPhone, contact);
+        }
+      });
+
+      const allLeads = [...Array.from(deduplicatedContacts.values()), ...Array.from(messageLeadsMap.values())];
       
       // Ordenar por data mais recente
       allLeads.sort((a, b) => {
@@ -241,7 +312,7 @@ export function LeadsList({ storeId }: LeadsListProps) {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
                         <div className="flex items-center gap-2">
                           <Phone className="h-4 w-4 shrink-0" />
-                          <span className="truncate">{formatPhone(lead.phone_number)}</span>
+                          <span className="truncate">{formatPhoneDisplay(lead.phone_number)}</span>
                         </div>
 
                         {lead.created_at && (

@@ -1,116 +1,78 @@
-
 # Plano: Correção do Fluxo de Processamento de Imagens via WhatsApp
+
+## ✅ Status: IMPLEMENTADO (2026-02-01)
 
 ## Diagnóstico do Problema
 
-Ao analisar o código, identifiquei que o fluxo de imagens está **incompleto**:
+O fluxo de imagens estava **incompleto**:
 
-1. O webhook `whatsapp-media-webhook` recebe a imagem da Evolution API
-2. Chama o `product-search-agent` com a função `analyze_image`
-3. Recebe o resultado da análise (identificação do produto)
-4. **MAS NÃO ENVIA A RESPOSTA de volta para o cliente no WhatsApp**
+1. O webhook `whatsapp-media-webhook` recebia a imagem da Evolution API ✅
+2. Chamava o `product-search-agent` com a função `analyze_image` ✅
+3. Recebia o resultado da análise ✅
+4. **NÃO ENVIAVA A RESPOSTA de volta para o cliente** ❌ → **CORRIGIDO** ✅
 
-O webhook apenas retorna o JSON para a Evolution API, que não faz nada com isso. A resposta deveria ser enviada ativamente para o cliente.
+## Correções Implementadas
 
-## Arquitetura Atual vs Esperada
+### ✅ Tarefa 1: Atualizado `whatsapp-media-webhook/index.ts`
+
+Adicionadas as seguintes funcionalidades:
+
+- **Função `sendWhatsAppMessage()`**: Envia mensagem via Evolution API
+  - Busca configuração da Evolution API na tabela `evolution_config`
+  - Normaliza número de telefone do `remoteJid`
+  - Envia resposta formatada para o cliente
+
+- **Função `formatResponseMessage()`**: Formata a resposta para o cliente
+  - Saudação personalizada com nome do cliente (`pushName`)
+  - Lista produtos identificados com nome, preço e link
+  - Tratamento de erros de forma amigável
+
+- **Extração de dados do cliente**:
+  - `remoteJid`: Número do cliente para resposta
+  - `pushName`: Nome do cliente para personalização
+  - `storeSlug`: Para gerar links dos produtos
+
+### Fluxo Corrigido
 
 ```text
-ATUAL (quebrado):
-Evolution API → whatsapp-media-webhook → product-search-agent → JSON (perdido)
-
-ESPERADO:
-Evolution API → whatsapp-media-webhook → product-search-agent → whatsapp-send → Cliente recebe resposta
+Evolution API → whatsapp-media-webhook → product-search-agent → sendWhatsAppMessage → Cliente recebe resposta ✅
 ```
 
-## Correções Necessárias
-
-### 1. Modificar `whatsapp-media-webhook/index.ts`
-
-Após receber a análise do `product-search-agent`, enviar a resposta para o cliente via Evolution API:
+### Formato da Resposta para o Cliente
 
 ```text
-- Extrair o `remoteJid` (número do cliente) do payload
-- Após processar a imagem, chamar a Evolution API para enviar a resposta
-- Usar o resultado da análise para compor uma mensagem amigável
-- Opcionalmente, buscar produtos relacionados no catálogo
-```
+Olá, [Nome]! 🔍 Analisei a imagem que você enviou!
 
-### 2. Integrar com o Bot OpenAI (Opcional - Fluxo Alternativo)
-
-A Evolution API com OpenAI Assistants **já pode processar imagens diretamente** se o Assistant tiver a tool `analyze_image` configurada. Neste caso:
-
-- A imagem chega via webhook normal (`whatsapp-webhook`)
-- O OpenAI Assistant identifica que é uma imagem e chama `analyze_image`
-- A resposta é enviada automaticamente pelo bot
-
-### 3. Verificar Configuração na Evolution API
-
-Garantir que:
-- **WEBHOOK_BASE64 = true** está habilitado
-- O webhook está apontando para a URL correta
-- O evento `messages.upsert` está selecionado
-
-## Tarefas de Implementação
-
-### Tarefa 1: Atualizar `whatsapp-media-webhook`
-- Adicionar envio de resposta via Evolution API após análise
-- Extrair `remoteJid` e `pushName` do payload
-- Buscar configuração da Evolution API no banco
-- Enviar mensagem formatada com resultado da análise
-- Se produtos forem identificados, buscar no catálogo e incluir links
-
-### Tarefa 2: Melhorar Integração com OpenAI Assistant
-- Verificar se o Assistant tem a tool `analyze_image` configurada
-- Garantir que o `product-search-agent` retorna dados estruturados para o Assistant usar
-
-### Tarefa 3: Criar Endpoint de Teste (Opcional)
-- Criar interface no dashboard para testar o envio de imagem manualmente
-- Permitir upload de imagem e simular o processamento
-
-## Detalhes Técnicos
-
-### Payload esperado da Evolution API (com imagem):
-```json
-{
-  "event": "messages.upsert",
-  "instance": "store_drogaria-farma-bella",
-  "data": {
-    "key": {
-      "remoteJid": "5561999999999@s.whatsapp.net",
-      "fromMe": false,
-      "id": "ABC123"
-    },
-    "pushName": "Cliente",
-    "message": {
-      "imageMessage": {
-        "mimetype": "image/jpeg",
-        "caption": "Preciso desse remédio"
-      }
-    },
-    "messageType": "imageMessage",
-    "base64": "data:image/jpeg;base64,/9j/4AAQ..."
-  }
-}
-```
-
-### Resposta esperada para o cliente:
-```text
-🔍 Analisei a imagem que você enviou!
+📋 [Descrição da análise]
 
 Identifiquei os seguintes itens:
 
 1. *Dipirona Sódica 500mg* - R$ 12,90
-   👉 https://mostralo.com.br/loja/drogaria-farma-bella/produto/dipirona-500mg
+   👉 https://mostralo.com.br/loja/[slug]/produto/[produto-slug]
 
-Deseja que eu adicione ao carrinho? 🛒
+Deseja que eu adicione algum ao carrinho? 🛒
 ```
 
-## Prioridade de Implementação
+## Tarefas Pendentes (Opcionais)
 
-1. **Alta**: Modificar `whatsapp-media-webhook` para enviar resposta
-2. **Média**: Garantir que a tool está no OpenAI Assistant
-3. **Baixa**: Interface de teste no dashboard
+### 🔲 Tarefa 2: Verificar OpenAI Assistant (Média prioridade)
+- Garantir que a tool `analyze_image` está configurada no Assistant
+- Verificar se o `product-search-agent` retorna dados estruturados corretamente
 
-## Estimativa de Tempo
-- Implementação: 30-45 minutos
-- Testes: 15-20 minutos
+### 🔲 Tarefa 3: Interface de Teste no Dashboard (Baixa prioridade)
+- Criar interface para testar envio de imagem manualmente
+- Permitir upload de imagem e simular o processamento
+
+## Requisitos de Configuração
+
+Para funcionar corretamente, garantir que:
+
+1. **Evolution API**:
+   - `WEBHOOK_BASE64 = true` habilitado
+   - Webhook apontando para: `https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/whatsapp-media-webhook?instance=[instance_name]`
+   - Evento `messages.upsert` selecionado
+
+2. **Banco de Dados**:
+   - `evolution_config` com `api_url` e `api_key` configurados e `is_active = true`
+   - `whatsapp_instances` com instância da loja
+   - `store_modules` com módulo `ai_vision` habilitado para a loja

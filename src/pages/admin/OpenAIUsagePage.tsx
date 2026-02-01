@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Bot, DollarSign, Zap, Image, MessageSquare, TrendingUp, Clock } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
@@ -197,22 +197,31 @@ export default function OpenAIUsagePage() {
           <CardContent>
             {report?.daily_chart && report.daily_chart.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={report.daily_chart}>
+                <ComposedChart data={report.daily_chart}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis 
                     dataKey="date" 
                     tick={{ fontSize: 12 }}
                     tickFormatter={(value: string) => {
-                      // Parsear data diretamente para evitar problemas de fuso horário
                       const [year, month, day] = value.split('-');
                       return `${parseInt(day)}/${parseInt(month)}`;
                     }}
                   />
-                  <YAxis tick={{ fontSize: 12 }} />
+                  <YAxis 
+                    yAxisId="left" 
+                    tick={{ fontSize: 12 }} 
+                    tickFormatter={(value: number) => value.toLocaleString('pt-BR')}
+                  />
+                  <YAxis 
+                    yAxisId="right" 
+                    orientation="right" 
+                    tick={{ fontSize: 12 }}
+                  />
                   <Tooltip 
                     formatter={(value: number, name: string) => {
-                      if (name === 'cost') return [`$${value.toFixed(4)}`, 'Custo'];
-                      if (name === 'tokens') return [value.toLocaleString('pt-BR'), 'Tokens'];
+                      if (name === 'Custo ($)') return [`$${value.toFixed(4)}`, 'Custo'];
+                      if (name === 'Tokens') return [value.toLocaleString('pt-BR'), 'Tokens'];
+                      if (name === 'Interações') return [value, 'Interações'];
                       return [value, name];
                     }}
                     labelFormatter={(label: string) => {
@@ -220,8 +229,24 @@ export default function OpenAIUsagePage() {
                       return `${day}/${month}/${year}`;
                     }}
                   />
-                  <Bar dataKey="tokens" fill="hsl(var(--primary))" name="tokens" radius={[4, 4, 0, 0]} />
-                </BarChart>
+                  <Legend />
+                  <Bar 
+                    yAxisId="left" 
+                    dataKey="tokens" 
+                    fill="hsl(var(--primary))" 
+                    name="Tokens" 
+                    radius={[4, 4, 0, 0]} 
+                  />
+                  <Line 
+                    yAxisId="right" 
+                    type="monotone" 
+                    dataKey="count" 
+                    stroke="hsl(var(--chart-2))" 
+                    strokeWidth={2}
+                    name="Interações"
+                    dot={{ fill: 'hsl(var(--chart-2))' }}
+                  />
+                </ComposedChart>
               </ResponsiveContainer>
             ) : (
               <div className="flex items-center justify-center h-[300px] text-muted-foreground">

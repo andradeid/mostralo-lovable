@@ -131,11 +131,22 @@ interface AnalysisResult {
   analysis?: string;
   products?: Array<{
     name: string;
+    identified_name?: string;
     price?: number;
     id?: string;
     slug?: string;
     link?: string;
+    in_stock?: boolean;
+    stock_quantity?: number | string;
+    found_in_catalog?: boolean;
   }>;
+  summary?: {
+    identified: number;
+    found_in_catalog: number;
+    in_stock: number;
+    out_of_stock: number;
+    not_found: number;
+  };
   message?: string;
   error?: string;
   hint?: string;
@@ -213,7 +224,7 @@ async function sendWhatsAppMessage(
   }
 }
 
-// Formatar mensagem de resposta com os produtos identificados
+// Formatar mensagem de resposta com os produtos identificados e informações de estoque
 function formatResponseMessage(
   analysis: AnalysisResult,
   customerName: string,
@@ -238,20 +249,56 @@ function formatResponseMessage(
   if (analysis.description) {
     message += `📋 ${analysis.description}\n\n`;
   }
-  
-  message += `Identifiquei os seguintes itens:\n\n`;
 
-  analysis.products.forEach((product, index) => {
-    const price = product.price ? ` - ${formatCurrency(product.price)}` : '';
-    message += `${index + 1}. *${product.name}*${price}\n`;
-    
-    // Adicionar link do produto se tiver slug
-    if (storeSlug && product.slug) {
-      message += `   👉 https://mostralo.com.br/loja/${storeSlug}/produto/${product.slug}\n`;
-    }
-  });
+  // Separar produtos por status
+  const inStockProducts = analysis.products.filter(p => p.found_in_catalog && p.in_stock);
+  const outOfStockProducts = analysis.products.filter(p => p.found_in_catalog && !p.in_stock);
+  const notFoundProducts = analysis.products.filter(p => !p.found_in_catalog);
 
-  message += `\nDeseja que eu adicione algum ao carrinho? 🛒`;
+  // Produtos disponíveis em estoque
+  if (inStockProducts.length > 0) {
+    message += `✅ *Disponíveis em estoque:*\n\n`;
+    inStockProducts.forEach((product, index) => {
+      const price = product.price ? ` - ${formatCurrency(product.price)}` : '';
+      message += `${index + 1}. *${product.name}*${price}\n`;
+      
+      // Adicionar link do produto se tiver slug
+      if (product.link) {
+        message += `   👉 ${product.link}\n`;
+      } else if (storeSlug && product.slug) {
+        message += `   👉 https://mostralo.com.br/loja/${storeSlug}/produto/${product.slug}\n`;
+      }
+    });
+    message += '\n';
+  }
+
+  // Produtos sem estoque
+  if (outOfStockProducts.length > 0) {
+    message += `⚠️ *Sem estoque no momento:*\n`;
+    outOfStockProducts.forEach((product) => {
+      message += `• ${product.name}\n`;
+    });
+    message += '\n';
+  }
+
+  // Produtos não encontrados no catálogo
+  if (notFoundProducts.length > 0) {
+    message += `❌ *Não encontrado no catálogo:*\n`;
+    notFoundProducts.forEach((product) => {
+      const name = product.identified_name || product.name;
+      message += `• ${name}\n`;
+    });
+    message += '\n';
+  }
+
+  // CTA baseado no que foi encontrado
+  if (inStockProducts.length > 0) {
+    message += `Deseja que eu adicione algum ao carrinho? 🛒`;
+  } else if (outOfStockProducts.length > 0) {
+    message += `Posso avisar quando os produtos estiverem disponíveis! 📲`;
+  } else {
+    message += `Posso ajudar a encontrar um produto similar? 🔍`;
+  }
   
   return message;
 }

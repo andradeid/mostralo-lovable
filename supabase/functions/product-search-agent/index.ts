@@ -789,16 +789,35 @@ ${imageContext ? `Contexto adicional do cliente: ${imageContext}` : ''}`;
           });
 
           // Extrair nomes de medicamentos/produtos da análise
-          // Padrão: "Nome: Amoxicilina 500mg" ou "- Amoxicilina 500mg"
+          // Suporta múltiplos formatos: "Nome: X", "- X", "1. X", "* X", "Amoxicilina 500mg"
           const productNames: string[] = [];
           const lines = analysisContent.split('\n');
           
           for (const line of lines) {
-            // Padrão "Nome: X" ou "- X" para itens de lista
-            const nameMatch = line.match(/(?:Nome:|^-)\s*(.+?)(?:\s*-\s*Dosagem|\s*$)/i);
+            const trimmedLine = line.trim();
+            if (!trimmedLine) continue;
+            
+            // Padrão 1: "Nome: Amoxicilina 500mg"
+            let nameMatch = trimmedLine.match(/^(?:Nome|Medicamento|Produto):\s*(.+?)(?:\s*[-–]\s*(?:Dosagem|Quantidade|Qtd)|$)/i);
+            
+            // Padrão 2: "- Amoxicilina 500mg" ou "* Amoxicilina"
+            if (!nameMatch) {
+              nameMatch = trimmedLine.match(/^[-*•]\s+(.+?)(?:\s*[-–]\s*(?:Dosagem|Quantidade)|$)/i);
+            }
+            
+            // Padrão 3: "1. Amoxicilina 500mg" (lista numerada)
+            if (!nameMatch) {
+              nameMatch = trimmedLine.match(/^\d+\.\s+(.+?)(?:\s*[-–]\s*(?:Dosagem|Quantidade)|$)/i);
+            }
+            
             if (nameMatch && nameMatch[1]) {
-              const name = nameMatch[1].trim();
-              if (name.length > 2 && !name.toLowerCase().includes('dosagem') && !name.toLowerCase().includes('quantidade')) {
+              let name = nameMatch[1].trim();
+              // Remover sufixos indesejados
+              name = name.replace(/\s*[-–]\s*(Dosagem|Quantidade|Qtd).*$/i, '').trim();
+              
+              if (name.length > 2 && 
+                  !name.toLowerCase().includes('dosagem:') && 
+                  !name.toLowerCase().includes('quantidade:')) {
                 productNames.push(name);
               }
             }
@@ -807,54 +826,122 @@ ${imageContext ? `Contexto adicional do cliente: ${imageContext}` : ''}`;
           console.log(`[product-search-agent] 📋 Produtos identificados na análise:`, productNames);
 
           // Buscar produtos no catálogo para cada item identificado (limite 5)
-          const foundProducts: Array<{ name: string; slug?: string; price?: number; link?: string }> = [];
+          // Agora incluindo informações de estoque
+          const foundProducts: Array<{
+            name: string;
+            identified_name: string;
+            slug?: string;
+            price?: number;
+            link?: string;
+            in_stock?: boolean;
+            stock_quantity?: number | string;
+            found_in_catalog: boolean;
+          }> = [];
           
           for (const productName of productNames.slice(0, 5)) {
-            // Buscar por nome similar no catálogo
-            const searchTerms = productName.toLowerCase().split(/\s+/).filter(t => t.length > 2);
-            const searchQuery = searchTerms.slice(0, 2).join('%');
-
-            const { data: matchedProducts } = await supabase
+            // Extrair termo principal de busca (primeiro termo significativo)
+            const cleanName = productName
+              .replace(/\d+\s*(mg|ml|g|mcg|ui|comp|cáps|caps)/gi, '') // Remover dosagens para busca mais ampla
+              .trim();
+            
+            const searchTerms = cleanName.toLowerCase().split(/\s+/).filter(t => t.length > 2);
+            
+            // Tentar busca com nome completo primeiro
+            let matchedProducts: any[] = [];
+            
+            // Busca 1: Nome completo
+            const { data: exactMatch } = await supabase
               .from('products')
-              .select('id, name, slug, price, offer_price, is_on_offer')
+              .select('id, name, slug, price, offer_price, is_on_offer, track_stock, stock_quantity, is_available')
               .eq('store_id', storeId)
               .eq('is_available', true)
-              .ilike('name', `%${searchQuery}%`)
-              .limit(1);
+              .ilike('name', `%${productName}%`)
+              .limit(3);
+            
+            if (exactMatch && exactMatch.length > 0) {
+              matchedProducts = exactMatch;
+            } else if (searchTerms.length > 0) {
+              // Busca 2: Termo principal (ex: "Amoxicilina" sem a dosagem)
+              const { data: partialMatch } = await supabase
+                .from('products')
+                .select('id, name, slug, price, offer_price, is_on_offer, track_stock, stock_quantity, is_available')
+                .eq('store_id', storeId)
+                .eq('is_available', true)
+                .ilike('name', `%${searchTerms[0]}%`)
+                .limit(3);
+              
+              if (partialMatch && partialMatch.length > 0) {
+                matchedProducts = partialMatch;
+              }
+            }
 
-            if (matchedProducts && matchedProducts.length > 0) {
-              const p = matchedProducts[0];
-              foundProducts.push({
-                name: p.name,
-                slug: p.slug,
-                price: p.is_on_offer && p.offer_price ? p.offer_price : p.price,
-                link: buildProductLink(p.slug),
-              });
+            console.log(`[product-search-agent] 🔍 Busca "${productName}":`, {
+              searchTerms,
+              found: matchedProducts.length,
+              products: matchedProducts.map(p => p.name),
+            });
+
+            if (matchedProducts.length > 0) {
+              // Adicionar todos os produtos encontrados (para dar opções ao cliente)
+              for (const p of matchedProducts) {
+                const inStock = p.track_stock ? (p.stock_quantity || 0) > 0 : true;
+                foundProducts.push({
+                  name: p.name,
+                  identified_name: productName,
+                  slug: p.slug,
+                  price: p.is_on_offer && p.offer_price ? p.offer_price : p.price,
+                  link: buildProductLink(p.slug),
+                  in_stock: inStock,
+                  stock_quantity: p.track_stock ? p.stock_quantity : 'Disponível',
+                  found_in_catalog: true,
+                });
+              }
             } else {
-              // Produto não encontrado no catálogo, mas foi identificado na imagem
+              // Produto não encontrado no catálogo
               foundProducts.push({
                 name: productName,
+                identified_name: productName,
                 slug: undefined,
                 price: undefined,
+                in_stock: undefined,
+                stock_quantity: undefined,
+                found_in_catalog: false,
               });
             }
           }
 
           // Construir resultado estruturado compatível com o webhook
-          const hasMatchedProducts = foundProducts.some(p => p.slug);
+          const catalogProducts = foundProducts.filter(p => p.found_in_catalog);
+          const availableProducts = catalogProducts.filter(p => p.in_stock);
+          const unavailableProducts = catalogProducts.filter(p => !p.in_stock);
+          const notFoundProducts = foundProducts.filter(p => !p.found_in_catalog);
+          
+          let statusMessage = '';
+          if (availableProducts.length > 0) {
+            statusMessage = `✅ ${availableProducts.length} produto(s) disponível(is) em estoque!`;
+          }
+          if (unavailableProducts.length > 0) {
+            statusMessage += `\n⚠️ ${unavailableProducts.length} produto(s) sem estoque no momento.`;
+          }
+          if (notFoundProducts.length > 0) {
+            statusMessage += `\n❌ ${notFoundProducts.length} item(s) não encontrado(s) no catálogo.`;
+          }
           
           result = {
             success: true,
             description: foundProducts.length > 0 
-              ? `Receita/imagem analisada - ${foundProducts.length} item(s) identificado(s)`
+              ? `Receita/imagem analisada - ${productNames.length} item(s) identificado(s)`
               : 'Imagem analisada',
             analysis: analysisContent,
             products: foundProducts,
-            message: hasMatchedProducts
-              ? `Encontrei ${foundProducts.filter(p => p.slug).length} produto(s) no catálogo!`
-              : foundProducts.length > 0
-                ? `Identifiquei ${foundProducts.length} item(s), mas não encontrei correspondência exata no catálogo.`
-                : 'Não consegui identificar produtos específicos na imagem.',
+            summary: {
+              identified: productNames.length,
+              found_in_catalog: catalogProducts.length,
+              in_stock: availableProducts.length,
+              out_of_stock: unavailableProducts.length,
+              not_found: notFoundProducts.length,
+            },
+            message: statusMessage || 'Não consegui identificar produtos específicos na imagem.',
           };
 
         } catch (visionError) {

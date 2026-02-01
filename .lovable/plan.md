@@ -1,517 +1,226 @@
 
+# Plano: Sistema Completo de Processamento de Imagens via WhatsApp
 
-# Plano Completo: AI Vision Plus + Monitoramento de Custos OpenAI
-
-## Visao Geral
-
-Implementar duas funcionalidades integradas ao Assistente Inteligente v2 existente:
-
-1. **Modulo AI Vision Plus** - Interpretar imagens de qualquer segmento
-2. **Sistema de Custos OpenAI** - Visivel apenas para Master Admin
+## Resumo Executivo
+Implementar o sistema completo para que o bot de IA possa receber, processar e analisar imagens enviadas pelos clientes via WhatsApp, usando GPT-4o Vision. O sistema será por loja (multi-tenant) e a configuração do webhook será visível apenas para o Master Admin.
 
 ---
 
-## Parte 1: Tabela de Tracking de Uso (Banco de Dados)
+## Contexto Atual
 
-### 1.1 Criar tabela `openai_usage_logs`
+### O que já existe:
+1. **Tool `analyze_image`** no `product-search-agent` - funcional e implementada
+2. **Módulo AI Vision** habilitado para Farma Bella
+3. **OpenAI Assistant** configurado para cada loja
 
-```sql
-CREATE TABLE openai_usage_logs (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
-  
-  prompt_tokens INTEGER NOT NULL DEFAULT 0,
-  completion_tokens INTEGER NOT NULL DEFAULT 0,
-  total_tokens INTEGER GENERATED ALWAYS AS (prompt_tokens + completion_tokens) STORED,
-  
-  usage_type VARCHAR(20) NOT NULL DEFAULT 'text',
-  model VARCHAR(50) NOT NULL,
-  estimated_cost_cents INTEGER NOT NULL DEFAULT 0,
-  
-  message_type VARCHAR(50),
-  metadata JSONB,
-  
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE INDEX idx_openai_usage_store_date ON openai_usage_logs(store_id, created_at DESC);
-CREATE INDEX idx_openai_usage_type ON openai_usage_logs(usage_type);
-
-ALTER TABLE openai_usage_logs ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Service role full access" ON openai_usage_logs FOR ALL USING (true);
-```
-
-### 1.2 Criar modulo `ai_vision` na tabela `modules`
-
-```sql
-INSERT INTO modules (key, name, description, base_price, is_active)
-VALUES (
-  'ai_vision',
-  'Visao por IA (Plus)',
-  'Permite ao assistente interpretar imagens enviadas pelos clientes (fotos de produtos, receitas, embalagens)',
-  99.00,
-  true
-);
-```
+### O que está faltando:
+1. **Tool `analyze_image` não registrada** no OpenAI Assistant (linhas 1231-1317 do `openai-bot-sync`)
+2. **Webhook Base64 desabilitado** na Evolution API
+3. **Passagem de dados da imagem** para o `product-search-agent`
+4. **Interface de configuração** para o Master Admin
 
 ---
 
-## Parte 2: Modificar Webhook para Detectar Imagens
+## Arquitetura da Solução
 
-### Arquivo: `supabase/functions/whatsapp-webhook/index.ts`
-
-**Adicionar deteccao de mensagem com imagem:**
-
-```typescript
-// Apos linha 183 (apos receber body)
-const message = body.data;
-
-// Detectar tipo de mensagem
-const messageType = message.messageType || message.type;
-const hasImage = messageType === 'imageMessage' || 
-                 Boolean(message.message?.imageMessage) ||
-                 Boolean(message.mediaUrl);
-
-let imageData = null;
-if (hasImage) {
-  imageData = {
-    url: message.mediaUrl || message.message?.imageMessage?.url,
-    base64: message.base64 || message.message?.imageMessage?.base64,
-    caption: message.message?.imageMessage?.caption || '',
-    mimetype: message.message?.imageMessage?.mimetype || 'image/jpeg'
-  };
-  console.log('🖼️ Imagem detectada:', imageData.mimetype);
-}
-
-// Passar para product-search-agent (via Evolution API ou chamar diretamente)
+```text
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         FLUXO DE PROCESSAMENTO                          │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  1. Cliente envia imagem pelo WhatsApp                                  │
+│                    │                                                    │
+│                    ▼                                                    │
+│  2. Evolution API recebe imagem + base64                                │
+│     (Webhook Base64 = habilitado)                                       │
+│                    │                                                    │
+│                    ▼                                                    │
+│  3. Evolution envia para OpenAI Assistant                               │
+│     (via botType: 'assistant')                                          │
+│                    │                                                    │
+│                    ▼                                                    │
+│  4. Assistant detecta imagem e chama tool 'analyze_image'               │
+│                    │                                                    │
+│                    ▼                                                    │
+│  5. product-search-agent recebe chamada                                 │
+│     - Verifica módulo AI Vision                                         │
+│     - Processa imagem com GPT-4o Vision                                 │
+│     - Retorna análise                                                   │
+│                    │                                                    │
+│                    ▼                                                    │
+│  6. Assistant responde ao cliente com identificação do produto          │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Parte 3: Modificar product-search-agent para Processar Imagens
+## Tarefas de Implementação
 
-### Arquivo: `supabase/functions/product-search-agent/index.ts`
+### Tarefa 1: Adicionar Tool `analyze_image` no OpenAI Assistant
+**Arquivo:** `supabase/functions/openai-bot-sync/index.ts`
 
-**Adicionar nova funcao `analyze_image`:**
+Adicionar as 3 tools faltantes no array `assistantTools` (linha ~1317):
+- `analyze_image` - Analisar imagens enviadas
+- `check_store_status` - Verificar se loja está aberta
+- `get_current_greeting` - Obter saudação correta por horário
 
-```typescript
-// Nova tool para o assistente
+```text
 {
   type: 'function',
   function: {
     name: 'analyze_image',
-    description: 'Analisa uma imagem enviada pelo cliente para identificar produtos.',
+    description: 'Analisa uma imagem enviada pelo cliente para identificar produtos, receitas médicas ou embalagens.',
     parameters: {
       type: 'object',
       properties: {
-        image_context: { type: 'string', description: 'Descricao ou contexto da imagem' }
-      }
+        image_data: {
+          type: 'object',
+          description: 'Dados da imagem (base64 ou url)',
+          properties: {
+            base64: { type: 'string' },
+            url: { type: 'string' },
+            mimetype: { type: 'string' }
+          }
+        },
+        image_context: {
+          type: 'string',
+          description: 'Contexto adicional da imagem'
+        }
+      },
+      required: ['image_data']
     }
   }
 }
 ```
 
-**Adicionar handler para imagens:**
-
-```typescript
-// Quando funcao 'analyze_image' for chamada
-if (functionName === 'analyze_image' && imageData) {
-  // Verificar se loja tem modulo ai_vision
-  const { data: visionAccess } = await supabase
-    .from('store_modules')
-    .select('is_enabled, modules!inner(key)')
-    .eq('store_id', storeId)
-    .eq('modules.key', 'ai_vision')
-    .single();
-
-  if (!visionAccess?.is_enabled) {
-    return { error: 'Modulo de Visao nao habilitado para esta loja' };
-  }
-
-  // Processar imagem com GPT-4o Vision
-  const visionResponse = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    messages: [
-      {
-        role: 'user',
-        content: [
-          { type: 'image_url', image_url: { url: `data:${imageData.mimetype};base64,${imageData.base64}` } },
-          { type: 'text', text: 'Identifique o produto nesta imagem. Retorne nome, marca e descricao se possiveis.' }
-        ]
-      }
-    ],
-    max_tokens: 300
-  });
-
-  // Registrar uso de tokens (Vision)
-  await logOpenAIUsage(supabase, storeId, {
-    promptTokens: 1000, // ~765 tokens da imagem + prompt
-    completionTokens: visionResponse.usage?.completion_tokens || 100,
-    usageType: 'image',
-    model: 'gpt-4o'
-  });
-
-  return visionResponse.choices[0].message.content;
-}
-```
-
 ---
 
-## Parte 4: Funcao de Log de Uso (Helper Compartilhado)
+### Tarefa 2: Criar Página de Configuração do Webhook (Master Admin)
+**Arquivos Novos:**
+- `src/pages/dashboard/WhatsAppWebhookConfigPage.tsx`
 
-### Arquivo: `supabase/functions/_shared/openai-usage.ts`
+**Funcionalidade:**
+- Listar todas as instâncias WhatsApp das lojas
+- Mostrar URL do webhook por instância
+- Status de configuração de cada webhook
+- Botão para copiar URL
 
-```typescript
-export interface UsageData {
-  promptTokens: number;
-  completionTokens: number;
-  usageType: 'text' | 'image';
-  model: string;
-  messageType?: string;
-  metadata?: Record<string, any>;
-}
-
-// Precos OpenAI em centavos USD por 1M tokens
-const PRICING: Record<string, { input: number; output: number }> = {
-  'gpt-4o': { input: 250, output: 1000 },
-  'gpt-4o-mini': { input: 15, output: 60 },
-  'gpt-4-turbo': { input: 1000, output: 3000 },
-};
-
-export function calculateCost(data: UsageData): number {
-  const price = PRICING[data.model] || PRICING['gpt-4o-mini'];
-  const inputCost = (data.promptTokens / 1000000) * price.input * 100;
-  const outputCost = (data.completionTokens / 1000000) * price.output * 100;
-  return Math.ceil(inputCost + outputCost);
-}
-
-export async function logOpenAIUsage(
-  supabase: any,
-  storeId: string,
-  data: UsageData
-): Promise<void> {
-  try {
-    await supabase.from('openai_usage_logs').insert({
-      store_id: storeId,
-      prompt_tokens: data.promptTokens,
-      completion_tokens: data.completionTokens,
-      usage_type: data.usageType,
-      model: data.model,
-      estimated_cost_cents: calculateCost(data),
-      message_type: data.messageType || 'chat',
-      metadata: data.metadata || null
-    });
-  } catch (error) {
-    console.warn('Falha ao registrar uso OpenAI:', error);
-    // NAO falha a operacao principal
-  }
-}
-```
-
----
-
-## Parte 5: Modificar openai-bot-sync para Registrar Uso
-
-### Arquivo: `supabase/functions/openai-bot-sync/index.ts`
-
-**Importar helper e adicionar logging apos cada resposta:**
-
-```typescript
-import { logOpenAIUsage, estimateTokens } from '../_shared/openai-usage.ts';
-
-// Apos obter resposta do bot (aproximadamente linha 1495)
-// DENTRO de try-catch para nao afetar fluxo principal
-
-try {
-  const promptTokens = estimateTokens(systemPrompt);
-  const completionTokens = 150; // Estimativa media
-
-  await logOpenAIUsage(supabaseClient, config.storeId, {
-    promptTokens,
-    completionTokens,
-    usageType: 'text',
-    model: model,
-    messageType: 'sync'
-  });
-} catch (logError) {
-  console.warn('Falha ao registrar uso:', logError);
-}
-```
-
----
-
-## Parte 6: Edge Function de Relatorio (Master Admin)
-
-### Novo arquivo: `supabase/functions/openai-usage-report/index.ts`
-
-```typescript
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from "../_shared/cors.ts";
-
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-  );
-
-  // Verificar se usuario eh Master Admin
-  const authHeader = req.headers.get('Authorization');
-  const token = authHeader?.replace('Bearer ', '');
-  
-  const { data: { user } } = await supabase.auth.getUser(token);
-  if (!user) {
-    return new Response(JSON.stringify({ error: 'Nao autorizado' }), { status: 401 });
-  }
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('user_type')
-    .eq('id', user.id)
-    .single();
-
-  if (profile?.user_type !== 'master_admin') {
-    return new Response(JSON.stringify({ error: 'Acesso negado' }), { status: 403 });
-  }
-
-  const url = new URL(req.url);
-  const period = url.searchParams.get('period') || '30';
-  const storeId = url.searchParams.get('store_id');
-
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - parseInt(period));
-
-  // Query principal
-  let query = supabase
-    .from('openai_usage_logs')
-    .select('*, stores(name, slug)')
-    .gte('created_at', startDate.toISOString());
-
-  if (storeId) {
-    query = query.eq('store_id', storeId);
-  }
-
-  const { data: logs, error } = await query;
-
-  if (error) {
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
-  }
-
-  // Calcular totais
-  const summary = {
-    total_tokens: 0,
-    total_cost_usd: 0,
-    total_cost_brl: 0,
-    text_tokens: 0,
-    image_tokens: 0,
-    text_cost: 0,
-    image_cost: 0
-  };
-
-  const byStore: Record<string, any> = {};
-
-  for (const log of logs || []) {
-    summary.total_tokens += log.total_tokens || 0;
-    summary.total_cost_usd += (log.estimated_cost_cents || 0) / 100;
-    
-    if (log.usage_type === 'image') {
-      summary.image_tokens += log.total_tokens || 0;
-      summary.image_cost += (log.estimated_cost_cents || 0) / 100;
-    } else {
-      summary.text_tokens += log.total_tokens || 0;
-      summary.text_cost += (log.estimated_cost_cents || 0) / 100;
-    }
-
-    const sid = log.store_id;
-    if (!byStore[sid]) {
-      byStore[sid] = {
-        store_id: sid,
-        store_name: log.stores?.name || 'Desconhecida',
-        store_slug: log.stores?.slug,
-        total_tokens: 0,
-        cost_usd: 0,
-        interactions: 0
-      };
-    }
-    byStore[sid].total_tokens += log.total_tokens || 0;
-    byStore[sid].cost_usd += (log.estimated_cost_cents || 0) / 100;
-    byStore[sid].interactions += 1;
-  }
-
-  summary.total_cost_brl = summary.total_cost_usd * 5; // Cambio aproximado
-
-  return new Response(JSON.stringify({
-    summary,
-    by_store: Object.values(byStore).sort((a, b) => b.cost_usd - a.cost_usd),
-    period_days: period,
-    total_records: logs?.length || 0
-  }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-  });
-});
-```
-
----
-
-## Parte 7: Pagina Master Admin (Frontend)
-
-### Novo arquivo: `src/pages/admin/OpenAIUsagePage.tsx`
-
-```typescript
-// Dashboard com:
-// - Cards de KPI (tokens totais, custo mensal, media por loja)
-// - Grafico de consumo diario (Recharts)
-// - Tabela de ranking por loja
-// - Filtros (periodo, tipo texto/imagem, loja especifica)
-// - Protecao: verificar profile.user_type === 'master_admin'
-```
-
----
-
-## Parte 8: Adicionar Rota e Menu
-
-### Arquivo: `src/components/admin/AdminSidebar.tsx`
-
-```typescript
-// Na secao de itens Master Admin
-if (isMasterAdmin) {
-  menuItems.push({
-    title: 'Custos OpenAI',
-    url: '/dashboard/openai-usage',
-    icon: DollarSign,
-    group: 'Administracao'
-  });
-}
-```
-
-### Arquivo: `src/routes/masterRoutes.tsx`
-
-```typescript
-<Route path="/dashboard/openai-usage" element={<OpenAIUsagePage />} />
-```
-
----
-
-## Parte 9: Atualizar Prompt do Assistente para Visao
-
-### Arquivo: `supabase/functions/openai-bot-sync/index.ts`
-
-**Adicionar instrucoes de analise de imagem no prompt (funcao generateAssistantModePrompt):**
-
-```typescript
-// Adicionar apos "CAPACIDADES"
-ANALISE DE IMAGENS (se cliente enviar foto):
-- Se receber foto de PRODUTO: identifique marca, nome, quantidade e sugira similar do catalogo
-- Se receber foto de RECEITA MEDICA: identifique medicamentos prescritos e busque no estoque
-- Se receber foto de EMBALAGEM: leia informacoes e ajude encontrar reposicao
-- Se nao conseguir identificar claramente, peca foto mais nitida
-- NUNCA faca diagnosticos medicos - apenas identifique o produto
-```
-
----
-
-## Fluxo Completo
-
+**Interface:**
 ```text
 ┌─────────────────────────────────────────────────────────────────┐
-│             CLIENTE ENVIA MENSAGEM/IMAGEM                       │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│              whatsapp-webhook                                    │
-│    - Detecta se tem imagem                                       │
-│    - Extrai base64/URL                                           │
-│    - Passa para Evolution API                                    │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│              Evolution API + OpenAI Assistant                    │
-│    - Assistant recebe mensagem                                   │
-│    - Se precisa analisar imagem → chama analyze_image           │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│              product-search-agent                                │
-│    1. Verifica se loja tem modulo ai_vision                     │
-│    2. Se sim → processa com GPT-4o Vision                       │
-│    3. Registra uso em openai_usage_logs                         │
-│    4. Retorna identificacao do produto                          │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│              RESPOSTA AO CLIENTE                                 │
-│    "Identifiquei o *Dipirona 500mg*!                            │
-│     Temos em estoque por R$ 8,90.                               │
-│     👉 https://loja.com/produto/dipirona"                       │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│              MASTER ADMIN DASHBOARD                              │
-│    - Ve custos por loja                                         │
-│    - Filtra por texto/imagem                                    │
-│    - Exporta relatorios                                         │
+│  Configuração de Webhooks - Imagens WhatsApp                    │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Loja: Farma Bella                                              │
+│  Instância: farmabella_instance                                 │
+│  Status: ✅ Conectada                                            │
+│                                                                 │
+│  Webhook URL:                                                   │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ https://noshwvw...supabase.co/functions/v1/whatsapp-... │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  [📋 Copiar URL]  [📖 Instruções]                               │
+│                                                                 │
+│  ⚠️ Configurações na Evolution API:                             │
+│  □ WEBHOOK_BASE64 = true                                        │
+│  □ WEBHOOK_EVENTS = messages.upsert                             │
+│                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Arquivos a Criar/Modificar
+### Tarefa 3: Criar Edge Function para Webhook de Mídia
+**Arquivo Novo:** `supabase/functions/whatsapp-media-webhook/index.ts`
 
-| Arquivo | Acao | Descricao |
-|---------|------|-----------|
-| SQL Migration | Criar | Tabela `openai_usage_logs` + modulo `ai_vision` |
-| `supabase/functions/_shared/openai-usage.ts` | Criar | Helper de tracking |
-| `supabase/functions/whatsapp-webhook/index.ts` | Modificar | Detectar imagens |
-| `supabase/functions/product-search-agent/index.ts` | Modificar | Processar imagens + logging |
-| `supabase/functions/openai-bot-sync/index.ts` | Modificar | Adicionar tool analyze_image + logging |
-| `supabase/functions/openai-usage-report/index.ts` | Criar | Endpoint de relatorio |
-| `src/pages/admin/OpenAIUsagePage.tsx` | Criar | Dashboard Master Admin |
-| `src/components/admin/AdminSidebar.tsx` | Modificar | Menu Custos OpenAI |
-| `src/routes/masterRoutes.tsx` | Modificar | Rota da pagina |
+Esta função receberá especificamente eventos de mídia da Evolution API:
+- Receber payload com imagem em base64
+- Identificar a loja pela instância
+- Repassar dados para o `product-search-agent`
 
----
-
-## Custos Estimados por Interacao
-
-| Tipo | Tokens | Custo USD | Custo BRL |
-|------|--------|-----------|-----------|
-| Texto simples | ~500 | $0.003 | R$ 0,015 |
-| Texto + busca | ~2.000 | $0.010 | R$ 0,05 |
-| Imagem (Vision) | ~3.000 | $0.055 | R$ 0,28 |
+```text
+Endpoints:
+POST /whatsapp-media-webhook
+  - event: messages.upsert
+  - message.messageType: imageMessage | documentMessage
+  - message.message.base64: <dados da imagem>
+```
 
 ---
 
-## Seguranca e Impacto
+### Tarefa 4: Atualizar Prompt do Assistant para Contexto de Imagens
+**Arquivo:** `supabase/functions/openai-bot-sync/index.ts`
 
-| Aspecto | Garantia |
-|---------|----------|
-| Fluxo existente | PRESERVADO - logging em try-catch |
-| Bot v2 | COMPATIVEL - usa mesma arquitetura |
-| Performance | MINIMA - INSERT assincrono |
-| Acesso a custos | APENAS Master Admin (verificacao dupla) |
-| Modulo Vision | GRANULAR - habilitado por loja |
+Adicionar instruções no prompt sobre como lidar com imagens:
+
+```text
+ANÁLISE DE IMAGENS (MÓDULO VISÃO POR IA):
+- Quando o cliente enviar uma IMAGEM, use a função analyze_image
+- Identifique: produto, marca, quantidade, informações da embalagem
+- Se for receita médica: liste os medicamentos (SEM diagnósticos médicos)
+- Após identificar, use search_products para localizar no catálogo
+- Se não conseguir identificar: peça foto mais nítida educadamente
+```
 
 ---
 
-## Ordem de Execucao
+### Tarefa 5: Adicionar Rota no App.tsx e Menu Master Admin
+**Arquivos:**
+- `src/App.tsx` - Adicionar rota `/dashboard/webhook-config`
+- `src/components/dashboard/DashboardSidebar.tsx` - Adicionar item no menu Master
 
-1. Criar tabela `openai_usage_logs` no banco
-2. Inserir modulo `ai_vision` na tabela `modules`
-3. Criar helper `_shared/openai-usage.ts`
-4. Modificar `product-search-agent` (Vision + logging)
-5. Modificar `openai-bot-sync` (tool + logging)
-6. Criar `openai-usage-report`
-7. Criar `OpenAIUsagePage.tsx`
-8. Adicionar menu e rota
-9. Deploy das Edge Functions
-10. Testar com loja de teste
+---
 
+### Tarefa 6: Deploy e Sincronização
+Após as alterações:
+1. Deploy das edge functions modificadas
+2. Re-sincronizar bot da Farma Bella para atualizar tools no OpenAI
+3. Configurar webhook na Evolution API manualmente
+
+---
+
+## Configuração Manual Necessária (Evolution API)
+
+O Master Admin precisará acessar o painel da Evolution API e:
+
+1. **Habilitar Webhook Base64:**
+   - Settings → Webhook → Webhook Base64 = `true`
+
+2. **Configurar URL do Webhook:**
+   - URL: `https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/whatsapp-media-webhook`
+
+3. **Selecionar Eventos:**
+   - `messages.upsert` (para receber mensagens com mídia)
+
+---
+
+## Segurança e Isolamento Multi-Tenant
+
+- Cada loja tem sua própria instância WhatsApp
+- O webhook identifica a loja pelo `instance_name`
+- Credenciais OpenAI são isoladas por loja
+- Módulo AI Vision deve estar habilitado por loja
+- Apenas Master Admin pode ver/configurar webhooks
+
+---
+
+## Estimativa de Tempo
+- Tarefa 1 (Tools no Assistant): 15 minutos
+- Tarefa 2 (Página de Config): 45 minutos
+- Tarefa 3 (Edge Function Webhook): 30 minutos
+- Tarefa 4 (Prompt): 10 minutos
+- Tarefa 5 (Rotas/Menu): 10 minutos
+- Tarefa 6 (Deploy/Teste): 20 minutos
+
+**Total: ~2 horas**
+
+---
+
+## Próximos Passos Após Aprovação
+1. Implementar alterações no código
+2. Fazer deploy das edge functions
+3. Re-sincronizar bot da Farma Bella
+4. Configurar webhook na Evolution API
+5. Testar envio de imagem pelo WhatsApp

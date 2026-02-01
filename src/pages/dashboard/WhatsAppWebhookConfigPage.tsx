@@ -50,7 +50,7 @@ export default function WhatsAppWebhookConfigPage() {
 
   const fetchStoresWithWebhookConfig = async () => {
     try {
-      // Buscar lojas com configuração de bot, instância WhatsApp e módulos
+      // Buscar lojas ativas
       const { data: storesData, error: storesError } = await supabase
         .from('stores')
         .select(`
@@ -58,12 +58,7 @@ export default function WhatsAppWebhookConfigPage() {
           name,
           store_bot_config!left (
             enabled,
-            bot_mode,
-            whatsapp_instance_id
-          ),
-          whatsapp_instances!left (
-            instance_name,
-            status
+            bot_mode
           ),
           store_modules!left (
             module_id,
@@ -77,9 +72,21 @@ export default function WhatsAppWebhookConfigPage() {
 
       if (storesError) throw storesError;
 
+      // Buscar instâncias WhatsApp separadamente
+      const { data: instancesData, error: instancesError } = await supabase
+        .from('whatsapp_instances')
+        .select('store_id, instance_name, status');
+
+      if (instancesError) throw instancesError;
+
+      // Criar mapa de instâncias por store_id
+      const instancesMap = new Map(
+        (instancesData || []).map((inst: any) => [inst.store_id, inst])
+      );
+
       const configs: StoreWebhookConfig[] = (storesData || []).map((store: any) => {
         const botConfig = store.store_bot_config?.[0];
-        const whatsappInstance = store.whatsapp_instances?.[0];
+        const whatsappInstance = instancesMap.get(store.id);
         const instanceName = whatsappInstance?.instance_name || null;
         const isConnected = whatsappInstance?.status === 'connected' || botConfig?.enabled;
         

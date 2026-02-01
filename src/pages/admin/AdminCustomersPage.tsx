@@ -6,12 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Search, KeyRound, Phone, Mail, MapPin, Calendar, ShoppingBag, Tags } from 'lucide-react';
+import { Search, KeyRound, Phone, Mail, MapPin, Calendar, ShoppingBag, Tags, Users, UserPlus } from 'lucide-react';
 import { formatPhone } from '@/lib/utils';
 import { useCustomerLabels, useCustomerLabelAssignments } from '@/hooks/useCustomerLabels';
 import { CustomerLabelBadge } from '@/components/customers/CustomerLabelBadge';
 import { LabelFilterDropdown } from '@/components/customers/LabelFilterDropdown';
+import { LeadsList } from '@/components/customers/LeadsList';
 
 interface Customer {
   id: string;
@@ -465,84 +467,105 @@ export default function AdminCustomersPage() {
       <div>
         <h1 className="text-3xl font-bold mb-2">Gerenciamento de Clientes</h1>
         <p className="text-muted-foreground">
-          Visualize e gerencie todos os clientes cadastrados
+          Visualize e gerencie clientes e leads da sua loja
         </p>
       </div>
 
-      {/* Busca */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Search className="h-5 w-5" />
-            Buscar Clientes
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <Input
-                placeholder="Buscar por nome, telefone ou e-mail..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <div className="flex gap-2">
-              <LabelFilterDropdown
-                labels={availableLabels}
-                selectedLabelIds={selectedLabelIds}
-                onSelectionChange={setSelectedLabelIds}
-              />
-              <Button variant="outline" onClick={() => {
-                setSearchTerm('');
-                setSelectedLabelIds([]);
-              }}>
-                Limpar
-              </Button>
-            </div>
+      <Tabs defaultValue="customers" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsTrigger value="customers" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Clientes ({customers.length})
+          </TabsTrigger>
+          <TabsTrigger value="leads" className="flex items-center gap-2">
+            <UserPlus className="h-4 w-4" />
+            Leads
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Aba Clientes */}
+        <TabsContent value="customers" className="space-y-6 mt-6">
+          {/* Busca */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Search className="h-5 w-5" />
+                Buscar Clientes
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1">
+                  <Input
+                    placeholder="Buscar por nome, telefone ou e-mail..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <LabelFilterDropdown
+                    labels={availableLabels}
+                    selectedLabelIds={selectedLabelIds}
+                    onSelectionChange={setSelectedLabelIds}
+                  />
+                  <Button variant="outline" onClick={() => {
+                    setSearchTerm('');
+                    setSelectedLabelIds([]);
+                  }}>
+                    Limpar
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Estatísticas */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardDescription>Total de Clientes</CardDescription>
+                <CardTitle className="text-3xl">{customers.length}</CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardDescription>Com Autenticação</CardDescription>
+                <CardTitle className="text-3xl text-green-600">
+                  {customers.filter(c => c.auth_user_id).length}
+                </CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardDescription>Sem Autenticação</CardDescription>
+                <CardTitle className="text-3xl text-orange-600">
+                  {customers.filter(c => !c.auth_user_id).length}
+                </CardTitle>
+              </CardHeader>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Total de Clientes</CardDescription>
-            <CardTitle className="text-3xl">{customers.length}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Com Autenticação</CardDescription>
-            <CardTitle className="text-3xl text-green-600">
-              {customers.filter(c => c.auth_user_id).length}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Sem Autenticação</CardDescription>
-            <CardTitle className="text-3xl text-orange-600">
-              {customers.filter(c => !c.auth_user_id).length}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-      </div>
+          {/* Lista de Clientes */}
+          <CustomerList 
+            customers={filteredCustomers} 
+            storeId={currentStoreId}
+            onResetPassword={openResetDialog} 
+          />
 
-      {/* Lista de Clientes */}
-      <CustomerList 
-        customers={filteredCustomers} 
-        storeId={currentStoreId}
-        onResetPassword={openResetDialog} 
-      />
+          {filteredCustomers.length === 0 && (
+            <Card>
+              <CardContent className="pt-6 text-center text-muted-foreground">
+                Nenhum cliente encontrado
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
 
-      {filteredCustomers.length === 0 && (
-        <Card>
-          <CardContent className="pt-6 text-center text-muted-foreground">
-            Nenhum cliente encontrado
-          </CardContent>
-        </Card>
-      )}
+        {/* Aba Leads */}
+        <TabsContent value="leads" className="mt-6">
+          <LeadsList storeId={currentStoreId} />
+        </TabsContent>
+      </Tabs>
 
       {/* Dialog de Reset de Senha */}
       <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>

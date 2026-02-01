@@ -258,6 +258,44 @@ serve(async (req) => {
         });
       }
 
+      // === CAPTURA AUTOMÁTICA DO LEAD/CONTATO ===
+      const captureContact = async () => {
+        try {
+          // Verificar se telefone é válido (não é grupo)
+          if (remoteJid.includes('@g.us')) return;
+          
+          const phoneNormalized = senderPhone.replace(/\D/g, '');
+          if (phoneNormalized.length < 10 || phoneNormalized.length > 15) return;
+          
+          // Upsert na tabela whatsapp_contacts
+          const { error: contactError } = await supabase
+            .from('whatsapp_contacts')
+            .upsert({
+              store_id: instance.store_id,
+              phone_number: phoneNormalized,
+              push_name: senderName,
+              name: senderName,
+              is_whatsapp_valid: true,
+              source: 'chat',
+              last_synced_at: new Date().toISOString(),
+            }, {
+              onConflict: 'store_id,phone_number',
+              ignoreDuplicates: false,
+            });
+          
+          if (contactError) {
+            console.log('⚠️ Erro ao salvar contato:', contactError.message);
+          } else {
+            console.log(`📇 Lead capturado: ${phoneNormalized} (${senderName})`);
+          }
+        } catch (e) {
+          console.log('⚠️ Erro na captura de contato:', e);
+        }
+      };
+
+      // Executar captura em background (não bloqueia resposta)
+      captureContact();
+
       // Buscar timezone e business_hours da loja
       const { data: storeData } = await supabase
         .from('stores')

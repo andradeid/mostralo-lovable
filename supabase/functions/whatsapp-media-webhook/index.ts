@@ -557,6 +557,44 @@ serve(async (req) => {
     const storeId = instanceData.store_id;
     const storeSlug = (instanceData as any).stores?.slug;
 
+    // === CAPTURA AUTOMÁTICA DO LEAD/CONTATO ===
+    const captureContact = async () => {
+      try {
+        // Verificar se telefone é válido (não é grupo)
+        if (remoteJid.includes('@g.us')) return;
+        
+        const phoneNormalized = remoteJid.replace('@s.whatsapp.net', '').replace(/\D/g, '');
+        if (phoneNormalized.length < 10 || phoneNormalized.length > 15) return;
+        
+        // Upsert na tabela whatsapp_contacts
+        const { error: contactError } = await supabase
+          .from('whatsapp_contacts')
+          .upsert({
+            store_id: storeId,
+            phone_number: phoneNormalized,
+            push_name: customerName,
+            name: customerName || phoneNormalized,
+            is_whatsapp_valid: true,
+            source: 'chat',
+            last_synced_at: new Date().toISOString(),
+          }, {
+            onConflict: 'store_id,phone_number',
+            ignoreDuplicates: false,
+          });
+        
+        if (contactError) {
+          console.log(`[${correlationId}] ⚠️ Erro ao salvar contato:`, contactError.message);
+        } else {
+          console.log(`[${correlationId}] 📇 Lead capturado: ${phoneNormalized} (${customerName})`);
+        }
+      } catch (e) {
+        console.log(`[${correlationId}] ⚠️ Erro na captura de contato:`, e);
+      }
+    };
+
+    // Executar captura em background (não bloqueia resposta)
+    captureContact();
+
     // Verificar se o módulo AI Vision está habilitado para esta loja
     const { data: moduleAccess, error: moduleError } = await supabase
       .from('store_modules')

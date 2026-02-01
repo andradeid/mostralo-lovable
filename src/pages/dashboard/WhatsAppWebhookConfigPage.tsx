@@ -50,16 +50,20 @@ export default function WhatsAppWebhookConfigPage() {
 
   const fetchStoresWithWebhookConfig = async () => {
     try {
-      // Buscar lojas com configuração de bot e módulos
+      // Buscar lojas com configuração de bot, instância WhatsApp e módulos
       const { data: storesData, error: storesError } = await supabase
         .from('stores')
         .select(`
           id,
           name,
           store_bot_config!left (
+            enabled,
+            bot_mode,
+            whatsapp_instance_id
+          ),
+          whatsapp_instances!left (
             instance_name,
-            is_active,
-            bot_mode
+            status
           ),
           store_modules!left (
             module_id,
@@ -75,7 +79,9 @@ export default function WhatsAppWebhookConfigPage() {
 
       const configs: StoreWebhookConfig[] = (storesData || []).map((store: any) => {
         const botConfig = store.store_bot_config?.[0];
-        const instanceName = botConfig?.instance_name || null;
+        const whatsappInstance = store.whatsapp_instances?.[0];
+        const instanceName = whatsappInstance?.instance_name || null;
+        const isConnected = whatsappInstance?.status === 'connected' || botConfig?.enabled;
         
         // Verificar se tem módulo AI Vision ativo
         const aiVisionModule = store.store_modules?.find(
@@ -86,7 +92,7 @@ export default function WhatsAppWebhookConfigPage() {
           storeId: store.id,
           storeName: store.name || 'Loja sem nome',
           instanceName,
-          connectionStatus: botConfig?.is_active ? 'connected' : 'disconnected',
+          connectionStatus: isConnected ? 'connected' : 'disconnected',
           aiVisionEnabled: !!aiVisionModule,
           webhookUrl: `${SUPABASE_URL}/functions/v1/whatsapp-media-webhook?instance=${instanceName || 'SEM_INSTANCIA'}`,
         };

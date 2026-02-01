@@ -17,7 +17,9 @@ import {
   ExternalLink,
   Eye,
   Image as ImageIcon,
-  Info
+  Info,
+  RefreshCw,
+  Loader2
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -39,6 +41,7 @@ export default function WhatsAppWebhookConfigPage() {
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [expandedStore, setExpandedStore] = useState<string | null>(null);
+  const [syncingStoreId, setSyncingStoreId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -117,6 +120,31 @@ export default function WhatsAppWebhookConfigPage() {
         description: "Não foi possível copiar a URL.",
         variant: "destructive",
       });
+    }
+  };
+
+  const syncBot = async (storeId: string, storeName: string) => {
+    setSyncingStoreId(storeId);
+    try {
+      const { data, error } = await supabase.functions.invoke('openai-bot-sync', {
+        body: { storeId, forceSync: true }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Bot sincronizado!",
+        description: `O assistente da loja "${storeName}" foi atualizado com as novas tools de visão.`,
+      });
+    } catch (error: any) {
+      console.error('Erro ao sincronizar bot:', error);
+      toast({
+        title: "Erro na sincronização",
+        description: error.message || "Não foi possível sincronizar o bot.",
+        variant: "destructive",
+      });
+    } finally {
+      setSyncingStoreId(null);
     }
   };
 
@@ -244,12 +272,32 @@ export default function WhatsAppWebhookConfigPage() {
                           onClick={() => copyToClipboard(store.webhookUrl, store.storeId)}
                         >
                           {copiedId === store.storeId ? (
-                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                            <CheckCircle2 className="h-4 w-4 text-success" />
                           ) : (
                             <Copy className="h-4 w-4" />
                           )}
                         </Button>
                       </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => syncBot(store.storeId, store.storeName)}
+                        disabled={syncingStoreId === store.storeId}
+                        className="flex-1"
+                      >
+                        {syncingStoreId === store.storeId ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            Sincronizando...
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="h-4 w-4 mr-2" />
+                            Sincronizar Bot
+                          </>
+                        )}
+                      </Button>
                     </div>
 
                     <Collapsible 

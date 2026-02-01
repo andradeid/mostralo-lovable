@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.openai-usage-report]
 verify_jwt = false
+
+[functions.whatsapp-media-webhook]
+verify_jwt = false

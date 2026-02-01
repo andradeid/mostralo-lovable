@@ -1314,6 +1314,48 @@ serve(async (req) => {
                 parameters: { type: 'object', properties: {} },
               },
             },
+            {
+              type: 'function',
+              function: {
+                name: 'analyze_image',
+                description: 'Analisa uma imagem enviada pelo cliente para identificar produtos, receitas médicas ou embalagens. Use quando o cliente enviar uma foto ou imagem.',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    image_data: {
+                      type: 'object',
+                      description: 'Dados da imagem (base64 ou url)',
+                      properties: {
+                        base64: { type: 'string', description: 'Imagem codificada em base64' },
+                        url: { type: 'string', description: 'URL da imagem' },
+                        mimetype: { type: 'string', description: 'Tipo MIME da imagem' },
+                      },
+                    },
+                    image_context: {
+                      type: 'string',
+                      description: 'Contexto adicional sobre a imagem fornecido pelo cliente',
+                    },
+                  },
+                  required: ['image_data'],
+                },
+              },
+            },
+            {
+              type: 'function',
+              function: {
+                name: 'check_store_status',
+                description: 'Verifica se a loja está aberta ou fechada no momento atual, baseado no horário de funcionamento.',
+                parameters: { type: 'object', properties: {} },
+              },
+            },
+            {
+              type: 'function',
+              function: {
+                name: 'get_current_greeting',
+                description: 'Retorna a saudação correta baseada no horário atual (Bom dia, Boa tarde, Boa noite). USE ESTA FUNÇÃO NA PRIMEIRA MENSAGEM de cada conversa.',
+                parameters: { type: 'object', properties: {} },
+              },
+            },
           ];
 
           const assistantPayload = {

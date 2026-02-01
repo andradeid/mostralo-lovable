@@ -52,10 +52,15 @@ export function LeadsList({ storeId }: LeadsListProps) {
   }, [searchTerm, leads]);
 
   const fetchLeads = async () => {
-    if (!storeId) return;
+    if (!storeId) {
+      console.log('❌ LeadsList: storeId não definido');
+      setLoading(false);
+      return;
+    }
     
     try {
       setLoading(true);
+      console.log('🔍 LeadsList: Buscando leads para store:', storeId);
       
       // Buscar contatos do WhatsApp que NÃO são clientes ainda (customer_id é null)
       const { data, error } = await supabase
@@ -67,6 +72,7 @@ export function LeadsList({ storeId }: LeadsListProps) {
 
       if (error) throw error;
 
+      console.log('✅ LeadsList: Leads encontrados:', data?.length || 0);
       setLeads(data || []);
       setFilteredLeads(data || []);
     } catch (error) {

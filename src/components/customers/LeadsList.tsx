@@ -14,13 +14,21 @@ import { ptBR } from 'date-fns/locale';
 const normalizePhoneForComparison = (phone: string): string => {
   let digits = phone.replace(/\D/g, '');
   
-  // Remove DDI 55 se presente
+  // Remove DDI 55 se presente (pode ter 12 ou 13 dígitos com DDI)
   if (digits.startsWith('55') && digits.length >= 12) {
     digits = digits.substring(2);
   }
   
+  // Caso especial: número com 11 dígitos começando com 55
+  // Isso pode ser DDI 55 + número de 9 dígitos (sem DDD) - formato incorreto
+  // Vamos extrair apenas o número do assinante para comparação
+  if (digits.startsWith('55') && digits.length === 11) {
+    // Provavelmente é DDI 55 + 9 dígitos, vamos tratar como número sem DDD
+    digits = digits.substring(2); // Remove 55, fica com 9 dígitos
+  }
+  
   // Remove 0 à esquerda do DDD se presente
-  if (digits.startsWith('0') && digits.length === 12) {
+  if (digits.startsWith('0') && (digits.length === 11 || digits.length === 12)) {
     digits = digits.substring(1);
   }
   
@@ -29,6 +37,16 @@ const normalizePhoneForComparison = (phone: string): string => {
     digits = digits.substring(0, 2) + '9' + digits.substring(2);
   }
   
+  return digits;
+};
+
+// Extrai apenas o número do assinante (últimos 8-9 dígitos) para deduplicação mais agressiva
+const getSubscriberNumber = (phone: string): string => {
+  const digits = phone.replace(/\D/g, '');
+  // O número do assinante no Brasil tem 8 ou 9 dígitos
+  if (digits.length >= 9) {
+    return digits.slice(-9); // Últimos 9 dígitos
+  }
   return digits;
 };
 
@@ -130,51 +148,76 @@ export function LeadsList({ storeId }: LeadsListProps) {
 
       if (messagesError) throw messagesError;
 
-      // 3. Combinar os dados usando telefone NORMALIZADO para deduplicação
-      // Cria Set com telefones normalizados dos contatos existentes
-      const normalizedContactPhones = new Set(
-        (contactsData || []).map(c => normalizePhoneForComparison(c.phone_number))
-      );
+      // 3. Combinar os dados usando deduplicação AGRESSIVA
+      // Usa tanto o telefone normalizado quanto o número do assinante para detectar duplicatas
       
-      // Map para deduplicar leads de mensagens usando telefone normalizado
-      const messageLeadsMap = new Map<string, Lead>();
+      // Map de número do assinante -> lead mais completo/recente
+      const subscriberMap = new Map<string, Lead>();
       
+      // Função para adicionar/atualizar lead no map com prioridade
+      const addLeadWithPriority = (lead: Lead, source: 'contact' | 'message') => {
+        const normalizedPhone = normalizePhoneForComparison(lead.phone_number);
+        const subscriberNum = getSubscriberNumber(lead.phone_number);
+        
+        // Verificar se já existe pelo número do assinante (deduplicação agressiva)
+        const existing = subscriberMap.get(subscriberNum);
+        
+        if (!existing) {
+          // Não existe, adicionar
+          subscriberMap.set(subscriberNum, {
+            ...lead,
+            phone_number: normalizedPhone.length >= 10 ? lead.phone_number : lead.phone_number
+          });
+        } else {
+          // Já existe - decidir qual manter
+          const existingDate = new Date(existing.last_synced_at || existing.created_at || 0).getTime();
+          const newDate = new Date(lead.last_synced_at || lead.created_at || 0).getTime();
+          const existingHasName = !!(existing.name || existing.push_name);
+          const newHasName = !!(lead.name || lead.push_name);
+          
+          // Priorizar: 1) contatos sobre mensagens, 2) com nome, 3) mais recente, 4) telefone mais completo
+          const existingNormalized = normalizePhoneForComparison(existing.phone_number);
+          const newNormalized = normalizePhoneForComparison(lead.phone_number);
+          
+          const shouldReplace = 
+            // Novo tem nome e antigo não
+            (newHasName && !existingHasName) ||
+            // Ambos têm ou não têm nome, mas novo é mais recente
+            (newHasName === existingHasName && newDate > existingDate) ||
+            // Novo tem telefone mais completo (com DDD válido)
+            (newNormalized.length === 11 && existingNormalized.length < 11);
+          
+          if (shouldReplace) {
+            subscriberMap.set(subscriberNum, lead);
+          }
+        }
+      };
+      
+      // Processar contatos primeiro (têm prioridade)
+      (contactsData || []).forEach(contact => {
+        addLeadWithPriority(contact, 'contact');
+      });
+      
+      // Processar mensagens
       (messagesData || []).forEach(msg => {
         if (!msg.phone_number) return;
         
-        const normalizedPhone = normalizePhoneForComparison(msg.phone_number);
+        const messageLead: Lead = {
+          id: `msg-${getSubscriberNumber(msg.phone_number)}`,
+          phone_number: msg.phone_number,
+          name: msg.customer_name,
+          push_name: null,
+          source: 'chat',
+          is_whatsapp_valid: true,
+          created_at: msg.created_at,
+          last_synced_at: msg.created_at,
+          customer_id: null
+        };
         
-        // Só adiciona se não existe em contatos E não foi adicionado ainda
-        if (!normalizedContactPhones.has(normalizedPhone) && !messageLeadsMap.has(normalizedPhone)) {
-          messageLeadsMap.set(normalizedPhone, {
-            id: `msg-${normalizedPhone}`,
-            phone_number: msg.phone_number,
-            name: msg.customer_name,
-            push_name: null,
-            source: 'chat',
-            is_whatsapp_valid: true,
-            created_at: msg.created_at,
-            last_synced_at: msg.created_at,
-            customer_id: null
-          });
-        }
+        addLeadWithPriority(messageLead, 'message');
       });
 
-      // Deduplicar contatos também (pode haver duplicados com formatos diferentes)
-      const deduplicatedContacts = new Map<string, Lead>();
-      (contactsData || []).forEach(contact => {
-        const normalizedPhone = normalizePhoneForComparison(contact.phone_number);
-        const existing = deduplicatedContacts.get(normalizedPhone);
-        
-        // Manter o mais recente ou o que tem mais informações
-        if (!existing || 
-            (contact.last_synced_at && (!existing.last_synced_at || 
-             new Date(contact.last_synced_at) > new Date(existing.last_synced_at)))) {
-          deduplicatedContacts.set(normalizedPhone, contact);
-        }
-      });
-
-      const allLeads = [...Array.from(deduplicatedContacts.values()), ...Array.from(messageLeadsMap.values())];
+      const allLeads: Lead[] = Array.from(subscriberMap.values());
       
       // Ordenar por data mais recente
       allLeads.sort((a, b) => {
@@ -183,7 +226,7 @@ export function LeadsList({ storeId }: LeadsListProps) {
         return dateB - dateA;
       });
 
-      console.log('✅ LeadsList: Leads encontrados:', allLeads.length, '(contatos:', contactsData?.length || 0, ', mensagens:', messageLeadsMap.size, ')');
+      console.log('✅ LeadsList: Leads encontrados:', allLeads.length, '(contatos:', contactsData?.length || 0, ', mensagens:', messagesData?.length || 0, ')');
       setLeads(allLeads);
       setFilteredLeads(allLeads);
     } catch (error) {

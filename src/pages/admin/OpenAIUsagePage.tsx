@@ -272,6 +272,7 @@ export default function OpenAIUsagePage() {
                   <TableHead className="text-right">Texto</TableHead>
                   <TableHead className="text-right">Imagem</TableHead>
                   <TableHead className="text-right">Custo USD</TableHead>
+                  <TableHead className="text-right">Custo BRL</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -300,6 +301,9 @@ export default function OpenAIUsagePage() {
                     <TableCell className="text-right">{store.image_count}</TableCell>
                     <TableCell className="text-right font-medium">
                       ${store.cost_usd.toFixed(4)}
+                    </TableCell>
+                    <TableCell className="text-right font-medium text-muted-foreground">
+                      R$ {(store.cost_usd * 5.80).toFixed(2)}
                     </TableCell>
                   </TableRow>
                 ))}

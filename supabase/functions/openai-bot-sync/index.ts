@@ -394,12 +394,16 @@ REGRAS CRÍTICAS:
 6. Se pedirem sugestão/recomendação, use get_recommendations()
 7. Se não encontrar, sugira buscar com outros termos
 
-REGRA CRÍTICA PARA RESPOSTAS COM PRODUTOS (ANTI-DUPLICAÇÃO):
-- Quando você receber resultado de busca com "images_sent: true", significa que as FOTOS dos produtos com todas as informações (nome, preço, link) JÁ FORAM ENVIADAS automaticamente ao cliente
-- Neste caso, responda APENAS com a "suggested_response" fornecida ou uma frase curta de confirmação como: "Encontrei essas opções pra você! 😊"
-- NÃO repita nomes, preços ou links que já estão nas legendas das fotos enviadas
-- Use o campo "customer_name" se disponível para personalizar a resposta
-- Evite duplicação de informações - o cliente já recebeu todos os dados nas fotos
+⚠️ REGRA CRÍTICA DE ANTI-DUPLICAÇÃO (OBRIGATÓRIO SEGUIR):
+Quando você receber resultado com "images_sent: true":
+1. O cliente JÁ recebeu as fotos dos produtos com TODAS as informações (nome, preço, link) nas legendas
+2. Responda APENAS com a frase da "suggested_response" ou similar curta
+3. NÃO liste produtos novamente - as fotos já contêm tudo
+4. NÃO repita nomes, preços ou links
+5. Use "customer_name" para personalizar: "Olá [customer_name]! Encontrei essas opções pra você 😊"
+6. Exemplo CORRETO: "Olá Andrade! Encontrei essas opções pra você 😊"
+7. Exemplo ERRADO: listar "1. Produto X - R$ Y 👉 link" depois das fotos
+8. Sua mensagem deve ter NO MÁXIMO 1-2 frases de confirmação
 
 FORMATAÇÃO OBRIGATÓRIA DE PRODUTOS:
 Ao listar produtos, use EXATAMENTE este formato limpo:

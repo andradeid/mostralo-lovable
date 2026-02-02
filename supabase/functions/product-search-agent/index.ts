@@ -284,6 +284,34 @@ serve(async (req) => {
       }
     }
 
+    // ========================================
+    // BUSCAR NOME DO CLIENTE VIA WHATSAPP_CONTACTS
+    // ========================================
+    let customerName: string | null = null;
+    
+    if (remoteJid) {
+      const phone = remoteJid.replace(/@.*$/, '');
+      console.log(`[product-search-agent] 🔍 Buscando nome do cliente para telefone: ${phone}`);
+      
+      // Usar variantes de telefone para busca tolerante
+      const { getPhoneVariants } = await import("../_shared/phoneUtils.ts");
+      const phoneVariants = getPhoneVariants(phone);
+      
+      const { data: contact } = await supabase
+        .from('whatsapp_contacts')
+        .select('push_name, name')
+        .in('phone_number', phoneVariants)
+        .limit(1)
+        .maybeSingle();
+      
+      if (contact) {
+        customerName = contact.push_name || contact.name || null;
+        console.log(`[product-search-agent] ✅ Nome do cliente encontrado: ${customerName}`);
+      } else {
+        console.log(`[product-search-agent] ⚠️ Cliente não encontrado na tabela whatsapp_contacts`);
+      }
+    }
+
     // Determinar base URL para links
     const baseUrl = store.custom_domain && store.custom_domain_verified
       ? `https://${store.custom_domain}`
@@ -376,33 +404,38 @@ serve(async (req) => {
       }
     };
 
-    // Helper para enviar fotos de produtos (máximo 3)
-    const sendProductImages = async (products: any[]) => {
-      if (!instanceName || !remoteJid) return;
+    // Helper para enviar fotos de produtos (máximo 3) - retorna número de imagens enviadas
+    const sendProductImages = async (products: any[]): Promise<number> => {
+      if (!instanceName || !remoteJid) return 0;
       
       const productsWithImages = products
         .filter(p => p.image_url)
         .slice(0, 3); // Máximo 3 fotos
       
-      if (productsWithImages.length === 0) return;
+      if (productsWithImages.length === 0) return 0;
       
       console.log(`[product-search-agent] 📷 Enviando ${productsWithImages.length} foto(s) de produtos`);
       
+      let sentCount = 0;
       for (const product of productsWithImages) {
         const price = product.is_on_offer && product.offer_price 
           ? product.offer_price 
           : product.price;
         
-        await sendProductImageWithCaption({
+        const sent = await sendProductImageWithCaption({
           name: product.name,
           price: price,
           link: buildProductLink(product.slug),
           image_url: product.image_url,
         });
         
+        if (sent) sentCount++;
+        
         // Delay entre envios para manter ordem correta
         await new Promise(r => setTimeout(r, 300));
       }
+      
+      return sentCount;
     };
 
     let result: any;
@@ -436,14 +469,26 @@ serve(async (req) => {
           result = { products: [], message: 'Erro ao buscar produtos' };
         } else {
           // Enviar fotos dos produtos via WhatsApp (se sessão disponível)
+          let imagesSentCount = 0;
           if (products && products.length > 0) {
-            await sendProductImages(products);
+            imagesSentCount = await sendProductImages(products);
           }
+          
+          // Construir sugestão de resposta para evitar duplicação
+          const suggestedResponse = imagesSentCount > 0
+            ? (customerName 
+                ? `Olá ${customerName}! Encontrei essas opções pra você 😊`
+                : `Encontrei essas opções pra você 😊`)
+            : null;
           
           result = {
             products: (products || []).map(formatProduct),
             total: products?.length || 0,
             query,
+            images_sent: imagesSentCount > 0,
+            images_sent_count: imagesSentCount,
+            customer_name: customerName,
+            suggested_response: suggestedResponse,
           };
         }
         break;
@@ -472,7 +517,14 @@ serve(async (req) => {
           };
         } else {
           // Enviar fotos dos produtos via WhatsApp (se sessão disponível)
-          await sendProductImages(products);
+          const imagesSentCount = await sendProductImages(products);
+          
+          // Construir sugestão de resposta para evitar duplicação
+          const suggestedResponse = imagesSentCount > 0
+            ? (customerName 
+                ? `Olá ${customerName}! Encontrei essas opções pra você 😊`
+                : `Encontrei essas opções pra você 😊`)
+            : null;
           
           result = {
             found: true,
@@ -482,6 +534,10 @@ serve(async (req) => {
               stock_quantity: p.track_stock ? p.stock_quantity : 'Não controlado',
               link: buildProductLink(p.slug),
             })),
+            images_sent: imagesSentCount > 0,
+            images_sent_count: imagesSentCount,
+            customer_name: customerName,
+            suggested_response: suggestedResponse,
           };
         }
         break;

@@ -186,11 +186,35 @@ serve(async (req) => {
     console.log(`[product-search-agent] 📦 Payload processado:`, JSON.stringify(body, null, 2));
     
     // Extrair dados da sessão WhatsApp para envio de imagens
-    const instanceName = body.instance || body.instanceName;
-    const remoteJid = body.remoteJid || body.key?.remoteJid;
+    // Suporta múltiplos formatos da Evolution API
+    let instanceName = 
+      body.instanceName ||
+      body.instance?.instanceName ||
+      (typeof body.instance === 'string' ? body.instance : null) ||
+      body.key?.instance ||
+      body.serverUrl?.split('/')?.pop() ||
+      null;
+    
+    // Tentar extrair do evento se disponível
+    if (!instanceName && body.event) {
+      const eventParts = body.event?.split('/');
+      if (eventParts?.length > 0) {
+        instanceName = eventParts[0];
+      }
+    }
+    
+    const remoteJid = 
+      body.remoteJid || 
+      body.key?.remoteJid || 
+      body.data?.key?.remoteJid ||
+      body.sender ||
+      null;
     
     if (instanceName && remoteJid) {
       console.log(`[product-search-agent] 📱 Sessão WhatsApp detectada: ${instanceName} -> ${remoteJid}`);
+    } else {
+      console.log(`[product-search-agent] ⚠️ Dados de sessão WhatsApp não encontrados. instanceName: ${instanceName}, remoteJid: ${remoteJid}`);
+      console.log(`[product-search-agent] 🔍 Campos disponíveis no body:`, Object.keys(body));
     }
     
     if (!storeId && body.storeId) {

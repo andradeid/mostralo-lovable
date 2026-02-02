@@ -648,17 +648,34 @@ serve(async (req) => {
           result = { products: [], message: 'Erro ao buscar promoções' };
         } else {
           // Enviar fotos dos produtos via WhatsApp (se sessão disponível)
+          let imagesSentCount = 0;
           if (products && products.length > 0) {
-            await sendProductImages(products);
+            imagesSentCount = await sendProductImages(products);
           }
           
-          result = {
-            products: (products || []).map(formatProduct),
-            total: products?.length || 0,
-            message: products?.length 
-              ? `${products.length} produto(s) em promoção` 
-              : 'Nenhuma promoção disponível no momento',
-          };
+          // ANTI-DUPLICAÇÃO
+          if (imagesSentCount > 0) {
+            const suggestedResponse = customerName 
+              ? `Olá ${customerName}! Essas são as promoções do momento 🔥`
+              : `Essas são as promoções do momento 🔥`;
+            result = {
+              images_sent: true,
+              images_sent_count: imagesSentCount,
+              customer_name: customerName,
+              suggested_response: suggestedResponse,
+              message: `${imagesSentCount} promoção(ões) enviada(s) com foto.`,
+            };
+          } else {
+            result = {
+              products: (products || []).map(formatProduct),
+              total: products?.length || 0,
+              images_sent: false,
+              customer_name: customerName,
+              message: products?.length 
+                ? `${products.length} produto(s) em promoção` 
+                : 'Nenhuma promoção disponível no momento',
+            };
+          }
         }
         break;
       }
@@ -687,17 +704,34 @@ serve(async (req) => {
           result = { products: [], message: 'Erro ao buscar recomendações' };
         } else {
           // Enviar fotos dos produtos via WhatsApp (se sessão disponível)
+          let imagesSentCount = 0;
           if (products && products.length > 0) {
-            await sendProductImages(products);
+            imagesSentCount = await sendProductImages(products);
           }
           
-          result = {
-            products: (products || []).map(formatProduct),
-            total: products?.length || 0,
-            message: products?.length 
-              ? `${products.length} produto(s) recomendado(s)` 
-              : 'Nenhum produto em destaque no momento',
-          };
+          // ANTI-DUPLICAÇÃO
+          if (imagesSentCount > 0) {
+            const suggestedResponse = customerName 
+              ? `Olá ${customerName}! Separei essas recomendações pra você 😊`
+              : `Separei essas recomendações pra você 😊`;
+            result = {
+              images_sent: true,
+              images_sent_count: imagesSentCount,
+              customer_name: customerName,
+              suggested_response: suggestedResponse,
+              message: `${imagesSentCount} recomendação(ões) enviada(s) com foto.`,
+            };
+          } else {
+            result = {
+              products: (products || []).map(formatProduct),
+              total: products?.length || 0,
+              images_sent: false,
+              customer_name: customerName,
+              message: products?.length 
+                ? `${products.length} produto(s) recomendado(s)` 
+                : 'Nenhum produto em destaque no momento',
+            };
+          }
         }
         break;
       }

@@ -54,6 +54,14 @@ serve(async (req) => {
     // Log do payload recebido para debug
     console.log(`[product-search-agent] 📦 Payload processado:`, JSON.stringify(body, null, 2));
     
+    // Extrair dados da sessão WhatsApp para envio de imagens
+    const instanceName = body.instance || body.instanceName;
+    const remoteJid = body.remoteJid || body.key?.remoteJid;
+    
+    if (instanceName && remoteJid) {
+      console.log(`[product-search-agent] 📱 Sessão WhatsApp detectada: ${instanceName} -> ${remoteJid}`);
+    }
+    
     if (!storeId && body.storeId) {
       storeId = body.storeId;
     }
@@ -151,7 +159,96 @@ serve(async (req) => {
       description: p.description,
       category: p.categories?.name || null,
       link: buildProductLink(p.slug),
+      image_url: p.image_url || null,
     });
+
+    // ========================================
+    // HELPER: Enviar imagem de produto via Evolution API
+    // ========================================
+    const sendProductImageWithCaption = async (
+      product: { name: string; price: number; link: string; image_url: string }
+    ): Promise<boolean> => {
+      if (!instanceName || !remoteJid) return false;
+      
+      try {
+        // Buscar configuração da Evolution API
+        const { data: evolutionConfig } = await supabase
+          .from('evolution_config')
+          .select('api_url, api_key')
+          .eq('is_active', true)
+          .single();
+        
+        if (!evolutionConfig) {
+          console.log('[product-search-agent] ⚠️ Evolution config não encontrada');
+          return false;
+        }
+        
+        const phone = remoteJid.replace(/@.*$/, '');
+        
+        // Legenda completa com nome, preço e link
+        const caption = `📦 *${product.name}*\n💰 R$ ${product.price.toFixed(2)}\n👉 ${product.link}`;
+        
+        const apiUrl = evolutionConfig.api_url.replace(/\/+$/, '');
+        const endpoint = `${apiUrl}/message/sendMedia/${instanceName}`;
+        
+        console.log(`[product-search-agent] 📤 Enviando imagem: ${product.name} -> ${phone}`);
+        
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': evolutionConfig.api_key,
+          },
+          body: JSON.stringify({
+            number: phone,
+            mediatype: 'image',
+            media: product.image_url,
+            caption: caption,
+          }),
+        });
+        
+        if (response.ok) {
+          console.log(`[product-search-agent] ✅ Imagem enviada: ${product.name}`);
+          return true;
+        } else {
+          const errorText = await response.text();
+          console.error(`[product-search-agent] ❌ Erro ao enviar imagem:`, errorText);
+          return false;
+        }
+      } catch (error) {
+        console.error('[product-search-agent] ❌ Erro ao enviar imagem:', error);
+        return false;
+      }
+    };
+
+    // Helper para enviar fotos de produtos (máximo 3)
+    const sendProductImages = async (products: any[]) => {
+      if (!instanceName || !remoteJid) return;
+      
+      const productsWithImages = products
+        .filter(p => p.image_url)
+        .slice(0, 3); // Máximo 3 fotos
+      
+      if (productsWithImages.length === 0) return;
+      
+      console.log(`[product-search-agent] 📷 Enviando ${productsWithImages.length} foto(s) de produtos`);
+      
+      for (const product of productsWithImages) {
+        const price = product.is_on_offer && product.offer_price 
+          ? product.offer_price 
+          : product.price;
+        
+        await sendProductImageWithCaption({
+          name: product.name,
+          price: price,
+          link: buildProductLink(product.slug),
+          image_url: product.image_url,
+        });
+        
+        // Delay entre envios para manter ordem correta
+        await new Promise(r => setTimeout(r, 300));
+      }
+    };
 
     let result: any;
 
@@ -169,7 +266,7 @@ serve(async (req) => {
           .select(`
             id, name, slug, price, original_price, offer_price, description,
             is_available, is_featured, is_on_offer,
-            track_stock, stock_quantity,
+            track_stock, stock_quantity, image_url,
             categories(name)
           `)
           .eq('store_id', storeId)
@@ -183,6 +280,11 @@ serve(async (req) => {
           console.error('Erro na busca:', error);
           result = { products: [], message: 'Erro ao buscar produtos' };
         } else {
+          // Enviar fotos dos produtos via WhatsApp (se sessão disponível)
+          if (products && products.length > 0) {
+            await sendProductImages(products);
+          }
+          
           result = {
             products: (products || []).map(formatProduct),
             total: products?.length || 0,
@@ -201,7 +303,7 @@ serve(async (req) => {
         const { data: products, error } = await supabase
           .from('products')
           .select(`
-            id, name, slug, price, track_stock, stock_quantity, is_available
+            id, name, slug, price, offer_price, is_on_offer, track_stock, stock_quantity, is_available, image_url
           `)
           .eq('store_id', storeId)
           .eq('is_available', true)
@@ -214,6 +316,9 @@ serve(async (req) => {
             message: `Produto "${args.product_name}" não encontrado` 
           };
         } else {
+          // Enviar fotos dos produtos via WhatsApp (se sessão disponível)
+          await sendProductImages(products);
+          
           result = {
             found: true,
             products: products.map(p => ({
@@ -290,7 +395,7 @@ serve(async (req) => {
           .select(`
             id, name, slug, price, original_price, offer_price, description,
             is_available, is_featured, is_on_offer,
-            track_stock, stock_quantity,
+            track_stock, stock_quantity, image_url,
             categories(name)
           `)
           .eq('store_id', storeId)
@@ -302,6 +407,11 @@ serve(async (req) => {
         if (error) {
           result = { products: [], message: 'Erro ao buscar promoções' };
         } else {
+          // Enviar fotos dos produtos via WhatsApp (se sessão disponível)
+          if (products && products.length > 0) {
+            await sendProductImages(products);
+          }
+          
           result = {
             products: (products || []).map(formatProduct),
             total: products?.length || 0,
@@ -324,7 +434,7 @@ serve(async (req) => {
           .select(`
             id, name, slug, price, original_price, offer_price, description,
             is_available, is_featured, is_on_offer,
-            track_stock, stock_quantity,
+            track_stock, stock_quantity, image_url,
             categories(name)
           `)
           .eq('store_id', storeId)
@@ -336,6 +446,11 @@ serve(async (req) => {
         if (error) {
           result = { products: [], message: 'Erro ao buscar recomendações' };
         } else {
+          // Enviar fotos dos produtos via WhatsApp (se sessão disponível)
+          if (products && products.length > 0) {
+            await sendProductImages(products);
+          }
+          
           result = {
             products: (products || []).map(formatProduct),
             total: products?.length || 0,

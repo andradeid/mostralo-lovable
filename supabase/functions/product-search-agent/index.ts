@@ -285,13 +285,18 @@ serve(async (req) => {
     }
 
     // ========================================
-    // BUSCAR NOME DO CLIENTE VIA WHATSAPP_CONTACTS
+    // BUSCAR NOME DO CLIENTE - PRIORIDADE: pushName de functionArguments
     // ========================================
-    let customerName: string | null = null;
+    // PRIMEIRO: Tentar extrair pushName diretamente dos argumentos da função
+    // A Evolution API envia o pushName dentro de functionArguments
+    let customerName: string | null = parsedArgs?.pushName || null;
     
-    if (remoteJid) {
+    console.log(`[product-search-agent] 👤 pushName de functionArguments: ${customerName || 'não encontrado'}`);
+    
+    // FALLBACK: Se não veio no payload, buscar na tabela whatsapp_contacts
+    if (!customerName && remoteJid) {
       const phone = remoteJid.replace(/@.*$/, '');
-      console.log(`[product-search-agent] 🔍 Buscando nome do cliente para telefone: ${phone}`);
+      console.log(`[product-search-agent] 🔍 Buscando nome do cliente na tabela para telefone: ${phone}`);
       
       // Usar variantes de telefone para busca tolerante
       const { getPhoneVariants } = await import("../_shared/phoneUtils.ts");
@@ -306,11 +311,13 @@ serve(async (req) => {
       
       if (contact) {
         customerName = contact.push_name || contact.name || null;
-        console.log(`[product-search-agent] ✅ Nome do cliente encontrado: ${customerName}`);
+        console.log(`[product-search-agent] ✅ Nome encontrado no banco: ${customerName}`);
       } else {
         console.log(`[product-search-agent] ⚠️ Cliente não encontrado na tabela whatsapp_contacts`);
       }
     }
+    
+    console.log(`[product-search-agent] 👤 Nome final do cliente: ${customerName || 'não disponível'}`);
 
     // Determinar base URL para links
     const baseUrl = store.custom_domain && store.custom_domain_verified
@@ -481,15 +488,27 @@ serve(async (req) => {
                 : `Encontrei essas opções pra você 😊`)
             : null;
           
-          result = {
-            products: (products || []).map(formatProduct),
-            total: products?.length || 0,
-            query,
-            images_sent: imagesSentCount > 0,
-            images_sent_count: imagesSentCount,
-            customer_name: customerName,
-            suggested_response: suggestedResponse,
-          };
+          // ANTI-DUPLICAÇÃO: Se imagens foram enviadas, NÃO incluir lista de produtos
+          // Isso evita que o assistente repita as informações já presentes nas legendas das fotos
+          if (imagesSentCount > 0) {
+            result = {
+              images_sent: true,
+              images_sent_count: imagesSentCount,
+              customer_name: customerName,
+              suggested_response: suggestedResponse,
+              message: `${imagesSentCount} produto(s) encontrado(s) e enviado(s) com foto. As informações já foram enviadas nas legendas.`,
+              // NÃO incluir products[] aqui para evitar que o assistente liste novamente
+            };
+          } else {
+            // Se não enviou imagens (produtos sem foto), inclui lista para o assistente responder
+            result = {
+              products: (products || []).map(formatProduct),
+              total: products?.length || 0,
+              query,
+              images_sent: false,
+              customer_name: customerName,
+            };
+          }
         }
         break;
       }
@@ -526,19 +545,29 @@ serve(async (req) => {
                 : `Encontrei essas opções pra você 😊`)
             : null;
           
-          result = {
-            found: true,
-            products: products.map(p => ({
-              name: p.name,
-              in_stock: p.track_stock ? (p.stock_quantity || 0) > 0 : true,
-              stock_quantity: p.track_stock ? p.stock_quantity : 'Não controlado',
-              link: buildProductLink(p.slug),
-            })),
-            images_sent: imagesSentCount > 0,
-            images_sent_count: imagesSentCount,
-            customer_name: customerName,
-            suggested_response: suggestedResponse,
-          };
+          // ANTI-DUPLICAÇÃO: Se imagens foram enviadas, NÃO incluir lista de produtos
+          if (imagesSentCount > 0) {
+            result = {
+              found: true,
+              images_sent: true,
+              images_sent_count: imagesSentCount,
+              customer_name: customerName,
+              suggested_response: suggestedResponse,
+              message: `${imagesSentCount} produto(s) encontrado(s) e enviado(s) com foto. As informações já foram enviadas nas legendas.`,
+            };
+          } else {
+            result = {
+              found: true,
+              products: products.map(p => ({
+                name: p.name,
+                in_stock: p.track_stock ? (p.stock_quantity || 0) > 0 : true,
+                stock_quantity: p.track_stock ? p.stock_quantity : 'Não controlado',
+                link: buildProductLink(p.slug),
+              })),
+              images_sent: false,
+              customer_name: customerName,
+            };
+          }
         }
         break;
       }

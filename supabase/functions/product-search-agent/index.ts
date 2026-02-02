@@ -18,6 +18,137 @@ interface FunctionCallRequest {
   storeId: string;
 }
 
+// ========================================
+// HELPER: Gerar prompt de Vision dinâmico por segmento
+// ========================================
+function buildVisionPrompt(segment: string, imageContext?: string): string {
+  const baseInstructions = `Você é um assistente especializado em identificar produtos em imagens.
+
+INSTRUÇÕES GERAIS:
+1. Identifique os produtos/itens visíveis na imagem
+2. Seja preciso nos nomes e especificações
+3. NÃO invente produtos que não estão visíveis
+4. IGNORE dados pessoais se houver
+5. NUNCA faça diagnósticos ou dê orientações médicas`;
+
+  const segmentPrompts: Record<string, string> = {
+    'saude-e-bem-estar': `${baseInstructions}
+
+FOCO: Medicamentos, produtos de saúde, cosméticos, suplementos.
+
+CLASSIFICAÇÃO DE DOCUMENTO (OBRIGATÓRIO na primeira linha):
+Identifique o tipo de documento na imagem e retorne uma das opções:
+- RECEITA_CONTROLADA: Se for receita com tarja preta (controlados especiais) ou que menciona medicamentos como: clonazepam, diazepam, alprazolam, lorazepam, zolpidem, bromazepam, rivotril, lexotan, frontal, midazolam, codeína, tramadol, morfina, fentanil, oxicodona, metilfenidato, ritalina, concerta, anfetamina, fenobarbital, fluoxetina, sertralina, escitalopram
+- RECEITA_RETIDA: Se for receita de antibiótico (amoxicilina, azitromicina, cefalexina, ciprofloxacino, levofloxacino, etc.) ou outros medicamentos com tarja vermelha que precisam de retenção de receita
+- RECEITA_SIMPLES: Se for receita médica comum sem necessidade de retenção
+- PRODUTO: Se for foto de embalagem, caixa ou produto (não é receita)
+
+FORMATO DE RESPOSTA OBRIGATÓRIO:
+[TIPO_DOCUMENTO: RECEITA_CONTROLADA|RECEITA_RETIDA|RECEITA_SIMPLES|PRODUTO]
+
+1. [Nome do medicamento/produto] [dosagem/quantidade]
+2. ...
+
+EXEMPLO CORRETO (receita controlada):
+[TIPO_DOCUMENTO: RECEITA_CONTROLADA]
+
+1. Clonazepam 2mg
+2. Alprazolam 0,5mg`,
+
+    'alimentacao-e-bebidas': `${baseInstructions}
+
+FOCO: Pratos, bebidas, ingredientes, cardápios, alimentos.
+
+FORMATO DE RESPOSTA OBRIGATÓRIO:
+[TIPO_DOCUMENTO: PRODUTO]
+
+1. [Nome do prato/bebida/alimento] [tamanho/porção se visível]
+2. ...
+
+Identifique ingredientes principais quando possível.
+Se for um cardápio, liste os itens visíveis.`,
+
+    'pet-shop': `${baseInstructions}
+
+FOCO: Rações, petiscos, acessórios, medicamentos veterinários, produtos para pets.
+
+FORMATO DE RESPOSTA OBRIGATÓRIO:
+[TIPO_DOCUMENTO: PRODUTO]
+
+1. [Nome do produto] [peso/quantidade]
+2. ...
+
+Inclua: marca, sabor, tipo de animal (cão, gato, pássaro, etc) quando visível.`,
+
+    'suplementos': `${baseInstructions}
+
+FOCO: Suplementos alimentares, vitaminas, proteínas, pré-treinos, creatina, BCAA.
+
+FORMATO DE RESPOSTA OBRIGATÓRIO:
+[TIPO_DOCUMENTO: PRODUTO]
+
+1. [Nome do suplemento] [dosagem/peso] [sabor se visível]
+2. ...
+
+Inclua: marca e especificações quando visíveis.`,
+
+    'moda-e-vestuario': `${baseInstructions}
+
+FOCO: Roupas, calçados, acessórios de moda.
+
+FORMATO DE RESPOSTA OBRIGATÓRIO:
+[TIPO_DOCUMENTO: PRODUTO]
+
+1. [Tipo de peça] [cor/estampa] [tamanho se visível]
+2. ...
+
+Inclua: marca, material e detalhes relevantes quando visíveis.`,
+
+    'generico': `${baseInstructions}
+
+Identifique todos os produtos visíveis na imagem.
+
+FORMATO DE RESPOSTA OBRIGATÓRIO:
+[TIPO_DOCUMENTO: PRODUTO]
+
+1. [Nome do produto] [especificações relevantes]
+2. ...`
+  };
+
+  // Mapear segmentos alternativos para os principais
+  const segmentMapping: Record<string, string> = {
+    'saude-e-bem-estar': 'saude-e-bem-estar',
+    'farmacia': 'saude-e-bem-estar',
+    'drogaria': 'saude-e-bem-estar',
+    'alimentacao-e-bebidas': 'alimentacao-e-bebidas',
+    'restaurante': 'alimentacao-e-bebidas',
+    'lanchonete': 'alimentacao-e-bebidas',
+    'pizzaria': 'alimentacao-e-bebidas',
+    'pet-shop': 'pet-shop',
+    'pet': 'pet-shop',
+    'animais': 'pet-shop',
+    'suplementos': 'suplementos',
+    'fitness': 'suplementos',
+    'academia': 'suplementos',
+    'moda-e-vestuario': 'moda-e-vestuario',
+    'moda': 'moda-e-vestuario',
+    'roupas': 'moda-e-vestuario',
+    'calcados': 'moda-e-vestuario',
+  };
+
+  const normalizedSegment = segment?.toLowerCase() || 'generico';
+  const mappedSegment = segmentMapping[normalizedSegment] || 'generico';
+  const prompt = segmentPrompts[mappedSegment] || segmentPrompts['generico'];
+  
+  return imageContext ? `${prompt}\n\nContexto adicional do cliente: ${imageContext}` : prompt;
+}
+
+// Helper para verificar se segmento é de saúde (para lógica de receitas controladas)
+function isHealthSegment(segment: string): boolean {
+  const healthSegments = ['saude-e-bem-estar', 'farmacia', 'drogaria'];
+  return healthSegments.includes(segment?.toLowerCase() || '');
+}
+
 serve(async (req) => {
   const startTime = Date.now();
   console.log(`[product-search-agent] ⏱️ Requisição iniciada: ${new Date().toISOString()}`);
@@ -812,49 +943,18 @@ serve(async (req) => {
 
           console.log(`[product-search-agent] 📤 Enviando imagem para GPT-4o Vision (source: ${imageSource})`);
 
-          // Prompt otimizado para LISTA LIMPA de produtos (sem metadados)
-          // Inclui classificação de tipo de documento (receita controlada, etc.)
-          const systemPrompt = `Você é um assistente especializado em identificar medicamentos e produtos em imagens.
+          // NOVO: Buscar segmento da loja para prompt dinâmico
+          const { data: storeSegmentData } = await supabase
+            .from('stores')
+            .select('segment')
+            .eq('id', storeId)
+            .single();
+          
+          const storeSegment = storeSegmentData?.segment || 'generico';
+          console.log(`[product-search-agent] 🏪 Segmento da loja: ${storeSegment}`);
 
-INSTRUÇÕES CRÍTICAS:
-1. Identifique APENAS os nomes dos medicamentos/produtos visíveis
-2. Inclua a dosagem quando visível (ex: 500mg, 750mg)
-3. NÃO inclua: marca, fabricante, uso, indicação, tipo, quantidade de comprimidos
-4. IGNORE completamente dados pessoais do paciente
-5. NUNCA faça diagnósticos ou dê orientações médicas
-
-CLASSIFICAÇÃO DE DOCUMENTO (OBRIGATÓRIO na primeira linha):
-Identifique o tipo de documento na imagem e retorne uma das opções:
-- RECEITA_CONTROLADA: Se for receita com tarja preta (controlados especiais) ou que menciona medicamentos como: clonazepam, diazepam, alprazolam, lorazepam, zolpidem, bromazepam, rivotril, lexotan, frontal, midazolam, codeína, tramadol, morfina, fentanil, oxicodona, metilfenidato, ritalina, concerta, anfetamina, fenobarbital, clonazepam, fluoxetina, sertralina, escitalopram
-- RECEITA_RETIDA: Se for receita de antibiótico (amoxicilina, azitromicina, cefalexina, ciprofloxacino, levofloxacino, etc.) ou outros medicamentos com tarja vermelha que precisam de retenção de receita
-- RECEITA_SIMPLES: Se for receita médica comum sem necessidade de retenção
-- PRODUTO: Se for foto de embalagem, caixa ou medicamento (não é receita)
-
-FORMATO DE RESPOSTA OBRIGATÓRIO:
-[TIPO_DOCUMENTO: RECEITA_CONTROLADA|RECEITA_RETIDA|RECEITA_SIMPLES|PRODUTO]
-
-1. [Nome do medicamento] [dosagem]
-2. [Nome do medicamento] [dosagem]
-3. ...
-
-EXEMPLO CORRETO (receita controlada):
-[TIPO_DOCUMENTO: RECEITA_CONTROLADA]
-
-1. Clonazepam 2mg
-2. Alprazolam 0,5mg
-
-EXEMPLO CORRETO (receita de antibiótico):
-[TIPO_DOCUMENTO: RECEITA_RETIDA]
-
-1. Amoxicilina 500mg
-2. Azitromicina 500mg
-
-EXEMPLO CORRETO (foto de produto):
-[TIPO_DOCUMENTO: PRODUTO]
-
-1. Paracetamol 750mg
-
-${imageContext ? `Contexto adicional do cliente: ${imageContext}` : ''}`;
+          // Gerar prompt dinâmico baseado no segmento da loja
+          const systemPrompt = buildVisionPrompt(storeSegment, imageContext);
 
           // Chamar GPT-4o Vision
           const visionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -916,7 +1016,9 @@ ${imageContext ? `Contexto adicional do cliente: ${imageContext}` : ''}`;
             console.log(`[product-search-agent] ⚠️ Tipo de documento não identificado, usando padrão: PRODUTO`);
           }
           
-          const isControlledPrescription = documentType === 'RECEITA_CONTROLADA' || documentType === 'RECEITA_RETIDA';
+          // Só marcar como receita controlada se for segmento de saúde
+          const isControlledPrescription = isHealthSegment(storeSegment) && 
+            (documentType === 'RECEITA_CONTROLADA' || documentType === 'RECEITA_RETIDA');
 
           // Registrar uso de tokens
           const imageTokens = calculateImageTokens('high');

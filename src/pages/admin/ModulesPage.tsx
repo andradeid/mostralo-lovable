@@ -12,7 +12,7 @@ import {
   Truck, Users, Printer, Tag, Megaphone, Calendar, ExternalLink, 
   Image, Search, Filter, CheckCircle, XCircle, Sparkles, Shield, Zap,
   Utensils, Settings2, Monitor, Wallet, Code, QrCode, MessageSquare, Target, Tablet,
-  DollarSign, TrendingUp, AlertTriangle, Link2, FileText, Layers, Pencil
+  DollarSign, TrendingUp, AlertTriangle, Link2, FileText, Layers, Pencil, Bot
 } from 'lucide-react';
 import { ModulePriceEditModal } from '@/components/proposals/ModulePriceEditModal';
 
@@ -20,7 +20,7 @@ import { ModulePriceEditModal } from '@/components/proposals/ModulePriceEditModa
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Menu, ShoppingCart, BarChart3, Palette, MessageCircle,
   Truck, Printer, Tag, Megaphone, Calendar, ExternalLink,
-  Users, Image, Package, Utensils, Monitor, Wallet, Code, QrCode, MessageSquare, Target, Tablet
+  Users, Image, Package, Utensils, Monitor, Wallet, Code, QrCode, MessageSquare, Target, Tablet, Bot
 };
 
 // Descrições detalhadas e categorias de cada módulo
@@ -135,6 +135,10 @@ const moduleDetails: Record<string, { description: string; category: 'core' | 'a
   },
   'google_calendar': {
     description: 'Sincronização automática de agendamentos com o Google Agenda dos profissionais. Eventos criados, atualizados e removidos em tempo real conforme os agendamentos são gerenciados no sistema.',
+    category: 'premium'
+  },
+  'intelligent_assistant_v2': {
+    description: 'Assistente virtual com inteligência artificial para WhatsApp. Responde perguntas sobre produtos, estoque e promoções. Analisa fotos de receitas médicas e recomenda produtos. Envia fotos dos produtos automaticamente com preço e link de compra. Usa OpenAI Assistants API com function calling para consultas em tempo real.',
     category: 'premium'
   }
 };

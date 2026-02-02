@@ -282,12 +282,20 @@ serve(async (req) => {
     
     const cachedResult = recentRequests.get(requestKey);
     if (cachedResult && (Date.now() - cachedResult.timestamp) < DEDUP_TTL_MS) {
-      console.log(`[product-search-agent] 🔄 DUPLICATA DETECTADA - retornando resultado cacheado`);
+      console.log(`[product-search-agent] 🔄 DUPLICATA DETECTADA - retornando NO-OP para suprimir resposta`);
       console.log(`[product-search-agent] 📋 Key: ${requestKey}`);
       
-      // Retornar resultado cacheado sem reprocessar (evita enviar imagens duplicadas)
+      // IMPORTANTE: A Evolution/OpenAI pode chamar a tool 2x e gerar 2 respostas no WhatsApp.
+      // Para manter APENAS o "primeiro envio" (fotos + 1 confirmação), a duplicata vira NO-OP:
+      // - não retorna produtos, links nem qualquer dado que incentive nova mensagem
+      // - sinaliza para o prompt suprimir a resposta completamente
       return new Response(JSON.stringify({
-        ...cachedResult.result,
+        success: true,
+        duplicate: true,
+        suppress_reply: true,
+        images_sent: true,
+        customer_name: cachedResult.result?.customer_name ?? null,
+        message: 'duplicate_call_ignored',
         _cached: true,
         _cache_age_ms: Date.now() - cachedResult.timestamp,
       }), {

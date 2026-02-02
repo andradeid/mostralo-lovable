@@ -383,6 +383,8 @@ serve(async (req) => {
     };
 
     // Helper para formatar produto
+    // IMPORTANTE: NÃO incluir image_url aqui - imagens são enviadas via Evolution API
+    // Se incluir URL, o assistente pode vazar ela na resposta de texto
     const formatProduct = (p: any) => ({
       name: p.name,
       price: p.is_on_offer && p.offer_price ? p.offer_price : p.price,
@@ -394,7 +396,7 @@ serve(async (req) => {
       description: p.description,
       category: p.categories?.name || null,
       link: buildProductLink(p.slug),
-      image_url: p.image_url || null,
+      // NÃO incluir image_url - causa vazamento de URL pública na resposta do assistente
     });
 
     // ========================================

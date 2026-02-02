@@ -1,11 +1,31 @@
-// Product Search Agent - v2.0.0
+// Product Search Agent - v2.1.0
 // Edge Function para consultas em tempo real ao banco de produtos
 // Usado pelo Assistente Inteligente v2 via Function Calling da OpenAI
 // Adicionado: Suporte a análise de imagens (AI Vision Plus) + Tracking de uso OpenAI
+// v2.1.0: Adicionado mecanismo de deduplicação para evitar chamadas duplicadas
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { logOpenAIUsage, estimateTokens, calculateImageTokens } from "../_shared/openai-usage.ts";
+
+// ========================================
+// DEDUPLICAÇÃO: Cache em memória para evitar processamento duplicado
+// ========================================
+const recentRequests = new Map<string, { timestamp: number; result: any }>();
+const DEDUP_TTL_MS = 10000; // 10 segundos - considera duplicata se mesma request em 10s
+
+function generateRequestKey(storeId: string, functionName: string, query: string, remoteJid: string): string {
+  return `${storeId}:${functionName}:${query}:${remoteJid}`;
+}
+
+function cleanupExpiredCache() {
+  const now = Date.now();
+  for (const [key, value] of recentRequests.entries()) {
+    if (now - value.timestamp > DEDUP_TTL_MS) {
+      recentRequests.delete(key);
+    }
+  }
+}
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -251,6 +271,31 @@ serve(async (req) => {
     const args = parsedArgs;
 
     console.log(`[product-search-agent] Função extraída: ${functionName}, Args:`, args);
+
+    // ========================================
+    // DEDUPLICAÇÃO: Verificar se é requisição duplicada
+    // ========================================
+    cleanupExpiredCache(); // Limpar cache expirado
+    
+    const queryForDedup = args.query || args.product_name || args.slug || 'no-query';
+    const requestKey = generateRequestKey(storeId, functionName || 'unknown', queryForDedup, remoteJid || 'no-jid');
+    
+    const cachedResult = recentRequests.get(requestKey);
+    if (cachedResult && (Date.now() - cachedResult.timestamp) < DEDUP_TTL_MS) {
+      console.log(`[product-search-agent] 🔄 DUPLICATA DETECTADA - retornando resultado cacheado`);
+      console.log(`[product-search-agent] 📋 Key: ${requestKey}`);
+      
+      // Retornar resultado cacheado sem reprocessar (evita enviar imagens duplicadas)
+      return new Response(JSON.stringify({
+        ...cachedResult.result,
+        _cached: true,
+        _cache_age_ms: Date.now() - cachedResult.timestamp,
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    console.log(`[product-search-agent] ✅ Requisição nova - processando (key: ${requestKey})`);
 
     // Buscar dados da loja para construir links
     const { data: store, error: storeError } = await supabase
@@ -1438,6 +1483,17 @@ serve(async (req) => {
 
     const elapsedMs = Date.now() - startTime;
     console.log(`[product-search-agent] ✅ Resultado (${elapsedMs}ms):`, JSON.stringify(result).slice(0, 500));
+
+    // ========================================
+    // DEDUPLICAÇÃO: Salvar resultado no cache
+    // ========================================
+    const queryForCache = args?.query || args?.product_name || args?.slug || 'no-query';
+    const cacheKey = generateRequestKey(storeId, functionName || 'unknown', queryForCache, remoteJid || 'no-jid');
+    recentRequests.set(cacheKey, {
+      timestamp: Date.now(),
+      result: result,
+    });
+    console.log(`[product-search-agent] 💾 Resultado cacheado para: ${cacheKey}`);
 
     // Log de uso para todas as chamadas (exceto analyze_image que já faz log próprio)
     if (functionName !== 'analyze_image' && result && !result.error) {

@@ -1,39 +1,86 @@
-# Plano: Corrigir Duplicação de Mensagens e Captura de Nome ✅ IMPLEMENTADO
 
-## Alterações Realizadas
+# Plano: Adaptar AI Vision v2 para Múltiplos Nichos
 
-### 1. ✅ Extração de pushName de functionArguments
-O `pushName` agora é extraído PRIMEIRO dos argumentos da função (`parsedArgs?.pushName`) antes de tentar buscar no banco. Isso resolve o problema `[Nome]`.
+## ✅ IMPLEMENTADO
 
-### 2. ✅ Anti-Duplicação de Mensagens
-Quando `imagesSentCount > 0`, o resultado agora NÃO inclui a lista `products[]`, apenas:
-- `images_sent: true`
-- `customer_name`
-- `suggested_response`
-- `message` explicativo
+### Mudanças Realizadas
 
-Isso impede que o assistente repita as informações.
+#### 1. Função `buildVisionPrompt(segment, imageContext)`
+Criada função que retorna prompts especializados por segmento:
+- `saude-e-bem-estar` → Medicamentos + classificação de receitas (controlada/retida/simples)
+- `alimentacao-e-bebidas` → Pratos, bebidas, ingredientes, cardápios
+- `suplementos` → Suplementos, vitaminas, proteínas, pré-treinos
+- `pet-shop` → Rações, petiscos, acessórios para pets
+- `moda-e-vestuario` → Roupas, calçados, acessórios
+- `generico` → Identificação genérica (fallback)
 
-### 3. ✅ Regra Anti-Duplicação Reforçada no Prompt
-O prompt do assistente agora tem instruções claras e enfáticas para NÃO repetir informações quando receber `images_sent: true`.
+#### 2. Mapeamento de Segmentos Alternativos
+```typescript
+const segmentMapping = {
+  'farmacia': 'saude-e-bem-estar',
+  'drogaria': 'saude-e-bem-estar',
+  'restaurante': 'alimentacao-e-bebidas',
+  'lanchonete': 'alimentacao-e-bebidas',
+  'pizzaria': 'alimentacao-e-bebidas',
+  'pet': 'pet-shop',
+  'animais': 'pet-shop',
+  'fitness': 'suplementos',
+  'academia': 'suplementos',
+  'moda': 'moda-e-vestuario',
+  'roupas': 'moda-e-vestuario',
+  // ...
+};
+```
 
-## Arquivos Modificados
+#### 3. Lógica Condicional de Receitas Controladas
+Aviso de receita controlada só aparece para segmentos de saúde:
+```typescript
+const isControlledPrescription = isHealthSegment(storeSegment) && 
+  (documentType === 'RECEITA_CONTROLADA' || documentType === 'RECEITA_RETIDA');
+```
 
-| Arquivo | Status |
-|---------|--------|
-| `supabase/functions/product-search-agent/index.ts` | ✅ Atualizado |
-| `supabase/functions/openai-bot-sync/index.ts` | ✅ Atualizado |
+### Arquivo Modificado
+- `supabase/functions/product-search-agent/index.ts`
 
-## Deploy
+---
 
-✅ Edge Functions deployadas com sucesso.
+## Resultado Esperado
 
-## Próximo Passo
+### Farmácia (saude-e-bem-estar)
+Cliente envia receita médica:
+```
+⚠️ Receita controlada detectada
 
-**Testar** enviando uma mensagem de texto pedindo produto (ex: "tem paracetamol?") para verificar:
-1. Se o nome aparece corretamente (ex: "Olá Andrade!")
-2. Se a duplicação parou (apenas foto + confirmação curta)
+📦 *Clonazepam 2mg*
+💰 R$ 12,90
+👉 link
+```
 
-## Sobre a Imagem Errada
+### Loja de Suplementos
+Cliente envia foto de Whey Protein:
+```
+📦 *Whey Protein Gold Standard*
+💰 R$ 289,90
+👉 link
+```
 
-O produto "Paracetamol+codeina 500+30mg" está com a imagem de "Cloridrato de fexofenadina" cadastrada incorretamente no banco de dados da Drogaria Farma Bella. **Isso é um erro de dados**, não de código - deve ser corrigido pelo painel administrativo.
+### Pet Shop
+Cliente envia foto de ração:
+```
+📦 *Ração Premium Cães Adultos 15kg*
+💰 R$ 189,90
+👉 link
+```
+
+### Restaurante
+Cliente envia foto de prato:
+```
+📦 *Pizza Margherita Grande*
+💰 R$ 45,90
+👉 link
+```
+
+---
+
+## Risco
+**Baixo** - Farmácias continuam funcionando exatamente como antes. Outros nichos ganham prompts especializados.

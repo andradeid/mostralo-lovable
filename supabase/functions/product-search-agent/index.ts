@@ -1,31 +1,11 @@
-// Product Search Agent - v2.1.0
+// Product Search Agent - v2.0.0
 // Edge Function para consultas em tempo real ao banco de produtos
 // Usado pelo Assistente Inteligente v2 via Function Calling da OpenAI
 // Adicionado: Suporte a análise de imagens (AI Vision Plus) + Tracking de uso OpenAI
-// v2.1.0: Adicionado mecanismo de deduplicação para evitar chamadas duplicadas
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { logOpenAIUsage, estimateTokens, calculateImageTokens } from "../_shared/openai-usage.ts";
-
-// ========================================
-// DEDUPLICAÇÃO: Cache em memória para evitar processamento duplicado
-// ========================================
-const recentRequests = new Map<string, { timestamp: number; result: any }>();
-const DEDUP_TTL_MS = 10000; // 10 segundos - considera duplicata se mesma request em 10s
-
-function generateRequestKey(storeId: string, functionName: string, query: string, remoteJid: string): string {
-  return `${storeId}:${functionName}:${query}:${remoteJid}`;
-}
-
-function cleanupExpiredCache() {
-  const now = Date.now();
-  for (const [key, value] of recentRequests.entries()) {
-    if (now - value.timestamp > DEDUP_TTL_MS) {
-      recentRequests.delete(key);
-    }
-  }
-}
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -205,39 +185,37 @@ serve(async (req) => {
     // Log do payload recebido para debug
     console.log(`[product-search-agent] 📦 Payload processado:`, JSON.stringify(body, null, 2));
     
-    // Extrair argumentos primeiro para obter dados de sessão WhatsApp
-    // Evolution API passa remoteJid/pushName DENTRO de functionArguments
-    const rawArgs = 
-      body.functionArguments ||
-      body.args || 
-      body.arguments ||
-      body.parameters ||
-      body.input ||
-      body.function_call?.arguments ||
-      body.tool_calls?.[0]?.function?.arguments ||
-      {};
+    // Extrair dados da sessão WhatsApp para envio de imagens
+    // Suporta múltiplos formatos da Evolution API
+    let instanceName = 
+      body.instanceName ||
+      body.instance?.instanceName ||
+      (typeof body.instance === 'string' ? body.instance : null) ||
+      body.key?.instance ||
+      body.serverUrl?.split('/')?.pop() ||
+      null;
     
-    // Se args for string (JSON), parsear
-    const parsedArgs = typeof rawArgs === 'string' ? JSON.parse(rawArgs) : rawArgs;
+    // Tentar extrair do evento se disponível
+    if (!instanceName && body.event) {
+      const eventParts = body.event?.split('/');
+      if (eventParts?.length > 0) {
+        instanceName = eventParts[0];
+      }
+    }
     
-    // Extrair remoteJid - PRIORIDADE: dentro de functionArguments
-    let remoteJid = 
-      parsedArgs?.remoteJid ||
+    const remoteJid = 
       body.remoteJid || 
       body.key?.remoteJid || 
       body.data?.key?.remoteJid ||
       body.sender ||
       null;
     
-    // instanceName pode vir de vários lugares - será buscado do banco se não encontrado
-    let instanceName = 
-      body.instanceName ||
-      body.instance?.instanceName ||
-      (typeof body.instance === 'string' ? body.instance : null) ||
-      body.key?.instance ||
-      null;
-    
-    console.log(`[product-search-agent] 📱 Sessão inicial: instanceName=${instanceName}, remoteJid=${remoteJid}`);
+    if (instanceName && remoteJid) {
+      console.log(`[product-search-agent] 📱 Sessão WhatsApp detectada: ${instanceName} -> ${remoteJid}`);
+    } else {
+      console.log(`[product-search-agent] ⚠️ Dados de sessão WhatsApp não encontrados. instanceName: ${instanceName}, remoteJid: ${remoteJid}`);
+      console.log(`[product-search-agent] 🔍 Campos disponíveis no body:`, Object.keys(body));
+    }
     
     if (!storeId && body.storeId) {
       storeId = body.storeId;
@@ -267,43 +245,28 @@ serve(async (req) => {
       body.action ||
       body.method;
     
-    // Usar args já parseados anteriormente
-    const args = parsedArgs;
+    // Extrair argumentos - suporta múltiplos formatos
+    let args = 
+      body.functionArguments ||  // Evolution API format
+      body.args || 
+      body.arguments ||
+      body.parameters ||
+      body.input ||
+      body.function_call?.arguments ||
+      body.tool_calls?.[0]?.function?.arguments ||
+      {};
+    
+    // Se args for string (JSON), parsear
+    if (typeof args === 'string') {
+      try {
+        args = JSON.parse(args);
+      } catch (e) {
+        console.warn('[product-search-agent] Erro ao parsear args:', args);
+        args = {};
+      }
+    }
 
     console.log(`[product-search-agent] Função extraída: ${functionName}, Args:`, args);
-
-    // ========================================
-    // DEDUPLICAÇÃO: Verificar se é requisição duplicada
-    // ========================================
-    cleanupExpiredCache(); // Limpar cache expirado
-    
-    const queryForDedup = args.query || args.product_name || args.slug || 'no-query';
-    const requestKey = generateRequestKey(storeId, functionName || 'unknown', queryForDedup, remoteJid || 'no-jid');
-    
-    const cachedResult = recentRequests.get(requestKey);
-    if (cachedResult && (Date.now() - cachedResult.timestamp) < DEDUP_TTL_MS) {
-      console.log(`[product-search-agent] 🔄 DUPLICATA DETECTADA - retornando NO-OP para suprimir resposta`);
-      console.log(`[product-search-agent] 📋 Key: ${requestKey}`);
-      
-      // IMPORTANTE: A Evolution/OpenAI pode chamar a tool 2x e gerar 2 respostas no WhatsApp.
-      // Para manter APENAS o "primeiro envio" (fotos + 1 confirmação), a duplicata vira NO-OP:
-      // - não retorna produtos, links nem qualquer dado que incentive nova mensagem
-      // - sinaliza para o prompt suprimir a resposta completamente
-      return new Response(JSON.stringify({
-        success: true,
-        duplicate: true,
-        suppress_reply: true,
-        images_sent: true,
-        customer_name: cachedResult.result?.customer_name ?? null,
-        message: 'duplicate_call_ignored',
-        _cached: true,
-        _cache_age_ms: Date.now() - cachedResult.timestamp,
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-    
-    console.log(`[product-search-agent] ✅ Requisição nova - processando (key: ${requestKey})`);
 
     // Buscar dados da loja para construir links
     const { data: store, error: storeError } = await supabase
@@ -320,57 +283,6 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-
-    // Se não temos instanceName mas temos remoteJid, buscar da instância WhatsApp da loja
-    if (!instanceName && remoteJid && storeId) {
-      console.log(`[product-search-agent] 🔍 Buscando instanceName para loja ${storeId}`);
-      const { data: whatsappInstance } = await supabase
-        .from('whatsapp_instances')
-        .select('instance_name')
-        .eq('store_id', storeId)
-        .eq('status', 'connected')
-        .single();
-      
-      if (whatsappInstance?.instance_name) {
-        instanceName = whatsappInstance.instance_name;
-        console.log(`[product-search-agent] ✅ instanceName encontrado: ${instanceName}`);
-      }
-    }
-
-    // ========================================
-    // BUSCAR NOME DO CLIENTE - PRIORIDADE: pushName de functionArguments
-    // ========================================
-    // PRIMEIRO: Tentar extrair pushName diretamente dos argumentos da função
-    // A Evolution API envia o pushName dentro de functionArguments
-    let customerName: string | null = parsedArgs?.pushName || null;
-    
-    console.log(`[product-search-agent] 👤 pushName de functionArguments: ${customerName || 'não encontrado'}`);
-    
-    // FALLBACK: Se não veio no payload, buscar na tabela whatsapp_contacts
-    if (!customerName && remoteJid) {
-      const phone = remoteJid.replace(/@.*$/, '');
-      console.log(`[product-search-agent] 🔍 Buscando nome do cliente na tabela para telefone: ${phone}`);
-      
-      // Usar variantes de telefone para busca tolerante
-      const { getPhoneVariants } = await import("../_shared/phoneUtils.ts");
-      const phoneVariants = getPhoneVariants(phone);
-      
-      const { data: contact } = await supabase
-        .from('whatsapp_contacts')
-        .select('push_name, name')
-        .in('phone_number', phoneVariants)
-        .limit(1)
-        .maybeSingle();
-      
-      if (contact) {
-        customerName = contact.push_name || contact.name || null;
-        console.log(`[product-search-agent] ✅ Nome encontrado no banco: ${customerName}`);
-      } else {
-        console.log(`[product-search-agent] ⚠️ Cliente não encontrado na tabela whatsapp_contacts`);
-      }
-    }
-    
-    console.log(`[product-search-agent] 👤 Nome final do cliente: ${customerName || 'não disponível'}`);
 
     // Determinar base URL para links
     const baseUrl = store.custom_domain && store.custom_domain_verified
@@ -391,8 +303,6 @@ serve(async (req) => {
     };
 
     // Helper para formatar produto
-    // IMPORTANTE: NÃO incluir image_url aqui - imagens são enviadas via Evolution API
-    // Se incluir URL, o assistente pode vazar ela na resposta de texto
     const formatProduct = (p: any) => ({
       name: p.name,
       price: p.is_on_offer && p.offer_price ? p.offer_price : p.price,
@@ -404,7 +314,7 @@ serve(async (req) => {
       description: p.description,
       category: p.categories?.name || null,
       link: buildProductLink(p.slug),
-      // NÃO incluir image_url - causa vazamento de URL pública na resposta do assistente
+      image_url: p.image_url || null,
     });
 
     // ========================================
@@ -466,38 +376,33 @@ serve(async (req) => {
       }
     };
 
-    // Helper para enviar fotos de produtos (máximo 3) - retorna número de imagens enviadas
-    const sendProductImages = async (products: any[]): Promise<number> => {
-      if (!instanceName || !remoteJid) return 0;
+    // Helper para enviar fotos de produtos (máximo 3)
+    const sendProductImages = async (products: any[]) => {
+      if (!instanceName || !remoteJid) return;
       
       const productsWithImages = products
         .filter(p => p.image_url)
         .slice(0, 3); // Máximo 3 fotos
       
-      if (productsWithImages.length === 0) return 0;
+      if (productsWithImages.length === 0) return;
       
       console.log(`[product-search-agent] 📷 Enviando ${productsWithImages.length} foto(s) de produtos`);
       
-      let sentCount = 0;
       for (const product of productsWithImages) {
         const price = product.is_on_offer && product.offer_price 
           ? product.offer_price 
           : product.price;
         
-        const sent = await sendProductImageWithCaption({
+        await sendProductImageWithCaption({
           name: product.name,
           price: price,
           link: buildProductLink(product.slug),
           image_url: product.image_url,
         });
         
-        if (sent) sentCount++;
-        
         // Delay entre envios para manter ordem correta
         await new Promise(r => setTimeout(r, 300));
       }
-      
-      return sentCount;
     };
 
     let result: any;
@@ -531,39 +436,15 @@ serve(async (req) => {
           result = { products: [], message: 'Erro ao buscar produtos' };
         } else {
           // Enviar fotos dos produtos via WhatsApp (se sessão disponível)
-          let imagesSentCount = 0;
           if (products && products.length > 0) {
-            imagesSentCount = await sendProductImages(products);
+            await sendProductImages(products);
           }
           
-          // Construir sugestão de resposta para evitar duplicação
-          const suggestedResponse = imagesSentCount > 0
-            ? (customerName 
-                ? `Olá ${customerName}! Encontrei essas opções pra você 😊`
-                : `Encontrei essas opções pra você 😊`)
-            : null;
-          
-          // ANTI-DUPLICAÇÃO: Se imagens foram enviadas, NÃO incluir lista de produtos
-          // Isso evita que o assistente repita as informações já presentes nas legendas das fotos
-          if (imagesSentCount > 0) {
-            result = {
-              images_sent: true,
-              images_sent_count: imagesSentCount,
-              customer_name: customerName,
-              suggested_response: suggestedResponse,
-              message: `${imagesSentCount} produto(s) encontrado(s) e enviado(s) com foto. As informações já foram enviadas nas legendas.`,
-              // NÃO incluir products[] aqui para evitar que o assistente liste novamente
-            };
-          } else {
-            // Se não enviou imagens (produtos sem foto), inclui lista para o assistente responder
-            result = {
-              products: (products || []).map(formatProduct),
-              total: products?.length || 0,
-              query,
-              images_sent: false,
-              customer_name: customerName,
-            };
-          }
+          result = {
+            products: (products || []).map(formatProduct),
+            total: products?.length || 0,
+            query,
+          };
         }
         break;
       }
@@ -591,38 +472,17 @@ serve(async (req) => {
           };
         } else {
           // Enviar fotos dos produtos via WhatsApp (se sessão disponível)
-          const imagesSentCount = await sendProductImages(products);
+          await sendProductImages(products);
           
-          // Construir sugestão de resposta para evitar duplicação
-          const suggestedResponse = imagesSentCount > 0
-            ? (customerName 
-                ? `Olá ${customerName}! Encontrei essas opções pra você 😊`
-                : `Encontrei essas opções pra você 😊`)
-            : null;
-          
-          // ANTI-DUPLICAÇÃO: Se imagens foram enviadas, NÃO incluir lista de produtos
-          if (imagesSentCount > 0) {
-            result = {
-              found: true,
-              images_sent: true,
-              images_sent_count: imagesSentCount,
-              customer_name: customerName,
-              suggested_response: suggestedResponse,
-              message: `${imagesSentCount} produto(s) encontrado(s) e enviado(s) com foto. As informações já foram enviadas nas legendas.`,
-            };
-          } else {
-            result = {
-              found: true,
-              products: products.map(p => ({
-                name: p.name,
-                in_stock: p.track_stock ? (p.stock_quantity || 0) > 0 : true,
-                stock_quantity: p.track_stock ? p.stock_quantity : 'Não controlado',
-                link: buildProductLink(p.slug),
-              })),
-              images_sent: false,
-              customer_name: customerName,
-            };
-          }
+          result = {
+            found: true,
+            products: products.map(p => ({
+              name: p.name,
+              in_stock: p.track_stock ? (p.stock_quantity || 0) > 0 : true,
+              stock_quantity: p.track_stock ? p.stock_quantity : 'Não controlado',
+              link: buildProductLink(p.slug),
+            })),
+          };
         }
         break;
       }
@@ -703,34 +563,17 @@ serve(async (req) => {
           result = { products: [], message: 'Erro ao buscar promoções' };
         } else {
           // Enviar fotos dos produtos via WhatsApp (se sessão disponível)
-          let imagesSentCount = 0;
           if (products && products.length > 0) {
-            imagesSentCount = await sendProductImages(products);
+            await sendProductImages(products);
           }
           
-          // ANTI-DUPLICAÇÃO
-          if (imagesSentCount > 0) {
-            const suggestedResponse = customerName 
-              ? `Olá ${customerName}! Essas são as promoções do momento 🔥`
-              : `Essas são as promoções do momento 🔥`;
-            result = {
-              images_sent: true,
-              images_sent_count: imagesSentCount,
-              customer_name: customerName,
-              suggested_response: suggestedResponse,
-              message: `${imagesSentCount} promoção(ões) enviada(s) com foto.`,
-            };
-          } else {
-            result = {
-              products: (products || []).map(formatProduct),
-              total: products?.length || 0,
-              images_sent: false,
-              customer_name: customerName,
-              message: products?.length 
-                ? `${products.length} produto(s) em promoção` 
-                : 'Nenhuma promoção disponível no momento',
-            };
-          }
+          result = {
+            products: (products || []).map(formatProduct),
+            total: products?.length || 0,
+            message: products?.length 
+              ? `${products.length} produto(s) em promoção` 
+              : 'Nenhuma promoção disponível no momento',
+          };
         }
         break;
       }
@@ -759,34 +602,17 @@ serve(async (req) => {
           result = { products: [], message: 'Erro ao buscar recomendações' };
         } else {
           // Enviar fotos dos produtos via WhatsApp (se sessão disponível)
-          let imagesSentCount = 0;
           if (products && products.length > 0) {
-            imagesSentCount = await sendProductImages(products);
+            await sendProductImages(products);
           }
           
-          // ANTI-DUPLICAÇÃO
-          if (imagesSentCount > 0) {
-            const suggestedResponse = customerName 
-              ? `Olá ${customerName}! Separei essas recomendações pra você 😊`
-              : `Separei essas recomendações pra você 😊`;
-            result = {
-              images_sent: true,
-              images_sent_count: imagesSentCount,
-              customer_name: customerName,
-              suggested_response: suggestedResponse,
-              message: `${imagesSentCount} recomendação(ões) enviada(s) com foto.`,
-            };
-          } else {
-            result = {
-              products: (products || []).map(formatProduct),
-              total: products?.length || 0,
-              images_sent: false,
-              customer_name: customerName,
-              message: products?.length 
-                ? `${products.length} produto(s) recomendado(s)` 
-                : 'Nenhum produto em destaque no momento',
-            };
-          }
+          result = {
+            products: (products || []).map(formatProduct),
+            total: products?.length || 0,
+            message: products?.length 
+              ? `${products.length} produto(s) recomendado(s)` 
+              : 'Nenhum produto em destaque no momento',
+          };
         }
         break;
       }
@@ -1493,17 +1319,6 @@ serve(async (req) => {
 
     const elapsedMs = Date.now() - startTime;
     console.log(`[product-search-agent] ✅ Resultado (${elapsedMs}ms):`, JSON.stringify(result).slice(0, 500));
-
-    // ========================================
-    // DEDUPLICAÇÃO: Salvar resultado no cache
-    // ========================================
-    const queryForCache = args?.query || args?.product_name || args?.slug || 'no-query';
-    const cacheKey = generateRequestKey(storeId, functionName || 'unknown', queryForCache, remoteJid || 'no-jid');
-    recentRequests.set(cacheKey, {
-      timestamp: Date.now(),
-      result: result,
-    });
-    console.log(`[product-search-agent] 💾 Resultado cacheado para: ${cacheKey}`);
 
     // Log de uso para todas as chamadas (exceto analyze_image que já faz log próprio)
     if (functionName !== 'analyze_image' && result && !result.error) {

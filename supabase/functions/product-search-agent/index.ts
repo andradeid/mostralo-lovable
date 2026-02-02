@@ -185,37 +185,39 @@ serve(async (req) => {
     // Log do payload recebido para debug
     console.log(`[product-search-agent] 📦 Payload processado:`, JSON.stringify(body, null, 2));
     
-    // Extrair dados da sessão WhatsApp para envio de imagens
-    // Suporta múltiplos formatos da Evolution API
-    let instanceName = 
-      body.instanceName ||
-      body.instance?.instanceName ||
-      (typeof body.instance === 'string' ? body.instance : null) ||
-      body.key?.instance ||
-      body.serverUrl?.split('/')?.pop() ||
-      null;
+    // Extrair argumentos primeiro para obter dados de sessão WhatsApp
+    // Evolution API passa remoteJid/pushName DENTRO de functionArguments
+    const rawArgs = 
+      body.functionArguments ||
+      body.args || 
+      body.arguments ||
+      body.parameters ||
+      body.input ||
+      body.function_call?.arguments ||
+      body.tool_calls?.[0]?.function?.arguments ||
+      {};
     
-    // Tentar extrair do evento se disponível
-    if (!instanceName && body.event) {
-      const eventParts = body.event?.split('/');
-      if (eventParts?.length > 0) {
-        instanceName = eventParts[0];
-      }
-    }
+    // Se args for string (JSON), parsear
+    const parsedArgs = typeof rawArgs === 'string' ? JSON.parse(rawArgs) : rawArgs;
     
-    const remoteJid = 
+    // Extrair remoteJid - PRIORIDADE: dentro de functionArguments
+    let remoteJid = 
+      parsedArgs?.remoteJid ||
       body.remoteJid || 
       body.key?.remoteJid || 
       body.data?.key?.remoteJid ||
       body.sender ||
       null;
     
-    if (instanceName && remoteJid) {
-      console.log(`[product-search-agent] 📱 Sessão WhatsApp detectada: ${instanceName} -> ${remoteJid}`);
-    } else {
-      console.log(`[product-search-agent] ⚠️ Dados de sessão WhatsApp não encontrados. instanceName: ${instanceName}, remoteJid: ${remoteJid}`);
-      console.log(`[product-search-agent] 🔍 Campos disponíveis no body:`, Object.keys(body));
-    }
+    // instanceName pode vir de vários lugares - será buscado do banco se não encontrado
+    let instanceName = 
+      body.instanceName ||
+      body.instance?.instanceName ||
+      (typeof body.instance === 'string' ? body.instance : null) ||
+      body.key?.instance ||
+      null;
+    
+    console.log(`[product-search-agent] 📱 Sessão inicial: instanceName=${instanceName}, remoteJid=${remoteJid}`);
     
     if (!storeId && body.storeId) {
       storeId = body.storeId;
@@ -245,26 +247,8 @@ serve(async (req) => {
       body.action ||
       body.method;
     
-    // Extrair argumentos - suporta múltiplos formatos
-    let args = 
-      body.functionArguments ||  // Evolution API format
-      body.args || 
-      body.arguments ||
-      body.parameters ||
-      body.input ||
-      body.function_call?.arguments ||
-      body.tool_calls?.[0]?.function?.arguments ||
-      {};
-    
-    // Se args for string (JSON), parsear
-    if (typeof args === 'string') {
-      try {
-        args = JSON.parse(args);
-      } catch (e) {
-        console.warn('[product-search-agent] Erro ao parsear args:', args);
-        args = {};
-      }
-    }
+    // Usar args já parseados anteriormente
+    const args = parsedArgs;
 
     console.log(`[product-search-agent] Função extraída: ${functionName}, Args:`, args);
 
@@ -282,6 +266,22 @@ serve(async (req) => {
         status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    }
+
+    // Se não temos instanceName mas temos remoteJid, buscar da instância WhatsApp da loja
+    if (!instanceName && remoteJid && storeId) {
+      console.log(`[product-search-agent] 🔍 Buscando instanceName para loja ${storeId}`);
+      const { data: whatsappInstance } = await supabase
+        .from('whatsapp_instances')
+        .select('instance_name')
+        .eq('store_id', storeId)
+        .eq('status', 'connected')
+        .single();
+      
+      if (whatsappInstance?.instance_name) {
+        instanceName = whatsappInstance.instance_name;
+        console.log(`[product-search-agent] ✅ instanceName encontrado: ${instanceName}`);
+      }
     }
 
     // Determinar base URL para links

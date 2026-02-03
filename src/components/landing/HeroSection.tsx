@@ -15,7 +15,15 @@ import {
   Zap
 } from 'lucide-react';
 
-export const HeroSection = () => {
+interface HeroSectionProps {
+  secondaryButtonText?: string;
+  secondaryButtonLink?: string;
+}
+
+export const HeroSection = ({ 
+  secondaryButtonText = "Ver Demonstração",
+  secondaryButtonLink = "/users-demo" 
+}: HeroSectionProps) => {
   return (
     <section className="relative py-12 md:py-20 lg:py-24 w-full overflow-hidden">
       {/* Background Tecnológico */}
@@ -112,10 +120,10 @@ export const HeroSection = () => {
                   Testar Grátis
                 </Button>
               </Link>
-              <Link to="/users-demo">
+              <Link to={secondaryButtonLink}>
                 <Button variant="outline" size="lg" className="w-full sm:w-auto text-lg h-14 px-8 border-zinc-600 text-white hover:bg-zinc-800">
                   <MessageSquare className="mr-2 h-5 w-5" />
-                  Ver Demonstração
+                  {secondaryButtonText}
                 </Button>
               </Link>
             </div>

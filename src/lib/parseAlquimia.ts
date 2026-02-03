@@ -279,6 +279,18 @@ function compactAlquimiaRow(row: string[]): string[] {
 }
 
 /**
+ * Limpa header removendo caracteres especiais, BOM e acentos
+ */
+function cleanHeader(header: string): string {
+  return header
+    .replace(/[\u0000-\u001F\u007F-\u009F\uFEFF]/g, '') // Remove control chars e BOM
+    .replace(/['"]/g, '') // Remove aspas
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove acentos
+    .toLowerCase()
+    .trim();
+}
+
+/**
  * Encontra índices das colunas no novo formato
  * IMPORTANTE: CODIGO e EAN NÃO devem ser usados como nome do produto
  */
@@ -295,40 +307,62 @@ function findColumnIndices(headers: string[]): Record<string, number> {
     estoque: -1,
   };
   
-  headers.forEach((header, index) => {
-    const h = header.toLowerCase().trim();
-    
+  // Limpar todos os headers
+  const cleanedHeaders = headers.map(h => cleanHeader(h || ''));
+  
+  console.log('[Alquimia] Headers originais:', headers);
+  console.log('[Alquimia] Headers limpos:', cleanedHeaders);
+  
+  cleanedHeaders.forEach((h, index) => {
     // CODIGO e EAN são identificadores, NÃO nome do produto
-    if (h === 'codigo' || h === 'código' || h === 'cod' || h === 'cod.') {
+    if (h === 'codigo' || h === 'cod' || h === 'cod.') {
       indices.codigo = index;
     } else if (h === 'ean' || h === 'ean13' || h === 'gtin' || h === 'barras' || h === 'codigo_barras') {
       indices.ean = index;
-    } else if (h === 'descricao' || h === 'descrição' || h === 'nome' || h === 'nome do produto' || h === 'produto' || h === 'desc') {
-      // Só atribuir nome se ainda não foi atribuído (evitar sobrescrever)
+    } else if (h === 'descricao' || h === 'nome' || h === 'nome do produto' || h === 'produto' || h === 'desc') {
       if (indices.nome === -1) {
         indices.nome = index;
       }
-    } else if (h === 'apresentacao' || h === 'apresentação' || h === 'apres' || h === 'unidade') {
+    } else if (h === 'apresentacao' || h === 'apres' || h === 'unidade') {
       indices.apresentacao = index;
-    } else if (h === 'pro_nomelaboratorio' || h === 'laboratorio' || h === 'laboratório' || h === 'fabricante' || h === 'lab') {
+    } else if (h === 'pro_nomelaboratorio' || h === 'laboratorio' || h === 'fabricante' || h === 'lab') {
       indices.laboratorio = index;
-    } else if (h === 'classe' || h === 'cla' || h === 'cla.' || h === 'classificacao' || h === 'classificação' || h === 'categoria' || h === 'grupo') {
+    } else if (h === 'classe' || h === 'cla' || h === 'cla.' || h === 'classificacao' || h === 'categoria' || h === 'grupo') {
       indices.classe = index;
-    } else if (h === 'custo' || h === 'preco_custo' || h === 'preço_custo' || h === 'p_custo' || h === 'vlr_custo') {
+    } else if (h === 'custo' || h === 'preco_custo' || h === 'p_custo' || h === 'vlr_custo') {
       indices.custo = index;
-    } else if (h === 'venda' || h === 'preco' || h === 'preço' || h === 'preco_venda' || h === 'preço_venda' || h === 'p_venda' || h === 'vlr_venda' || h === 'valor') {
+    } else if (h === 'venda' || h === 'preco' || h === 'preco_venda' || h === 'p_venda' || h === 'vlr_venda' || h === 'valor') {
       indices.venda = index;
     } else if (h === 'estoque' || h === 'qtde' || h === 'quantidade' || h === 'qtd' || h === 'saldo' || h === 'qt') {
       indices.estoque = index;
     }
   });
   
-  console.log('[Alquimia] Mapeamento de colunas:', {
-    codigo: headers[indices.codigo] || '(não encontrado)',
-    ean: headers[indices.ean] || '(não encontrado)',
-    nome: headers[indices.nome] || '(não encontrado)',
-    venda: headers[indices.venda] || '(não encontrado)',
-    estoque: headers[indices.estoque] || '(não encontrado)',
+  // FALLBACK: Se não encontrou colunas essenciais, usar posição padrão Alquimia
+  // Formato: CODIGO;EAN;DESCRICAO;APRESENTACAO;PRO_NOMELABORATORIO;CLASSE;CUSTO;VENDA;ESTOQUE
+  const essentialsMissing = indices.nome === -1 || indices.venda === -1;
+  
+  if (essentialsMissing && headers.length >= 9) {
+    console.log('[Alquimia] Colunas essenciais não encontradas, usando fallback por posição');
+    
+    // Verificar se parece formato Alquimia padrão (9 colunas)
+    if (indices.codigo === -1) indices.codigo = 0;
+    if (indices.ean === -1) indices.ean = 1;
+    if (indices.nome === -1) indices.nome = 2;
+    if (indices.apresentacao === -1) indices.apresentacao = 3;
+    if (indices.laboratorio === -1) indices.laboratorio = 4;
+    if (indices.classe === -1) indices.classe = 5;
+    if (indices.custo === -1) indices.custo = 6;
+    if (indices.venda === -1) indices.venda = 7;
+    if (indices.estoque === -1) indices.estoque = 8;
+  }
+  
+  console.log('[Alquimia] Mapeamento final de colunas:', {
+    codigo: `${indices.codigo} (${headers[indices.codigo] || 'N/A'})`,
+    ean: `${indices.ean} (${headers[indices.ean] || 'N/A'})`,
+    nome: `${indices.nome} (${headers[indices.nome] || 'N/A'})`,
+    venda: `${indices.venda} (${headers[indices.venda] || 'N/A'})`,
+    estoque: `${indices.estoque} (${headers[indices.estoque] || 'N/A'})`,
   });
   
   return indices;

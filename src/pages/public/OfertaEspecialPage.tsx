@@ -23,6 +23,7 @@ import { DiagnosticPopup } from "@/components/landing/DiagnosticPopup";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { FeaturesGridSection } from "@/components/landing/FeaturesGridSection";
 import { MainFooter } from "@/components/MainFooter";
+import { FAQSection } from "@/components/promo/FAQSection";
 
 const OfertaEspecialPage = () => {
   const [showLeadForm, setShowLeadForm] = useState(false);
@@ -277,6 +278,10 @@ const OfertaEspecialPage = () => {
           </div>
         </div>
       </section>
+
+      {/* FAQ Section */}
+      <FAQSection />
+
       {/* Lead Form Modal */}
       <Dialog open={showLeadForm} onOpenChange={setShowLeadForm}>
         <DialogContent className="sm:max-w-md p-0 bg-transparent border-none">

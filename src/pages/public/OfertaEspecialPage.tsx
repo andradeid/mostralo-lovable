@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { 
+import { Store } from "lucide-react";
+import {
   Zap, 
   CheckCircle2, 
   ArrowRight, 
@@ -89,6 +91,31 @@ const OfertaEspecialPage = () => {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-zinc-950/90 backdrop-blur-md border-b border-zinc-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
+                <Store className="w-5 h-5 text-white" />
+              </div>
+              <span className="font-bold text-xl text-white">Mostralo</span>
+            </Link>
+
+            {/* CTA Button */}
+            <Button 
+              asChild
+              className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold"
+            >
+              <Link to="/signup">
+                Contrate Agora
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </header>
+
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         {/* Background */}

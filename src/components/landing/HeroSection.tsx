@@ -17,8 +17,13 @@ import {
 
 export const HeroSection = () => {
   return (
-    <section className="py-12 md:py-20 lg:py-24 bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 w-full overflow-x-hidden">
-      <div className="container px-4 md:px-6 max-w-7xl mx-auto">
+    <section className="relative py-12 md:py-20 lg:py-24 w-full overflow-hidden">
+      {/* Background Tecnológico */}
+      <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-orange-500/20 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px]" />
+      
+      <div className="relative container px-4 md:px-6 max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* Conteúdo Textual */}
           <div className="flex flex-col space-y-6 text-center lg:text-left">

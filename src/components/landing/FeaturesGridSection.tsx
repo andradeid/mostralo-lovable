@@ -116,8 +116,10 @@ const colorClasses = {
 
 export const FeaturesGridSection = () => {
   return (
-    <section className="py-16 lg:py-24 bg-zinc-950">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="relative py-16 lg:py-24 overflow-hidden">
+      <div className="absolute inset-0 bg-zinc-950" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 text-white">
             Gestão completa em uma{" "}

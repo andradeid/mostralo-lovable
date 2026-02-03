@@ -262,11 +262,46 @@ export function toTitleCase(text: string | null | undefined): string {
 }
 
 /**
- * Parse CSV content into rows - suporta múltiplos separadores
+ * Detecta o separador do CSV analisando a primeira linha
+ * Prioridade: ponto-e-vírgula > tab > vírgula
+ * (CSVs brasileiros geralmente usam ; para evitar conflito com decimais)
+ */
+function detectCSVSeparator(content: string): string {
+  const firstLine = content.split(/\r?\n/)[0] || '';
+  
+  // Contar ocorrências de cada separador na primeira linha
+  const semicolonCount = (firstLine.match(/;/g) || []).length;
+  const tabCount = (firstLine.match(/\t/g) || []).length;
+  const commaCount = (firstLine.match(/,/g) || []).length;
+  
+  console.log(`[Alquimia] Detecção de separador - ; : ${semicolonCount}, tab: ${tabCount}, vírgula: ${commaCount}`);
+  
+  // Se tem ponto-e-vírgula, provavelmente é o separador (padrão brasileiro)
+  if (semicolonCount >= 2) {
+    console.log('[Alquimia] Separador detectado: ponto-e-vírgula (;)');
+    return ';';
+  }
+  
+  // Se tem tabs, usar tab
+  if (tabCount >= 2) {
+    console.log('[Alquimia] Separador detectado: tab');
+    return '\t';
+  }
+  
+  // Fallback para vírgula
+  console.log('[Alquimia] Separador detectado: vírgula (,)');
+  return ',';
+}
+
+/**
+ * Parse CSV content into rows usando o separador correto
+ * IMPORTANTE: Detecta o separador primeiro para não confundir vírgulas decimais
  */
 function parseCSVContent(content: string): string[][] {
+  const separator = detectCSVSeparator(content);
   const lines = content.split(/\r?\n/);
-  return lines.map(line => {
+  
+  return lines.map((line, lineIndex) => {
     const cells: string[] = [];
     let current = '';
     let inQuotes = false;
@@ -276,7 +311,7 @@ function parseCSVContent(content: string): string[][] {
       
       if (char === '"') {
         inQuotes = !inQuotes;
-      } else if ((char === ',' || char === ';' || char === '\t') && !inQuotes) {
+      } else if (char === separator && !inQuotes) {
         cells.push(current.trim());
         current = '';
       } else {
@@ -284,6 +319,11 @@ function parseCSVContent(content: string): string[][] {
       }
     }
     cells.push(current.trim());
+    
+    // Log de debug para as primeiras linhas de dados
+    if (lineIndex > 0 && lineIndex <= 3) {
+      console.log(`[Alquimia] Linha ${lineIndex} parseada:`, cells);
+    }
     
     return cells;
   });

@@ -138,12 +138,23 @@ const OfertaEspecialPage = () => {
 
               {/* Countdown */}
               <div className="mb-6">
-                <p className="text-zinc-400 mb-3">Esta oferta expira em:</p>
-                <CountdownTimer 
-                  hours={24} 
-                  storageKey="oferta-especial-24h"
-                  onExpire={() => setIsExpired(true)}
-                />
+                <p className="text-zinc-400 mb-3 lg:text-left">Esta oferta expira em:</p>
+                <div className="lg:hidden">
+                  <CountdownTimer 
+                    hours={24} 
+                    storageKey="oferta-especial-24h"
+                    onExpire={() => setIsExpired(true)}
+                    align="center"
+                  />
+                </div>
+                <div className="hidden lg:block">
+                  <CountdownTimer 
+                    hours={24} 
+                    storageKey="oferta-especial-24h"
+                    onExpire={() => setIsExpired(true)}
+                    align="left"
+                  />
+                </div>
               </div>
               
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-6">
@@ -185,7 +196,7 @@ const OfertaEspecialPage = () => {
             </div>
 
             {/* Right Column - Phone Mockup */}
-            <div className="hidden lg:flex justify-center lg:justify-end">
+            <div className="hidden lg:flex justify-center lg:justify-end pb-8">
               <PhoneMockup>
                 <LeadChatFormLight 
                   onComplete={handleOpenWhatsApp}

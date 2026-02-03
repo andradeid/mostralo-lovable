@@ -4,6 +4,7 @@ interface CountdownTimerProps {
   hours: number;
   storageKey?: string;
   onExpire?: () => void;
+  align?: 'center' | 'left' | 'right';
 }
 
 interface TimeLeft {
@@ -17,7 +18,8 @@ const STORAGE_PREFIX = 'mostralo_promo_countdown_';
 export function CountdownTimer({ 
   hours, 
   storageKey = 'default',
-  onExpire 
+  onExpire,
+  align = 'center'
 }: CountdownTimerProps) {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ hours: 0, minutes: 0, seconds: 0 });
   const [isExpired, setIsExpired] = useState(false);
@@ -75,8 +77,10 @@ export function CountdownTimer({
     );
   }
 
+  const alignClass = align === 'left' ? 'justify-start' : align === 'right' ? 'justify-end' : 'justify-center';
+
   return (
-    <div className="flex items-center justify-center gap-2 sm:gap-4">
+    <div className={`flex items-center ${alignClass} gap-2 sm:gap-4`}>
       {/* Horas */}
       <div className="flex flex-col items-center">
         <div className="bg-zinc-800/80 border border-zinc-700 rounded-lg p-3 sm:p-4 min-w-[60px] sm:min-w-[80px]">

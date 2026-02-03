@@ -206,12 +206,12 @@ const DashboardHome = () => {
         return;
       }
 
-      // Buscar estatísticas da loja
+      // Buscar estatísticas da loja (usando head: true para não retornar dados, apenas contagem)
       const [productsResult, activeProductsResult, categoriesResult, activeCategoriesResult] = await Promise.all([
-        supabase.from('products').select('*', { count: 'exact' }).eq('store_id', storeData.id),
-        supabase.from('products').select('*', { count: 'exact' }).eq('store_id', storeData.id).eq('is_available', true),
-        supabase.from('categories').select('*', { count: 'exact' }).eq('store_id', storeData.id),
-        supabase.from('categories').select('*', { count: 'exact' }).eq('store_id', storeData.id).eq('is_active', true)
+        supabase.from('products').select('id', { count: 'exact', head: true }).eq('store_id', storeData.id),
+        supabase.from('products').select('id', { count: 'exact', head: true }).eq('store_id', storeData.id).eq('is_available', true),
+        supabase.from('categories').select('id', { count: 'exact', head: true }).eq('store_id', storeData.id),
+        supabase.from('categories').select('id', { count: 'exact', head: true }).eq('store_id', storeData.id).eq('is_active', true)
       ]);
 
       setStoreStats({

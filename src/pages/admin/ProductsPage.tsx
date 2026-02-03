@@ -104,22 +104,45 @@ const ProductsPage = () => {
         return;
       }
 
-      // Buscar produtos
-      const { data: productsData, error: productsError } = await supabase
-        .from('products')
-        .select('*, is_on_offer, original_price, offer_price, track_stock, stock_quantity, stock_alert_threshold, is_featured')
-        .eq('store_id', storeId)
-        .order('display_order', { ascending: true });
+      // Buscar produtos em lotes para superar o limite de 1000 do Supabase
+      const PAGE_SIZE = 1000;
+      let allProducts: ProductData[] = [];
+      let hasMore = true;
+      let page = 0;
 
-      if (productsError) {
-        console.error('Erro ao buscar produtos:', productsError);
-        toast({
-          title: 'Erro',
-          description: 'Erro ao carregar produtos.',
-          variant: 'destructive'
-        });
-        return;
+      while (hasMore) {
+        const from = page * PAGE_SIZE;
+        const to = from + PAGE_SIZE - 1;
+
+        const { data: productsData, error: productsError } = await supabase
+          .from('products')
+          .select('*, is_on_offer, original_price, offer_price, track_stock, stock_quantity, stock_alert_threshold, is_featured')
+          .eq('store_id', storeId)
+          .order('display_order', { ascending: true })
+          .range(from, to);
+
+        if (productsError) {
+          console.error('Erro ao buscar produtos:', productsError);
+          toast({
+            title: 'Erro',
+            description: 'Erro ao carregar produtos.',
+            variant: 'destructive'
+          });
+          return;
+        }
+
+        if (productsData && productsData.length > 0) {
+          allProducts = [...allProducts, ...productsData];
+          hasMore = productsData.length === PAGE_SIZE;
+          page++;
+        } else {
+          hasMore = false;
+        }
       }
+
+      const productsData = allProducts;
+      console.log(`[Produtos] Total carregado: ${productsData.length} produtos em ${page} lote(s)`);
+
 
       // Organizar produtos por categoria
       const categoriesWithProducts: CategoryData[] = (categoriesData || []).map(category => ({

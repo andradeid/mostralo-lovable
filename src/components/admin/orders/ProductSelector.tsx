@@ -73,14 +73,36 @@ export function ProductSelector({ storeId, onAddProduct }: ProductSelectorProps)
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('store_id', storeId)
-        .eq('is_available', true)
-        .order('name');
+      // Buscar produtos em lotes para superar o limite de 1000 do Supabase
+      const PAGE_SIZE = 1000;
+      let allProducts: any[] = [];
+      let hasMore = true;
+      let page = 0;
 
-      if (error) throw error;
+      while (hasMore) {
+        const from = page * PAGE_SIZE;
+        const to = from + PAGE_SIZE - 1;
+
+        const { data, error } = await supabase
+          .from('products')
+          .select('*')
+          .eq('store_id', storeId)
+          .eq('is_available', true)
+          .order('name')
+          .range(from, to);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          allProducts = [...allProducts, ...data];
+          hasMore = data.length === PAGE_SIZE;
+          page++;
+        } else {
+          hasMore = false;
+        }
+      }
+
+      const data = allProducts;
       
       // Buscar variantes e addons separadamente para cada produto
       const productsWithDetails = await Promise.all(

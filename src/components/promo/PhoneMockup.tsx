@@ -63,7 +63,7 @@ export function PhoneMockup({ children, className = '', showInteractHint = true 
       <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent rounded-[3rem] pointer-events-none" />
       
       {/* Personalized attention badge */}
-      <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 z-30">
+      <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 z-30">
         <div className="bg-zinc-800/90 backdrop-blur-sm text-white text-xs px-4 py-2 rounded-full border border-zinc-700 flex items-center gap-2 shadow-xl">
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
           <span>Atendimento Personalizado</span>

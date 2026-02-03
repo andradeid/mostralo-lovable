@@ -75,83 +75,106 @@ const ProductsPage = () => {
   const [showEditForm, setShowEditForm] = useState(false);
   const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
   const [filters, setFilters] = useState<ProductFilters>(defaultFilters);
+  
+  // Paginação
+  const [currentPage, setCurrentPage] = useState(0);
+  const [hasMoreProducts, setHasMoreProducts] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [totalProductsCount, setTotalProductsCount] = useState(0);
+  const [allProducts, setAllProducts] = useState<ProductData[]>([]);
+  const PAGE_SIZE = 100;
+  
   const { user, userRole } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const fetchCategoriesAndProducts = async () => {
+  const fetchCategoriesAndProducts = async (page: number = 0, append: boolean = false) => {
     if (!user || !validatedStoreId) return;
+
+    if (page === 0) {
+      setLoading(true);
+    } else {
+      setIsLoadingMore(true);
+    }
 
     try {
       // SEGURANÇA: Usar apenas o storeId validado pelo hook useStoreAccess
       const storeId = validatedStoreId;
 
-      // Buscar categorias
-      const { data: categoriesData, error: categoriesError } = await supabase
+      // Buscar categorias apenas na primeira página
+      if (page === 0) {
+        const { data: categoriesData, error: categoriesError } = await supabase
+          .from('categories')
+          .select('*')
+          .eq('store_id', storeId)
+          .eq('is_active', true)
+          .order('display_order', { ascending: true });
+
+        if (categoriesError) {
+          console.error('Erro ao buscar categorias:', categoriesError);
+          toast({
+            title: 'Erro',
+            description: 'Erro ao carregar categorias.',
+            variant: 'destructive'
+          });
+          return;
+        }
+
+        // Buscar total de produtos
+        const { count: totalCount } = await supabase
+          .from('products')
+          .select('id', { count: 'exact', head: true })
+          .eq('store_id', storeId);
+        
+        setTotalProductsCount(totalCount || 0);
+      }
+
+      // Buscar produtos paginados
+      const from = page * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
+      const { data: productsData, error: productsError } = await supabase
+        .from('products')
+        .select('*, is_on_offer, original_price, offer_price, track_stock, stock_quantity, stock_alert_threshold, is_featured')
+        .eq('store_id', storeId)
+        .order('display_order', { ascending: true })
+        .range(from, to);
+
+      if (productsError) {
+        console.error('Erro ao buscar produtos:', productsError);
+        toast({
+          title: 'Erro',
+          description: 'Erro ao carregar produtos.',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      const newProducts = productsData || [];
+      console.log(`[Produtos] Página ${page + 1}: carregados ${newProducts.length} produtos (${from}-${to})`);
+
+      // Atualizar lista de produtos
+      const updatedProducts = append ? [...allProducts, ...newProducts] : newProducts;
+      setAllProducts(updatedProducts);
+      setCurrentPage(page);
+      setHasMoreProducts(newProducts.length === PAGE_SIZE);
+
+      // Buscar categorias para organizar (ou usar as existentes)
+      const { data: categoriesData } = await supabase
         .from('categories')
         .select('*')
         .eq('store_id', storeId)
         .eq('is_active', true)
         .order('display_order', { ascending: true });
 
-      if (categoriesError) {
-        console.error('Erro ao buscar categorias:', categoriesError);
-        toast({
-          title: 'Erro',
-          description: 'Erro ao carregar categorias.',
-          variant: 'destructive'
-        });
-        return;
-      }
-
-      // Buscar produtos em lotes para superar o limite de 1000 do Supabase
-      const PAGE_SIZE = 1000;
-      let allProducts: ProductData[] = [];
-      let hasMore = true;
-      let page = 0;
-
-      while (hasMore) {
-        const from = page * PAGE_SIZE;
-        const to = from + PAGE_SIZE - 1;
-
-        const { data: productsData, error: productsError } = await supabase
-          .from('products')
-          .select('*, is_on_offer, original_price, offer_price, track_stock, stock_quantity, stock_alert_threshold, is_featured')
-          .eq('store_id', storeId)
-          .order('display_order', { ascending: true })
-          .range(from, to);
-
-        if (productsError) {
-          console.error('Erro ao buscar produtos:', productsError);
-          toast({
-            title: 'Erro',
-            description: 'Erro ao carregar produtos.',
-            variant: 'destructive'
-          });
-          return;
-        }
-
-        if (productsData && productsData.length > 0) {
-          allProducts = [...allProducts, ...productsData];
-          hasMore = productsData.length === PAGE_SIZE;
-          page++;
-        } else {
-          hasMore = false;
-        }
-      }
-
-      const productsData = allProducts;
-      console.log(`[Produtos] Total carregado: ${productsData.length} produtos em ${page} lote(s)`);
-
-
       // Organizar produtos por categoria
       const categoriesWithProducts: CategoryData[] = (categoriesData || []).map(category => ({
         ...category,
-        products: (productsData || []).filter(product => product.category_id === category.id)
+        products: updatedProducts.filter(product => product.category_id === category.id)
       }));
 
       // Adicionar produtos sem categoria
-      const uncategorizedProducts = (productsData || []).filter(product => !product.category_id);
+      const uncategorizedProducts = updatedProducts.filter(product => !product.category_id);
       if (uncategorizedProducts.length > 0) {
         categoriesWithProducts.unshift({
           id: 'uncategorized',
@@ -174,12 +197,22 @@ const ProductsPage = () => {
       });
     } finally {
       setLoading(false);
+      setIsLoadingMore(false);
+    }
+  };
+
+  const loadMoreProducts = () => {
+    if (!isLoadingMore && hasMoreProducts) {
+      fetchCategoriesAndProducts(currentPage + 1, true);
     }
   };
 
   useEffect(() => {
     if (validatedStoreId && !storeAccessLoading && hasAccess) {
-      fetchCategoriesAndProducts();
+      setCurrentPage(0);
+      setHasMoreProducts(true);
+      setAllProducts([]);
+      fetchCategoriesAndProducts(0, false);
     }
   }, [validatedStoreId, storeAccessLoading, hasAccess]);
 
@@ -204,7 +237,7 @@ const ProductsPage = () => {
         description: 'Produto excluído com sucesso.',
       });
 
-      fetchCategoriesAndProducts();
+      fetchCategoriesAndProducts(0, false);
     } catch (error) {
       console.error('Erro ao excluir produto:', error);
       toast({
@@ -223,7 +256,7 @@ const ProductsPage = () => {
   const handleEditSuccess = () => {
     setShowEditForm(false);
     setEditingProductId(null);
-    fetchCategoriesAndProducts();
+    fetchCategoriesAndProducts(0, false);
   };
 
   const handleEditCancel = () => {
@@ -252,7 +285,7 @@ const ProductsPage = () => {
         description: `Produto ${!currentStatus ? 'ativado' : 'desativado'} com sucesso.`,
       });
 
-      fetchCategoriesAndProducts();
+      fetchCategoriesAndProducts(0, false);
     } catch (error) {
       console.error('Erro ao atualizar disponibilidade:', error);
       toast({
@@ -286,7 +319,7 @@ const ProductsPage = () => {
           : 'Produto visível no cardápio digital',
       });
 
-      fetchCategoriesAndProducts();
+      fetchCategoriesAndProducts(0, false);
     } catch (error) {
       console.error('Erro ao atualizar visibilidade:', error);
       toast({
@@ -320,7 +353,7 @@ const ProductsPage = () => {
           : 'Produto removido dos destaques',
       });
 
-      fetchCategoriesAndProducts();
+      fetchCategoriesAndProducts(0, false);
     } catch (error) {
       console.error('Erro ao atualizar destaque:', error);
       toast({
@@ -404,7 +437,7 @@ const ProductsPage = () => {
       }
 
       // Atualizar os dados
-      fetchCategoriesAndProducts();
+      fetchCategoriesAndProducts(0, false);
     } catch (error) {
       console.error('Erro ao mover produto:', error);
       toast({
@@ -443,7 +476,7 @@ const ProductsPage = () => {
         description: 'Categoria movida para cima.',
       });
 
-      fetchCategoriesAndProducts();
+      fetchCategoriesAndProducts(0, false);
     } catch (error) {
       console.error('Erro ao mover categoria:', error);
       toast({
@@ -480,7 +513,7 @@ const ProductsPage = () => {
         description: 'Categoria movida para baixo.',
       });
 
-      fetchCategoriesAndProducts();
+      fetchCategoriesAndProducts(0, false);
     } catch (error) {
       console.error('Erro ao mover categoria:', error);
       toast({
@@ -515,7 +548,7 @@ const ProductsPage = () => {
       });
 
       // Recarregar dados
-      await fetchCategoriesAndProducts();
+      await fetchCategoriesAndProducts(0, false);
     } catch (error) {
       console.error('Erro ao ordenar produtos:', error);
       toast({
@@ -600,7 +633,8 @@ const ProductsPage = () => {
   );
 
   // Calcular totais para o contador
-  const totalProducts = categories.reduce((total, category) => total + category.products.length, 0);
+  const totalProducts = totalProductsCount; // Usar o total do banco
+  const loadedProducts = allProducts.length; // Produtos carregados na memória
   const filteredProductsCount = filteredCategories.reduce((total, category) => total + category.products.length, 0);
   const activeProducts = categories.reduce((total, category) => 
     total + category.products.filter(p => p.is_available).length, 0);
@@ -1213,6 +1247,42 @@ const ProductsPage = () => {
             </Accordion>
           </DragDropContext>
         )}
+
+        {/* Botão de Carregar Mais */}
+        {!loading && totalProducts > 0 && (
+          <div className="flex flex-col items-center gap-4 py-6 border-t mt-6">
+            <div className="text-sm text-muted-foreground">
+              Exibindo <strong className="text-foreground">{loadedProducts}</strong> de{' '}
+              <strong className="text-foreground">{totalProducts}</strong> produtos
+            </div>
+            
+            {hasMoreProducts && (
+              <Button
+                variant="outline"
+                onClick={loadMoreProducts}
+                disabled={isLoadingMore}
+                className="min-w-[200px]"
+              >
+                {isLoadingMore ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Carregando...
+                  </>
+                ) : (
+                  <>
+                    Carregar mais {PAGE_SIZE} produtos
+                  </>
+                )}
+              </Button>
+            )}
+
+            {!hasMoreProducts && loadedProducts === totalProducts && (
+              <p className="text-sm text-muted-foreground">
+                ✓ Todos os {totalProducts} produtos carregados
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Modal do formulário de categoria */}
@@ -1221,7 +1291,7 @@ const ProductsPage = () => {
         onOpenChange={setCategoryFormOpen}
         onSuccess={() => {
           setCategoryFormOpen(false);
-          fetchCategoriesAndProducts();
+          fetchCategoriesAndProducts(0, false);
         }}
       />
 
@@ -1247,7 +1317,7 @@ const ProductsPage = () => {
           storeName={storeName}
           productsCount={totalProducts}
           categoriesCount={categories.filter(c => c.id !== 'uncategorized').length}
-          onSuccess={fetchCategoriesAndProducts}
+          onSuccess={() => fetchCategoriesAndProducts(0, false)}
         />
       )}
     </div>

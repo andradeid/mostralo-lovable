@@ -4,8 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { 
   Table, 
   TableBody, 
@@ -58,21 +56,21 @@ export function AlquimiaPreviewStep({
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [onlyWithStock, setOnlyWithStock] = useState(false);
 
   const validCount = products.filter(p => p.isValid).length;
   const invalidCount = products.filter(p => !p.isValid).length;
+  const noStockCount = products.filter(p => p.quantidade_estoque <= 0).length;
   
-  // Estatísticas de estoque
+  // Estatísticas de estoque - apenas produtos válidos com estoque > 0
   const stockStats = useMemo(() => {
-    const withStock = products.filter(p => p.isValid && p.quantidade_estoque > 0);
-    const withoutStock = products.filter(p => p.isValid && p.quantidade_estoque <= 0);
+    const withStock = products.filter(p => p.quantidade_estoque > 0 && p.errors.filter(e => e !== 'Sem estoque').length === 0);
+    const withoutStock = products.filter(p => p.quantidade_estoque <= 0);
     return {
       withStock: withStock.length,
       withoutStock: withoutStock.length,
-      percentage: validCount > 0 ? Math.round((withStock.length / validCount) * 100) : 0,
+      percentage: products.length > 0 ? Math.round((withStock.length / products.length) * 100) : 0,
     };
-  }, [products, validCount]);
+  }, [products]);
 
   // Filtrar produtos
   const filteredProducts = products.filter(product => {
@@ -189,31 +187,38 @@ export function AlquimiaPreviewStep({
         </Card>
       </div>
 
-      {/* Filtro de Estoque */}
-      <Card className="border-emerald-500/30 bg-emerald-500/5">
-        <CardContent className="pt-4 pb-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <Switch
-                id="only-with-stock"
-                checked={onlyWithStock}
-                onCheckedChange={setOnlyWithStock}
-              />
+      {/* Aviso sobre Estoque */}
+      {noStockCount > 0 && (
+        <Card className="border-amber-500/30 bg-amber-500/5">
+          <CardContent className="pt-4 pb-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
               <div>
-                <Label htmlFor="only-with-stock" className="font-medium">
-                  Apenas produtos com estoque &gt; 0
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  {stockStats.withStock} de {validCount} produtos têm estoque válido ({stockStats.percentage}%)
+                <p className="font-medium text-amber-800">
+                  {noStockCount} produto{noStockCount !== 1 ? 's' : ''} sem estoque detectado{noStockCount !== 1 ? 's' : ''}
+                </p>
+                <p className="text-sm text-amber-700">
+                  Produtos com estoque = 0 não serão importados. Apenas produtos com estoque ≥ 1 serão processados.
                 </p>
               </div>
             </div>
-            {onlyWithStock && (
-              <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
-                <PackageCheck className="h-3 w-3 mr-1" />
-                {stockStats.withStock} produtos selecionados
-              </Badge>
-            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Info sobre Estoque */}
+      <Card className="border-emerald-500/30 bg-emerald-500/5">
+        <CardContent className="pt-4 pb-4">
+          <div className="flex items-center gap-3">
+            <PackageCheck className="h-6 w-6 text-emerald-600" />
+            <div>
+              <p className="font-medium">
+                {stockStats.withStock} produtos disponíveis para importação
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Apenas produtos com estoque ≥ 1 serão importados ({stockStats.percentage}% do total)
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -340,10 +345,18 @@ export function AlquimiaPreviewStep({
                           OK
                         </Badge>
                       ) : (
-                        <Badge variant="destructive" className="text-xs">
-                          <AlertCircle className="h-3 w-3 mr-1" />
-                          Erro
-                        </Badge>
+                        <div className="flex flex-col gap-1">
+                          {product.errors.map((err, i) => (
+                            <Badge 
+                              key={i} 
+                              variant={err === 'Sem estoque' ? 'secondary' : 'destructive'} 
+                              className="text-xs"
+                            >
+                              <AlertCircle className="h-3 w-3 mr-1" />
+                              {err}
+                            </Badge>
+                          ))}
+                        </div>
                       )}
                     </TableCell>
                   </TableRow>
@@ -361,10 +374,10 @@ export function AlquimiaPreviewStep({
           Voltar
         </Button>
         <Button 
-          onClick={() => onNext(onlyWithStock)} 
-          disabled={onlyWithStock ? stockStats.withStock === 0 : validCount === 0}
+          onClick={() => onNext(true)} 
+          disabled={stockStats.withStock === 0}
         >
-          Continuar ({onlyWithStock ? stockStats.withStock : validCount} produtos)
+          Continuar ({stockStats.withStock} produtos com estoque)
           <ArrowRight className="h-4 w-4 ml-2" />
         </Button>
       </div>

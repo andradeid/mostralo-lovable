@@ -72,7 +72,8 @@ function detectAlquimiaFormat(headers: string[]): 'novo' | 'legado' {
 }
 
 /**
- * Converte preço brasileiro (1.050,00) para número (1050.00)
+ * Converte preço brasileiro (1.050,00 ou 17,49) para número (1050.00 ou 17.49)
+ * Trata diferentes formatos: brasileiro (vírgula decimal), inglês (ponto decimal)
  */
 export function parseBrazilianPrice(value: string | number | null | undefined): number {
   if (value === null || value === undefined) return 0;
@@ -82,10 +83,33 @@ export function parseBrazilianPrice(value: string | number | null | undefined): 
   if (!str) return 0;
   
   // Remove "R$" se existir
-  let cleaned = str.replace(/R\$\s*/gi, '');
+  let cleaned = str.replace(/R\$\s*/gi, '').trim();
   
-  // Remove pontos de milhar (.) e troca vírgula por ponto
-  cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+  if (!cleaned) return 0;
+  
+  // Detectar o formato baseado nos separadores presentes
+  const hasDot = cleaned.includes('.');
+  const hasComma = cleaned.includes(',');
+  
+  if (hasComma && hasDot) {
+    // Formato brasileiro com milhar e decimal: "1.234,56"
+    // Ponto é separador de milhar, vírgula é decimal
+    cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+  } else if (hasComma && !hasDot) {
+    // Apenas vírgula: "17,49" - formato brasileiro sem milhar
+    // Vírgula é o separador decimal
+    cleaned = cleaned.replace(',', '.');
+  } else if (hasDot && !hasComma) {
+    // Apenas ponto: pode ser "17.49" (decimal inglês) ou "1.234" (milhar brasileiro)
+    // Se há mais de um ponto, são milhares; senão, é decimal
+    const dotCount = (cleaned.match(/\./g) || []).length;
+    if (dotCount > 1) {
+      // Múltiplos pontos = separadores de milhar
+      cleaned = cleaned.replace(/\./g, '');
+    }
+    // Se apenas um ponto, assumir que é decimal (formato inglês)
+  }
+  // Se não tem ponto nem vírgula, é um número inteiro
   
   const num = parseFloat(cleaned);
   return isNaN(num) ? 0 : num;
@@ -358,6 +382,7 @@ function parseNewFormat(rows: string[][], headerRowIndex: number): AlquimiaParse
     const errors: string[] = [];
     if (!nomeFinal) errors.push('Nome vazio');
     if (venda <= 0) errors.push('Preço inválido');
+    if (estoque <= 0) errors.push('Sem estoque');
     
     categoriesSet.add(categoria);
     
@@ -472,6 +497,7 @@ function parseLegacyFormat(rows: string[][], compactedRows: string[][], headerRo
     const errors: string[] = [];
     if (!nome) errors.push('Nome vazio');
     if (preco <= 0) errors.push('Preço inválido');
+    if (qtde <= 0) errors.push('Sem estoque');
     
     categoriesSet.add(categoria);
     

@@ -121,7 +121,7 @@ export const HeroSection = ({
                 </Button>
               </Link>
               <Link to={secondaryButtonLink}>
-                <Button variant="outline" size="lg" className="w-full sm:w-auto text-lg h-14 px-8 border-zinc-600 text-white hover:bg-zinc-800">
+                <Button size="lg" className="w-full sm:w-auto text-lg h-14 px-8 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl transition-all">
                   <MessageSquare className="mr-2 h-5 w-5" />
                   {secondaryButtonText}
                 </Button>

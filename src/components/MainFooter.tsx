@@ -23,9 +23,12 @@ export function MainFooter({ showDisclaimer = true, variant = 'auto' }: MainFoot
   const headingClass = variant === 'light' ? 'text-slate-900' : 'text-white';
 
   return (
-    <footer className={`${bgClass} border-t border-slate-800`}>
+    <footer className={`${bgClass} border-t border-slate-800 relative overflow-hidden`}>
+      {/* Grid Pattern Background */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
+      
       {/* Main Footer Content */}
-      <div className="container mx-auto px-4 sm:px-6 py-12">
+      <div className="relative container mx-auto px-4 sm:px-6 py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           
           {/* Column 1 - About */}

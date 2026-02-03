@@ -9,8 +9,9 @@ import {
 
 export const CTASection = () => {
   return (
-    <section className="py-12 md:py-20 lg:py-32 bg-primary text-primary-foreground">
-      <div className="container px-4 md:px-6">
+    <section className="relative py-12 md:py-20 lg:py-32 bg-primary text-primary-foreground overflow-hidden">
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px]" />
+      <div className="relative container px-4 md:px-6">
         <div className="max-w-4xl mx-auto text-center space-y-8">
           <Badge variant="secondary" className="text-base px-4 py-2">
             <Store className="w-4 h-4 mr-2" />

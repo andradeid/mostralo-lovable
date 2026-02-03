@@ -84,6 +84,7 @@ const AboutPage = lazy(() => import("@/pages/public/AboutPage"));
 const GestaoTotalPage = lazy(() => import("@/pages/public/GestaoTotalPage"));
 const Gestao360Page = lazy(() => import("@/pages/public/Gestao360Page"));
 const PublicProposalPage = lazy(() => import("@/pages/public/PublicProposalPage"));
+const OfertaEspecialPage = lazy(() => import("@/pages/public/OfertaEspecialPage"));
 const LGPD = lazy(() => import("@/pages/LGPD"));
 const Cookies = lazy(() => import("@/pages/Cookies"));
 
@@ -138,6 +139,7 @@ export const publicRoutes = (
       <Route path="/sobre" element={<LazyRoute><AboutPage /></LazyRoute>} />
       <Route path="/gestao-total" element={<LazyRoute><GestaoTotalPage /></LazyRoute>} />
       <Route path="/gestao-360" element={<LazyRoute><Gestao360Page /></LazyRoute>} />
+      <Route path="/especial" element={<LazyRoute><OfertaEspecialPage /></LazyRoute>} />
     <Route path="/sitemap.xml" element={<LazyRoute><Sitemap /></LazyRoute>} />
     <Route path="/navegar" element={<LazyRoute><NavigatePage /></LazyRoute>} />
     

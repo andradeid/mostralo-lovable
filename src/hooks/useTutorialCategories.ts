@@ -118,6 +118,38 @@ export function useDeleteTutorialCategory() {
   });
 }
 
+export function useReorderTutorialCategories() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (categories: { id: string; display_order: number }[]) => {
+      // Atualizar todas as categorias em paralelo
+      const promises = categories.map(cat =>
+        supabase
+          .from('tutorial_categories')
+          .update({ display_order: cat.display_order })
+          .eq('id', cat.id)
+      );
+      
+      const results = await Promise.all(promises);
+      const errors = results.filter(r => r.error);
+      if (errors.length > 0) {
+        throw new Error('Erro ao atualizar ordem das categorias');
+      }
+      
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tutorial-categories'] });
+      toast.success('Ordem das categorias atualizada!');
+    },
+    onError: (error) => {
+      console.error('Erro ao reordenar categorias:', error);
+      toast.error('Erro ao reordenar categorias');
+    }
+  });
+}
+
 export function useDuplicateCategory() {
   const queryClient = useQueryClient();
   

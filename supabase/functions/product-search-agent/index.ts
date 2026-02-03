@@ -12,6 +12,39 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// ========================================
+// CACHE DE DEDUPLICAÇÃO - Previne mensagens duplicadas
+// ========================================
+const DEDUP_CACHE_TTL_MS = 10000; // 10 segundos
+const dedupCache = new Map<string, number>();
+
+// Limpar entradas expiradas do cache periodicamente
+function cleanupDedupCache() {
+  const now = Date.now();
+  for (const [key, timestamp] of dedupCache.entries()) {
+    if (now - timestamp > DEDUP_CACHE_TTL_MS) {
+      dedupCache.delete(key);
+    }
+  }
+}
+
+// Gerar chave única para deduplicação
+function getDedupKey(storeId: string, remoteJid: string | null, functionName: string, query: string): string {
+  return `${storeId}:${remoteJid || 'unknown'}:${functionName}:${query}`.toLowerCase();
+}
+
+// Verificar se é chamada duplicada
+function isDuplicateCall(key: string): boolean {
+  cleanupDedupCache();
+  const lastCall = dedupCache.get(key);
+  if (lastCall && Date.now() - lastCall < DEDUP_CACHE_TTL_MS) {
+    console.log(`[product-search-agent] ⚠️ Chamada duplicada detectada: ${key}`);
+    return true;
+  }
+  dedupCache.set(key, Date.now());
+  return false;
+}
+
 interface FunctionCallRequest {
   function: string;
   args: Record<string, any>;
@@ -267,6 +300,23 @@ serve(async (req) => {
     }
 
     console.log(`[product-search-agent] Função extraída: ${functionName}, Args:`, args);
+
+    // ========================================
+    // VERIFICAÇÃO DE DUPLICAÇÃO
+    // ========================================
+    const queryString = args.query || args.product_name || args.image_url || '';
+    const dedupKey = getDedupKey(storeId, remoteJid, functionName || 'unknown', queryString);
+    
+    if (isDuplicateCall(dedupKey)) {
+      console.log(`[product-search-agent] 🔄 Ignorando chamada duplicada em ${DEDUP_CACHE_TTL_MS/1000}s`);
+      return new Response(JSON.stringify({ 
+        suppress_reply: true,
+        message: 'Chamada duplicada ignorada',
+        cached: true
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     // Buscar dados da loja para construir links
     const { data: store, error: storeError } = await supabase

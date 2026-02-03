@@ -119,7 +119,10 @@ const OfertaEspecialPage = () => {
       </header>
 
       {/* Hero Section - Componente Reutilizado */}
-      <HeroSection />
+      <HeroSection 
+        secondaryButtonText="CONTRATE JÁ!" 
+        secondaryButtonLink="/registro" 
+      />
 
       {/* Plans Section */}
       <section className="py-16 lg:py-24 bg-zinc-900/50">

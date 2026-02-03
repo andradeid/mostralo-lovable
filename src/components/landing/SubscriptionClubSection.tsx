@@ -47,14 +47,30 @@ const niches = [
 
 export function SubscriptionClubSection() {
   return (
-    <section className="py-20 md:py-28 bg-gradient-to-b from-slate-900/50 via-violet-950/20 to-slate-950 relative overflow-hidden">
-      {/* Background decorativo */}
+    <section className="py-20 md:py-28 bg-transparent relative overflow-hidden">
+      {/* Grid pattern background */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
+      
+      {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl" />
+        {/* Floating orbs with animation */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse [animation-delay:1s]" />
+        <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-violet-400/5 rounded-full blur-2xl animate-pulse [animation-delay:2s]" />
+        
+        {/* Subtle floating particles */}
+        <div className="absolute top-20 left-10 w-2 h-2 bg-violet-400/30 rounded-full animate-bounce [animation-duration:3s]" />
+        <div className="absolute top-40 right-20 w-1.5 h-1.5 bg-purple-400/40 rounded-full animate-bounce [animation-delay:0.5s] [animation-duration:4s]" />
+        <div className="absolute bottom-32 left-1/4 w-2 h-2 bg-violet-300/25 rounded-full animate-bounce [animation-delay:1s] [animation-duration:3.5s]" />
+        <div className="absolute top-1/3 right-10 w-1 h-1 bg-purple-300/50 rounded-full animate-ping [animation-duration:2s]" />
+        <div className="absolute bottom-20 right-1/3 w-1.5 h-1.5 bg-violet-400/35 rounded-full animate-ping [animation-delay:1.5s] [animation-duration:2.5s]" />
+        
+        {/* Gradient lines */}
+        <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-violet-500/10 to-transparent" />
+        <div className="absolute top-0 right-1/3 w-px h-full bg-gradient-to-b from-transparent via-purple-500/10 to-transparent" />
       </div>
 
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="relative container mx-auto px-4 z-10">
         {/* Badge */}
         <div className="flex justify-center mb-6">
           <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/20 text-violet-400 text-sm font-semibold border border-violet-500/30">

@@ -18,11 +18,13 @@ import {
 interface HeroSectionProps {
   secondaryButtonText?: string;
   secondaryButtonLink?: string;
+  hidePrimaryButton?: boolean;
 }
 
 export const HeroSection = ({ 
   secondaryButtonText = "Ver Demonstração",
-  secondaryButtonLink = "/users-demo" 
+  secondaryButtonLink = "/users-demo",
+  hidePrimaryButton = false
 }: HeroSectionProps) => {
   return (
     <section className="relative py-12 md:py-20 lg:py-24 w-full overflow-hidden">
@@ -114,14 +116,16 @@ export const HeroSection = ({
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Link to="/registro">
-                <Button size="lg" className="w-full sm:w-auto text-lg h-14 px-8 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl transition-all">
-                  <Zap className="mr-2 h-5 w-5" />
-                  Testar Grátis
-                </Button>
-              </Link>
-              <Link to={secondaryButtonLink}>
-                <Button size="lg" className="w-full sm:w-auto text-lg h-14 px-8 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl transition-all">
+              {!hidePrimaryButton && (
+                <Link to="/registro">
+                  <Button size="lg" className="w-full sm:w-auto text-lg h-14 px-8 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl transition-all">
+                    <Zap className="mr-2 h-5 w-5" />
+                    Testar Grátis
+                  </Button>
+                </Link>
+              )}
+              <Link to={secondaryButtonLink} className={hidePrimaryButton ? "w-full sm:w-auto" : ""}>
+                <Button size="lg" className={`text-lg h-14 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl transition-all ${hidePrimaryButton ? "w-full sm:w-auto sm:min-w-[320px] px-12" : "w-full sm:w-auto px-8"}`}>
                   <MessageSquare className="mr-2 h-5 w-5" />
                   {secondaryButtonText}
                 </Button>

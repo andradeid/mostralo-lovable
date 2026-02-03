@@ -72,8 +72,9 @@ function detectAlquimiaFormat(headers: string[]): 'novo' | 'legado' {
 }
 
 /**
- * Converte preço brasileiro (1.050,00 ou 17,49) para número (1050.00 ou 17.49)
+ * Converte preço brasileiro (1.050,00 ou 17,49 ou 0,3) para número
  * Trata diferentes formatos: brasileiro (vírgula decimal), inglês (ponto decimal)
+ * Suporta valores muito baixos como "0,3" (30 centavos)
  */
 export function parseBrazilianPrice(value: string | number | null | undefined): number {
   if (value === null || value === undefined) return 0;
@@ -82,8 +83,8 @@ export function parseBrazilianPrice(value: string | number | null | undefined): 
   const str = String(value).trim();
   if (!str) return 0;
   
-  // Remove "R$" se existir
-  let cleaned = str.replace(/R\$\s*/gi, '').trim();
+  // Remove "R$" se existir e espaços extras
+  let cleaned = str.replace(/R\$\s*/gi, '').replace(/\s+/g, '').trim();
   
   if (!cleaned) return 0;
   
@@ -96,7 +97,7 @@ export function parseBrazilianPrice(value: string | number | null | undefined): 
     // Ponto é separador de milhar, vírgula é decimal
     cleaned = cleaned.replace(/\./g, '').replace(',', '.');
   } else if (hasComma && !hasDot) {
-    // Apenas vírgula: "17,49" - formato brasileiro sem milhar
+    // Apenas vírgula: "17,49" ou "0,3" - formato brasileiro sem milhar
     // Vírgula é o separador decimal
     cleaned = cleaned.replace(',', '.');
   } else if (hasDot && !hasComma) {
@@ -112,6 +113,12 @@ export function parseBrazilianPrice(value: string | number | null | undefined): 
   // Se não tem ponto nem vírgula, é um número inteiro
   
   const num = parseFloat(cleaned);
+  
+  // Log para debug de preços muito baixos
+  if (!isNaN(num) && num > 0 && num < 1) {
+    console.log(`[Alquimia] Preço baixo detectado: "${str}" -> ${num}`);
+  }
+  
   return isNaN(num) ? 0 : num;
 }
 
@@ -273,6 +280,7 @@ function compactAlquimiaRow(row: string[]): string[] {
 
 /**
  * Encontra índices das colunas no novo formato
+ * IMPORTANTE: CODIGO e EAN NÃO devem ser usados como nome do produto
  */
 function findColumnIndices(headers: string[]): Record<string, number> {
   const indices: Record<string, number> = {
@@ -290,15 +298,37 @@ function findColumnIndices(headers: string[]): Record<string, number> {
   headers.forEach((header, index) => {
     const h = header.toLowerCase().trim();
     
-    if (h === 'codigo' || h === 'código') indices.codigo = index;
-    else if (h === 'ean') indices.ean = index;
-    else if (h === 'descricao' || h === 'descrição' || h === 'nome' || h === 'nome do produto') indices.nome = index;
-    else if (h === 'apresentacao' || h === 'apresentação') indices.apresentacao = index;
-    else if (h === 'pro_nomelaboratorio' || h === 'laboratorio' || h === 'laboratório' || h === 'fabricante') indices.laboratorio = index;
-    else if (h === 'classe' || h === 'cla' || h === 'cla.' || h === 'classificacao' || h === 'classificação' || h === 'categoria') indices.classe = index;
-    else if (h === 'custo' || h === 'preco_custo' || h === 'preço_custo') indices.custo = index;
-    else if (h === 'venda' || h === 'preco' || h === 'preço' || h === 'preco_venda' || h === 'preço_venda') indices.venda = index;
-    else if (h === 'estoque' || h === 'qtde' || h === 'quantidade' || h === 'qtd') indices.estoque = index;
+    // CODIGO e EAN são identificadores, NÃO nome do produto
+    if (h === 'codigo' || h === 'código' || h === 'cod' || h === 'cod.') {
+      indices.codigo = index;
+    } else if (h === 'ean' || h === 'ean13' || h === 'gtin' || h === 'barras' || h === 'codigo_barras') {
+      indices.ean = index;
+    } else if (h === 'descricao' || h === 'descrição' || h === 'nome' || h === 'nome do produto' || h === 'produto' || h === 'desc') {
+      // Só atribuir nome se ainda não foi atribuído (evitar sobrescrever)
+      if (indices.nome === -1) {
+        indices.nome = index;
+      }
+    } else if (h === 'apresentacao' || h === 'apresentação' || h === 'apres' || h === 'unidade') {
+      indices.apresentacao = index;
+    } else if (h === 'pro_nomelaboratorio' || h === 'laboratorio' || h === 'laboratório' || h === 'fabricante' || h === 'lab') {
+      indices.laboratorio = index;
+    } else if (h === 'classe' || h === 'cla' || h === 'cla.' || h === 'classificacao' || h === 'classificação' || h === 'categoria' || h === 'grupo') {
+      indices.classe = index;
+    } else if (h === 'custo' || h === 'preco_custo' || h === 'preço_custo' || h === 'p_custo' || h === 'vlr_custo') {
+      indices.custo = index;
+    } else if (h === 'venda' || h === 'preco' || h === 'preço' || h === 'preco_venda' || h === 'preço_venda' || h === 'p_venda' || h === 'vlr_venda' || h === 'valor') {
+      indices.venda = index;
+    } else if (h === 'estoque' || h === 'qtde' || h === 'quantidade' || h === 'qtd' || h === 'saldo' || h === 'qt') {
+      indices.estoque = index;
+    }
+  });
+  
+  console.log('[Alquimia] Mapeamento de colunas:', {
+    codigo: headers[indices.codigo] || '(não encontrado)',
+    ean: headers[indices.ean] || '(não encontrado)',
+    nome: headers[indices.nome] || '(não encontrado)',
+    venda: headers[indices.venda] || '(não encontrado)',
+    estoque: headers[indices.estoque] || '(não encontrado)',
   });
   
   return indices;
@@ -381,7 +411,12 @@ function parseNewFormat(rows: string[][], headerRowIndex: number): AlquimiaParse
     
     const errors: string[] = [];
     if (!nomeFinal) errors.push('Nome vazio');
-    if (venda <= 0) errors.push('Preço inválido');
+    // Aceitar preços muito baixos (ex: R$ 0,30 = 30 centavos)
+    // Apenas rejeitar preços zerados ou negativos
+    if (venda <= 0) {
+      console.log(`[Alquimia] Preço rejeitado na linha ${i + 1}: "${vendaStr}" -> ${venda}`);
+      errors.push('Preço inválido');
+    }
     if (estoque <= 0) errors.push('Sem estoque');
     
     categoriesSet.add(categoria);
@@ -496,7 +531,11 @@ function parseLegacyFormat(rows: string[][], compactedRows: string[][], headerRo
     
     const errors: string[] = [];
     if (!nome) errors.push('Nome vazio');
-    if (preco <= 0) errors.push('Preço inválido');
+    // Aceitar preços muito baixos (ex: R$ 0,30 = 30 centavos)
+    if (preco <= 0) {
+      console.log(`[Alquimia LEGADO] Preço rejeitado na linha ${actualRowIndex}: "${vendaStr}" -> ${preco}`);
+      errors.push('Preço inválido');
+    }
     if (qtde <= 0) errors.push('Sem estoque');
     
     categoriesSet.add(categoria);

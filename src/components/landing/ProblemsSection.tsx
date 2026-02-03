@@ -8,8 +8,10 @@ import {
 
 export const ProblemsSection = () => {
   return (
-    <section className="py-12 md:py-16 bg-gradient-to-br from-red-100 to-orange-100 dark:from-red-950/30 dark:to-orange-950/30 border-y border-red-200 dark:border-red-800 w-full overflow-x-hidden">
-      <div className="container px-4 md:px-6 max-w-full">
+    <section className="relative py-12 md:py-16 border-y border-red-200 dark:border-red-800 w-full overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-red-100 to-orange-100 dark:from-red-950/30 dark:to-orange-950/30" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
+      <div className="relative container px-4 md:px-6 max-w-full">
         <div className="max-w-4xl mx-auto text-center space-y-6">
           
           <div className="inline-flex items-center gap-2 bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 px-4 py-2 rounded-full text-sm font-semibold">

@@ -28,8 +28,10 @@ const testimonials = [
 
 export const TestimonialsSection = () => {
   return (
-    <section className="py-12 md:py-20 lg:py-32">
-      <div className="container px-4 md:px-6">
+    <section className="relative py-12 md:py-20 lg:py-32 overflow-hidden">
+      <div className="absolute inset-0 bg-background" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
+      <div className="relative container px-4 md:px-6">
         <div className="text-center mb-12">
           <Badge className="mb-4 text-base px-4 py-2">
             <Star className="w-4 h-4 mr-2" />

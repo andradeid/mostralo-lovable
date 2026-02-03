@@ -104,9 +104,11 @@ export const WhatsAppMarketingSection = () => {
   return (
     <section 
       id="whatsapp-marketing" 
-      className="py-12 md:py-20 lg:py-32 bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-emerald-950/20 dark:via-green-950/20 dark:to-teal-950/20 overflow-hidden"
+      className="relative py-12 md:py-20 lg:py-32 overflow-hidden"
     >
-      <div className="container px-4 md:px-6">
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-emerald-950/20 dark:via-green-950/20 dark:to-teal-950/20" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
+      <div className="relative container px-4 md:px-6">
         {/* Header */}
         <div
           ref={headerReveal.ref}

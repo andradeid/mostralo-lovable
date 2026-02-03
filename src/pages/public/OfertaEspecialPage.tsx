@@ -96,26 +96,41 @@ const OfertaEspecialPage = () => {
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-zinc-950/90 backdrop-blur-md border-b border-zinc-800 relative overflow-hidden">
+      <header className="sticky top-0 z-50 bg-zinc-950/95 backdrop-blur-md border-b border-zinc-800 relative overflow-hidden">
         {/* Grid pattern background */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-16 gap-4">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2">
+            <Link to="/" className="flex items-center gap-2 flex-shrink-0">
               <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
                 <Store className="w-5 h-5 text-white" />
               </div>
-              <span className="font-bold text-xl text-white">Mostralo</span>
+              <span className="font-bold text-xl text-white hidden sm:block">Mostralo</span>
             </Link>
+
+            {/* Countdown Timer */}
+            <div className="flex-1 flex items-center justify-center">
+              <div className="flex items-center gap-2 sm:gap-3 bg-zinc-900/80 border border-orange-500/30 rounded-lg px-3 py-1.5 sm:px-4 sm:py-2">
+                <Clock className="w-4 h-4 text-orange-400 hidden sm:block" />
+                <span className="text-xs sm:text-sm text-orange-400 font-medium hidden sm:block">Oferta expira em:</span>
+                <CountdownTimer 
+                  hours={24} 
+                  storageKey="oferta-especial-24h"
+                  onExpire={() => setIsExpired(true)}
+                  compact
+                />
+              </div>
+            </div>
 
             {/* CTA Button */}
             <Button 
               asChild
-              className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold"
+              className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold flex-shrink-0"
             >
               <Link to="/signup">
-                Contrate Agora
+                <span className="hidden sm:inline">Contrate Agora</span>
+                <span className="sm:hidden">Contratar</span>
               </Link>
             </Button>
           </div>
@@ -275,14 +290,6 @@ const OfertaEspecialPage = () => {
           <p className="text-zinc-400 mb-8">
             A oferta é válida por tempo limitado. Garanta seu desconto agora!
           </p>
-          
-          <div className="mb-8">
-            <CountdownTimer 
-              hours={24} 
-              storageKey="oferta-especial-24h"
-              onExpire={() => setIsExpired(true)}
-            />
-          </div>
 
           <Button 
             size="lg" 

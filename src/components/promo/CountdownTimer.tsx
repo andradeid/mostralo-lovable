@@ -5,6 +5,7 @@ interface CountdownTimerProps {
   storageKey?: string;
   onExpire?: () => void;
   align?: 'center' | 'left' | 'right';
+  compact?: boolean;
 }
 
 interface TimeLeft {
@@ -19,7 +20,8 @@ export function CountdownTimer({
   hours, 
   storageKey = 'default',
   onExpire,
-  align = 'center'
+  align = 'center',
+  compact = false
 }: CountdownTimerProps) {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ hours: 0, minutes: 0, seconds: 0 });
   const [isExpired, setIsExpired] = useState(false);
@@ -71,13 +73,34 @@ export function CountdownTimer({
 
   if (isExpired) {
     return (
-      <div className="text-center py-4">
-        <p className="text-red-400 font-semibold text-lg">⏰ Oferta Expirada!</p>
+      <div className={compact ? "text-red-400 font-semibold text-xs" : "text-center py-4"}>
+        <p className={compact ? "" : "text-red-400 font-semibold text-lg"}>
+          {compact ? "Expirada!" : "⏰ Oferta Expirada!"}
+        </p>
       </div>
     );
   }
 
   const alignClass = align === 'left' ? 'justify-start' : align === 'right' ? 'justify-end' : 'justify-center';
+
+  // Compact mode for header
+  if (compact) {
+    return (
+      <div className={`flex items-center ${alignClass} gap-1`}>
+        <span className="text-sm sm:text-base font-bold text-white font-mono">
+          {formatNumber(timeLeft.hours)}
+        </span>
+        <span className="text-sm sm:text-base font-bold text-orange-500">:</span>
+        <span className="text-sm sm:text-base font-bold text-white font-mono">
+          {formatNumber(timeLeft.minutes)}
+        </span>
+        <span className="text-sm sm:text-base font-bold text-orange-500">:</span>
+        <span className="text-sm sm:text-base font-bold text-orange-400 font-mono">
+          {formatNumber(timeLeft.seconds)}
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className={`flex items-center ${alignClass} gap-2 sm:gap-4`}>

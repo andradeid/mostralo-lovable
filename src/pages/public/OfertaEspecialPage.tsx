@@ -8,7 +8,6 @@ import { Store } from "lucide-react";
 import {
   Zap, 
   CheckCircle2, 
-  ArrowRight, 
   Sparkles, 
   Shield, 
   Clock,
@@ -278,31 +277,6 @@ const OfertaEspecialPage = () => {
           </div>
         </div>
       </section>
-
-      {/* Final CTA */}
-      <section className="relative py-16 lg:py-24 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-600/10 to-orange-500/5" />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
-        <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-4">
-            Não perca essa oportunidade!
-          </h2>
-          <p className="text-zinc-400 mb-8">
-            A oferta é válida por tempo limitado. Garanta seu desconto agora!
-          </p>
-
-          <Button 
-            size="lg" 
-            onClick={() => setShowLeadForm(true)}
-            disabled={isExpired}
-            className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold text-lg px-8 py-6 rounded-xl shadow-lg shadow-orange-500/25"
-          >
-            {isExpired ? 'Oferta Expirada' : 'QUERO MEU DESCONTO'}
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
-        </div>
-      </section>
-
       {/* Lead Form Modal */}
       <Dialog open={showLeadForm} onOpenChange={setShowLeadForm}>
         <DialogContent className="sm:max-w-md p-0 bg-transparent border-none">

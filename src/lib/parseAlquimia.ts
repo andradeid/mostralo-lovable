@@ -84,26 +84,24 @@ export function parseBrazilianPrice(value: string | number | null | undefined): 
   if (value === null || value === undefined) return 0;
   if (typeof value === 'number') return value;
   
-  // Converter para string e remover caracteres invisíveis/controle
-  let str = String(value)
-    .replace(/[\u0000-\u001F\u007F-\u009F\uFEFF]/g, '') // Remove controle/BOM
-    .trim();
+  // Converter para string e fazer limpeza AGRESSIVA
+  let str = String(value);
   
-  if (!str) return 0;
+  // PASSO 1: Remover TODOS os caracteres que NÃO são dígitos, vírgula ou ponto
+  // Isso remove espaços, caracteres de controle, BOM, non-breaking spaces, etc.
+  let cleaned = str.replace(/[^\d.,]/g, '');
   
-  // Remove "R$", "$" e espaços
-  let cleaned = str
-    .replace(/R\$\s*/gi, '')
-    .replace(/\$\s*/g, '')
-    .replace(/\s+/g, '')
-    .trim();
+  // Log para debug
+  if (str !== cleaned) {
+    console.log(`[Alquimia] Limpeza de preço: "${str}" -> "${cleaned}"`);
+  }
   
   if (!cleaned) return 0;
   
-  // Log do valor original para debug
+  // Guardar valor original limpo para log
   const originalCleaned = cleaned;
   
-  // Detectar o formato baseado nos separadores presentes
+  // PASSO 2: Detectar formato baseado nos separadores
   const hasDot = cleaned.includes('.');
   const hasComma = cleaned.includes(',');
   
@@ -113,25 +111,25 @@ export function parseBrazilianPrice(value: string | number | null | undefined): 
     cleaned = cleaned.replace(/\./g, '').replace(',', '.');
   } else if (hasComma && !hasDot) {
     // FORMATO BRASILEIRO SEM MILHAR
-    // "0,15" = 0.15 (15 centavos)
-    // "0,3" = 0.3 (30 centavos)
-    // "17,49" = 17.49
+    // "1,99" -> "1.99"
+    // "0,15" -> "0.15"
     cleaned = cleaned.replace(',', '.');
   } else if (hasDot && !hasComma) {
     // Apenas ponto - verificar se é milhar ou decimal
     const dotCount = (cleaned.match(/\./g) || []).length;
     if (dotCount > 1) {
-      // Múltiplos pontos = separadores de milhar brasileiro "1.234.567"
+      // Múltiplos pontos = separadores de milhar brasileiro
       cleaned = cleaned.replace(/\./g, '');
     }
-    // Um único ponto = decimal (inglês ou brasileiro simplificado)
+    // Um único ponto = decimal
   }
   
   const num = parseFloat(cleaned);
   
-  // Log detalhado para debug de preços
-  if (num <= 1 && num > 0) {
-    console.log(`[Alquimia] Preço em centavos: "${str}" -> "${originalCleaned}" -> ${num.toFixed(2)}`);
+  // Log detalhado SEMPRE para valores com casas decimais
+  const hasDecimals = originalCleaned.includes(',') || originalCleaned.includes('.');
+  if (hasDecimals) {
+    console.log(`[Alquimia] Parse preço: "${str.trim()}" -> limpo: "${originalCleaned}" -> convertido: "${cleaned}" -> final: ${num}`);
   }
   
   if (isNaN(num)) {

@@ -47,9 +47,11 @@ export function Footer360() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-gradient-to-b from-slate-900 to-slate-950 border-t border-slate-800">
+    <footer className="bg-gradient-to-b from-slate-900 to-slate-950 border-t border-slate-800 relative overflow-hidden">
+      {/* Grid pattern background */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
       {/* Main Footer */}
-      <div className="container mx-auto px-4 py-12 md:py-16">
+      <div className="relative container mx-auto px-4 py-12 md:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {/* Coluna 1 - Sobre */}
           <div className="lg:col-span-1">

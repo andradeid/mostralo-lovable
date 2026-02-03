@@ -99,8 +99,10 @@ export function PilaresValor() {
   const [pilarAtivo, setPilarAtivo] = useState<string | null>(null);
 
   return (
-    <section id="pilares" className="py-20 bg-gradient-to-b from-slate-950 to-slate-900">
-      <div className="container mx-auto px-4">
+    <section id="pilares" className="py-20 bg-gradient-to-b from-slate-950 to-slate-900 relative overflow-hidden">
+      {/* Grid pattern background */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
+      <div className="relative container mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-16">
           <Badge className="mb-4 bg-slate-800 text-slate-300 border-slate-700">

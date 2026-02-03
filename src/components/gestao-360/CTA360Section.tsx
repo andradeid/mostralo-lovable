@@ -47,13 +47,15 @@ const beneficios = [
 export function CTA360Section() {
   return (
     <section className="py-20 bg-gradient-to-b from-slate-950 to-slate-900 relative overflow-hidden">
-      {/* Background */}
+      {/* Grid pattern background */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
+      {/* Background orbs */}
       <div className="absolute inset-0">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-orange-500/5 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-amber-500/5 rounded-full blur-3xl" />
       </div>
 
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="relative container mx-auto px-4 z-10">
         <div className="max-w-5xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12">

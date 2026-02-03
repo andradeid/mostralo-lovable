@@ -25,8 +25,10 @@ export function Header360() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-slate-950/95 backdrop-blur-lg border-b border-slate-800">
-      <div className="container mx-auto px-4">
+    <header className="sticky top-0 z-50 w-full bg-slate-950/95 backdrop-blur-lg border-b border-slate-800 relative overflow-hidden">
+      {/* Grid pattern background */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
+      <div className="relative container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">

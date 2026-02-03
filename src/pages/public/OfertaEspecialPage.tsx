@@ -19,7 +19,9 @@ import {
 } from "lucide-react";
 import { usePageSEO } from "@/hooks/useSEO";
 import { CountdownTimer } from "@/components/promo/CountdownTimer";
+import { PhoneMockup } from "@/components/promo/PhoneMockup";
 import { LeadChatForm } from "@/components/leads/LeadChatForm";
+import { LeadChatFormLight } from "@/components/leads/LeadChatFormLight";
 import { DiagnosticPopup } from "@/components/landing/DiagnosticPopup";
 
 const OfertaEspecialPage = () => {
@@ -124,60 +126,73 @@ const OfertaEspecialPage = () => {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-orange-500/20 via-transparent to-transparent" />
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:64px_64px]" />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
-          <div className="text-center max-w-4xl mx-auto">
-            {/* Urgency Badge */}
-            <Badge className="mb-4 bg-red-500/20 text-red-400 border-red-500/30 hover:bg-red-500/30 animate-pulse">
-              <AlertTriangle className="w-3 h-3 mr-1" />
-              OFERTA POR TEMPO LIMITADO
-            </Badge>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            {/* Left Column - Content */}
+            <div className="text-center lg:text-left">
+              {/* Urgency Badge */}
+              <Badge className="mb-4 bg-red-500/20 text-red-400 border-red-500/30 hover:bg-red-500/30 animate-pulse">
+                <AlertTriangle className="w-3 h-3 mr-1" />
+                OFERTA POR TEMPO LIMITADO
+              </Badge>
 
-            {/* Countdown */}
-            <div className="mb-8">
-              <p className="text-zinc-400 mb-4">Esta oferta expira em:</p>
-              <CountdownTimer 
-                hours={24} 
-                storageKey="oferta-especial-24h"
-                onExpire={() => setIsExpired(true)}
-              />
+              {/* Countdown */}
+              <div className="mb-6">
+                <p className="text-zinc-400 mb-3">Esta oferta expira em:</p>
+                <CountdownTimer 
+                  hours={24} 
+                  storageKey="oferta-especial-24h"
+                  onExpire={() => setIsExpired(true)}
+                />
+              </div>
+              
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-6">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600">
+                  3 Meses com Desconto Especial!
+                </span>
+              </h1>
+              
+              <p className="text-lg sm:text-xl text-zinc-400 mb-6 max-w-xl mx-auto lg:mx-0">
+                Aproveite esta oportunidade única para começar seu próprio sistema de vendas 
+                com <span className="text-orange-400 font-semibold">até 50% OFF</span> nos primeiros 3 meses!
+              </p>
+
+              {/* Trust badges */}
+              <div className="flex flex-wrap justify-center lg:justify-start gap-4 sm:gap-6 text-sm text-zinc-500 mb-6">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-green-500" />
+                  <span>0% de taxas</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-blue-500" />
+                  <span>Setup em 48h</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Gift className="w-4 h-4 text-orange-500" />
+                  <span>3 meses promocionais</span>
+                </div>
+              </div>
+
+              <Button 
+                size="lg" 
+                onClick={() => setShowLeadForm(true)}
+                disabled={isExpired}
+                className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold text-lg px-8 py-6 rounded-xl shadow-lg shadow-orange-500/25"
+              >
+                {isExpired ? 'Oferta Expirada' : 'QUERO APROVEITAR AGORA'}
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
             </div>
-            
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-6">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600">
-                3 Meses com Desconto Especial!
-              </span>
-            </h1>
-            
-            <p className="text-lg sm:text-xl text-zinc-400 mb-8 max-w-3xl mx-auto">
-              Aproveite esta oportunidade única para começar seu próprio sistema de vendas 
-              com <span className="text-orange-400 font-semibold">até 50% OFF</span> nos primeiros 3 meses!
-            </p>
 
-            {/* Trust badges */}
-            <div className="flex flex-wrap justify-center gap-4 sm:gap-6 text-sm text-zinc-500 mb-8">
-              <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-green-500" />
-                <span>0% de taxas</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-blue-500" />
-                <span>Setup em 48h</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Gift className="w-4 h-4 text-orange-500" />
-                <span>3 meses promocionais</span>
-              </div>
+            {/* Right Column - Phone Mockup */}
+            <div className="hidden lg:flex justify-center lg:justify-end">
+              <PhoneMockup>
+                <LeadChatFormLight 
+                  onComplete={handleOpenWhatsApp}
+                  onClose={() => {}}
+                />
+              </PhoneMockup>
             </div>
-
-            <Button 
-              size="lg" 
-              onClick={() => setShowLeadForm(true)}
-              disabled={isExpired}
-              className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold text-lg px-8 py-6 rounded-xl shadow-lg shadow-orange-500/25"
-            >
-              {isExpired ? 'Oferta Expirada' : 'QUERO APROVEITAR AGORA'}
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
           </div>
         </div>
       </section>

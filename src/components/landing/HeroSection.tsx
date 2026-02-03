@@ -2,76 +2,131 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PromotionBanner } from '@/components/coupons/PromotionBanner';
+import { PhoneMockup } from '@/components/promo/PhoneMockup';
+import { LeadChatFormLight } from '@/components/leads/LeadChatFormLight';
 import { 
-  AlertTriangle,
-  Calculator,
-  MessageCircle
+  Bot,
+  MessageSquare,
+  ShoppingBag,
+  Smartphone,
+  ClipboardList,
+  CheckCircle2,
+  Sparkles,
+  Zap
 } from 'lucide-react';
 
 export const HeroSection = () => {
   return (
-    <section className="py-12 md:py-20 lg:py-32 bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20 w-full overflow-x-hidden">
-      <div className="container px-4 md:px-6 max-w-full">
-        <div className="flex flex-col items-center space-y-8 text-center w-full">
-          <Badge variant="destructive" className="text-base px-4 py-2">
-            <AlertTriangle className="w-4 h-4 mr-2" />
-            A Verdade que Ninguém Conta
-          </Badge>
-          
-          <div className="space-y-4 max-w-4xl w-full px-2">
-            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight break-words">
-              PARE DE PAGAR PARA O
-              <span className="block text-destructive dark:text-red-500 mt-2">iFOOD CRESCER</span>
-              <span className="block mt-2">COM SEUS CLIENTES</span>
-            </h1>
-            <p className="text-xl md:text-2xl lg:text-3xl font-bold text-muted-foreground">
-              A cada pedido, você financia a expansão do marketplace que compete com você.
-              <span className="text-primary block mt-2 font-display">Invista no SEU negócio, não no deles.</span>
-            </p>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Sistema completo com <strong>0% de taxa por pedido</strong> + <span className="text-orange-500 font-bold">SENTINELA:</span> <span className="text-green-600 dark:text-green-400 font-bold">WhatsApp Marketing automático</span> que recupera clientes inativos. Todos os clientes são 100% seus.
-            </p>
+    <section className="py-12 md:py-20 lg:py-24 bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 w-full overflow-x-hidden">
+      <div className="container px-4 md:px-6 max-w-7xl mx-auto">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          {/* Conteúdo Textual */}
+          <div className="flex flex-col space-y-6 text-center lg:text-left">
+            <Badge className="w-fit mx-auto lg:mx-0 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm px-4 py-2 border-0">
+              <Sparkles className="w-4 h-4 mr-2" />
+              IA Mais Inteligente do Brasil
+            </Badge>
+            
+            <div className="space-y-4">
+              <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-white">
+                Atendimento com
+                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600 mt-2">
+                  Inteligência Artificial
+                </span>
+              </h1>
+              <p className="text-lg md:text-xl text-zinc-300 max-w-xl mx-auto lg:mx-0">
+                Nossa IA faz <strong className="text-orange-400">todo o atendimento</strong> do seu delivery, 
+                evitando erros na hora do pedido e aumentando suas vendas em até <strong className="text-green-400">40%</strong>.
+              </p>
+            </div>
 
-            {/* Destaque SENTINELA WhatsApp */}
-            <div className="mt-6 p-6 bg-gradient-to-r from-orange-50 via-green-50 to-emerald-50 dark:from-orange-950/30 dark:via-green-950/30 dark:to-emerald-950/30 rounded-2xl border-2 border-green-300 dark:border-green-700 max-w-3xl mx-auto">
-              <div className="flex items-center justify-center gap-2 mb-3">
-                <MessageCircle className="w-6 h-6 text-green-500" />
-                <h3 className="text-xl md:text-2xl font-bold text-foreground">
-                  E os clientes inativos?
-                </h3>
+            {/* Features Grid */}
+            <div className="grid grid-cols-2 gap-3 max-w-lg mx-auto lg:mx-0">
+              <div className="flex items-start gap-3 p-3 rounded-xl bg-zinc-800/50 border border-zinc-700">
+                <div className="p-2 rounded-lg bg-orange-500/20">
+                  <ShoppingBag className="w-5 h-5 text-orange-400" />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-semibold text-white text-sm">Pedidos de Delivery</h3>
+                  <p className="text-xs text-zinc-400">Zero erros, 100% automático</p>
+                </div>
               </div>
-              <p className="text-lg md:text-xl font-semibold text-foreground">
-                O <span className="text-orange-500 font-bold">SENTINELA</span> cuida disso pra você.
-              </p>
-              <p className="text-sm md:text-base text-muted-foreground mt-2">
-                <strong className="text-orange-500">WhatsApp Marketing automático</strong> que recupera clientes inativos e aumenta suas vendas sem você fazer nada.
-              </p>
-              <div className="flex flex-wrap justify-center gap-2 mt-4">
-                <Badge className="bg-gradient-to-r from-orange-500 to-green-600 hover:from-orange-600 hover:to-green-700 text-white">
-                  🛡️ SENTINELA WhatsApp Incluso
-                </Badge>
+              
+              <div className="flex items-start gap-3 p-3 rounded-xl bg-zinc-800/50 border border-zinc-700">
+                <div className="p-2 rounded-lg bg-green-500/20">
+                  <Smartphone className="w-5 h-5 text-green-400" />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-semibold text-white text-sm">Cardápio Digital</h3>
+                  <p className="text-xs text-zinc-400">QR Code + Link próprio</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3 p-3 rounded-xl bg-zinc-800/50 border border-zinc-700">
+                <div className="p-2 rounded-lg bg-blue-500/20">
+                  <ClipboardList className="w-5 h-5 text-blue-400" />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-semibold text-white text-sm">Gestor de Pedidos</h3>
+                  <p className="text-xs text-zinc-400">Painel completo em tempo real</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3 p-3 rounded-xl bg-zinc-800/50 border border-zinc-700">
+                <div className="p-2 rounded-lg bg-purple-500/20">
+                  <Bot className="w-5 h-5 text-purple-400" />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-semibold text-white text-sm">Atendente IA</h3>
+                  <p className="text-xs text-zinc-400">24h/7 dias, sem pausas</p>
+                </div>
               </div>
             </div>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-            <a href="#calculadora" className="w-full sm:w-auto">
-              <Button size="lg" className="w-full text-lg h-14 px-8 shadow-lg hover:shadow-xl transition-shadow">
-                <Calculator className="mr-2 h-5 w-5" />
-                Calcular Minha Economia
-              </Button>
-            </a>
-            <Link to="/users-demo" className="w-full sm:w-auto">
-              <Button variant="outline" size="lg" className="w-full text-lg h-14 px-8">
-                Ver Sistema ao Vivo
-              </Button>
-            </Link>
+
+            {/* Benefícios */}
+            <div className="flex flex-wrap justify-center lg:justify-start gap-4 text-sm text-zinc-300">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-400" />
+                <span>Sem erros de pedido</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-400" />
+                <span>Atendimento instantâneo</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-400" />
+                <span>Funciona 24 horas</span>
+              </div>
+            </div>
+
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              <Link to="/registro">
+                <Button size="lg" className="w-full sm:w-auto text-lg h-14 px-8 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg hover:shadow-xl transition-all">
+                  <Zap className="mr-2 h-5 w-5" />
+                  Testar Grátis
+                </Button>
+              </Link>
+              <Link to="/users-demo">
+                <Button variant="outline" size="lg" className="w-full sm:w-auto text-lg h-14 px-8 border-zinc-600 text-white hover:bg-zinc-800">
+                  <MessageSquare className="mr-2 h-5 w-5" />
+                  Ver Demonstração
+                </Button>
+              </Link>
+            </div>
           </div>
 
-          {/* Banner de Cupons Promocionais */}
-          <div className="w-full max-w-4xl">
-            <PromotionBanner />
+          {/* Phone Mockup */}
+          <div className="flex justify-center lg:justify-end mt-8 lg:mt-0">
+            <PhoneMockup>
+              <LeadChatFormLight />
+            </PhoneMockup>
           </div>
+        </div>
+
+        {/* Banner de Cupons */}
+        <div className="mt-12 w-full max-w-4xl mx-auto">
+          <PromotionBanner />
         </div>
       </div>
     </section>

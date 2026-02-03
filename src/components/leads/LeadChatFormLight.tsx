@@ -5,8 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Send, Check, CheckCheck, Loader2 } from 'lucide-react';
 
 interface LeadChatFormLightProps {
-  onComplete: (whatsappNumber: string, message: string) => void;
-  onClose: () => void;
+  onComplete?: (whatsappNumber: string, message: string) => void;
+  onClose?: () => void;
 }
 
 interface Message {
@@ -105,7 +105,7 @@ const STEPS_CONFIG: Record<Step, { question: string; placeholder?: string; input
   }
 };
 
-export function LeadChatFormLight({ onComplete, onClose }: LeadChatFormLightProps) {
+export function LeadChatFormLight({ onComplete, onClose }: LeadChatFormLightProps = {}) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentStep, setCurrentStep] = useState<Step>('name');
   const [inputValue, setInputValue] = useState('');
@@ -372,7 +372,14 @@ export function LeadChatFormLight({ onComplete, onClose }: LeadChatFormLightProp
       .replace(/{empresa}/gi, leadData.company_name)
       .replace(/{cidade}/gi, leadData.city)
       .replace(/{ifood}/gi, leadData.uses_ifood ? 'Sim' : 'Não');
-    onComplete(whatsappNumber, finalMessage);
+    
+    if (onComplete) {
+      onComplete(whatsappNumber, finalMessage);
+    } else {
+      // Abre WhatsApp diretamente se não houver callback
+      const encodedMessage = encodeURIComponent(finalMessage);
+      window.open(`https://wa.me/${whatsappNumber}?text=${encodedMessage}`, '_blank');
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

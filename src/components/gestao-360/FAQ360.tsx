@@ -153,8 +153,10 @@ export function FAQ360() {
   }, []);
 
   return (
-    <section id="faq" className="py-20 px-4 bg-gradient-to-b from-slate-950 to-slate-900">
-      <div className="container mx-auto max-w-4xl">
+    <section id="faq" className="py-20 px-4 bg-gradient-to-b from-slate-950 to-slate-900 relative overflow-hidden">
+      {/* Grid pattern background */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
+      <div className="relative container mx-auto max-w-4xl">
         {/* Header */}
         <div className="text-center mb-12">
           <Badge className="mb-4 bg-blue-500/10 text-blue-400 border-blue-500/20 hover:bg-blue-500/20">

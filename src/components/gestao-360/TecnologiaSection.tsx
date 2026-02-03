@@ -37,8 +37,10 @@ const diferenciais = [
 
 export function TecnologiaSection() {
   return (
-    <section id="tecnologia" className="py-20 bg-gradient-to-b from-slate-900 to-slate-950">
-      <div className="container mx-auto px-4">
+    <section id="tecnologia" className="py-20 bg-gradient-to-b from-slate-900 to-slate-950 relative overflow-hidden">
+      {/* Grid pattern background */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
+      <div className="relative container mx-auto px-4">
         <div className="max-w-5xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12">

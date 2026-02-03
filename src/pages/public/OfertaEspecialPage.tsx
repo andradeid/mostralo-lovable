@@ -23,6 +23,7 @@ import { LeadChatForm } from "@/components/leads/LeadChatForm";
 import { DiagnosticPopup } from "@/components/landing/DiagnosticPopup";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { FeaturesGridSection } from "@/components/landing/FeaturesGridSection";
+import { MainFooter } from "@/components/MainFooter";
 
 const OfertaEspecialPage = () => {
   const [showLeadForm, setShowLeadForm] = useState(false);
@@ -311,6 +312,9 @@ const OfertaEspecialPage = () => {
 
       {/* Diagnostic Popup */}
       <DiagnosticPopup />
+
+      {/* Footer */}
+      <MainFooter />
     </div>
   );
 };

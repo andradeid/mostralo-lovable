@@ -130,8 +130,10 @@ const OfertaEspecialPage = () => {
       <FeaturesGridSection />
 
       {/* Plans Section */}
-      <section className="py-16 lg:py-24 bg-zinc-900/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative py-16 lg:py-24 overflow-hidden">
+        <div className="absolute inset-0 bg-zinc-900/50" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <Badge className="mb-4 bg-orange-500/20 text-orange-400 border-orange-500/30">
               <Sparkles className="w-3 h-3 mr-1" />
@@ -226,8 +228,10 @@ const OfertaEspecialPage = () => {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-16 lg:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative py-16 lg:py-24 overflow-hidden">
+        <div className="absolute inset-0 bg-zinc-950" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-2xl sm:text-3xl font-bold mb-4">
               Por que escolher o{" "}
@@ -258,8 +262,10 @@ const OfertaEspecialPage = () => {
       </section>
 
       {/* Final CTA */}
-      <section className="py-16 lg:py-24 bg-gradient-to-br from-orange-600/10 to-orange-500/5">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section className="relative py-16 lg:py-24 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-600/10 to-orange-500/5" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
+        <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl sm:text-3xl font-bold mb-4">
             Não perca essa oportunidade!
           </h2>

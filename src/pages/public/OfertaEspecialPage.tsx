@@ -20,6 +20,7 @@ import {
 import { usePageSEO } from "@/hooks/useSEO";
 import { CountdownTimer } from "@/components/promo/CountdownTimer";
 import { LeadChatForm } from "@/components/leads/LeadChatForm";
+import { DiagnosticPopup } from "@/components/landing/DiagnosticPopup";
 
 const OfertaEspecialPage = () => {
   const [showLeadForm, setShowLeadForm] = useState(false);
@@ -354,6 +355,9 @@ const OfertaEspecialPage = () => {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Diagnostic Popup */}
+      <DiagnosticPopup />
     </div>
   );
 };

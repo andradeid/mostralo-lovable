@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +28,8 @@ import { ProposalsTutorial, useProposalsTutorial } from '@/components/proposals/
 import { ProposalsDashboard } from '@/components/proposals/ProposalsDashboard';
 import { ProposalWhatsAppTemplateModal } from '@/components/proposals/ProposalWhatsAppTemplateModal';
 import { ProposalTemplatesManager } from '@/components/proposals/ProposalTemplatesManager';
+import { useAuth } from '@/hooks/use-auth';
+import { supabase } from '@/integrations/supabase/client';
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
   draft: { label: 'Rascunho', color: 'bg-gray-500/10 text-gray-600 border-gray-500/20', icon: Clock },
@@ -43,10 +45,14 @@ const formatCurrency = (value: number) => {
 };
 
 export default function ProposalsListPage() {
+  const { user, userRole } = useAuth();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [salespersonId, setSalespersonId] = useState<string | null>(null);
+  const [loadingSalesperson, setLoadingSalesperson] = useState(true);
   const [whatsappModalOpen, setWhatsappModalOpen] = useState(false);
   const [selectedProposalForWhatsApp, setSelectedProposalForWhatsApp] = useState<{
     client_name: string;
@@ -66,8 +72,50 @@ export default function ProposalsListPage() {
 
   const { showTutorial, completeTutorial, openTutorial } = useProposalsTutorial();
 
+  // Detectar se é área de vendedor ou admin
+  const isSalespersonArea = location.pathname.startsWith('/vendedor');
+  const isSalesperson = userRole === 'salesperson';
+  const isMasterAdmin = userRole === 'master_admin';
+
+  // Buscar salesperson_id se o usuário for vendedor
+  useEffect(() => {
+    async function fetchSalespersonId() {
+      if (!user) {
+        setLoadingSalesperson(false);
+        return;
+      }
+
+      // Se for master_admin, não precisa filtrar
+      if (isMasterAdmin) {
+        setLoadingSalesperson(false);
+        return;
+      }
+
+      // Se for vendedor, buscar o salesperson_id
+      if (isSalesperson) {
+        const { data, error } = await supabase
+          .from('salespeople')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+
+        if (!error && data) {
+          setSalespersonId(data.id);
+        }
+      }
+
+      setLoadingSalesperson(false);
+    }
+
+    fetchSalespersonId();
+  }, [user, isSalesperson, isMasterAdmin]);
+
+  // Definir filtro: vendedores veem apenas suas propostas, master admin vê todas
+  const proposalFilter = isSalesperson && salespersonId ? salespersonId : undefined;
+
   const { data: proposals = [], isLoading } = useCommercialProposals({ 
-    status: statusFilter !== 'all' ? statusFilter : undefined 
+    status: statusFilter !== 'all' ? statusFilter : undefined,
+    salesperson_id: proposalFilter,
   });
   const deleteProposal = useDeleteProposal();
 
@@ -109,7 +157,10 @@ export default function ProposalsListPage() {
     }
   };
 
-  if (isLoading) {
+  // Determinar a rota base para links
+  const baseRoute = isSalespersonArea ? '/vendedor/propostas' : '/dashboard/propostas';
+
+  if (isLoading || loadingSalesperson) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -145,7 +196,7 @@ export default function ProposalsListPage() {
           </Button>
         </div>
         <div className="flex items-center gap-2">
-          <Link to="/dashboard/propostas/nova">
+          <Link to={`${baseRoute}/nova`}>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
               Nova Proposta
@@ -173,7 +224,10 @@ export default function ProposalsListPage() {
 
         {/* Dashboard Tab */}
         <TabsContent value="dashboard" className="mt-6">
-          <ProposalsDashboard showSalespersonRanking={true} />
+          <ProposalsDashboard 
+            salespersonId={proposalFilter} 
+            showSalespersonRanking={isMasterAdmin} 
+          />
         </TabsContent>
 
         {/* List Tab */}
@@ -286,7 +340,7 @@ export default function ProposalsListPage() {
                   <p className="text-muted-foreground">
                     Nenhuma proposta encontrada.
                   </p>
-                  <Link to="/dashboard/propostas/nova" className="mt-4 inline-block">
+                  <Link to={`${baseRoute}/nova`} className="mt-4 inline-block">
                     <Button>
                       <Plus className="w-4 h-4 mr-2" />
                       Criar Primeira Proposta

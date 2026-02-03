@@ -69,7 +69,7 @@ export function TutorialVideosTab() {
   }, [tutorials, selectedCategory, searchTerm, statusFilter, featuredFilter]);
 
   const hasActiveFilters = searchTerm || statusFilter !== "all" || featuredFilter !== "all";
-  const canReorder = selectedCategory !== "all" && !hasActiveFilters;
+  const canReorder = !hasActiveFilters;
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -239,9 +239,9 @@ export function TutorialVideosTab() {
             Arraste para reordenar
           </p>
         )}
-        {selectedCategory === "all" && !hasActiveFilters && (
+        {hasActiveFilters && (
           <p className="text-xs text-muted-foreground">
-            Selecione uma categoria para reordenar
+            Limpe os filtros para reordenar
           </p>
         )}
       </div>

@@ -10,6 +10,8 @@ export interface AlquimiaRawProduct {
   venda: number;
   totalVenda: number;
   rowIndex: number;
+  codigo?: string;
+  ean?: string;
 }
 
 export interface AlquimiaProduct {
@@ -19,7 +21,7 @@ export interface AlquimiaProduct {
   precoOriginal: string;
   categoria: string;
   categoriaOriginal: string;
-  laboratorio: string; // Adicionado para busca de imagens
+  laboratorio: string;
   quantidade_estoque: number;
   disponivel: boolean;
   mostrar_menu: boolean;
@@ -28,6 +30,8 @@ export interface AlquimiaProduct {
   isValid: boolean;
   errors: string[];
   rowIndex: number;
+  codigo?: string;
+  ean?: string;
 }
 
 export interface AlquimiaParseResult {
@@ -38,31 +42,33 @@ export interface AlquimiaParseResult {
   validRows: number;
   skippedRows: number;
   categories: string[];
+  formatDetected: 'novo' | 'legado';
 }
 
 /**
- * Encontra a linha onde começam os dados reais (após cabeçalho técnico)
- * Procura pela linha que contém "Nome do Produto" ou "Nome"
+ * Detecta o formato do CSV Alquimia baseado nos headers
+ * Novo formato: CODIGO;EAN;DESCRICAO;APRESENTACAO;PRO_NOMELABORATORIO;CLASSE;CUSTO;VENDA;ESTOQUE
+ * Formato legado: Nome do Produto, Apresentação, Laboratório, Cla., Qtde, Custo, Total Custo, Venda, Total Venda
  */
-export function findDataStartRow(rows: string[][]): number {
-  for (let i = 0; i < Math.min(rows.length, 20); i++) {
-    const row = rows[i];
-    if (!row) continue;
-    
-    const hasNomeColumn = row.some(cell => {
-      const cellStr = String(cell || '').toLowerCase().trim();
-      return cellStr.includes('nome do produto') || 
-             cellStr === 'nome' ||
-             cellStr.includes('produto');
-    });
-    
-    if (hasNomeColumn) {
-      return i;
-    }
+function detectAlquimiaFormat(headers: string[]): 'novo' | 'legado' {
+  const headersLower = headers.map(h => h.toLowerCase().trim());
+  
+  // Novo formato tem CODIGO, EAN, DESCRICAO
+  if (headersLower.includes('codigo') || headersLower.includes('ean') || headersLower.includes('descricao')) {
+    return 'novo';
   }
   
-  // Fallback: assumir linha 9 (índice 9) como padrão do Alquimia
-  return 9;
+  // Formato legado tem "Nome do Produto" ou usa compactação
+  if (headersLower.some(h => h.includes('nome do produto') || h === 'nome')) {
+    return 'legado';
+  }
+  
+  // Default para novo formato se tem estrutura simples de 9 colunas
+  if (headers.length >= 7 && headers.length <= 12) {
+    return 'novo';
+  }
+  
+  return 'legado';
 }
 
 /**
@@ -100,7 +106,7 @@ export function mapAlquimiaCategory(cla: string | null | undefined): string {
   const categoryMap: Record<string, string> = {
     // Medicamentos Genéricos
     'GEN': 'Medicamentos Genéricos',
-    'GE': 'Medicamentos Genéricos',  // Versão truncada
+    'GE': 'Medicamentos Genéricos',
     'GENERICO': 'Medicamentos Genéricos',
     
     // Medicamentos (referência/similares)
@@ -108,15 +114,18 @@ export function mapAlquimiaCategory(cla: string | null | undefined): string {
     'MO': 'Medicamentos',
     'BON': 'Medicamentos',
     'BO': 'Medicamentos',
-    'MUL': 'Medicamentos',  // Multi/Multiplo
-    'SIM': 'Medicamentos',  // Similar
-    'REF': 'Medicamentos',  // Referência
-    'ETI': 'Medicamentos',  // Ético
+    'MUL': 'Medicamentos',
+    'SIM': 'Medicamentos',
+    'REF': 'Medicamentos',
+    'ETI': 'Medicamentos',
+    'ETICOS / MARCA': 'Medicamentos',
+    'ETICOS': 'Medicamentos',
     
     // Higiene e Perfumaria
     'PER': 'Higiene e Perfumaria',
     'PE': 'Higiene e Perfumaria',
     'HIG': 'Higiene e Perfumaria',
+    'PERFUMARIA': 'Higiene e Perfumaria',
     
     // Primeiros Socorros
     'HOS': 'Primeiros Socorros e Materiais',
@@ -151,7 +160,7 @@ export function mapAlquimiaCategory(cla: string | null | undefined): string {
     // Bebês e Mamães  
     'BEB': 'Bebês e Mamães',
     'BE': 'Bebês e Mamães',
-    'INF': 'Bebês e Mamães',  // Infantil
+    'INF': 'Bebês e Mamães',
   };
   
   // Busca exata primeiro
@@ -169,6 +178,14 @@ export function mapAlquimiaCategory(cla: string | null | undefined): string {
   
   if (categoryMap[prefix2]) {
     return categoryMap[prefix2];
+  }
+  
+  // Se é um texto descritivo, tentar mapear
+  const codeUpper = code.toUpperCase();
+  for (const [key, value] of Object.entries(categoryMap)) {
+    if (codeUpper.includes(key) || key.includes(codeUpper)) {
+      return value;
+    }
   }
   
   return 'Outros';
@@ -196,44 +213,11 @@ export function toTitleCase(text: string | null | undefined): string {
 }
 
 /**
- * Filtra linhas completamente vazias
- */
-export function filterEmptyRows(rows: string[][]): string[][] {
-  return rows.filter(row => {
-    if (!row || !Array.isArray(row)) return false;
-    return row.some(cell => cell !== null && cell !== undefined && String(cell).trim() !== '');
-  });
-}
-
-/**
- * Verifica se uma linha tem dados válidos de produto
- */
-function isValidProductRow(row: string[], nomeIndex: number): boolean {
-  if (!row || !Array.isArray(row)) return false;
-  
-  const nome = row[nomeIndex];
-  if (!nome) return false;
-  
-  const nomeStr = String(nome).trim();
-  // Ignora linhas que parecem ser cabeçalhos ou totais
-  if (nomeStr.toLowerCase().includes('total') ||
-      nomeStr.toLowerCase().includes('subtotal') ||
-      nomeStr.toLowerCase() === 'nome do produto' ||
-      nomeStr.toLowerCase() === 'nome') {
-    return false;
-  }
-  
-  return nomeStr.length > 0;
-}
-
-/**
- * Parse CSV content into rows - OTIMIZADO para formato Alquimia
- * O Alquimia usa múltiplos separadores (;;;) entre colunas
+ * Parse CSV content into rows - suporta múltiplos separadores
  */
 function parseCSVContent(content: string): string[][] {
   const lines = content.split(/\r?\n/);
   return lines.map(line => {
-    // Simple CSV parsing (handles basic cases)
     const cells: string[] = [];
     let current = '';
     let inQuotes = false;
@@ -257,83 +241,168 @@ function parseCSVContent(content: string): string[][] {
 }
 
 /**
- * Compacta array removendo células vazias consecutivas do Alquimia
- * Transforma [, , , Nome, , , , , , Apresentacao, ...] em [Nome, Apresentacao, ...]
+ * Compacta array removendo células vazias consecutivas (formato legado)
  */
 function compactAlquimiaRow(row: string[]): string[] {
   return row.filter(cell => cell !== null && cell !== undefined && cell.trim() !== '');
 }
 
 /**
- * Verifica se a linha é metadado do Alquimia (cabeçalho técnico)
+ * Encontra índices das colunas no novo formato
  */
-function isAlquimiaMetadataLine(row: string[]): boolean {
-  if (!row || row.length === 0) return true;
+function findColumnIndices(headers: string[]): Record<string, number> {
+  const indices: Record<string, number> = {
+    codigo: -1,
+    ean: -1,
+    nome: -1,
+    apresentacao: -1,
+    laboratorio: -1,
+    classe: -1,
+    custo: -1,
+    venda: -1,
+    estoque: -1,
+  };
   
-  const compacted = compactAlquimiaRow(row);
-  if (compacted.length === 0) return true;
+  headers.forEach((header, index) => {
+    const h = header.toLowerCase().trim();
+    
+    if (h === 'codigo' || h === 'código') indices.codigo = index;
+    else if (h === 'ean') indices.ean = index;
+    else if (h === 'descricao' || h === 'descrição' || h === 'nome' || h === 'nome do produto') indices.nome = index;
+    else if (h === 'apresentacao' || h === 'apresentação') indices.apresentacao = index;
+    else if (h === 'pro_nomelaboratorio' || h === 'laboratorio' || h === 'laboratório' || h === 'fabricante') indices.laboratorio = index;
+    else if (h === 'classe' || h === 'cla' || h === 'cla.' || h === 'classificacao' || h === 'classificação' || h === 'categoria') indices.classe = index;
+    else if (h === 'custo' || h === 'preco_custo' || h === 'preço_custo') indices.custo = index;
+    else if (h === 'venda' || h === 'preco' || h === 'preço' || h === 'preco_venda' || h === 'preço_venda') indices.venda = index;
+    else if (h === 'estoque' || h === 'qtde' || h === 'quantidade' || h === 'qtd') indices.estoque = index;
+  });
   
-  const firstCell = compacted[0].toLowerCase();
-  const joinedRow = compacted.join(' ').toLowerCase();
-  
-  // Ignora linhas de metadados conhecidas
-  if (firstCell.includes('relatorio') ||
-      firstCell.includes('estoque ate') ||
-      firstCell.includes('loja') ||
-      firstCell.includes('pag') ||
-      joinedRow.includes('relatorio de produtos') ||
-      joinedRow.includes('estoque ate o dia') ||
-      joinedRow.includes('farma bella')) {
-    return true;
-  }
-  
-  // Ignora linhas que parecem ser data/hora (ex: "21/01/2026")
-  if (/^\d{2}\/\d{2}\/\d{4}$/.test(firstCell.trim())) {
-    return true;
-  }
-  
-  return false;
+  return indices;
 }
 
 /**
- * Processa arquivo CSV e retorna produtos formatados
- * USA COMPACTAÇÃO para lidar com células vazias do Alquimia
+ * Processa arquivo CSV no NOVO formato Alquimia
+ * CODIGO;EAN;DESCRICAO;APRESENTACAO;PRO_NOMELABORATORIO;CLASSE;CUSTO;VENDA;ESTOQUE
  */
-export async function parseAlquimiaCSV(file: File): Promise<AlquimiaParseResult> {
-  const content = await file.text();
-  const rawRows = parseCSVContent(content);
+function parseNewFormat(rows: string[][], headerRowIndex: number): AlquimiaParseResult {
+  const headers = rows[headerRowIndex];
+  const cols = findColumnIndices(headers);
   
-  // Compactar todas as linhas para remover células vazias
-  const compactedRows = rawRows.map(row => compactAlquimiaRow(row));
+  console.log('[Alquimia NOVO] Headers:', headers);
+  console.log('[Alquimia NOVO] Índices detectados:', cols);
   
-  // Encontrar linha de cabeçalho nas linhas COMPACTADAS
-  let headerRowIndex = -1;
-  for (let i = 0; i < Math.min(compactedRows.length, 30); i++) {
-    const row = compactedRows[i];
-    if (!row || row.length < 3) continue;
+  const rawProducts: AlquimiaRawProduct[] = [];
+  const products: AlquimiaProduct[] = [];
+  const categoriesSet = new Set<string>();
+  let skippedRows = 0;
+  
+  // Processar linhas de dados
+  for (let i = headerRowIndex + 1; i < rows.length; i++) {
+    const row = rows[i];
     
-    const joinedRow = row.join(' ').toLowerCase();
-    const hasNomeColumn = row.some(cell => {
-      const cellStr = String(cell || '').toLowerCase().trim();
-      return cellStr.includes('nome do produto') || 
-             (cellStr === 'nome' && joinedRow.includes('venda'));
-    });
-    
-    if (hasNomeColumn) {
-      headerRowIndex = i;
-      break;
+    // Pular linhas vazias
+    if (!row || row.length === 0 || row.every(cell => !cell.trim())) {
+      skippedRows++;
+      continue;
     }
+    
+    const nomeOriginal = cols.nome >= 0 ? String(row[cols.nome] || '').trim() : '';
+    
+    // Pular linhas sem nome ou com cabeçalhos repetidos
+    if (!nomeOriginal || 
+        nomeOriginal.toLowerCase() === 'descricao' ||
+        nomeOriginal.toLowerCase() === 'nome' ||
+        nomeOriginal.toLowerCase().includes('total')) {
+      skippedRows++;
+      continue;
+    }
+    
+    const codigo = cols.codigo >= 0 ? String(row[cols.codigo] || '').trim() : '';
+    const ean = cols.ean >= 0 ? String(row[cols.ean] || '').trim() : '';
+    const apresentacao = cols.apresentacao >= 0 ? String(row[cols.apresentacao] || '').trim() : '';
+    const laboratorio = cols.laboratorio >= 0 ? String(row[cols.laboratorio] || '').trim() : '';
+    const classeOriginal = cols.classe >= 0 ? String(row[cols.classe] || '').trim() : '';
+    const custoStr = cols.custo >= 0 ? String(row[cols.custo] || '0') : '0';
+    const vendaStr = cols.venda >= 0 ? String(row[cols.venda] || '0') : '0';
+    const estoqueStr = cols.estoque >= 0 ? String(row[cols.estoque] || '0') : '0';
+    
+    const custo = parseBrazilianPrice(custoStr);
+    const venda = parseBrazilianPrice(vendaStr);
+    const estoque = parseInt(estoqueStr.replace(/\D/g, '')) || 0;
+    
+    // Produto raw
+    const rawProduct: AlquimiaRawProduct = {
+      nomeOriginal,
+      apresentacao,
+      laboratorio,
+      classificacao: classeOriginal,
+      quantidade: estoque,
+      custo,
+      totalCusto: custo * estoque,
+      venda,
+      totalVenda: venda * estoque,
+      rowIndex: i + 1,
+      codigo,
+      ean,
+    };
+    rawProducts.push(rawProduct);
+    
+    // Produto convertido
+    // Nome: combinar descrição + apresentação para nome completo
+    const nomeFinal = apresentacao 
+      ? `${toTitleCase(nomeOriginal)} ${apresentacao}` 
+      : toTitleCase(nomeOriginal);
+    
+    const categoria = mapAlquimiaCategory(classeOriginal);
+    
+    const errors: string[] = [];
+    if (!nomeFinal) errors.push('Nome vazio');
+    if (venda <= 0) errors.push('Preço inválido');
+    
+    categoriesSet.add(categoria);
+    
+    const product: AlquimiaProduct = {
+      nome: nomeFinal.trim(),
+      nomeOriginal,
+      preco: venda,
+      precoOriginal: vendaStr,
+      categoria,
+      categoriaOriginal: classeOriginal,
+      laboratorio: toTitleCase(laboratorio),
+      quantidade_estoque: estoque,
+      disponivel: true,
+      mostrar_menu: true,
+      controlar_estoque: true,
+      alerta_estoque: 5,
+      isValid: errors.length === 0,
+      errors,
+      rowIndex: i + 1,
+      codigo,
+      ean,
+    };
+    products.push(product);
   }
   
-  if (headerRowIndex === -1) {
-    console.warn('Cabeçalho não encontrado, tentando fallback...');
-    headerRowIndex = 9; // Fallback padrão Alquimia
-  }
-  
+  return {
+    products,
+    rawProducts,
+    headers,
+    totalRows: rows.length,
+    validRows: products.filter(p => p.isValid).length,
+    skippedRows,
+    categories: Array.from(categoriesSet),
+    formatDetected: 'novo',
+  };
+}
+
+/**
+ * Processa arquivo CSV no formato LEGADO Alquimia
+ */
+function parseLegacyFormat(rows: string[][], compactedRows: string[][], headerRowIndex: number): AlquimiaParseResult {
   const headers = compactedRows[headerRowIndex] || [];
-  console.log('[Alquimia] Header encontrado na linha', headerRowIndex, ':', headers.join(' | '));
+  console.log('[Alquimia LEGADO] Header encontrado na linha', headerRowIndex, ':', headers.join(' | '));
   
-  // Índices APÓS compactação (formato padrão Alquimia)
+  // Índices APÓS compactação (formato padrão Alquimia legado)
   const cols = {
     nome: 0,
     apresentacao: 1,
@@ -346,7 +415,6 @@ export async function parseAlquimiaCSV(file: File): Promise<AlquimiaParseResult>
     totalVenda: 8,
   };
   
-  // Extrair dados (pulando cabeçalho e metadados) - usar linhas COMPACTADAS
   const dataRows = compactedRows.slice(headerRowIndex + 1);
   
   let skippedRows = 0;
@@ -357,13 +425,11 @@ export async function parseAlquimiaCSV(file: File): Promise<AlquimiaParseResult>
   dataRows.forEach((row, index) => {
     const actualRowIndex = headerRowIndex + 2 + index;
     
-    // Pular linhas vazias ou de metadados
     if (!row || row.length === 0) {
       skippedRows++;
       return;
     }
     
-    // Pular linhas que não parecem produtos (menos de 5 colunas após compactação)
     if (row.length < 5) {
       skippedRows++;
       return;
@@ -371,7 +437,6 @@ export async function parseAlquimiaCSV(file: File): Promise<AlquimiaParseResult>
     
     const nomeOriginal = String(row[cols.nome] || '').trim();
     
-    // Validar se é um produto real
     if (!nomeOriginal || 
         nomeOriginal.toLowerCase().includes('total') ||
         nomeOriginal.toLowerCase().includes('subtotal') ||
@@ -385,10 +450,6 @@ export async function parseAlquimiaCSV(file: File): Promise<AlquimiaParseResult>
     const vendaStr = String(row[cols.venda] || '0');
     const custoStr = String(row[cols.custo] || '0');
     
-    // DEBUG: Log para entender os dados da linha
-    console.log(`[Alquimia] Linha ${actualRowIndex}: Nome="${nomeOriginal}", Cla="${claOriginal}", Row completa:`, row);
-    
-    // Produto raw (dados originais)
     const rawProduct: AlquimiaRawProduct = {
       nomeOriginal,
       apresentacao: String(row[cols.apresentacao] || '').trim(),
@@ -403,14 +464,10 @@ export async function parseAlquimiaCSV(file: File): Promise<AlquimiaParseResult>
     };
     rawProducts.push(rawProduct);
     
-    // Produto convertido
     const nome = toTitleCase(nomeOriginal);
     const preco = parseBrazilianPrice(vendaStr);
     const categoria = mapAlquimiaCategory(claOriginal);
     const laboratorio = toTitleCase(String(row[cols.laboratorio] || '').trim());
-    
-    // DEBUG: Log do mapeamento de categoria
-    console.log(`[Alquimia] Mapeamento: "${claOriginal}" -> "${categoria}"`);
     
     const errors: string[] = [];
     if (!nome) errors.push('Nome vazio');
@@ -442,11 +499,79 @@ export async function parseAlquimiaCSV(file: File): Promise<AlquimiaParseResult>
     products,
     rawProducts,
     headers,
-    totalRows: rawRows.length,
-    validRows: products.length,
+    totalRows: rows.length,
+    validRows: products.filter(p => p.isValid).length,
     skippedRows,
     categories: Array.from(categoriesSet),
+    formatDetected: 'legado',
   };
+}
+
+/**
+ * Processa arquivo CSV e retorna produtos formatados
+ * DETECTA AUTOMATICAMENTE o formato (novo ou legado)
+ */
+export async function parseAlquimiaCSV(file: File): Promise<AlquimiaParseResult> {
+  const content = await file.text();
+  const rawRows = parseCSVContent(content);
+  
+  // Encontrar a primeira linha não vazia para detectar formato
+  let headerRowIndex = 0;
+  for (let i = 0; i < Math.min(rawRows.length, 15); i++) {
+    const row = rawRows[i];
+    if (!row || row.length === 0) continue;
+    
+    // Verificar se parece um cabeçalho
+    const firstCell = (row[0] || '').toLowerCase().trim();
+    const hasDataColumns = row.some(cell => {
+      const c = (cell || '').toLowerCase().trim();
+      return c === 'codigo' || c === 'ean' || c === 'descricao' || 
+             c === 'nome' || c === 'nome do produto' || c === 'venda';
+    });
+    
+    if (hasDataColumns) {
+      headerRowIndex = i;
+      break;
+    }
+  }
+  
+  const headers = rawRows[headerRowIndex] || [];
+  const format = detectAlquimiaFormat(headers);
+  
+  console.log(`[Alquimia] Formato detectado: ${format}`);
+  console.log(`[Alquimia] Header na linha ${headerRowIndex}:`, headers);
+  
+  if (format === 'novo') {
+    return parseNewFormat(rawRows, headerRowIndex);
+  }
+  
+  // Formato legado - usar compactação
+  const compactedRows = rawRows.map(row => compactAlquimiaRow(row));
+  
+  // Encontrar cabeçalho nas linhas compactadas
+  let legacyHeaderIndex = -1;
+  for (let i = 0; i < Math.min(compactedRows.length, 30); i++) {
+    const row = compactedRows[i];
+    if (!row || row.length < 3) continue;
+    
+    const joinedRow = row.join(' ').toLowerCase();
+    const hasNomeColumn = row.some(cell => {
+      const cellStr = String(cell || '').toLowerCase().trim();
+      return cellStr.includes('nome do produto') || 
+             (cellStr === 'nome' && joinedRow.includes('venda'));
+    });
+    
+    if (hasNomeColumn) {
+      legacyHeaderIndex = i;
+      break;
+    }
+  }
+  
+  if (legacyHeaderIndex === -1) {
+    legacyHeaderIndex = 9; // Fallback padrão
+  }
+  
+  return parseLegacyFormat(rawRows, compactedRows, legacyHeaderIndex);
 }
 
 /**
@@ -490,4 +615,32 @@ export function downloadCSV(content: string, filename: string): void {
   link.download = filename;
   link.click();
   URL.revokeObjectURL(link.href);
+}
+
+// Funções legadas exportadas para compatibilidade
+export function findDataStartRow(rows: string[][]): number {
+  for (let i = 0; i < Math.min(rows.length, 20); i++) {
+    const row = rows[i];
+    if (!row) continue;
+    
+    const hasNomeColumn = row.some(cell => {
+      const cellStr = String(cell || '').toLowerCase().trim();
+      return cellStr.includes('nome do produto') || 
+             cellStr === 'nome' ||
+             cellStr.includes('produto');
+    });
+    
+    if (hasNomeColumn) {
+      return i;
+    }
+  }
+  
+  return 9;
+}
+
+export function filterEmptyRows(rows: string[][]): string[][] {
+  return rows.filter(row => {
+    if (!row || !Array.isArray(row)) return false;
+    return row.some(cell => cell !== null && cell !== undefined && String(cell).trim() !== '');
+  });
 }

@@ -28,9 +28,9 @@ export function AlquimiaUploadStep({ onFileSelect, isLoading }: AlquimiaUploadSt
       return;
     }
 
-    // Validar tamanho (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      setError('Arquivo muito grande. Máximo: 10MB');
+    // Validar tamanho (max 50MB para suportar até 20.000 produtos)
+    if (file.size > 50 * 1024 * 1024) {
+      setError('Arquivo muito grande. Máximo: 50MB');
       return;
     }
 
@@ -128,7 +128,7 @@ export function AlquimiaUploadStep({ onFileSelect, isLoading }: AlquimiaUploadSt
                 Selecionar Arquivo
               </Button>
               <p className="text-xs text-muted-foreground">
-                Formato aceito: .csv (exporte do Alquimia como CSV, máx. 10MB)
+                Formato aceito: .csv (suporta até 20.000 produtos, máx. 50MB)
               </p>
             </>
           )}

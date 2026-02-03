@@ -218,14 +218,19 @@ serve(async (req) => {
     // Log do payload recebido para debug
     console.log(`[product-search-agent] 📦 Payload processado:`, JSON.stringify(body, null, 2));
     
+    // Extrair argumentos primeiro para poder usar na extração de sessão
+    const rawArgs = body.functionArguments || body.args || body.arguments || body.parameters || {};
+    const parsedArgs = typeof rawArgs === 'string' ? JSON.parse(rawArgs) : rawArgs;
+    
     // Extrair dados da sessão WhatsApp para envio de imagens
-    // Suporta múltiplos formatos da Evolution API
+    // Suporta múltiplos formatos da Evolution API + dados dentro de functionArguments
     let instanceName = 
       body.instanceName ||
       body.instance?.instanceName ||
       (typeof body.instance === 'string' ? body.instance : null) ||
       body.key?.instance ||
       body.serverUrl?.split('/')?.pop() ||
+      parsedArgs?.instanceName ||  // Também buscar em args
       null;
     
     // Tentar extrair do evento se disponível
@@ -236,18 +241,24 @@ serve(async (req) => {
       }
     }
     
-    const remoteJid = 
+    // remoteJid pode vir no body root OU dentro de functionArguments
+    let remoteJid = 
       body.remoteJid || 
       body.key?.remoteJid || 
       body.data?.key?.remoteJid ||
       body.sender ||
+      parsedArgs?.remoteJid ||  // IMPORTANTE: buscar em functionArguments
       null;
     
+    // pushName para personalização (também pode vir em args)
+    const pushName = body.pushName || parsedArgs?.pushName || null;
+    
     if (instanceName && remoteJid) {
-      console.log(`[product-search-agent] 📱 Sessão WhatsApp detectada: ${instanceName} -> ${remoteJid}`);
+      console.log(`[product-search-agent] 📱 Sessão WhatsApp detectada: ${instanceName} -> ${remoteJid} (pushName: ${pushName})`);
     } else {
-      console.log(`[product-search-agent] ⚠️ Dados de sessão WhatsApp não encontrados. instanceName: ${instanceName}, remoteJid: ${remoteJid}`);
-      console.log(`[product-search-agent] 🔍 Campos disponíveis no body:`, Object.keys(body));
+      console.log(`[product-search-agent] ⚠️ Dados de sessão WhatsApp parciais. instanceName: ${instanceName}, remoteJid: ${remoteJid}`);
+      console.log(`[product-search-agent] 🔍 Campos no body:`, Object.keys(body));
+      console.log(`[product-search-agent] 🔍 Campos em args:`, Object.keys(parsedArgs));
     }
     
     if (!storeId && body.storeId) {
@@ -265,6 +276,22 @@ serve(async (req) => {
     }
     
     console.log(`[product-search-agent] 🏪 storeId: ${storeId}`);
+    
+    // Fallback: buscar instanceName da tabela whatsapp_instances se não veio no payload
+    if (!instanceName && remoteJid) {
+      console.log(`[product-search-agent] 🔍 Buscando instanceName via storeId...`);
+      const { data: whatsappInstance } = await supabase
+        .from('whatsapp_instances')
+        .select('instance_name')
+        .eq('store_id', storeId)
+        .eq('status', 'connected')
+        .single();
+      
+      if (whatsappInstance?.instance_name) {
+        instanceName = whatsappInstance.instance_name;
+        console.log(`[product-search-agent] ✅ instanceName encontrado via DB: ${instanceName}`);
+      }
+    }
 
     // Extrair nome da função - suporta múltiplos formatos da Evolution/OpenAI
     // Formato Evolution: functionName, functionArguments

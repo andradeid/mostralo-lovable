@@ -81,6 +81,7 @@ const ProductsPage = () => {
   const [hasMoreProducts, setHasMoreProducts] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [totalProductsCount, setTotalProductsCount] = useState(0);
+  const [activeProductsCount, setActiveProductsCount] = useState(0);
   const [allProducts, setAllProducts] = useState<ProductData[]>([]);
   const PAGE_SIZE = 100;
   
@@ -127,6 +128,15 @@ const ProductsPage = () => {
           .eq('store_id', storeId);
         
         setTotalProductsCount(totalCount || 0);
+
+        // Buscar total de produtos ATIVOS (disponíveis para venda)
+        const { count: activeCount } = await supabase
+          .from('products')
+          .select('id', { count: 'exact', head: true })
+          .eq('store_id', storeId)
+          .eq('is_available', true);
+        
+        setActiveProductsCount(activeCount || 0);
       }
 
       // Buscar produtos paginados
@@ -636,8 +646,7 @@ const ProductsPage = () => {
   const totalProducts = totalProductsCount; // Usar o total do banco
   const loadedProducts = allProducts.length; // Produtos carregados na memória
   const filteredProductsCount = filteredCategories.reduce((total, category) => total + category.products.length, 0);
-  const activeProducts = categories.reduce((total, category) => 
-    total + category.products.filter(p => p.is_available).length, 0);
+  const activeProducts = activeProductsCount; // Usar o total do banco, não dos carregados
 
   // Calcular preço máximo para o slider de filtro
   const maxPrice = useMemo(() => {

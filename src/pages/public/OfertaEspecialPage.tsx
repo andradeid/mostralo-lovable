@@ -22,6 +22,7 @@ import { CountdownTimer } from "@/components/promo/CountdownTimer";
 import { LeadChatForm } from "@/components/leads/LeadChatForm";
 import { DiagnosticPopup } from "@/components/landing/DiagnosticPopup";
 import { HeroSection } from "@/components/landing/HeroSection";
+import { FeaturesGridSection } from "@/components/landing/FeaturesGridSection";
 
 const OfertaEspecialPage = () => {
   const [showLeadForm, setShowLeadForm] = useState(false);
@@ -124,6 +125,9 @@ const OfertaEspecialPage = () => {
         secondaryButtonLink="/registro"
         hidePrimaryButton={true}
       />
+
+      {/* Features Grid Section */}
+      <FeaturesGridSection />
 
       {/* Plans Section */}
       <section className="py-16 lg:py-24 bg-zinc-900/50">

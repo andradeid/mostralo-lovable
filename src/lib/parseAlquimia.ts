@@ -72,54 +72,74 @@ function detectAlquimiaFormat(headers: string[]): 'novo' | 'legado' {
 }
 
 /**
- * Converte preço brasileiro (1.050,00 ou 17,49 ou 0,3) para número
- * Trata diferentes formatos: brasileiro (vírgula decimal), inglês (ponto decimal)
- * Suporta valores muito baixos como "0,3" (30 centavos)
+ * Converte preço brasileiro para número
+ * Suporta TODOS os formatos de centavos:
+ * - "0,15" = R$ 0,15 (15 centavos)
+ * - "0,3" = R$ 0,30 (30 centavos) 
+ * - "1,99" = R$ 1,99
+ * - "17,49" = R$ 17,49
+ * - "1.234,56" = R$ 1.234,56 (com milhar)
  */
 export function parseBrazilianPrice(value: string | number | null | undefined): number {
   if (value === null || value === undefined) return 0;
   if (typeof value === 'number') return value;
   
-  const str = String(value).trim();
+  // Converter para string e remover caracteres invisíveis/controle
+  let str = String(value)
+    .replace(/[\u0000-\u001F\u007F-\u009F\uFEFF]/g, '') // Remove controle/BOM
+    .trim();
+  
   if (!str) return 0;
   
-  // Remove "R$" se existir e espaços extras
-  let cleaned = str.replace(/R\$\s*/gi, '').replace(/\s+/g, '').trim();
+  // Remove "R$", "$" e espaços
+  let cleaned = str
+    .replace(/R\$\s*/gi, '')
+    .replace(/\$\s*/g, '')
+    .replace(/\s+/g, '')
+    .trim();
   
   if (!cleaned) return 0;
+  
+  // Log do valor original para debug
+  const originalCleaned = cleaned;
   
   // Detectar o formato baseado nos separadores presentes
   const hasDot = cleaned.includes('.');
   const hasComma = cleaned.includes(',');
   
   if (hasComma && hasDot) {
-    // Formato brasileiro com milhar e decimal: "1.234,56"
-    // Ponto é separador de milhar, vírgula é decimal
+    // Formato brasileiro com milhar: "1.234,56"
+    // Ponto = milhar, vírgula = decimal
     cleaned = cleaned.replace(/\./g, '').replace(',', '.');
   } else if (hasComma && !hasDot) {
-    // Apenas vírgula: "17,49" ou "0,3" - formato brasileiro sem milhar
-    // Vírgula é o separador decimal
+    // FORMATO BRASILEIRO SEM MILHAR
+    // "0,15" = 0.15 (15 centavos)
+    // "0,3" = 0.3 (30 centavos)
+    // "17,49" = 17.49
     cleaned = cleaned.replace(',', '.');
   } else if (hasDot && !hasComma) {
-    // Apenas ponto: pode ser "17.49" (decimal inglês) ou "1.234" (milhar brasileiro)
-    // Se há mais de um ponto, são milhares; senão, é decimal
+    // Apenas ponto - verificar se é milhar ou decimal
     const dotCount = (cleaned.match(/\./g) || []).length;
     if (dotCount > 1) {
-      // Múltiplos pontos = separadores de milhar
+      // Múltiplos pontos = separadores de milhar brasileiro "1.234.567"
       cleaned = cleaned.replace(/\./g, '');
     }
-    // Se apenas um ponto, assumir que é decimal (formato inglês)
+    // Um único ponto = decimal (inglês ou brasileiro simplificado)
   }
-  // Se não tem ponto nem vírgula, é um número inteiro
   
   const num = parseFloat(cleaned);
   
-  // Log para debug de preços muito baixos
-  if (!isNaN(num) && num > 0 && num < 1) {
-    console.log(`[Alquimia] Preço baixo detectado: "${str}" -> ${num}`);
+  // Log detalhado para debug de preços
+  if (num <= 1 && num > 0) {
+    console.log(`[Alquimia] Preço em centavos: "${str}" -> "${originalCleaned}" -> ${num.toFixed(2)}`);
   }
   
-  return isNaN(num) ? 0 : num;
+  if (isNaN(num)) {
+    console.warn(`[Alquimia] ERRO ao parsear preço: "${str}" -> "${cleaned}" -> NaN`);
+    return 0;
+  }
+  
+  return num;
 }
 
 /**

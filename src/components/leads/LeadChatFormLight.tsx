@@ -121,7 +121,6 @@ export function LeadChatFormLight({ onComplete, onClose }: LeadChatFormLightProp
     uses_ifood: false
   });
   const inputRef = useRef<HTMLInputElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const isProcessingIfoodRef = useRef(false);
 
   const getCurrentTime = () => {
@@ -171,9 +170,11 @@ export function LeadChatFormLight({ onComplete, onClose }: LeadChatFormLightProp
     }
   }, [currentStep, leadData, messages]);
 
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
     }
   }, [messages, isTyping]);
 
@@ -382,9 +383,9 @@ export function LeadChatFormLight({ onComplete, onClose }: LeadChatFormLightProp
   };
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-b-[2rem] overflow-hidden">
+    <div className="flex flex-col h-full min-h-0 bg-white rounded-b-[2rem] overflow-hidden">
       {/* Header - Light Theme WhatsApp style */}
-      <div className="flex items-center gap-3 px-4 py-3 bg-[#008069] text-white">
+      <div className="flex items-center gap-3 px-4 py-3 bg-[#008069] text-white shrink-0">
         <div className="relative">
           <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold text-lg">
             M
@@ -397,8 +398,12 @@ export function LeadChatFormLight({ onComplete, onClose }: LeadChatFormLightProp
         </div>
       </div>
 
-      {/* Messages - Light Theme */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-[#efeae2]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23d1d1d1\' fill-opacity=\'0.15\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }}>
+      {/* Messages - Light Theme - Fixed overflow */}
+      <div 
+        ref={messagesContainerRef}
+        className="flex-1 min-h-0 overflow-y-auto p-3 space-y-2 bg-[#efeae2]" 
+        style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23d1d1d1\' fill-opacity=\'0.15\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }}
+      >
         {messages.map((message) => (
           <div key={message.id} className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}>
             <div className={`max-w-[85%] px-3 py-2 rounded-lg shadow-sm ${
@@ -428,11 +433,10 @@ export function LeadChatFormLight({ onComplete, onClose }: LeadChatFormLightProp
             </div>
           </div>
         )}
-        <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area - Light Theme */}
-      <div className="p-2 bg-[#f0f2f5] border-t border-gray-200">
+      {/* Input Area - Light Theme - Fixed height */}
+      <div className="p-2 bg-[#f0f2f5] border-t border-gray-200 shrink-0">
         {currentStep === 'ifood' ? (
           <div className="flex gap-2 justify-center py-2">
             <Button 

@@ -1,15 +1,27 @@
 import { ReactNode } from 'react';
+import { MousePointerClick } from 'lucide-react';
 
 interface PhoneMockupProps {
   children: ReactNode;
   className?: string;
+  showInteractHint?: boolean;
 }
 
-export function PhoneMockup({ children, className = '' }: PhoneMockupProps) {
+export function PhoneMockup({ children, className = '', showInteractHint = true }: PhoneMockupProps) {
   return (
     <div className={`relative ${className}`}>
-      {/* Phone Frame */}
-      <div className="relative mx-auto w-[280px] h-[580px] bg-zinc-900 rounded-[3rem] p-2 shadow-2xl shadow-black/50">
+      {/* Interact hint */}
+      {showInteractHint && (
+        <div className="absolute -top-3 -right-3 z-30 animate-bounce">
+          <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5">
+            <MousePointerClick className="w-3.5 h-3.5" />
+            <span>Interaja!</span>
+          </div>
+        </div>
+      )}
+
+      {/* Phone Frame - Wider */}
+      <div className="relative mx-auto w-[340px] h-[640px] bg-zinc-900 rounded-[3rem] p-2 shadow-2xl shadow-black/50">
         {/* Inner bezel */}
         <div className="relative w-full h-full bg-zinc-800 rounded-[2.5rem] overflow-hidden">
           {/* Notch */}
@@ -37,18 +49,26 @@ export function PhoneMockup({ children, className = '' }: PhoneMockupProps) {
             </div>
           </div>
 
-          {/* Screen Content */}
+          {/* Screen Content - Fixed height to prevent jump */}
           <div className="absolute top-7 left-0 right-0 bottom-0 overflow-hidden">
             {children}
           </div>
 
           {/* Home indicator */}
-          <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-28 h-1 bg-white/30 rounded-full" />
+          <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-28 h-1 bg-white/30 rounded-full z-20" />
         </div>
       </div>
 
       {/* Reflection effect */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent rounded-[3rem] pointer-events-none" />
+      
+      {/* Personalized attention badge */}
+      <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 z-30">
+        <div className="bg-zinc-800/90 backdrop-blur-sm text-white text-xs px-4 py-2 rounded-full border border-zinc-700 flex items-center gap-2 shadow-xl">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+          <span>Atendimento Personalizado</span>
+        </div>
+      </div>
     </div>
   );
 }

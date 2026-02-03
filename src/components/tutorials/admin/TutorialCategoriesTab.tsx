@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Plus, Pencil, Trash2, GripVertical, Eye, EyeOff, Copy } from "lucide-react";
-import { useTutorialCategories, useCreateTutorialCategory, useUpdateTutorialCategory, useDeleteTutorialCategory, useDuplicateCategory, TutorialCategory, TutorialCategoryInput } from "@/hooks/useTutorialCategories";
+import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
+import { useTutorialCategories, useCreateTutorialCategory, useUpdateTutorialCategory, useDeleteTutorialCategory, useDuplicateCategory, useReorderTutorialCategories, TutorialCategory, TutorialCategoryInput } from "@/hooks/useTutorialCategories";
 import { useTutorials } from "@/hooks/useTutorials";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +22,7 @@ export function TutorialCategoriesTab() {
   const updateCategory = useUpdateTutorialCategory();
   const deleteCategory = useDeleteTutorialCategory();
   const duplicateCategory = useDuplicateCategory();
+  const reorderCategories = useReorderTutorialCategories();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<TutorialCategory | null>(null);
@@ -92,6 +94,28 @@ export function TutorialCategoriesTab() {
     return tutorials?.filter(t => t.category_id === categoryId).length || 0;
   };
 
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination || !categories) return;
+    
+    const sourceIndex = result.source.index;
+    const destIndex = result.destination.index;
+    
+    if (sourceIndex === destIndex) return;
+    
+    // Reorder array
+    const reordered = Array.from(categories);
+    const [removed] = reordered.splice(sourceIndex, 1);
+    reordered.splice(destIndex, 0, removed);
+    
+    // Update display_order for all categories
+    const updates = reordered.map((cat, index) => ({
+      id: cat.id,
+      display_order: index + 1
+    }));
+    
+    reorderCategories.mutate(updates);
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center py-8">
@@ -103,110 +127,142 @@ export function TutorialCategoriesTab() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <p className="text-sm text-muted-foreground">
-          {categories?.length || 0} categorias cadastradas
-        </p>
+        <div>
+          <p className="text-sm text-muted-foreground">
+            {categories?.length || 0} categorias cadastradas
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Arraste para reordenar
+          </p>
+        </div>
         <Button onClick={() => handleOpenModal()} className="gap-2">
           <Plus className="w-4 h-4" />
           Nova Categoria
         </Button>
       </div>
 
-      <div className="grid gap-4">
-        {categories?.map((category) => {
-          const tutorialCount = getTutorialCount(category.id);
-          const coverUrl = category.cover_image_url || 
-            (category.featured_video_url ? getYouTubeThumbnail(category.featured_video_url, 'high') : null);
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="categories">
+          {(provided) => (
+            <div 
+              className="grid gap-4" 
+              {...provided.droppableProps} 
+              ref={provided.innerRef}
+            >
+              {categories?.map((category, index) => {
+                const tutorialCount = getTutorialCount(category.id);
+                const coverUrl = category.cover_image_url || 
+                  (category.featured_video_url ? getYouTubeThumbnail(category.featured_video_url, 'high') : null);
 
-          return (
-            <Card key={category.id} className="overflow-hidden">
-              <div className="flex">
-                {/* Thumbnail */}
-                <div className="w-32 h-24 flex-shrink-0 bg-muted">
-                  {coverUrl ? (
-                    <img 
-                      src={coverUrl} 
-                      alt={category.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                      <GripVertical className="w-6 h-6" />
-                    </div>
-                  )}
-                </div>
+                return (
+                  <Draggable key={category.id} draggableId={category.id} index={index}>
+                    {(provided, snapshot) => (
+                      <Card 
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        className={`overflow-hidden ${snapshot.isDragging ? 'shadow-lg ring-2 ring-primary' : ''}`}
+                      >
+                        <div className="flex">
+                          {/* Drag Handle */}
+                          <div 
+                            {...provided.dragHandleProps}
+                            className="w-10 flex-shrink-0 bg-muted/50 flex items-center justify-center cursor-grab active:cursor-grabbing hover:bg-muted transition-colors"
+                          >
+                            <GripVertical className="w-5 h-5 text-muted-foreground" />
+                          </div>
 
-                {/* Conteúdo */}
-                <div className="flex-1 p-4 flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-foreground">{category.name}</h3>
-                      {!category.is_active && (
-                        <Badge variant="secondary" className="text-xs">
-                          <EyeOff className="w-3 h-3 mr-1" />
-                          Oculta
-                        </Badge>
-                      )}
-                    </div>
-                    {category.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-1 mt-1">
-                        {category.description}
-                      </p>
+                          {/* Thumbnail */}
+                          <div className="w-28 h-24 flex-shrink-0 bg-muted">
+                            {coverUrl ? (
+                              <img 
+                                src={coverUrl} 
+                                alt={category.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                                <Eye className="w-6 h-6" />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Conteúdo */}
+                          <div className="flex-1 p-4 flex items-center justify-between">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-semibold text-foreground">{category.name}</h3>
+                                {!category.is_active && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    <EyeOff className="w-3 h-3 mr-1" />
+                                    Oculta
+                                  </Badge>
+                                )}
+                              </div>
+                              {category.description && (
+                                <p className="text-sm text-muted-foreground line-clamp-1 mt-1">
+                                  {category.description}
+                                </p>
+                              )}
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {tutorialCount} {tutorialCount === 1 ? 'tutorial' : 'tutoriais'}
+                              </p>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  setCategoryToDuplicate(category);
+                                  setDuplicateDialogOpen(true);
+                                }}
+                                disabled={duplicateCategory.isPending}
+                                title="Duplicar categoria com tutoriais"
+                              >
+                                <Copy className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleOpenModal(category)}
+                                title="Editar categoria"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  setCategoryToDelete(category);
+                                  setDeleteDialogOpen(true);
+                                }}
+                                disabled={tutorialCount > 0}
+                                title={tutorialCount > 0 ? "Remova os tutoriais primeiro" : "Excluir categoria"}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
                     )}
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {tutorialCount} {tutorialCount === 1 ? 'tutorial' : 'tutoriais'}
-                    </p>
-                  </div>
+                  </Draggable>
+                );
+              })}
+              {provided.placeholder}
 
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => {
-                        setCategoryToDuplicate(category);
-                        setDuplicateDialogOpen(true);
-                      }}
-                      disabled={duplicateCategory.isPending}
-                      title="Duplicar categoria com tutoriais"
-                    >
-                      <Copy className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleOpenModal(category)}
-                      title="Editar categoria"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => {
-                        setCategoryToDelete(category);
-                        setDeleteDialogOpen(true);
-                      }}
-                      disabled={tutorialCount > 0}
-                      title={tutorialCount > 0 ? "Remova os tutoriais primeiro" : "Excluir categoria"}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          );
-        })}
-
-        {(!categories || categories.length === 0) && (
-          <Card className="p-8 text-center">
-            <p className="text-muted-foreground">Nenhuma categoria cadastrada</p>
-            <Button onClick={() => handleOpenModal()} className="mt-4">
-              Criar primeira categoria
-            </Button>
-          </Card>
-        )}
-      </div>
+              {(!categories || categories.length === 0) && (
+                <Card className="p-8 text-center">
+                  <p className="text-muted-foreground">Nenhuma categoria cadastrada</p>
+                  <Button onClick={() => handleOpenModal()} className="mt-4">
+                    Criar primeira categoria
+                  </Button>
+                </Card>
+              )}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
 
       {/* Modal de criação/edição */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

@@ -64,7 +64,7 @@ export default function SalespersonDashboard() {
       // Buscar estatísticas REAIS em paralelo
       const quarterStart = format(startOfQuarter(new Date()), 'yyyy-MM-dd');
       
-      const [leadsRes, clientsRes, commissionsRes, quarterClientsRes, tiersRes, recentRes] = await Promise.all([
+      const [leadsRes, clientsRes, commissionsRes, quarterClientsRes, tiersRes, recentRes, commissionRes] = await Promise.all([
         // Total de leads
         supabase.from("leads").select("id", { count: "exact" }).eq("salesperson_id", salespersonData.id),
         // Clientes aprovados (indicados)
@@ -77,6 +77,8 @@ export default function SalespersonDashboard() {
         supabase.from("salesperson_bonus_tiers").select("*").order("min_sales"),
         // Últimos clientes
         supabase.from("payment_approvals").select("id, company_name, created_at, status, plan:plans(name)").eq("referred_by_salesperson_id", salespersonData.id).order("created_at", { ascending: false }).limit(5),
+        // Configuração de comissão
+        supabase.from("salesperson_commission_configs").select("commission_type, commission_value, applies_to").eq("salesperson_id", salespersonData.id).maybeSingle(),
       ]);
 
       const totalCommissions = commissionsRes.data?.reduce(

@@ -108,6 +108,12 @@ export default function SalespersonDashboard() {
   const monthlyLimit = salesperson?.monthly_earnings_limit || 1900;
   const monthlyPercentage = Math.min((monthlyLimitUsed / monthlyLimit) * 100, 100);
 
+  // Verifica se tem comissão personalizada acima do padrão (10%)
+  const hasCustomCommission = commissionConfig && (
+    (commissionConfig.commission_type === "percentage" && commissionConfig.commission_value > 10) ||
+    commissionConfig.commission_type === "fixed"
+  );
+
   const getProgressForTier = (minSales: number) => {
     return Math.min((stats.quarterSales / minSales) * 100, 100);
   };

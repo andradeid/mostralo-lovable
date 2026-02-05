@@ -81,7 +81,7 @@ export function ContactStep({ formData, updateFormData, storeId }: ContactStepPr
               id="instagram"
               value={formData.instagram || ''}
               onChange={(e) => updateFormData({ instagram: e.target.value })}
-              placeholder="https://www.instagram.com/ingabeachsports"
+              placeholder="https://www.instagram.com/sua_loja"
             />
           </div>
 

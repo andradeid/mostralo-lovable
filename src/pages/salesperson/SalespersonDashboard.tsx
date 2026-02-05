@@ -34,6 +34,7 @@ export default function SalespersonDashboard() {
   });
   const [bonusTiers, setBonusTiers] = useState<BonusTier[]>([]);
   const [recentClients, setRecentClients] = useState<any[]>([]);
+  const [commissionConfig, setCommissionConfig] = useState<{ commission_type: string; commission_value: number; applies_to: string } | null>(null);
 
   useEffect(() => {
     if (user) {

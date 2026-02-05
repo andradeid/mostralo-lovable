@@ -333,7 +333,7 @@ export default function SalespersonDashboard() {
             )}
 
             {/* Info sobre limite para afiliados */}
-            {salesperson?.salesperson_type === 'affiliate' && (
+            {salesperson?.salesperson_type === 'affiliate' && !hasCustomCommission && (
               <Card className="border-amber-500/50 bg-amber-500/5">
                 <CardHeader>
                   <CardTitle className="text-amber-600 flex items-center gap-2">

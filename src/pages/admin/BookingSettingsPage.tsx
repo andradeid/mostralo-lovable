@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useStoreAccess } from '@/hooks/useStoreAccess';
 import { useBooking, BookingSettings } from '@/hooks/useBooking';
+import { useWhatsAppStatus } from '@/hooks/useWhatsAppStatus';
+import { useStoreModules } from '@/hooks/useStoreModules';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +12,8 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Clock, Settings, DollarSign, MessageSquare, HelpCircle, Save, Loader2, Star } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Clock, Settings, DollarSign, MessageSquare, HelpCircle, Save, Loader2, Star, CheckCircle2, AlertTriangle, Lock, ArrowUpCircle } from 'lucide-react';
 import { BotTimezoneCard } from '@/components/admin/bot/BotTimezoneCard';
 
 // Valores padrão

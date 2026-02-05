@@ -94,6 +94,7 @@ export default function SalespersonDashboard() {
 
       setBonusTiers(tiersRes.data || []);
       setRecentClients(recentRes.data || []);
+      setCommissionConfig(commissionRes.data);
 
     } catch (error) {
       console.error('Erro ao carregar dados:', error);

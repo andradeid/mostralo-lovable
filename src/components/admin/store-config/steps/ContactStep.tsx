@@ -68,7 +68,7 @@ export function ContactStep({ formData, updateFormData, storeId }: ContactStepPr
               type="email"
               value={formData.contact_email || ''}
               onChange={(e) => updateFormData({ contact_email: e.target.value })}
-              placeholder="ingabeachsports@gmail.com"
+              placeholder="contato@suaempresa.com.br"
             />
           </div>
 

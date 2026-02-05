@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { DollarSign, TrendingUp, Users, AlertCircle, Sparkles, Building2, User, UserCheck } from "lucide-react";
+import { DollarSign, TrendingUp, Users, AlertCircle, Sparkles, Building2, User, UserCheck, Percent } from "lucide-react";
 import { toast } from "sonner";
 import PortfolioHealthCard from "@/components/salesperson/PortfolioHealthCard";
 import { SalespersonPerformanceChartSelf } from "@/components/salesperson/SalespersonPerformanceChartSelf";
@@ -34,6 +34,7 @@ export default function SalespersonDashboard() {
   });
   const [bonusTiers, setBonusTiers] = useState<BonusTier[]>([]);
   const [recentClients, setRecentClients] = useState<any[]>([]);
+  const [commissionConfig, setCommissionConfig] = useState<{ commission_type: string; commission_value: number; applies_to: string } | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -63,7 +64,7 @@ export default function SalespersonDashboard() {
       // Buscar estatísticas REAIS em paralelo
       const quarterStart = format(startOfQuarter(new Date()), 'yyyy-MM-dd');
       
-      const [leadsRes, clientsRes, commissionsRes, quarterClientsRes, tiersRes, recentRes] = await Promise.all([
+      const [leadsRes, clientsRes, commissionsRes, quarterClientsRes, tiersRes, recentRes, commissionRes] = await Promise.all([
         // Total de leads
         supabase.from("leads").select("id", { count: "exact" }).eq("salesperson_id", salespersonData.id),
         // Clientes aprovados (indicados)
@@ -76,6 +77,8 @@ export default function SalespersonDashboard() {
         supabase.from("salesperson_bonus_tiers").select("*").order("min_sales"),
         // Últimos clientes
         supabase.from("payment_approvals").select("id, company_name, created_at, status, plan:plans(name)").eq("referred_by_salesperson_id", salespersonData.id).order("created_at", { ascending: false }).limit(5),
+        // Configuração de comissão
+        supabase.from("salesperson_commission_configs").select("commission_type, commission_value, applies_to").eq("salesperson_id", salespersonData.id).maybeSingle(),
       ]);
 
       const totalCommissions = commissionsRes.data?.reduce(
@@ -91,6 +94,7 @@ export default function SalespersonDashboard() {
 
       setBonusTiers(tiersRes.data || []);
       setRecentClients(recentRes.data || []);
+      setCommissionConfig(commissionRes.data);
 
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
@@ -142,6 +146,38 @@ export default function SalespersonDashboard() {
 
         {/* Banner do Sistema para Vendedores */}
         <SystemBanner position="salesperson_dashboard" />
+
+        {/* Card de Comissão */}
+        {salesperson?.status === 'active' && (
+          <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
+            <CardContent className="py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-full bg-primary/10">
+                    <Percent className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Sua Comissão</p>
+                    <p className="text-2xl font-bold text-primary">
+                      {commissionConfig 
+                        ? commissionConfig.commission_type === "percentage"
+                          ? `${commissionConfig.commission_value}%`
+                          : `R$ ${commissionConfig.commission_value.toFixed(2)}`
+                        : "10%"}
+                    </p>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-xs">
+                  {commissionConfig?.applies_to === "first_payment" 
+                    ? "Primeiro pagamento" 
+                    : commissionConfig?.applies_to === "recurring"
+                      ? "Recorrente"
+                      : "Todos os pagamentos"}
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {salesperson?.status === 'pending_approval' && (
           <Alert>

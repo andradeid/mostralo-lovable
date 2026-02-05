@@ -44,6 +44,10 @@ const DEFAULT_SETTINGS: Omit<BookingSettings, 'id' | 'store_id' | 'created_at' |
 export default function BookingSettingsPage() {
   const { storeId } = useStoreAccess();
   const { bookingSettings, updateSettings } = useBooking(storeId);
+  const { hasConnectedWhatsApp, isLoading: isLoadingWhatsApp } = useWhatsAppStatus(storeId);
+  const { hasModule, loading: isLoadingModules } = useStoreModules(storeId);
+  
+  const hasWhatsAppModule = hasModule('whatsapp_recovery');
   
   const [formData, setFormData] = useState(DEFAULT_SETTINGS);
   const [isSaving, setIsSaving] = useState(false);

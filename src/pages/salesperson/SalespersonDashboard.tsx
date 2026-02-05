@@ -108,6 +108,12 @@ export default function SalespersonDashboard() {
   const monthlyLimit = salesperson?.monthly_earnings_limit || 1900;
   const monthlyPercentage = Math.min((monthlyLimitUsed / monthlyLimit) * 100, 100);
 
+  // Verifica se tem comissão personalizada acima do padrão (10%)
+  const hasCustomCommission = commissionConfig && (
+    (commissionConfig.commission_type === "percentage" && commissionConfig.commission_value > 10) ||
+    commissionConfig.commission_type === "fixed"
+  );
+
   const getProgressForTier = (minSales: number) => {
     return Math.min((stats.quarterSales / minSales) * 100, 100);
   };
@@ -189,7 +195,7 @@ export default function SalespersonDashboard() {
         )}
 
         {/* Banner de upgrade para afiliados */}
-        {salesperson?.salesperson_type === 'affiliate' && salesperson?.status === 'active' && (
+        {salesperson?.salesperson_type === 'affiliate' && salesperson?.status === 'active' && !hasCustomCommission && (
           <Alert className="bg-gradient-to-r from-primary/10 to-orange-500/10 border-primary">
             <Sparkles className="h-4 w-4 text-primary" />
             <AlertTitle className="text-sm md:text-base">Quer ganhar mais?</AlertTitle>
@@ -327,7 +333,7 @@ export default function SalespersonDashboard() {
             )}
 
             {/* Info sobre limite para afiliados */}
-            {salesperson?.salesperson_type === 'affiliate' && (
+            {salesperson?.salesperson_type === 'affiliate' && !hasCustomCommission && (
               <Card className="border-amber-500/50 bg-amber-500/5">
                 <CardHeader>
                   <CardTitle className="text-amber-600 flex items-center gap-2">

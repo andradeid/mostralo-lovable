@@ -352,6 +352,57 @@ export default function BookingSettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Alerta de status do módulo WhatsApp */}
+            {!isLoadingModules && !isLoadingWhatsApp && (
+              <>
+                {!hasWhatsAppModule ? (
+                  <Alert className="border-amber-500/50 bg-amber-500/10">
+                    <Lock className="h-4 w-4 text-amber-600" />
+                    <AlertTitle className="text-amber-700 dark:text-amber-400">Módulo WhatsApp Não Disponível</AlertTitle>
+                    <AlertDescription className="text-amber-600 dark:text-amber-300">
+                      <p className="mb-2">
+                        As notificações automáticas via WhatsApp requerem o módulo <strong>"WhatsApp Automações"</strong> ativo no seu plano.
+                      </p>
+                      <p className="text-sm">
+                        Entre em contato com o suporte para ativar este módulo ou faça o upgrade do seu plano.
+                      </p>
+                      <div className="flex gap-2 mt-3">
+                        <Button variant="outline" size="sm" asChild className="border-amber-500/50 hover:bg-amber-500/20">
+                          <Link to="/dashboard/subscription">
+                            <ArrowUpCircle className="h-4 w-4 mr-1" />
+                            Ver Planos
+                          </Link>
+                        </Button>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                ) : hasConnectedWhatsApp ? (
+                  <Alert className="border-green-500/50 bg-green-500/10">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <AlertTitle className="text-green-700 dark:text-green-400">WhatsApp Conectado</AlertTitle>
+                    <AlertDescription className="text-green-600 dark:text-green-300">
+                      Seu WhatsApp está conectado e pronto para enviar notificações automáticas de agendamento.
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>WhatsApp Não Conectado</AlertTitle>
+                    <AlertDescription>
+                      <p className="mb-2">
+                        Para enviar notificações automáticas, você precisa conectar seu WhatsApp ao sistema.
+                      </p>
+                      <Button variant="outline" size="sm" asChild className="mt-1">
+                        <Link to="/dashboard/whatsapp">
+                          Configurar WhatsApp
+                        </Link>
+                      </Button>
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </>
+            )}
+
             {/* Mensagem de confirmação */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">

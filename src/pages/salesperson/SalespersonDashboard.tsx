@@ -195,7 +195,7 @@ export default function SalespersonDashboard() {
         )}
 
         {/* Banner de upgrade para afiliados */}
-        {salesperson?.salesperson_type === 'affiliate' && salesperson?.status === 'active' && (
+        {salesperson?.salesperson_type === 'affiliate' && salesperson?.status === 'active' && !hasCustomCommission && (
           <Alert className="bg-gradient-to-r from-primary/10 to-orange-500/10 border-primary">
             <Sparkles className="h-4 w-4 text-primary" />
             <AlertTitle className="text-sm md:text-base">Quer ganhar mais?</AlertTitle>

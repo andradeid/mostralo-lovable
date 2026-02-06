@@ -75,6 +75,7 @@ const ProductsPage = () => {
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [showEditForm, setShowEditForm] = useState(false);
   const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
+  const [showImageSyncDialog, setShowImageSyncDialog] = useState(false);
   const [filters, setFilters] = useState<ProductFilters>(defaultFilters);
   
   // Paginação

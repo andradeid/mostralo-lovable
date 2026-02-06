@@ -8,6 +8,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { CategoryForm } from '@/components/admin/CategoryForm';
 import { ProductForm } from '@/components/admin/ProductForm';
 import { DeleteAllProductsDialog } from '@/components/admin/products/DeleteAllProductsDialog';
+import { BulkImageSyncDialog } from '@/components/admin/products/BulkImageSyncDialog';
 import { ProductFiltersComponent, ProductFilters, defaultFilters } from '@/components/admin/products/ProductFilters';
 import { ActiveFiltersBar } from '@/components/admin/products/ActiveFiltersBar';
 import { useAuth } from '@/hooks/use-auth';
@@ -15,7 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { usePageSEO } from '@/hooks/useSEO';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Package, Plus, Search, Edit, Trash2, Grid, ArrowUp, ArrowDown, GripVertical, AlertCircle, ArrowDownAZ, PackageX, Upload, ChevronDown, FileSpreadsheet, Star } from 'lucide-react';
+import { Loader2, Package, Plus, Search, Edit, Trash2, Grid, ArrowUp, ArrowDown, GripVertical, AlertCircle, ArrowDownAZ, PackageX, Upload, ChevronDown, FileSpreadsheet, Star, ImagePlus } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
@@ -74,6 +75,7 @@ const ProductsPage = () => {
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [showEditForm, setShowEditForm] = useState(false);
   const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
+  const [showImageSyncDialog, setShowImageSyncDialog] = useState(false);
   const [filters, setFilters] = useState<ProductFilters>(defaultFilters);
   
   // Paginação
@@ -743,6 +745,11 @@ const ProductsPage = () => {
                 <FileSpreadsheet className="w-4 h-4 mr-2" />
                 Importar do Alquimia
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setShowImageSyncDialog(true)}>
+                <ImagePlus className="w-4 h-4 mr-2" />
+                Sincronizar Imagens
+              </DropdownMenuItem>
               {(userRole === 'store_admin' || userRole === 'master_admin') && totalProducts > 0 && (
                 <>
                   <DropdownMenuSeparator />
@@ -1327,6 +1334,17 @@ const ProductsPage = () => {
           productsCount={totalProducts}
           categoriesCount={categories.filter(c => c.id !== 'uncategorized').length}
           onSuccess={() => fetchCategoriesAndProducts(0, false)}
+        />
+      )}
+
+      {/* Modal de sincronização de imagens em massa */}
+      {validatedStoreId && (
+        <BulkImageSyncDialog
+          open={showImageSyncDialog}
+          onOpenChange={setShowImageSyncDialog}
+          storeId={validatedStoreId}
+          categories={categories.map(c => ({ id: c.id, name: c.name }))}
+          onComplete={() => fetchCategoriesAndProducts(0, false)}
         />
       )}
     </div>

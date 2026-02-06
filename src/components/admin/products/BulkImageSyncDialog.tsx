@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
 import { Card, CardContent } from '@/components/ui/card';
 import { ImageSearchProgress } from './import/ImageSearchProgress';
 import { useBulkImageSync, SyncMode, BulkSyncOptions } from '@/hooks/useBulkImageSync';
@@ -40,6 +41,7 @@ export function BulkImageSyncDialog({
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [estimatedCount, setEstimatedCount] = useState<number | null>(null);
   const [isLoadingCount, setIsLoadingCount] = useState(false);
+  const [syncLimit, setSyncLimit] = useState<number>(100);
 
   const {
     isRunning,
@@ -73,12 +75,18 @@ export function BulkImageSyncDialog({
     loadCount();
   }, [open, storeId, syncMode, selectedCategory, getProductsCount]);
 
+  // Actual products to sync (limited by slider)
+  const actualProductsToSync = estimatedCount !== null 
+    ? Math.min(syncLimit, estimatedCount) 
+    : 0;
+
   const handleStartSync = () => {
     const options: BulkSyncOptions = {
       mode: syncMode,
       categoryId: syncMode === 'selected_category' ? selectedCategory : undefined,
       batchSize: 10,
       delayBetweenRequests: 1200, // 1.2 seconds between requests
+      limit: syncLimit,
     };
     startSync(options);
   };
@@ -106,6 +114,9 @@ export function BulkImageSyncDialog({
   };
 
   const filteredCategories = categories.filter(c => c.id !== 'uncategorized');
+
+  // Max slider value based on available products
+  const maxSliderValue = estimatedCount !== null ? Math.min(1000, estimatedCount) : 1000;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -201,12 +212,66 @@ export function BulkImageSyncDialog({
               </div>
             )}
 
+            {/* Quantity Slider */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-base font-medium">Quantidade de produtos</Label>
+                <span className="text-lg font-bold text-primary">
+                  {actualProductsToSync}
+                </span>
+              </div>
+              
+              <div className="px-1">
+                <Slider
+                  value={[syncLimit]}
+                  onValueChange={(values) => setSyncLimit(values[0])}
+                  min={10}
+                  max={maxSliderValue}
+                  step={10}
+                  className="w-full"
+                  disabled={!estimatedCount || estimatedCount === 0}
+                />
+              </div>
+
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>10</span>
+                <span>Arraste para ajustar</span>
+                <span>{maxSliderValue}</span>
+              </div>
+
+              {/* Quick select buttons */}
+              <div className="flex gap-2 flex-wrap">
+                {[50, 100, 200, 500].map((value) => (
+                  <Button
+                    key={value}
+                    variant={syncLimit === value ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSyncLimit(Math.min(value, maxSliderValue))}
+                    disabled={!estimatedCount || estimatedCount === 0 || value > maxSliderValue}
+                    className="flex-1 min-w-[60px]"
+                  >
+                    {value}
+                  </Button>
+                ))}
+                {estimatedCount && estimatedCount > 0 && (
+                  <Button
+                    variant={syncLimit >= estimatedCount ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSyncLimit(estimatedCount)}
+                    className="flex-1 min-w-[60px]"
+                  >
+                    Todos ({estimatedCount})
+                  </Button>
+                )}
+              </div>
+            </div>
+
             {/* Estimated Count Card */}
             <Card className="bg-muted/30">
               <CardContent className="pt-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">
-                    Produtos a sincronizar:
+                    Produtos sem imagem disponíveis:
                   </span>
                   {isLoadingCount ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -216,9 +281,9 @@ export function BulkImageSyncDialog({
                     </span>
                   )}
                 </div>
-                {estimatedCount !== null && estimatedCount > 0 && (
+                {actualProductsToSync > 0 && (
                   <p className="text-xs text-muted-foreground mt-2">
-                    Tempo estimado: ~{Math.ceil(estimatedCount * 1.2 / 60)} minutos
+                    Tempo estimado para {actualProductsToSync} produtos: ~{Math.ceil(actualProductsToSync * 1.2 / 60)} minutos
                   </p>
                 )}
               </CardContent>
@@ -263,7 +328,7 @@ export function BulkImageSyncDialog({
                 className="flex-1"
               >
                 <ImagePlus className="h-4 w-4 mr-2" />
-                Iniciar Sincronização
+                Sincronizar {actualProductsToSync} produtos
               </Button>
             </div>
           </div>

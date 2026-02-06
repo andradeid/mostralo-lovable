@@ -8,6 +8,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { CategoryForm } from '@/components/admin/CategoryForm';
 import { ProductForm } from '@/components/admin/ProductForm';
 import { DeleteAllProductsDialog } from '@/components/admin/products/DeleteAllProductsDialog';
+import { BulkImageSyncDialog } from '@/components/admin/products/BulkImageSyncDialog';
 import { ProductFiltersComponent, ProductFilters, defaultFilters } from '@/components/admin/products/ProductFilters';
 import { ActiveFiltersBar } from '@/components/admin/products/ActiveFiltersBar';
 import { useAuth } from '@/hooks/use-auth';

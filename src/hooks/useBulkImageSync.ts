@@ -20,6 +20,7 @@ export interface BulkSyncOptions {
   categoryId?: string;
   batchSize?: number;
   delayBetweenRequests?: number;
+  limit?: number;
 }
 
 interface ProductToSync {
@@ -58,6 +59,11 @@ export function useBulkImageSync(storeId: string | null) {
       query = query.eq('is_available', true).eq('show_in_menu', true);
     } else if (options.mode === 'selected_category' && options.categoryId) {
       query = query.eq('category_id', options.categoryId);
+    }
+
+    // Apply limit if specified
+    if (options.limit && options.limit > 0) {
+      query = query.limit(options.limit);
     }
 
     const { data, error } = await query.order('name');
@@ -114,7 +120,7 @@ export function useBulkImageSync(storeId: string | null) {
     const delay = options.delayBetweenRequests || 1000;
 
     try {
-      // Fetch products to sync
+      // Fetch products to sync (with limit applied)
       const products = await fetchProductsToSync(options);
 
       if (products.length === 0) {
@@ -228,9 +234,29 @@ export function useBulkImageSync(storeId: string | null) {
   }, []);
 
   const getProductsCount = useCallback(async (options: BulkSyncOptions): Promise<number> => {
-    const products = await fetchProductsToSync(options);
-    return products.length;
-  }, [fetchProductsToSync]);
+    if (!storeId) return 0;
+
+    let query = supabase
+      .from('products')
+      .select('id', { count: 'exact', head: true })
+      .eq('store_id', storeId)
+      .or('image_url.is.null,image_url.eq.');
+
+    if (options.mode === 'visible_without_image') {
+      query = query.eq('is_available', true).eq('show_in_menu', true);
+    } else if (options.mode === 'selected_category' && options.categoryId) {
+      query = query.eq('category_id', options.categoryId);
+    }
+
+    const { count, error } = await query;
+
+    if (error) {
+      console.error('[useBulkImageSync] Error counting products:', error);
+      return 0;
+    }
+
+    return count || 0;
+  }, [storeId]);
 
   return {
     isRunning,

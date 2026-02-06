@@ -1336,6 +1336,17 @@ const ProductsPage = () => {
           onSuccess={() => fetchCategoriesAndProducts(0, false)}
         />
       )}
+
+      {/* Modal de sincronização de imagens em massa */}
+      {validatedStoreId && (
+        <BulkImageSyncDialog
+          open={showImageSyncDialog}
+          onOpenChange={setShowImageSyncDialog}
+          storeId={validatedStoreId}
+          categories={categories.map(c => ({ id: c.id, name: c.name }))}
+          onComplete={() => fetchCategoriesAndProducts(0, false)}
+        />
+      )}
     </div>
   );
 };

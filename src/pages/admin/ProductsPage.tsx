@@ -745,6 +745,11 @@ const ProductsPage = () => {
                 <FileSpreadsheet className="w-4 h-4 mr-2" />
                 Importar do Alquimia
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setShowImageSyncDialog(true)}>
+                <ImagePlus className="w-4 h-4 mr-2" />
+                Sincronizar Imagens
+              </DropdownMenuItem>
               {(userRole === 'store_admin' || userRole === 'master_admin') && totalProducts > 0 && (
                 <>
                   <DropdownMenuSeparator />

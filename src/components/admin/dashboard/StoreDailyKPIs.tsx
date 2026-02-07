@@ -36,14 +36,11 @@ export function StoreDailyKPIs({ storeId }: StoreDailyKPIsProps) {
         .lt('created_at', `${today}T00:00:00`)
         .not('status', 'eq', 'cancelled');
 
-      // Buscar produtos com estoque baixo
-      const { data: products } = await supabase
-        .from('products')
-        .select('id, stock_quantity, stock_alert_threshold')
-        .eq('store_id', storeId)
-        .eq('track_stock', true)
-        .not('stock_quantity', 'is', null)
-        .not('stock_alert_threshold', 'is', null);
+      // Buscar contagem real de produtos com estoque baixo (server-side, sem limite de 1000)
+      const { data: stockData } = await supabase
+        .rpc('count_low_stock_products', { p_store_id: storeId });
+
+      const lowStockCount = Number(stockData?.[0]?.low_stock_count) || 0;
 
       // Calcular métricas
       const todayTotal = todayOrders?.reduce((acc, o) => acc + Number(o.total || 0), 0) || 0;
@@ -57,10 +54,6 @@ export function StoreDailyKPIs({ storeId }: StoreDailyKPIsProps) {
       } else if (todayTotal > 0) {
         growthPercent = 100;
       }
-
-      const lowStockCount = products?.filter(
-        p => Number(p.stock_quantity) <= Number(p.stock_alert_threshold)
-      ).length || 0;
 
       return {
         todayTotal,

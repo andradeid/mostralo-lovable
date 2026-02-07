@@ -12488,6 +12488,13 @@ export type Database = {
       clean_old_session_context: { Args: never; Returns: undefined }
       cleanup_old_password_calls: { Args: never; Returns: undefined }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
+      count_low_stock_products: {
+        Args: { p_store_id: string }
+        Returns: {
+          low_stock_count: number
+          out_of_stock_count: number
+        }[]
+      }
       decrement_product_stock: {
         Args: {
           p_product_id: string

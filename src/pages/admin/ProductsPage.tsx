@@ -92,6 +92,9 @@ const ProductsPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Cache de categorias para evitar re-fetch desnecessário
+  const categoriesCacheRef = useRef<CategoryData[]>([]);
+
   const fetchCategoriesAndProducts = async (page: number = 0, append: boolean = false) => {
     if (!user || !validatedStoreId) return;
 
@@ -102,112 +105,78 @@ const ProductsPage = () => {
     }
 
     try {
-      // SEGURANÇA: Usar apenas o storeId validado pelo hook useStoreAccess
       const storeId = validatedStoreId;
-
-      // Buscar categorias apenas na primeira página
-      if (page === 0) {
-        const { data: categoriesData, error: categoriesError } = await supabase
-          .from('categories')
-          .select('*')
-          .eq('store_id', storeId)
-          .eq('is_active', true)
-          .order('display_order', { ascending: true });
-
-        if (categoriesError) {
-          console.error('Erro ao buscar categorias:', categoriesError);
-          toast({
-            title: 'Erro',
-            description: 'Erro ao carregar categorias.',
-            variant: 'destructive'
-          });
-          return;
-        }
-
-        // Buscar total de produtos
-        const { count: totalCount } = await supabase
-          .from('products')
-          .select('id', { count: 'exact', head: true })
-          .eq('store_id', storeId);
-        
-        setTotalProductsCount(totalCount || 0);
-
-        // Buscar total de produtos ATIVOS (disponíveis para venda)
-        const { count: activeCount } = await supabase
-          .from('products')
-          .select('id', { count: 'exact', head: true })
-          .eq('store_id', storeId)
-          .eq('is_available', true);
-        
-        setActiveProductsCount(activeCount || 0);
-      }
-
-      // Buscar produtos paginados
       const from = page * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
 
+      // Construir query de produtos com apenas colunas necessárias
       let productsQuery = supabase
         .from('products')
-        .select('*, is_on_offer, original_price, offer_price, track_stock, stock_quantity, stock_alert_threshold, is_featured')
+        .select('id, name, description, price, image_url, image_gallery, button_text, is_available, is_featured, show_in_menu, display_order, created_at, updated_at, store_id, category_id, is_on_offer, original_price, offer_price, track_stock, stock_quantity, stock_alert_threshold')
         .eq('store_id', storeId);
 
-      // Aplicar busca server-side
       if (debouncedSearch.trim()) {
         productsQuery = productsQuery.or(`name.ilike.%${debouncedSearch.trim()}%,description.ilike.%${debouncedSearch.trim()}%`);
       }
 
-      const { data: productsData, error: productsError } = await productsQuery
-        .order('display_order', { ascending: true })
-        .range(from, to);
+      // Na primeira página: executar todas as queries em PARALELO
+      if (page === 0) {
+        const [productsResult, categoriesResult, totalCountResult, activeCountResult] = await Promise.all([
+          productsQuery.order('display_order', { ascending: true }).range(from, to),
+          supabase
+            .from('categories')
+            .select('id, name, description, display_order, is_active, store_id')
+            .eq('store_id', storeId)
+            .eq('is_active', true)
+            .order('display_order', { ascending: true }),
+          supabase
+            .from('products')
+            .select('id', { count: 'exact', head: true })
+            .eq('store_id', storeId),
+          supabase
+            .from('products')
+            .select('id', { count: 'exact', head: true })
+            .eq('store_id', storeId)
+            .eq('is_available', true),
+        ]);
 
-      if (productsError) {
-        console.error('Erro ao buscar produtos:', productsError);
-        toast({
-          title: 'Erro',
-          description: 'Erro ao carregar produtos.',
-          variant: 'destructive'
-        });
-        return;
+        if (productsResult.error) throw productsResult.error;
+        if (categoriesResult.error) {
+          console.error('Erro ao buscar categorias:', categoriesResult.error);
+        }
+
+        const newProducts = (productsResult.data || []) as ProductData[];
+        setAllProducts(newProducts);
+        setCurrentPage(0);
+        setHasMoreProducts(newProducts.length === PAGE_SIZE);
+        setTotalProductsCount(totalCountResult.count || 0);
+        setActiveProductsCount(activeCountResult.count || 0);
+
+        // Cachear categorias
+        const cats = (categoriesResult.data || []) as CategoryData[];
+        categoriesCacheRef.current = cats;
+
+        // Organizar produtos por categoria
+        organizeByCategory(newProducts, cats, storeId);
+
+      } else {
+        // Páginas subsequentes: apenas buscar mais produtos
+        const { data, error } = await productsQuery
+          .order('display_order', { ascending: true })
+          .range(from, to);
+
+        if (error) throw error;
+
+        const newProducts = (data || []) as ProductData[];
+        const updatedProducts = append ? [...allProducts, ...newProducts] : newProducts;
+        setAllProducts(updatedProducts);
+        setCurrentPage(page);
+        setHasMoreProducts(newProducts.length === PAGE_SIZE);
+
+        // Reutilizar categorias do cache
+        organizeByCategory(updatedProducts, categoriesCacheRef.current, storeId);
       }
 
-      const newProducts = productsData || [];
-      console.log(`[Produtos] Página ${page + 1}: carregados ${newProducts.length} produtos (${from}-${to})`);
-
-      // Atualizar lista de produtos
-      const updatedProducts = append ? [...allProducts, ...newProducts] : newProducts;
-      setAllProducts(updatedProducts);
-      setCurrentPage(page);
-      setHasMoreProducts(newProducts.length === PAGE_SIZE);
-
-      // Buscar categorias para organizar (ou usar as existentes)
-      const { data: categoriesData } = await supabase
-        .from('categories')
-        .select('*')
-        .eq('store_id', storeId)
-        .eq('is_active', true)
-        .order('display_order', { ascending: true });
-
-      // Organizar produtos por categoria
-      const categoriesWithProducts: CategoryData[] = (categoriesData || []).map(category => ({
-        ...category,
-        products: updatedProducts.filter(product => product.category_id === category.id)
-      }));
-
-      // Adicionar produtos sem categoria
-      const uncategorizedProducts = updatedProducts.filter(product => !product.category_id);
-      if (uncategorizedProducts.length > 0) {
-        categoriesWithProducts.unshift({
-          id: 'uncategorized',
-          name: 'Sem Categoria',
-          description: 'Produtos que não foram categorizados',
-          display_order: -1,
-          is_active: true,
-          store_id: validatedStoreId,
-          products: uncategorizedProducts
-        });
-      }
-
-      setCategories(categoriesWithProducts);
     } catch (error) {
       console.error('Erro ao buscar dados:', error);
       toast({
@@ -219,6 +188,29 @@ const ProductsPage = () => {
       setLoading(false);
       setIsLoadingMore(false);
     }
+  };
+
+  // Função auxiliar para organizar produtos por categoria
+  const organizeByCategory = (products: ProductData[], cats: CategoryData[], storeId: string) => {
+    const categoriesWithProducts: CategoryData[] = cats.map(category => ({
+      ...category,
+      products: products.filter(product => product.category_id === category.id)
+    }));
+
+    const uncategorizedProducts = products.filter(product => !product.category_id);
+    if (uncategorizedProducts.length > 0) {
+      categoriesWithProducts.unshift({
+        id: 'uncategorized',
+        name: 'Sem Categoria',
+        description: 'Produtos que não foram categorizados',
+        display_order: -1,
+        is_active: true,
+        store_id: storeId,
+        products: uncategorizedProducts
+      });
+    }
+
+    setCategories(categoriesWithProducts);
   };
 
   const loadMoreProducts = () => {

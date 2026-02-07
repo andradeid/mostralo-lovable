@@ -12655,6 +12655,8 @@ export type Database = {
         Returns: boolean
       }
       reset_affiliate_monthly_earnings: { Args: never; Returns: undefined }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       update_expired_coupons: { Args: never; Returns: undefined }
     }
     Enums: {

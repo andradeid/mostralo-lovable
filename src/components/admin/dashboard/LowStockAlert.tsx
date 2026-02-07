@@ -22,11 +22,31 @@ interface LowStockAlertProps {
 }
 
 export function LowStockAlert({ storeId, maxItems = 5 }: LowStockAlertProps) {
+  // Buscar contagem real server-side (sem limite de 1000 linhas)
+  const { data: stockCounts } = useQuery({
+    queryKey: ['low-stock-count', storeId],
+    queryFn: async () => {
+      if (!storeId) return { low_stock_count: 0, out_of_stock_count: 0 };
+      const { data, error } = await supabase
+        .rpc('count_low_stock_products', { p_store_id: storeId });
+      if (error) {
+        console.error('Erro ao contar estoque baixo:', error);
+        return { low_stock_count: 0, out_of_stock_count: 0 };
+      }
+      return data?.[0] || { low_stock_count: 0, out_of_stock_count: 0 };
+    },
+    enabled: !!storeId,
+    staleTime: 1000 * 60 * 2,
+    refetchInterval: 1000 * 60 * 5,
+  });
+
+  // Buscar apenas os primeiros itens para exibição (limitado ao maxItems + margem)
   const { data: lowStockProducts, isLoading } = useQuery({
-    queryKey: ['low-stock-products', storeId],
+    queryKey: ['low-stock-products', storeId, maxItems],
     queryFn: async () => {
       if (!storeId) return [];
       
+      // Buscar produtos com estoque 0 primeiro, depois os com estoque baixo
       const { data, error } = await supabase
         .from('products')
         .select('id, name, stock_quantity, stock_alert_threshold, image_url')
@@ -34,7 +54,8 @@ export function LowStockAlert({ storeId, maxItems = 5 }: LowStockAlertProps) {
         .eq('track_stock', true)
         .not('stock_quantity', 'is', null)
         .not('stock_alert_threshold', 'is', null)
-        .order('stock_quantity', { ascending: true });
+        .order('stock_quantity', { ascending: true })
+        .limit(200); // Buscar lote suficiente para filtrar
 
       if (error) {
         console.error('Erro ao buscar produtos com estoque baixo:', error);
@@ -47,8 +68,8 @@ export function LowStockAlert({ storeId, maxItems = 5 }: LowStockAlertProps) {
       ) || [];
     },
     enabled: !!storeId,
-    staleTime: 1000 * 60 * 2, // 2 minutos
-    refetchInterval: 1000 * 60 * 5, // Atualizar a cada 5 minutos
+    staleTime: 1000 * 60 * 2,
+    refetchInterval: 1000 * 60 * 5,
   });
 
   // Loading state
@@ -72,14 +93,17 @@ export function LowStockAlert({ storeId, maxItems = 5 }: LowStockAlertProps) {
     );
   }
 
+  // Usar contagem real do server-side
+  const totalLowStock = Number(stockCounts?.low_stock_count) || 0;
+  const totalOutOfStock = Number(stockCounts?.out_of_stock_count) || 0;
+
   // Não renderizar se não houver produtos com estoque baixo
-  if (!lowStockProducts || lowStockProducts.length === 0) {
+  if (totalLowStock === 0 && (!lowStockProducts || lowStockProducts.length === 0)) {
     return null;
   }
 
-  const displayProducts = lowStockProducts.slice(0, maxItems);
-  const hasMore = lowStockProducts.length > maxItems;
-  const outOfStockCount = lowStockProducts.filter(p => p.stock_quantity === 0).length;
+  const displayProducts = (lowStockProducts || []).slice(0, maxItems);
+  const hasMore = totalLowStock > maxItems;
 
   return (
     <Card className="border-orange-200 bg-orange-50/50 dark:bg-orange-950/10 dark:border-orange-800/50">
@@ -99,10 +123,10 @@ export function LowStockAlert({ storeId, maxItems = 5 }: LowStockAlertProps) {
           )}
         </div>
         <CardDescription className="text-orange-600/80 dark:text-orange-300/80">
-          {lowStockProducts.length} produto{lowStockProducts.length !== 1 ? 's' : ''} precisam de reposição
-          {outOfStockCount > 0 && (
+          {totalLowStock} produto{totalLowStock !== 1 ? 's' : ''} precisam de reposição
+          {totalOutOfStock > 0 && (
             <span className="text-red-600 dark:text-red-400 font-medium ml-1">
-              ({outOfStockCount} esgotado{outOfStockCount !== 1 ? 's' : ''})
+              ({totalOutOfStock} esgotado{totalOutOfStock !== 1 ? 's' : ''})
             </span>
           )}
         </CardDescription>
@@ -164,7 +188,7 @@ export function LowStockAlert({ storeId, maxItems = 5 }: LowStockAlertProps) {
         
         {hasMore && (
           <p className="text-xs text-muted-foreground text-center mt-2">
-            +{lowStockProducts.length - maxItems} outros produtos
+            +{totalLowStock - maxItems} outros produtos
           </p>
         )}
 

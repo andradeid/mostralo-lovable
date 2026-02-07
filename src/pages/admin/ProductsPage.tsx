@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -70,6 +70,7 @@ const ProductsPage = () => {
   const [categories, setCategories] = useState<CategoryData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sortMode, setSortMode] = useState<'manual' | 'alphabetical'>('manual');
   const [categoryFormOpen, setCategoryFormOpen] = useState(false);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
@@ -145,10 +146,17 @@ const ProductsPage = () => {
       const from = page * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
 
-      const { data: productsData, error: productsError } = await supabase
+      let productsQuery = supabase
         .from('products')
         .select('*, is_on_offer, original_price, offer_price, track_stock, stock_quantity, stock_alert_threshold, is_featured')
-        .eq('store_id', storeId)
+        .eq('store_id', storeId);
+
+      // Aplicar busca server-side
+      if (debouncedSearch.trim()) {
+        productsQuery = productsQuery.or(`name.ilike.%${debouncedSearch.trim()}%,description.ilike.%${debouncedSearch.trim()}%`);
+      }
+
+      const { data: productsData, error: productsError } = await productsQuery
         .order('display_order', { ascending: true })
         .range(from, to);
 
@@ -219,6 +227,15 @@ const ProductsPage = () => {
     }
   };
 
+  // Debounce da busca para evitar requisições a cada tecla
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Recarregar produtos quando a busca (debounced) muda
   useEffect(() => {
     if (validatedStoreId && !storeAccessLoading && hasAccess) {
       setCurrentPage(0);
@@ -226,7 +243,7 @@ const ProductsPage = () => {
       setAllProducts([]);
       fetchCategoriesAndProducts(0, false);
     }
-  }, [validatedStoreId, storeAccessLoading, hasAccess]);
+  }, [validatedStoreId, storeAccessLoading, hasAccess, debouncedSearch]);
 
   const handleDeleteProduct = async (productId: string) => {
     try {
@@ -628,10 +645,6 @@ const ProductsPage = () => {
   const filteredCategories = categories.map(category => ({
     ...category,
     products: applyProductFilters(category.products)
-      .filter(product =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))
-      )
       .sort((a, b) => {
         if (sortMode === 'alphabetical') {
           return a.name.localeCompare(b.name, 'pt-BR');
@@ -639,9 +652,7 @@ const ProductsPage = () => {
         return a.display_order - b.display_order;
       })
   })).filter(category => 
-    searchTerm === '' || 
-    category.products.length > 0 || 
-    category.name.toLowerCase().includes(searchTerm.toLowerCase())
+    category.products.length > 0
   );
 
   // Calcular totais para o contador
@@ -809,9 +820,13 @@ const ProductsPage = () => {
       {/* Busca e Ordenação - Empilhado em mobile */}
       <div className="flex flex-col sm:flex-row gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          {(searchTerm !== debouncedSearch) ? (
+            <Loader2 className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground animate-spin" />
+          ) : (
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          )}
           <Input
-            placeholder="Buscar produtos..."
+            placeholder="Buscar produtos em todo o catálogo..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-8"

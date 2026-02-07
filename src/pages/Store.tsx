@@ -156,7 +156,12 @@ const Store = () => {
   const [totalProducts, setTotalProducts] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [categoryProducts, setCategoryProducts] = useState<Product[] | null>(null);
+  const [loadingCategoryProducts, setLoadingCategoryProducts] = useState(false);
+  const [categoryTotal, setCategoryTotal] = useState(0);
+  const [categoryHasMore, setCategoryHasMore] = useState(false);
   const currentPageRef = useRef(0);
+  const categoryPageRef = useRef(0);
   const PRODUCTS_PER_PAGE = 50;
   
   const { toast } = useToast();
@@ -676,21 +681,36 @@ const Store = () => {
 
   // Função para carregar mais produtos (infinite scroll)
   const loadMoreProducts = useCallback(async () => {
-    if (!store?.id || loadingMore || !hasMore) return;
+    if (!store?.id || loadingMore) return;
+    
+    // Determinar se estamos em modo categoria ou geral
+    const isInCategory = selectedCategory && selectedCategory !== 'featured' && searchResults === null;
+    const currentHasMore = isInCategory ? categoryHasMore : hasMore;
+    const currentTotal = isInCategory ? categoryTotal : totalProducts;
+    
+    if (!currentHasMore) return;
     
     setLoadingMore(true);
-    const nextPage = currentPageRef.current + 1;
+    const pageRef = isInCategory ? categoryPageRef : currentPageRef;
+    const nextPage = pageRef.current + 1;
     const from = nextPage * PRODUCTS_PER_PAGE;
     const to = from + PRODUCTS_PER_PAGE - 1;
     
     try {
-      const { data: newProducts, error } = await supabase
+      let query = supabase
         .from('products')
         .select('id, name, description, price, image_url, image_gallery, category_id, display_order, button_text, slug, is_on_offer, original_price, offer_price, is_featured')
         .eq('store_id', store.id)
         .eq('is_available', true)
         .order('display_order')
         .range(from, to);
+      
+      // Adicionar filtro de categoria se necessário
+      if (isInCategory) {
+        query = query.eq('category_id', selectedCategory);
+      }
+      
+      const { data: newProducts, error } = await query;
       
       if (error) throw error;
       
@@ -724,20 +744,37 @@ const Store = () => {
           };
         });
 
-        // Adicionar ao array existente sem duplicatas
-        setProducts(prev => {
-          const existingIds = new Set(prev.map(p => p.id));
-          const uniqueNew = productsWithVariants.filter(p => !existingIds.has(p.id));
-          return [...prev, ...uniqueNew];
-        });
+        // Adicionar ao array correto sem duplicatas
+        if (isInCategory) {
+          setCategoryProducts(prev => {
+            if (!prev) return productsWithVariants;
+            const existingIds = new Set(prev.map(p => p.id));
+            const uniqueNew = productsWithVariants.filter(p => !existingIds.has(p.id));
+            return [...prev, ...uniqueNew];
+          });
+        } else {
+          setProducts(prev => {
+            const existingIds = new Set(prev.map(p => p.id));
+            const uniqueNew = productsWithVariants.filter(p => !existingIds.has(p.id));
+            return [...prev, ...uniqueNew];
+          });
+        }
         
-        currentPageRef.current = nextPage;
+        pageRef.current = nextPage;
         
         // Verificar se ainda há mais produtos
         const totalLoaded = (nextPage + 1) * PRODUCTS_PER_PAGE;
-        setHasMore(totalLoaded < totalProducts);
+        if (isInCategory) {
+          setCategoryHasMore(totalLoaded < currentTotal);
+        } else {
+          setHasMore(totalLoaded < currentTotal);
+        }
       } else {
-        setHasMore(false);
+        if (isInCategory) {
+          setCategoryHasMore(false);
+        } else {
+          setHasMore(false);
+        }
       }
     } catch (error) {
       console.error('Erro ao carregar mais produtos:', error);
@@ -749,11 +786,18 @@ const Store = () => {
     } finally {
       setLoadingMore(false);
     }
-  }, [store?.id, loadingMore, hasMore, totalProducts, toast]);
+  }, [store?.id, loadingMore, hasMore, categoryHasMore, totalProducts, categoryTotal, selectedCategory, searchResults, toast]);
+
+  // Determinar hasMore e loading corretos baseado no contexto atual
+  const effectiveHasMore = useMemo(() => {
+    if (searchResults !== null) return false; // Busca não usa infinite scroll
+    if (selectedCategory && selectedCategory !== 'featured') return categoryHasMore;
+    return hasMore;
+  }, [searchResults, selectedCategory, categoryHasMore, hasMore]);
 
   // Hook de infinite scroll
   const loadMoreRef = useInfiniteScroll({
-    hasMore,
+    hasMore: effectiveHasMore,
     isLoading: loadingMore,
     onLoadMore: loadMoreProducts,
   });
@@ -781,6 +825,83 @@ const Store = () => {
     }
   }, [hasFeaturedProducts, selectedCategory]);
 
+  // Buscar produtos da categoria selecionada server-side
+  useEffect(() => {
+    if (!store?.id || !selectedCategory || selectedCategory === 'featured' || searchResults !== null) {
+      setCategoryProducts(null);
+      setCategoryTotal(0);
+      setCategoryHasMore(false);
+      categoryPageRef.current = 0;
+      return;
+    }
+
+    let cancelled = false;
+    setLoadingCategoryProducts(true);
+    categoryPageRef.current = 0;
+
+    const fetchCategoryProducts = async () => {
+      try {
+        // Buscar contagem e produtos da categoria em paralelo
+        const [countResult, productsResult] = await Promise.all([
+          supabase
+            .from('products')
+            .select('id', { count: 'exact', head: true })
+            .eq('store_id', store.id)
+            .eq('is_available', true)
+            .eq('category_id', selectedCategory),
+          supabase
+            .from('products')
+            .select('id, name, description, price, image_url, image_gallery, category_id, display_order, button_text, slug, is_on_offer, original_price, offer_price, is_featured')
+            .eq('store_id', store.id)
+            .eq('is_available', true)
+            .eq('category_id', selectedCategory)
+            .order('display_order')
+            .range(0, PRODUCTS_PER_PAGE - 1)
+        ]);
+
+        if (cancelled) return;
+
+        const total = countResult.count || 0;
+        setCategoryTotal(total);
+        setCategoryHasMore(PRODUCTS_PER_PAGE < total);
+
+        if (productsResult.data && productsResult.data.length > 0) {
+          // Buscar variantes
+          const productIds = productsResult.data.map(p => p.id);
+          const { data: variants } = await supabase
+            .from('product_variants')
+            .select('*')
+            .in('product_id', productIds)
+            .eq('is_available', true)
+            .order('display_order');
+
+          if (cancelled) return;
+
+          const productsWithVariants = productsResult.data.map((product) => {
+            const productVariants = variants?.filter(v => v.product_id === product.id) || [];
+            if (productVariants.length > 0) {
+              const defaultVariant = productVariants.find((v: any) => v.is_default) || productVariants[0];
+              return { ...product, price: Number(defaultVariant.price), variants: productVariants };
+            }
+            return { ...product, variants: [] };
+          });
+
+          setCategoryProducts(productsWithVariants);
+        } else {
+          setCategoryProducts([]);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar produtos da categoria:', error);
+        if (!cancelled) setCategoryProducts([]);
+      } finally {
+        if (!cancelled) setLoadingCategoryProducts(false);
+      }
+    };
+
+    fetchCategoryProducts();
+    return () => { cancelled = true; };
+  }, [selectedCategory, store?.id, searchResults]);
+
   const getProductsByCategory = (categoryId: string | null) => {
     // Se há busca ativa, usar resultados do server-side
     const sourceProducts = searchResults !== null ? searchResults : products;
@@ -791,46 +912,40 @@ const Store = () => {
       return featuredProducts.sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
     }
     
-    const filteredProducts = categoryId ? sourceProducts.filter(p => p.category_id === categoryId) : sourceProducts;
+    // Categoria específica selecionada - usar produtos buscados server-side
+    if (categoryId && categoryProducts !== null && searchResults === null) {
+      const copy = [...categoryProducts];
+      return copy.sort((a, b) => {
+        const prodOrderA = a.display_order ?? 0;
+        const prodOrderB = b.display_order ?? 0;
+        if (prodOrderA !== prodOrderB) return prodOrderA - prodOrderB;
+        return a.name.localeCompare(b.name);
+      });
+    }
+
+    // Filtrar de busca quando há searchResults + categoria
+    if (categoryId && searchResults !== null) {
+      const filtered = searchResults.filter(p => p.category_id === categoryId);
+      return filtered.sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
+    }
     
-    // Trabalhar com cópia para evitar mutação
-    const copy = [...filteredProducts];
+    // "Todas" - usar produtos carregados normalmente
+    const copy = [...sourceProducts];
     
     // Funções auxiliares para obter ordem
     const getCategoryOrder = (catId?: string) => 
       catId ? (categoryOrderMap[catId] ?? Number.MAX_SAFE_INTEGER) : Number.MAX_SAFE_INTEGER;
     
-    const getProductOrder = (p: Product) => p.display_order ?? 0;
-    
-    if (!categoryId) {
-      // "Todas": ordenar por categoria primeiro, depois por produto
-      return copy.sort((a, b) => {
-        const catOrderA = getCategoryOrder(a.category_id);
-        const catOrderB = getCategoryOrder(b.category_id);
-        
-        if (catOrderA !== catOrderB) {
-          return catOrderA - catOrderB;
-        }
-        
-        const prodOrderA = getProductOrder(a);
-        const prodOrderB = getProductOrder(b);
-        
-        if (prodOrderA !== prodOrderB) {
-          return prodOrderA - prodOrderB;
-        }
-        
-        return a.name.localeCompare(b.name);
-      });
-    }
-    
-    // Categoria específica: ordenar apenas por display_order do produto
     return copy.sort((a, b) => {
-      const prodOrderA = getProductOrder(a);
-      const prodOrderB = getProductOrder(b);
+      const catOrderA = getCategoryOrder(a.category_id);
+      const catOrderB = getCategoryOrder(b.category_id);
       
-      if (prodOrderA !== prodOrderB) {
-        return prodOrderA - prodOrderB;
-      }
+      if (catOrderA !== catOrderB) return catOrderA - catOrderB;
+      
+      const prodOrderA = a.display_order ?? 0;
+      const prodOrderB = b.display_order ?? 0;
+      
+      if (prodOrderA !== prodOrderB) return prodOrderA - prodOrderB;
       
       return a.name.localeCompare(b.name);
     });
@@ -1511,12 +1626,19 @@ const Store = () => {
       <div className="px-4 py-4 pb-24">
         <div className="max-w-[1080px] mx-auto">
           {/* Contador de produtos (apenas se não estiver buscando) */}
-          {!searchTerm && !loadingProducts && products.length > 0 && (
-            <ProductsCounter
-              loaded={products.length}
-              total={totalProducts}
-              isSearching={!!searchTerm}
-            />
+          {!searchTerm && !loadingProducts && !loadingCategoryProducts && (
+            (() => {
+              const isInCategory = selectedCategory && selectedCategory !== 'featured';
+              const displayLoaded = isInCategory && categoryProducts ? categoryProducts.length : products.length;
+              const displayTotal = isInCategory ? categoryTotal : totalProducts;
+              return displayTotal > 0 ? (
+                <ProductsCounter
+                  loaded={displayLoaded}
+                  total={displayTotal}
+                  isSearching={!!searchTerm}
+                />
+              ) : null;
+            })()
           )}
 
           {/* Renderização dinâmica baseada no layout configurado */}
@@ -1524,7 +1646,7 @@ const Store = () => {
             const productsToDisplay = getProductsByCategory(selectedCategory);
             const layout = store?.configuration?.product_display_layout || 'grid';
 
-            if (loadingProducts) {
+            if (loadingProducts || loadingCategoryProducts) {
               return (
                 <div className="text-center py-12">
                   <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
@@ -1564,10 +1686,10 @@ const Store = () => {
                     ))}
                   </div>
                   {/* Infinite scroll trigger - sempre visível quando há mais produtos */}
-                  {hasMore && (
+                  {effectiveHasMore && (
                     <>
                       <div ref={loadMoreRef} className="h-10" />
-                      <LoadMoreIndicator isLoading={loadingMore} hasMore={hasMore} />
+                      <LoadMoreIndicator isLoading={loadingMore} hasMore={effectiveHasMore} />
                     </>
                   )}
                 </>
@@ -1595,10 +1717,10 @@ const Store = () => {
                     </div>
                   </div>
                   {/* Infinite scroll trigger - sempre visível quando há mais produtos */}
-                  {hasMore && (
+                  {effectiveHasMore && (
                     <>
                       <div ref={loadMoreRef} className="h-10" />
-                      <LoadMoreIndicator isLoading={loadingMore} hasMore={hasMore} />
+                      <LoadMoreIndicator isLoading={loadingMore} hasMore={effectiveHasMore} />
                     </>
                   )}
                 </>
@@ -1623,10 +1745,10 @@ const Store = () => {
                   ))}
                 </div>
                 {/* Infinite scroll trigger - sempre visível quando há mais produtos */}
-                {hasMore && (
+                {effectiveHasMore && (
                   <>
                     <div ref={loadMoreRef} className="h-10" />
-                    <LoadMoreIndicator isLoading={loadingMore} hasMore={hasMore} />
+                    <LoadMoreIndicator isLoading={loadingMore} hasMore={effectiveHasMore} />
                   </>
                 )}
               </>

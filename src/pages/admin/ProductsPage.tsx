@@ -223,7 +223,7 @@ const ProductsPage = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchTerm);
-    }, 400);
+    }, 4000);
     return () => clearTimeout(timer);
   }, [searchTerm]);
 

@@ -134,6 +134,9 @@ const Store = () => {
   const [loadingBanners, setLoadingBanners] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [searchResults, setSearchResults] = useState<Product[] | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showProductDetail, setShowProductDetail] = useState(false);
   const [showStickyHeader, setShowStickyHeader] = useState(false);
@@ -367,6 +370,74 @@ const Store = () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
   }, []);
+
+  // Debounce da busca para fazer server-side
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Busca server-side quando debouncedSearch muda
+  useEffect(() => {
+    if (!debouncedSearch.trim() || !store?.id) {
+      setSearchResults(null);
+      setIsSearching(false);
+      return;
+    }
+
+    let cancelled = false;
+    setIsSearching(true);
+
+    const searchServerSide = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .select('id, name, description, price, image_url, image_gallery, category_id, display_order, button_text, slug, is_on_offer, original_price, offer_price, is_featured')
+          .eq('store_id', store.id)
+          .eq('is_available', true)
+          .or(`name.ilike.%${debouncedSearch.trim()}%,description.ilike.%${debouncedSearch.trim()}%`)
+          .order('display_order')
+          .limit(100);
+
+        if (cancelled) return;
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          const productIds = data.map(p => p.id);
+          const { data: variants } = await supabase
+            .from('product_variants')
+            .select('*')
+            .in('product_id', productIds)
+            .eq('is_available', true)
+            .order('display_order');
+
+          if (cancelled) return;
+
+          const productsWithVariants = data.map((product) => {
+            const productVariants = variants?.filter(v => v.product_id === product.id) || [];
+            if (productVariants.length > 0) {
+              const defaultVariant = productVariants.find((v: any) => v.is_default) || productVariants[0];
+              return { ...product, price: Number(defaultVariant.price), variants: productVariants };
+            }
+            return { ...product, variants: [] };
+          });
+          setSearchResults(productsWithVariants);
+        } else {
+          setSearchResults([]);
+        }
+      } catch (error) {
+        console.error('Erro na busca server-side:', error);
+        if (!cancelled) setSearchResults([]);
+      } finally {
+        if (!cancelled) setIsSearching(false);
+      }
+    };
+
+    searchServerSide();
+    return () => { cancelled = true; };
+  }, [debouncedSearch, store?.id]);
 
   const fetchStoreData = async () => {
     try {
@@ -711,26 +782,16 @@ const Store = () => {
   }, [hasFeaturedProducts, selectedCategory]);
 
   const getProductsByCategory = (categoryId: string | null) => {
+    // Se há busca ativa, usar resultados do server-side
+    const sourceProducts = searchResults !== null ? searchResults : products;
+
     // Aba "Destaques" selecionada
     if (categoryId === 'featured') {
-      let featuredProducts = products.filter(p => p.is_featured === true);
-      if (searchTerm) {
-        featuredProducts = featuredProducts.filter(p => 
-          p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (p.description && p.description.toLowerCase().includes(searchTerm.toLowerCase()))
-        );
-      }
+      const featuredProducts = sourceProducts.filter(p => p.is_featured === true);
       return featuredProducts.sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
     }
     
-    let filteredProducts = categoryId ? products.filter(p => p.category_id === categoryId) : products;
-    
-    if (searchTerm) {
-      filteredProducts = filteredProducts.filter(p => 
-        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (p.description && p.description.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-    }
+    const filteredProducts = categoryId ? sourceProducts.filter(p => p.category_id === categoryId) : sourceProducts;
     
     // Trabalhar com cópia para evitar mutação
     const copy = [...filteredProducts];
@@ -976,7 +1037,11 @@ const Store = () => {
           
           {/* Campo de Busca */}
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            {isSearching ? (
+              <Loader2 className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground animate-spin" />
+            ) : (
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            )}
             <Input
               placeholder="Buscar produtos..."
               value={searchTerm}
@@ -1249,7 +1314,11 @@ const Store = () => {
           <div className="flex items-center gap-4">
             {/* Barra de Busca */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              {isSearching ? (
+                <Loader2 className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground animate-spin" />
+              ) : (
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              )}
               <Input
                 placeholder="Digite sua busca..."
                 value={searchTerm}

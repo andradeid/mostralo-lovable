@@ -807,6 +807,25 @@ const Store = () => {
     return products.some(p => p.is_featured === true);
   }, [products]);
 
+  // Handler para seleção de categoria — seta loading e reset SINCRONICAMENTE
+  const handleCategorySelect = useCallback((categoryId: string | null) => {
+    setSelectedCategory(categoryId);
+    if (categoryId && categoryId !== 'featured') {
+      // Reset imediato para evitar flash de produtos locais
+      setCategoryProducts(null);
+      setCategoryTotal(0);
+      setCategoryHasMore(false);
+      categoryPageRef.current = 0;
+      setLoadingCategoryProducts(true);
+    } else {
+      setCategoryProducts(null);
+      setCategoryTotal(0);
+      setCategoryHasMore(false);
+      categoryPageRef.current = 0;
+      setLoadingCategoryProducts(false);
+    }
+  }, []);
+
   // Definir aba inicial baseado em produtos em destaque
   useEffect(() => {
     // Só executa quando os produtos foram carregados pela primeira vez
@@ -836,7 +855,7 @@ const Store = () => {
     }
 
     let cancelled = false;
-    setLoadingCategoryProducts(true);
+    // loadingCategoryProducts já foi setado no handleCategorySelect
     categoryPageRef.current = 0;
 
     const fetchCategoryProducts = async () => {
@@ -913,7 +932,11 @@ const Store = () => {
     }
     
     // Categoria específica selecionada - usar produtos buscados server-side
-    if (categoryId && categoryProducts !== null && searchResults === null) {
+    if (categoryId && searchResults === null) {
+      // Se categoryProducts é null, ainda está carregando (retorna vazio, loader será exibido)
+      if (categoryProducts === null) {
+        return [];
+      }
       const copy = [...categoryProducts];
       return copy.sort((a, b) => {
         const prodOrderA = a.display_order ?? 0;
@@ -1528,7 +1551,7 @@ const Store = () => {
               <Button
                 variant={selectedCategory === 'featured' ? "default" : "outline"}
                 size="sm"
-                onClick={() => setSelectedCategory('featured')}
+                onClick={() => handleCategorySelect('featured')}
                 className="whitespace-nowrap"
                 style={selectedCategory === 'featured' ? { backgroundColor: primaryColor, color: 'white' } : { borderColor: primaryColor, color: primaryColor }}
               >
@@ -1540,7 +1563,7 @@ const Store = () => {
             <Button
               variant={selectedCategory === null ? "default" : "outline"}
               size="sm"
-              onClick={() => setSelectedCategory(null)}
+              onClick={() => handleCategorySelect(null)}
               className="whitespace-nowrap"
               style={selectedCategory === null ? { backgroundColor: primaryColor, color: 'white' } : { borderColor: primaryColor, color: primaryColor }}
             >
@@ -1552,7 +1575,7 @@ const Store = () => {
                 key={category.id}
                 variant={selectedCategory === category.id ? "default" : "outline"}
                 size="sm"
-                onClick={() => setSelectedCategory(category.id)}
+                onClick={() => handleCategorySelect(category.id)}
                 className="whitespace-nowrap"
                 style={selectedCategory === category.id ? { backgroundColor: primaryColor, color: 'white' } : { borderColor: primaryColor, color: primaryColor }}
               >

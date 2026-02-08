@@ -73,7 +73,7 @@ export function ProductSelector({ storeId, onAddProduct }: ProductSelectorProps)
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      // Buscar produtos em lotes para superar o limite de 1000 do Supabase
+      // 1. Buscar todos os produtos da loja (paginado para superar limite de 1000)
       const PAGE_SIZE = 1000;
       let allProducts: any[] = [];
       let hasMore = true;
@@ -102,50 +102,72 @@ export function ProductSelector({ storeId, onAddProduct }: ProductSelectorProps)
         }
       }
 
-      const data = allProducts;
-      
-      // Buscar variantes e addons separadamente para cada produto
-      const productsWithDetails = await Promise.all(
-        (data || []).map(async (product) => {
-          const [variantsRes, addonsRes] = await Promise.all([
-            supabase
-              .from('product_variants')
-              .select('*')
-              .eq('product_id', product.id)
-              .eq('is_available', true),
-            supabase
-              .from('addons')
-              .select('*')
-              .eq('store_id', storeId)
-              .eq('is_available', true)
-              .then(res => {
-                // Pegar apenas os addons vinculados ao produto via product_addons
-                return supabase
-                  .from('product_addons')
-                  .select('addon_id')
-                  .eq('product_id', product.id)
-                  .then(paRes => {
-                    if (paRes.error) return { data: [], error: paRes.error };
-                    const addonIds = paRes.data.map(pa => pa.addon_id);
-                    return {
-                      data: res.data?.filter(a => addonIds.includes(a.id)).map(a => ({ addon: a })) || [],
-                      error: res.error
-                    };
-                  });
-              })
-          ]);
-          
-          return {
-            id: product.id,
-            name: product.name,
-            price: product.price,
-            category: undefined,
-            variants: variantsRes.data || [],
-            product_addons: addonsRes.data || []
-          };
-        })
-      );
-      
+      if (allProducts.length === 0) {
+        setProducts([]);
+        return;
+      }
+
+      const productIds = allProducts.map(p => p.id);
+
+      // 2. Buscar TODAS as variantes, addons e product_addons em BATCH (3 queries em vez de N*2)
+      const [variantsRes, addonsRes, productAddonsRes] = await Promise.all([
+        supabase
+          .from('product_variants')
+          .select('*')
+          .in('product_id', productIds)
+          .eq('is_available', true),
+        supabase
+          .from('addons')
+          .select('*')
+          .eq('store_id', storeId)
+          .eq('is_available', true),
+        supabase
+          .from('product_addons')
+          .select('product_id, addon_id')
+          .in('product_id', productIds),
+      ]);
+
+      // 3. Indexar por product_id para lookup O(1)
+      const variantsByProduct = new Map<string, ProductVariant[]>();
+      for (const v of variantsRes.data || []) {
+        const list = variantsByProduct.get(v.product_id) || [];
+        list.push(v);
+        variantsByProduct.set(v.product_id, list);
+      }
+
+      const addonsById = new Map<string, Addon>();
+      for (const a of addonsRes.data || []) {
+        addonsById.set(a.id, a);
+      }
+
+      const addonIdsByProduct = new Map<string, string[]>();
+      for (const pa of productAddonsRes.data || []) {
+        const list = addonIdsByProduct.get(pa.product_id) || [];
+        list.push(pa.addon_id);
+        addonIdsByProduct.set(pa.product_id, list);
+      }
+
+      // 4. Montar resultado em memória (sem queries adicionais)
+      const productsWithDetails: Product[] = allProducts.map((product) => {
+        const variants = variantsByProduct.get(product.id) || [];
+        const linkedAddonIds = addonIdsByProduct.get(product.id) || [];
+        const productAddons = linkedAddonIds
+          .map(addonId => {
+            const addon = addonsById.get(addonId);
+            return addon ? { addon } : null;
+          })
+          .filter(Boolean) as { addon: Addon }[];
+
+        return {
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          category: undefined,
+          variants,
+          product_addons: productAddons,
+        };
+      });
+
       setProducts(productsWithDetails);
     } catch (error) {
       console.error('Erro ao buscar produtos:', error);

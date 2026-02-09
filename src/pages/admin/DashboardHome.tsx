@@ -479,7 +479,7 @@ const DashboardHome = () => {
                 Produtos
               </Button>
             </NavLink>
-            <NavLink to={`/${storeStats.storeSlug}`} target="_blank">
+            <NavLink to={`/loja/${storeStats.storeSlug}`} target="_blank">
               <Button variant="outline" size="sm" className="h-8 text-xs">
                 <Eye className="w-3 h-3 mr-1" />
                 Ver Loja

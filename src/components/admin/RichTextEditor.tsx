@@ -30,7 +30,6 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
     content: value || '',
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
-      // Se o conteúdo for vazio (só tag <p>), retorna string vazia
       onChange(html === '<p></p>' ? '' : html);
     },
     editorProps: {
@@ -40,7 +39,6 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
     },
   });
 
-  // Sincronizar valor externo com o editor (ex: ao carregar produto)
   useEffect(() => {
     if (editor && value !== editor.getHTML() && value !== undefined) {
       editor.commands.setContent(value || '');
@@ -74,7 +72,6 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
 
   return (
     <div className="border rounded-md overflow-hidden bg-background">
-      {/* Toolbar */}
       <div className="flex items-center gap-0.5 px-2 py-1 border-b bg-muted/30 flex-wrap">
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
@@ -120,7 +117,6 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
 
         <div className="w-px h-5 bg-border mx-1" />
 
-        {/* Seletor de Cor */}
         <Popover>
           <PopoverTrigger asChild>
             <Button
@@ -175,7 +171,6 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
         </ToolbarButton>
       </div>
 
-      {/* Editor Content */}
       <EditorContent editor={editor} />
     </div>
   );

@@ -16,7 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { usePageSEO } from '@/hooks/useSEO';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Package, Plus, Search, Edit, Trash2, Grid, ArrowUp, ArrowDown, GripVertical, AlertCircle, ArrowDownAZ, PackageX, Upload, ChevronDown, FileSpreadsheet, Star, ImagePlus } from 'lucide-react';
+import { Loader2, Package, Plus, Search, Edit, Trash2, Grid, ArrowUp, ArrowDown, GripVertical, AlertCircle, ArrowDownAZ, PackageX, Upload, ChevronDown, FileSpreadsheet, Star, ImagePlus, Copy } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
@@ -265,6 +265,43 @@ const ProductsPage = () => {
         title: 'Erro',
         description: 'Erro ao excluir produto.',
         variant: 'destructive'
+      });
+    }
+  };
+
+  const handleDuplicateProduct = async (productId: string, productName: string) => {
+    try {
+      toast({
+        title: 'Duplicando...',
+        description: `Duplicando produto "${productName}"...`,
+      });
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({ title: 'Erro', description: 'Você precisa estar logado.', variant: 'destructive' });
+        return;
+      }
+
+      const response = await supabase.functions.invoke('duplicate-product', {
+        body: { productId },
+      });
+
+      if (response.error) {
+        throw response.error;
+      }
+
+      toast({
+        title: 'Sucesso',
+        description: `Produto "${productName}" duplicado com sucesso!`,
+      });
+
+      fetchCategoriesAndProducts(0, false);
+    } catch (error) {
+      console.error('Erro ao duplicar produto:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao duplicar produto.',
+        variant: 'destructive',
       });
     }
   };
@@ -1237,6 +1274,15 @@ const ProductsPage = () => {
                                             >
                                               <Edit className="w-3 h-3 mr-1" />
                                               Editar
+                                            </Button>
+                                            <Button 
+                                              size="sm" 
+                                              variant="outline"
+                                              className="h-7 text-xs flex-1 sm:flex-none"
+                                              onClick={() => handleDuplicateProduct(product.id, product.name)}
+                                            >
+                                              <Copy className="w-3 h-3 mr-1" />
+                                              Duplicar
                                             </Button>
                                             <Button 
                                               size="sm" 

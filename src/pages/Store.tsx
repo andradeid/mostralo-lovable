@@ -1871,6 +1871,11 @@ const Store = () => {
         </Suspense>
       )}
 
+      {/* Footer informativo da loja */}
+      {store && (
+        <StoreFooter store={store} businessHours={businessHours} />
+      )}
+
       {/* Espaço para não ficar atrás da navegação inferior */}
       <div className="h-20 md:h-20" aria-hidden />
 

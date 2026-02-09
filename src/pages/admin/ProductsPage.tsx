@@ -1216,11 +1216,10 @@ const ProductsPage = () => {
                                             )}
                                           </div>
 
-                                          {/* Descrição mobile - texto quebra */}
                                           {product.description && (
-                                            <p className="text-xs text-muted-foreground sm:hidden line-clamp-2">
-                                              {product.description}
-                                            </p>
+                                            <div className="sm:hidden">
+                                              <ProductDescription description={product.description} className="text-xs text-muted-foreground line-clamp-2" />
+                                            </div>
                                           )}
                                         </div>
                                             

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { ProductDescription } from '@/components/ProductDescription';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,6 +11,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
 import { useStoreStatus } from '@/hooks/useStoreStatus';
 import { useProductPromotion } from '@/hooks/useProductPromotion';
+import { useCustomScripts } from '@/hooks/useCustomScripts';
 import { 
   ArrowLeft, 
   ShoppingCart, 
@@ -47,10 +48,7 @@ interface Store {
   facebook?: string;
   website?: string;
   theme_colors: any;
-  configuration?: {
-    primary_color?: string;
-    secondary_color?: string;
-  };
+  configuration?: any;
 }
 
 interface Product {
@@ -135,6 +133,9 @@ const ProductPage = () => {
   
   const storeStatus = useStoreStatus(businessHours, deliveryConfig);
   const primaryColor = store?.configuration?.primary_color || store?.theme_colors?.primary || '#3B82F6';
+
+  // Hook para injetar scripts personalizados da loja
+  useCustomScripts(store?.configuration?.custom_scripts, store?.id);
 
   // Hook para calcular promoções aplicáveis ao produto
   const { finalPrice: promotionFinalPrice, discountInfo, bestPromotion } = useProductPromotion({

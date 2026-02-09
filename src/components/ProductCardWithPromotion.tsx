@@ -1,4 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
+import { ProductDescription } from '@/components/ProductDescription';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Store as StoreIcon } from 'lucide-react';

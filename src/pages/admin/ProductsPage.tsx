@@ -17,6 +17,7 @@ import { usePageSEO } from '@/hooks/useSEO';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Package, Plus, Search, Edit, Trash2, Grid, ArrowUp, ArrowDown, GripVertical, AlertCircle, ArrowDownAZ, PackageX, Upload, ChevronDown, FileSpreadsheet, Star, ImagePlus, Copy } from 'lucide-react';
+import { ProductDescription } from '@/components/ProductDescription';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
@@ -1211,17 +1212,14 @@ const ProductsPage = () => {
                                             
                                             {/* Descrição */}
                                             {product.description && (
-                                              <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                                                {product.description}
-                                              </p>
+                                              <ProductDescription description={product.description} className="text-sm text-muted-foreground mb-2 line-clamp-2" />
                                             )}
                                           </div>
 
-                                          {/* Descrição mobile - texto quebra */}
                                           {product.description && (
-                                            <p className="text-xs text-muted-foreground sm:hidden line-clamp-2">
-                                              {product.description}
-                                            </p>
+                                            <div className="sm:hidden">
+                                              <ProductDescription description={product.description} className="text-xs text-muted-foreground line-clamp-2" />
+                                            </div>
                                           )}
                                         </div>
                                             

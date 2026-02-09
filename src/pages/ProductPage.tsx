@@ -51,6 +51,11 @@ interface Store {
   configuration?: {
     primary_color?: string;
     secondary_color?: string;
+    custom_scripts?: {
+      head_scripts?: string;
+      body_start_scripts?: string;
+      body_end_scripts?: string;
+    };
   };
 }
 

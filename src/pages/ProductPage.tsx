@@ -891,7 +891,6 @@ Poderia me ajudar?`;
               {product.description && (
                 <ProductDescription description={product.description} className="text-muted-foreground" />
               )}
-              )}
               
               {/* Badge de Oferta ou Promoção */}
               {discountInfo && discountInfo.amount > 0 && (

@@ -1279,6 +1279,15 @@ const ProductsPage = () => {
                                               size="sm" 
                                               variant="outline"
                                               className="h-7 text-xs flex-1 sm:flex-none"
+                                              onClick={() => handleDuplicateProduct(product.id, product.name)}
+                                            >
+                                              <Copy className="w-3 h-3 mr-1" />
+                                              Duplicar
+                                            </Button>
+                                            <Button 
+                                              size="sm" 
+                                              variant="outline"
+                                              className="h-7 text-xs flex-1 sm:flex-none"
                                               onClick={() => {
                                                 if (confirm('Tem certeza que deseja excluir este produto?')) {
                                                   handleDeleteProduct(product.id);

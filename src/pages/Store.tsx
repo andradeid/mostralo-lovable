@@ -13,6 +13,7 @@ import { useStoreStatus } from '@/hooks/useStoreStatus';
 import { LoadMoreIndicator } from '@/components/store/LoadMoreIndicator';
 import { ProductsCounter } from '@/components/store/ProductsCounter';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import { StoreCategoryNav } from '@/components/store/StoreCategoryNav';
 
 // Lazy load de componentes pesados
 const ProductDetail = lazy(() => import('@/components/ProductDetail'));
@@ -1544,46 +1545,14 @@ const Store = () => {
 
       {/* Navegação de Categorias - Sticky */}
       {!searchTerm && categories.length > 0 && (
-        <div className={`sticky bg-white border-b px-4 py-2 z-40 shadow-sm transition-all duration-200 ${showStickyHeader ? 'top-[48px]' : 'top-0'}`}>
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide max-w-[1080px] mx-auto pb-1">
-            {/* 1. PRIMEIRO - Aba Destaques */}
-            {hasFeaturedProducts && (
-              <Button
-                variant={selectedCategory === 'featured' ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleCategorySelect('featured')}
-                className="whitespace-nowrap"
-                style={selectedCategory === 'featured' ? { backgroundColor: primaryColor, color: 'white' } : { borderColor: primaryColor, color: primaryColor }}
-              >
-                <Sparkles className="w-4 h-4 mr-1" />
-                Destaques
-              </Button>
-            )}
-            {/* 2. SEGUNDO - Aba Todas */}
-            <Button
-              variant={selectedCategory === null ? "default" : "outline"}
-              size="sm"
-              onClick={() => handleCategorySelect(null)}
-              className="whitespace-nowrap"
-              style={selectedCategory === null ? { backgroundColor: primaryColor, color: 'white' } : { borderColor: primaryColor, color: primaryColor }}
-            >
-              Todas
-            </Button>
-            {/* 3. TERCEIRO - Categorias */}
-            {categories.map((category) => (
-              <Button
-                key={category.id}
-                variant={selectedCategory === category.id ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleCategorySelect(category.id)}
-                className="whitespace-nowrap"
-                style={selectedCategory === category.id ? { backgroundColor: primaryColor, color: 'white' } : { borderColor: primaryColor, color: primaryColor }}
-              >
-                {category.name}
-              </Button>
-            ))}
-          </div>
-        </div>
+        <StoreCategoryNav
+          categories={categories}
+          selectedCategory={selectedCategory}
+          hasFeaturedProducts={hasFeaturedProducts}
+          primaryColor={primaryColor}
+          onCategorySelect={handleCategorySelect}
+          showStickyHeader={showStickyHeader}
+        />
       )}
 
 

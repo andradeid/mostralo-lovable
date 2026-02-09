@@ -48,15 +48,7 @@ interface Store {
   facebook?: string;
   website?: string;
   theme_colors: any;
-  configuration?: {
-    primary_color?: string;
-    secondary_color?: string;
-    custom_scripts?: {
-      head_scripts?: string;
-      body_start_scripts?: string;
-      body_end_scripts?: string;
-    };
-  };
+  configuration?: any;
 }
 
 interface Product {

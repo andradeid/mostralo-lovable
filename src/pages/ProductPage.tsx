@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { ProductDescription } from '@/components/ProductDescription';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';

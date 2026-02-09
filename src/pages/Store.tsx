@@ -491,7 +491,7 @@ const Store = () => {
           .maybeSingle(),
         supabase
           .from('stores')
-          .select('delivery_config, latitude, longitude')
+          .select('delivery_config, latitude, longitude, instagram, facebook, website')
           .eq('id', storeData.id)
           .single()
       ]);

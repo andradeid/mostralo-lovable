@@ -269,6 +269,43 @@ const ProductsPage = () => {
     }
   };
 
+  const handleDuplicateProduct = async (productId: string, productName: string) => {
+    try {
+      toast({
+        title: 'Duplicando...',
+        description: `Duplicando produto "${productName}"...`,
+      });
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({ title: 'Erro', description: 'Você precisa estar logado.', variant: 'destructive' });
+        return;
+      }
+
+      const response = await supabase.functions.invoke('duplicate-product', {
+        body: { productId },
+      });
+
+      if (response.error) {
+        throw response.error;
+      }
+
+      toast({
+        title: 'Sucesso',
+        description: `Produto "${productName}" duplicado com sucesso!`,
+      });
+
+      fetchCategoriesAndProducts(0, false);
+    } catch (error) {
+      console.error('Erro ao duplicar produto:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao duplicar produto.',
+        variant: 'destructive',
+      });
+    }
+  
+
   const handleEditProduct = (product: ProductData) => {
     setEditingProductId(product.id);
     setShowEditForm(true);

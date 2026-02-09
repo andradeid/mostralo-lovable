@@ -59,25 +59,20 @@ export function StoreInfoDrawer({
   };
 
   useEffect(() => {
-    // Detectar se já está instalado
     const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches 
       || (window.navigator as any).standalone 
       || document.referrer.includes('android-app://');
     
     setIsStandalone(isInStandaloneMode);
-
-    // Detectar iOS
     const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     setIsIOS(iOS);
 
-    // Capturar evento de instalação (Android/Chrome)
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
-
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
     };
@@ -85,22 +80,12 @@ export function StoreInfoDrawer({
 
   const formatBusinessHours = (hours: any) => {
     if (!hours) return [];
-    
     const dayNames: Record<string, string> = {
-      monday: "Seg",
-      tuesday: "Ter",
-      wednesday: "Qua",
-      thursday: "Qui",
-      friday: "Sex",
-      saturday: "Sáb",
-      sunday: "Dom"
+      monday: "Seg", tuesday: "Ter", wednesday: "Qua",
+      thursday: "Qui", friday: "Sex", saturday: "Sáb", sunday: "Dom"
     };
-    
     const formatted: string[] = [];
-    
-    // Ordem correta dos dias da semana
     const orderedDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    
     orderedDays.forEach((day) => {
       const info = hours[day];
       if (info) {
@@ -111,38 +96,30 @@ export function StoreInfoDrawer({
         }
       }
     });
-    
     return formatted;
   };
 
   const openGoogleMaps = () => {
-    // Priorizar latitude e longitude se disponíveis
     if (store.latitude && store.longitude) {
-      const mapsUrl = `https://www.google.com/maps?q=${store.latitude},${store.longitude}`;
-      window.open(mapsUrl, '_blank');
+      window.open(`https://www.google.com/maps?q=${store.latitude},${store.longitude}`, '_blank');
     } else if (store.address) {
-      const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address)}`;
-      window.open(mapsUrl, '_blank');
+      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address)}`, '_blank');
     }
   };
 
   const openWaze = () => {
     if (store.latitude && store.longitude) {
-      const wazeUrl = `https://waze.com/ul?ll=${store.latitude},${store.longitude}&navigate=yes`;
-      window.open(wazeUrl, '_blank');
+      window.open(`https://waze.com/ul?ll=${store.latitude},${store.longitude}&navigate=yes`, '_blank');
     } else if (store.address) {
-      const wazeUrl = `https://waze.com/ul?q=${encodeURIComponent(store.address)}`;
-      window.open(wazeUrl, '_blank');
+      window.open(`https://waze.com/ul?q=${encodeURIComponent(store.address)}`, '_blank');
     }
   };
 
   const openUber = () => {
     if (store.latitude && store.longitude) {
-      const uberUrl = `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[latitude]=${store.latitude}&dropoff[longitude]=${store.longitude}`;
-      window.open(uberUrl, '_blank');
+      window.open(`https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[latitude]=${store.latitude}&dropoff[longitude]=${store.longitude}`, '_blank');
     } else if (store.address) {
-      const uberUrl = `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${encodeURIComponent(store.address)}`;
-      window.open(uberUrl, '_blank');
+      window.open(`https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${encodeURIComponent(store.address)}`, '_blank');
     }
   };
 
@@ -163,8 +140,6 @@ export function StoreInfoDrawer({
       text: `Confira ${store.name}! ${store.description || ''}`,
       url: window.location.href
     };
-
-    // Tentar usar Web Share API (mobile)
     if (navigator.share) {
       try {
         await navigator.share(shareData);
@@ -175,7 +150,6 @@ export function StoreInfoDrawer({
         }
       }
     } else {
-      // Fallback: copiar link
       try {
         await navigator.clipboard.writeText(window.location.href);
         toast.success('Link copiado para a área de transferência!');
@@ -187,10 +161,8 @@ export function StoreInfoDrawer({
 
   const handleInstallPWA = async () => {
     if (!deferredPrompt) return;
-
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    
     if (outcome === 'accepted') {
       toast.success('App instalado com sucesso!');
       setDeferredPrompt(null);
@@ -223,6 +195,63 @@ export function StoreInfoDrawer({
         </SheetHeader>
         
         <div className="space-y-6 pt-6">
+          {/* Redes Sociais - PRIMEIRO */}
+          {(store.phone || store.instagram || store.address) && (
+            <>
+              <div>
+                <h3 className="font-semibold text-lg mb-3">Redes Sociais</h3>
+                <div className="flex items-center justify-center gap-6">
+                  {store.phone && (
+                    <button
+                      onClick={openWhatsApp}
+                      className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity"
+                      aria-label="WhatsApp"
+                    >
+                      <div 
+                        className="w-12 h-12 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: `${primaryColor}20` }}
+                      >
+                        <MessageCircle className="w-6 h-6" style={{ color: primaryColor }} />
+                      </div>
+                      <span className="text-xs text-muted-foreground">WhatsApp</span>
+                    </button>
+                  )}
+                  {store.instagram && (
+                    <button
+                      onClick={openInstagram}
+                      className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity"
+                      aria-label="Instagram"
+                    >
+                      <div 
+                        className="w-12 h-12 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: `${primaryColor}20` }}
+                      >
+                        <Instagram className="w-6 h-6" style={{ color: primaryColor }} />
+                      </div>
+                      <span className="text-xs text-muted-foreground">Instagram</span>
+                    </button>
+                  )}
+                  {store.address && (
+                    <button
+                      onClick={openGoogleMaps}
+                      className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity"
+                      aria-label="Localização"
+                    >
+                      <div 
+                        className="w-12 h-12 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: `${primaryColor}20` }}
+                      >
+                        <MapPin className="w-6 h-6" style={{ color: primaryColor }} />
+                      </div>
+                      <span className="text-xs text-muted-foreground">Localização</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+              <Separator />
+            </>
+          )}
+
           {/* Meus Pedidos */}
           <div>
             <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
@@ -299,7 +328,6 @@ export function StoreInfoDrawer({
                   Como Chegar (Google Maps)
                 </Button>
                 
-                {/* Botões Waze e Uber lado a lado */}
                 <div className="grid grid-cols-2 gap-2 mb-3">
                   <Button 
                     onClick={openWaze}
@@ -400,7 +428,6 @@ export function StoreInfoDrawer({
                 </h3>
                 
                 {isIOS ? (
-                  // Cards visuais para iOS
                   <div className="space-y-3">
                     <div className="bg-muted p-4 rounded-lg">
                       <div className="flex items-start gap-3">
@@ -454,7 +481,6 @@ export function StoreInfoDrawer({
                     </div>
                   </div>
                 ) : deferredPrompt ? (
-                  // Botão para Android/Chrome
                   <Button 
                     onClick={handleInstallPWA}
                     className="w-full"
@@ -464,13 +490,11 @@ export function StoreInfoDrawer({
                     Instalar Aplicativo
                   </Button>
                 ) : (
-                  // Mensagem se não disponível
                   <p className="text-sm text-muted-foreground">
                     Instalação de app não disponível neste navegador
                   </p>
                 )}
                 
-                {/* Benefícios */}
                 <div className="mt-3 space-y-1 text-xs text-muted-foreground">
                   <p>✓ Acesso rápido na tela inicial</p>
                   <p>✓ Funciona offline</p>
@@ -479,60 +503,6 @@ export function StoreInfoDrawer({
               </div>
             </>
           )}
-
-          <Separator />
-
-          {/* Redes Sociais */}
-          <div>
-            <h3 className="font-semibold text-lg mb-3">Redes Sociais</h3>
-            <div className="flex items-center justify-center gap-6">
-              {store.phone && (
-                <button
-                  onClick={openWhatsApp}
-                  className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity"
-                  aria-label="WhatsApp"
-                >
-                  <div 
-                    className="w-12 h-12 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: `${primaryColor}20` }}
-                  >
-                    <MessageCircle className="w-6 h-6" style={{ color: primaryColor }} />
-                  </div>
-                  <span className="text-xs text-muted-foreground">WhatsApp</span>
-                </button>
-              )}
-              {store.instagram && (
-                <button
-                  onClick={openInstagram}
-                  className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity"
-                  aria-label="Instagram"
-                >
-                  <div 
-                    className="w-12 h-12 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: `${primaryColor}20` }}
-                  >
-                    <Instagram className="w-6 h-6" style={{ color: primaryColor }} />
-                  </div>
-                  <span className="text-xs text-muted-foreground">Instagram</span>
-                </button>
-              )}
-              {store.address && (
-                <button
-                  onClick={openGoogleMaps}
-                  className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity"
-                  aria-label="Localização"
-                >
-                  <div 
-                    className="w-12 h-12 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: `${primaryColor}20` }}
-                  >
-                    <MapPin className="w-6 h-6" style={{ color: primaryColor }} />
-                  </div>
-                  <span className="text-xs text-muted-foreground">Localização</span>
-                </button>
-              )}
-            </div>
-          </div>
         </div>
       </SheetContent>
     </Sheet>

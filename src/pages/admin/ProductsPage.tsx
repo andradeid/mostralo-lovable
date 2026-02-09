@@ -1212,9 +1212,7 @@ const ProductsPage = () => {
                                             
                                             {/* Descrição */}
                                             {product.description && (
-                                              <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                                                {product.description}
-                                              </p>
+                                              <ProductDescription description={product.description} className="text-sm text-muted-foreground mb-2 line-clamp-2" />
                                             )}
                                           </div>
 

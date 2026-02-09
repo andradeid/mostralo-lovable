@@ -487,8 +487,37 @@ export function ProductForm({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Descrição</Label>
-                <Textarea id="description" {...form.register('description')} placeholder="Descreva seu produto..." rows={3} />
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="description">Descrição</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs gap-1"
+                    onClick={() => setUseRichEditor(!useRichEditor)}
+                  >
+                    {useRichEditor ? (
+                      <>
+                        <AlignLeft className="w-3 h-3" />
+                        Editor Simples
+                      </>
+                    ) : (
+                      <>
+                        <Type className="w-3 h-3" />
+                        Editor com Formatação
+                      </>
+                    )}
+                  </Button>
+                </div>
+                {useRichEditor ? (
+                  <RichTextEditor
+                    value={form.watch('description') || ''}
+                    onChange={(value) => form.setValue('description', value)}
+                    placeholder="Descreva seu produto..."
+                  />
+                ) : (
+                  <Textarea id="description" {...form.register('description')} placeholder="Descreva seu produto..." rows={3} />
+                )}
               </div>
 
               <div className="space-y-2">

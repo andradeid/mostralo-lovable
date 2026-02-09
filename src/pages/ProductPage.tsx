@@ -11,6 +11,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
 import { useStoreStatus } from '@/hooks/useStoreStatus';
 import { useProductPromotion } from '@/hooks/useProductPromotion';
+import { useCustomScripts } from '@/hooks/useCustomScripts';
 import { 
   ArrowLeft, 
   ShoppingCart, 

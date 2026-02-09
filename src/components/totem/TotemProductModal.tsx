@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { ProductDescription } from '@/components/ProductDescription';
 import { TotemCartItem } from '@/pages/totem/TotemPage';
 import { TotemConfig } from '@/hooks/useTotemConfig';
 import { supabase } from '@/integrations/supabase/client';

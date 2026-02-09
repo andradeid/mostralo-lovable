@@ -82,6 +82,7 @@ export function ProductForm({
   const [newVariantName, setNewVariantName] = useState('');
   const [addonCategories, setAddonCategories] = useState<any[]>([]);
   const [selectedAddonCategories, setSelectedAddonCategories] = useState<string[]>([]);
+  const [useRichEditor, setUseRichEditor] = useState(false);
   const {
     toast
   } = useToast();

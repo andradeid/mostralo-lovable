@@ -508,10 +508,19 @@ const Store = () => {
         }
       };
       
-      // Adicionar latitude e longitude se disponíveis
+      // Adicionar latitude, longitude e redes sociais se disponíveis
       if (storeConfigResult.data?.latitude && storeConfigResult.data?.longitude) {
         processedStore.latitude = storeConfigResult.data.latitude;
         processedStore.longitude = storeConfigResult.data.longitude;
+      }
+      if (storeConfigResult.data?.instagram) {
+        processedStore.instagram = storeConfigResult.data.instagram;
+      }
+      if (storeConfigResult.data?.facebook) {
+        processedStore.facebook = storeConfigResult.data.facebook;
+      }
+      if (storeConfigResult.data?.website) {
+        processedStore.website = storeConfigResult.data.website;
       }
       
       setStore(processedStore);

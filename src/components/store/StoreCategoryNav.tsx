@@ -28,7 +28,6 @@ export function StoreCategoryNav({
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
-  // Checa se há conteúdo para scrollar nas laterais
   const checkScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -61,24 +60,24 @@ export function StoreCategoryNav({
 
   return (
     <div className={`sticky bg-white border-b z-40 shadow-sm transition-all duration-200 ${showStickyHeader ? 'top-[48px]' : 'top-0'}`}>
-      <div className="relative max-w-[1080px] mx-auto">
-        {/* Seta esquerda - desktop */}
+      <div className="relative max-w-[1080px] mx-auto flex items-center">
+        {/* Seta esquerda */}
         {canScrollLeft && (
           <button
             onClick={() => scroll('left')}
-            className="hidden md:flex absolute left-0 top-0 bottom-0 z-10 items-center justify-center w-8 bg-gradient-to-r from-white via-white/90 to-transparent"
+            className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center shadow-md border border-gray-200 bg-white hover:bg-gray-50 active:scale-95 transition-all ml-1 z-10"
+            style={{ color: primaryColor }}
             aria-label="Categorias anteriores"
           >
-            <ChevronLeft className="w-5 h-5" style={{ color: primaryColor }} />
+            <ChevronLeft className="w-5 h-5" />
           </button>
         )}
 
         {/* Container scrollável */}
         <div
           ref={scrollRef}
-          className="flex gap-2 overflow-x-auto scrollbar-hide px-4 py-2 pb-2"
+          className="flex gap-2 overflow-x-auto scrollbar-hide px-3 py-2 flex-1 min-w-0"
         >
-          {/* Destaques */}
           {hasFeaturedProducts && (
             <Button
               variant={selectedCategory === 'featured' ? 'default' : 'outline'}
@@ -92,7 +91,6 @@ export function StoreCategoryNav({
             </Button>
           )}
 
-          {/* Todas */}
           <Button
             variant={selectedCategory === null ? 'default' : 'outline'}
             size="sm"
@@ -103,7 +101,6 @@ export function StoreCategoryNav({
             Todas
           </Button>
 
-          {/* Categorias */}
           {categories.map((category) => (
             <Button
               key={category.id}
@@ -118,14 +115,15 @@ export function StoreCategoryNav({
           ))}
         </div>
 
-        {/* Seta direita - desktop */}
+        {/* Seta direita */}
         {canScrollRight && (
           <button
             onClick={() => scroll('right')}
-            className="hidden md:flex absolute right-0 top-0 bottom-0 z-10 items-center justify-center w-8 bg-gradient-to-l from-white via-white/90 to-transparent"
+            className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center shadow-md border border-gray-200 bg-white hover:bg-gray-50 active:scale-95 transition-all mr-1 z-10"
+            style={{ color: primaryColor }}
             aria-label="Mais categorias"
           >
-            <ChevronRight className="w-5 h-5" style={{ color: primaryColor }} />
+            <ChevronRight className="w-5 h-5" />
           </button>
         )}
       </div>

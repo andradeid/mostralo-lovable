@@ -1,4 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
+import { ProductDescription } from '@/components/ProductDescription';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Store as StoreIcon } from 'lucide-react';
@@ -119,9 +120,7 @@ export const ProductCardWithPromotion = ({
             </h3>
             
             {product.description && (
-              <p className="text-xs text-muted-foreground line-clamp-2">
-                {product.description}
-              </p>
+              <ProductDescription description={product.description} className="text-xs text-muted-foreground line-clamp-2" />
             )}
             
             <div className="flex flex-col gap-1">
@@ -217,9 +216,7 @@ export const ProductCardWithPromotion = ({
             </h3>
             
             {product.description && (
-              <p className="text-sm text-muted-foreground line-clamp-2">
-                {product.description}
-              </p>
+              <ProductDescription description={product.description} className="text-sm text-muted-foreground line-clamp-2" />
             )}
             
             <div className="flex flex-col gap-1">

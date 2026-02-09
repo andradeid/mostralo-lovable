@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { ProductDescription } from '@/components/ProductDescription';
 import { TotemCartItem } from '@/pages/totem/TotemPage';
 import { TotemConfig } from '@/hooks/useTotemConfig';
 import { supabase } from '@/integrations/supabase/client';
@@ -153,9 +154,7 @@ export function TotemProductModal({
           <div>
             <h2 className="text-2xl font-bold">{product.name}</h2>
             {product.description && (
-              <p className="mt-2" style={{ color: config.dark_mode ? '#a1a1a1' : '#6b7280' }}>
-                {product.description}
-              </p>
+              <ProductDescription description={product.description} className={`mt-2 ${config.dark_mode ? 'text-gray-400' : 'text-gray-500'}`} />
             )}
             <p className="text-xl font-bold mt-2" style={{ color: config.theme_color }}>
               R$ {product.price.toFixed(2)}

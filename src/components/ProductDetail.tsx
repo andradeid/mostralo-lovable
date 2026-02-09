@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ProductDescription } from '@/components/ProductDescription';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -304,7 +305,7 @@ Preço: ${formatPrice(currentPrice)}`;
             <div className="space-y-6">
               <div>
                 <h2 className="text-xl font-semibold mb-2">{product.name}</h2>
-                <p className="text-muted-foreground mb-4">{product.description}</p>
+                {product.description && <ProductDescription description={product.description} className="text-muted-foreground mb-4" />}
                 
                 {/* Badge de Oferta ou Promoção */}
                 {discountInfo && discountInfo.amount > 0 && (

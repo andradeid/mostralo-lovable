@@ -13,7 +13,8 @@ import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Upload, X, Plus, HelpCircle, Star } from 'lucide-react';
+import { Loader2, Upload, X, Plus, HelpCircle, Star, Type, AlignLeft } from 'lucide-react';
+import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import { ProductUpsellSelector } from '@/components/admin/products/ProductUpsellSelector';
 import { useAuth } from '@/hooks/use-auth';
 import { CurrencyInput } from '@/components/ui/currency-input';
@@ -81,6 +82,7 @@ export function ProductForm({
   const [newVariantName, setNewVariantName] = useState('');
   const [addonCategories, setAddonCategories] = useState<any[]>([]);
   const [selectedAddonCategories, setSelectedAddonCategories] = useState<string[]>([]);
+  const [useRichEditor, setUseRichEditor] = useState(false);
   const {
     toast
   } = useToast();
@@ -193,9 +195,16 @@ export function ProductForm({
 
       // Aguardar as categorias serem carregadas primeiro
       await fetchStoreAndCategories();
+
+      // Auto-detectar se a descrição contém HTML para ativar editor rico
+      const desc = data.description || '';
+      if (/<[a-z][\s\S]*>/i.test(desc)) {
+        setUseRichEditor(true);
+      }
+
       form.reset({
         name: data.name,
-        description: data.description || '',
+        description: desc,
         price: Number(data.price),
         category_id: data.category_id || '',
         is_available: data.is_available,
@@ -485,8 +494,37 @@ export function ProductForm({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Descrição</Label>
-                <Textarea id="description" {...form.register('description')} placeholder="Descreva seu produto..." rows={3} />
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="description">Descrição</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs gap-1"
+                    onClick={() => setUseRichEditor(!useRichEditor)}
+                  >
+                    {useRichEditor ? (
+                      <>
+                        <AlignLeft className="w-3 h-3" />
+                        Editor Simples
+                      </>
+                    ) : (
+                      <>
+                        <Type className="w-3 h-3" />
+                        Editor com Formatação
+                      </>
+                    )}
+                  </Button>
+                </div>
+                {useRichEditor ? (
+                  <RichTextEditor
+                    value={form.watch('description') || ''}
+                    onChange={(value) => form.setValue('description', value)}
+                    placeholder="Descreva seu produto..."
+                  />
+                ) : (
+                  <Textarea id="description" {...form.register('description')} placeholder="Descreva seu produto..." rows={3} />
+                )}
               </div>
 
               <div className="space-y-2">

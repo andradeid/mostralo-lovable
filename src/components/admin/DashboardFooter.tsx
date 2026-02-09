@@ -8,7 +8,7 @@ export function DashboardFooter() {
             <Store className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
             <span className="text-base sm:text-lg font-bold text-primary">Mostralo</span>
           </a>
-          <span className="text-xs sm:text-sm text-muted-foreground">- Todos os direitos reservados - 2026</span>
+          <span className="text-xs sm:text-sm text-muted-foreground">- Todos os direitos reservados 2026 - 30 anos de Tecnologia e Desenvolvimento.</span>
         </div>
       </div>
     </footer>;

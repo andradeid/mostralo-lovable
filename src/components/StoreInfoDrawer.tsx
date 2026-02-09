@@ -10,6 +10,16 @@ import {
   MessageCircle, Car, LogIn
 } from 'lucide-react';
 
+interface BusinessHours {
+  monday?: { open: string; close: string; closed: boolean };
+  tuesday?: { open: string; close: string; closed: boolean };
+  wednesday?: { open: string; close: string; closed: boolean };
+  thursday?: { open: string; close: string; closed: boolean };
+  friday?: { open: string; close: string; closed: boolean };
+  saturday?: { open: string; close: string; closed: boolean };
+  sunday?: { open: string; close: string; closed: boolean };
+}
+
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
@@ -195,7 +205,7 @@ export function StoreInfoDrawer({
         </SheetHeader>
         
         <div className="space-y-6 pt-6">
-          {/* Redes Sociais - PRIMEIRO */}
+          {/* 1. Redes Sociais */}
           {(store.phone || store.instagram || store.address) && (
             <>
               <div>
@@ -252,66 +262,64 @@ export function StoreInfoDrawer({
             </>
           )}
 
-          {/* Meus Pedidos */}
+          {/* 2. Compartilhar */}
           <div>
             <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
-              <Package className="w-5 h-5" style={{ color: primaryColor }} />
-              Meus Pedidos
+              <Share2 className="w-5 h-5" style={{ color: primaryColor }} />
+              Compartilhar
             </h3>
-            {customerName ? (
-              <div className="space-y-2">
-                <Button 
-                  variant="ghost" 
-                  onClick={() => {
-                    navigate(`/painel-cliente/${store.id}`);
-                    onOpenChange(false);
-                  }}
-                  className="w-full justify-start text-left"
-                >
-                  → Pedidos Abertos
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  onClick={() => {
-                    navigate(`/painel-cliente/${store.id}`);
-                    onOpenChange(false);
-                  }}
-                  className="w-full justify-start text-left"
-                >
-                  → Pedidos Finalizados
-                </Button>
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Faça login para ver seus pedidos
-              </p>
-            )}
+            <Button 
+              onClick={handleShare}
+              className="w-full"
+              style={{ backgroundColor: primaryColor }}
+            >
+              <Share2 className="w-4 h-4 mr-2" />
+              Compartilhar Loja
+            </Button>
           </div>
 
           <Separator />
 
-          {/* Horário de Funcionamento */}
+          {/* 3. Contato */}
           <div>
             <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
-              <Clock className="w-5 h-5" style={{ color: primaryColor }} />
-              Funcionamento
+              <Phone className="w-5 h-5" style={{ color: primaryColor }} />
+              Contato
             </h3>
-            {hoursFormatted.length > 0 ? (
-              <div className="space-y-1 text-sm">
-                {hoursFormatted.map((hour, index) => (
-                  <p key={index} className="text-muted-foreground">{hour}</p>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Horário não disponível
-              </p>
-            )}
+            <div className="space-y-2">
+              {store.phone && (
+                <Button
+                  onClick={openWhatsApp}
+                  className="w-full justify-start"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  WhatsApp: {store.phone}
+                </Button>
+              )}
+              {store.email && (
+                <Button
+                  variant="outline"
+                  asChild
+                  className="w-full justify-start"
+                >
+                  <a href={`mailto:${store.email}`}>
+                    <Mail className="w-4 h-4 mr-2" />
+                    {store.email}
+                  </a>
+                </Button>
+              )}
+              {!store.phone && !store.email && (
+                <p className="text-sm text-muted-foreground">
+                  Contato não disponível
+                </p>
+              )}
+            </div>
           </div>
 
           <Separator />
 
-          {/* Endereço */}
+          {/* 4. Endereço */}
           <div>
             <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
               <MapPin className="w-5 h-5" style={{ color: primaryColor }} />
@@ -362,62 +370,26 @@ export function StoreInfoDrawer({
 
           <Separator />
 
-          {/* Contato */}
+          {/* 5. Funcionamento */}
           <div>
             <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
-              <Phone className="w-5 h-5" style={{ color: primaryColor }} />
-              Contato
+              <Clock className="w-5 h-5" style={{ color: primaryColor }} />
+              Funcionamento
             </h3>
-            <div className="space-y-2">
-              {store.phone && (
-                <Button
-                  onClick={openWhatsApp}
-                  className="w-full justify-start"
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  WhatsApp: {store.phone}
-                </Button>
-              )}
-              {store.email && (
-                <Button
-                  variant="outline"
-                  asChild
-                  className="w-full justify-start"
-                >
-                  <a href={`mailto:${store.email}`}>
-                    <Mail className="w-4 h-4 mr-2" />
-                    {store.email}
-                  </a>
-                </Button>
-              )}
-              {!store.phone && !store.email && (
-                <p className="text-sm text-muted-foreground">
-                  Contato não disponível
-                </p>
-              )}
-            </div>
+            {hoursFormatted.length > 0 ? (
+              <div className="space-y-1 text-sm">
+                {hoursFormatted.map((hour, index) => (
+                  <p key={index} className="text-muted-foreground">{hour}</p>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Horário não disponível
+              </p>
+            )}
           </div>
 
-          <Separator />
-
-          {/* Compartilhar */}
-          <div>
-            <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
-              <Share2 className="w-5 h-5" style={{ color: primaryColor }} />
-              Compartilhar
-            </h3>
-            <Button 
-              onClick={handleShare}
-              className="w-full"
-              style={{ backgroundColor: primaryColor }}
-            >
-              <Share2 className="w-4 h-4 mr-2" />
-              Compartilhar Loja
-            </Button>
-          </div>
-
-          {/* Baixar App PWA */}
+          {/* 6. Baixar App PWA */}
           {!isStandalone && (
             <>
               <Separator />
@@ -503,6 +475,44 @@ export function StoreInfoDrawer({
               </div>
             </>
           )}
+
+          <Separator />
+
+          {/* 7. Meus Pedidos */}
+          <div>
+            <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+              <Package className="w-5 h-5" style={{ color: primaryColor }} />
+              Meus Pedidos
+            </h3>
+            {customerName ? (
+              <div className="space-y-2">
+                <Button 
+                  variant="ghost" 
+                  onClick={() => {
+                    navigate(`/painel-cliente/${store.id}`);
+                    onOpenChange(false);
+                  }}
+                  className="w-full justify-start text-left"
+                >
+                  → Pedidos Abertos
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => {
+                    navigate(`/painel-cliente/${store.id}`);
+                    onOpenChange(false);
+                  }}
+                  className="w-full justify-start text-left"
+                >
+                  → Pedidos Finalizados
+                </Button>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Faça login para ver seus pedidos
+              </p>
+            )}
+          </div>
         </div>
       </SheetContent>
     </Sheet>

@@ -52,7 +52,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useCart } from '@/contexts/CartContext';
 import { useSEO } from '@/hooks/useSEO';
 import { useCustomScripts } from '@/hooks/useCustomScripts';
-import { DashboardFooter } from '@/components/admin/DashboardFooter';
+import { StoreFooter } from '@/components/StoreFooter';
 import { FloatingCartButton } from '@/components/checkout/FloatingCartButton';
 import { Badge } from '@/components/ui/badge';
 import { ProductCardWithPromotion } from '@/components/ProductCardWithPromotion';
@@ -1869,6 +1869,11 @@ const Store = () => {
             onOpenAuth={() => setShowAuthDialog(true)}
           />
         </Suspense>
+      )}
+
+      {/* Footer informativo da loja */}
+      {store && (
+        <StoreFooter store={store} businessHours={businessHours} />
       )}
 
       {/* Espaço para não ficar atrás da navegação inferior */}

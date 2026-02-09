@@ -13,6 +13,7 @@ import { useStoreStatus } from '@/hooks/useStoreStatus';
 import { LoadMoreIndicator } from '@/components/store/LoadMoreIndicator';
 import { ProductsCounter } from '@/components/store/ProductsCounter';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import { StoreCategoryNav } from '@/components/store/StoreCategoryNav';
 
 // Lazy load de componentes pesados
 const ProductDetail = lazy(() => import('@/components/ProductDetail'));

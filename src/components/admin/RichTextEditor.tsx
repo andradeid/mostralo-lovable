@@ -2,7 +2,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Color from '@tiptap/extension-color';
-import TextStyle from '@tiptap/extension-text-style';
+import { TextStyle } from '@tiptap/extension-text-style';
 import { Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, Palette, Undo, Redo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';

@@ -12,30 +12,39 @@ interface CustomScripts {
  */
 export function useCustomScripts(customScripts: CustomScripts | null | undefined, storeId: string | undefined) {
   const injectedRef = useRef<{
-    headContainer: HTMLDivElement | null;
+    headElements: Node[];
     bodyStartContainer: HTMLDivElement | null;
     bodyEndContainer: HTMLDivElement | null;
   }>({
-    headContainer: null,
+    headElements: [],
     bodyStartContainer: null,
     bodyEndContainer: null,
   });
 
+  // Referência para evitar re-injeção desnecessária
+  const lastScriptsRef = useRef<string>('');
+
   useEffect(() => {
     if (!customScripts || !storeId) return;
 
+    // Criar hash simples para comparar se os scripts mudaram
+    const scriptsHash = JSON.stringify(customScripts);
+    if (scriptsHash === lastScriptsRef.current) return;
+    lastScriptsRef.current = scriptsHash;
+
     // Cleanup containers anteriores dessa loja
     const cleanup = () => {
-      if (injectedRef.current.headContainer) {
-        injectedRef.current.headContainer.remove();
-        injectedRef.current.headContainer = null;
-      }
+      injectedRef.current.headElements.forEach(el => {
+        try { el.parentNode?.removeChild(el); } catch (e) { /* ignore */ }
+      });
+      injectedRef.current.headElements = [];
+
       if (injectedRef.current.bodyStartContainer) {
-        injectedRef.current.bodyStartContainer.remove();
+        try { injectedRef.current.bodyStartContainer.remove(); } catch (e) { /* ignore */ }
         injectedRef.current.bodyStartContainer = null;
       }
       if (injectedRef.current.bodyEndContainer) {
-        injectedRef.current.bodyEndContainer.remove();
+        try { injectedRef.current.bodyEndContainer.remove(); } catch (e) { /* ignore */ }
         injectedRef.current.bodyEndContainer = null;
       }
     };
@@ -43,57 +52,79 @@ export function useCustomScripts(customScripts: CustomScripts | null | undefined
     // Limpar antes de injetar novos scripts
     cleanup();
 
-    // Função para executar scripts inline
-    const executeScripts = (container: HTMLElement) => {
-      const scripts = container.querySelectorAll('script');
-      scripts.forEach((oldScript) => {
-        const newScript = document.createElement('script');
-        
-        // Copiar atributos
-        Array.from(oldScript.attributes).forEach(attr => {
-          newScript.setAttribute(attr.name, attr.value);
-        });
-        
-        // Se tem src, usar o src
-        if (oldScript.src) {
-          newScript.src = oldScript.src;
-        } else {
-          // Se não, copiar o conteúdo inline
-          newScript.textContent = oldScript.textContent;
-        }
-        
-        // Substituir o script antigo pelo novo (isso força a execução)
-        oldScript.parentNode?.replaceChild(newScript, oldScript);
+    // Função para criar e executar um script a partir de um elemento existente
+    const createExecutableScript = (oldScript: HTMLScriptElement): HTMLScriptElement => {
+      const newScript = document.createElement('script');
+      Array.from(oldScript.attributes).forEach(attr => {
+        newScript.setAttribute(attr.name, attr.value);
       });
+      if (oldScript.src) {
+        newScript.src = oldScript.src;
+      } else {
+        newScript.textContent = oldScript.textContent;
+      }
+      return newScript;
+    };
+
+    // Função para injetar HTML + executar scripts em sequência
+    const injectContent = (html: string, parentElement: HTMLElement, insertPosition: 'prepend' | 'append' = 'append'): HTMLDivElement => {
+      const container = document.createElement('div');
+      container.id = `custom-scripts-${storeId}-${Date.now()}`;
+      container.setAttribute('data-store-scripts', storeId);
+      
+      // Separar scripts do HTML
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+      
+      // Extrair scripts antes de inserir no DOM
+      const scriptElements: HTMLScriptElement[] = [];
+      tempDiv.querySelectorAll('script').forEach((script) => {
+        scriptElements.push(script as HTMLScriptElement);
+        script.remove();
+      });
+      
+      // Inserir HTML (sem scripts) no container
+      container.innerHTML = tempDiv.innerHTML;
+      
+      // Inserir container no DOM
+      if (insertPosition === 'prepend' && parentElement.firstChild) {
+        parentElement.insertBefore(container, parentElement.firstChild);
+      } else {
+        parentElement.appendChild(container);
+      }
+      
+      // Agora executar scripts (após o HTML já estar no DOM)
+      // Usar setTimeout para garantir que o DOM esteja atualizado
+      setTimeout(() => {
+        scriptElements.forEach((oldScript) => {
+          const newScript = createExecutableScript(oldScript);
+          container.appendChild(newScript);
+        });
+      }, 100);
+      
+      return container;
     };
 
     // Injetar head_scripts
     if (customScripts.head_scripts?.trim()) {
       try {
-        const headContainer = document.createElement('div');
-        headContainer.id = `custom-scripts-head-${storeId}`;
-        headContainer.innerHTML = customScripts.head_scripts;
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = customScripts.head_scripts;
         
-        // Mover elementos para o head
-        const children = Array.from(headContainer.children);
-        children.forEach(child => {
+        const elements: Node[] = [];
+        Array.from(tempDiv.children).forEach(child => {
           if (child.tagName === 'SCRIPT') {
-            const script = document.createElement('script');
-            Array.from(child.attributes).forEach(attr => {
-              script.setAttribute(attr.name, attr.value);
-            });
-            if ((child as HTMLScriptElement).src) {
-              script.src = (child as HTMLScriptElement).src;
-            } else {
-              script.textContent = child.textContent;
-            }
+            const script = createExecutableScript(child as HTMLScriptElement);
             document.head.appendChild(script);
+            elements.push(script);
           } else {
-            document.head.appendChild(child.cloneNode(true));
+            const clone = child.cloneNode(true);
+            document.head.appendChild(clone);
+            elements.push(clone);
           }
         });
         
-        injectedRef.current.headContainer = headContainer;
+        injectedRef.current.headElements = elements;
       } catch (error) {
         console.error('Erro ao injetar head_scripts:', error);
       }
@@ -102,19 +133,11 @@ export function useCustomScripts(customScripts: CustomScripts | null | undefined
     // Injetar body_start_scripts
     if (customScripts.body_start_scripts?.trim()) {
       try {
-        const bodyStartContainer = document.createElement('div');
-        bodyStartContainer.id = `custom-scripts-body-start-${storeId}`;
-        bodyStartContainer.innerHTML = customScripts.body_start_scripts;
-        
-        // Inserir no início do body
-        if (document.body.firstChild) {
-          document.body.insertBefore(bodyStartContainer, document.body.firstChild);
-        } else {
-          document.body.appendChild(bodyStartContainer);
-        }
-        
-        executeScripts(bodyStartContainer);
-        injectedRef.current.bodyStartContainer = bodyStartContainer;
+        injectedRef.current.bodyStartContainer = injectContent(
+          customScripts.body_start_scripts,
+          document.body,
+          'prepend'
+        );
       } catch (error) {
         console.error('Erro ao injetar body_start_scripts:', error);
       }
@@ -123,21 +146,20 @@ export function useCustomScripts(customScripts: CustomScripts | null | undefined
     // Injetar body_end_scripts
     if (customScripts.body_end_scripts?.trim()) {
       try {
-        const bodyEndContainer = document.createElement('div');
-        bodyEndContainer.id = `custom-scripts-body-end-${storeId}`;
-        bodyEndContainer.innerHTML = customScripts.body_end_scripts;
-        
-        // Inserir no final do body
-        document.body.appendChild(bodyEndContainer);
-        
-        executeScripts(bodyEndContainer);
-        injectedRef.current.bodyEndContainer = bodyEndContainer;
+        injectedRef.current.bodyEndContainer = injectContent(
+          customScripts.body_end_scripts,
+          document.body,
+          'append'
+        );
       } catch (error) {
         console.error('Erro ao injetar body_end_scripts:', error);
       }
     }
 
     // Cleanup ao desmontar
-    return cleanup;
+    return () => {
+      cleanup();
+      lastScriptsRef.current = '';
+    };
   }, [customScripts, storeId]);
 }

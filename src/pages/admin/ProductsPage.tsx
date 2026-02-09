@@ -304,7 +304,7 @@ const ProductsPage = () => {
         variant: 'destructive',
       });
     }
-  
+  };
 
   const handleEditProduct = (product: ProductData) => {
     setEditingProductId(product.id);

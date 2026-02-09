@@ -195,9 +195,16 @@ export function ProductForm({
 
       // Aguardar as categorias serem carregadas primeiro
       await fetchStoreAndCategories();
+
+      // Auto-detectar se a descrição contém HTML para ativar editor rico
+      const desc = data.description || '';
+      if (/<[a-z][\s\S]*>/i.test(desc)) {
+        setUseRichEditor(true);
+      }
+
       form.reset({
         name: data.name,
-        description: data.description || '',
+        description: desc,
         price: Number(data.price),
         category_id: data.category_id || '',
         is_available: data.is_available,

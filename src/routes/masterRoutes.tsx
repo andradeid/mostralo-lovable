@@ -63,6 +63,7 @@ const ImageSearchConfigPage = lazy(() => import("@/pages/admin/ImageSearchConfig
 const SystemFinancePage = lazy(() => import("@/pages/admin/SystemFinancePage"));
 const OpenAIUsagePage = lazy(() => import("@/pages/admin/OpenAIUsagePage"));
 const WhatsAppWebhookConfigPage = lazy(() => import("@/pages/dashboard/WhatsAppWebhookConfigPage"));
+const MarketingTrackingPage = lazy(() => import("@/pages/dashboard/MarketingTrackingPage"));
 
 export const masterRoutes = (
   <>

@@ -31,6 +31,7 @@ const queryClient = new QueryClient();
 // Componente interno para controlar o tema baseado na rota
 function ThemeController() {
   useRouteTheme();
+  usePlatformTracking();
   return null;
 }
 

@@ -26,7 +26,6 @@ import { MainFooter } from "@/components/MainFooter";
 import { FAQSection } from "@/components/promo/FAQSection";
 
 const OfertaEspecialPage = () => {
-  console.log('[OfertaEspecialPage] Rendering...');
   const [showLeadForm, setShowLeadForm] = useState(false);
   const [isExpired, setIsExpired] = useState(false);
 

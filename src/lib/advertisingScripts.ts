@@ -22,7 +22,7 @@ export const initializeFacebookPixel = (pixelId: string) => {
 
   // Inicializar fbq
   const f = window as any;
-  const n = (f.fbq = function (...args: any[]) {
+  const n: any = (f.fbq = function (...args: any[]) {
     n.callMethod ? n.callMethod.apply(n, args) : n.queue.push(args);
   });
   if (!f._fbq) f._fbq = n;

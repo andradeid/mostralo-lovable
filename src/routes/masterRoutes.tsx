@@ -479,5 +479,14 @@ export const masterRoutes = (
         </AdminLayout>
       </ProtectedRoute>
     } />
+
+    {/* Marketing & Tracking */}
+    <Route path="/dashboard/marketing-tracking" element={
+      <ProtectedRoute allowedRoles={['master_admin']}>
+        <AdminLayout pageTitle="Marketing & Tracking">
+          <LazyRoute><MarketingTrackingPage /></LazyRoute>
+        </AdminLayout>
+      </ProtectedRoute>
+    } />
   </>
 );

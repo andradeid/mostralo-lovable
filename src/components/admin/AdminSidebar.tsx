@@ -425,6 +425,7 @@ export function AdminSidebar() {
         { title: 'Material de Divulgação', url: '/dashboard/material-divulgacao', icon: QrCode, group: 'Prospecção' },
         { title: 'Propostas Comerciais', url: '/dashboard/propostas', icon: FileText, group: 'Prospecção' },
         { title: 'Templates por Nicho', url: '/dashboard/propostas/templates', icon: Palette, group: 'Prospecção' },
+        { title: 'Marketing & Tracking', url: '/dashboard/marketing-tracking', icon: BarChart3, group: 'Prospecção' },
         { title: 'Vendedores', url: '/dashboard/salespeople', icon: Users, group: 'Vendedores' },
         { title: 'Pagamentos Vendedores', url: '/dashboard/salespeople/payouts', icon: DollarSign, group: 'Vendedores' },
         { title: 'Relatórios Afiliados', url: '/dashboard/salespeople/affiliate-reports', icon: BarChart3, group: 'Vendedores' },

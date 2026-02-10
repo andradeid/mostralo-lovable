@@ -6325,6 +6325,36 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_marketing_config: {
+        Row: {
+          created_at: string
+          facebook_pixel_id: string | null
+          google_ads_conversion_label: string | null
+          google_ads_id: string | null
+          google_analytics_id: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          facebook_pixel_id?: string | null
+          google_ads_conversion_label?: string | null
+          google_ads_id?: string | null
+          google_analytics_id?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          facebook_pixel_id?: string | null
+          google_ads_conversion_label?: string | null
+          google_ads_id?: string | null
+          google_analytics_id?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       popup_analytics: {
         Row: {
           action: string

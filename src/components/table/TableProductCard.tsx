@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { ProductDescription } from '@/components/ProductDescription';
 import { formatCurrency } from '@/lib/utils';
 import { Loader2, Plus } from 'lucide-react';
 

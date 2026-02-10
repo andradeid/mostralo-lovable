@@ -140,7 +140,7 @@ const OfertaEspecialPage = () => {
       {/* Hero Section - Componente Reutilizado */}
       <HeroSection 
         secondaryButtonText="CONTRATE JÁ!" 
-        secondaryButtonLink="/registro"
+        secondaryButtonLink="/signup"
         hidePrimaryButton={true}
       />
 

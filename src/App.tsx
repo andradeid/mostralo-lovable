@@ -10,6 +10,7 @@ import { useRouteTheme } from "@/hooks/useRouteTheme";
 import { CustomDomainRouter } from "@/components/CustomDomainRouter";
 import { TermsGuard } from "@/components/TermsGuard";
 import { useLocation } from "react-router-dom";
+import { usePlatformTracking } from "@/hooks/usePlatformTracking";
 
 // Rotas modulares
 import {

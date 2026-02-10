@@ -29,8 +29,17 @@
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#3B82F6">
     
+    <!-- Google tag (gtag.js) - Google Ads -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17943501943"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'AW-17943501943');
+    </script>
+
     <!-- Content Security Policy para Safari -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com https://www.googletagmanager.com https://www.google-analytics.com https://cdn.gpteng.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' https://noshwvwpjtnvndokbfjx.supabase.co https://*.supabase.co blob: data:; connect-src 'self' https://noshwvwpjtnvndokbfjx.supabase.co wss://noshwvwpjtnvndokbfjx.supabase.co https://www.google-analytics.com https://api.mapbox.com https://*.supabase.co wss://*.supabase.co https://api.qrserver.com; frame-src 'self' https:; worker-src 'self' blob:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://cdn.gpteng.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; media-src 'self' https://noshwvwpjtnvndokbfjx.supabase.co https://*.supabase.co blob: data:; connect-src 'self' https://noshwvwpjtnvndokbfjx.supabase.co wss://noshwvwpjtnvndokbfjx.supabase.co https://www.google-analytics.com https://www.googletagmanager.com https://api.mapbox.com https://*.supabase.co wss://*.supabase.co https://api.qrserver.com; frame-src 'self' https:; worker-src 'self' blob:;">
     
     <!-- Meta tag moderna para apps web móveis (suporta iOS e Android) -->
     <meta name="mobile-web-app-capable" content="yes">

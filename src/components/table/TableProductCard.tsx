@@ -39,9 +39,7 @@ export function TableProductCard({ product, onAdd, isLoading, disabled = false }
           <div>
             <h3 className="font-medium">{product.name}</h3>
             {product.description && (
-              <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
-                {product.description}
-              </p>
+              <ProductDescription description={product.description} className="text-xs text-muted-foreground line-clamp-2 mt-1" />
             )}
           </div>
           <div className="flex items-center justify-between mt-2">

@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ProductDescription } from '@/components/ProductDescription';
 import { Tag } from 'lucide-react';
 
 interface PromotionProductCardProps {
@@ -97,9 +98,7 @@ export function PromotionProductCard({
 
           {/* Descrição */}
           {product.description && (
-            <p className="text-xs md:text-sm text-muted-foreground line-clamp-2 mb-2">
-              {product.description}
-            </p>
+            <ProductDescription description={product.description} className="text-xs md:text-sm text-muted-foreground line-clamp-2 mb-2" />
           )}
 
           {/* Badge de desconto */}

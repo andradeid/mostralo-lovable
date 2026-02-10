@@ -302,9 +302,7 @@ export const ProductCardWithPromotion = ({
                 {product.name}
               </h3>
               {product.description && (
-                <p className="text-xs lg:text-sm text-muted-foreground line-clamp-2">
-                  {product.description}
-                </p>
+                <ProductDescription description={product.description} className="text-xs lg:text-sm text-muted-foreground line-clamp-2" />
               )}
             </div>
             

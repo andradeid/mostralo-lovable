@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ProductDescription } from '@/components/ProductDescription';
 import { Tag } from 'lucide-react';
 
 interface PromotionProductCardProps {

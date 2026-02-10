@@ -92,6 +92,15 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Ignorar requisições do editor Lovable (iframe preview)
+  // Detectar pelo referrer ou por tokens na URL que indicam contexto de editor
+  const referer = request.headers.get('referer') || '';
+  if (url.searchParams.has('__lovable_token') || 
+      referer.includes('lovable.dev') || 
+      referer.includes('lovableproject.com')) {
+    return;
+  }
+
   // Estratégia para diferentes tipos de recursos
   if (request.method === 'GET') {
     // Fontes - Cache First (imutáveis)

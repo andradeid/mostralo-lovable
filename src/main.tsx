@@ -14,10 +14,6 @@ const isLovableEditorContext =
 async function cleanupServiceWorkersIfNeeded() {
   if (!('serviceWorker' in navigator)) return;
 
-  const swCleanupFlag = 'mostralo_sw_cleanup_done';
-  if (sessionStorage.getItem(swCleanupFlag)) return;
-  sessionStorage.setItem(swCleanupFlag, '1');
-
   try {
     const registrations = await navigator.serviceWorker.getRegistrations();
     await Promise.all(registrations.map((r) => r.unregister()));
@@ -28,8 +24,10 @@ async function cleanupServiceWorkersIfNeeded() {
       await Promise.all(keys.map((k) => caches.delete(k)));
     }
 
-    // Se havia controle de SW, recarrega para garantir estado limpo
-    if (navigator.serviceWorker.controller) {
+    // Se havia controle de SW, recarrega UMA vez para garantir estado limpo
+    const didReloadFlag = 'mostralo_sw_cleanup_reloaded';
+    if (navigator.serviceWorker.controller && !sessionStorage.getItem(didReloadFlag)) {
+      sessionStorage.setItem(didReloadFlag, '1');
       window.location.reload();
     }
   } catch {

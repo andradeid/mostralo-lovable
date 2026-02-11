@@ -15,6 +15,9 @@ export default defineConfig(({ mode }) => ({
     mode === 'development' && componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
+      // Importante: não injetar auto-registro no HTML.
+      // O registro é controlado manualmente em src/main.tsx (para desativar no preview do Lovable).
+      injectRegister: null,
       strategies: 'injectManifest',
       srcDir: 'public',
       filename: 'sw.js',

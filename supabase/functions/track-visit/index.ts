@@ -52,6 +52,8 @@ Deno.serve(async (req) => {
       utm_content,
       utm_term,
       store_id,
+      event_type,
+      event_label,
     } = body;
 
     if (!page_url) {

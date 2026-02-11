@@ -171,19 +171,13 @@ export function ProductForm({
 
   const fetchAddonCategories = async () => {
     try {
-      // Buscar a loja do usuário
-      const { data: storeData } = await supabase
-        .from('stores')
-        .select('id')
-        .eq('owner_id', user?.id)
-        .maybeSingle();
-
-      if (storeData) {
+      const storeId = await getStoreId();
+      if (storeId) {
         // Buscar categorias de adicionais da loja
         const { data: addonCategoriesData } = await supabase
           .from('addon_categories')
           .select('id, name, description, is_required, min_selections, max_selections')
-          .eq('store_id', storeData.id)
+          .eq('store_id', storeId)
           .eq('is_active', true)
           .order('display_order');
 

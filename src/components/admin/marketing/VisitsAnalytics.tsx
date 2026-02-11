@@ -61,10 +61,10 @@ export function VisitsAnalytics() {
   const pageviews = useMemo(() => visits.filter((v: any) => !v.event_type || v.event_type === "pageview"), [visits]);
 
   // Métricas agregadas
-  const totalVisits = visits.length;
-  const uniqueSessions = new Set(visits.map((v: any) => v.session_id).filter(Boolean)).size;
+  const totalVisits = pageviews.length;
+  const uniqueSessions = new Set(pageviews.map((v: any) => v.session_id).filter(Boolean)).size;
   const sessionsMap = new Map<string, number>();
-  visits.forEach((v: any) => {
+  pageviews.forEach((v: any) => {
     if (v.session_id) {
       sessionsMap.set(v.session_id, (sessionsMap.get(v.session_id) || 0) + 1);
     }

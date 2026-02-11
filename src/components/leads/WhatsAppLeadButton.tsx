@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { MessageCircle } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { LeadChatForm } from './LeadChatForm';
+import { trackClick } from '@/utils/trackClick';
 
 export function WhatsAppLeadButton() {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,7 +21,10 @@ export function WhatsAppLeadButton() {
     <>
       {/* Botão Flutuante */}
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={() => {
+          trackClick('click_whatsapp', 'botao-flutuante-lead');
+          setIsOpen(true);
+        }}
         className="fixed bottom-6 right-6 z-50 group"
         aria-label="Abrir chat"
       >

@@ -3,6 +3,7 @@ import { MapPin, Phone, MessageCircle, Instagram, ChevronDown, ChevronUp, Extern
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { formatBrazilianPhone } from '@/lib/utils';
+import { trackClick } from '@/utils/trackClick';
 
 interface BookingStoreInfoProps {
   store: {
@@ -30,6 +31,7 @@ export const BookingStoreInfo = ({ store, defaultExpanded = false }: BookingStor
 
   const handleWhatsAppClick = () => {
     if (!store.whatsapp) return;
+    trackClick('click_whatsapp', 'booking-store-info');
     const phone = store.whatsapp.replace(/\D/g, '');
     window.open(`https://wa.me/${phone}`, '_blank');
   };

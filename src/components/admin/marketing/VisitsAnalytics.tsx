@@ -15,6 +15,7 @@ import { DevicesChart } from "./visits/DevicesChart";
 import { BrowsersChart } from "./visits/BrowsersChart";
 import { LocationsTable } from "./visits/LocationsTable";
 import { UTMCampaignsTable } from "./visits/UTMCampaignsTable";
+import { ClicksAnalytics } from "./visits/ClicksAnalytics";
 
 type PeriodKey = "today" | "7d" | "30d" | "90d" | "custom";
 
@@ -56,11 +57,14 @@ export function VisitsAnalytics() {
     },
   });
 
+  // Separar pageviews de cliques
+  const pageviews = useMemo(() => visits.filter((v: any) => !v.event_type || v.event_type === "pageview"), [visits]);
+
   // Métricas agregadas
-  const totalVisits = visits.length;
-  const uniqueSessions = new Set(visits.map((v: any) => v.session_id).filter(Boolean)).size;
+  const totalVisits = pageviews.length;
+  const uniqueSessions = new Set(pageviews.map((v: any) => v.session_id).filter(Boolean)).size;
   const sessionsMap = new Map<string, number>();
-  visits.forEach((v: any) => {
+  pageviews.forEach((v: any) => {
     if (v.session_id) {
       sessionsMap.set(v.session_id, (sessionsMap.get(v.session_id) || 0) + 1);
     }
@@ -72,30 +76,30 @@ export function VisitsAnalytics() {
   // Visitas por dia
   const visitsByDay = useMemo(() => {
     const map = new Map<string, number>();
-    visits.forEach((v: any) => {
+    pageviews.forEach((v: any) => {
       const day = format(new Date(v.created_at), "yyyy-MM-dd");
       map.set(day, (map.get(day) || 0) + 1);
     });
     return Array.from(map.entries())
       .map(([date, count]) => ({ date, visits: count }))
       .sort((a, b) => a.date.localeCompare(b.date));
-  }, [visits]);
+  }, [pageviews]);
 
   // Top páginas
   const topPages = useMemo(() => {
     const map = new Map<string, number>();
-    visits.forEach((v: any) => {
+    pageviews.forEach((v: any) => {
       map.set(v.page_url, (map.get(v.page_url) || 0) + 1);
     });
     return Array.from(map.entries())
       .map(([page_url, count]) => ({ page_url, count }))
       .sort((a, b) => b.count - a.count);
-  }, [visits]);
+  }, [pageviews]);
 
   // Origem do tráfego
   const trafficSources = useMemo(() => {
     const map = new Map<string, number>();
-    visits.forEach((v: any) => {
+    pageviews.forEach((v: any) => {
       let source = "Direto";
       if (v.utm_source) source = v.utm_source;
       else if (v.referrer) {
@@ -113,48 +117,48 @@ export function VisitsAnalytics() {
     return Array.from(map.entries())
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
-  }, [visits]);
+  }, [pageviews]);
 
   // Dispositivos
   const devices = useMemo(() => {
     const map = new Map<string, number>();
-    visits.forEach((v: any) => {
+    pageviews.forEach((v: any) => {
       const dt = v.device_type || "desktop";
       const label = dt === "mobile" ? "Mobile" : dt === "tablet" ? "Tablet" : "Desktop";
       map.set(label, (map.get(label) || 0) + 1);
     });
     return Array.from(map.entries()).map(([name, value]) => ({ name, value }));
-  }, [visits]);
+  }, [pageviews]);
 
   // Navegadores
   const browsers = useMemo(() => {
     const map = new Map<string, number>();
-    visits.forEach((v: any) => {
+    pageviews.forEach((v: any) => {
       map.set(v.browser || "Unknown", (map.get(v.browser || "Unknown") || 0) + 1);
     });
     return Array.from(map.entries())
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 6);
-  }, [visits]);
+  }, [pageviews]);
 
   // Localização
   const locations = useMemo(() => {
     const map = new Map<string, number>();
-    visits.forEach((v: any) => {
+    pageviews.forEach((v: any) => {
       const loc = [v.city, v.region, v.country].filter(Boolean).join(", ") || "Desconhecido";
       map.set(loc, (map.get(loc) || 0) + 1);
     });
     return Array.from(map.entries())
       .map(([location, count]) => ({ location, count }))
       .sort((a, b) => b.count - a.count);
-  }, [visits]);
+  }, [pageviews]);
 
   // Campanhas UTM
   const utmCampaigns = useMemo(() => {
     const key = (v: any) => `${v.utm_source || ""}|${v.utm_medium || ""}|${v.utm_campaign || ""}`;
     const map = new Map<string, number>();
-    visits
+    pageviews
       .filter((v: any) => v.utm_source || v.utm_medium || v.utm_campaign)
       .forEach((v: any) => {
         const k = key(v);
@@ -166,7 +170,7 @@ export function VisitsAnalytics() {
         return { source, medium, campaign, count };
       })
       .sort((a, b) => b.count - a.count);
-  }, [visits]);
+  }, [pageviews]);
 
   const periodButtons: { key: PeriodKey; label: string }[] = [
     { key: "today", label: "Hoje" },
@@ -242,6 +246,12 @@ export function VisitsAnalytics() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <LocationsTable data={locations} loading={isLoading} />
         <UTMCampaignsTable data={utmCampaigns} loading={isLoading} />
+      </div>
+
+      {/* Seção de Cliques */}
+      <div className="pt-4 border-t">
+        <h3 className="text-lg font-semibold mb-4">📊 Rastreamento de Cliques</h3>
+        <ClicksAnalytics visits={visits} loading={isLoading} />
       </div>
     </div>
   );

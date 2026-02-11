@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Rocket, FileSearch, Play, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
+import { trackClick } from "@/utils/trackClick";
 
 const benefits = [
   "Teste grátis por 7 dias",
@@ -45,7 +46,7 @@ export function FinalCTASection() {
                 Crie sua conta e tenha acesso imediato a todos os módulos
               </p>
               <Button asChild size="lg" className="w-full group">
-                <Link to="/signup">
+                <Link to="/signup" onClick={() => trackClick('click_cta_signup', 'gestao-total-comecar')}>
                   Criar Conta Grátis
                   <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
@@ -64,7 +65,7 @@ export function FinalCTASection() {
                 Descubra quanto seu negócio pode economizar com o Mostralo
               </p>
               <Button asChild variant="outline" size="lg" className="w-full">
-                <Link to="/diagnostico">
+                <Link to="/diagnostico" onClick={() => trackClick('click_cta_diagnostico', 'gestao-total-diagnostico')}>
                   Fazer Diagnóstico
                 </Link>
               </Button>

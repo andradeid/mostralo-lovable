@@ -5562,6 +5562,8 @@ export type Database = {
           country: string | null
           created_at: string
           device_type: string | null
+          event_label: string | null
+          event_type: string
           id: string
           ip_address: string | null
           os: string | null
@@ -5583,6 +5585,8 @@ export type Database = {
           country?: string | null
           created_at?: string
           device_type?: string | null
+          event_label?: string | null
+          event_type?: string
           id?: string
           ip_address?: string | null
           os?: string | null
@@ -5604,6 +5608,8 @@ export type Database = {
           country?: string | null
           created_at?: string
           device_type?: string | null
+          event_label?: string | null
+          event_type?: string
           id?: string
           ip_address?: string | null
           os?: string | null

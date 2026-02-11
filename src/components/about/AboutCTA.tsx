@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Stethoscope, CreditCard, MessageCircle, ArrowRight } from "lucide-react";
+import { trackClick } from "@/utils/trackClick";
 
 export const AboutCTA = () => {
   const whatsappNumber = "5511999999999"; // Substituir pelo número real
@@ -18,7 +19,7 @@ export const AboutCTA = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link to="/diagnostico">
+            <Link to="/diagnostico" onClick={() => trackClick('click_cta_diagnostico', 'about-cta')}>
               <Button size="lg" className="gap-2 w-full sm:w-auto">
                 <Stethoscope className="w-5 h-5" />
                 Diagnóstico Gratuito
@@ -26,7 +27,7 @@ export const AboutCTA = () => {
               </Button>
             </Link>
 
-            <Link to="/#plans">
+            <Link to="/#plans" onClick={() => trackClick('click_cta_plans', 'about-cta')}>
               <Button size="lg" variant="outline" className="gap-2 w-full sm:w-auto">
                 <CreditCard className="w-5 h-5" />
                 Ver Planos
@@ -37,6 +38,7 @@ export const AboutCTA = () => {
               href={`https://wa.me/${whatsappNumber}?text=${whatsappMessage}`}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackClick('click_whatsapp', 'about-cta-consultor')}
             >
               <Button size="lg" variant="ghost" className="gap-2 w-full sm:w-auto">
                 <MessageCircle className="w-5 h-5" />

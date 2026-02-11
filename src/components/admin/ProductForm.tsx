@@ -128,19 +128,38 @@ export function ProductForm({
       }, 200); // Aguardar categorias carregarem
     }
   }, [productId, categoryFromUrl, user]);
+  const getStoreId = async (): Promise<string | null> => {
+    // Primeiro tenta como owner
+    const { data: storeData } = await supabase
+      .from('stores')
+      .select('id')
+      .eq('owner_id', user?.id)
+      .maybeSingle();
+    if (storeData) return storeData.id;
+
+    // Fallback: buscar como atendente via user_roles
+    const { data: roleData } = await supabase
+      .from('user_roles')
+      .select('store_id')
+      .eq('user_id', user?.id)
+      .not('store_id', 'is', null)
+      .maybeSingle();
+    return roleData?.store_id || null;
+  };
+
   const fetchStoreAndCategories = async () => {
     try {
-      // Buscar a loja do usuário
-      const {
-        data: storeData
-      } = await supabase.from('stores').select('id').eq('owner_id', user?.id).maybeSingle();
-      if (storeData) {
-        setStore(storeData);
+      const storeId = await getStoreId();
+      if (storeId) {
+        setStore({ id: storeId });
 
         // Buscar categorias da loja
-        const {
-          data: categoriesData
-        } = await supabase.from('categories').select('id, name').eq('store_id', storeData.id).eq('is_active', true).order('display_order');
+        const { data: categoriesData } = await supabase
+          .from('categories')
+          .select('id, name')
+          .eq('store_id', storeId)
+          .eq('is_active', true)
+          .order('display_order');
         if (categoriesData) {
           setCategories(categoriesData);
         }
@@ -152,19 +171,13 @@ export function ProductForm({
 
   const fetchAddonCategories = async () => {
     try {
-      // Buscar a loja do usuário
-      const { data: storeData } = await supabase
-        .from('stores')
-        .select('id')
-        .eq('owner_id', user?.id)
-        .maybeSingle();
-
-      if (storeData) {
+      const storeId = await getStoreId();
+      if (storeId) {
         // Buscar categorias de adicionais da loja
         const { data: addonCategoriesData } = await supabase
           .from('addon_categories')
           .select('id, name, description, is_required, min_selections, max_selections')
-          .eq('store_id', storeData.id)
+          .eq('store_id', storeId)
           .eq('is_active', true)
           .order('display_order');
 

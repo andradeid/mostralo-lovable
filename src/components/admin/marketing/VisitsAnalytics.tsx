@@ -145,14 +145,14 @@ export function VisitsAnalytics() {
   // Localização
   const locations = useMemo(() => {
     const map = new Map<string, number>();
-    visits.forEach((v: any) => {
+    pageviews.forEach((v: any) => {
       const loc = [v.city, v.region, v.country].filter(Boolean).join(", ") || "Desconhecido";
       map.set(loc, (map.get(loc) || 0) + 1);
     });
     return Array.from(map.entries())
       .map(([location, count]) => ({ location, count }))
       .sort((a, b) => b.count - a.count);
-  }, [visits]);
+  }, [pageviews]);
 
   // Campanhas UTM
   const utmCampaigns = useMemo(() => {

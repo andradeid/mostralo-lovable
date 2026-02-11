@@ -46,7 +46,7 @@ export function FinalCTASection() {
                 Crie sua conta e tenha acesso imediato a todos os módulos
               </p>
               <Button asChild size="lg" className="w-full group">
-                <Link to="/signup">
+                <Link to="/signup" onClick={() => trackClick('click_cta_signup', 'gestao-total-comecar')}>
                   Criar Conta Grátis
                   <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>

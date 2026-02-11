@@ -1,144 +1,126 @@
 
-
-# Central de Analytics de Visitas - Nova aba "Visitas"
+# Rastreamento de Cliques em Botoes Importantes
 
 ## Resumo
 
-Adicionar uma nova aba **"Visitas"** na pagina `/dashboard/marketing-tracking` com um sistema completo de monitoramento de visitas do site. O sistema registra cada pageview dos visitantes (paginas publicas e lojas) e apresenta dashboards com metricas detalhadas. **Nenhuma funcionalidade existente sera alterada.**
+Adicionar rastreamento de cliques em botoes estrategicos (WhatsApp, CTA de cadastro, downloads) reutilizando a infraestrutura ja existente (`page_visits` + edge function `track-visit`). Os dados de clique aparecerao em uma nova secao dentro da aba **"Visitas"**.
 
 ## O que voce vai ganhar
 
-- Ver em tempo real quantas pessoas estao visitando seu site
-- Saber de qual cidade/pais vem seus visitantes
-- Entender quais paginas sao mais acessadas
-- Ver qual navegador e dispositivo (celular/desktop) seus visitantes usam
-- Cruzar dados de UTM das campanhas com as visitas
-- Filtrar por periodo (hoje, 7 dias, 30 dias, personalizado)
+- Saber quantas vezes cada botao importante foi clicado
+- Ver quais CTAs convertem mais (WhatsApp vs Cadastro vs Download)
+- Cruzar cliques com campanhas UTM para medir efetividade
+- Filtrar por periodo, dispositivo e pagina de origem
+- Comparar performance de cliques ao longo do tempo
 
 ---
 
-## O que sera criado
+## Como funciona
 
-### 1. Tabela `page_visits` no banco de dados
+Em vez de criar uma tabela separada, vamos adicionar um campo `event_type` na tabela `page_visits` existente:
 
-Armazena cada visita com informacoes ricas:
+- `pageview` (padrao, como ja funciona)
+- `click_whatsapp`
+- `click_cta_signup`
+- `click_download`
+- `click_cta_diagnostico`
+- `click_cta_plans`
 
-| Campo | Descricao |
-|-------|-----------|
-| page_url | Pagina visitada (/especial, /loja/x, etc.) |
-| session_id | Identificador unico da sessao |
-| referrer | De onde o visitante veio |
-| user_agent | Navegador e sistema operacional |
-| device_type | mobile, tablet ou desktop |
-| browser | Chrome, Safari, Firefox, etc. |
-| os | Android, iOS, Windows, etc. |
-| country | Pais do visitante |
-| city | Cidade do visitante |
-| region | Estado/regiao |
-| utm_source, utm_medium, utm_campaign, utm_content, utm_term | Parametros de campanha |
-| store_id | Loja associada (se aplicavel) |
-| created_at | Data/hora da visita |
-
-RLS: leitura apenas para master_admin; insercao publica (anon) para registrar visitas.
-
-### 2. Edge Function `track-visit`
-
-Para capturar a localizacao (pais/cidade) do visitante de forma segura:
-- Recebe os dados da visita via POST
-- Usa o IP do request para obter geolocalizacao (via headers do Supabase/Deno)
-- Faz o parse do user_agent para extrair navegador e sistema operacional
-- Insere na tabela `page_visits`
-- Nenhum dado sensivel exposto no frontend
-
-### 3. Hook `useTrackPageVisit`
-
-Componente leve que dispara em cada navegacao:
-- Detecta mudanca de rota (react-router)
-- Coleta UTMs, referrer, device_type, user_agent
-- Envia para a edge function `track-visit`
-- Nao afeta performance (fire-and-forget, sem await bloqueante)
-- Ativado apenas em paginas publicas (nao rastreia o dashboard admin)
-
-### 4. Nova aba "Visitas" com dashboard completo
-
-Adicionada como 4a aba na pagina Marketing & Tracking, contendo:
-
-**Cards de resumo (topo)**
-- Total de visitas (periodo selecionado)
-- Visitantes unicos (por session_id)
-- Paginas por sessao (media)
-- Taxa de rejeicao estimada (sessoes com 1 pagina)
-
-**Filtro de periodo**
-- Hoje, 7 dias, 30 dias, 90 dias, personalizado (date picker)
-
-**Graficos e tabelas**
-
-| Secao | Tipo | O que mostra |
-|-------|------|-------------|
-| Visitas ao longo do tempo | Grafico de linha (Recharts) | Visitas por dia/hora no periodo |
-| Paginas mais visitadas | Tabela com barra de progresso | Top 10 URLs mais acessadas |
-| Origem do trafego | Grafico de pizza | Direto, Organico, Redes Sociais, Campanhas |
-| Dispositivos | Grafico de rosca | Mobile vs Tablet vs Desktop |
-| Navegadores | Grafico de barras horizontal | Chrome, Safari, Firefox, Edge, etc. |
-| Localizacao | Tabela ranqueada | Top paises e cidades |
-| Campanhas UTM | Tabela expansivel | Source, Medium, Campaign com visitas de cada |
+Cada clique registra a mesma riqueza de dados (UTMs, dispositivo, localizacao, sessao), permitindo cruzar com as visitas.
 
 ---
 
-## Impacto no sistema existente
+## O que sera criado/alterado
 
-- **ZERO alteracao** em paginas, componentes ou rotas existentes
-- A pagina `MarketingTrackingPage.tsx` recebe apenas 1 nova aba (aditiva)
-- O hook de tracking e inserido no layout publico, sem interferir na logica atual
-- A tabela `popup_analytics` continua funcionando independentemente
-- Os scripts de Google Ads/Facebook Pixel nao sao alterados
+### 1. Alteracao na tabela `page_visits`
+
+- Adicionar coluna `event_type TEXT DEFAULT 'pageview'`
+- Adicionar coluna `event_label TEXT` (detalhes extras, ex: "botao-whatsapp-header")
+- Indice na coluna `event_type` para consultas rapidas
+
+### 2. Atualizar edge function `track-visit`
+
+- Aceitar campos opcionais `event_type` e `event_label` no payload
+- Se nao enviado, assume `pageview` (compatibilidade total)
+
+### 3. Novo utilitario `trackClick`
+
+Uma funcao simples para ser chamada em qualquer `onClick`:
+
+```text
+trackClick("click_whatsapp", "botao-flutuante-lead")
+trackClick("click_cta_signup", "hero-landing-page")
+trackClick("click_download", "catalogo-pdf-loja-x")
+```
+
+Fire-and-forget, sem bloquear a acao do botao.
+
+### 4. Instrumentar botoes existentes
+
+Adicionar `trackClick(...)` nos seguintes pontos (sem alterar comportamento visual ou funcional):
+
+| Botao | Tipo de evento | Onde esta |
+|-------|---------------|-----------|
+| WhatsApp flutuante (LeadChatForm) | click_whatsapp | WhatsAppLeadButton.tsx |
+| WhatsApp da loja (ProductDetail) | click_whatsapp | ProductDetail.tsx |
+| WhatsApp do booking | click_whatsapp | BookingStoreInfo.tsx |
+| CTA "Criar Conta" / "Cadastro" | click_cta_signup | Landing pages, FinalCTASection, etc. |
+| CTA "Diagnostico Gratuito" | click_cta_diagnostico | AboutCTA.tsx, landing pages |
+| CTA "Ver Planos" | click_cta_plans | AboutCTA.tsx, landing pages |
+| Downloads de PDF/catalogo | click_download | Onde houver links de download |
+
+### 5. Nova secao no dashboard "Visitas"
+
+Adicionar ao `VisitsAnalytics.tsx`:
+
+**Cards de cliques (resumo)**
+- Total de cliques no periodo
+- Cliques WhatsApp
+- Cliques CTA Cadastro
+- Cliques em Downloads
+
+**Grafico de cliques por tipo**
+- Grafico de barras mostrando cada tipo de evento
+
+**Tabela de cliques detalhada**
+- Tipo, label, pagina de origem, data/hora
+- Filtro por tipo de evento
+- Agrupamento por campanha UTM
+
+---
+
+## Impacto no sistema
+
+- **Comportamento dos botoes**: ZERO alteracao - o tracking e adicionado junto ao onClick existente
+- **Performance**: fire-and-forget, sem await, sem bloqueio
+- **Tabela page_visits**: coluna nova com default, dados existentes continuam validos
+- **Edge function**: campos opcionais, 100% compativel com chamadas atuais
+- **Demais funcionalidades**: nenhuma alteracao
 
 ## Detalhes tecnicos
 
 ### Arquivos novos
 ```text
-supabase/functions/track-visit/index.ts       -- Edge function para registrar visita + geo
-src/components/admin/marketing/VisitsAnalytics.tsx  -- Dashboard principal da aba Visitas
-src/components/admin/marketing/visits/VisitsSummaryCards.tsx
-src/components/admin/marketing/visits/VisitsChart.tsx
-src/components/admin/marketing/visits/TopPagesTable.tsx
-src/components/admin/marketing/visits/TrafficSourcesChart.tsx
-src/components/admin/marketing/visits/DevicesChart.tsx
-src/components/admin/marketing/visits/BrowsersChart.tsx
-src/components/admin/marketing/visits/LocationsTable.tsx
-src/components/admin/marketing/visits/UTMCampaignsTable.tsx
-src/hooks/useTrackPageVisit.ts                -- Hook para rastrear navegacao
+src/utils/trackClick.ts              -- Funcao utilitaria para rastrear cliques
+src/components/admin/marketing/visits/ClicksAnalytics.tsx  -- Secao de cliques no dashboard
 ```
 
 ### Arquivos modificados
 ```text
-src/pages/dashboard/MarketingTrackingPage.tsx  -- Adicionar 4a aba "Visitas"
-src/App.tsx ou layout publico                  -- Inserir useTrackPageVisit nas rotas publicas
-```
-
-### Fluxo de coleta
-```text
-Visitante acessa pagina publica
-  -> useTrackPageVisit detecta navegacao
-  -> Coleta: URL, referrer, UTMs, user_agent, device_type
-  -> POST para edge function track-visit
-  -> Edge function extrai IP, faz geo lookup, parse do user_agent
-  -> Insere registro na tabela page_visits
-```
-
-### Fluxo de visualizacao
-```text
-Admin acessa /dashboard/marketing-tracking -> aba Visitas
-  -> Query na tabela page_visits com filtro de periodo
-  -> Agrega dados por dia, pagina, dispositivo, browser, cidade
-  -> Renderiza graficos com Recharts (ja instalado)
+supabase/migrations/new             -- ALTER TABLE page_visits ADD COLUMN event_type, event_label
+supabase/functions/track-visit/index.ts  -- Aceitar event_type e event_label
+src/components/admin/marketing/VisitsAnalytics.tsx  -- Adicionar secao de cliques
+src/components/leads/WhatsAppLeadButton.tsx  -- trackClick no onClick
+src/components/ProductDetail.tsx     -- trackClick no WhatsApp da loja
+src/components/booking/BookingStoreInfo.tsx  -- trackClick no WhatsApp booking
+src/components/about/AboutCTA.tsx    -- trackClick nos CTAs
+src/components/gestao-total/FinalCTASection.tsx  -- trackClick no CTA signup
 ```
 
 ### Ordem de implementacao
-1. Criar tabela `page_visits` com RLS
-2. Criar edge function `track-visit`
-3. Criar hook `useTrackPageVisit` e inserir no layout publico
-4. Criar componentes do dashboard de visitas
-5. Adicionar aba na `MarketingTrackingPage`
-
+1. Migrar banco (adicionar colunas event_type e event_label)
+2. Atualizar edge function track-visit
+3. Criar utilitario trackClick
+4. Instrumentar botoes existentes
+5. Criar componente ClicksAnalytics no dashboard
+6. Integrar na aba Visitas

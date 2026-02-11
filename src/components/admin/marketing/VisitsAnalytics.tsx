@@ -15,6 +15,7 @@ import { DevicesChart } from "./visits/DevicesChart";
 import { BrowsersChart } from "./visits/BrowsersChart";
 import { LocationsTable } from "./visits/LocationsTable";
 import { UTMCampaignsTable } from "./visits/UTMCampaignsTable";
+import { ClicksAnalytics } from "./visits/ClicksAnalytics";
 
 type PeriodKey = "today" | "7d" | "30d" | "90d" | "custom";
 

@@ -11,6 +11,7 @@ import { CustomDomainRouter } from "@/components/CustomDomainRouter";
 import { TermsGuard } from "@/components/TermsGuard";
 import { useLocation } from "react-router-dom";
 import { usePlatformTracking } from "@/hooks/usePlatformTracking";
+import { useTrackPageVisit } from "@/hooks/useTrackPageVisit";
 
 // Rotas modulares
 import {
@@ -32,6 +33,7 @@ const queryClient = new QueryClient();
 function ThemeController() {
   useRouteTheme();
   usePlatformTracking();
+  useTrackPageVisit();
   return null;
 }
 

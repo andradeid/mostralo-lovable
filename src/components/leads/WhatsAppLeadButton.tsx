@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { MessageCircle } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { LeadChatForm } from './LeadChatForm';
+import { trackClick } from '@/utils/trackClick';
 
 export function WhatsAppLeadButton() {
   const [isOpen, setIsOpen] = useState(false);

@@ -158,7 +158,7 @@ export function VisitsAnalytics() {
   const utmCampaigns = useMemo(() => {
     const key = (v: any) => `${v.utm_source || ""}|${v.utm_medium || ""}|${v.utm_campaign || ""}`;
     const map = new Map<string, number>();
-    visits
+    pageviews
       .filter((v: any) => v.utm_source || v.utm_medium || v.utm_campaign)
       .forEach((v: any) => {
         const k = key(v);
@@ -170,7 +170,7 @@ export function VisitsAnalytics() {
         return { source, medium, campaign, count };
       })
       .sort((a, b) => b.count - a.count);
-  }, [visits]);
+  }, [pageviews]);
 
   const periodButtons: { key: PeriodKey; label: string }[] = [
     { key: "today", label: "Hoje" },

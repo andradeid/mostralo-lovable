@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Rocket, FileSearch, Play, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
+import { trackClick } from "@/utils/trackClick";
 
 const benefits = [
   "Teste grátis por 7 dias",

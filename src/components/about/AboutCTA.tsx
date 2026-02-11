@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Stethoscope, CreditCard, MessageCircle, ArrowRight } from "lucide-react";
+import { trackClick } from "@/utils/trackClick";
 
 export const AboutCTA = () => {
   const whatsappNumber = "5511999999999"; // Substituir pelo número real

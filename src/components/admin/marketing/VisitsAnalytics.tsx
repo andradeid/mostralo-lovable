@@ -99,7 +99,7 @@ export function VisitsAnalytics() {
   // Origem do tráfego
   const trafficSources = useMemo(() => {
     const map = new Map<string, number>();
-    visits.forEach((v: any) => {
+    pageviews.forEach((v: any) => {
       let source = "Direto";
       if (v.utm_source) source = v.utm_source;
       else if (v.referrer) {
@@ -117,7 +117,7 @@ export function VisitsAnalytics() {
     return Array.from(map.entries())
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
-  }, [visits]);
+  }, [pageviews]);
 
   // Dispositivos
   const devices = useMemo(() => {

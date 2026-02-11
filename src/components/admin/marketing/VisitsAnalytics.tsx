@@ -247,6 +247,12 @@ export function VisitsAnalytics() {
         <LocationsTable data={locations} loading={isLoading} />
         <UTMCampaignsTable data={utmCampaigns} loading={isLoading} />
       </div>
+
+      {/* Seção de Cliques */}
+      <div className="pt-4 border-t">
+        <h3 className="text-lg font-semibold mb-4">📊 Rastreamento de Cliques</h3>
+        <ClicksAnalytics visits={visits} loading={isLoading} />
+      </div>
     </div>
   );
 }

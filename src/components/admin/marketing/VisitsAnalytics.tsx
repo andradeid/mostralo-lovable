@@ -57,6 +57,9 @@ export function VisitsAnalytics() {
     },
   });
 
+  // Separar pageviews de cliques
+  const pageviews = useMemo(() => visits.filter((v: any) => !v.event_type || v.event_type === "pageview"), [visits]);
+
   // Métricas agregadas
   const totalVisits = visits.length;
   const uniqueSessions = new Set(visits.map((v: any) => v.session_id).filter(Boolean)).size;

@@ -133,14 +133,14 @@ export function VisitsAnalytics() {
   // Navegadores
   const browsers = useMemo(() => {
     const map = new Map<string, number>();
-    visits.forEach((v: any) => {
+    pageviews.forEach((v: any) => {
       map.set(v.browser || "Unknown", (map.get(v.browser || "Unknown") || 0) + 1);
     });
     return Array.from(map.entries())
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 6);
-  }, [visits]);
+  }, [pageviews]);
 
   // Localização
   const locations = useMemo(() => {

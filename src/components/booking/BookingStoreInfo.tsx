@@ -3,6 +3,7 @@ import { MapPin, Phone, MessageCircle, Instagram, ChevronDown, ChevronUp, Extern
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { formatBrazilianPhone } from '@/lib/utils';
+import { trackClick } from '@/utils/trackClick';
 
 interface BookingStoreInfoProps {
   store: {

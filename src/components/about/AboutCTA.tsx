@@ -27,7 +27,7 @@ export const AboutCTA = () => {
               </Button>
             </Link>
 
-            <Link to="/#plans">
+            <Link to="/#plans" onClick={() => trackClick('click_cta_plans', 'about-cta')}>
               <Button size="lg" variant="outline" className="gap-2 w-full sm:w-auto">
                 <CreditCard className="w-5 h-5" />
                 Ver Planos

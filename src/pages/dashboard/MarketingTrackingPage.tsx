@@ -2,7 +2,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrackingOverview } from "@/components/admin/marketing/TrackingOverview";
 import { PlatformTrackingConfig } from "@/components/admin/marketing/PlatformTrackingConfig";
 import { ConversionEventsList } from "@/components/admin/marketing/ConversionEventsList";
-import { BarChart3, Settings, Zap } from "lucide-react";
+import { VisitsAnalytics } from "@/components/admin/marketing/VisitsAnalytics";
+import { BarChart3, Settings, Zap, Eye } from "lucide-react";
 
 export default function MarketingTrackingPage() {
   return (
@@ -15,7 +16,7 @@ export default function MarketingTrackingPage() {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview" className="gap-2">
             <BarChart3 className="h-4 w-4 hidden sm:block" />
             Visão Geral
@@ -27,6 +28,10 @@ export default function MarketingTrackingPage() {
           <TabsTrigger value="events" className="gap-2">
             <Zap className="h-4 w-4 hidden sm:block" />
             Eventos
+          </TabsTrigger>
+          <TabsTrigger value="visits" className="gap-2">
+            <Eye className="h-4 w-4 hidden sm:block" />
+            Visitas
           </TabsTrigger>
         </TabsList>
 
@@ -40,6 +45,10 @@ export default function MarketingTrackingPage() {
 
         <TabsContent value="events">
           <ConversionEventsList />
+        </TabsContent>
+
+        <TabsContent value="visits">
+          <VisitsAnalytics />
         </TabsContent>
       </Tabs>
     </div>

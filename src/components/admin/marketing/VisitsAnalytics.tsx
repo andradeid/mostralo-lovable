@@ -76,25 +76,25 @@ export function VisitsAnalytics() {
   // Visitas por dia
   const visitsByDay = useMemo(() => {
     const map = new Map<string, number>();
-    visits.forEach((v: any) => {
+    pageviews.forEach((v: any) => {
       const day = format(new Date(v.created_at), "yyyy-MM-dd");
       map.set(day, (map.get(day) || 0) + 1);
     });
     return Array.from(map.entries())
       .map(([date, count]) => ({ date, visits: count }))
       .sort((a, b) => a.date.localeCompare(b.date));
-  }, [visits]);
+  }, [pageviews]);
 
   // Top páginas
   const topPages = useMemo(() => {
     const map = new Map<string, number>();
-    visits.forEach((v: any) => {
+    pageviews.forEach((v: any) => {
       map.set(v.page_url, (map.get(v.page_url) || 0) + 1);
     });
     return Array.from(map.entries())
       .map(([page_url, count]) => ({ page_url, count }))
       .sort((a, b) => b.count - a.count);
-  }, [visits]);
+  }, [pageviews]);
 
   // Origem do tráfego
   const trafficSources = useMemo(() => {

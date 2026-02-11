@@ -19,7 +19,7 @@ export const AboutCTA = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link to="/diagnostico">
+            <Link to="/diagnostico" onClick={() => trackClick('click_cta_diagnostico', 'about-cta')}>
               <Button size="lg" className="gap-2 w-full sm:w-auto">
                 <Stethoscope className="w-5 h-5" />
                 Diagnóstico Gratuito

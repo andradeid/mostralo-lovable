@@ -99,6 +99,8 @@ Deno.serve(async (req) => {
       utm_term: utm_term || null,
       store_id: store_id || null,
       ip_address,
+      event_type: event_type || "pageview",
+      event_label: event_label || null,
     });
 
     if (error) {

@@ -21,7 +21,10 @@ export function WhatsAppLeadButton() {
     <>
       {/* Botão Flutuante */}
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={() => {
+          trackClick('click_whatsapp', 'botao-flutuante-lead');
+          setIsOpen(true);
+        }}
         className="fixed bottom-6 right-6 z-50 group"
         aria-label="Abrir chat"
       >

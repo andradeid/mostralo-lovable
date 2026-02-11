@@ -31,6 +31,7 @@ export const BookingStoreInfo = ({ store, defaultExpanded = false }: BookingStor
 
   const handleWhatsAppClick = () => {
     if (!store.whatsapp) return;
+    trackClick('click_whatsapp', 'booking-store-info');
     const phone = store.whatsapp.replace(/\D/g, '');
     window.open(`https://wa.me/${phone}`, '_blank');
   };

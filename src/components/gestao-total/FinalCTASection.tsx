@@ -65,7 +65,7 @@ export function FinalCTASection() {
                 Descubra quanto seu negócio pode economizar com o Mostralo
               </p>
               <Button asChild variant="outline" size="lg" className="w-full">
-                <Link to="/diagnostico">
+                <Link to="/diagnostico" onClick={() => trackClick('click_cta_diagnostico', 'gestao-total-diagnostico')}>
                   Fazer Diagnóstico
                 </Link>
               </Button>

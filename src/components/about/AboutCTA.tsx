@@ -38,6 +38,7 @@ export const AboutCTA = () => {
               href={`https://wa.me/${whatsappNumber}?text=${whatsappMessage}`}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackClick('click_whatsapp', 'about-cta-consultor')}
             >
               <Button size="lg" variant="ghost" className="gap-2 w-full sm:w-auto">
                 <MessageCircle className="w-5 h-5" />

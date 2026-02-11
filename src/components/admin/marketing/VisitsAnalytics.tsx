@@ -122,13 +122,13 @@ export function VisitsAnalytics() {
   // Dispositivos
   const devices = useMemo(() => {
     const map = new Map<string, number>();
-    visits.forEach((v: any) => {
+    pageviews.forEach((v: any) => {
       const dt = v.device_type || "desktop";
       const label = dt === "mobile" ? "Mobile" : dt === "tablet" ? "Tablet" : "Desktop";
       map.set(label, (map.get(label) || 0) + 1);
     });
     return Array.from(map.entries()).map(([name, value]) => ({ name, value }));
-  }, [visits]);
+  }, [pageviews]);
 
   // Navegadores
   const browsers = useMemo(() => {

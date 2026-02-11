@@ -1,84 +1,144 @@
 
 
-# Central de Rastreamento de Marketing (Master Admin)
+# Central de Analytics de Visitas - Nova aba "Visitas"
 
 ## Resumo
 
-Criar uma nova seção no painel Master Admin para configurar e monitorar o rastreamento de campanhas (Google Ads, Facebook Pixel, Google Analytics) de todas as lojas da plataforma, sem alterar nada que já funciona.
+Adicionar uma nova aba **"Visitas"** na pagina `/dashboard/marketing-tracking` com um sistema completo de monitoramento de visitas do site. O sistema registra cada pageview dos visitantes (paginas publicas e lojas) e apresenta dashboards com metricas detalhadas. **Nenhuma funcionalidade existente sera alterada.**
 
-## Impacto no sistema existente
+## O que voce vai ganhar
 
-- Os campos google_analytics_id e facebook_pixel_id que já existem na configuracao de cada loja continuam funcionando normalmente
-- O arquivo advertisingScripts.ts nao e usado por nenhum componente atualmente, entao refatora-lo e seguro
-- Nenhuma tabela existente sera modificada
-- Nenhuma rota existente sera alterada
-- Tudo que sera criado e novo (paginas, tabela, rotas)
+- Ver em tempo real quantas pessoas estao visitando seu site
+- Saber de qual cidade/pais vem seus visitantes
+- Entender quais paginas sao mais acessadas
+- Ver qual navegador e dispositivo (celular/desktop) seus visitantes usam
+- Cruzar dados de UTM das campanhas com as visitas
+- Filtrar por periodo (hoje, 7 dias, 30 dias, personalizado)
+
+---
 
 ## O que sera criado
 
-### 1. Tabela no banco de dados
-Nova tabela `platform_marketing_config` para configuracoes globais de tracking da plataforma (landing pages como /especial):
-- google_ads_id (texto)
-- google_ads_conversion_label (texto)
-- facebook_pixel_id (texto)
-- RLS: apenas master_admin pode ler/escrever
+### 1. Tabela `page_visits` no banco de dados
 
-### 2. Pagina "Marketing e Tracking" no Master Admin
+Armazena cada visita com informacoes ricas:
 
-**Aba "Visao Geral das Lojas"**
-- Tabela com todas as lojas mostrando status dos pixels configurados
-- Indicador verde = configurado, vermelho = nao configurado
-- Colunas: Loja, Google Analytics, Facebook Pixel
-- Clique na loja leva para a configuracao dela
+| Campo | Descricao |
+|-------|-----------|
+| page_url | Pagina visitada (/especial, /loja/x, etc.) |
+| session_id | Identificador unico da sessao |
+| referrer | De onde o visitante veio |
+| user_agent | Navegador e sistema operacional |
+| device_type | mobile, tablet ou desktop |
+| browser | Chrome, Safari, Firefox, etc. |
+| os | Android, iOS, Windows, etc. |
+| country | Pais do visitante |
+| city | Cidade do visitante |
+| region | Estado/regiao |
+| utm_source, utm_medium, utm_campaign, utm_content, utm_term | Parametros de campanha |
+| store_id | Loja associada (se aplicavel) |
+| created_at | Data/hora da visita |
 
-**Aba "Tracking da Plataforma"**
-- Formulario para configurar Google Ads ID global (para landing pages /especial, home, etc.)
-- Campo para Facebook Pixel ID global
-- Campo para Conversion Label do Google Ads
-- Instrucoes de como obter cada ID
+RLS: leitura apenas para master_admin; insercao publica (anon) para registrar visitas.
 
-**Aba "Eventos de Conversao"**
-- Lista informativa dos eventos rastreados (PageView, SignUp, Purchase, Lead, etc.)
-- Onde cada evento e disparado no sistema
-- Status ativo/inativo
+### 2. Edge Function `track-visit`
 
-### 3. Menu no sidebar
-- Novo item "Marketing" na secao de ferramentas do Master Admin
-- Icone: Target ou BarChart3
+Para capturar a localizacao (pais/cidade) do visitante de forma segura:
+- Recebe os dados da visita via POST
+- Usa o IP do request para obter geolocalizacao (via headers do Supabase/Deno)
+- Faz o parse do user_agent para extrair navegador e sistema operacional
+- Insere na tabela `page_visits`
+- Nenhum dado sensivel exposto no frontend
 
-### 4. Ativacao dos scripts de rastreamento
-- Refatorar advertisingScripts.ts para aceitar IDs como parametro (em vez de variaveis de ambiente)
-- Nas paginas publicas da loja: buscar IDs da store_configurations e injetar scripts
-- Nas landing pages (/especial, home): buscar IDs da platform_marketing_config e injetar scripts
-- Injecao condicional: so injeta se o ID existir
+### 3. Hook `useTrackPageVisit`
+
+Componente leve que dispara em cada navegacao:
+- Detecta mudanca de rota (react-router)
+- Coleta UTMs, referrer, device_type, user_agent
+- Envia para a edge function `track-visit`
+- Nao afeta performance (fire-and-forget, sem await bloqueante)
+- Ativado apenas em paginas publicas (nao rastreia o dashboard admin)
+
+### 4. Nova aba "Visitas" com dashboard completo
+
+Adicionada como 4a aba na pagina Marketing & Tracking, contendo:
+
+**Cards de resumo (topo)**
+- Total de visitas (periodo selecionado)
+- Visitantes unicos (por session_id)
+- Paginas por sessao (media)
+- Taxa de rejeicao estimada (sessoes com 1 pagina)
+
+**Filtro de periodo**
+- Hoje, 7 dias, 30 dias, 90 dias, personalizado (date picker)
+
+**Graficos e tabelas**
+
+| Secao | Tipo | O que mostra |
+|-------|------|-------------|
+| Visitas ao longo do tempo | Grafico de linha (Recharts) | Visitas por dia/hora no periodo |
+| Paginas mais visitadas | Tabela com barra de progresso | Top 10 URLs mais acessadas |
+| Origem do trafego | Grafico de pizza | Direto, Organico, Redes Sociais, Campanhas |
+| Dispositivos | Grafico de rosca | Mobile vs Tablet vs Desktop |
+| Navegadores | Grafico de barras horizontal | Chrome, Safari, Firefox, Edge, etc. |
+| Localizacao | Tabela ranqueada | Top paises e cidades |
+| Campanhas UTM | Tabela expansivel | Source, Medium, Campaign com visitas de cada |
+
+---
+
+## Impacto no sistema existente
+
+- **ZERO alteracao** em paginas, componentes ou rotas existentes
+- A pagina `MarketingTrackingPage.tsx` recebe apenas 1 nova aba (aditiva)
+- O hook de tracking e inserido no layout publico, sem interferir na logica atual
+- A tabela `popup_analytics` continua funcionando independentemente
+- Os scripts de Google Ads/Facebook Pixel nao sao alterados
 
 ## Detalhes tecnicos
 
 ### Arquivos novos
 ```text
-src/pages/dashboard/MarketingTrackingPage.tsx
-src/components/admin/marketing/TrackingOverview.tsx
-src/components/admin/marketing/PlatformTrackingConfig.tsx
-src/components/admin/marketing/ConversionEventsList.tsx
+supabase/functions/track-visit/index.ts       -- Edge function para registrar visita + geo
+src/components/admin/marketing/VisitsAnalytics.tsx  -- Dashboard principal da aba Visitas
+src/components/admin/marketing/visits/VisitsSummaryCards.tsx
+src/components/admin/marketing/visits/VisitsChart.tsx
+src/components/admin/marketing/visits/TopPagesTable.tsx
+src/components/admin/marketing/visits/TrafficSourcesChart.tsx
+src/components/admin/marketing/visits/DevicesChart.tsx
+src/components/admin/marketing/visits/BrowsersChart.tsx
+src/components/admin/marketing/visits/LocationsTable.tsx
+src/components/admin/marketing/visits/UTMCampaignsTable.tsx
+src/hooks/useTrackPageVisit.ts                -- Hook para rastrear navegacao
 ```
 
 ### Arquivos modificados
 ```text
-src/lib/advertisingScripts.ts -- refatorar para aceitar IDs como parametro
-src/routes/masterRoutes.tsx -- adicionar rota
-src/components/admin/sidebar -- adicionar item de menu
+src/pages/dashboard/MarketingTrackingPage.tsx  -- Adicionar 4a aba "Visitas"
+src/App.tsx ou layout publico                  -- Inserir useTrackPageVisit nas rotas publicas
 ```
 
-### Fluxo de injecao de scripts
-1. Pagina publica carrega
-2. Busca IDs de tracking do banco (store_configurations ou platform_marketing_config)
-3. Se ID existe, cria elemento script e adiciona ao head
-4. Registra eventos de conversao nos pontos corretos (signup, pedido, etc.)
+### Fluxo de coleta
+```text
+Visitante acessa pagina publica
+  -> useTrackPageVisit detecta navegacao
+  -> Coleta: URL, referrer, UTMs, user_agent, device_type
+  -> POST para edge function track-visit
+  -> Edge function extrai IP, faz geo lookup, parse do user_agent
+  -> Insere registro na tabela page_visits
+```
+
+### Fluxo de visualizacao
+```text
+Admin acessa /dashboard/marketing-tracking -> aba Visitas
+  -> Query na tabela page_visits com filtro de periodo
+  -> Agrega dados por dia, pagina, dispositivo, browser, cidade
+  -> Renderiza graficos com Recharts (ja instalado)
+```
 
 ### Ordem de implementacao
-1. Criar tabela platform_marketing_config com RLS
-2. Criar pagina e componentes de UI
-3. Adicionar rota e menu no sidebar
-4. Refatorar advertisingScripts.ts
-5. Integrar injecao de scripts nas paginas publicas
+1. Criar tabela `page_visits` com RLS
+2. Criar edge function `track-visit`
+3. Criar hook `useTrackPageVisit` e inserir no layout publico
+4. Criar componentes do dashboard de visitas
+5. Adicionar aba na `MarketingTrackingPage`
 

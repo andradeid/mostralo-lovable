@@ -24,7 +24,7 @@ export function TrafficSourcesChart({ data, loading }: TrafficSourcesChartProps)
           <div className="h-[350px] flex items-center justify-center text-muted-foreground">Nenhum dado</div>
         ) : (
           <TooltipProvider delayDuration={200}>
-            <ScrollArea className="h-[350px]">
+            <ScrollArea className="max-h-[500px]">
               <div className="space-y-3 pr-3">
                 {sorted.map((item, i) => {
                   const widthPct = Math.max((item.value / max) * 100, 2);

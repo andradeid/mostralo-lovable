@@ -226,9 +226,10 @@ export const CategoryForm = ({ open, onOpenChange, onSuccess, category, storeId:
       setSelectedAddonCategoryIds([]);
       onOpenChange(false);
       onSuccess();
-    } catch (error) {
-      console.error('Erro ao salvar categoria:', error);
-      toast({ title: 'Erro', description: 'Erro ao salvar categoria.', variant: 'destructive' });
+    } catch (error: any) {
+      console.error('❌ Erro ao salvar categoria:', error);
+      const errorMsg = error?.message || error?.details || JSON.stringify(error);
+      toast({ title: 'Erro', description: `Erro ao salvar categoria: ${errorMsg}`, variant: 'destructive' });
     } finally {
       setLoading(false);
     }

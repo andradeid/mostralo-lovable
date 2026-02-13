@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Package } from 'lucide-react';
+import { Loader2, Package, X } from 'lucide-react';
 
 interface AddonCategoryOption {
   id: string;
@@ -256,129 +255,148 @@ export const CategoryForm = ({ open, onOpenChange, onSuccess, category, storeId:
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {category ? 'Editar Categoria' : 'Nova Categoria'}
-          </DialogTitle>
-          <DialogDescription>
-            {category
-              ? 'Atualize as informações da categoria.'
-              : 'Crie uma nova categoria para organizar seus produtos.'
-            }
-          </DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nome da categoria *</Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Ex: Bebidas, Lanches, Sobremesas..."
-              required
-              maxLength={50}
-            />
-            <p className="text-xs text-muted-foreground">
-              {name.length}/50 caracteres
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Descrição</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Descrição opcional da categoria..."
-              className="min-h-[80px] resize-none"
-              maxLength={200}
-            />
-            <p className="text-xs text-muted-foreground">
-              {description.length}/200 caracteres
-            </p>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="is_active"
-              checked={isActive}
-              onCheckedChange={setIsActive}
-            />
-            <Label htmlFor="is_active" className="text-sm">
-              Categoria ativa (visível na loja)
-            </Label>
-          </div>
-
-          {/* Categorias de Adicionais */}
-          {addonCategories.length > 0 && (
-            <div className="border-t pt-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Package className="w-4 h-4 text-muted-foreground" />
-                <Label className="text-sm font-medium">Categorias de Adicionais</Label>
-              </div>
-              <p className="text-xs text-muted-foreground mb-3">
-                Selecione quais categorias de adicionais serão aplicadas automaticamente a todos os produtos desta categoria.
+    <>
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Overlay */}
+          <div 
+            className="fixed inset-0 bg-black/80" 
+            onClick={() => handleOpenChange(false)} 
+          />
+          {/* Content */}
+          <div className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-[500px] translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg sm:rounded-lg max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex flex-col space-y-1.5 text-center sm:text-left">
+              <h2 className="text-lg font-semibold leading-none tracking-tight">
+                {category ? 'Editar Categoria' : 'Nova Categoria'}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {category
+                  ? 'Atualize as informações da categoria.'
+                  : 'Crie uma nova categoria para organizar seus produtos.'
+                }
               </p>
+            </div>
+            {/* Close button */}
+            <button
+              onClick={() => handleOpenChange(false)}
+              className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </button>
 
-              <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
-                {addonCategories.map((addonCat) => (
-                  <div
-                    key={addonCat.id}
-                    className="flex items-start space-x-3 p-2.5 border rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
-                    onClick={() => toggleAddonCategory(addonCat.id)}
-                  >
-                    <Checkbox
-                      id={`addon-cat-${addonCat.id}`}
-                      checked={selectedAddonCategoryIds.includes(addonCat.id)}
-                      onCheckedChange={() => toggleAddonCategory(addonCat.id)}
-                      className="mt-0.5"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">{addonCat.name}</span>
-                        {addonCat.is_required && (
-                          <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
-                            Obrigatória
-                          </Badge>
-                        )}
-                      </div>
-                      {addonCat.description && (
-                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                          {addonCat.description}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome da categoria *</Label>
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Ex: Bebidas, Lanches, Sobremesas..."
+                  required
+                  maxLength={50}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {name.length}/50 caracteres
+                </p>
               </div>
 
-              {selectedAddonCategoryIds.length > 0 && (
-                <p className="text-xs text-muted-foreground mt-2">
-                  ✅ {selectedAddonCategoryIds.length} categoria(s) de adicionais vinculada(s)
+              <div className="space-y-2">
+                <Label htmlFor="description">Descrição</Label>
+                <Textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Descrição opcional da categoria..."
+                  className="min-h-[80px] resize-none"
+                  maxLength={200}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {description.length}/200 caracteres
                 </p>
-              )}
-            </div>
-          )}
+              </div>
 
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={loading || !name.trim()}>
-              {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              {category ? 'Atualizar' : 'Criar Categoria'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="is_active"
+                  checked={isActive}
+                  onCheckedChange={setIsActive}
+                />
+                <Label htmlFor="is_active" className="text-sm">
+                  Categoria ativa (visível na loja)
+                </Label>
+              </div>
+
+              {/* Categorias de Adicionais */}
+              {addonCategories.length > 0 && (
+                <div className="border-t pt-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Package className="w-4 h-4 text-muted-foreground" />
+                    <Label className="text-sm font-medium">Categorias de Adicionais</Label>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Selecione quais categorias de adicionais serão aplicadas automaticamente a todos os produtos desta categoria.
+                  </p>
+
+                  <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
+                    {addonCategories.map((addonCat) => (
+                      <div
+                        key={addonCat.id}
+                        className="flex items-start space-x-3 p-2.5 border rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
+                        onClick={() => toggleAddonCategory(addonCat.id)}
+                      >
+                        <Checkbox
+                          id={`addon-cat-${addonCat.id}`}
+                          checked={selectedAddonCategoryIds.includes(addonCat.id)}
+                          onCheckedChange={() => toggleAddonCategory(addonCat.id)}
+                          className="mt-0.5"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">{addonCat.name}</span>
+                            {addonCat.is_required && (
+                              <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
+                                Obrigatória
+                              </Badge>
+                            )}
+                          </div>
+                          {addonCat.description && (
+                            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                              {addonCat.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {selectedAddonCategoryIds.length > 0 && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      ✅ {selectedAddonCategoryIds.length} categoria(s) de adicionais vinculada(s)
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleOpenChange(false)}
+                  disabled={loading}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={loading || !name.trim()}>
+                  {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  {category ? 'Atualizar' : 'Criar Categoria'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
   );
 };

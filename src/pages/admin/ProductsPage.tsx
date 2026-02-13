@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,12 +11,13 @@ import { DeleteAllProductsDialog } from '@/components/admin/products/DeleteAllPr
 import { BulkImageSyncDialog } from '@/components/admin/products/BulkImageSyncDialog';
 import { ProductFiltersComponent, ProductFilters, defaultFilters } from '@/components/admin/products/ProductFilters';
 import { ActiveFiltersBar } from '@/components/admin/products/ActiveFiltersBar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { usePageSEO } from '@/hooks/useSEO';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Package, Plus, Search, Edit, Trash2, Grid, ArrowUp, ArrowDown, GripVertical, AlertCircle, ArrowDownAZ, PackageX, Upload, ChevronDown, FileSpreadsheet, Star, ImagePlus, Copy } from 'lucide-react';
+import { Loader2, Package, Plus, Search, Edit, Trash2, Grid, ArrowUp, ArrowDown, GripVertical, AlertCircle, ArrowDownAZ, PackageX, Upload, ChevronDown, FileSpreadsheet, Star, ImagePlus, Copy, X } from 'lucide-react';
 import { ProductDescription } from '@/components/ProductDescription';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -48,6 +49,12 @@ interface ProductData {
   stock_alert_threshold: number | null;
   // Adicionais associados
   addon_category_names?: string[];
+  addon_category_ids?: string[];
+}
+
+interface AddonCategoryInfo {
+  id: string;
+  name: string;
 }
 
 interface CategoryData {
@@ -89,6 +96,7 @@ const ProductsPage = () => {
   const [totalProductsCount, setTotalProductsCount] = useState(0);
   const [activeProductsCount, setActiveProductsCount] = useState(0);
   const [allProducts, setAllProducts] = useState<ProductData[]>([]);
+  const [allAddonCategories, setAllAddonCategories] = useState<AddonCategoryInfo[]>([]);
   const PAGE_SIZE = 100;
   
   const { user, userRole } = useAuth();
@@ -124,7 +132,7 @@ const ProductsPage = () => {
 
       // Na primeira página: executar todas as queries em PARALELO
       if (page === 0) {
-        const [productsResult, categoriesResult, totalCountResult, activeCountResult] = await Promise.all([
+        const [productsResult, categoriesResult, totalCountResult, activeCountResult, addonCatsResult] = await Promise.all([
           productsQuery.order('display_order', { ascending: true }).range(from, to),
           supabase
             .from('categories')
@@ -141,7 +149,18 @@ const ProductsPage = () => {
             .select('id', { count: 'exact', head: true })
             .eq('store_id', storeId)
             .eq('is_available', true),
+          supabase
+            .from('addon_categories')
+            .select('id, name')
+            .eq('store_id', storeId)
+            .eq('is_active', true)
+            .order('name'),
         ]);
+
+        // Cachear categorias de adicionais
+        if (addonCatsResult.data) {
+          setAllAddonCategories(addonCatsResult.data as AddonCategoryInfo[]);
+        }
 
         if (productsResult.error) throw productsResult.error;
         if (categoriesResult.error) {
@@ -176,26 +195,33 @@ const ProductsPage = () => {
               acData?.forEach(ac => { addonCategoriesMap[ac.id] = ac.name; });
             }
 
-            // Mapear addon_id -> category_name
+            // Mapear addon_id -> { category_name, category_id }
             const addonToCategoryName: Record<string, string> = {};
+            const addonToCategoryId: Record<string, string> = {};
             addonsData?.forEach(a => {
               if (a.category_id && addonCategoriesMap[a.category_id]) {
                 addonToCategoryName[a.id] = addonCategoriesMap[a.category_id];
+                addonToCategoryId[a.id] = a.category_id;
               } else {
                 addonToCategoryName[a.id] = a.name;
               }
             });
 
-            // Atribuir nomes de categorias de adicionais a cada produto
-            const productAddonMap: Record<string, Set<string>> = {};
+            // Atribuir nomes e IDs de categorias de adicionais a cada produto
+            const productAddonNameMap: Record<string, Set<string>> = {};
+            const productAddonIdMap: Record<string, Set<string>> = {};
             paData.forEach(pa => {
-              if (!productAddonMap[pa.product_id]) productAddonMap[pa.product_id] = new Set();
+              if (!productAddonNameMap[pa.product_id]) productAddonNameMap[pa.product_id] = new Set();
+              if (!productAddonIdMap[pa.product_id]) productAddonIdMap[pa.product_id] = new Set();
               const catName = addonToCategoryName[pa.addon_id];
-              if (catName) productAddonMap[pa.product_id].add(catName);
+              const catId = addonToCategoryId[pa.addon_id];
+              if (catName) productAddonNameMap[pa.product_id].add(catName);
+              if (catId) productAddonIdMap[pa.product_id].add(catId);
             });
 
             newProducts.forEach(p => {
-              p.addon_category_names = productAddonMap[p.id] ? [...productAddonMap[p.id]] : [];
+              p.addon_category_names = productAddonNameMap[p.id] ? [...productAddonNameMap[p.id]] : [];
+              p.addon_category_ids = productAddonIdMap[p.id] ? [...productAddonIdMap[p.id]] : [];
             });
           }
         }
@@ -423,6 +449,78 @@ const ProductsPage = () => {
     setShowEditForm(false);
     setEditingProductId(null);
   };
+
+  // Adicionar categoria de adicional ao produto diretamente
+  const handleAddAddonCategory = useCallback(async (productId: string, addonCategoryId: string) => {
+    try {
+      // Buscar todos os addons dessa categoria
+      const { data: addonsData } = await supabase
+        .from('addons')
+        .select('id')
+        .eq('category_id', addonCategoryId);
+
+      if (!addonsData || addonsData.length === 0) {
+        toast({ title: 'Aviso', description: 'Nenhum adicional nesta categoria.' });
+        return;
+      }
+
+      // Buscar addons já vinculados ao produto para evitar duplicatas
+      const { data: existingAddons } = await supabase
+        .from('product_addons')
+        .select('addon_id')
+        .eq('product_id', productId);
+
+      const existingIds = new Set((existingAddons || []).map(a => a.addon_id));
+      const newAddons = addonsData.filter(a => !existingIds.has(a.id));
+
+      if (newAddons.length > 0) {
+        const { error } = await supabase
+          .from('product_addons')
+          .insert(newAddons.map(a => ({
+            product_id: productId,
+            addon_id: a.id,
+            is_required: false,
+            max_quantity: 1,
+          })));
+
+        if (error) throw error;
+      }
+
+      toast({ title: 'Sucesso', description: 'Adicional vinculado ao produto!' });
+      fetchCategoriesAndProducts(0, false);
+    } catch (error) {
+      console.error('Erro ao adicionar adicional:', error);
+      toast({ title: 'Erro', description: 'Não foi possível adicionar o adicional.', variant: 'destructive' });
+    }
+  }, [toast]);
+
+  // Remover categoria de adicional do produto
+  const handleRemoveAddonCategory = useCallback(async (productId: string, addonCategoryId: string) => {
+    try {
+      // Buscar todos os addons dessa categoria
+      const { data: addonsData } = await supabase
+        .from('addons')
+        .select('id')
+        .eq('category_id', addonCategoryId);
+
+      if (addonsData && addonsData.length > 0) {
+        const addonIds = addonsData.map(a => a.id);
+        const { error } = await supabase
+          .from('product_addons')
+          .delete()
+          .eq('product_id', productId)
+          .in('addon_id', addonIds);
+
+        if (error) throw error;
+      }
+
+      toast({ title: 'Sucesso', description: 'Adicional removido do produto!' });
+      fetchCategoriesAndProducts(0, false);
+    } catch (error) {
+      console.error('Erro ao remover adicional:', error);
+      toast({ title: 'Erro', description: 'Não foi possível remover o adicional.', variant: 'destructive' });
+    }
+  }, [toast]);
 
   const handleToggleAvailability = async (productId: string, currentStatus: boolean) => {
     try {
@@ -1365,24 +1463,56 @@ const ProductsPage = () => {
                                             {/* Tipos de Adicionais */}
                                             <div className="flex items-center gap-1.5 flex-wrap">
                                               {product.addon_category_names && product.addon_category_names.length > 0 && (
-                                                product.addon_category_names.map((name) => (
-                                                  <Badge key={name} variant="outline" className="text-[10px] px-1.5 py-0 h-5 border-primary/30 text-primary">
-                                                    {name}
-                                                  </Badge>
-                                                ))
+                                                product.addon_category_names.map((name, idx) => {
+                                                  const catId = product.addon_category_ids?.[idx];
+                                                  return (
+                                                    <Badge key={name} variant="outline" className="text-[10px] px-1.5 py-0 h-5 border-primary/30 text-primary flex items-center gap-0.5">
+                                                      {name}
+                                                      {catId && (
+                                                        <button
+                                                          onClick={(e) => { e.stopPropagation(); handleRemoveAddonCategory(product.id, catId); }}
+                                                          className="ml-0.5 hover:text-destructive"
+                                                          title="Remover adicional"
+                                                        >
+                                                          <X className="w-2.5 h-2.5" />
+                                                        </button>
+                                                      )}
+                                                    </Badge>
+                                                  );
+                                                })
                                               )}
-                                              <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="h-5 w-5 p-0 border-primary/30 text-primary hover:bg-primary/10"
-                                                onClick={() => {
-                                                  setEditingProductId(product.id);
-                                                  setShowEditForm(true);
-                                                }}
-                                                title="Gerenciar adicionais"
-                                              >
-                                                <Plus className="w-3 h-3" />
-                                              </Button>
+                                              {(() => {
+                                                const usedIds = new Set(product.addon_category_ids || []);
+                                                const available = allAddonCategories.filter(ac => !usedIds.has(ac.id));
+                                                if (available.length === 0) return null;
+                                                return (
+                                                  <Popover>
+                                                    <PopoverTrigger asChild>
+                                                      <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="h-5 w-5 p-0 border-primary/30 text-primary hover:bg-primary/10"
+                                                        title="Adicionar categoria de adicional"
+                                                      >
+                                                        <Plus className="w-3 h-3" />
+                                                      </Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-48 p-1" align="start">
+                                                      <div className="space-y-0.5">
+                                                        {available.map(ac => (
+                                                          <button
+                                                            key={ac.id}
+                                                            className="w-full text-left px-2 py-1.5 text-xs rounded hover:bg-accent transition-colors"
+                                                            onClick={() => handleAddAddonCategory(product.id, ac.id)}
+                                                          >
+                                                            {ac.name}
+                                                          </button>
+                                                        ))}
+                                                      </div>
+                                                    </PopoverContent>
+                                                  </Popover>
+                                                );
+                                              })()}
                                             </div>
                                           </div>
                                           

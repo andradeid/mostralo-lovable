@@ -16,7 +16,7 @@ interface AddonCategoryOption {
   id: string;
   name: string;
   description: string | null;
-  is_required: boolean;
+  is_required: boolean | null;
 }
 
 interface CategoryFormProps {
@@ -30,15 +30,17 @@ interface CategoryFormProps {
     is_active: boolean;
     display_order: number;
   } | null;
+  storeId?: string | null;
 }
 
-export const CategoryForm = ({ open, onOpenChange, onSuccess, category }: CategoryFormProps) => {
+export const CategoryForm = ({ open, onOpenChange, onSuccess, category, storeId: propStoreId }: CategoryFormProps) => {
   const [name, setName] = useState(category?.name || '');
   const [description, setDescription] = useState(category?.description || '');
   const [isActive, setIsActive] = useState(category?.is_active ?? true);
   const [loading, setLoading] = useState(false);
   const [addonCategories, setAddonCategories] = useState<AddonCategoryOption[]>([]);
   const [selectedAddonCategoryIds, setSelectedAddonCategoryIds] = useState<string[]>([]);
+  const [resolvedStoreId, setResolvedStoreId] = useState<string | null>(propStoreId || null);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -47,40 +49,66 @@ export const CategoryForm = ({ open, onOpenChange, onSuccess, category }: Catego
       setName(category?.name || '');
       setDescription(category?.description || '');
       setIsActive(category?.is_active ?? true);
-      fetchAddonCategories();
+      
+      // Resolve storeId if not passed as prop
+      if (propStoreId) {
+        setResolvedStoreId(propStoreId);
+        fetchAddonCategories(propStoreId);
+      } else {
+        resolveStoreId();
+      }
+      
       if (category?.id) {
         fetchLinkedAddonCategories(category.id);
       } else {
         setSelectedAddonCategoryIds([]);
       }
     }
-  }, [open, category]);
+  }, [open, category, propStoreId]);
 
-  const getStoreId = async (): Promise<string | null> => {
-    if (!user) return null;
-    const { data } = await supabase.from('stores').select('id').eq('owner_id', user.id).single();
-    return data?.id || null;
+  const resolveStoreId = async () => {
+    if (!user) return;
+    try {
+      const { data } = await supabase.from('stores').select('id').eq('owner_id', user.id).single();
+      if (data?.id) {
+        setResolvedStoreId(data.id);
+        fetchAddonCategories(data.id);
+      }
+    } catch (error) {
+      console.error('Erro ao resolver storeId:', error);
+    }
   };
 
-  const fetchAddonCategories = async () => {
-    const storeId = await getStoreId();
-    if (!storeId) return;
-    const { data } = await supabase
-      .from('addon_categories')
-      .select('id, name, description, is_required')
-      .eq('store_id', storeId)
-      .eq('is_active', true)
-      .order('display_order');
-    if (data) setAddonCategories(data);
+  const fetchAddonCategories = async (storeId: string) => {
+    try {
+      const { data } = await supabase
+        .from('addon_categories')
+        .select('id, name, description, is_required')
+        .eq('store_id', storeId)
+        .eq('is_active', true)
+        .order('display_order');
+      if (data) setAddonCategories(data);
+    } catch (error) {
+      console.error('Erro ao buscar categorias de adicionais:', error);
+    }
   };
 
   const fetchLinkedAddonCategories = async (categoryId: string) => {
-    const { data } = await supabase
-      .from('category_addon_categories')
-      .select('addon_category_id')
-      .eq('category_id', categoryId);
-    if (data) {
-      setSelectedAddonCategoryIds(data.map(d => d.addon_category_id));
+    try {
+      const { data, error } = await supabase
+        .from('category_addon_categories')
+        .select('addon_category_id')
+        .eq('category_id', categoryId);
+      
+      if (error) {
+        console.error('Erro ao buscar vínculos:', error);
+        return;
+      }
+      if (data) {
+        setSelectedAddonCategoryIds(data.map(d => d.addon_category_id));
+      }
+    } catch (error) {
+      console.error('Erro ao buscar vínculos de adicionais:', error);
     }
   };
 
@@ -96,17 +124,18 @@ export const CategoryForm = ({ open, onOpenChange, onSuccess, category }: Catego
     e.preventDefault();
     if (!user || !name.trim()) return;
 
+    const storeId = resolvedStoreId;
+    if (!storeId) {
+      toast({ title: 'Erro', description: 'Loja não encontrada.', variant: 'destructive' });
+      return;
+    }
+
     setLoading(true);
     try {
-      const storeId = await getStoreId();
-      if (!storeId) {
-        toast({ title: 'Erro', description: 'Loja não encontrada.', variant: 'destructive' });
-        return;
-      }
-
       let categoryId = category?.id;
 
       if (category) {
+        // Editar categoria existente
         const { error } = await supabase
           .from('categories')
           .update({
@@ -118,6 +147,7 @@ export const CategoryForm = ({ open, onOpenChange, onSuccess, category }: Catego
           .eq('id', category.id);
         if (error) throw error;
       } else {
+        // Criar nova categoria
         const { data: maxOrderData } = await supabase
           .from('categories')
           .select('display_order')
@@ -141,16 +171,20 @@ export const CategoryForm = ({ open, onOpenChange, onSuccess, category }: Catego
           .select('id')
           .single();
         if (error) throw error;
-        categoryId = newCat.id;
+        categoryId = newCat?.id;
       }
 
       // Salvar vínculos de categorias de adicionais
       if (categoryId) {
         // Remover todos os vínculos existentes
-        await supabase
+        const { error: deleteError } = await supabase
           .from('category_addon_categories')
           .delete()
           .eq('category_id', categoryId);
+
+        if (deleteError) {
+          console.error('Erro ao remover vínculos:', deleteError);
+        }
 
         // Inserir novos vínculos
         if (selectedAddonCategoryIds.length > 0) {
@@ -162,7 +196,10 @@ export const CategoryForm = ({ open, onOpenChange, onSuccess, category }: Catego
           const { error: linkError } = await supabase
             .from('category_addon_categories')
             .insert(links);
-          if (linkError) throw linkError;
+          if (linkError) {
+            console.error('Erro ao salvar vínculos:', linkError);
+            throw linkError;
+          }
         }
       }
 
@@ -253,55 +290,53 @@ export const CategoryForm = ({ open, onOpenChange, onSuccess, category }: Catego
 
           {/* Categorias de Adicionais */}
           {addonCategories.length > 0 && (
-            <>
-              <div className="border-t pt-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Package className="w-4 h-4 text-muted-foreground" />
-                  <Label className="text-sm font-medium">Categorias de Adicionais</Label>
-                </div>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Selecione quais categorias de adicionais serão aplicadas automaticamente a todos os produtos desta categoria.
-                </p>
+            <div className="border-t pt-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Package className="w-4 h-4 text-muted-foreground" />
+                <Label className="text-sm font-medium">Categorias de Adicionais</Label>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">
+                Selecione quais categorias de adicionais serão aplicadas automaticamente a todos os produtos desta categoria.
+              </p>
 
-                <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
-                  {addonCategories.map((addonCat) => (
-                    <div
-                      key={addonCat.id}
-                      className="flex items-start space-x-3 p-2.5 border rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
-                      onClick={() => toggleAddonCategory(addonCat.id)}
-                    >
-                      <Checkbox
-                        id={`addon-cat-${addonCat.id}`}
-                        checked={selectedAddonCategoryIds.includes(addonCat.id)}
-                        onCheckedChange={() => toggleAddonCategory(addonCat.id)}
-                        className="mt-0.5"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">{addonCat.name}</span>
-                          {addonCat.is_required && (
-                            <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
-                              Obrigatória
-                            </Badge>
-                          )}
-                        </div>
-                        {addonCat.description && (
-                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                            {addonCat.description}
-                          </p>
+              <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
+                {addonCategories.map((addonCat) => (
+                  <div
+                    key={addonCat.id}
+                    className="flex items-start space-x-3 p-2.5 border rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
+                    onClick={() => toggleAddonCategory(addonCat.id)}
+                  >
+                    <Checkbox
+                      id={`addon-cat-${addonCat.id}`}
+                      checked={selectedAddonCategoryIds.includes(addonCat.id)}
+                      onCheckedChange={() => toggleAddonCategory(addonCat.id)}
+                      className="mt-0.5"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">{addonCat.name}</span>
+                        {addonCat.is_required && (
+                          <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
+                            Obrigatória
+                          </Badge>
                         )}
                       </div>
+                      {addonCat.description && (
+                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                          {addonCat.description}
+                        </p>
+                      )}
                     </div>
-                  ))}
-                </div>
-
-                {selectedAddonCategoryIds.length > 0 && (
-                  <p className="text-xs text-green-600 mt-2">
-                    {selectedAddonCategoryIds.length} categoria(s) de adicionais vinculada(s)
-                  </p>
-                )}
+                  </div>
+                ))}
               </div>
-            </>
+
+              {selectedAddonCategoryIds.length > 0 && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  ✅ {selectedAddonCategoryIds.length} categoria(s) de adicionais vinculada(s)
+                </p>
+              )}
+            </div>
           )}
 
           <DialogFooter>

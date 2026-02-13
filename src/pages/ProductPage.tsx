@@ -357,45 +357,16 @@ const ProductPage = () => {
         .select('addon_id')
         .eq('product_id', productData.id);
 
-      // Also fetch addon categories linked to the product's category
-      const { data: categoryAddonLinks } = await supabase
-        .from('category_addon_categories')
-        .select('addon_category_id')
-        .eq('category_id', productData.category_id);
-
       console.log('Product addons:', productAddonsData);
-      console.log('Category addon links:', categoryAddonLinks);
 
-      // Combine: product-specific addon IDs + all addons from category-linked addon categories
-      let allAddonIds: string[] = [];
-
-      if (productAddonsData?.length) {
-        allAddonIds = productAddonsData.map(pa => pa.addon_id);
-      }
-
-      // Get addon IDs from category-linked addon categories
-      let categoryLinkedAddonCatIds: string[] = [];
-      if (categoryAddonLinks?.length) {
-        categoryLinkedAddonCatIds = categoryAddonLinks.map(l => l.addon_category_id);
+      if (productAddonsData?.length > 0) {
+        const addonIds = productAddonsData.map(pa => pa.addon_id);
         
-        const { data: categoryAddonsData } = await supabase
-          .from('addons')
-          .select('id')
-          .in('category_id', categoryLinkedAddonCatIds)
-          .eq('is_available', true);
-
-        if (categoryAddonsData?.length) {
-          const categoryAddonIds = categoryAddonsData.map(a => a.id);
-          allAddonIds = [...new Set([...allAddonIds, ...categoryAddonIds])];
-        }
-      }
-
-      if (allAddonIds.length > 0) {
         // Fetch the actual addons
         const { data: addonsData, error: addonsError } = await supabase
           .from('addons')
           .select('id, name, description, price, is_available, category_id')
-          .in('id', allAddonIds)
+          .in('id', addonIds)
           .eq('is_available', true)
           .order('display_order');
 

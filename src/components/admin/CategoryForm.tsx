@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
+import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
@@ -318,11 +318,23 @@ export const CategoryForm = ({ open, onOpenChange, onSuccess, category, storeId:
               </div>
 
               <div className="flex items-center space-x-2">
-                <Switch
-                  id="is_active"
-                  checked={isActive}
-                  onCheckedChange={setIsActive}
-                />
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={isActive}
+                  onClick={() => setIsActive(!isActive)}
+                  className={cn(
+                    "peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                    isActive ? "bg-primary" : "bg-input"
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform",
+                      isActive ? "translate-x-5" : "translate-x-0"
+                    )}
+                  />
+                </button>
                 <Label htmlFor="is_active" className="text-sm">
                   Categoria ativa (visível na loja)
                 </Label>

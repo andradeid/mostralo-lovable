@@ -383,6 +383,7 @@ const CategoriesPage = () => {
                 }}
                 onSuccess={fetchCategories}
                 category={editingCategory}
+                storeId={validatedStoreId}
               />
 
               <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

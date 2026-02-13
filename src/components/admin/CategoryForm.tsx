@@ -44,27 +44,38 @@ export const CategoryForm = ({ open, onOpenChange, onSuccess, category, storeId:
   const { user } = useAuth();
   const { toast } = useToast();
 
+  // Separate effect for form reset (no async)
   useEffect(() => {
-    if (open) {
-      setName(category?.name || '');
-      setDescription(category?.description || '');
-      setIsActive(category?.is_active ?? true);
-      
-      // Resolve storeId if not passed as prop
-      if (propStoreId) {
-        setResolvedStoreId(propStoreId);
-        fetchAddonCategories(propStoreId);
-      } else {
-        resolveStoreId();
-      }
-      
-      if (category?.id) {
-        fetchLinkedAddonCategories(category.id);
-      } else {
-        setSelectedAddonCategoryIds([]);
-      }
+    if (!open) return;
+    setName(category?.name || '');
+    setDescription(category?.description || '');
+    setIsActive(category?.is_active ?? true);
+    if (!category?.id) {
+      setSelectedAddonCategoryIds([]);
     }
-  }, [open, category, propStoreId]);
+  }, [open, category?.id, category?.name, category?.description, category?.is_active]);
+
+  // Separate effect for store resolution and data fetching
+  useEffect(() => {
+    if (!open) return;
+    
+    const storeIdToUse = propStoreId || resolvedStoreId;
+    
+    if (propStoreId && propStoreId !== resolvedStoreId) {
+      setResolvedStoreId(propStoreId);
+    }
+    
+    if (storeIdToUse) {
+      fetchAddonCategories(storeIdToUse);
+    } else if (!propStoreId) {
+      resolveStoreId();
+    }
+    
+    if (category?.id) {
+      fetchLinkedAddonCategories(category.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, propStoreId, category?.id]);
 
   const resolveStoreId = async () => {
     if (!user) return;

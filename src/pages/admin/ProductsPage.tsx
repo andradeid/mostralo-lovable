@@ -1360,7 +1360,6 @@ const ProductsPage = () => {
           setCategoryFormOpen(false);
           fetchCategoriesAndProducts(0, false);
         }}
-        storeId={validatedStoreId}
       />
 
       {/* Modal do formulário de edição de produto */}

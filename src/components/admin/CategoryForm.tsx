@@ -125,7 +125,10 @@ export const CategoryForm = ({ open, onOpenChange, onSuccess, category, storeId:
     if (!user || !name.trim()) return;
 
     const storeId = resolvedStoreId;
+    console.log('📝 CategoryForm handleSubmit:', { storeId, userId: user.id, categoryId: category?.id, selectedAddonCategoryIds });
+    
     if (!storeId) {
+      console.error('❌ CategoryForm: storeId não encontrado');
       toast({ title: 'Erro', description: 'Loja não encontrada.', variant: 'destructive' });
       return;
     }
@@ -175,15 +178,19 @@ export const CategoryForm = ({ open, onOpenChange, onSuccess, category, storeId:
       }
 
       // Salvar vínculos de categorias de adicionais
+      console.log('🔗 Salvando vínculos:', { categoryId, selectedAddonCategoryIds, storeId });
+      
       if (categoryId) {
         // Remover todos os vínculos existentes
-        const { error: deleteError } = await supabase
+        const { error: deleteError, count: deleteCount } = await supabase
           .from('category_addon_categories')
           .delete()
           .eq('category_id', categoryId);
 
+        console.log('🗑️ Delete vínculos:', { deleteError, deleteCount });
+
         if (deleteError) {
-          console.error('Erro ao remover vínculos:', deleteError);
+          console.error('❌ Erro ao remover vínculos:', deleteError);
         }
 
         // Inserir novos vínculos
@@ -193,11 +200,16 @@ export const CategoryForm = ({ open, onOpenChange, onSuccess, category, storeId:
             addon_category_id: addonCatId,
             store_id: storeId,
           }));
-          const { error: linkError } = await supabase
+          console.log('📤 Inserindo vínculos:', links);
+          
+          const { error: linkError, data: linkData } = await supabase
             .from('category_addon_categories')
             .insert(links);
+          
+          console.log('📥 Resultado insert vínculos:', { linkError, linkData });
+          
           if (linkError) {
-            console.error('Erro ao salvar vínculos:', linkError);
+            console.error('❌ Erro ao salvar vínculos:', linkError);
             throw linkError;
           }
         }

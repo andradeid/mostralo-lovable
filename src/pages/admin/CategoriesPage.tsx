@@ -89,35 +89,30 @@ const CategoriesPage = () => {
     }
   };
 
-  const moveCategoryUp = async (categoryIndex: number) => {
-    if (categoryIndex === 0) return;
-
-    const currentCategory = filteredCategories[categoryIndex];
-    const previousCategory = filteredCategories[categoryIndex - 1];
-
+  // Normaliza display_order de todas as categorias e salva no banco
+  const normalizeAndSave = async (reordered: CategoryData[]) => {
     try {
-      const { error } = await supabase
-        .from('categories')
-        .update({ display_order: previousCategory.display_order })
-        .eq('id', currentCategory.id);
+      // Atualiza cada categoria com seu novo display_order baseado na posição
+      const updates = reordered.map((cat, index) => 
+        supabase
+          .from('categories')
+          .update({ display_order: index + 1 })
+          .eq('id', cat.id)
+      );
 
-      if (error) throw error;
+      const results = await Promise.all(updates);
+      const hasError = results.some(r => r.error);
 
-      const { error: error2 } = await supabase
-        .from('categories')
-        .update({ display_order: currentCategory.display_order })
-        .eq('id', previousCategory.id);
-
-      if (error2) throw error2;
+      if (hasError) throw new Error('Erro ao salvar ordem');
 
       toast({
         title: 'Sucesso',
-        description: 'Categoria movida para cima.',
+        description: 'Ordem atualizada.',
       });
 
       fetchCategories();
     } catch (error) {
-      console.error('Erro ao mover categoria:', error);
+      console.error('Erro ao reordenar categorias:', error);
       toast({
         title: 'Erro',
         description: 'Erro ao alterar ordem da categoria.',
@@ -126,41 +121,20 @@ const CategoriesPage = () => {
     }
   };
 
+  const moveCategoryUp = async (categoryIndex: number) => {
+    if (categoryIndex === 0) return;
+    const reordered = [...filteredCategories];
+    const [removed] = reordered.splice(categoryIndex, 1);
+    reordered.splice(categoryIndex - 1, 0, removed);
+    await normalizeAndSave(reordered);
+  };
+
   const moveCategoryDown = async (categoryIndex: number) => {
     if (categoryIndex === filteredCategories.length - 1) return;
-
-    const currentCategory = filteredCategories[categoryIndex];
-    const nextCategory = filteredCategories[categoryIndex + 1];
-
-    try {
-      const { error } = await supabase
-        .from('categories')
-        .update({ display_order: nextCategory.display_order })
-        .eq('id', currentCategory.id);
-
-      if (error) throw error;
-
-      const { error: error2 } = await supabase
-        .from('categories')
-        .update({ display_order: currentCategory.display_order })
-        .eq('id', nextCategory.id);
-
-      if (error2) throw error2;
-
-      toast({
-        title: 'Sucesso',
-        description: 'Categoria movida para baixo.',
-      });
-
-      fetchCategories();
-    } catch (error) {
-      console.error('Erro ao mover categoria:', error);
-      toast({
-        title: 'Erro',
-        description: 'Erro ao alterar ordem da categoria.',
-        variant: 'destructive'
-      });
-    }
+    const reordered = [...filteredCategories];
+    const [removed] = reordered.splice(categoryIndex, 1);
+    reordered.splice(categoryIndex + 1, 0, removed);
+    await normalizeAndSave(reordered);
   };
 
   const handleDeleteCategory = async () => {

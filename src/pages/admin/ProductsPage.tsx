@@ -46,6 +46,8 @@ interface ProductData {
   track_stock: boolean | null;
   stock_quantity: number | null;
   stock_alert_threshold: number | null;
+  // Adicionais associados
+  addon_category_names?: string[];
 }
 
 interface CategoryData {
@@ -147,6 +149,57 @@ const ProductsPage = () => {
         }
 
         const newProducts = (productsResult.data || []) as ProductData[];
+        
+        // Buscar adicionais dos produtos carregados
+        if (newProducts.length > 0) {
+          const productIds = newProducts.map(p => p.id);
+          const { data: paData } = await supabase
+            .from('product_addons')
+            .select('product_id, addon_id')
+            .in('product_id', productIds);
+          
+          if (paData && paData.length > 0) {
+            const addonIds = [...new Set(paData.map(pa => pa.addon_id))];
+            const { data: addonsData } = await supabase
+              .from('addons')
+              .select('id, name, category_id')
+              .in('id', addonIds);
+            
+            // Buscar nomes das categorias de adicionais
+            const categoryIds = [...new Set((addonsData || []).map(a => a.category_id).filter(Boolean))] as string[];
+            let addonCategoriesMap: Record<string, string> = {};
+            if (categoryIds.length > 0) {
+              const { data: acData } = await supabase
+                .from('addon_categories')
+                .select('id, name')
+                .in('id', categoryIds);
+              acData?.forEach(ac => { addonCategoriesMap[ac.id] = ac.name; });
+            }
+
+            // Mapear addon_id -> category_name
+            const addonToCategoryName: Record<string, string> = {};
+            addonsData?.forEach(a => {
+              if (a.category_id && addonCategoriesMap[a.category_id]) {
+                addonToCategoryName[a.id] = addonCategoriesMap[a.category_id];
+              } else {
+                addonToCategoryName[a.id] = a.name;
+              }
+            });
+
+            // Atribuir nomes de categorias de adicionais a cada produto
+            const productAddonMap: Record<string, Set<string>> = {};
+            paData.forEach(pa => {
+              if (!productAddonMap[pa.product_id]) productAddonMap[pa.product_id] = new Set();
+              const catName = addonToCategoryName[pa.addon_id];
+              if (catName) productAddonMap[pa.product_id].add(catName);
+            });
+
+            newProducts.forEach(p => {
+              p.addon_category_names = productAddonMap[p.id] ? [...productAddonMap[p.id]] : [];
+            });
+          }
+        }
+
         setAllProducts(newProducts);
         setCurrentPage(0);
         setHasMoreProducts(newProducts.length === PAGE_SIZE);
@@ -169,6 +222,54 @@ const ProductsPage = () => {
         if (error) throw error;
 
         const newProducts = (data || []) as ProductData[];
+        
+        // Buscar adicionais dos novos produtos
+        if (newProducts.length > 0) {
+          const productIds = newProducts.map(p => p.id);
+          const { data: paData } = await supabase
+            .from('product_addons')
+            .select('product_id, addon_id')
+            .in('product_id', productIds);
+          
+          if (paData && paData.length > 0) {
+            const addonIds = [...new Set(paData.map(pa => pa.addon_id))];
+            const { data: addonsData } = await supabase
+              .from('addons')
+              .select('id, name, category_id')
+              .in('id', addonIds);
+            
+            const categoryIds = [...new Set((addonsData || []).map(a => a.category_id).filter(Boolean))] as string[];
+            let addonCategoriesMap: Record<string, string> = {};
+            if (categoryIds.length > 0) {
+              const { data: acData } = await supabase
+                .from('addon_categories')
+                .select('id, name')
+                .in('id', categoryIds);
+              acData?.forEach(ac => { addonCategoriesMap[ac.id] = ac.name; });
+            }
+
+            const addonToCategoryName: Record<string, string> = {};
+            addonsData?.forEach(a => {
+              if (a.category_id && addonCategoriesMap[a.category_id]) {
+                addonToCategoryName[a.id] = addonCategoriesMap[a.category_id];
+              } else {
+                addonToCategoryName[a.id] = a.name;
+              }
+            });
+
+            const productAddonMap: Record<string, Set<string>> = {};
+            paData.forEach(pa => {
+              if (!productAddonMap[pa.product_id]) productAddonMap[pa.product_id] = new Set();
+              const catName = addonToCategoryName[pa.addon_id];
+              if (catName) productAddonMap[pa.product_id].add(catName);
+            });
+
+            newProducts.forEach(p => {
+              p.addon_category_names = productAddonMap[p.id] ? [...productAddonMap[p.id]] : [];
+            });
+          }
+        }
+
         const updatedProducts = append ? [...allProducts, ...newProducts] : newProducts;
         setAllProducts(updatedProducts);
         setCurrentPage(page);
@@ -1260,6 +1361,17 @@ const ProductsPage = () => {
                                                 Destaque
                                               </span>
                                             </div>
+
+                                            {/* Tipos de Adicionais */}
+                                            {product.addon_category_names && product.addon_category_names.length > 0 && (
+                                              <div className="flex items-center gap-1.5 flex-wrap">
+                                                {product.addon_category_names.map((name) => (
+                                                  <Badge key={name} variant="outline" className="text-[10px] px-1.5 py-0 h-5 border-primary/30 text-primary">
+                                                    {name}
+                                                  </Badge>
+                                                ))}
+                                              </div>
+                                            )}
                                           </div>
                                           
                                           {/* Botões de Ação */}

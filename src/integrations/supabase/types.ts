@@ -1069,6 +1069,59 @@ export type Database = {
           },
         ]
       }
+      category_addon_categories: {
+        Row: {
+          addon_category_id: string
+          category_id: string
+          created_at: string
+          id: string
+          store_id: string
+        }
+        Insert: {
+          addon_category_id: string
+          category_id: string
+          created_at?: string
+          id?: string
+          store_id: string
+        }
+        Update: {
+          addon_category_id?: string
+          category_id?: string
+          created_at?: string
+          id?: string
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "category_addon_categories_addon_category_id_fkey"
+            columns: ["addon_category_id"]
+            isOneToOne: false
+            referencedRelation: "addon_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "category_addon_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "category_addon_categories_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "public_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "category_addon_categories_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       category_crosssell_rules: {
         Row: {
           created_at: string | null

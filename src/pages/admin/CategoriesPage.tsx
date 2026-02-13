@@ -375,16 +375,18 @@ const CategoriesPage = () => {
         </CardContent>
       </Card>
 
-              <CategoryForm
-                open={categoryFormOpen}
-                onOpenChange={(open) => {
-                  setCategoryFormOpen(open);
-                  if (!open) setEditingCategory(null);
-                }}
-                onSuccess={fetchCategories}
-                category={editingCategory}
-                storeId={validatedStoreId}
-              />
+              {categoryFormOpen && (
+                <CategoryForm
+                  open={categoryFormOpen}
+                  onOpenChange={(open) => {
+                    setCategoryFormOpen(open);
+                    if (!open) setEditingCategory(null);
+                  }}
+                  onSuccess={fetchCategories}
+                  category={editingCategory}
+                  storeId={validatedStoreId}
+                />
+              )}
 
               <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <AlertDialogContent>

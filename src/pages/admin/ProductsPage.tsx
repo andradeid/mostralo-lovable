@@ -1363,15 +1363,27 @@ const ProductsPage = () => {
                                             </div>
 
                                             {/* Tipos de Adicionais */}
-                                            {product.addon_category_names && product.addon_category_names.length > 0 && (
-                                              <div className="flex items-center gap-1.5 flex-wrap">
-                                                {product.addon_category_names.map((name) => (
+                                            <div className="flex items-center gap-1.5 flex-wrap">
+                                              {product.addon_category_names && product.addon_category_names.length > 0 && (
+                                                product.addon_category_names.map((name) => (
                                                   <Badge key={name} variant="outline" className="text-[10px] px-1.5 py-0 h-5 border-primary/30 text-primary">
                                                     {name}
                                                   </Badge>
-                                                ))}
-                                              </div>
-                                            )}
+                                                ))
+                                              )}
+                                              <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="h-5 w-5 p-0 border-primary/30 text-primary hover:bg-primary/10"
+                                                onClick={() => {
+                                                  setEditingProductId(product.id);
+                                                  setShowEditForm(true);
+                                                }}
+                                                title="Gerenciar adicionais"
+                                              >
+                                                <Plus className="w-3 h-3" />
+                                              </Button>
+                                            </div>
                                           </div>
                                           
                                           {/* Botões de Ação */}

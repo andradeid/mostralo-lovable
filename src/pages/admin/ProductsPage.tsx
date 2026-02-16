@@ -92,6 +92,7 @@ const ProductsPage = () => {
   const [editingPriceProductId, setEditingPriceProductId] = useState<string | null>(null);
   const [editingPriceValue, setEditingPriceValue] = useState<number>(0);
   const [savingPrice, setSavingPrice] = useState(false);
+  const [priceConfirmStep, setPriceConfirmStep] = useState(false);
   
   // Paginação
   const [currentPage, setCurrentPage] = useState(0);
@@ -458,11 +459,30 @@ const ProductsPage = () => {
   const handleStartPriceEdit = (product: ProductData) => {
     setEditingPriceProductId(product.id);
     setEditingPriceValue(product.price);
+    setPriceConfirmStep(false);
   };
 
   const handleCancelPriceEdit = () => {
     setEditingPriceProductId(null);
     setEditingPriceValue(0);
+    setPriceConfirmStep(false);
+  };
+
+  const handlePriceKeyDown = (e: React.KeyboardEvent, productId: string) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (!priceConfirmStep) {
+        setPriceConfirmStep(true);
+      } else {
+        handleConfirmPriceEdit(productId);
+      }
+    } else if (e.key === 'Escape') {
+      handleCancelPriceEdit();
+    }
+    // Se estava no passo de confirmação e digitou outra coisa, volta pro passo de edição
+    if (priceConfirmStep && e.key !== 'Enter' && e.key !== 'Escape') {
+      setPriceConfirmStep(false);
+    }
   };
 
   const handleConfirmPriceEdit = async (productId: string) => {
@@ -476,7 +496,6 @@ const ProductsPage = () => {
 
       if (error) throw error;
 
-      // Atualizar localmente sem recarregar
       setAllProducts(prev => prev.map(p => p.id === productId ? { ...p, price: editingPriceValue } : p));
       setCategories(prev => prev.map(cat => ({
         ...cat,
@@ -485,6 +504,7 @@ const ProductsPage = () => {
 
       toast({ title: 'Preço atualizado!' });
       setEditingPriceProductId(null);
+      setPriceConfirmStep(false);
     } catch (error) {
       console.error('Erro ao atualizar preço:', error);
       toast({ title: 'Erro', description: 'Erro ao atualizar preço.', variant: 'destructive' });
@@ -1373,19 +1393,25 @@ const ProductsPage = () => {
                                               </div>
                                               <div className="mt-1">
                                                 {editingPriceProductId === product.id ? (
-                                                  <div className="flex items-center gap-1">
-                                                    <CurrencyInput
-                                                      value={editingPriceValue}
-                                                      onChange={setEditingPriceValue}
-                                                      className="h-7 w-24 text-xs"
-                                                      autoFocus
-                                                    />
-                                                    <Button size="icon" variant="ghost" className="h-6 w-6 text-green-600" onClick={() => handleConfirmPriceEdit(product.id)} disabled={savingPrice}>
-                                                      {savingPrice ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
-                                                    </Button>
-                                                    <Button size="icon" variant="ghost" className="h-6 w-6 text-muted-foreground" onClick={handleCancelPriceEdit}>
-                                                      <X className="w-3 h-3" />
-                                                    </Button>
+                                                  <div className="flex flex-col gap-1">
+                                                    <div className="flex items-center gap-1">
+                                                      <CurrencyInput
+                                                        value={editingPriceValue}
+                                                        onChange={(v) => { setEditingPriceValue(v); setPriceConfirmStep(false); }}
+                                                        onKeyDown={(e) => handlePriceKeyDown(e, product.id)}
+                                                        className="h-7 w-24 text-xs"
+                                                        autoFocus
+                                                      />
+                                                      <Button size="icon" variant="ghost" className="h-6 w-6 text-green-600" onClick={() => priceConfirmStep ? handleConfirmPriceEdit(product.id) : setPriceConfirmStep(true)} disabled={savingPrice}>
+                                                        {savingPrice ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                                                      </Button>
+                                                      <Button size="icon" variant="ghost" className="h-6 w-6 text-muted-foreground" onClick={handleCancelPriceEdit}>
+                                                        <X className="w-3 h-3" />
+                                                      </Button>
+                                                    </div>
+                                                    {priceConfirmStep && (
+                                                      <span className="text-[10px] text-amber-600 font-medium animate-in fade-in">Pressione Enter para confirmar</span>
+                                                    )}
                                                   </div>
                                                 ) : product.is_on_offer && product.offer_price ? (
                                                   <div className="flex items-center gap-2">
@@ -1459,19 +1485,25 @@ const ProductsPage = () => {
                                               </div>
                                               <div className="flex flex-col items-end flex-shrink-0">
                                                 {editingPriceProductId === product.id ? (
-                                                  <div className="flex items-center gap-1">
-                                                    <CurrencyInput
-                                                      value={editingPriceValue}
-                                                      onChange={setEditingPriceValue}
-                                                      className="h-8 w-28 text-sm"
-                                                      autoFocus
-                                                    />
-                                                    <Button size="icon" variant="ghost" className="h-7 w-7 text-green-600" onClick={() => handleConfirmPriceEdit(product.id)} disabled={savingPrice}>
-                                                      {savingPrice ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                                                    </Button>
-                                                    <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground" onClick={handleCancelPriceEdit}>
-                                                      <X className="w-4 h-4" />
-                                                    </Button>
+                                                  <div className="flex flex-col items-end gap-1">
+                                                    <div className="flex items-center gap-1">
+                                                      <CurrencyInput
+                                                        value={editingPriceValue}
+                                                        onChange={(v) => { setEditingPriceValue(v); setPriceConfirmStep(false); }}
+                                                        onKeyDown={(e) => handlePriceKeyDown(e, product.id)}
+                                                        className="h-8 w-28 text-sm"
+                                                        autoFocus
+                                                      />
+                                                      <Button size="icon" variant="ghost" className="h-7 w-7 text-green-600" onClick={() => priceConfirmStep ? handleConfirmPriceEdit(product.id) : setPriceConfirmStep(true)} disabled={savingPrice}>
+                                                        {savingPrice ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                                                      </Button>
+                                                      <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground" onClick={handleCancelPriceEdit}>
+                                                        <X className="w-4 h-4" />
+                                                      </Button>
+                                                    </div>
+                                                    {priceConfirmStep && (
+                                                      <span className="text-xs text-amber-600 font-medium animate-in fade-in">Pressione Enter para confirmar</span>
+                                                    )}
                                                   </div>
                                                 ) : product.is_on_offer && product.offer_price ? (
                                                   <>

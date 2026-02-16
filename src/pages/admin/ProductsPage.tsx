@@ -17,7 +17,8 @@ import { useToast } from '@/hooks/use-toast';
 import { usePageSEO } from '@/hooks/useSEO';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Package, Plus, Search, Edit, Trash2, Grid, ArrowUp, ArrowDown, GripVertical, AlertCircle, ArrowDownAZ, PackageX, Upload, ChevronDown, FileSpreadsheet, Star, ImagePlus, Copy, X } from 'lucide-react';
+import { Loader2, Package, Plus, Search, Edit, Trash2, Grid, ArrowUp, ArrowDown, GripVertical, AlertCircle, ArrowDownAZ, PackageX, Upload, ChevronDown, FileSpreadsheet, Star, ImagePlus, Copy, X, Pencil, Check } from 'lucide-react';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { ProductDescription } from '@/components/ProductDescription';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -88,6 +89,9 @@ const ProductsPage = () => {
   const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
   const [showImageSyncDialog, setShowImageSyncDialog] = useState(false);
   const [filters, setFilters] = useState<ProductFilters>(defaultFilters);
+  const [editingPriceProductId, setEditingPriceProductId] = useState<string | null>(null);
+  const [editingPriceValue, setEditingPriceValue] = useState<number>(0);
+  const [savingPrice, setSavingPrice] = useState(false);
   
   // Paginação
   const [currentPage, setCurrentPage] = useState(0);
@@ -448,6 +452,45 @@ const ProductsPage = () => {
   const handleEditCancel = () => {
     setShowEditForm(false);
     setEditingProductId(null);
+  };
+
+  // Edição inline de preço
+  const handleStartPriceEdit = (product: ProductData) => {
+    setEditingPriceProductId(product.id);
+    setEditingPriceValue(product.price);
+  };
+
+  const handleCancelPriceEdit = () => {
+    setEditingPriceProductId(null);
+    setEditingPriceValue(0);
+  };
+
+  const handleConfirmPriceEdit = async (productId: string) => {
+    if (savingPrice) return;
+    setSavingPrice(true);
+    try {
+      const { error } = await supabase
+        .from('products')
+        .update({ price: editingPriceValue })
+        .eq('id', productId);
+
+      if (error) throw error;
+
+      // Atualizar localmente sem recarregar
+      setAllProducts(prev => prev.map(p => p.id === productId ? { ...p, price: editingPriceValue } : p));
+      setCategories(prev => prev.map(cat => ({
+        ...cat,
+        products: cat.products.map(p => p.id === productId ? { ...p, price: editingPriceValue } : p)
+      })));
+
+      toast({ title: 'Preço atualizado!' });
+      setEditingPriceProductId(null);
+    } catch (error) {
+      console.error('Erro ao atualizar preço:', error);
+      toast({ title: 'Erro', description: 'Erro ao atualizar preço.', variant: 'destructive' });
+    } finally {
+      setSavingPrice(false);
+    }
   };
 
   // Adicionar categoria de adicional ao produto diretamente
@@ -1329,7 +1372,22 @@ const ProductsPage = () => {
                                                 )}
                                               </div>
                                               <div className="mt-1">
-                                                {product.is_on_offer && product.offer_price ? (
+                                                {editingPriceProductId === product.id ? (
+                                                  <div className="flex items-center gap-1">
+                                                    <CurrencyInput
+                                                      value={editingPriceValue}
+                                                      onChange={setEditingPriceValue}
+                                                      className="h-7 w-24 text-xs"
+                                                      autoFocus
+                                                    />
+                                                    <Button size="icon" variant="ghost" className="h-6 w-6 text-green-600" onClick={() => handleConfirmPriceEdit(product.id)} disabled={savingPrice}>
+                                                      {savingPrice ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                                                    </Button>
+                                                    <Button size="icon" variant="ghost" className="h-6 w-6 text-muted-foreground" onClick={handleCancelPriceEdit}>
+                                                      <X className="w-3 h-3" />
+                                                    </Button>
+                                                  </div>
+                                                ) : product.is_on_offer && product.offer_price ? (
                                                   <div className="flex items-center gap-2">
                                                     <span className="text-xs text-muted-foreground line-through">
                                                       R$ {Number(product.price).toFixed(2)}
@@ -1337,11 +1395,19 @@ const ProductsPage = () => {
                                                     <span className="font-bold text-sm text-green-600">
                                                       R$ {Number(product.offer_price).toFixed(2)}
                                                     </span>
+                                                    <button onClick={() => handleStartPriceEdit(product)} className="text-muted-foreground hover:text-primary" title="Editar preço">
+                                                      <Pencil className="w-3 h-3" />
+                                                    </button>
                                                   </div>
                                                 ) : (
-                                                  <span className="font-bold text-sm text-primary">
-                                                    R$ {Number(product.price).toFixed(2)}
-                                                  </span>
+                                                  <div className="flex items-center gap-1">
+                                                    <span className="font-bold text-sm text-primary">
+                                                      R$ {Number(product.price).toFixed(2)}
+                                                    </span>
+                                                    <button onClick={() => handleStartPriceEdit(product)} className="text-muted-foreground hover:text-primary" title="Editar preço">
+                                                      <Pencil className="w-3 h-3" />
+                                                    </button>
+                                                  </div>
                                                 )}
                                               </div>
                                             </div>
@@ -1392,19 +1458,44 @@ const ProductsPage = () => {
                                                 </div>
                                               </div>
                                               <div className="flex flex-col items-end flex-shrink-0">
-                                                {product.is_on_offer && product.offer_price ? (
+                                                {editingPriceProductId === product.id ? (
+                                                  <div className="flex items-center gap-1">
+                                                    <CurrencyInput
+                                                      value={editingPriceValue}
+                                                      onChange={setEditingPriceValue}
+                                                      className="h-8 w-28 text-sm"
+                                                      autoFocus
+                                                    />
+                                                    <Button size="icon" variant="ghost" className="h-7 w-7 text-green-600" onClick={() => handleConfirmPriceEdit(product.id)} disabled={savingPrice}>
+                                                      {savingPrice ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                                                    </Button>
+                                                    <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground" onClick={handleCancelPriceEdit}>
+                                                      <X className="w-4 h-4" />
+                                                    </Button>
+                                                  </div>
+                                                ) : product.is_on_offer && product.offer_price ? (
                                                   <>
                                                     <span className="text-xs text-muted-foreground line-through">
                                                       R$ {Number(product.price).toFixed(2)}
                                                     </span>
-                                                    <span className="font-bold text-lg text-green-600">
-                                                      R$ {Number(product.offer_price).toFixed(2)}
-                                                    </span>
+                                                    <div className="flex items-center gap-1">
+                                                      <span className="font-bold text-lg text-green-600">
+                                                        R$ {Number(product.offer_price).toFixed(2)}
+                                                      </span>
+                                                      <button onClick={() => handleStartPriceEdit(product)} className="text-muted-foreground hover:text-primary" title="Editar preço">
+                                                        <Pencil className="w-3.5 h-3.5" />
+                                                      </button>
+                                                    </div>
                                                   </>
                                                 ) : (
-                                                  <span className="font-bold text-lg text-primary">
-                                                    R$ {Number(product.price).toFixed(2)}
-                                                  </span>
+                                                  <div className="flex items-center gap-1">
+                                                    <span className="font-bold text-lg text-primary">
+                                                      R$ {Number(product.price).toFixed(2)}
+                                                    </span>
+                                                    <button onClick={() => handleStartPriceEdit(product)} className="text-muted-foreground hover:text-primary" title="Editar preço">
+                                                      <Pencil className="w-3.5 h-3.5" />
+                                                    </button>
+                                                  </div>
                                                 )}
                                               </div>
                                             </div>

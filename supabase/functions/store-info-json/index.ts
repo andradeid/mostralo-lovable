@@ -93,17 +93,44 @@ serve(async (req) => {
       .eq('show_in_menu', true)
       .order('display_order');
 
-    // 4. Buscar produtos com variantes (apenas os visíveis no cardápio digital)
-    const { data: products } = await supabase
-      .from('products')
-      .select(`
-        *,
-        product_variants(*)
-      `)
-      .eq('store_id', store.id)
-      .eq('is_available', true)
-      .eq('show_in_menu', true)
-      .order('display_order');
+    // 4. Buscar TODOS os produtos com variantes (paginação para lojas grandes)
+    const PAGE_SIZE = 1000;
+    let allProducts: any[] = [];
+    let page = 0;
+    let hasMore = true;
+
+    while (hasMore) {
+      const from = page * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
+      const { data: batch, error: batchError } = await supabase
+        .from('products')
+        .select(`
+          *,
+          product_variants(*)
+        `)
+        .eq('store_id', store.id)
+        .eq('is_available', true)
+        .eq('show_in_menu', true)
+        .order('display_order')
+        .range(from, to);
+
+      if (batchError) {
+        console.error(`Erro ao buscar produtos (página ${page}):`, batchError);
+        break;
+      }
+
+      if (batch && batch.length > 0) {
+        allProducts = allProducts.concat(batch);
+        hasMore = batch.length === PAGE_SIZE;
+        page++;
+      } else {
+        hasMore = false;
+      }
+    }
+
+    const products = allProducts;
+    console.log(`Total de produtos carregados: ${products.length}`);
 
     // 5. Buscar categorias de addons
     const { data: addonCategories } = await supabase

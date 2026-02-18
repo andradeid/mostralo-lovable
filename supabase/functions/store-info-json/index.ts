@@ -105,10 +105,7 @@ serve(async (req) => {
 
       const { data: batch, error: batchError } = await supabase
         .from('products')
-        .select(`
-          *,
-          product_variants(*)
-        `)
+        .select('*')
         .eq('store_id', store.id)
         .eq('is_available', true)
         .eq('show_in_menu', true)
@@ -203,15 +200,6 @@ serve(async (req) => {
         category_id: product.category_id,
         display_order: product.display_order,
         button_text: product.button_text,
-        variants: product.product_variants?.map((v: any) => ({
-          id: v.id,
-          name: v.name,
-          description: v.description,
-          price: parseFloat(v.price?.toString() || '0'),
-          is_default: v.is_default,
-          is_available: v.is_available,
-          display_order: v.display_order
-        })) || [],
         addon_categories: addonsByCategory
       };
     }) || [];
@@ -304,7 +292,7 @@ serve(async (req) => {
         max_product_price: maxPrice,
         is_currently_open: currentlyOpen,
         current_timestamp: new Date().toISOString(),
-        has_variants: productsWithAddons.some(p => p.variants.length > 0),
+        has_variants: false,
         has_addons: productsWithAddons.some(p => p.addon_categories.length > 0),
         cheapest_product: cheapestProduct ? {
           name: cheapestProduct.name,

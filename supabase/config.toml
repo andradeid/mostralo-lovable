@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.track-visit]
 verify_jwt = false
+
+[functions.store-info-json]
+verify_jwt = false

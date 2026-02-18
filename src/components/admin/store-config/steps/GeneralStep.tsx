@@ -30,6 +30,7 @@ export function GeneralStep({ formData, updateFormData }: GeneralStepProps) {
   const xmlApiUrl = `${window.location.origin}/loja/${formData.slug}/info.xml`;
   const jsonApiUrl = `https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/store-info-json?slug=${formData.slug}`;
   const googleShoppingFeedUrl = `https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/google-shopping-feed?slug=${formData.slug}`;
+  const googleShoppingTsvUrl = `https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/google-shopping-tsv?slug=${formData.slug}`;
   const metaCommerceFeedUrl = `https://noshwvwpjtnvndokbfjx.supabase.co/functions/v1/meta-commerce-feed?slug=${formData.slug}`;
 
   const handleCopyUrl = (url: string) => {
@@ -576,6 +577,44 @@ print(store_data)`}
               </div>
               <p className="text-xs text-blue-700 dark:text-blue-300">
                 Feed XML no formato Google Merchant Center para anúncios no Google Shopping.
+              </p>
+            </div>
+
+            {/* Google Shopping TSV Feed */}
+            <div className="space-y-2 p-4 border rounded-lg bg-green-50 dark:bg-green-950">
+              <div className="flex items-center gap-2">
+                <ShoppingCart className="w-5 h-5 text-green-600 dark:text-green-400" />
+                <Label className="text-sm font-semibold text-green-700 dark:text-green-300">
+                  Google Shopping (TSV - Recomendado)
+                </Label>
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={googleShoppingTsvUrl}
+                  readOnly
+                  className="font-mono text-xs bg-white dark:bg-gray-900"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleCopyUrl(googleShoppingTsvUrl)}
+                  title="Copiar URL"
+                >
+                  <Copy className="w-4 h-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleOpenUrl(googleShoppingTsvUrl)}
+                  title="Abrir/Baixar Feed TSV"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-green-700 dark:text-green-300">
+                Feed TSV (tabulado) recomendado pelo Google Merchant Center. Use o delimitador "Tabulador (\t)" ao cadastrar.
               </p>
             </div>
 

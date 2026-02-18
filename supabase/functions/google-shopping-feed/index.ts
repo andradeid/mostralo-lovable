@@ -123,16 +123,40 @@ serve(async (req) => {
 
     console.log(`[google-shopping-feed] Loja encontrada: ${store.name} (${store.id})`);
 
-    // Buscar produtos disponíveis
-    const { data: products, error: productsError } = await supabase
-      .from('products')
-      .select('id, name, description, price, image_url, is_available, is_on_offer, offer_price')
-      .eq('store_id', store.id)
-      .eq('is_available', true);
+    // Buscar TODOS os produtos disponíveis (paginação para lojas grandes)
+    const PAGE_SIZE = 1000;
+    let allProducts: Product[] = [];
+    let page = 0;
+    let hasMore = true;
 
-    if (productsError) {
-      console.error('[google-shopping-feed] Erro ao buscar produtos:', productsError.message);
+    while (hasMore) {
+      const from = page * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
+      const { data: batch, error: batchError } = await supabase
+        .from('products')
+        .select('id, name, description, price, image_url, is_available, is_on_offer, offer_price')
+        .eq('store_id', store.id)
+        .eq('is_available', true)
+        .range(from, to);
+
+      if (batchError) {
+        console.error(`[google-shopping-feed] Erro página ${page}:`, batchError.message);
+        break;
+      }
+
+      if (batch && batch.length > 0) {
+        allProducts = allProducts.concat(batch as Product[]);
+        hasMore = batch.length === PAGE_SIZE;
+        page++;
+      } else {
+        hasMore = false;
+      }
     }
+
+    const products = allProducts;
+
+    // Erro de produtos já tratado no loop acima
 
     console.log(`[google-shopping-feed] ${products?.length || 0} produtos encontrados`);
 

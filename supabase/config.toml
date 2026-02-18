@@ -50,3 +50,9 @@ verify_jwt = false
 
 [functions.store-info-json]
 verify_jwt = false
+
+[functions.google-shopping-tsv]
+verify_jwt = false
+
+[functions.google-shopping-feed]
+verify_jwt = false

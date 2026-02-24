@@ -111,6 +111,8 @@ export function DeliveryZonesPicker({
   const [editingZone, setEditingZone] = useState<DeliveryZone | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [interactionState, setInteractionState] = useState<'idle' | 'editing' | 'dragging'>('idle');
+  const [enableTimeFees, setEnableTimeFees] = useState(false);
+  const [timeFees, setTimeFees] = useState<TimeFee[]>([]);
 
   // Atualizar zonas quando existingZones mudar
   useEffect(() => {

@@ -14,6 +14,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
+export interface TimeFee {
+  id: string;
+  startTime: string;
+  endTime: string;
+  fee: number;
+  label?: string;
+}
+
 export interface DeliveryZone {
   id: string;
   name: string;
@@ -24,6 +32,7 @@ export interface DeliveryZone {
   deliveryFee: number;
   isActive: boolean;
   color?: string;
+  timeFees?: TimeFee[];
 }
 
 interface DeliveryZonesPickerProps {

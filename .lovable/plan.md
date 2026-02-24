@@ -1,126 +1,89 @@
 
-# Rastreamento de Cliques em Botoes Importantes
+# Taxa de Entrega por Horario (Noturna/Madrugada)
 
-## Resumo
+## Problema
+A farmacia precisa cobrar taxas de entrega diferentes dependendo do horario do pedido (ex: madrugada = taxa mais alta). Atualmente cada zona tem apenas uma taxa fixa.
 
-Adicionar rastreamento de cliques em botoes estrategicos (WhatsApp, CTA de cadastro, downloads) reutilizando a infraestrutura ja existente (`page_visits` + edge function `track-visit`). Os dados de clique aparecerao em uma nova secao dentro da aba **"Visitas"**.
+## Solucao Proposta
+Adicionar um sistema de **taxas por faixa de horario** em cada zona de entrega, mantendo a taxa principal como padrao e permitindo adicionar sobretaxas ou taxas alternativas para horarios especificos.
 
-## O que voce vai ganhar
+## Como vai funcionar
 
-- Saber quantas vezes cada botao importante foi clicado
-- Ver quais CTAs convertem mais (WhatsApp vs Cadastro vs Download)
-- Cruzar cliques com campanhas UTM para medir efetividade
-- Filtrar por periodo, dispositivo e pagina de origem
-- Comparar performance de cliques ao longo do tempo
-
----
-
-## Como funciona
-
-Em vez de criar uma tabela separada, vamos adicionar um campo `event_type` na tabela `page_visits` existente:
-
-- `pageview` (padrao, como ja funciona)
-- `click_whatsapp`
-- `click_cta_signup`
-- `click_download`
-- `click_cta_diagnostico`
-- `click_cta_plans`
-
-Cada clique registra a mesma riqueza de dados (UTMs, dispositivo, localizacao, sessao), permitindo cruzar com as visitas.
-
----
-
-## O que sera criado/alterado
-
-### 1. Alteracao na tabela `page_visits`
-
-- Adicionar coluna `event_type TEXT DEFAULT 'pageview'`
-- Adicionar coluna `event_label TEXT` (detalhes extras, ex: "botao-whatsapp-header")
-- Indice na coluna `event_type` para consultas rapidas
-
-### 2. Atualizar edge function `track-visit`
-
-- Aceitar campos opcionais `event_type` e `event_label` no payload
-- Se nao enviado, assume `pageview` (compatibilidade total)
-
-### 3. Novo utilitario `trackClick`
-
-Uma funcao simples para ser chamada em qualquer `onClick`:
+### Para o dono da loja (Admin)
+Na tela de configuracao de zonas de entrega, ao criar/editar uma zona, alem da "Taxa de Entrega (R$)" atual, aparecera um botao **"Adicionar taxa por horario"** que permite configurar:
 
 ```text
-trackClick("click_whatsapp", "botao-flutuante-lead")
-trackClick("click_cta_signup", "hero-landing-page")
-trackClick("click_download", "catalogo-pdf-loja-x")
++------------------------------------------+
+| Taxa de Entrega (R$)                      |
+| [  7.00  ]  (taxa padrao)                 |
+|                                           |
+| [v] Habilitar taxa por horario            |
+|                                           |
+| Faixa 1:                                  |
+|  Horario: [22:00] ate [06:00]             |
+|  Taxa (R$): [15.00]                       |
+|  [Remover]                                |
+|                                           |
+| [+ Adicionar faixa de horario]            |
++------------------------------------------+
 ```
 
-Fire-and-forget, sem bloquear a acao do botao.
+### Para o cliente (Checkout)
+- O sistema verifica automaticamente o horario atual do pedido
+- Aplica a taxa correspondente a faixa horaria ativa
+- Exibe uma mensagem informativa: "Taxa noturna aplicada (22h-06h): R$ 15,00"
 
-### 4. Instrumentar botoes existentes
+### Na lista de zonas criadas
+Cada zona mostrara a taxa padrao e, se houver, um indicador de que tem taxas por horario configuradas.
 
-Adicionar `trackClick(...)` nos seguintes pontos (sem alterar comportamento visual ou funcional):
+## Detalhes Tecnicos
 
-| Botao | Tipo de evento | Onde esta |
-|-------|---------------|-----------|
-| WhatsApp flutuante (LeadChatForm) | click_whatsapp | WhatsAppLeadButton.tsx |
-| WhatsApp da loja (ProductDetail) | click_whatsapp | ProductDetail.tsx |
-| WhatsApp do booking | click_whatsapp | BookingStoreInfo.tsx |
-| CTA "Criar Conta" / "Cadastro" | click_cta_signup | Landing pages, FinalCTASection, etc. |
-| CTA "Diagnostico Gratuito" | click_cta_diagnostico | AboutCTA.tsx, landing pages |
-| CTA "Ver Planos" | click_cta_plans | AboutCTA.tsx, landing pages |
-| Downloads de PDF/catalogo | click_download | Onde houver links de download |
+### 1. Atualizar interface DeliveryZone
+Adicionar campo `timeFees` (opcional) em ambos os arquivos:
+- `src/components/admin/store-config/DeliveryZonesPicker.tsx`
+- `src/utils/deliveryZoneValidation.ts`
 
-### 5. Nova secao no dashboard "Visitas"
+```typescript
+interface TimeFee {
+  id: string;
+  startTime: string; // "22:00"
+  endTime: string;   // "06:00"
+  fee: number;
+  label?: string;    // "Taxa noturna"
+}
 
-Adicionar ao `VisitsAnalytics.tsx`:
-
-**Cards de cliques (resumo)**
-- Total de cliques no periodo
-- Cliques WhatsApp
-- Cliques CTA Cadastro
-- Cliques em Downloads
-
-**Grafico de cliques por tipo**
-- Grafico de barras mostrando cada tipo de evento
-
-**Tabela de cliques detalhada**
-- Tipo, label, pagina de origem, data/hora
-- Filtro por tipo de evento
-- Agrupamento por campanha UTM
-
----
-
-## Impacto no sistema
-
-- **Comportamento dos botoes**: ZERO alteracao - o tracking e adicionado junto ao onClick existente
-- **Performance**: fire-and-forget, sem await, sem bloqueio
-- **Tabela page_visits**: coluna nova com default, dados existentes continuam validos
-- **Edge function**: campos opcionais, 100% compativel com chamadas atuais
-- **Demais funcionalidades**: nenhuma alteracao
-
-## Detalhes tecnicos
-
-### Arquivos novos
-```text
-src/utils/trackClick.ts              -- Funcao utilitaria para rastrear cliques
-src/components/admin/marketing/visits/ClicksAnalytics.tsx  -- Secao de cliques no dashboard
+interface DeliveryZone {
+  // ... campos existentes mantidos
+  deliveryFee: number; // taxa padrao (mantida)
+  timeFees?: TimeFee[]; // NOVO - taxas por horario
+}
 ```
 
-### Arquivos modificados
-```text
-supabase/migrations/new             -- ALTER TABLE page_visits ADD COLUMN event_type, event_label
-supabase/functions/track-visit/index.ts  -- Aceitar event_type e event_label
-src/components/admin/marketing/VisitsAnalytics.tsx  -- Adicionar secao de cliques
-src/components/leads/WhatsAppLeadButton.tsx  -- trackClick no onClick
-src/components/ProductDetail.tsx     -- trackClick no WhatsApp da loja
-src/components/booking/BookingStoreInfo.tsx  -- trackClick no WhatsApp booking
-src/components/about/AboutCTA.tsx    -- trackClick nos CTAs
-src/components/gestao-total/FinalCTASection.tsx  -- trackClick no CTA signup
-```
+### 2. Atualizar DeliveryZonesPicker.tsx (Admin)
+- Adicionar formulario de faixas de horario dentro do formulario de criacao/edicao de zona
+- Checkbox "Habilitar taxa por horario" que expande os campos
+- Campos: horario inicio, horario fim, taxa, label opcional
+- Botao para adicionar/remover faixas
+- Salvar `timeFees` junto com os dados da zona no JSON existente (sem alterar banco de dados)
 
-### Ordem de implementacao
-1. Migrar banco (adicionar colunas event_type e event_label)
-2. Atualizar edge function track-visit
-3. Criar utilitario trackClick
-4. Instrumentar botoes existentes
-5. Criar componente ClicksAnalytics no dashboard
-6. Integrar na aba Visitas
+### 3. Atualizar deliveryZoneValidation.ts (Logica de calculo)
+- Modificar `calculateDeliveryFee` e `validateDeliveryLocation` para verificar o horario atual
+- Se existir uma `timeFee` ativa para o horario, usar essa taxa em vez da taxa padrao
+- Logica para horarios que cruzam meia-noite (ex: 22:00 ate 06:00)
+
+### 4. Atualizar Checkout (exibicao ao cliente)
+- Em `src/components/checkout/steps/DeliveryStep.tsx` e `src/components/checkout/CustomerLocationPicker.tsx`
+- Exibir mensagem quando taxa por horario esta ativa
+- Mostrar qual faixa horaria esta sendo aplicada
+
+### Arquivos a modificar
+1. `src/utils/deliveryZoneValidation.ts` - tipos e logica de calculo
+2. `src/components/admin/store-config/DeliveryZonesPicker.tsx` - UI admin para configurar
+3. `src/components/checkout/steps/DeliveryStep.tsx` - exibir info no checkout
+4. `src/components/checkout/CustomerLocationPicker.tsx` - aplicar taxa correta
+
+### O que NAO muda
+- Estrutura do banco de dados (tudo fica no JSON `delivery_zones` ja existente)
+- Zonas existentes continuam funcionando normalmente (campo `timeFees` e opcional)
+- Nenhuma funcionalidade existente e quebrada
+- Layout e cores das zonas no mapa permanecem iguais

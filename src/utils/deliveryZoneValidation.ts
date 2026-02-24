@@ -2,6 +2,14 @@
  * Utilitários para validação de áreas de entrega
  */
 
+export interface TimeFee {
+  id: string;
+  startTime: string; // "22:00"
+  endTime: string;   // "06:00"
+  fee: number;
+  label?: string;    // "Taxa noturna"
+}
+
 export interface DeliveryZone {
   id: string;
   name: string;
@@ -12,6 +20,7 @@ export interface DeliveryZone {
   deliveryFee: number;
   color?: string;
   isActive: boolean;
+  timeFees?: TimeFee[];
 }
 
 export interface ZoneValidationResult {

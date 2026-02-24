@@ -432,7 +432,7 @@ export function DeliveryZonesPicker({
     setInteractionState('idle');
     setIsDragging(false);
     setZoneName('');
-    setDeliveryFee('');
+    setDeliveryFee(0);
     setTimeFees([]);
     setEnableTimeFees(false);
   };

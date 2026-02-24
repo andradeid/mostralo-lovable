@@ -814,6 +814,7 @@ export function DeliveryZonesPicker({
                   <Clock className="w-4 h-4" />
                   Habilitar taxa por horário
                 </Label>
+                <InfoTooltip text="A taxa por horário é o valor FINAL da entrega nesse período, e não um valor adicional. Exemplo: se a taxa padrão é R$ 7,00 e a taxa noturna é R$ 15,00, o cliente pagará R$ 15,00 (e não R$ 22,00)." />
               </div>
 
               {enableTimeFees && (

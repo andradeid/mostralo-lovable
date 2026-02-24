@@ -634,7 +634,7 @@ export function DeliveryZonesPicker({
 
     // Limpar campos
     setZoneName('');
-    setDeliveryFee('');
+    setDeliveryFee(0);
     setTimeFees([]);
     setEnableTimeFees(false);
   };

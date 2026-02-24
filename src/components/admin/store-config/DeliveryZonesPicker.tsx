@@ -432,7 +432,8 @@ export function DeliveryZonesPicker({
     setIsDragging(false);
     setZoneName('');
     setDeliveryFee('');
-    toast.info('Edição cancelada');
+    setTimeFees([]);
+    setEnableTimeFees(false);
   };
 
   const loadExistingZones = () => {

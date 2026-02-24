@@ -375,6 +375,7 @@ export function DeliveryZonesPicker({
       ...editingZone,
       name: zoneName,
       deliveryFee: fee,
+      timeFees: enableTimeFees ? timeFees : undefined,
     };
 
     if (editingZone.type === 'radius') {

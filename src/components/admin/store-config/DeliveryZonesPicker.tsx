@@ -797,7 +797,95 @@ export function DeliveryZonesPicker({
               />
             </div>
 
-            {editingZone ? (
+            {/* Taxa por horário */}
+            <div className="space-y-3 border rounded-lg p-3">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="enable-time-fees"
+                  checked={enableTimeFees}
+                  onCheckedChange={(checked) => {
+                    setEnableTimeFees(!!checked);
+                    if (!checked) setTimeFees([]);
+                  }}
+                />
+                <Label htmlFor="enable-time-fees" className="flex items-center gap-2 cursor-pointer text-sm">
+                  <Clock className="w-4 h-4" />
+                  Habilitar taxa por horário
+                </Label>
+              </div>
+
+              {enableTimeFees && (
+                <div className="space-y-3">
+                  {timeFees.map((tf, idx) => (
+                    <div key={tf.id} className="space-y-2 p-3 bg-secondary rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium">Faixa {idx + 1}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={() => setTimeFees(timeFees.filter(t => t.id !== tf.id))}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <Label className="text-xs">Início</Label>
+                          <Input
+                            type="time"
+                            value={tf.startTime}
+                            onChange={(e) => setTimeFees(timeFees.map(t => t.id === tf.id ? { ...t, startTime: e.target.value } : t))}
+                            className="h-8 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Fim</Label>
+                          <Input
+                            type="time"
+                            value={tf.endTime}
+                            onChange={(e) => setTimeFees(timeFees.map(t => t.id === tf.id ? { ...t, endTime: e.target.value } : t))}
+                            className="h-8 text-sm"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <Label className="text-xs">Taxa (R$)</Label>
+                          <Input
+                            type="number"
+                            value={tf.fee}
+                            onChange={(e) => setTimeFees(timeFees.map(t => t.id === tf.id ? { ...t, fee: parseFloat(e.target.value) || 0 } : t))}
+                            min="0"
+                            step="0.01"
+                            className="h-8 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Rótulo</Label>
+                          <Input
+                            value={tf.label || ''}
+                            onChange={(e) => setTimeFees(timeFees.map(t => t.id === tf.id ? { ...t, label: e.target.value } : t))}
+                            placeholder="Ex: Noturna"
+                            className="h-8 text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => setTimeFees([...timeFees, { id: `tf-${Date.now()}`, startTime: '22:00', endTime: '06:00', fee: 0, label: 'Taxa noturna' }])}
+                  >
+                    <Plus className="w-3 h-3 mr-1" />
+                    Adicionar faixa de horário
+                  </Button>
+                </div>
+              )}
+            </div>
+
               <div className="flex gap-2">
                 <Button onClick={saveEditedZone} className="flex-1">
                   <Save className="w-4 h-4 mr-2" />

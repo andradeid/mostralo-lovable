@@ -366,8 +366,8 @@ export function DeliveryZonesPicker({
       return;
     }
 
-    const fee = parseFloat(deliveryFee);
-    if (isNaN(fee) || fee < 0) {
+    const fee = deliveryFee;
+    if (fee < 0) {
       toast.error('Taxa de entrega inválida');
       return;
     }

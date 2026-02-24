@@ -1,89 +1,34 @@
 
-# Taxa de Entrega por Horario (Noturna/Madrugada)
 
-## Problema
-A farmacia precisa cobrar taxas de entrega diferentes dependendo do horario do pedido (ex: madrugada = taxa mais alta). Atualmente cada zona tem apenas uma taxa fixa.
+# Melhorias no Modal de Zonas de Entrega
 
-## Solucao Proposta
-Adicionar um sistema de **taxas por faixa de horario** em cada zona de entrega, mantendo a taxa principal como padrao e permitindo adicionar sobretaxas ou taxas alternativas para horarios especificos.
+## 1. Tooltip explicativo na taxa por horario
 
-## Como vai funcionar
+Adicionar um `InfoTooltip` (componente que ja existe no projeto) ao lado do titulo/label da secao de taxa por horario, explicando claramente:
 
-### Para o dono da loja (Admin)
-Na tela de configuracao de zonas de entrega, ao criar/editar uma zona, alem da "Taxa de Entrega (R$)" atual, aparecera um botao **"Adicionar taxa por horario"** que permite configurar:
+> "A taxa por horario e o valor FINAL da entrega nesse periodo, e nao um valor adicional. Exemplo: se a taxa padrao e R$ 7,00 e a taxa noturna e R$ 15,00, o cliente pagara R$ 15,00 (e nao R$ 22,00)."
 
-```text
-+------------------------------------------+
-| Taxa de Entrega (R$)                      |
-| [  7.00  ]  (taxa padrao)                 |
-|                                           |
-| [v] Habilitar taxa por horario            |
-|                                           |
-| Faixa 1:                                  |
-|  Horario: [22:00] ate [06:00]             |
-|  Taxa (R$): [15.00]                       |
-|  [Remover]                                |
-|                                           |
-| [+ Adicionar faixa de horario]            |
-+------------------------------------------+
-```
+Tambem adicionar um tooltip na taxa padrao:
 
-### Para o cliente (Checkout)
-- O sistema verifica automaticamente o horario atual do pedido
-- Aplica a taxa correspondente a faixa horaria ativa
-- Exibe uma mensagem informativa: "Taxa noturna aplicada (22h-06h): R$ 15,00"
+> "Taxa cobrada quando nenhuma faixa de horario especifica esta ativa."
 
-### Na lista de zonas criadas
-Cada zona mostrara a taxa padrao e, se houver, um indicador de que tem taxas por horario configuradas.
+**Arquivo:** `src/components/admin/store-config/DeliveryZonesPicker.tsx`
 
-## Detalhes Tecnicos
+## 2. Modal em tela cheia
 
-### 1. Atualizar interface DeliveryZone
-Adicionar campo `timeFees` (opcional) em ambos os arquivos:
-- `src/components/admin/store-config/DeliveryZonesPicker.tsx`
-- `src/utils/deliveryZoneValidation.ts`
+Alterar o `DialogContent` de `max-w-6xl h-[90vh]` para ocupar 100% da tela, facilitando a edicao das areas no mapa.
 
-```typescript
-interface TimeFee {
-  id: string;
-  startTime: string; // "22:00"
-  endTime: string;   // "06:00"
-  fee: number;
-  label?: string;    // "Taxa noturna"
-}
+**Mudanca:** No `DialogContent`, trocar a classe para algo como `max-w-full w-full h-full max-h-full sm:rounded-none` para que o modal ocupe toda a tela.
 
-interface DeliveryZone {
-  // ... campos existentes mantidos
-  deliveryFee: number; // taxa padrao (mantida)
-  timeFees?: TimeFee[]; // NOVO - taxas por horario
-}
-```
+**Arquivo:** `src/components/admin/store-config/DeliveryZonesPicker.tsx`
 
-### 2. Atualizar DeliveryZonesPicker.tsx (Admin)
-- Adicionar formulario de faixas de horario dentro do formulario de criacao/edicao de zona
-- Checkbox "Habilitar taxa por horario" que expande os campos
-- Campos: horario inicio, horario fim, taxa, label opcional
-- Botao para adicionar/remover faixas
-- Salvar `timeFees` junto com os dados da zona no JSON existente (sem alterar banco de dados)
+## Resumo das alteracoes
 
-### 3. Atualizar deliveryZoneValidation.ts (Logica de calculo)
-- Modificar `calculateDeliveryFee` e `validateDeliveryLocation` para verificar o horario atual
-- Se existir uma `timeFee` ativa para o horario, usar essa taxa em vez da taxa padrao
-- Logica para horarios que cruzam meia-noite (ex: 22:00 ate 06:00)
+Apenas um arquivo sera modificado: `DeliveryZonesPicker.tsx`
 
-### 4. Atualizar Checkout (exibicao ao cliente)
-- Em `src/components/checkout/steps/DeliveryStep.tsx` e `src/components/checkout/CustomerLocationPicker.tsx`
-- Exibir mensagem quando taxa por horario esta ativa
-- Mostrar qual faixa horaria esta sendo aplicada
+1. Importar `InfoTooltip` de `@/components/ui/info-tooltip`
+2. Adicionar tooltip ao lado do label "Taxa de Entrega (R$)"
+3. Adicionar tooltip ao lado do checkbox "Habilitar taxa por horario" e nos campos de taxa por faixa
+4. Alterar classes do `DialogContent` para tela cheia
 
-### Arquivos a modificar
-1. `src/utils/deliveryZoneValidation.ts` - tipos e logica de calculo
-2. `src/components/admin/store-config/DeliveryZonesPicker.tsx` - UI admin para configurar
-3. `src/components/checkout/steps/DeliveryStep.tsx` - exibir info no checkout
-4. `src/components/checkout/CustomerLocationPicker.tsx` - aplicar taxa correta
-
-### O que NAO muda
-- Estrutura do banco de dados (tudo fica no JSON `delivery_zones` ja existente)
-- Zonas existentes continuam funcionando normalmente (campo `timeFees` e opcional)
-- Nenhuma funcionalidade existente e quebrada
-- Layout e cores das zonas no mapa permanecem iguais
+Nenhuma funcionalidade existente sera quebrada - apenas adicoes visuais e ajuste de tamanho do modal.

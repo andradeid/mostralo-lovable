@@ -396,7 +396,8 @@ export function DeliveryZonesPicker({
     setInteractionState('idle');
     setZoneName('');
     setDeliveryFee('');
-    toast.success('Zona atualizada com sucesso');
+    setTimeFees([]);
+    setEnableTimeFees(false);
   };
 
   const cancelEdit = () => {

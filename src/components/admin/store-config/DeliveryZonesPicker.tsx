@@ -886,6 +886,7 @@ export function DeliveryZonesPicker({
               )}
             </div>
 
+            {editingZone ? (
               <div className="flex gap-2">
                 <Button onClick={saveEditedZone} className="flex-1">
                   <Save className="w-4 h-4 mr-2" />

@@ -11,6 +11,7 @@ import { Slider } from '@/components/ui/slider';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { MapPin, Circle, Pencil, Save, X, Clock, Plus, Trash2 } from 'lucide-react';
+import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -671,7 +672,7 @@ export function DeliveryZonesPicker({
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl h-[90vh] flex flex-col p-0">
+      <DialogContent className="max-w-full w-full h-full max-h-full sm:rounded-none flex flex-col p-0">
         <DialogHeader className="p-6 pb-4">
           <DialogTitle className="flex items-center gap-2">
             <MapPin className="w-5 h-5" />
@@ -786,7 +787,10 @@ export function DeliveryZonesPicker({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="delivery-fee">Taxa de Entrega</Label>
+              <div className="flex items-center gap-1.5">
+                <Label htmlFor="delivery-fee">Taxa de Entrega</Label>
+                <InfoTooltip text="Taxa cobrada quando nenhuma faixa de horário específica está ativa." />
+              </div>
               <CurrencyInput
                 id="delivery-fee"
                 value={deliveryFee}
@@ -810,6 +814,7 @@ export function DeliveryZonesPicker({
                   <Clock className="w-4 h-4" />
                   Habilitar taxa por horário
                 </Label>
+                <InfoTooltip text="A taxa por horário é o valor FINAL da entrega nesse período, e não um valor adicional. Exemplo: se a taxa padrão é R$ 7,00 e a taxa noturna é R$ 15,00, o cliente pagará R$ 15,00 (e não R$ 22,00)." />
               </div>
 
               {enableTimeFees && (

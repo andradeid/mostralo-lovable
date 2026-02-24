@@ -849,13 +849,10 @@ export function DeliveryZonesPicker({
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <Label className="text-xs">Taxa (R$)</Label>
-                          <Input
-                            type="number"
+                          <Label className="text-xs">Taxa</Label>
+                          <CurrencyInput
                             value={tf.fee}
-                            onChange={(e) => setTimeFees(timeFees.map(t => t.id === tf.id ? { ...t, fee: parseFloat(e.target.value) || 0 } : t))}
-                            min="0"
-                            step="0.01"
+                            onChange={(val) => setTimeFees(timeFees.map(t => t.id === tf.id ? { ...t, fee: val } : t))}
                             className="h-8 text-sm"
                           />
                         </div>

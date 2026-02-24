@@ -11,6 +11,7 @@ import { Slider } from '@/components/ui/slider';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { MapPin, Circle, Pencil, Save, X, Clock, Plus, Trash2 } from 'lucide-react';
+import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';

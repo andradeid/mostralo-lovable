@@ -574,6 +574,7 @@ export function DeliveryZonesPicker({
         deliveryFee: fee,
         isActive: true,
         color: zoneColor,
+        timeFees: enableTimeFees ? timeFees : undefined,
       };
 
       setZones([...zones, newZone]);

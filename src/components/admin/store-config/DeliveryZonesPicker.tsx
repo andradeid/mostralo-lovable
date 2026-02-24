@@ -300,7 +300,8 @@ export function DeliveryZonesPicker({
     setZoneName(zone.name);
     setDeliveryFee(zone.deliveryFee.toString());
     setTimeFees(zone.timeFees || []);
-    setEnableTimeFees((zone.timeFees || []).length > 0);
+    
+    if (zone.type === 'radius' && zone.radius) {
       setCurrentRadius(zone.radius);
       setMode('radius');
       highlightZone(zone.id, true);

@@ -108,7 +108,7 @@ export function DeliveryZonesPicker({
   const [mode, setMode] = useState<'radius' | 'polygon'>('radius');
   const [currentRadius, setCurrentRadius] = useState(500); // Em metros
   const [zoneName, setZoneName] = useState('');
-  const [deliveryFee, setDeliveryFee] = useState('');
+  const [deliveryFee, setDeliveryFee] = useState(0);
   const [editingZone, setEditingZone] = useState<DeliveryZone | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [interactionState, setInteractionState] = useState<'idle' | 'editing' | 'dragging'>('idle');

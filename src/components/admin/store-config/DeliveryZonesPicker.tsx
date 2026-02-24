@@ -672,7 +672,7 @@ export function DeliveryZonesPicker({
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl h-[90vh] flex flex-col p-0">
+      <DialogContent className="max-w-full w-full h-full max-h-full sm:rounded-none flex flex-col p-0">
         <DialogHeader className="p-6 pb-4">
           <DialogTitle className="flex items-center gap-2">
             <MapPin className="w-5 h-5" />

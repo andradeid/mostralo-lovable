@@ -787,7 +787,10 @@ export function DeliveryZonesPicker({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="delivery-fee">Taxa de Entrega</Label>
+              <div className="flex items-center gap-1.5">
+                <Label htmlFor="delivery-fee">Taxa de Entrega</Label>
+                <InfoTooltip text="Taxa cobrada quando nenhuma faixa de horário específica está ativa." />
+              </div>
               <CurrencyInput
                 id="delivery-fee"
                 value={deliveryFee}

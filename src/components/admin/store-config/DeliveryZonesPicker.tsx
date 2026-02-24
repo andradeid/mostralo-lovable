@@ -786,15 +786,12 @@ export function DeliveryZonesPicker({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="delivery-fee">Taxa de Entrega (R$)</Label>
-              <Input
+              <Label htmlFor="delivery-fee">Taxa de Entrega</Label>
+              <CurrencyInput
                 id="delivery-fee"
-                type="number"
-                placeholder="0.00"
                 value={deliveryFee}
-                onChange={(e) => setDeliveryFee(e.target.value)}
-                min="0"
-                step="0.01"
+                onChange={(val) => setDeliveryFee(val)}
+                className="h-10"
               />
             </div>
 

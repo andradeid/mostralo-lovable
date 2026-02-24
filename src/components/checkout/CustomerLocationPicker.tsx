@@ -683,6 +683,11 @@ export const CustomerLocationPicker = ({
                             </div>
                             <div className="text-sm text-green-700 dark:text-green-300">
                               Taxa: R$ {zoneValidation.deliveryFee.toFixed(2)}
+                              {zoneValidation.activeTimeFee && (
+                                <span className="ml-1">
+                                  ({zoneValidation.activeTimeFee.label || `${zoneValidation.activeTimeFee.startTime}-${zoneValidation.activeTimeFee.endTime}`})
+                                </span>
+                              )}
                             </div>
                           </div>
                         </>

@@ -8,10 +8,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { MapPin, Circle, Pencil, Save, X } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { MapPin, Circle, Pencil, Save, X, Clock, Plus, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+
+export interface TimeFee {
+  id: string;
+  startTime: string;
+  endTime: string;
+  fee: number;
+  label?: string;
+}
 
 export interface DeliveryZone {
   id: string;
@@ -23,6 +32,7 @@ export interface DeliveryZone {
   deliveryFee: number;
   isActive: boolean;
   color?: string;
+  timeFees?: TimeFee[];
 }
 
 interface DeliveryZonesPickerProps {
@@ -101,6 +111,8 @@ export function DeliveryZonesPicker({
   const [editingZone, setEditingZone] = useState<DeliveryZone | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [interactionState, setInteractionState] = useState<'idle' | 'editing' | 'dragging'>('idle');
+  const [enableTimeFees, setEnableTimeFees] = useState(false);
+  const [timeFees, setTimeFees] = useState<TimeFee[]>([]);
 
   // Atualizar zonas quando existingZones mudar
   useEffect(() => {
@@ -287,6 +299,7 @@ export function DeliveryZonesPicker({
     setInteractionState('editing');
     setZoneName(zone.name);
     setDeliveryFee(zone.deliveryFee.toString());
+    setTimeFees(zone.timeFees || []);
     
     if (zone.type === 'radius' && zone.radius) {
       setCurrentRadius(zone.radius);
@@ -362,6 +375,7 @@ export function DeliveryZonesPicker({
       ...editingZone,
       name: zoneName,
       deliveryFee: fee,
+      timeFees: enableTimeFees ? timeFees : undefined,
     };
 
     if (editingZone.type === 'radius') {
@@ -382,7 +396,8 @@ export function DeliveryZonesPicker({
     setInteractionState('idle');
     setZoneName('');
     setDeliveryFee('');
-    toast.success('Zona atualizada com sucesso');
+    setTimeFees([]);
+    setEnableTimeFees(false);
   };
 
   const cancelEdit = () => {
@@ -417,7 +432,8 @@ export function DeliveryZonesPicker({
     setIsDragging(false);
     setZoneName('');
     setDeliveryFee('');
-    toast.info('Edição cancelada');
+    setTimeFees([]);
+    setEnableTimeFees(false);
   };
 
   const loadExistingZones = () => {
@@ -558,6 +574,7 @@ export function DeliveryZonesPicker({
         deliveryFee: fee,
         isActive: true,
         color: zoneColor,
+        timeFees: enableTimeFees ? timeFees : undefined,
       };
 
       setZones([...zones, newZone]);
@@ -593,6 +610,7 @@ export function DeliveryZonesPicker({
         deliveryFee: fee,
         isActive: true,
         color: zoneColor,
+        timeFees: enableTimeFees ? timeFees : undefined,
       };
 
       // Remover feature antigo e re-adicionar com ID e cor da zona
@@ -616,6 +634,8 @@ export function DeliveryZonesPicker({
     // Limpar campos
     setZoneName('');
     setDeliveryFee('');
+    setTimeFees([]);
+    setEnableTimeFees(false);
   };
 
   const handleRemoveZone = (zoneId: string) => {
@@ -777,6 +797,95 @@ export function DeliveryZonesPicker({
               />
             </div>
 
+            {/* Taxa por horário */}
+            <div className="space-y-3 border rounded-lg p-3">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="enable-time-fees"
+                  checked={enableTimeFees}
+                  onCheckedChange={(checked) => {
+                    setEnableTimeFees(!!checked);
+                    if (!checked) setTimeFees([]);
+                  }}
+                />
+                <Label htmlFor="enable-time-fees" className="flex items-center gap-2 cursor-pointer text-sm">
+                  <Clock className="w-4 h-4" />
+                  Habilitar taxa por horário
+                </Label>
+              </div>
+
+              {enableTimeFees && (
+                <div className="space-y-3">
+                  {timeFees.map((tf, idx) => (
+                    <div key={tf.id} className="space-y-2 p-3 bg-secondary rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium">Faixa {idx + 1}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={() => setTimeFees(timeFees.filter(t => t.id !== tf.id))}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <Label className="text-xs">Início</Label>
+                          <Input
+                            type="time"
+                            value={tf.startTime}
+                            onChange={(e) => setTimeFees(timeFees.map(t => t.id === tf.id ? { ...t, startTime: e.target.value } : t))}
+                            className="h-8 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Fim</Label>
+                          <Input
+                            type="time"
+                            value={tf.endTime}
+                            onChange={(e) => setTimeFees(timeFees.map(t => t.id === tf.id ? { ...t, endTime: e.target.value } : t))}
+                            className="h-8 text-sm"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <Label className="text-xs">Taxa (R$)</Label>
+                          <Input
+                            type="number"
+                            value={tf.fee}
+                            onChange={(e) => setTimeFees(timeFees.map(t => t.id === tf.id ? { ...t, fee: parseFloat(e.target.value) || 0 } : t))}
+                            min="0"
+                            step="0.01"
+                            className="h-8 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Rótulo</Label>
+                          <Input
+                            value={tf.label || ''}
+                            onChange={(e) => setTimeFees(timeFees.map(t => t.id === tf.id ? { ...t, label: e.target.value } : t))}
+                            placeholder="Ex: Noturna"
+                            className="h-8 text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => setTimeFees([...timeFees, { id: `tf-${Date.now()}`, startTime: '22:00', endTime: '06:00', fee: 0, label: 'Taxa noturna' }])}
+                  >
+                    <Plus className="w-3 h-3 mr-1" />
+                    Adicionar faixa de horário
+                  </Button>
+                </div>
+              )}
+            </div>
+
             {editingZone ? (
               <div className="flex gap-2">
                 <Button onClick={saveEditedZone} className="flex-1">
@@ -814,6 +923,12 @@ export function DeliveryZonesPicker({
                           ? `${zone.radius! < 1000 ? `${zone.radius} m` : `${(zone.radius! / 1000).toFixed(1)} km`}` 
                           : 'Área personalizada'} • R$ {zone.deliveryFee.toFixed(2)}
                       </div>
+                      {zone.timeFees && zone.timeFees.length > 0 && (
+                        <div className="text-xs text-primary flex items-center gap-1 mt-0.5">
+                          <Clock className="w-3 h-3" />
+                          {zone.timeFees.length} faixa(s) de horário
+                        </div>
+                      )}
                     </div>
                     <div className="flex gap-1">
                       <Button

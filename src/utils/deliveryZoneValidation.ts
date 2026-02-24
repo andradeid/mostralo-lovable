@@ -2,6 +2,14 @@
  * Utilitários para validação de áreas de entrega
  */
 
+export interface TimeFee {
+  id: string;
+  startTime: string; // "22:00"
+  endTime: string;   // "06:00"
+  fee: number;
+  label?: string;    // "Taxa noturna"
+}
+
 export interface DeliveryZone {
   id: string;
   name: string;
@@ -12,6 +20,7 @@ export interface DeliveryZone {
   deliveryFee: number;
   color?: string;
   isActive: boolean;
+  timeFees?: TimeFee[];
 }
 
 export interface ZoneValidationResult {
@@ -19,6 +28,7 @@ export interface ZoneValidationResult {
   zone: DeliveryZone | null;
   deliveryFee: number;
   message: string;
+  activeTimeFee?: TimeFee | null;
 }
 
 /**
@@ -114,7 +124,46 @@ export function findMatchingZone(
 }
 
 /**
- * Calcula a taxa de entrega baseada na localização
+ * Verifica se o horário atual está dentro de uma faixa horária
+ * Suporta faixas que cruzam meia-noite (ex: 22:00 até 06:00)
+ */
+export function isTimeInRange(currentTime: string, startTime: string, endTime: string): boolean {
+  const [curH, curM] = currentTime.split(':').map(Number);
+  const [startH, startM] = startTime.split(':').map(Number);
+  const [endH, endM] = endTime.split(':').map(Number);
+
+  const cur = curH * 60 + curM;
+  const start = startH * 60 + startM;
+  const end = endH * 60 + endM;
+
+  if (start <= end) {
+    // Faixa normal (ex: 08:00 até 18:00)
+    return cur >= start && cur < end;
+  } else {
+    // Faixa que cruza meia-noite (ex: 22:00 até 06:00)
+    return cur >= start || cur < end;
+  }
+}
+
+/**
+ * Retorna a TimeFee ativa para o horário atual, ou null
+ */
+export function getActiveTimeFee(zone: DeliveryZone, now?: Date): TimeFee | null {
+  if (!zone.timeFees || zone.timeFees.length === 0) return null;
+
+  const currentDate = now || new Date();
+  const currentTime = `${String(currentDate.getHours()).padStart(2, '0')}:${String(currentDate.getMinutes()).padStart(2, '0')}`;
+
+  for (const tf of zone.timeFees) {
+    if (isTimeInRange(currentTime, tf.startTime, tf.endTime)) {
+      return tf;
+    }
+  }
+  return null;
+}
+
+/**
+ * Calcula a taxa de entrega baseada na localização e horário
  */
 export function calculateDeliveryFee(
   lat: number,
@@ -123,7 +172,10 @@ export function calculateDeliveryFee(
   defaultFee: number = 0
 ): number {
   const matchingZone = findMatchingZone(lat, lng, zones);
-  return matchingZone ? matchingZone.deliveryFee : defaultFee;
+  if (!matchingZone) return defaultFee;
+
+  const activeTimeFee = getActiveTimeFee(matchingZone);
+  return activeTimeFee ? activeTimeFee.fee : matchingZone.deliveryFee;
 }
 
 /**
@@ -139,11 +191,18 @@ export function validateDeliveryLocation(
   const matchingZone = findMatchingZone(lat, lng, zones);
 
   if (matchingZone) {
+    const activeTimeFee = getActiveTimeFee(matchingZone);
+    const fee = activeTimeFee ? activeTimeFee.fee : matchingZone.deliveryFee;
+    const timeLabel = activeTimeFee
+      ? ` (${activeTimeFee.label || `${activeTimeFee.startTime}-${activeTimeFee.endTime}`})`
+      : '';
+
     return {
       isInZone: true,
       zone: matchingZone,
-      deliveryFee: matchingZone.deliveryFee,
-      message: `Dentro da área de entrega - ${matchingZone.name}`
+      deliveryFee: fee,
+      message: `Dentro da área de entrega - ${matchingZone.name}${timeLabel}`,
+      activeTimeFee,
     };
   }
 
@@ -153,7 +212,8 @@ export function validateDeliveryLocation(
       isInZone: false,
       zone: null,
       deliveryFee: defaultFee,
-      message: 'Fora da área de entrega - Pedido sujeito a aprovação'
+      message: 'Fora da área de entrega - Pedido sujeito a aprovação',
+      activeTimeFee: null,
     };
   }
 
@@ -161,6 +221,7 @@ export function validateDeliveryLocation(
     isInZone: false,
     zone: null,
     deliveryFee: defaultFee,
-    message: 'Fora da área de entrega - Selecione outro endereço'
+    message: 'Fora da área de entrega - Selecione outro endereço',
+    activeTimeFee: null,
   };
 }

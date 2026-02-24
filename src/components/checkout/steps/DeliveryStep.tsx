@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Clock as ClockIcon } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -171,6 +172,12 @@ export const DeliveryStep = ({
                         {option.fee > 0 ? `R$ ${option.fee.toFixed(2)}` : 'Grátis'}
                       </p>
                       <p className="text-xs text-muted-foreground">{option.time}</p>
+                      {option.value === 'delivery' && isSelected && deliveryZoneInfo?.activeTimeFee && (
+                        <div className="flex items-center gap-1 mt-1 text-xs text-primary">
+                          <ClockIcon className="w-3 h-3" />
+                          <span>{deliveryZoneInfo.activeTimeFee.label || `${deliveryZoneInfo.activeTimeFee.startTime}-${deliveryZoneInfo.activeTimeFee.endTime}`}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </Card>

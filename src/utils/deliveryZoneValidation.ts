@@ -28,6 +28,7 @@ export interface ZoneValidationResult {
   zone: DeliveryZone | null;
   deliveryFee: number;
   message: string;
+  activeTimeFee?: TimeFee | null;
 }
 
 /**

@@ -634,6 +634,8 @@ export function DeliveryZonesPicker({
     // Limpar campos
     setZoneName('');
     setDeliveryFee('');
+    setTimeFees([]);
+    setEnableTimeFees(false);
   };
 
   const handleRemoveZone = (zoneId: string) => {

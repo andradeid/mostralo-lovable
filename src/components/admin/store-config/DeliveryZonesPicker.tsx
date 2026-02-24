@@ -5,6 +5,7 @@ import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -107,7 +108,7 @@ export function DeliveryZonesPicker({
   const [mode, setMode] = useState<'radius' | 'polygon'>('radius');
   const [currentRadius, setCurrentRadius] = useState(500); // Em metros
   const [zoneName, setZoneName] = useState('');
-  const [deliveryFee, setDeliveryFee] = useState('');
+  const [deliveryFee, setDeliveryFee] = useState(0);
   const [editingZone, setEditingZone] = useState<DeliveryZone | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [interactionState, setInteractionState] = useState<'idle' | 'editing' | 'dragging'>('idle');
@@ -298,7 +299,7 @@ export function DeliveryZonesPicker({
     setEditingZone(zone);
     setInteractionState('editing');
     setZoneName(zone.name);
-    setDeliveryFee(zone.deliveryFee.toString());
+    setDeliveryFee(zone.deliveryFee);
     setTimeFees(zone.timeFees || []);
     
     if (zone.type === 'radius' && zone.radius) {
@@ -365,8 +366,8 @@ export function DeliveryZonesPicker({
       return;
     }
 
-    const fee = parseFloat(deliveryFee);
-    if (isNaN(fee) || fee < 0) {
+    const fee = deliveryFee;
+    if (fee < 0) {
       toast.error('Taxa de entrega inválida');
       return;
     }
@@ -395,7 +396,7 @@ export function DeliveryZonesPicker({
     setEditingZone(null);
     setInteractionState('idle');
     setZoneName('');
-    setDeliveryFee('');
+    setDeliveryFee(0);
     setTimeFees([]);
     setEnableTimeFees(false);
   };
@@ -431,7 +432,7 @@ export function DeliveryZonesPicker({
     setInteractionState('idle');
     setIsDragging(false);
     setZoneName('');
-    setDeliveryFee('');
+    setDeliveryFee(0);
     setTimeFees([]);
     setEnableTimeFees(false);
   };
@@ -550,13 +551,13 @@ export function DeliveryZonesPicker({
       return;
     }
 
-    if (!zoneName.trim() || !deliveryFee) {
-      toast.error('Preencha nome e taxa de entrega');
+    if (!zoneName.trim()) {
+      toast.error('Preencha nome da zona');
       return;
     }
 
-    const fee = parseFloat(deliveryFee);
-    if (isNaN(fee) || fee < 0) {
+    const fee = deliveryFee;
+    if (fee < 0) {
       toast.error('Taxa de entrega inválida');
       return;
     }
@@ -633,7 +634,7 @@ export function DeliveryZonesPicker({
 
     // Limpar campos
     setZoneName('');
-    setDeliveryFee('');
+    setDeliveryFee(0);
     setTimeFees([]);
     setEnableTimeFees(false);
   };
@@ -785,15 +786,12 @@ export function DeliveryZonesPicker({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="delivery-fee">Taxa de Entrega (R$)</Label>
-              <Input
+              <Label htmlFor="delivery-fee">Taxa de Entrega</Label>
+              <CurrencyInput
                 id="delivery-fee"
-                type="number"
-                placeholder="0.00"
                 value={deliveryFee}
-                onChange={(e) => setDeliveryFee(e.target.value)}
-                min="0"
-                step="0.01"
+                onChange={(val) => setDeliveryFee(val)}
+                className="h-10"
               />
             </div>
 
@@ -851,13 +849,10 @@ export function DeliveryZonesPicker({
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <Label className="text-xs">Taxa (R$)</Label>
-                          <Input
-                            type="number"
+                          <Label className="text-xs">Taxa</Label>
+                          <CurrencyInput
                             value={tf.fee}
-                            onChange={(e) => setTimeFees(timeFees.map(t => t.id === tf.id ? { ...t, fee: parseFloat(e.target.value) || 0 } : t))}
-                            min="0"
-                            step="0.01"
+                            onChange={(val) => setTimeFees(timeFees.map(t => t.id === tf.id ? { ...t, fee: val } : t))}
                             className="h-8 text-sm"
                           />
                         </div>

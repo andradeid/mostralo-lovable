@@ -923,6 +923,12 @@ export function DeliveryZonesPicker({
                           ? `${zone.radius! < 1000 ? `${zone.radius} m` : `${(zone.radius! / 1000).toFixed(1)} km`}` 
                           : 'Área personalizada'} • R$ {zone.deliveryFee.toFixed(2)}
                       </div>
+                      {zone.timeFees && zone.timeFees.length > 0 && (
+                        <div className="text-xs text-primary flex items-center gap-1 mt-0.5">
+                          <Clock className="w-3 h-3" />
+                          {zone.timeFees.length} faixa(s) de horário
+                        </div>
+                      )}
                     </div>
                     <div className="flex gap-1">
                       <Button

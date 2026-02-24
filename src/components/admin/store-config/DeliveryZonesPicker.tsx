@@ -610,6 +610,7 @@ export function DeliveryZonesPicker({
         deliveryFee: fee,
         isActive: true,
         color: zoneColor,
+        timeFees: enableTimeFees ? timeFees : undefined,
       };
 
       // Remover feature antigo e re-adicionar com ID e cor da zona

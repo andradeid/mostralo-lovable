@@ -551,13 +551,13 @@ export function DeliveryZonesPicker({
       return;
     }
 
-    if (!zoneName.trim() || !deliveryFee) {
-      toast.error('Preencha nome e taxa de entrega');
+    if (!zoneName.trim()) {
+      toast.error('Preencha nome da zona');
       return;
     }
 
-    const fee = parseFloat(deliveryFee);
-    if (isNaN(fee) || fee < 0) {
+    const fee = deliveryFee;
+    if (fee < 0) {
       toast.error('Taxa de entrega inválida');
       return;
     }

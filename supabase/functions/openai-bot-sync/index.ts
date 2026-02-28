@@ -1246,7 +1246,8 @@ serve(async (req) => {
           products || [], 
           categories || [], 
           origin,
-          personalitySettings
+          personalitySettings,
+          deliveryZones
         );
 
         steps.push({

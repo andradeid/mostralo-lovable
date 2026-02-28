@@ -71,9 +71,7 @@ const getEffectivePrice = (subscriber: Subscriber): number => {
   if (subscriber.custom_monthly_price !== null && subscriber.custom_monthly_price !== undefined && Number(subscriber.custom_monthly_price) > 0) {
     return Number(subscriber.custom_monthly_price);
   }
-  const planPrice = Number(subscriber.plan_price || 0);
-  const couponDiscount = Number(subscriber.coupon_discount || 0);
-  return planPrice - couponDiscount;
+  return Number(subscriber.plan_price || 0);
 };
 
 const getSubscriptionStatus = (subscriber: Subscriber) => {

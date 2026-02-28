@@ -12,7 +12,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Autenticação
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Não autorizado" }), {
@@ -25,7 +24,6 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // Verificar usuário
     const supabaseAuth = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -39,10 +37,9 @@ Deno.serve(async (req) => {
     }
     const userId = user.id;
 
-    // Admin client
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // Verificar se é master_admin
+    // Verificar master_admin
     const { data: roleData } = await supabase
       .from("user_roles")
       .select("role")
@@ -57,7 +54,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Parâmetros
     const { source_store_id, new_name, new_slug, owner_id } = await req.json();
 
     if (!source_store_id || !new_name || !new_slug || !owner_id) {
@@ -67,13 +63,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Verificar se slug já existe
-    const { data: existingSlug } = await supabase
-      .from("stores")
-      .select("id")
-      .eq("slug", new_slug)
-      .single();
-
+    // Verificar slug
+    const { data: existingSlug } = await supabase.from("stores").select("id").eq("slug", new_slug).single();
     if (existingSlug) {
       return new Response(JSON.stringify({ error: "Slug já existe. Escolha outro." }), {
         status: 400,
@@ -81,13 +72,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 1. Buscar loja origem
-    const { data: sourceStore, error: storeError } = await supabase
-      .from("stores")
-      .select("*")
-      .eq("id", source_store_id)
-      .single();
-
+    // Buscar loja origem
+    const { data: sourceStore, error: storeError } = await supabase.from("stores").select("*").eq("id", source_store_id).single();
     if (storeError || !sourceStore) {
       return new Response(JSON.stringify({ error: "Loja origem não encontrada" }), {
         status: 404,
@@ -95,7 +81,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 2. Criar nova loja (copiar configs, limpar dados sensíveis)
+    // Criar nova loja
     const {
       id: _id, created_at: _ca, updated_at: _ua, slug: _slug, name: _name,
       owner_id: _oid, openai_api_key: _oai, last_order_number: _lon,
@@ -134,137 +120,118 @@ Deno.serve(async (req) => {
     const newStoreId = newStore.id;
     const stats = { categories: 0, products: 0, variants: 0, addon_categories: 0, addons: 0, modules: 0 };
 
-    // 3. Clonar store_configurations
-    const { data: sourceConfig } = await supabase
-      .from("store_configurations")
-      .select("*")
-      .eq("store_id", source_store_id)
-      .single();
+    // Buscar todos os dados em paralelo
+    const [
+      configRes,
+      categoriesRes,
+      productsRes,
+      addonCatsRes,
+      addonsRes,
+      catAddonCatsRes,
+      modulesRes,
+    ] = await Promise.all([
+      supabase.from("store_configurations").select("*").eq("store_id", source_store_id).single(),
+      supabase.from("categories").select("*").eq("store_id", source_store_id).order("display_order"),
+      supabase.from("products").select("*").eq("store_id", source_store_id).order("display_order").limit(1000),
+      supabase.from("addon_categories").select("*").eq("store_id", source_store_id),
+      supabase.from("addons").select("*").eq("store_id", source_store_id),
+      supabase.from("category_addon_categories").select("*").eq("store_id", source_store_id),
+      supabase.from("store_modules").select("*").eq("store_id", source_store_id),
+    ]);
 
-    if (sourceConfig) {
-      const { id: _cid, store_id: _csid, created_at: _cca, updated_at: _cua, ...configFields } = sourceConfig;
-      await supabase.from("store_configurations").insert({
-        ...configFields,
-        store_id: newStoreId,
-      });
+    // Clonar config
+    if (configRes.data) {
+      const { id: _cid, store_id: _csid, created_at: _cca, updated_at: _cua, ...configFields } = configRes.data;
+      await supabase.from("store_configurations").insert({ ...configFields, store_id: newStoreId });
     }
 
-    // 4. Clonar categorias (mapeamento de IDs)
+    // Clonar categorias em batch
     const categoryMap = new Map<string, string>();
-    const { data: sourceCategories } = await supabase
-      .from("categories")
-      .select("*")
-      .eq("store_id", source_store_id)
-      .order("display_order");
-
-    if (sourceCategories && sourceCategories.length > 0) {
-      for (const cat of sourceCategories) {
-        const { id: oldId, store_id: _sid, created_at: _cca2, updated_at: _cua2, ...catFields } = cat;
-        const { data: newCat } = await supabase
-          .from("categories")
-          .insert({ ...catFields, store_id: newStoreId })
-          .select("id")
-          .single();
-        if (newCat) {
-          categoryMap.set(oldId, newCat.id);
-          stats.categories++;
+    const sourceCategories = categoriesRes.data || [];
+    if (sourceCategories.length > 0) {
+      const catInserts = sourceCategories.map(cat => {
+        const { id: _oldId, store_id: _sid, created_at: _cca2, updated_at: _cua2, ...catFields } = cat;
+        return { ...catFields, store_id: newStoreId };
+      });
+      const { data: newCats } = await supabase.from("categories").insert(catInserts).select("id");
+      if (newCats) {
+        for (let i = 0; i < sourceCategories.length; i++) {
+          categoryMap.set(sourceCategories[i].id, newCats[i].id);
         }
+        stats.categories = newCats.length;
       }
     }
 
-    // 5. Clonar produtos (em lotes de 50 para performance)
+    // Clonar produtos em batch
     const productMap = new Map<string, string>();
-    let offset = 0;
-    const batchSize = 50;
-    let hasMore = true;
-
-    while (hasMore) {
-      const { data: sourceProducts } = await supabase
-        .from("products")
-        .select("*")
-        .eq("store_id", source_store_id)
-        .order("display_order")
-        .range(offset, offset + batchSize - 1);
-
-      if (!sourceProducts || sourceProducts.length === 0) {
-        hasMore = false;
-        break;
-      }
-
-      for (const prod of sourceProducts) {
-        const { id: oldId, store_id: _sid2, created_at: _pca, updated_at: _pua, slug: _pslug, ...prodFields } = prod;
-        const newCategoryId = prod.category_id ? categoryMap.get(prod.category_id) || null : null;
-
-        const { data: newProd } = await supabase
-          .from("products")
-          .insert({
+    const sourceProducts = productsRes.data || [];
+    if (sourceProducts.length > 0) {
+      // Insert em lotes de 200
+      const batchSize = 200;
+      for (let i = 0; i < sourceProducts.length; i += batchSize) {
+        const batch = sourceProducts.slice(i, i + batchSize);
+        const prodInserts = batch.map(prod => {
+          const { id: _oldId, store_id: _sid2, created_at: _pca, updated_at: _pua, slug: _pslug, ...prodFields } = prod;
+          return {
             ...prodFields,
             store_id: newStoreId,
-            category_id: newCategoryId,
-            slug: null, // trigger gera automaticamente
-          })
-          .select("id")
-          .single();
-
-        if (newProd) {
-          productMap.set(oldId, newProd.id);
-          stats.products++;
-        }
-      }
-
-      if (sourceProducts.length < batchSize) {
-        hasMore = false;
-      }
-      offset += batchSize;
-    }
-
-    // 6. Clonar variantes de produtos
-    for (const [oldProductId, newProductId] of productMap.entries()) {
-      const { data: variants } = await supabase
-        .from("product_variants")
-        .select("*")
-        .eq("product_id", oldProductId);
-
-      if (variants && variants.length > 0) {
-        const newVariants = variants.map(v => {
-          const { id: _vid, product_id: _vpid, created_at: _vca, updated_at: _vua, ...vFields } = v;
-          return { ...vFields, product_id: newProductId };
+            category_id: prod.category_id ? categoryMap.get(prod.category_id) || null : null,
+            slug: null,
+          };
         });
-        await supabase.from("product_variants").insert(newVariants);
-        stats.variants += variants.length;
-      }
-    }
-
-    // 7. Clonar addon_categories (mapeamento)
-    const addonCategoryMap = new Map<string, string>();
-    const { data: sourceAddonCats } = await supabase
-      .from("addon_categories")
-      .select("*")
-      .eq("store_id", source_store_id);
-
-    if (sourceAddonCats && sourceAddonCats.length > 0) {
-      for (const ac of sourceAddonCats) {
-        const { id: oldId, store_id: _sid3, created_at: _aca, updated_at: _aua, ...acFields } = ac;
-        const { data: newAc } = await supabase
-          .from("addon_categories")
-          .insert({ ...acFields, store_id: newStoreId })
-          .select("id")
-          .single();
-        if (newAc) {
-          addonCategoryMap.set(oldId, newAc.id);
-          stats.addon_categories++;
+        const { data: newProds } = await supabase.from("products").insert(prodInserts).select("id");
+        if (newProds) {
+          for (let j = 0; j < batch.length; j++) {
+            productMap.set(batch[j].id, newProds[j].id);
+          }
+          stats.products += newProds.length;
         }
       }
     }
 
-    // 8. Clonar addons
-    const { data: sourceAddons } = await supabase
-      .from("addons")
-      .select("*")
-      .eq("store_id", source_store_id);
+    // Clonar variantes - buscar todas de uma vez
+    if (productMap.size > 0) {
+      const oldProductIds = Array.from(productMap.keys());
+      // Buscar em lotes de 200 IDs
+      for (let i = 0; i < oldProductIds.length; i += 200) {
+        const idBatch = oldProductIds.slice(i, i + 200);
+        const { data: variants } = await supabase
+          .from("product_variants")
+          .select("*")
+          .in("product_id", idBatch);
 
-    if (sourceAddons && sourceAddons.length > 0) {
-      const newAddons = sourceAddons.map(addon => {
+        if (variants && variants.length > 0) {
+          const newVariants = variants.map(v => {
+            const { id: _vid, product_id: _vpid, created_at: _vca, updated_at: _vua, ...vFields } = v;
+            return { ...vFields, product_id: productMap.get(v.product_id)! };
+          });
+          await supabase.from("product_variants").insert(newVariants);
+          stats.variants += variants.length;
+        }
+      }
+    }
+
+    // Clonar addon_categories em batch
+    const addonCategoryMap = new Map<string, string>();
+    const sourceAddonCats = addonCatsRes.data || [];
+    if (sourceAddonCats.length > 0) {
+      const acInserts = sourceAddonCats.map(ac => {
+        const { id: _oldId, store_id: _sid3, created_at: _aca, updated_at: _aua, ...acFields } = ac;
+        return { ...acFields, store_id: newStoreId };
+      });
+      const { data: newAcs } = await supabase.from("addon_categories").insert(acInserts).select("id");
+      if (newAcs) {
+        for (let i = 0; i < sourceAddonCats.length; i++) {
+          addonCategoryMap.set(sourceAddonCats[i].id, newAcs[i].id);
+        }
+        stats.addon_categories = newAcs.length;
+      }
+    }
+
+    // Clonar addons em batch
+    const sourceAddons = addonsRes.data || [];
+    if (sourceAddons.length > 0) {
+      const addonInserts = sourceAddons.map(addon => {
         const { id: _aid, store_id: _asid, created_at: _aaca, updated_at: _aaua, ...addonFields } = addon;
         return {
           ...addonFields,
@@ -272,42 +239,29 @@ Deno.serve(async (req) => {
           category_id: addon.category_id ? addonCategoryMap.get(addon.category_id) || null : null,
         };
       });
-      await supabase.from("addons").insert(newAddons);
+      await supabase.from("addons").insert(addonInserts);
       stats.addons = sourceAddons.length;
     }
 
-    // 9. Clonar category_addon_categories (vínculos)
-    const { data: sourceCatAddonCats } = await supabase
-      .from("category_addon_categories")
-      .select("*")
-      .eq("store_id", source_store_id);
-
-    if (sourceCatAddonCats && sourceCatAddonCats.length > 0) {
+    // Clonar vínculos category_addon_categories
+    const sourceCatAddonCats = catAddonCatsRes.data || [];
+    if (sourceCatAddonCats.length > 0) {
       const newLinks = sourceCatAddonCats
         .map(link => {
           const newCatId = categoryMap.get(link.category_id);
           const newAddonCatId = addonCategoryMap.get(link.addon_category_id);
           if (!newCatId || !newAddonCatId) return null;
-          return {
-            store_id: newStoreId,
-            category_id: newCatId,
-            addon_category_id: newAddonCatId,
-          };
+          return { store_id: newStoreId, category_id: newCatId, addon_category_id: newAddonCatId };
         })
         .filter(Boolean);
-
       if (newLinks.length > 0) {
         await supabase.from("category_addon_categories").insert(newLinks);
       }
     }
 
-    // 10. Clonar store_modules
-    const { data: sourceModules } = await supabase
-      .from("store_modules")
-      .select("*")
-      .eq("store_id", source_store_id);
-
-    if (sourceModules && sourceModules.length > 0) {
+    // Clonar modules
+    const sourceModules = modulesRes.data || [];
+    if (sourceModules.length > 0) {
       const newModules = sourceModules.map(m => ({
         store_id: newStoreId,
         module_id: m.module_id,
@@ -317,18 +271,12 @@ Deno.serve(async (req) => {
       stats.modules = sourceModules.length;
     }
 
-    // 11. Adicionar role store_admin para o owner
-    const { error: roleError } = await supabase
-      .from("user_roles")
-      .insert({
-        user_id: owner_id,
-        role: "store_admin",
-        store_id: newStoreId,
-      });
-
-    if (roleError) {
-      console.warn("Aviso: Erro ao adicionar role (pode já existir):", roleError.message);
-    }
+    // Adicionar role store_admin
+    await supabase.from("user_roles").insert({
+      user_id: owner_id,
+      role: "store_admin",
+      store_id: newStoreId,
+    });
 
     return new Response(
       JSON.stringify({
@@ -338,19 +286,13 @@ Deno.serve(async (req) => {
         stats,
         message: `Loja "${new_name}" clonada com sucesso!`,
       }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error("Erro na clonagem:", error);
     return new Response(
       JSON.stringify({ error: "Erro interno na clonagem", details: String(error) }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

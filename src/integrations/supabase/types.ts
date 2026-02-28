@@ -12782,6 +12782,31 @@ export type Database = {
         }
         Returns: Json
       }
+      fuzzy_search_products: {
+        Args: {
+          p_limit?: number
+          p_min_similarity?: number
+          p_search_term: string
+          p_store_id: string
+        }
+        Returns: {
+          category_name: string
+          description: string
+          id: string
+          image_url: string
+          is_available: boolean
+          is_featured: boolean
+          is_on_offer: boolean
+          name: string
+          offer_price: number
+          original_price: number
+          price: number
+          similarity_score: number
+          slug: string
+          stock_quantity: number
+          track_stock: boolean
+        }[]
+      }
       generate_product_slug: {
         Args: { input_store_id: string; product_name: string }
         Returns: string

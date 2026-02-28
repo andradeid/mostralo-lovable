@@ -453,13 +453,13 @@ serve(async (req) => {
       }
     };
 
-    // Helper para enviar fotos de produtos (máximo 3)
+    // Helper para enviar fotos de produtos (máximo 5)
     const sendProductImages = async (products: any[]) => {
       if (!instanceName || !remoteJid) return;
       
       const productsWithImages = products
         .filter(p => p.image_url)
-        .slice(0, 3); // Máximo 3 fotos
+        .slice(0, 5); // Máximo 5 fotos
       
       if (productsWithImages.length === 0) return;
       

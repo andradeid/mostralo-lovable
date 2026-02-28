@@ -447,8 +447,10 @@ serve(async (req) => {
         
         const phone = remoteJid.replace(/@.*$/, '');
         
-        // Legenda completa com nome, preço e link
-        const caption = `📦 *${product.name}*\n💰 R$ ${product.price.toFixed(2)}\n👉 ${product.link}`;
+        // Legenda completa com nome, preço e link (se habilitado)
+        const caption = product.link 
+          ? `📦 *${product.name}*\n💰 R$ ${product.price.toFixed(2)}\n👉 ${product.link}`
+          : `📦 *${product.name}*\n💰 R$ ${product.price.toFixed(2)}`;
         
         const apiUrl = evolutionConfig.api_url.replace(/\/+$/, '');
         const endpoint = `${apiUrl}/message/sendMedia/${instanceName}`;

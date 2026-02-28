@@ -568,9 +568,10 @@ serve(async (req) => {
       // CHECK_STOCK - Verifica estoque de produto
       // ========================================
       case 'check_stock': {
-        const productName = args.product_name?.toLowerCase() || '';
+        const productName = args.product_name?.toLowerCase()?.trim() || '';
 
-        const { data: products, error } = await supabase
+        // Busca primária: termo completo
+        let { data: products, error } = await supabase
           .from('products')
           .select(`
             id, name, slug, price, offer_price, is_on_offer, track_stock, stock_quantity, is_available, image_url
@@ -578,7 +579,29 @@ serve(async (req) => {
           .eq('store_id', storeId)
           .eq('is_available', true)
           .ilike('name', `%${productName}%`)
-          .limit(3);
+          .limit(5);
+
+        // Busca secundária: por palavras individuais se não encontrou
+        if (!error && (!products || products.length === 0) && productName.includes(' ')) {
+          const words = productName.split(/\s+/).filter(w => w.length >= 2);
+          if (words.length >= 2) {
+            const andFilter = words.map(w => `name.ilike.%${w}%`).join(',');
+            const wordResult = await supabase
+              .from('products')
+              .select(`
+                id, name, slug, price, offer_price, is_on_offer, track_stock, stock_quantity, is_available, image_url
+              `)
+              .eq('store_id', storeId)
+              .eq('is_available', true)
+              .or(andFilter)
+              .limit(5);
+
+            if (!wordResult.error && wordResult.data?.length) {
+              products = wordResult.data;
+              console.log(`[product-search-agent] check_stock: busca por palavras encontrou ${products.length} para "${productName}"`);
+            }
+          }
+        }
 
         if (error || !products?.length) {
           result = { 

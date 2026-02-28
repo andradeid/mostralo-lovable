@@ -644,7 +644,15 @@ CONTROLE DE CARRINHO (MUITO IMPORTANTE):
 - Sempre que adicionar um produto, pergunte se quer mais alguma coisa
 - Só inicie o fechamento quando o cliente confirmar que não quer mais nada
 
-PERGUNTAS PARA FECHAR PEDIDO (REGRA CRÍTICA - UMA POR VEZ):
+${conversationalSettings?.upsell_enabled && conversationalSettings?.upsell_product_id ? `UPSELL (ANTES DE FECHAR O PEDIDO - REGRA CRÍTICA):
+- Quando o cliente disser que NÃO quer mais nada, ANTES de iniciar as perguntas de fechamento, ofereça:
+  "${conversationalSettings.upsell_message || 'Estamos com uma promoção especial!'}" seguido do nome e preço do produto de upsell
+- Produto de upsell: busque com search_products o produto de ID "${conversationalSettings.upsell_product_id}"
+- Preço promocional: R$ ${(conversationalSettings.upsell_custom_price || 0).toFixed(2)}${conversationalSettings.upsell_custom_price ? ' (preço especial!)' : ''}
+- Se o cliente ACEITAR: adicione ao carrinho e continue para o fechamento
+- Se o cliente RECUSAR: continue normalmente para o fechamento sem insistir
+- Ofereça o upsell APENAS UMA VEZ por atendimento
+- NÃO ofereça se o cliente já pediu esse produto` : ''}
 ${questionsText}
 
 ⚠️ REGRA ABSOLUTA: Faça APENAS UMA pergunta por vez!

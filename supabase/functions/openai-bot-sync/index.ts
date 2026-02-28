@@ -1572,7 +1572,10 @@ serve(async (req) => {
 
       // 4. Montar saudação fixa (sem horário dinâmico)
       const greeting = personalitySettings.customGreeting || `Olá! 👋 Seja bem-vindo(a) à ${store.name}!`;
-      const fixedGreeting = `${greeting}\n\n📱 Confira nossa loja: ${storeLink}`;
+      // No modo conversacional, NUNCA incluir links na saudação
+      const fixedGreeting = isConversationalMode
+        ? greeting
+        : `${greeting}\n\n📱 Confira nossa loja: ${storeLink}`;
 
       // 5. Montar payload do bot
       const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';

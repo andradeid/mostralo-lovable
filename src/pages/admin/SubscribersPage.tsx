@@ -325,7 +325,7 @@ const SubscribersPage = () => {
           plan_price: store.plans?.price,
           plan_billing_cycle: store.plans?.billing_cycle,
           subscription_expires_at: store.subscription_expires_at,
-          custom_monthly_price: store.custom_monthly_price,
+          custom_monthly_price: store.custom_monthly_price && Number(store.custom_monthly_price) > 0 ? store.custom_monthly_price : null,
           discount_reason: store.discount_reason,
           coupon_discount: couponMap.get(store.id)?.coupon_discount || null,
           coupon_code: couponMap.get(store.id)?.coupon_code || null,

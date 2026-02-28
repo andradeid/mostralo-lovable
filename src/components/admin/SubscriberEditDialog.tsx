@@ -127,9 +127,9 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
         .select('id, plan_id, custom_monthly_price')
         .single();
 
-      if (error) {
+      if (error || !updatedStore) {
         console.error('❌ Erro ao salvar store:', error);
-        throw error;
+        throw error || new Error('Nenhuma loja foi atualizada (permissão negada).');
       }
 
       // Registrar no log de auditoria

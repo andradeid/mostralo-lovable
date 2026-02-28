@@ -92,26 +92,34 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
     try {
       const customPriceValue = customPrice ? parseFloat(customPrice) : null;
       
+      // Buscar user antes do update para não usar await dentro do objeto
+      const { data: authData } = await supabase.auth.getUser();
+      const currentUserId = authData?.user?.id || null;
+
+      const updatePayload: Record<string, any> = {
+        plan_id: selectedPlanId === 'none' ? null : selectedPlanId,
+        subscription_expires_at: expirationDate ? expirationDate.toISOString() : null,
+        status: storeActive ? 'active' : 'inactive',
+        custom_monthly_price: customPriceValue,
+        discount_reason: customPriceValue ? discountReason : null,
+        discount_applied_at: customPriceValue ? new Date().toISOString() : null,
+        discount_applied_by: customPriceValue ? currentUserId : null,
+        updated_at: new Date().toISOString()
+      };
+
       const { error } = await supabase
         .from('stores')
-        .update({
-          plan_id: selectedPlanId === 'none' ? null : selectedPlanId,
-          subscription_expires_at: expirationDate ? expirationDate.toISOString() : null,
-          status: storeActive ? 'active' : 'inactive',
-          custom_monthly_price: customPriceValue,
-          discount_reason: customPriceValue ? discountReason : null,
-          discount_applied_at: customPriceValue ? new Date().toISOString() : null,
-          discount_applied_by: customPriceValue ? (await supabase.auth.getUser()).data.user?.id : null,
-          updated_at: new Date().toISOString()
-        })
+        .update(updatePayload)
         .eq('id', subscriber.store_id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro ao salvar store:', error);
+        throw error;
+      }
 
       // Registrar no log de auditoria
-      const logAction = customPriceValue ? 'apply_discount' : 'update_subscription';
       await supabase.rpc('log_admin_action', {
-        p_action: logAction,
+        p_action: customPriceValue ? 'apply_discount' : 'update_subscription',
         p_target_user_id: subscriber.id,
         p_details: {
           store_id: subscriber.store_id,

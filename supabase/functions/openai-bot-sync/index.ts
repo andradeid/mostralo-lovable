@@ -350,7 +350,8 @@ function generateAssistantModePrompt(
   storeLink: string,
   navigationLink: string,
   personalitySettings: PersonalitySettings,
-  customInstructions?: string
+  customInstructions?: string,
+  deliveryZones?: any[]
 ): string {
   const personalityInstructions = generatePersonalityInstructions(personalitySettings);
 

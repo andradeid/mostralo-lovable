@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Settings2, Plus, Trash2, Pill, Loader2 } from "lucide-react";
+import { Settings2, Plus, Trash2, Pill, Loader2, PackageSearch } from "lucide-react";
 import { useBotConversationalSettings } from "@/hooks/useBotConversationalSettings";
 
 interface BotConversationalSettingsCardProps {
@@ -16,6 +16,7 @@ interface BotConversationalSettingsCardProps {
 export function BotConversationalSettingsCard({ storeId, disabled }: BotConversationalSettingsCardProps) {
   const { settings, loading, saving, saveSettings } = useBotConversationalSettings(storeId);
   const [newPhrase, setNewPhrase] = useState('');
+  const [newUnavailablePhrase, setNewUnavailablePhrase] = useState('');
 
   const handleAddPhrase = () => {
     if (!newPhrase.trim()) return;
@@ -31,6 +32,22 @@ export function BotConversationalSettingsCard({ storeId, disabled }: BotConversa
     const updated = [...settings.generic_phrases];
     updated[index] = value;
     saveSettings({ generic_phrases: updated });
+  };
+
+  const handleAddUnavailablePhrase = () => {
+    if (!newUnavailablePhrase.trim()) return;
+    saveSettings({ unavailable_phrases: [...settings.unavailable_phrases, newUnavailablePhrase.trim()] });
+    setNewUnavailablePhrase('');
+  };
+
+  const handleRemoveUnavailablePhrase = (index: number) => {
+    saveSettings({ unavailable_phrases: settings.unavailable_phrases.filter((_, i) => i !== index) });
+  };
+
+  const handleUpdateUnavailablePhrase = (index: number, value: string) => {
+    const updated = [...settings.unavailable_phrases];
+    updated[index] = value;
+    saveSettings({ unavailable_phrases: updated });
   };
 
   if (loading) {
@@ -101,6 +118,17 @@ export function BotConversationalSettingsCard({ storeId, disabled }: BotConversa
               disabled={disabled || saving}
             />
           </div>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="never-unavailable" className="text-xs sm:text-sm cursor-pointer">
+              📦 Nunca dizer que não tem em estoque
+            </Label>
+            <Switch
+              id="never-unavailable"
+              checked={settings.never_say_unavailable}
+              onCheckedChange={(v) => saveSettings({ never_say_unavailable: v })}
+              disabled={disabled || saving}
+            />
+          </div>
         </div>
 
         {/* Mensagem de fechamento */}
@@ -161,6 +189,61 @@ export function BotConversationalSettingsCard({ storeId, disabled }: BotConversa
                 size="sm"
                 onClick={handleAddPhrase}
                 disabled={disabled || !newPhrase.trim() || saving}
+                className="h-8"
+              >
+                <Plus className="h-3.5 w-3.5 mr-1" />
+                Adicionar
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Frases de produto indisponível */}
+        {settings.never_say_unavailable && (
+          <div className="space-y-2 pt-2 border-t">
+            <div className="flex items-center gap-2">
+              <PackageSearch className="h-4 w-4 text-orange-500 shrink-0" />
+              <Label className="text-xs sm:text-sm font-medium">Frases quando produto não encontrado</Label>
+            </div>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">
+              O bot usará aleatoriamente uma dessas frases ao não localizar um produto no estoque
+            </p>
+
+            <div className="space-y-2">
+              {settings.unavailable_phrases.map((phrase, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <Input
+                    value={phrase}
+                    onChange={(e) => handleUpdateUnavailablePhrase(index, e.target.value)}
+                    className="flex-1 h-8 text-xs sm:text-sm"
+                    disabled={disabled || saving}
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 shrink-0"
+                    onClick={() => handleRemoveUnavailablePhrase(index)}
+                    disabled={disabled || saving || settings.unavailable_phrases.length <= 1}
+                  >
+                    <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Input
+                placeholder="Nova frase para produto indisponível..."
+                value={newUnavailablePhrase}
+                onChange={(e) => setNewUnavailablePhrase(e.target.value)}
+                className="flex-1 h-8 text-xs sm:text-sm"
+                disabled={disabled || saving}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddUnavailablePhrase()}
+              />
+              <Button
+                size="sm"
+                onClick={handleAddUnavailablePhrase}
+                disabled={disabled || !newUnavailablePhrase.trim() || saving}
                 className="h-8"
               >
                 <Plus className="h-3.5 w-3.5 mr-1" />

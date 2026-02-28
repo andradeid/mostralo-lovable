@@ -9170,10 +9170,12 @@ export type Database = {
           generic_phrases: Json
           id: string
           informal_tone: boolean
+          never_say_unavailable: boolean
           never_send_links: boolean
           recommend_generics: boolean
           send_product_photos: boolean
           store_id: string
+          unavailable_phrases: Json
           updated_at: string
         }
         Insert: {
@@ -9182,10 +9184,12 @@ export type Database = {
           generic_phrases?: Json
           id?: string
           informal_tone?: boolean
+          never_say_unavailable?: boolean
           never_send_links?: boolean
           recommend_generics?: boolean
           send_product_photos?: boolean
           store_id: string
+          unavailable_phrases?: Json
           updated_at?: string
         }
         Update: {
@@ -9194,10 +9198,12 @@ export type Database = {
           generic_phrases?: Json
           id?: string
           informal_tone?: boolean
+          never_say_unavailable?: boolean
           never_send_links?: boolean
           recommend_generics?: boolean
           send_product_photos?: boolean
           store_id?: string
+          unavailable_phrases?: Json
           updated_at?: string
         }
         Relationships: [

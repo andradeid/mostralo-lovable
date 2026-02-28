@@ -11,6 +11,8 @@ export interface ConversationalSettings {
   informal_tone: boolean;
   closing_message: string;
   generic_phrases: string[];
+  never_say_unavailable: boolean;
+  unavailable_phrases: string[];
 }
 
 const DEFAULT_SETTINGS: Omit<ConversationalSettings, 'store_id'> = {
@@ -23,6 +25,12 @@ const DEFAULT_SETTINGS: Omit<ConversationalSettings, 'store_id'> = {
     'Temos a versão genérica com o mesmo princípio ativo por um preço menor, deseja?',
     'Posso sugerir o genérico equivalente? O preço é bem mais acessível!',
     'Esse medicamento tem versão genérica disponível, quer que eu verifique?',
+  ],
+  never_say_unavailable: true,
+  unavailable_phrases: [
+    'Vou verificar no nosso estoque, um momento por favor! 🔍',
+    'No momento não localizei, mas posso encomendar pra você! Deseja?',
+    'Deixa eu confirmar com nosso estoque. Pode aguardar um instante? 😊',
   ],
 };
 
@@ -53,6 +61,8 @@ export function useBotConversationalSettings(storeId: string) {
           informal_tone: data.informal_tone,
           closing_message: data.closing_message || DEFAULT_SETTINGS.closing_message,
           generic_phrases: Array.isArray(data.generic_phrases) ? data.generic_phrases as string[] : DEFAULT_SETTINGS.generic_phrases,
+          never_say_unavailable: data.never_say_unavailable ?? DEFAULT_SETTINGS.never_say_unavailable,
+          unavailable_phrases: Array.isArray(data.unavailable_phrases) ? data.unavailable_phrases as string[] : DEFAULT_SETTINGS.unavailable_phrases,
         });
       }
     } catch (err) {
@@ -79,6 +89,8 @@ export function useBotConversationalSettings(storeId: string) {
         informal_tone: newSettings.informal_tone,
         closing_message: newSettings.closing_message,
         generic_phrases: newSettings.generic_phrases,
+        never_say_unavailable: newSettings.never_say_unavailable,
+        unavailable_phrases: newSettings.unavailable_phrases,
       };
 
       if (newSettings.id) {

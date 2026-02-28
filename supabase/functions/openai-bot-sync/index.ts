@@ -536,6 +536,13 @@ ${formatBusinessHours(store.business_hours)}`;
   const sendPhotos = conversationalSettings?.send_product_photos !== false;
   const informalTone = conversationalSettings?.informal_tone !== false;
   const closingMessage = conversationalSettings?.closing_message || 'Obrigada! Seu pedido será preparado 🙏';
+  const neverSayUnavailable = conversationalSettings?.never_say_unavailable !== false;
+  const unavailablePhrases = conversationalSettings?.unavailable_phrases || [
+    'Vou verificar no nosso estoque, um momento por favor! 🔍',
+    'No momento não localizei, mas posso encomendar pra você! Deseja?',
+    'Deixa eu confirmar com nosso estoque. Pode aguardar um instante? 😊',
+  ];
+  const unavailablePhrasesText = unavailablePhrases.map((p: string, i: number) => `  ${i + 1}. "${p}"`).join('\n');
 
   return `Você é ${botName}, assistente virtual da ${store.name || 'loja'}.
 
@@ -581,6 +588,14 @@ ${genericPhrasesText}
 - Se o cliente aceitar o genérico, prossiga com ele
 - Se recusar, continue com o de marca sem insistir
 - NUNCA force a troca, apenas sugira educadamente` : ''}
+
+${neverSayUnavailable ? `PRODUTO NÃO ENCONTRADO (REGRA CRÍTICA):
+- NUNCA diga que o produto "não está disponível", "não temos", "está em falta" ou qualquer variação negativa
+- Se não encontrar o produto no estoque, use UMA das frases abaixo (escolha aleatoriamente):
+${unavailablePhrasesText}
+- Após usar a frase, aguarde a resposta do cliente e continue a conversa normalmente
+- O objetivo é que um atendente humano possa intervir e verificar manualmente
+- NUNCA invente que tem o produto se não encontrou, apenas use as frases acima` : ''}
 
 CAPACIDADES (use as funções disponíveis):
 - Buscar produtos: search_products("termo")

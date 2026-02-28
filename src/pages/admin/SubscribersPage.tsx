@@ -153,16 +153,15 @@ function StoreRow({
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs text-muted-foreground">
         {store.plan_price ? (
           <span className="flex items-center gap-1">
-            {(store.custom_monthly_price || store.coupon_discount) && (
+            {store.custom_monthly_price && Number(store.custom_monthly_price) > 0 && (
               <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-[10px] px-1">
-                {store.coupon_code ? `🎟️ ${store.coupon_code}` : '🏷️'}
-                {' '}-{Math.round((1 - getEffectivePrice(store) / Number(store.plan_price)) * 100)}%
+                🏷️ -{Math.round((1 - getEffectivePrice(store) / Number(store.plan_price)) * 100)}%
               </Badge>
             )}
             <span className="font-semibold text-foreground">
               R$ {getEffectivePrice(store).toFixed(2)}/{store.plan_billing_cycle === 'monthly' ? 'mês' : 'ano'}
             </span>
-            {(store.custom_monthly_price || store.coupon_discount) && (
+            {store.custom_monthly_price && Number(store.custom_monthly_price) > 0 && (
               <span className="line-through">R$ {Number(store.plan_price).toFixed(2)}</span>
             )}
           </span>

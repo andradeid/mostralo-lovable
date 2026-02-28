@@ -42,6 +42,13 @@ interface StoreData {
   logo_url: string | null;
   cover_url: string | null;
   openai_api_key: string | null;
+  subscription_expires_at: string | null;
+  custom_monthly_price: number | null;
+  plan_id: string | null;
+  owner_name?: string | null;
+  owner_email?: string | null;
+  plan_name?: string | null;
+  plan_price?: number | null;
 }
 
 const StoresPage = () => {

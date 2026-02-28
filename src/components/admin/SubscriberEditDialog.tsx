@@ -90,20 +90,33 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      const customPriceValue = customPrice ? parseFloat(customPrice) : null;
+      const normalizedCustomPrice = customPrice
+        .replace(',', '.')
+        .replace(/[^\d.]/g, '')
+        .trim();
+
+      const customPriceValue = normalizedCustomPrice === ''
+        ? null
+        : Number.parseFloat(normalizedCustomPrice);
+
+      if (customPriceValue !== null && !Number.isFinite(customPriceValue)) {
+        throw new Error('Valor personalizado inválido.');
+      }
       
       // Buscar user antes do update para não usar await dentro do objeto
       const { data: authData } = await supabase.auth.getUser();
       const currentUserId = authData?.user?.id || null;
 
+      const hasCustomPrice = customPriceValue !== null && customPriceValue > 0;
+
       const updatePayload: Record<string, any> = {
         plan_id: selectedPlanId === 'none' ? null : selectedPlanId,
         subscription_expires_at: expirationDate ? expirationDate.toISOString() : null,
         status: storeActive ? 'active' : 'inactive',
-        custom_monthly_price: customPriceValue,
-        discount_reason: customPriceValue ? discountReason : null,
-        discount_applied_at: customPriceValue ? new Date().toISOString() : null,
-        discount_applied_by: customPriceValue ? currentUserId : null,
+        custom_monthly_price: hasCustomPrice ? Number(customPriceValue.toFixed(2)) : null,
+        discount_reason: hasCustomPrice ? discountReason : null,
+        discount_applied_at: hasCustomPrice ? new Date().toISOString() : null,
+        discount_applied_by: hasCustomPrice ? currentUserId : null,
         updated_at: new Date().toISOString()
       };
 

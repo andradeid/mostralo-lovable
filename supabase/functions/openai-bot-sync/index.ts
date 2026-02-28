@@ -1642,6 +1642,21 @@ serve(async (req) => {
                 parameters: { type: 'object', properties: {} },
               },
             },
+            {
+              type: 'function',
+              function: {
+                name: 'calculate_delivery_fee',
+                description: 'Calcula a taxa de entrega baseada na localização GPS do cliente. Use quando o cliente enviar sua localização pelo WhatsApp.',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    latitude: { type: 'number', description: 'Latitude da localização do cliente' },
+                    longitude: { type: 'number', description: 'Longitude da localização do cliente' },
+                  },
+                  required: ['latitude', 'longitude'],
+                },
+              },
+            },
           ];
 
           const assistantPayload = {

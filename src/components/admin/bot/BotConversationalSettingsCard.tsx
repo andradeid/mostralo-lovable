@@ -197,6 +197,61 @@ export function BotConversationalSettingsCard({ storeId, disabled }: BotConversa
             </div>
           </div>
         )}
+
+        {/* Frases de produto indisponível */}
+        {settings.never_say_unavailable && (
+          <div className="space-y-2 pt-2 border-t">
+            <div className="flex items-center gap-2">
+              <PackageSearch className="h-4 w-4 text-orange-500 shrink-0" />
+              <Label className="text-xs sm:text-sm font-medium">Frases quando produto não encontrado</Label>
+            </div>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">
+              O bot usará aleatoriamente uma dessas frases ao não localizar um produto no estoque
+            </p>
+
+            <div className="space-y-2">
+              {settings.unavailable_phrases.map((phrase, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <Input
+                    value={phrase}
+                    onChange={(e) => handleUpdateUnavailablePhrase(index, e.target.value)}
+                    className="flex-1 h-8 text-xs sm:text-sm"
+                    disabled={disabled || saving}
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 shrink-0"
+                    onClick={() => handleRemoveUnavailablePhrase(index)}
+                    disabled={disabled || saving || settings.unavailable_phrases.length <= 1}
+                  >
+                    <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Input
+                placeholder="Nova frase para produto indisponível..."
+                value={newUnavailablePhrase}
+                onChange={(e) => setNewUnavailablePhrase(e.target.value)}
+                className="flex-1 h-8 text-xs sm:text-sm"
+                disabled={disabled || saving}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddUnavailablePhrase()}
+              />
+              <Button
+                size="sm"
+                onClick={handleAddUnavailablePhrase}
+                disabled={disabled || !newUnavailablePhrase.trim() || saving}
+                className="h-8"
+              >
+                <Plus className="h-3.5 w-3.5 mr-1" />
+                Adicionar
+              </Button>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

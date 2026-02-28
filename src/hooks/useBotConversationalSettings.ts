@@ -89,6 +89,8 @@ export function useBotConversationalSettings(storeId: string) {
         informal_tone: newSettings.informal_tone,
         closing_message: newSettings.closing_message,
         generic_phrases: newSettings.generic_phrases,
+        never_say_unavailable: newSettings.never_say_unavailable,
+        unavailable_phrases: newSettings.unavailable_phrases,
       };
 
       if (newSettings.id) {

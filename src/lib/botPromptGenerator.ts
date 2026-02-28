@@ -1,3 +1,20 @@
+interface DeliveryZoneTimeFee {
+  id: string;
+  startTime: string;
+  endTime: string;
+  fee: number;
+  label?: string;
+}
+
+interface DeliveryZone {
+  id: string;
+  name: string;
+  type: string;
+  deliveryFee: number;
+  isActive?: boolean;
+  timeFees?: DeliveryZoneTimeFee[];
+}
+
 interface Store {
   name: string;
   description?: string;
@@ -15,6 +32,7 @@ interface Store {
   state?: string;
   custom_domain?: string;
   custom_domain_verified?: boolean;
+  delivery_zones?: DeliveryZone[];
 }
 
 // Determinar domínio correto para links da loja (preview)
@@ -132,6 +150,26 @@ function formatPaymentMethods(store: Store): string {
   return methods.join('\n');
 }
 
+function formatDeliveryZones(zones?: DeliveryZone[]): string {
+  if (!zones || zones.length === 0) return '';
+
+  const activeZones = zones.filter(z => z.isActive !== false);
+  if (activeZones.length === 0) return '';
+
+  const lines = activeZones.map(zone => {
+    let line = `- ${zone.name}: R$ ${zone.deliveryFee.toFixed(2)}`;
+    if (zone.timeFees && zone.timeFees.length > 0) {
+      const timeParts = zone.timeFees.map(tf => 
+        `  → ${tf.label || 'Horário especial'} (${tf.startTime}-${tf.endTime}): R$ ${tf.fee.toFixed(2)}`
+      );
+      line += '\n' + timeParts.join('\n');
+    }
+    return line;
+  });
+
+  return lines.join('\n');
+}
+
 const defaultPersonalitySettings: PersonalitySettings = {
   personality: 'friendly',
   emojiLevel: 'moderate',
@@ -241,9 +279,11 @@ export function generateBotPromptPreview(
 ${formatPaymentMethods(store)}`
     : '';
 
+  const zonesText = formatDeliveryZones(store.delivery_zones);
   const deliverySection = (settings.includeDeliveryFee || settings.includeMinOrder)
-    ? `\nDELIVERY:${settings.includeDeliveryFee ? `
-- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}` : ''}${settings.includeMinOrder ? `
+    ? `\nDELIVERY:${settings.includeDeliveryFee ? (zonesText 
+        ? `\nÁREAS DE ENTREGA (taxa varia por região${store.delivery_zones?.some(z => z.timeFees?.length) ? ' e horário' : ''}):\n${zonesText}`
+        : `\n- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}`) : ''}${settings.includeMinOrder ? `
 - Pedido mínimo: ${store.min_order_value ? `R$ ${store.min_order_value.toFixed(2)}` : 'Sem valor mínimo'}` : ''}`
     : '';
 
@@ -367,9 +407,11 @@ ${navigationLink ? `- 📍 Link para navegação: ${navigationLink}
 ${formatPaymentMethods(store)}`
     : '';
 
+  const zonesTextV2 = formatDeliveryZones(store.delivery_zones);
   const deliverySection = (settings.includeDeliveryFee || settings.includeMinOrder)
-    ? `\nDELIVERY:${settings.includeDeliveryFee ? `
-- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}` : ''}${settings.includeMinOrder ? `
+    ? `\nDELIVERY:${settings.includeDeliveryFee ? (zonesTextV2 
+        ? `\nÁREAS DE ENTREGA (taxa varia por região${store.delivery_zones?.some(z => z.timeFees?.length) ? ' e horário' : ''}):\n${zonesTextV2}`
+        : `\n- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}`) : ''}${settings.includeMinOrder ? `
 - Pedido mínimo: ${store.min_order_value ? `R$ ${store.min_order_value.toFixed(2)}` : 'Sem valor mínimo'}` : ''}`
     : '';
 

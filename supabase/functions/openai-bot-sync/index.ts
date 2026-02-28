@@ -160,6 +160,27 @@ function formatPaymentMethods(store: any): string {
   return methods.join('\n');
 }
 
+// Formatar zonas de entrega com taxas por horário
+function formatDeliveryZones(zones: any[]): string {
+  if (!zones || zones.length === 0) return '';
+
+  const activeZones = zones.filter((z: any) => z.isActive !== false);
+  if (activeZones.length === 0) return '';
+
+  const lines = activeZones.map((zone: any) => {
+    let line = `- ${zone.name}: R$ ${Number(zone.deliveryFee).toFixed(2)}`;
+    if (zone.timeFees && zone.timeFees.length > 0) {
+      const timeParts = zone.timeFees.map((tf: any) => 
+        `  → ${tf.label || 'Horário especial'} (${tf.startTime}-${tf.endTime}): R$ ${Number(tf.fee).toFixed(2)}`
+      );
+      line += '\n' + timeParts.join('\n');
+    }
+    return line;
+  });
+
+  return lines.join('\n');
+}
+
 // Determinar domínio correto para links da loja
 function getStoreBaseUrl(store: any, origin?: string): string {
   // 1º Prioridade: Domínio customizado VERIFICADO da loja
@@ -187,7 +208,8 @@ function generateSystemPrompt(
   products: any[], 
   categories: any[], 
   origin?: string,
-  personalitySettings?: PersonalitySettings
+  personalitySettings?: PersonalitySettings,
+  deliveryZones?: any[]
 ): string {
   const baseUrl = getStoreBaseUrl(store, origin);
   const storeLink = `${baseUrl}/loja/${store.slug}`;
@@ -222,9 +244,11 @@ function generateSystemPrompt(
   const paymentSection = `\nFORMAS DE PAGAMENTO:
 ${formatPaymentMethods(store)}`;
 
-  // Seção de delivery
-  const deliverySection = `\nDELIVERY:
-- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}
+  // Seção de delivery com zonas
+  const zonesText = formatDeliveryZones(deliveryZones || []);
+  const deliverySection = `\nDELIVERY:${zonesText 
+    ? `\nÁREAS DE ENTREGA (taxa varia por região${(deliveryZones || []).some((z: any) => z.timeFees?.length) ? ' e horário' : ''}):\n${zonesText}`
+    : `\n- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}`}
 - Pedido mínimo: ${store.min_order_value ? `R$ ${store.min_order_value.toFixed(2)}` : 'Sem valor mínimo'}`;
 
   // Seção de horários
@@ -326,7 +350,8 @@ function generateAssistantModePrompt(
   storeLink: string,
   navigationLink: string,
   personalitySettings: PersonalitySettings,
-  customInstructions?: string
+  customInstructions?: string,
+  deliveryZones?: any[]
 ): string {
   const personalityInstructions = generatePersonalityInstructions(personalitySettings);
 
@@ -348,9 +373,11 @@ function generateAssistantModePrompt(
   const paymentSection = `\nFORMAS DE PAGAMENTO:
 ${formatPaymentMethods(store)}`;
 
-  // Seção de delivery
-  const deliverySection = `\nDELIVERY:
-- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}
+  // Seção de delivery com zonas
+  const zonesTextV2 = formatDeliveryZones(deliveryZones || []);
+  const deliverySection = `\nDELIVERY:${zonesTextV2 
+    ? `\nÁREAS DE ENTREGA (taxa varia por região${(deliveryZones || []).some((z: any) => z.timeFees?.length) ? ' e horário' : ''}):\n${zonesTextV2}`
+    : `\n- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}`}
 - Pedido mínimo: ${store.min_order_value ? `R$ ${store.min_order_value.toFixed(2)}` : 'Sem valor mínimo'}`;
 
   // Seção de horários
@@ -546,17 +573,28 @@ serve(async (req) => {
     }
 
     // Buscar loja do usuário com todos os campos necessários
-    const { data: store, error: storeError } = await supabaseClient
-      .from('stores')
-      .select(`
-        *, 
-        google_maps_link, business_hours, delivery_fee, min_order_value,
-        accepts_cash, accepts_card, accepts_pix, city, state,
-        custom_domain, custom_domain_verified,
-        openai_api_key
-      `)
-      .eq('id', config.storeId)
-      .single();
+    const [storeRes, configRes] = await Promise.all([
+      supabaseClient
+        .from('stores')
+        .select(`
+          *, 
+          google_maps_link, business_hours, delivery_fee, min_order_value,
+          accepts_cash, accepts_card, accepts_pix, city, state,
+          custom_domain, custom_domain_verified,
+          openai_api_key
+        `)
+        .eq('id', config.storeId)
+        .single(),
+      supabaseClient
+        .from('store_configurations')
+        .select('delivery_zones')
+        .eq('store_id', config.storeId)
+        .maybeSingle(),
+    ]);
+
+    const store = storeRes.data;
+    const storeError = storeRes.error;
+    const deliveryZones = (configRes.data?.delivery_zones as any[]) || [];
 
     if (storeError || !store) {
       steps.push({ step: 'store_check', status: 'error', message: 'Loja não encontrada' });
@@ -1190,7 +1228,8 @@ serve(async (req) => {
           storeLink,
           navigationLink,
           personalitySettings,
-          customInstructions
+          customInstructions,
+          deliveryZones
         );
 
         steps.push({
@@ -1207,7 +1246,8 @@ serve(async (req) => {
           products || [], 
           categories || [], 
           origin,
-          personalitySettings
+          personalitySettings,
+          deliveryZones
         );
 
         steps.push({

@@ -186,18 +186,29 @@ serve(async (req) => {
     console.log(`[manage-openai-assistant] Action: ${action}, Store: ${storeId}`);
 
     // Buscar loja e configuração do bot
-    const { data: store, error: storeError } = await supabase
-      .from('stores')
-      .select(`
-        id, name, slug, description, address, city, state,
-        whatsapp, phone, business_hours, openai_api_key,
-        delivery_fee, min_order_value,
-        accepts_pix, accepts_card, accepts_cash,
-        latitude, longitude,
-        custom_domain, custom_domain_verified
-      `)
-      .eq('id', storeId)
-      .single();
+    const [storeRes, configRes] = await Promise.all([
+      supabase
+        .from('stores')
+        .select(`
+          id, name, slug, description, address, city, state,
+          whatsapp, phone, business_hours, openai_api_key,
+          delivery_fee, min_order_value,
+          accepts_pix, accepts_card, accepts_cash,
+          latitude, longitude,
+          custom_domain, custom_domain_verified
+        `)
+        .eq('id', storeId)
+        .single(),
+      supabase
+        .from('store_configurations')
+        .select('delivery_zones')
+        .eq('store_id', storeId)
+        .maybeSingle(),
+    ]);
+
+    const store = storeRes.data;
+    const storeError = storeRes.error;
+    const deliveryZones = (configRes.data?.delivery_zones as any[]) || [];
 
     if (storeError || !store) {
       return new Response(JSON.stringify({ error: 'Loja não encontrada' }), {
@@ -293,7 +304,23 @@ serve(async (req) => {
       return methods.length > 0 ? methods.join(', ') : 'Consulte a loja';
     };
 
-    // Gerar prompt do Assistant
+    // Formatar zonas de entrega
+    const formatDeliveryZonesLocal = (): string => {
+      if (!deliveryZones || deliveryZones.length === 0) return '';
+      const activeZones = deliveryZones.filter((z: any) => z.isActive !== false);
+      if (activeZones.length === 0) return '';
+      return activeZones.map((zone: any) => {
+        let line = `- ${zone.name}: R$ ${Number(zone.deliveryFee).toFixed(2)}`;
+        if (zone.timeFees && zone.timeFees.length > 0) {
+          const timeParts = zone.timeFees.map((tf: any) => 
+            `  → ${tf.label || 'Horário especial'} (${tf.startTime}-${tf.endTime}): R$ ${Number(tf.fee).toFixed(2)}`
+          );
+          line += '\n' + timeParts.join('\n');
+        }
+        return line;
+      }).join('\n');
+    };
+
     const generateAssistantInstructions = (): string => {
       const customPart = customInstructions || botConfig?.custom_prompt_instructions || '';
       
@@ -353,7 +380,14 @@ FORMAS DE PAGAMENTO:
 ${formatPaymentMethods()}
 
 DELIVERY:
-- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}
+${(() => {
+  const zonesText = formatDeliveryZonesLocal();
+  if (zonesText) {
+    const hasTimeFees = deliveryZones.some((z: any) => z.timeFees?.length);
+    return `ÁREAS DE ENTREGA (taxa varia por região${hasTimeFees ? ' e horário' : ''}):\n${zonesText}`;
+  }
+  return `- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}`;
+})()}
 - Pedido mínimo: ${store.min_order_value ? `R$ ${store.min_order_value.toFixed(2)}` : 'Sem valor mínimo'}
 
 INSTRUÇÕES GERAIS:

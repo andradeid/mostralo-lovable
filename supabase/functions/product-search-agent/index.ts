@@ -1400,18 +1400,20 @@ serve(async (req) => {
               // Adicionar produtos encontrados com match direto
               for (const p of matchedProducts) {
                 const inStock = p.track_stock ? (p.stock_quantity || 0) > 0 : true;
-                foundProducts.push({
+                const productLink = buildProductLink(p.slug);
+                const productEntry: any = {
                   name: p.name,
                   identified_name: productName,
                   slug: p.slug,
                   price: p.is_on_offer && p.offer_price ? p.offer_price : p.price,
-                  link: buildProductLink(p.slug),
                   in_stock: inStock,
                   stock_quantity: p.track_stock ? p.stock_quantity : 'Disponível',
                   found_in_catalog: true,
                   is_similar: false,
-                  image_url: p.image_url || undefined, // URL da imagem do produto
-                });
+                  image_url: p.image_url || undefined,
+                };
+                if (productLink) productEntry.link = productLink;
+                foundProducts.push(productEntry);
               }
             } else if (!foundProducts.some(p => p.identified_name === productName)) {
               // Produto não encontrado no catálogo (e não foi adicionado como similar)

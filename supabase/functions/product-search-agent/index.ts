@@ -489,11 +489,18 @@ serve(async (req) => {
       // SEARCH_PRODUCTS - Busca produtos por termo
       // ========================================
       case 'search_products': {
-        const query = args.query?.toLowerCase() || '';
-        const limit = args.limit || 5;
+        const query = args.query?.toLowerCase()?.trim() || '';
+        const limit = args.limit || 10;
 
-        // Buscar produtos que contenham o termo
-        const { data: products, error } = await supabase
+        // Estratégia de busca em 2 etapas:
+        // 1. Busca exata com o termo completo
+        // 2. Se poucos resultados, busca por cada palavra individualmente
+        
+        let products: any[] | null = null;
+        let error: any = null;
+
+        // Etapa 1: Busca com termo completo
+        const exactResult = await supabase
           .from('products')
           .select(`
             id, name, slug, price, original_price, offer_price, description,
@@ -507,6 +514,37 @@ serve(async (req) => {
           .order('is_featured', { ascending: false })
           .order('name')
           .limit(limit);
+
+        products = exactResult.data;
+        error = exactResult.error;
+
+        // Etapa 2: Se poucos resultados, buscar por palavras individuais (AND)
+        if (!error && (!products || products.length < 2) && query.includes(' ')) {
+          const words = query.split(/\s+/).filter(w => w.length >= 2);
+          if (words.length >= 2) {
+            // Construir filtro AND: todas as palavras devem estar no nome
+            const andFilter = words.map(w => `name.ilike.%${w}%`).join(',');
+            const wordResult = await supabase
+              .from('products')
+              .select(`
+                id, name, slug, price, original_price, offer_price, description,
+                is_available, is_featured, is_on_offer,
+                track_stock, stock_quantity, image_url,
+                categories(name)
+              `)
+              .eq('store_id', storeId)
+              .eq('is_available', true)
+              .or(andFilter)
+              .order('is_featured', { ascending: false })
+              .order('name')
+              .limit(limit);
+
+            if (!wordResult.error && wordResult.data && wordResult.data.length > (products?.length || 0)) {
+              products = wordResult.data;
+              console.log(`[product-search-agent] Busca por palavras "${words.join('" + "')}" encontrou ${products.length} resultados (vs ${exactResult.data?.length || 0} exata)`);
+            }
+          }
+        }
 
         if (error) {
           console.error('Erro na busca:', error);

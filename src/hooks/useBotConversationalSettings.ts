@@ -61,6 +61,8 @@ export function useBotConversationalSettings(storeId: string) {
           informal_tone: data.informal_tone,
           closing_message: data.closing_message || DEFAULT_SETTINGS.closing_message,
           generic_phrases: Array.isArray(data.generic_phrases) ? data.generic_phrases as string[] : DEFAULT_SETTINGS.generic_phrases,
+          never_say_unavailable: data.never_say_unavailable ?? DEFAULT_SETTINGS.never_say_unavailable,
+          unavailable_phrases: Array.isArray(data.unavailable_phrases) ? data.unavailable_phrases as string[] : DEFAULT_SETTINGS.unavailable_phrases,
         });
       }
     } catch (err) {

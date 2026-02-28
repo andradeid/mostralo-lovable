@@ -407,9 +407,11 @@ ${navigationLink ? `- 📍 Link para navegação: ${navigationLink}
 ${formatPaymentMethods(store)}`
     : '';
 
+  const zonesTextV2 = formatDeliveryZones(store.delivery_zones);
   const deliverySection = (settings.includeDeliveryFee || settings.includeMinOrder)
-    ? `\nDELIVERY:${settings.includeDeliveryFee ? `
-- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}` : ''}${settings.includeMinOrder ? `
+    ? `\nDELIVERY:${settings.includeDeliveryFee ? (zonesTextV2 
+        ? `\nÁREAS DE ENTREGA (taxa varia por região${store.delivery_zones?.some(z => z.timeFees?.length) ? ' e horário' : ''}):\n${zonesTextV2}`
+        : `\n- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}`) : ''}${settings.includeMinOrder ? `
 - Pedido mínimo: ${store.min_order_value ? `R$ ${store.min_order_value.toFixed(2)}` : 'Sem valor mínimo'}` : ''}`
     : '';
 

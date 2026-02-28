@@ -380,7 +380,14 @@ FORMAS DE PAGAMENTO:
 ${formatPaymentMethods()}
 
 DELIVERY:
-- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}
+${(() => {
+  const zonesText = formatDeliveryZonesLocal();
+  if (zonesText) {
+    const hasTimeFees = deliveryZones.some((z: any) => z.timeFees?.length);
+    return `ÁREAS DE ENTREGA (taxa varia por região${hasTimeFees ? ' e horário' : ''}):\n${zonesText}`;
+  }
+  return `- Taxa de entrega: ${store.delivery_fee ? `R$ ${store.delivery_fee.toFixed(2)}` : 'Consulte na loja'}`;
+})()}
 - Pedido mínimo: ${store.min_order_value ? `R$ ${store.min_order_value.toFixed(2)}` : 'Sem valor mínimo'}
 
 INSTRUÇÕES GERAIS:

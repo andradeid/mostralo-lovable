@@ -165,6 +165,7 @@ export function SubscriberEditDialog({ open, onOpenChange, subscriber, onSuccess
   };
 
   const selectedPlan = plans.find(p => p.id === selectedPlanId);
+  const parsedCustomPrice = Number.parseFloat(customPrice.replace(',', '.'));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

@@ -1,5 +1,8 @@
 project_id = "noshwvwpjtnvndokbfjx"
 
+[functions.clone-store]
+verify_jwt = false
+
 [functions.product-search-agent]
 verify_jwt = false
 

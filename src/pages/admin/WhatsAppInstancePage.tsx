@@ -1420,6 +1420,20 @@ export default function WhatsAppInstancePage() {
                   </div>
                 )}
 
+                {/* Cards exclusivos do modo Conversacional */}
+                {botConfig.bot_mode === 'conversational' && (
+                  <div className="grid gap-3 sm:gap-6 lg:grid-cols-2">
+                    <BotOrderQuestionsCard
+                      storeId={storeId}
+                      disabled={!isConnected}
+                    />
+                    <BotConversationalSettingsCard
+                      storeId={storeId}
+                      disabled={!isConnected}
+                    />
+                  </div>
+                )}
+
                 <BotGreetingPreviewCard
                   storeName={storeName}
                   storeSlug={storeSlug}

@@ -165,7 +165,7 @@ Deno.serve(async (req) => {
 
     // Clonar categorias em batch
     const categoryMap = new Map<string, string>();
-    const sourceCategories = categoriesRes.data || [];
+    if (sourceCategories.length > 0) {
     if (sourceCategories.length > 0) {
       const catInserts = sourceCategories.map(cat => {
         const { id: _oldId, store_id: _sid, created_at: _cca2, updated_at: _cua2, ...catFields } = cat;

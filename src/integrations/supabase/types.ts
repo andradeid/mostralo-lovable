@@ -9177,6 +9177,10 @@ export type Database = {
           store_id: string
           unavailable_phrases: Json
           updated_at: string
+          upsell_custom_price: number | null
+          upsell_enabled: boolean
+          upsell_message: string
+          upsell_product_id: string | null
         }
         Insert: {
           closing_message?: string | null
@@ -9191,6 +9195,10 @@ export type Database = {
           store_id: string
           unavailable_phrases?: Json
           updated_at?: string
+          upsell_custom_price?: number | null
+          upsell_enabled?: boolean
+          upsell_message?: string
+          upsell_product_id?: string | null
         }
         Update: {
           closing_message?: string | null
@@ -9205,6 +9213,10 @@ export type Database = {
           store_id?: string
           unavailable_phrases?: Json
           updated_at?: string
+          upsell_custom_price?: number | null
+          upsell_enabled?: boolean
+          upsell_message?: string
+          upsell_product_id?: string | null
         }
         Relationships: [
           {
@@ -9219,6 +9231,13 @@ export type Database = {
             columns: ["store_id"]
             isOneToOne: true
             referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_bot_conversational_settings_upsell_product_id_fkey"
+            columns: ["upsell_product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]

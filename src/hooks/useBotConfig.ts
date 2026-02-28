@@ -203,8 +203,13 @@ export function useBotConfig(storeId: string | null) {
       ]);
 
       if (storeResult.data) {
+        // Enriquecer store com delivery_zones da configuração
+        const storeWithZones = {
+          ...storeResult.data,
+          delivery_zones: configResult?.data?.delivery_zones as any[] || [],
+        };
         const preview = generateBotPromptPreview(
-          storeResult.data,
+          storeWithZones,
           productsResult.data || [],
           categoriesResult.data || [],
           botName,

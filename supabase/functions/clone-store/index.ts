@@ -247,7 +247,7 @@ Deno.serve(async (req) => {
     }
 
     // Clonar addons em batch
-    const sourceAddons = addonsRes.data || [];
+    if (sourceAddons.length > 0) {
     if (sourceAddons.length > 0) {
       const addonInserts = sourceAddons.map(addon => {
         const { id: _aid, store_id: _asid, created_at: _aaca, updated_at: _aaua, ...addonFields } = addon;

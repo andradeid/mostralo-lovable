@@ -833,7 +833,21 @@ export function AdminSidebar() {
           />
         ) : (
           <>
-
+        {/* Seletor de Loja - para store_admin com múltiplas lojas */}
+        {availableStores.length > 1 && (!collapsed || isMobile) && (
+          <div className="px-4 py-2 border-b">
+            <label className="text-xs font-medium text-muted-foreground mb-1 block">Loja Ativa</label>
+            <select
+              value={validatedStoreId || ''}
+              onChange={(e) => switchStore(e.target.value)}
+              className="w-full text-sm border rounded-md px-2 py-1.5 bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary"
+            >
+              {availableStores.map(store => (
+                <option key={store.id} value={store.id}>{store.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {/* Navigation Groups - Collapsible */}
         {Object.entries(groupedItems).map(([groupName, items]) => {

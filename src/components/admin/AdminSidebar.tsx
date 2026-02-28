@@ -93,7 +93,7 @@ export function AdminSidebar() {
   const { state, isMobile } = useSidebar();
   const location = useLocation();
   const { signOut, profile, userRole } = useAuth();
-  const { storeId: validatedStoreId, isLoading: storeAccessLoading, hasAccess } = useStoreAccess();
+  const { storeId: validatedStoreId, isLoading: storeAccessLoading, hasAccess, availableStores, switchStore } = useStoreAccess();
   const { toast } = useToast();
   const { pendingOrdersCount } = useNewOrders();
   const { hasModule, loading: modulesLoading } = useStoreModules(validatedStoreId);

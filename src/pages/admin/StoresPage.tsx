@@ -24,6 +24,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 import { StoreOpenAIConfigModal } from '@/components/admin/stores/StoreOpenAIConfigModal';
 import { StoreDeleteDialog } from '@/components/admin/stores/StoreDeleteDialog';
+import { CloneStoreDialog } from '@/components/admin/stores/CloneStoreDialog';
 
 interface StoreData {
   id: string;

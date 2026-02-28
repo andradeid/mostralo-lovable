@@ -231,7 +231,7 @@ Deno.serve(async (req) => {
 
     // Clonar addon_categories em batch
     const addonCategoryMap = new Map<string, string>();
-    const sourceAddonCats = addonCatsRes.data || [];
+    if (sourceAddonCats.length > 0) {
     if (sourceAddonCats.length > 0) {
       const acInserts = sourceAddonCats.map(ac => {
         const { id: _oldId, store_id: _sid3, created_at: _aca, updated_at: _aua, ...acFields } = ac;

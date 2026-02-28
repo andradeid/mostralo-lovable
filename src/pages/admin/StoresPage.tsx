@@ -18,7 +18,10 @@ import {
   Sparkles,
   Check,
   Trash2,
-  Copy
+  Copy,
+  User,
+  CreditCard,
+  Clock
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
@@ -39,6 +42,13 @@ interface StoreData {
   logo_url: string | null;
   cover_url: string | null;
   openai_api_key: string | null;
+  subscription_expires_at: string | null;
+  custom_monthly_price: number | null;
+  plan_id: string | null;
+  owner_name?: string | null;
+  owner_email?: string | null;
+  plan_name?: string | null;
+  plan_price?: number | null;
 }
 
 const StoresPage = () => {
@@ -63,11 +73,40 @@ const StoresPage = () => {
     try {
       const { data, error } = await supabase
         .from('stores')
-        .select('id, name, description, slug, phone, address, status, created_at, owner_id, logo_url, cover_url, openai_api_key')
+        .select('id, name, description, slug, phone, address, status, created_at, owner_id, logo_url, cover_url, openai_api_key, subscription_expires_at, custom_monthly_price, plan_id')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setStores(data || []);
+
+      // Buscar owners e planos em paralelo
+      const ownerIds = [...new Set((data || []).map(s => s.owner_id).filter(Boolean))] as string[];
+      const planIds = [...new Set((data || []).map(s => s.plan_id).filter(Boolean))] as string[];
+
+      const [ownersResult, plansResult] = await Promise.all([
+        ownerIds.length > 0
+          ? supabase.from('profiles').select('id, full_name, email').in('id', ownerIds)
+          : { data: [] },
+        planIds.length > 0
+          ? supabase.from('plans').select('id, name, price').in('id', planIds)
+          : { data: [] },
+      ]);
+
+      const ownersMap = new Map((ownersResult.data || []).map(o => [o.id, o]));
+      const plansMap = new Map((plansResult.data || []).map(p => [p.id, p]));
+
+      const enriched: StoreData[] = (data || []).map(s => {
+        const owner = s.owner_id ? ownersMap.get(s.owner_id) : null;
+        const plan = s.plan_id ? plansMap.get(s.plan_id) : null;
+        return {
+          ...s,
+          owner_name: owner?.full_name || null,
+          owner_email: owner?.email || null,
+          plan_name: plan?.name || null,
+          plan_price: plan?.price || null,
+        };
+      });
+
+      setStores(enriched);
     } catch (error) {
       console.error('Erro ao buscar lojas:', error);
       toast({
@@ -273,6 +312,13 @@ const StoresPage = () => {
                       )}
                       
                       <div className="space-y-1 text-xs text-muted-foreground">
+                        {/* Dono da loja */}
+                        {store.owner_name && (
+                          <div className="flex items-center space-x-1">
+                            <User className="w-3 h-3" />
+                            <span className="font-medium text-foreground">{store.owner_name}</span>
+                          </div>
+                        )}
                         {store.phone && (
                           <div className="flex items-center space-x-1">
                             <Phone className="w-3 h-3" />
@@ -283,6 +329,29 @@ const StoresPage = () => {
                           <div className="flex items-center space-x-1">
                             <MapPin className="w-3 h-3" />
                             <span className="line-clamp-1">{store.address}</span>
+                          </div>
+                        )}
+                        {/* Plano e valor */}
+                        {store.plan_name && (
+                          <div className="flex items-center space-x-1">
+                            <CreditCard className="w-3 h-3" />
+                            <span>
+                              {store.plan_name} — R$ {(store.custom_monthly_price ?? store.plan_price ?? 0).toFixed(2)}/mês
+                            </span>
+                          </div>
+                        )}
+                        {/* Vencimento */}
+                        {store.subscription_expires_at && (
+                          <div className="flex items-center space-x-1">
+                            <Clock className="w-3 h-3" />
+                            <span className={
+                              new Date(store.subscription_expires_at) < new Date()
+                                ? 'text-destructive font-medium'
+                                : ''
+                            }>
+                              Vence em {new Date(store.subscription_expires_at).toLocaleDateString('pt-BR')}
+                              {new Date(store.subscription_expires_at) < new Date() && ' (Vencido)'}
+                            </span>
                           </div>
                         )}
                         <div className="flex items-center space-x-1">

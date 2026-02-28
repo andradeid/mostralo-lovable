@@ -147,9 +147,9 @@ export function useStoreAccess(): StoreAccess {
             if (normalizedOwnedStores.length > 0) {
               setAvailableStores(normalizedOwnedStores);
               const savedStoreId = localStorage.getItem(ACTIVE_STORE_KEY);
-              const savedStore = savedStoreId ? ownedStores.find(s => s.id === savedStoreId) : null;
-              finalStoreId = savedStore?.id ?? ownedStores[0].id;
-              finalStoreName = savedStore?.name ?? ownedStores[0].name;
+              const savedStore = savedStoreId ? normalizedOwnedStores.find(s => s.id === savedStoreId) : null;
+              finalStoreId = savedStore?.id ?? normalizedOwnedStores[0].id;
+              finalStoreName = savedStore?.name ?? normalizedOwnedStores[0].name;
               if (!savedStoreId) localStorage.setItem(ACTIVE_STORE_KEY, finalStoreId);
             } else {
               if (profile?.approval_status === 'pending') {

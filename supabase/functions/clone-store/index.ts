@@ -260,7 +260,6 @@ Deno.serve(async (req) => {
 
     // Clonar vínculos category_addon_categories
     if (sourceCatAddonCats.length > 0) {
-    if (sourceCatAddonCats.length > 0) {
       const newLinks = sourceCatAddonCats
         .map(link => {
           const newCatId = categoryMap.get(link.category_id);

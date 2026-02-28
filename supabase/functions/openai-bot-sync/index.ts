@@ -1181,7 +1181,9 @@ serve(async (req) => {
       const existingBots = await findExistingBots(instanceName);
 
       if (existingBots.length > 0) {
-        const mainBot = existingBots[0];
+        const preferredBotId = existingBotConfig?.evolution_bot_id || null;
+        const mainBot = existingBots.find((b) => b.id && b.id === preferredBotId) || existingBots[0];
+        const extraBots = existingBots.filter((b) => b.id && b.id !== mainBot?.id);
         
         steps.push({
           step: 'bot_list',
@@ -1190,23 +1192,39 @@ serve(async (req) => {
           details: existingBots.map((b) => `${b.description || b.id?.slice(0, 8) || 'sem-id'}`).join(', '),
         });
 
-        // ESTRATÉGIA 1: Tentar UPDATE primeiro (mais seguro, bot não fica offline)
-        if (mainBot.id) {
+        if (extraBots.length > 0) {
+          steps.push({
+            step: 'bot_duplicates',
+            status: 'warning',
+            message: `${extraBots.length} bot(s) duplicado(s) detectado(s)`,
+            details: 'Removendo duplicados para evitar respostas em dobro',
+          });
+        }
+
+        // ESTRATÉGIA 1: Atualizar bot principal e remover duplicados
+        if (mainBot?.id) {
           steps.push({
             step: 'bot_update',
             status: 'success',
-            message: 'Atualizando bot existente via PUT...',
+            message: 'Atualizando bot principal via PUT...',
             details: `Bot ID: ${mainBot.id.slice(0, 8)}...`,
           });
 
           const updateResult = await updateExistingBot(instanceName, mainBot.id, botPayload);
           
           if (updateResult.success) {
+            // Limpar bots extras para prevenir respostas duplicadas
+            for (const extraBot of extraBots) {
+              if (extraBot.id) {
+                await deleteExistingBot(instanceName, extraBot.id);
+              }
+            }
+
             steps.push({
               step: 'bot_updated',
               status: 'success',
-              message: '✅ Bot atualizado com sucesso! (sem interrupção)',
-              details: `ID: ${mainBot.id.slice(0, 8)}...`,
+              message: '✅ Bot principal atualizado e duplicados removidos',
+              details: `ID principal: ${mainBot.id.slice(0, 8)}...`,
             });
             return { success: true, botId: mainBot.id, created: false };
           }
